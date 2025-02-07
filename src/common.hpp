@@ -24,6 +24,9 @@ using u64 = uint64_t;
 using usize = size_t;
 using uptr = uintptr_t;
 
+#define EXTRACT_BITS(value, high, low)                                         \
+    (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))
+
 #define BIT(n) (1 << (n))
 #define ENABLE_ENUM_BITMASK_OPERATORS(x)                                       \
     inline x operator|(x a, x b) {                                             \

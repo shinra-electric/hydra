@@ -365,7 +365,8 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     };
 
     *((CmifOutHeader*)out_addr) = cmif_header;
-    out_addr += align(sizeof(CmifOutHeader), (usize)0x10);
+    // out_addr += align(sizeof(CmifOutHeader), (usize)0x10);
+    *((CmifOutHeader*)(out_addr + sizeof(CmifDomainOutHeader))) = cmif_header;
 
     return RESULT_SUCCESS;
 }

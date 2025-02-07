@@ -59,16 +59,17 @@ const std::string path =
     "/Users/samuliak/Documents/deko3d_examples/build/0_hello_world.nro";
 
 // HACK
-#define PRINT_ADDR_TO_INDEX(addr)                                              \
-    printf("PRINT_ADDR_TO_INDEX: %u\n", (addr - 0x80) / 4)
-#define PRINT_INDEX_TO_ADDR(addr)                                              \
-    printf("PRINT_INDEX_TO_ADDR: 0x%08x\n", addr * 4 + 0x80)
-#define PRINT_PC_TO_ADDR(pc)                                                   \
-    printf("PRINT_PC_TO_ADDR: 0x%016x\n", pc - 0x80000000 + 0x80)
+// #define PRINT_ADDR_TO_INDEX(addr) \
+//    printf("PRINT_ADDR_TO_INDEX: %u\n", (addr - 0x80) / 4)
+// #define PRINT_INDEX_TO_ADDR(addr) \
+//    printf("PRINT_INDEX_TO_ADDR: 0x%08x\n", addr * 4 + 0x80)
+// #define PRINT_PC_TO_ADDR(pc) \
+//    printf("PRINT_PC_TO_ADDR: 0x%016x\n", pc - 0x80000000 + 0x80)
 
 // HACK
-void SET_INSTRUCTION(u32* data, i64 index, u32 old_instruction,
+void SET_INSTRUCTION(u32* data, i64 addr /*, u32 old_instruction*/,
                      u32 new_instruction) {
+    /*
     printf("ORIGINAL: 0x%08x\n", data[index]);
     for (i64 i = index; i < index + 256; i++) {
         if (data[i] == old_instruction) {
@@ -79,6 +80,8 @@ void SET_INSTRUCTION(u32* data, i64 index, u32 old_instruction,
     }
 
     throw;
+    */
+    data[(addr - 0x80) / 4] = new_instruction;
 }
 
 // HACK
@@ -112,10 +115,12 @@ int main(int argc, const char* argv[]) {
     u32* data = (u32*)(rom->GetRom().data() + rom->GetTextOffset());
     // data[10] = NOP; // __nx_dynamic
     //  data[16] = NOP; // __libnx_init
-    SET_INSTRUCTION(data, 3176, 0xa9be7bfd, RET); // mutexLock
-    SET_INSTRUCTION(data, 3208, 0xd53bd061, RET); // mutexUnlock
-    // SET_INSTRUCTION(data, 9148, 0x97ffff24, MOV_X0_XZR); // _smCmifCmdInPid
-    SET_INSTRUCTION(data, 746, 0x94001356, MOV_X0_XZR); // appletInitialize
+    // SET_INSTRUCTION(data, 3176, 0xa9be7bfd, RET); // mutexLock
+    // SET_INSTRUCTION(data, 3208, 0xd53bd061, RET); // mutexUnlock
+    //  SET_INSTRUCTION(data, 9148, 0x97ffff24, MOV_X0_XZR); // _smCmifCmdInPid
+    SET_INSTRUCTION(data, 0x00000c28,
+                    MOV_X0_XZR); // appletInitialize, crash due to "stp q31,
+                                 // q31, [x0, #0x20]"
     // SET_INSTRUCTION(data, 8710, 0x9400020e, MOV_X0_XZR); //
     // smGetServiceWrapper SET_INSTRUCTION(data, 8724, 0x97ffff60,
     //                 MOV_X0_XZR); // _hidCreateAppletResource.constprop.0
@@ -123,30 +128,26 @@ int main(int argc, const char* argv[]) {
     //                 MOV_X0_XZR); // _hidCmdGetHandle.constprop.0
     // SET_INSTRUCTION(data, 8739, 0x94000645, MOV_X0_XZR); // shmemMap
     // SET_INSTRUCTION(data, 755, 0x940022e1, MOV_X0_XZR);  // timeInitialize
-    SET_INSTRUCTION(
-        data, 757, 0x9400006f,
-        MOV_X0_XZR); // __libnx_init_time, doesn't have to be skipped if
-                     // _smCmifCmdInPid is skipped, some sort of MSR MRS system
-    SET_INSTRUCTION(data, 758, 0x94001946, MOV_X0_XZR); // fsInitialize
-    SET_INSTRUCTION(data, 7144, 0x94000d84,
-                    MOV_X0_XZR); // sessionmgrAttachClient
+    // SET_INSTRUCTION(
+    //    data, 0x00000c54,
+    //    MOV_X0_XZR); // __libnx_init_time, doesn't have to be skipped if
+    // _smCmifCmdInPid is skipped, "mrs x4, cntpct_el0"
+    // SET_INSTRUCTION(data, 758, 0x94001946, MOV_X0_XZR); // fsInitialize
+    SET_INSTRUCTION(data, 0x00007020,
+                    MOV_X0_XZR); // sessionmgrAttachClient, loops infinitely
+                                 // waiting for __builtin_ffs to return >= 0
     // SET_INSTRUCTION(data, 830, 0x14002e82, MOV_X0_XZR); // __libc_init_array
     // SET_INSTRUCTION(data, 831, 0x00000000, RET); // __libnx_init
     // SET_INSTRUCTION(data, 839, 0x00000000, RET); // __libnx_exit
-    //   data[3179] = RET; // mutexLock
-    //       printf("DB: 0x%08x\n", data[384 + 3]);
-    //        stuck at offset 384 + 17
-    //        data[384 + 18] = 0xD4200000;
-    //  PRINT_ADDR_TO_INDEX(0xd9c);
-    //  PRINT_INDEX_TO_ADDR(8739);
+    SET_INSTRUCTION(
+        data, 0x00002d58,
+        NOP); // fsdevMountDevice, crashes due to "str w4, [x2, #0x4]" at
+    //    0x00002ca8
+    SET_INSTRUCTION(data, 0x00000fb0,
+                    NOP); // setenv, crashes due to "str x23, [x25, #0x8]" at
+                          // 0x000b6e8 in malloc
 
-    // HACK
-    // PRINT_PC_TO_ADDR(0x80000fe8); // __libnx_init crash
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
-
-    // HACK
-    // auto d = (u8*)rom->GetRoData().data();
-    // printf("CHAR: %u%u%u%u%u%u\n", d[0], d[1], d[2], d[3], d[4], d[5]);
 
     // Horizon OS
     Hydra::Horizon::OS horizon;

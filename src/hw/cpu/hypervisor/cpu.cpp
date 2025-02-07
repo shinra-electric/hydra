@@ -3,6 +3,8 @@
 #include "common.hpp"
 #include "hw/mmu/hypervisor/mmu.hpp"
 #include "hw/mmu/memory.hpp"
+#include <Hypervisor/hv_gic.h>
+#include <Hypervisor/hv_vcpu.h>
 
 namespace Hydra::HW::CPU::Hypervisor {
 
@@ -11,7 +13,7 @@ CPU::CPU(HW::MMU::Hypervisor::MMU& mmu_) : mmu{mmu_} {
     HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &vcpu_exit, NULL));
 
     // TODO: what are these?
-    // SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519UL);
+    SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519UL);
     // SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925UL);
 
     // Enable FP and SIMD instructions.
@@ -20,8 +22,9 @@ CPU::CPU(HW::MMU::Hypervisor::MMU& mmu_) : mmu{mmu_} {
 
     SetSysReg(HV_SYS_REG_MAIR_EL1, 0xffUL);
 
-    // Trap debug access (BRK)
+    // Trap debug access
     HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
+    // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
 }
 
 CPU::~CPU() { hv_vcpu_destroy(vcpu); }
@@ -31,6 +34,17 @@ void CPU::Run() { HYP_ASSERT_SUCCESS(hv_vcpu_run(vcpu)); }
 void CPU::AdvancePC() {
     u64 pc = GetReg(HV_REG_PC);
     SetReg(HV_REG_PC, pc + 4);
+}
+
+void CPU::SetupVTimer() {
+    SetSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
+    SetSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
+              1000000000000000000); // TODO: set to current time
+}
+
+void CPU::UpdateVTimer() {
+    SetupVTimer();
+    hv_vcpu_set_vtimer_mask(vcpu, false);
 }
 
 u64 CPU::GetReg(hv_reg_t reg) const {
@@ -71,7 +85,7 @@ void CPU::LogStackTrace(HW::MMU::Memory* stack_mem) {
     printf("SP: 0x%08llx\n", sp);
 
     for (uint64_t frame = 0; frame < 32 && fp != 0; frame++) {
-        printf("LR = 0x%llx\n", lr);
+        printf("LR = 0x%llx\n", lr - 0x4);
 
         uint64_t saved_fp, saved_lr;
 

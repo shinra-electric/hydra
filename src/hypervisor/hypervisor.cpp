@@ -9,11 +9,16 @@
 namespace Hydra::Hypervisor {
 
 Hypervisor::Hypervisor(Horizon::OS& horizon_) : horizon{horizon_} {
-    hv_vm_config_t config = hv_vm_config_create();
+    // Create VM
+    hv_vm_config_t vm_config = hv_vm_config_create();
     // hv_vm_config_set_el2_enabled(config, true);
+    HYP_ASSERT_SUCCESS(hv_vm_create(vm_config));
 
-    // Create the VM
-    HYP_ASSERT_SUCCESS(hv_vm_create(config));
+    // Create GIC
+    // hv_gic_config_t gic_config = hv_gic_config_create();
+    // hv_gic_config_set_msi_region_base(&gic_config, TODO);
+    // hv_gic_config_set_msi_interrupt_range(&gic_config, TODO);
+    // HYP_ASSERT_SUCCESS(hv_gic_create(gic_config));
 
     // MMU
     mmu = new HW::MMU::Hypervisor::MMU();
@@ -25,6 +30,9 @@ Hypervisor::Hypervisor(Horizon::OS& horizon_) : horizon{horizon_} {
 
     // CPU
     cpu = new HW::CPU::Hypervisor::CPU(*mmu);
+
+    // Configure timers
+    cpu->SetupVTimer();
 }
 
 Hypervisor::~Hypervisor() {
@@ -122,6 +130,7 @@ void Hypervisor::Run() {
                 case 0x15:
                     // Debug
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                    // cpu->LogRegisters();
 
                     running =
                         horizon.GetKernel().SupervisorCall(cpu, esr & 0xffff);
@@ -142,10 +151,20 @@ void Hypervisor::Run() {
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
                     // TODO: check if valid
-                    printf("Data abort (NEW PC 0x%08llx)\n", elr + 4);
+                    printf("Data abort (PC 0x%08llx)\n", elr);
 
-                    // Set the PC to the next instruction
-                    // TODO: should be the same as SVC
+                    // printf("X3: 0x%08llx\n", cpu->GetReg(HV_REG_X3));
+
+                    // HACK: write the result code to a register
+                    cpu->SetReg(
+                        (hv_reg_t)(HV_REG_X0 +
+                                   EXTRACT_BITS(*((u32*)mmu->UnmapPtr(
+                                                    cpu->GetReg(HV_REG_PC))),
+                                                4, 0)),
+                        0);
+
+                    // Set the return address
+                    // TODO: correct?
                     cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                     break;
                 default:
@@ -174,6 +193,44 @@ void Hypervisor::Run() {
                 printf("SMC instruction\n");
 
                 cpu->AdvancePC();
+            } else if (hvEc == 0x18) {
+                // TODO: this should not happen
+
+                // Debug
+                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+
+                printf("MSR MRS instruction\n");
+
+                // Manually execute the instruction
+                u32 instruction =
+                    *((u32*)mmu->UnmapPtr(cpu->GetReg(HV_REG_PC)));
+
+                u8 opcode =
+                    (instruction >> 24) & 0xFF; // Extract opcode (bits 31-24)
+                u8 rt = instruction & 0x1F;     // Extract Rt (bits 4-0)
+
+                u8 op0 = (instruction >> 19) & 0x3; // Extract op0 (bits 21-20)
+                u8 op1 = (instruction >> 16) & 0x7; // Extract op1 (bits 18-16)
+                u8 crn = (instruction >> 12) & 0xF; // Extract CRn (bits 15-12)
+                u8 crm = (instruction >> 8) & 0xF;  // Extract CRm (bits 11-8)
+                u8 op2 = (instruction >> 5) & 0x7;  // Extract op2 (bits 7-5)
+
+                std::cout << "Opcode: 0x" << std::hex << (int)opcode
+                          << std::endl;
+                std::cout << "First Operand (Rt): X" << std::dec << (int)rt
+                          << std::endl;
+                std::cout << "Second Operand (System Register): "
+                          << "op0=" << (int)op0 << ", op1=" << (int)op1
+                          << ", CRn=" << (int)crn << ", CRm=" << (int)crm
+                          << ", op2=" << (int)op2 << std::endl;
+
+                cpu->SetReg((hv_reg_t)(HV_REG_X0 + rt), 0);
+
+                // Set the return address
+                // TODO: correct?
+                // u64 elr = cpu->GetSysReg(HV_SYS_REG_ELR_EL1);
+                // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+                cpu->AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
                 printf("BRK instruction\n");
                 cpu->LogRegisters(5);
@@ -181,6 +238,7 @@ void Hypervisor::Run() {
             } else {
                 // Debug
                 cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                cpu->LogRegisters();
 
                 fprintf(stderr,
                         "Unexpected VM exception: 0x%llx, EC 0x%x, ESR 0x%llx, "
@@ -191,13 +249,15 @@ void Hypervisor::Run() {
                         exit->exception.physical_address,
                         cpu->GetReg(HV_REG_PC),
                         cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
-                // printf("X0: 0x%08llx\n", cpu->GetReg(HV_REG_X0));
                 // printf("X2: 0x%08llx\n", cpu->GetReg(HV_REG_X2));
-                // printf("INSTRUCTION: 0x%08x\n",
-                //       *((u32*)horizon.GetKernel().UnmapPtr(
-                //           cpu->GetReg(HV_REG_PC))));
+                //  printf("INSTRUCTION: 0x%08x\n",
+                //        *((u32*)horizon.GetKernel().UnmapPtr(
+                //            cpu->GetReg(HV_REG_PC))));
                 break;
             }
+        } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
+            cpu->UpdateVTimer();
+            printf("VTimer\n");
         } else {
             fprintf(stderr, "Unexpected VM exit reason: %d\n", exit->reason);
             break;

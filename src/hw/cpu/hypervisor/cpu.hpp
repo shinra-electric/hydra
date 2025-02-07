@@ -33,6 +33,10 @@ class CPU : public CPUBase {
         SetReg((hv_reg_t)(HV_REG_X0 + reg), value);
     }
 
+    void SetupVTimer();
+
+    void UpdateVTimer();
+
     // Getters
     hv_vcpu_exit_t* GetExit() { return vcpu_exit; }
 
