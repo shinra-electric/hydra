@@ -9,6 +9,7 @@
 #include <string.h>
 #include <string>
 #include <sys/mman.h>
+#include <thread>
 
 #include "nx_parser.hpp"
 

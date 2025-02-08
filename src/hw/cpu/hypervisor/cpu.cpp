@@ -6,6 +6,8 @@
 #include <Hypervisor/hv_gic.h>
 #include <Hypervisor/hv_vcpu.h>
 
+#define MAX_STACK_TRACE_DEPTH 32
+
 namespace Hydra::HW::CPU::Hypervisor {
 
 CPU::CPU(HW::MMU::Hypervisor::MMU& mmu_) : mmu{mmu_} {
@@ -84,10 +86,15 @@ void CPU::LogStackTrace(HW::MMU::Memory* stack_mem) {
     printf("Stack trace:\n");
     printf("SP: 0x%08llx\n", sp);
 
-    for (uint64_t frame = 0; frame < 32 && fp != 0; frame++) {
+    for (uint64_t frame = 0; fp != 0; frame++) {
         printf("LR = 0x%llx\n", lr - 0x4);
+        if (frame == MAX_STACK_TRACE_DEPTH - 1) {
+            printf("... (more frames)\n");
+            break;
+        }
 
-        uint64_t saved_fp, saved_lr;
+        if (!stack_mem->PtrIsInRange(fp))
+            break;
 
         u64 new_fp = *((u64*)stack_mem->UnmapPtr(fp));
         lr = *((u64*)stack_mem->UnmapPtr(fp + 8));

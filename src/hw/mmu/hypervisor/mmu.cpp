@@ -21,23 +21,19 @@ MMU::MMU() {}
 
 MMU::~MMU() {}
 
-void MMU::MapMemory(Memory* mem) {
-    MMUBase::MapMemory(mem);
+void MMU::ReprotectMemory(Memory* mem) {
+    HYP_ASSERT_SUCCESS(hv_vm_protect(mem->GetBase(), mem->GetSize(),
+                                     PermisionToHV(mem->GetPermission())));
+}
 
+void MMU::MapMemoryImpl(Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_map(mem->GetPtrU8(), mem->GetBase(),
                                  mem->GetSize(),
                                  PermisionToHV(mem->GetPermission())));
 }
 
-void MMU::UnmapMemory(Memory* mem) {
-    MMUBase::UnmapMemory(mem);
-
+void MMU::UnmapMemoryImpl(Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_unmap(mem->GetBase(), mem->GetSize()));
-}
-
-void MMU::ReprotectMemory(Memory* mem) {
-    HYP_ASSERT_SUCCESS(hv_vm_protect(mem->GetBase(), mem->GetSize(),
-                                     PermisionToHV(mem->GetPermission())));
 }
 
 } // namespace Hydra::HW::MMU::Hypervisor

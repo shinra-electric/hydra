@@ -1,49 +1,53 @@
 #include "horizon/kernel.hpp"
 
+#include "horizon/const.hpp"
 #include "hw/cpu/cpu.hpp"
 #include "hw/mmu/memory.hpp"
 #include "hw/mmu/mmu.hpp"
 
 namespace Hydra::Horizon {
 
-// TODO: don't hardcode these
-#define ROM_MEM_SIZE 0x01000000
-#define ROM_MEM_BASE 0x80000000
-
 // HACK: no idea what I am doing, but _impure_ptr seems to point there
-#define BSS_MEM_BASE 0x00010000
+// #define BSS_MEM_BASE 0x00010000
 
+#define STACK_MEM_BASE 0x01000000
 #define STACK_SIZE 0x200000
 // For EL0 and EL1
 #define STACK_MEM_SIZE (STACK_SIZE * 2)
-#define STACK_MEM_BASE 0x01000000
 
-#define KERNEL_MEM_SIZE 0x10000
 #define KERNEL_MEM_BASE 0xF0000000
+#define KERNEL_MEM_SIZE 0x10000
 
-#define TLS_MEM_SIZE 0x20000
 #define TLS_MEM_BASE 0x02000000
+#define TLS_MEM_SIZE 0x20000
+
+#define ROM_MEM_BASE 0x80000000
+
+// HACK: malloc writes here
+#define HEAP_MEM_BASE 0x20000000
+#define DEFAULT_HEAP_MEM_SIZE 0x1000000
+#define HEAP_MEM_ALIGNMENT 0x00200000
 
 const u32 exception_handler[] = {
-    0xD41FFFE2u, // hvc #0xFFFF
-    0xD69F03E0u, // eret
+    0xd41fffe2u, // hvc #0xFFFF
+    0xd69f03e0u, // eret
     // 0xD2B00000, // mov x0, #0x80000000
     // 0xD61F0000, // br  x0
     // Shouldn't happen
-    0xD4200000u, // brk #0
+    0xd4200000u, // brk #0
 };
 
 const u32 exception_trampoline[] = {
-    0xD508831Fu, // msr spsel, xzr
+    0xd508831fu, // msr spsel, xzr
 
     // 0x910003e0,  // mov x0, sp
     // 0xd5384241,  // TODO
     // 0xd5384202,  // mrs x2, spsel
     // 0xD4200000u, // brk #0
 
-    0xD69F03E0u, // eret
+    0xd69f03e0u, // eret
     // Shouldn't happen
-    0xD4200000u, // brk #0
+    0xd4200000u, // brk #0
 };
 
 Kernel::Kernel() {
@@ -70,21 +74,37 @@ Kernel::Kernel() {
         new HW::MMU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
 
-    // HACK: cmif expects this header magic?
-    //*((u32*)tls_mem->GetPtr() + 0x10) = 0x4F434653; // "SFCO"
+    // Heap memory
+    heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
+                                   Permission::ReadWrite);
 }
 
 Kernel::~Kernel() {
-    delete rom_mem;
-    delete bss_mem;
     delete stack_mem;
     delete kernel_mem;
     delete tls_mem;
+    if (rom_mem)
+        delete rom_mem;
+    // delete bss_mem;
+    delete heap_mem;
+}
+
+void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {
+    mmu = mmu_;
+
+    mmu->MapMemory(stack_mem);
+    mmu->MapMemory(kernel_mem);
+    mmu->MapMemory(tls_mem);
 }
 
 void Kernel::LoadROM(Rom* rom) {
+    if (rom_mem) {
+        mmu->UnmapMemory(rom_mem);
+        delete rom_mem;
+    }
+
     rom_mem = new HW::MMU::Memory(
-        ROM_MEM_BASE, ROM_MEM_SIZE,
+        ROM_MEM_BASE, rom->GetRom().size(),
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
     rom_mem->Clear();
@@ -99,9 +119,12 @@ void Kernel::LoadROM(Rom* rom) {
     //       rom->GetRoData().size());
 
     // BSS memory
-    bss_mem = new HW::MMU::Memory(BSS_MEM_BASE, rom->GetBssSize(),
-                                  Permission::ReadWrite);
-    bss_mem->Clear();
+    // bss_mem = new HW::MMU::Memory(BSS_MEM_BASE, rom->GetBssSize(),
+    //                              Permission::ReadWrite);
+    // bss_mem->Clear();
+
+    mmu->MapMemory(rom_mem);
+    // mmu->MapMemory(horizon.GetKernel().GetBssMemory());
 }
 
 bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
@@ -135,6 +158,9 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
     case 0x7:
         svcExitProcess();
         return false;
+    case 0xb:
+        svcSleepThread(bit_cast<i64>(cpu->GetRegX(0)));
+        break;
     case 0x13:
         res = svcMapSharedMemory(cpu->GetRegX(0), cpu->GetRegX(1),
                                  cpu->GetRegX(2),
@@ -144,6 +170,13 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
     case 0x16:
         res = svcCloseHandle(cpu->GetRegX(0));
         cpu->SetRegX(0, res);
+        break;
+    case 0x18:
+        res = svcWaitSynchronization(
+            tmpU64, reinterpret_cast<Handle*>(cpu->GetRegX(1)),
+            bit_cast<i64>(cpu->GetRegX(2)), bit_cast<i64>(cpu->GetRegX(3)));
+        cpu->SetRegX(0, res);
+        cpu->SetRegX(1, tmpU64);
         break;
     case 0x1a:
         res =
@@ -201,11 +234,15 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
 Result Kernel::svcSetHeapSize(uptr* out, usize size) {
     printf("svcSetHeapSize called (size: 0x%08zx)\n", size);
 
-    // TODO: implement
-    printf("Not implemented\n");
+    if ((size % HEAP_MEM_ALIGNMENT) != 0)
+        return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
-    // HACK
-    *out = 0x1FFFFFFF;
+    if (size != heap_mem->GetSize()) {
+        heap_mem->Resize(size);
+        mmu->RemapMemory(heap_mem);
+    }
+
+    *out = heap_mem->GetBase();
 
     return RESULT_SUCCESS;
 }
@@ -269,6 +306,12 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
 
 void Kernel::svcExitProcess() { printf("svcExitProcess called\n"); }
 
+void Kernel::svcSleepThread(i64 nano) {
+    printf("svcSleepThread called (nano: %lld)\n", nano);
+
+    std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
+}
+
 Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
                                   Permission permission) {
     printf("svcMapSharedMemory called (handle: 0x%08x, addr: 0x%08lx, size: "
@@ -286,6 +329,21 @@ Result Kernel::svcCloseHandle(Handle handle) {
 
     // TODO: implement
     printf("Not implemented\n");
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
+                                      i32 handles_count, i64 timeout) {
+    printf("svcWaitSynchronization called (handles: %p, count: %d, timeout: "
+           "%lld)\n",
+           handles_ptr, handles_count, timeout);
+
+    // TODO: implement
+    printf("Not implemented\n");
+
+    // HACK
+    handle_index = 0;
 
     return RESULT_SUCCESS;
 }
@@ -368,6 +426,18 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     // out_addr += align(sizeof(CmifOutHeader), (usize)0x10);
     *((CmifOutHeader*)(out_addr + sizeof(CmifDomainOutHeader))) = cmif_header;
 
+    // AppletMessage_FocusStateChanged for _appletReceiveMessage
+    // AppletMessage_InFocus for _appletGetCurrentFocusState
+    static int num_executed = 0;
+    num_executed++;
+    printf("NUM EXECUTED: %i\n", num_executed);
+    if (num_executed == 25)
+        *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
+                 sizeof(CmifOutHeader))) = 15;
+    if (num_executed == 26)
+        *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
+                 sizeof(CmifOutHeader))) = 1;
+
     return RESULT_SUCCESS;
 }
 
@@ -447,14 +517,10 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             *out = 0;
             return RESULT_SUCCESS;
         case InfoType::HeapRegionAddress:
-            printf("Not implemented\n");
-            // HACK
-            *out = 0;
+            *out = heap_mem->GetBase();
             return RESULT_SUCCESS;
         case InfoType::HeapRegionSize:
-            printf("Not implemented\n");
-            // HACK
-            *out = 0;
+            *out = heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AslrRegionAddress:
             printf("Not implemented\n");
@@ -473,14 +539,14 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             *out = stack_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::TotalMemorySize:
-            printf("Not implemented\n");
-            // HACK
-            *out = 0;
+            // TODO: what should this be?
+            *out = 128 * 1024 * 1024; // 4 * 1024 * 1024 * 1024;
             return RESULT_SUCCESS;
         case InfoType::UsedMemorySize:
-            printf("Not implemented\n");
-            // HACK
-            *out = 0;
+            // TODO: correct?
+            *out = stack_mem->GetSize() + kernel_mem->GetSize() +
+                   tls_mem->GetSize() + rom_mem->GetSize() +
+                   heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AliasRegionExtraSize:
             printf("Not implemented\n");

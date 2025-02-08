@@ -9,9 +9,11 @@ class MMU : public MMUBase {
     MMU();
     ~MMU();
 
-    void MapMemory(Memory* mem) override;
-    void UnmapMemory(Memory* mem) override;
     void ReprotectMemory(Memory* mem) override;
+
+  protected:
+    void MapMemoryImpl(Memory* mem) override;
+    void UnmapMemoryImpl(Memory* mem) override;
 };
 
 } // namespace Hydra::HW::MMU::Hypervisor

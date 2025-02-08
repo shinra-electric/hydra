@@ -10,22 +10,26 @@ class Memory {
     Memory(uptr base_, usize size_, Horizon::Permission permission_);
     ~Memory();
 
+    void Resize(usize size_);
+
     void Clear();
 
     uptr MapPtr(uptr p);
 
     uptr UnmapPtr(uptr p);
 
+    bool PtrIsInRange(uptr p);
+
     // Getters
-    uptr GetPtr() { return ptr; }
+    uptr GetPtr() const { return ptr; }
 
-    u8* GetPtrU8() { return (u8*)ptr; }
+    u8* GetPtrU8() const { return (u8*)ptr; }
 
-    uptr GetBase() { return base; }
+    uptr GetBase() const { return base; }
 
-    usize GetSize() { return size; }
+    usize GetSize() const { return size; }
 
-    Horizon::Permission GetPermission() { return permission; }
+    Horizon::Permission GetPermission() const { return permission; }
 
     // Setters
     void SetPermission(Horizon::Permission permission_) {
@@ -39,6 +43,8 @@ class Memory {
     usize size;
 
     Horizon::Permission permission;
+
+    void Allocate();
 };
 
 } // namespace Hydra::HW::MMU

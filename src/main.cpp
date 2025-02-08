@@ -85,9 +85,10 @@ void SET_INSTRUCTION(u32* data, i64 addr /*, u32 old_instruction*/,
 }
 
 // HACK
-#define NOP 0xD503201F
-#define RET 0xd65f03c0
-#define MOV_X0_XZR 0xAA1F03E0
+#define NOP 0xd503201fu
+#define RET 0xd65f03c0u
+#define MOV_X0_XZR 0xaa1f03e0u
+#define BRK 0xd4200000u
 
 int main(int argc, const char* argv[]) {
     // Parse file
@@ -119,8 +120,8 @@ int main(int argc, const char* argv[]) {
     // SET_INSTRUCTION(data, 3208, 0xd53bd061, RET); // mutexUnlock
     //  SET_INSTRUCTION(data, 9148, 0x97ffff24, MOV_X0_XZR); // _smCmifCmdInPid
     SET_INSTRUCTION(data, 0x00000c28,
-                    MOV_X0_XZR); // appletInitialize, crash due to "stp q31,
-                                 // q31, [x0, #0x20]"
+                    MOV_X0_XZR); // appletInitialize, exits with weird stack
+    // q31, [x0, #0x20]"
     // SET_INSTRUCTION(data, 8710, 0x9400020e, MOV_X0_XZR); //
     // smGetServiceWrapper SET_INSTRUCTION(data, 8724, 0x97ffff60,
     //                 MOV_X0_XZR); // _hidCreateAppletResource.constprop.0
@@ -133,19 +134,22 @@ int main(int argc, const char* argv[]) {
     //    MOV_X0_XZR); // __libnx_init_time, doesn't have to be skipped if
     // _smCmifCmdInPid is skipped, "mrs x4, cntpct_el0"
     // SET_INSTRUCTION(data, 758, 0x94001946, MOV_X0_XZR); // fsInitialize
-    SET_INSTRUCTION(data, 0x00007020,
-                    MOV_X0_XZR); // sessionmgrAttachClient, loops infinitely
-                                 // waiting for __builtin_ffs to return >= 0
+    // SET_INSTRUCTION(data, 0x00007020,
+    //                MOV_X0_XZR); // sessionmgrAttachClient, loops infinitely
+    // waiting for __builtin_ffs to return >= 0
     // SET_INSTRUCTION(data, 830, 0x14002e82, MOV_X0_XZR); // __libc_init_array
     // SET_INSTRUCTION(data, 831, 0x00000000, RET); // __libnx_init
     // SET_INSTRUCTION(data, 839, 0x00000000, RET); // __libnx_exit
-    SET_INSTRUCTION(
-        data, 0x00002d58,
-        NOP); // fsdevMountDevice, crashes due to "str w4, [x2, #0x4]" at
-    //    0x00002ca8
-    SET_INSTRUCTION(data, 0x00000fb0,
-                    NOP); // setenv, crashes due to "str x23, [x25, #0x8]" at
-                          // 0x000b6e8 in malloc
+    SET_INSTRUCTION(data, 0x0000161c,
+                    NOP); // _fsdevUnmountDeviceStruct, crashes due to "str x5,
+    // [x7, #0x18]" (0x18) at
+    // 0x000bf80 in _free_r
+    // SET_INSTRUCTION(data, 0x00000fb0,
+    //                NOP); // setenv, crashes due to "str x23, [x25, #0x8]" at
+    // 0x000b6e8 in malloc
+
+    // HACK: for testing
+    // SET_INSTRUCTION(data, 0xbf60, BRK);
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 

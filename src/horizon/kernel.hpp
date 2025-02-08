@@ -23,7 +23,7 @@ class Kernel {
     Kernel();
     ~Kernel();
 
-    void SetMMU(HW::MMU::MMUBase* mmu_) { mmu = mmu_; }
+    void SetMMU(HW::MMU::MMUBase* mmu_);
 
     void LoadROM(Rom* rom);
 
@@ -36,9 +36,12 @@ class Kernel {
     Result svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                           uptr addr);
     void svcExitProcess();
+    void svcSleepThread(i64 nano);
     Result svcMapSharedMemory(Handle handle, uptr addr, usize size,
                               Permission permission);
     Result svcCloseHandle(Handle handle);
+    Result svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
+                                  i32 handles_count, i64 timeout);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
@@ -51,7 +54,7 @@ class Kernel {
 
     // Getters
     HW::MMU::Memory* GetRomMemory() { return rom_mem; }
-    HW::MMU::Memory* GetBssMemory() { return bss_mem; }
+    // HW::MMU::Memory* GetBssMemory() { return bss_mem; }
     HW::MMU::Memory* GetStackMemory() { return stack_mem; }
     HW::MMU::Memory* GetKernelMemory() { return kernel_mem; }
     HW::MMU::Memory* GetTlsMemory() { return tls_mem; }
@@ -61,14 +64,15 @@ class Kernel {
 
     // Memory
 
-    // ROM
-    HW::MMU::Memory* rom_mem;
-    HW::MMU::Memory* bss_mem;
-
-    // Custom
+    // Static
     HW::MMU::Memory* stack_mem;
     HW::MMU::Memory* kernel_mem;
     HW::MMU::Memory* tls_mem;
+
+    // Dynamic
+    HW::MMU::Memory* rom_mem = nullptr;
+    // HW::MMU::Memory* bss_mem;
+    HW::MMU::Memory* heap_mem;
 };
 
 } // namespace Hydra::Horizon

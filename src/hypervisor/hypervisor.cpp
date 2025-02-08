@@ -24,10 +24,6 @@ Hypervisor::Hypervisor(Horizon::OS& horizon_) : horizon{horizon_} {
     mmu = new HW::MMU::Hypervisor::MMU();
     horizon.SetMMU(mmu);
 
-    mmu->MapMemory(horizon.GetKernel().GetStackMemory());
-    mmu->MapMemory(horizon.GetKernel().GetKernelMemory());
-    mmu->MapMemory(horizon.GetKernel().GetTlsMemory());
-
     // CPU
     cpu = new HW::CPU::Hypervisor::CPU(*mmu);
 
@@ -43,10 +39,6 @@ Hypervisor::~Hypervisor() {
 
 void Hypervisor::LoadROM(Rom* rom) {
     horizon.GetKernel().LoadROM(rom);
-
-    // Map ROM
-    mmu->MapMemory(horizon.GetKernel().GetRomMemory());
-    mmu->MapMemory(horizon.GetKernel().GetBssMemory());
 
     // Set initial PC
     cpu->SetReg(HV_REG_PC, horizon.GetKernel().GetRomMemory()->GetBase() +
@@ -126,6 +118,8 @@ void Hypervisor::Run() {
                 // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
                 // u64 mode = (spsr >> 2) & 0x3;
 
+                u32 instruction = *((u32*)mmu->UnmapPtr(elr));
+
                 switch (ec) {
                 case 0x15:
                     // Debug
@@ -155,13 +149,12 @@ void Hypervisor::Run() {
 
                     // printf("X3: 0x%08llx\n", cpu->GetReg(HV_REG_X3));
 
-                    // HACK: write the result code to a register
-                    cpu->SetReg(
-                        (hv_reg_t)(HV_REG_X0 +
-                                   EXTRACT_BITS(*((u32*)mmu->UnmapPtr(
-                                                    cpu->GetReg(HV_REG_PC))),
-                                                4, 0)),
-                        0);
+                    // HACK: write the result code to a register in case of
+                    // STLXR or LDAXR
+                    if ((instruction & 0xFF800000) == 0x88000000)
+                        cpu->SetReg((hv_reg_t)(HV_REG_X0 +
+                                               EXTRACT_BITS(instruction, 4, 0)),
+                                    0);
 
                     // Set the return address
                     // TODO: correct?
@@ -233,7 +226,7 @@ void Hypervisor::Run() {
                 cpu->AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
                 printf("BRK instruction\n");
-                cpu->LogRegisters(5);
+                cpu->LogRegisters();
                 break;
             } else {
                 // Debug

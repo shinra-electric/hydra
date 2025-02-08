@@ -7,19 +7,38 @@ namespace Hydra::HW::MMU {
 Memory::Memory(uptr base_, usize size_, Horizon::Permission permission_)
     : base{base_}, size{align(size_, (usize)MEMORY_ALIGNMENT)},
       permission{permission_} {
-    posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);
-    if (!ptr) {
-        printf("Failed to allocate memory\n");
-        return;
-    }
+    Allocate();
 }
 
 Memory::~Memory() { free((void*)ptr); }
+
+void Memory::Resize(usize size_) {
+    uptr old_ptr = ptr;
+    usize old_size = size;
+
+    size = align(size_, (usize)MEMORY_ALIGNMENT);
+    Allocate();
+    // TODO: is this necessary?
+    memcpy((void*)ptr, (void*)old_ptr, std::min(size, old_size));
+
+    // Cleanup
+    free((void*)old_ptr);
+}
 
 void Memory::Clear() { memset((void*)ptr, 0, size); }
 
 uptr Memory::MapPtr(uptr p) { return base + (p - ptr); }
 
 uptr Memory::UnmapPtr(uptr p) { return ptr + (p - base); }
+
+bool Memory::PtrIsInRange(uptr p) { return p >= base && p < base + size; }
+
+void Memory::Allocate() {
+    posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);
+    if (!ptr) {
+        printf("Failed to allocate memory\n");
+        return;
+    }
+}
 
 } // namespace Hydra::HW::MMU
