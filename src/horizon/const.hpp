@@ -70,6 +70,17 @@ enum class Permission : u32 {
 };
 ENABLE_ENUM_BITMASK_OPERATORS(Permission)
 
+enum class CmifCommandType {
+    Invalid = 0,
+    LegacyRequest = 1,
+    Close = 2,
+    LegacyControl = 3,
+    Request = 4,
+    Control = 5,
+    RequestWithContext = 6,
+    ControlWithContext = 7,
+};
+
 struct MemoryInfo {
     u64 addr;
     u64 size;
@@ -81,19 +92,12 @@ struct MemoryInfo {
     u32 padding = 0;
 };
 
-// From https://github.com/switchbrew/libnx
-struct HipcHeader {
-    u32 type : 16;
-    u32 num_send_statics : 4;
-    u32 num_send_buffers : 4;
-    u32 num_recv_buffers : 4;
-    u32 num_exch_buffers : 4;
-    u32 num_data_words : 10;
-    u32 recv_static_mode : 4;
-    u32 padding : 6;
-    u32 recv_list_offset : 11; // Unused.
-    bool has_special_header : 1;
-};
+typedef struct CmifInHeader {
+    u32 magic;
+    u32 version;
+    u32 command_id;
+    u32 token;
+} CmifInHeader;
 
 // From https://github.com/switchbrew/libnx
 struct CmifOutHeader {

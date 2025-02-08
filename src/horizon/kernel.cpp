@@ -1,6 +1,7 @@
 #include "horizon/kernel.hpp"
 
-#include "horizon/const.hpp"
+#include "horizon/hipc.hpp"
+#include "horizon/services/service.hpp"
 #include "hw/cpu/cpu.hpp"
 #include "hw/mmu/memory.hpp"
 #include "hw/mmu/mmu.hpp"
@@ -395,39 +396,65 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const char* name) {
 Result Kernel::svcSendSyncRequest(Handle session_handle) {
     printf("svcSendSyncRequest called (session: 0x%08x)\n", session_handle);
 
-    uptr out_addr = tls_mem->GetPtr();
+    Services::ServiceBase* service =
+        reinterpret_cast<Services::ServiceBase*>(session_handle);
+    u8* tls_addr = tls_mem->GetPtrU8();
+
+    // Request
 
     // HIPC header
-    HipcHeader hipc_header = {
-        // TODO: type
-        .num_send_statics = 0, // HACK
-        .num_send_buffers = 0, // HACK
-        .num_recv_buffers = 0, // HACK
-        .num_exch_buffers = 0, // HACK
-        .num_data_words = 0,   // HACK
-        // TODO: recv_static_mode
-        // TODO: recv_list_offset
-        .has_special_header = false, // HACK
-    };
+    HipcParsedRequest hipc_in = hipcParseRequest(tls_addr);
+    u8* in_addr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
-    *((HipcHeader*)out_addr) = hipc_header;
-    out_addr += align(sizeof(HipcHeader), (usize)0x10);
+    // Dispatch
+    // printf("DATA WORDS: %p\n", hipc_in.data.data_words);
+    u8* out_data;
+    usize out_size = 0;
+    switch ((CmifCommandType)hipc_in.meta.type) {
+    case CmifCommandType::Request: {
+        printf("COMMAND: Request\n");
+
+        // Parse CMIF
+        auto cmif_in = *reinterpret_cast<CmifInHeader*>(in_addr);
+        printf("REQUEST: %u\n", cmif_in.command_id);
+
+        // Request
+        // service->Request(out_data, out_size, cmif_in.command_id);
+
+        break;
+    }
+    default:
+        printf("COMMAND: %u\n", hipc_in.meta.type);
+        break;
+    }
+
+    // Response
+
+    // HIPC header
+    // TODO: don't always include domain header
+    u32 num_words = sizeof(CmifDomainOutHeader) + sizeof(CmifOutHeader) +
+                    static_cast<u32>(out_size / sizeof(u32));
+    auto response = hipcMakeRequest(tls_addr, {.num_data_words = num_words});
+    u8* out_addr = align_ptr((u8*)response.data_words, 0x10);
 
     // CMIF header
     // TODO: what is CMIF domain header?
-    CmifOutHeader cmif_header = {
+    CmifOutHeader cmif_out = {
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0, // HACK
         .result = RESULT_SUCCESS,
         .token = 0, // HACK
     };
 
-    *((CmifOutHeader*)out_addr) = cmif_header;
-    // out_addr += align(sizeof(CmifOutHeader), (usize)0x10);
-    *((CmifOutHeader*)(out_addr + sizeof(CmifDomainOutHeader))) = cmif_header;
+    *((CmifOutHeader*)out_addr) = cmif_out;
+    *((CmifOutHeader*)(out_addr + sizeof(CmifDomainOutHeader))) = cmif_out;
+
+    // TODO: write data
 
     // AppletMessage_FocusStateChanged for _appletReceiveMessage
     // AppletMessage_InFocus for _appletGetCurrentFocusState
+    // TODO: no longer needed?
+    /*
     static int num_executed = 0;
     num_executed++;
     printf("NUM EXECUTED: %i\n", num_executed);
@@ -437,6 +464,7 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     if (num_executed == 26)
         *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
                  sizeof(CmifOutHeader))) = 1;
+    */
 
     return RESULT_SUCCESS;
 }

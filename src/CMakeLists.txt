@@ -6,6 +6,7 @@ add_executable(hydra
     horizon/const.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/services/service.hpp
     hw/cpu/cpu.hpp
     hw/cpu/hypervisor/cpu.cpp
     hw/cpu/hypervisor/cpu.hpp

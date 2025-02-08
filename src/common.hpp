@@ -50,6 +50,12 @@ template <typename T> T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
 
+template <typename PtrT, typename AlignmentT>
+PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
+    return reinterpret_cast<PtrT*>(
+        align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
+}
+
 inline std::ifstream OpenFile(const std::string& path, usize& size) {
     const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
     auto ifs = std::ifstream{path, iflags};
