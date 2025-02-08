@@ -115,12 +115,10 @@ int main(int argc, const char* argv[]) {
     // HACK
     u32* data = (u32*)(rom->GetRom().data() + rom->GetTextOffset());
     // data[10] = NOP; // __nx_dynamic
-    //  data[16] = NOP; // __libnx_init
+    // data[16] = NOP; // __libnx_init
     // SET_INSTRUCTION(data, 3176, 0xa9be7bfd, RET); // mutexLock
     // SET_INSTRUCTION(data, 3208, 0xd53bd061, RET); // mutexUnlock
     //  SET_INSTRUCTION(data, 9148, 0x97ffff24, MOV_X0_XZR); // _smCmifCmdInPid
-    SET_INSTRUCTION(data, 0x00000c28,
-                    MOV_X0_XZR); // appletInitialize, exits with weird stack
     // q31, [x0, #0x20]"
     // SET_INSTRUCTION(data, 8710, 0x9400020e, MOV_X0_XZR); //
     // smGetServiceWrapper SET_INSTRUCTION(data, 8724, 0x97ffff60,
@@ -140,13 +138,18 @@ int main(int argc, const char* argv[]) {
     // SET_INSTRUCTION(data, 830, 0x14002e82, MOV_X0_XZR); // __libc_init_array
     // SET_INSTRUCTION(data, 831, 0x00000000, RET); // __libnx_init
     // SET_INSTRUCTION(data, 839, 0x00000000, RET); // __libnx_exit
-    SET_INSTRUCTION(data, 0x0000161c,
-                    NOP); // _fsdevUnmountDeviceStruct, crashes due to "str x5,
     // [x7, #0x18]" (0x18) at
     // 0x000bf80 in _free_r
     // SET_INSTRUCTION(data, 0x00000fb0,
     //                NOP); // setenv, crashes due to "str x23, [x25, #0x8]" at
     // 0x000b6e8 in malloc
+
+    // Needed
+    // SET_INSTRUCTION(data, 0x00000c28,
+    //                MOV_X0_XZR); // appletInitialize, infinite sleep on exit
+    // SET_INSTRUCTION(data, 0x0000161c,
+    //                NOP); // _fsdevUnmountDeviceStruct, crashes due to "str
+    //                x5,
 
     // HACK: for testing
     // SET_INSTRUCTION(data, 0xbf60, BRK);
