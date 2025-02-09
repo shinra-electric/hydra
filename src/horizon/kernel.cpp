@@ -2,7 +2,6 @@
 
 #include "horizon/cmif.hpp"
 #include "horizon/hipc.hpp"
-#include "horizon/services/domain_service.hpp"
 #include "horizon/services/sm.hpp"
 #include "hw/cpu/cpu.hpp"
 #include "hw/mmu/memory.hpp"
@@ -26,7 +25,6 @@ namespace Hydra::Horizon {
 
 #define ROM_MEM_BASE 0x80000000
 
-// HACK: malloc writes here
 #define HEAP_MEM_BASE 0x20000000
 #define DEFAULT_HEAP_MEM_SIZE 0x1000000
 #define HEAP_MEM_ALIGNMENT 0x00200000
@@ -80,6 +78,7 @@ Kernel::Kernel() {
     // Heap memory
     heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
                                    Permission::ReadWrite);
+    heap_mem->Clear();
 }
 
 Kernel::~Kernel() {
@@ -98,6 +97,7 @@ void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {
     mmu->MapMemory(stack_mem);
     mmu->MapMemory(kernel_mem);
     mmu->MapMemory(tls_mem);
+    mmu->MapMemory(heap_mem);
 }
 
 void Kernel::LoadROM(Rom* rom) {
@@ -135,6 +135,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
     u32 tmpU32;
     u64 tmpU64;
     uptr tmpUPTR;
+    Handle tmpHandle;
     switch (id) {
     case 0x1:
         res = svcSetHeapSize(&tmpUPTR, cpu->GetRegX(1));
@@ -170,6 +171,13 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
                                  static_cast<Permission>(cpu->GetRegX(3)));
         cpu->SetRegX(0, res);
         break;
+    case 0x15:
+        res = svcCreateTransferMemory(&tmpHandle, cpu->GetRegX(1),
+                                      cpu->GetRegX(2),
+                                      static_cast<Permission>(cpu->GetRegX(3)));
+        cpu->SetRegX(0, res);
+        cpu->SetRegX(1, tmpHandle);
+        break;
     case 0x16:
         res = svcCloseHandle(cpu->GetRegX(0));
         cpu->SetRegX(0, res);
@@ -198,10 +206,10 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         break;
     case 0x1f:
         res = svcConnectToNamedPort(
-            reinterpret_cast<Handle*>(&tmpUPTR),
+            &tmpHandle,
             reinterpret_cast<const char*>(mmu->UnmapPtr(cpu->GetRegX(1))));
         cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpUPTR);
+        cpu->SetRegX(1, tmpHandle);
         break;
     case 0x21:
         res = svcSendSyncRequest(cpu->GetRegX(0));
@@ -320,6 +328,18 @@ Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
     printf("svcMapSharedMemory called (handle: 0x%08x, addr: 0x%08lx, size: "
            "0x%08zx, perm: %u)\n",
            handle, addr, size, (u32)permission);
+
+    // TODO: implement
+    printf("Not implemented\n");
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
+                                       Permission permission) {
+    printf("svcCreateTransferMemory called (address: 0x%08lx, size: %llu, "
+           "perm: %u)\n",
+           address, size, (u32)permission);
 
     // TODO: implement
     printf("Not implemented\n");
@@ -567,7 +587,7 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             return RESULT_SUCCESS;
         case InfoType::TotalMemorySize:
             // TODO: what should this be?
-            *out = 128 * 1024 * 1024; // 4 * 1024 * 1024 * 1024;
+            *out = 4u * 1024u * 1024u * 1024u;
             return RESULT_SUCCESS;
         case InfoType::UsedMemorySize:
             // TODO: correct?

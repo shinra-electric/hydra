@@ -88,9 +88,14 @@ void Hypervisor::LoadROM(Rom* rom) {
                    stack_mem->GetBase() + stack_mem->GetSize());
 
     // Setup TLS pointer
-    // TODO: offset by thread id * some alignment
+    // TODO: offset by thread id * some alignment?
     cpu->SetSysReg(HV_SYS_REG_TPIDRRO_EL0,
                    horizon.GetKernel().GetTlsMemory()->GetBase());
+
+    // HACK: g_overrideHeapAddr is 0x5b982811ce0afbf4 for no reason
+    *((u64*)mmu->UnmapPtr(0x80017498)) = 0x0;
+    // printf("LoadROM HEAP OVERRIDE: 0x%08llx\n",
+    //        *((u64*)mmu->UnmapPtr(0x80017498)));
 }
 
 void Hypervisor::Run() {

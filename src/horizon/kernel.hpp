@@ -40,6 +40,8 @@ class Kernel {
     void svcSleepThread(i64 nano);
     Result svcMapSharedMemory(Handle handle, uptr addr, usize size,
                               Permission permission);
+    Result svcCreateTransferMemory(Handle* out, uptr address, u64 size,
+                                   Permission permission);
     Result svcCloseHandle(Handle handle);
     Result svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
                                   i32 handles_count, i64 timeout);

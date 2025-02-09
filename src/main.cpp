@@ -72,7 +72,7 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0xbf60, BRK);
+    // SET_INSTRUCTION(data, 0x634, BRK);
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 
