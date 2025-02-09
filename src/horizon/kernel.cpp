@@ -79,8 +79,6 @@ Kernel::Kernel() {
     // Heap memory
     heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
                                    Permission::ReadWrite);
-
-    service_scratch_buffer = new u8[0x1000];
 }
 
 Kernel::~Kernel() {
@@ -411,19 +409,16 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 
     // Dispatch
     Writer writer(service_scratch_buffer);
+    Writer move_handles_writer(service_scratch_buffer_move_handles);
     switch ((CmifCommandType)hipc_in.meta.type) {
-    case CmifCommandType::Request: {
+    case CmifCommandType::Request:
         printf("COMMAND: Request\n");
-        service->Request(*this, writer, in_ptr);
-
+        service->Request(*this, writer, move_handles_writer, in_ptr);
         break;
-    }
-    case CmifCommandType::Control: {
+    case CmifCommandType::Control:
         printf("COMMAND: Control\n");
         service->Control(*this, writer, in_ptr);
-
         break;
-    }
     default:
         printf("Unknown command %u\n", hipc_in.meta.type);
         break;
@@ -432,14 +427,27 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     // Response
 
     // HIPC header
-    usize out_size = writer.GetWrittenSize(service_scratch_buffer);
-    u32 num_words = static_cast<u32>(out_size / sizeof(u32));
-    auto response = hipcMakeRequest(tls_ptr, {.num_data_words = num_words});
+#define GET_ARRAY_SIZE(writer)                                                 \
+    static_cast<u32>(align(writer.GetWrittenSize(), (usize)4) / sizeof(u32))
 
-    if (response.data_words) {
-        u8* out_addr = align_ptr((u8*)response.data_words, 0x10);
-        memcpy(out_addr, service_scratch_buffer, out_size);
+    auto response = hipcMakeRequest(
+        tls_ptr, {.num_data_words = GET_ARRAY_SIZE(writer),
+                  .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)});
+
+#undef GET_ARRAY_SIZE
+
+#define WRITE_ARRAY(writer, ptr, align)                                        \
+    if (response.ptr) {                                                        \
+        u8* aligned_ptr = (u8*)response.ptr;                                   \
+        if (align)                                                             \
+            aligned_ptr = align_ptr(aligned_ptr, 0x10);                        \
+        memcpy(aligned_ptr, writer.GetBase(), writer.GetWrittenSize());        \
     }
+
+    WRITE_ARRAY(writer, data_words, true);
+    WRITE_ARRAY(move_handles_writer, move_handles, false);
+
+#undef WRITE_ARRAY
 
     // AppletMessage_FocusStateChanged for _appletReceiveMessage
     // AppletMessage_InFocus for _appletGetCurrentFocusState

@@ -70,7 +70,7 @@ inline std::ifstream open_file(const std::string& path, usize& size) {
 
 class Writer {
   public:
-    Writer(u8* ptr_) : ptr{ptr_} {}
+    Writer(u8* base_) : base{base_}, ptr{base_} {}
 
     template <typename T> T* Write(const T& value) {
         T* result = reinterpret_cast<T*>(ptr);
@@ -81,9 +81,12 @@ class Writer {
     }
 
     // Getters
-    usize GetWrittenSize(u8* base) const { return ptr - base; }
+    u8* GetBase() const { return base; }
+
+    usize GetWrittenSize() const { return ptr - base; }
 
   private:
+    u8* base;
     u8* ptr;
 };
 

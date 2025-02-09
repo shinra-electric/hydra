@@ -12,7 +12,8 @@ class ServiceBase {
   public:
     ServiceBase(Handle handle_) : handle{handle_} {}
 
-    virtual void Request(Kernel& kernel, Writer& writer, u8* in_ptr) = 0;
+    virtual void Request(Kernel& kernel, Writer& writer,
+                         Writer& move_handles_writer, u8* in_ptr) = 0;
     void Control(Kernel& kernel, Writer& writer, u8* in_ptr);
 
     // Getters

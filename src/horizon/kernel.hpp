@@ -99,7 +99,8 @@ class Kernel {
 
     // Services
     std::vector<Services::ServiceBase*> service_pool;
-    u8* service_scratch_buffer;
+    u8 service_scratch_buffer[0x1000];
+    u8 service_scratch_buffer_move_handles[0x100];
 };
 
 } // namespace Hydra::Horizon

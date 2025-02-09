@@ -4,7 +4,8 @@
 
 namespace Hydra::Horizon::Services {
 
-void HidServer::Request(Kernel& kernel, Writer& writer, u8* in_ptr) {
+void HidServer::Request(Kernel& kernel, Writer& writer,
+                        Writer& move_handles_writer, u8* in_ptr) {
     auto cmif_in = cmif_read_in_header(in_ptr);
 
     Result* res = cmif_write_out_header(writer);

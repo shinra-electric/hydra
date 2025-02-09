@@ -4,7 +4,8 @@
 
 namespace Hydra::Horizon::Services {
 
-void DomainService::Request(Kernel& kernel, Writer& writer, u8* in_ptr) {
+void DomainService::Request(Kernel& kernel, Writer& writer,
+                            Writer& move_handles_writer, u8* in_ptr) {
     printf("Domain service request\n");
 
     // Domain in
@@ -16,7 +17,7 @@ void DomainService::Request(Kernel& kernel, Writer& writer, u8* in_ptr) {
 
     switch (cmif_in.type) {
     case 1:
-        subservice->Request(kernel, writer, in_ptr);
+        subservice->Request(kernel, writer, move_handles_writer, in_ptr);
         break;
     default:
         printf("Unknown domain request type: %u\n", cmif_in.type);
