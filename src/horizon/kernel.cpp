@@ -1,7 +1,8 @@
 #include "horizon/kernel.hpp"
 
-#include "horizon/hipc.hpp"
-#include "horizon/services/service.hpp"
+#include "horizon/cmif.hpp"
+#include "horizon/services/domain_service.hpp"
+#include "horizon/services/sm.hpp"
 #include "hw/cpu/cpu.hpp"
 #include "hw/mmu/memory.hpp"
 #include "hw/mmu/mmu.hpp"
@@ -78,6 +79,8 @@ Kernel::Kernel() {
     // Heap memory
     heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
                                    Permission::ReadWrite);
+
+    service_scratch_buffer = new u8[0x1000];
 }
 
 Kernel::~Kernel() {
@@ -381,14 +384,15 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcConnectToNamedPort(Handle* out, const char* name) {
-    printf("svcConnectToNamedPort called (name: %s)\n", name);
+Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
+    printf("svcConnectToNamedPort called (name: %s)\n", name.c_str());
 
-    // TODO: implement
-    printf("Not implemented\n");
-
-    // HACK
-    *out = 0x1FFFFFFF;
+    if (name == "sm:") {
+        *out = AddService<Services::ServiceManager>();
+    } else {
+        printf("Unknown service name: %s\n", name.c_str());
+        return MAKE_KERNEL_RESULT(NotFound);
+    }
 
     return RESULT_SUCCESS;
 }
@@ -396,60 +400,45 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const char* name) {
 Result Kernel::svcSendSyncRequest(Handle session_handle) {
     printf("svcSendSyncRequest called (session: 0x%08x)\n", session_handle);
 
-    Services::ServiceBase* service =
-        reinterpret_cast<Services::ServiceBase*>(session_handle);
-    u8* tls_addr = tls_mem->GetPtrU8();
+    Services::ServiceBase* service = GetService(session_handle);
+    u8* tls_ptr = tls_mem->GetPtrU8();
 
     // Request
 
     // HIPC header
-    HipcParsedRequest hipc_in = hipcParseRequest(tls_addr);
-    u8* in_addr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
+    HipcParsedRequest hipc_in = hipcParseRequest(tls_ptr);
+    u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    // printf("DATA WORDS: %p\n", hipc_in.data.data_words);
-    u8* out_data;
     usize out_size = 0;
     switch ((CmifCommandType)hipc_in.meta.type) {
     case CmifCommandType::Request: {
         printf("COMMAND: Request\n");
+        service->Request(*this, service_scratch_buffer, out_size, in_ptr);
 
-        // Parse CMIF
-        auto cmif_in = *reinterpret_cast<CmifInHeader*>(in_addr);
-        printf("REQUEST: %u\n", cmif_in.command_id);
-
-        // Request
-        // service->Request(out_data, out_size, cmif_in.command_id);
+        break;
+    }
+    case CmifCommandType::Control: {
+        printf("COMMAND: Control\n");
+        service->Control(*this, service_scratch_buffer, out_size, in_ptr);
 
         break;
     }
     default:
-        printf("COMMAND: %u\n", hipc_in.meta.type);
+        printf("Unknown command %u\n", hipc_in.meta.type);
         break;
     }
 
     // Response
 
     // HIPC header
-    // TODO: don't always include domain header
-    u32 num_words = sizeof(CmifDomainOutHeader) + sizeof(CmifOutHeader) +
-                    static_cast<u32>(out_size / sizeof(u32));
-    auto response = hipcMakeRequest(tls_addr, {.num_data_words = num_words});
-    u8* out_addr = align_ptr((u8*)response.data_words, 0x10);
+    u32 num_words = static_cast<u32>(out_size / sizeof(u32));
+    auto response = hipcMakeRequest(tls_ptr, {.num_data_words = num_words});
 
-    // CMIF header
-    // TODO: what is CMIF domain header?
-    CmifOutHeader cmif_out = {
-        .magic = CMIF_OUT_HEADER_MAGIC,
-        .version = 0, // HACK
-        .result = RESULT_SUCCESS,
-        .token = 0, // HACK
-    };
-
-    *((CmifOutHeader*)out_addr) = cmif_out;
-    *((CmifOutHeader*)(out_addr + sizeof(CmifDomainOutHeader))) = cmif_out;
-
-    // TODO: write data
+    if (response.data_words) {
+        u8* out_addr = align_ptr((u8*)response.data_words, 0x10);
+        memcpy(out_addr, service_scratch_buffer, out_size);
+    }
 
     // AppletMessage_FocusStateChanged for _appletReceiveMessage
     // AppletMessage_InFocus for _appletGetCurrentFocusState

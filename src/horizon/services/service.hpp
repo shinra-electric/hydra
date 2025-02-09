@@ -1,12 +1,26 @@
 #pragma once
 
-#include "common.hpp"
+#include "horizon/const.hpp"
+
+namespace Hydra::Horizon {
+class Kernel;
+}
 
 namespace Hydra::Horizon::Services {
 
 class ServiceBase {
   public:
-    virtual void Request(u8* out_data, usize& out_size, u32 id) = 0;
+    ServiceBase(Handle handle_) : handle{handle_} {}
+
+    virtual void Request(Kernel& kernel, u8* out_ptr, usize& out_size,
+                         u8* in_ptr) = 0;
+    void Control(Kernel& kernel, u8* out_ptr, usize& out_size, u8* in_ptr);
+
+    // Getters
+    // Handle GetHandle() const { return handle; }
+
+  private:
+    Handle handle;
 };
 
 } // namespace Hydra::Horizon::Services

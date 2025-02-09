@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fstream>
+#include <map>
 #include <span>
 #include <stdio.h>
 #include <stdlib.h>

@@ -4,9 +4,20 @@ add_executable(hydra
     horizon/horizon.cpp
     horizon/horizon.hpp
     horizon/const.hpp
+    horizon/hipc.hpp
+    horizon/cmif.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/services/service.cpp
     horizon/services/service.hpp
+    horizon/services/domain_service.cpp
+    horizon/services/domain_service.hpp
+    horizon/services/sm.cpp
+    horizon/services/sm.hpp
+    horizon/services/hid.cpp
+    horizon/services/hid.hpp
+    horizon/services/fsp_srv.cpp
+    horizon/services/fsp_srv.hpp
     hw/cpu/cpu.hpp
     hw/cpu/hypervisor/cpu.cpp
     hw/cpu/hypervisor/cpu.hpp

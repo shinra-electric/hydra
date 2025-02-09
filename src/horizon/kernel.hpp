@@ -4,19 +4,19 @@
 #include "hw/cpu/cpu.hpp"
 
 namespace Hydra::HW::MMU {
-
 class Memory;
 class MMUBase;
-
 } // namespace Hydra::HW::MMU
 
 namespace Hydra::HW::CPU {
-
 class CPUBase;
-
 } // namespace Hydra::HW::CPU
 
 namespace Hydra::Horizon {
+
+namespace Services {
+class ServiceBase;
+} // namespace Services
 
 class Kernel {
   public:
@@ -46,7 +46,7 @@ class Kernel {
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
-    Result svcConnectToNamedPort(Handle* out, const char* name);
+    Result svcConnectToNamedPort(Handle* out, const std::string& name);
     Result svcSendSyncRequest(Handle session_handle);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
@@ -58,6 +58,29 @@ class Kernel {
     HW::MMU::Memory* GetStackMemory() { return stack_mem; }
     HW::MMU::Memory* GetKernelMemory() { return kernel_mem; }
     HW::MMU::Memory* GetTlsMemory() { return tls_mem; }
+
+    // Helpers
+    Services::ServiceBase* GetService(Handle handle) const {
+        return service_pool[handle];
+    }
+
+    void SetService(Handle handle, Services::ServiceBase* service) {
+        service_pool[handle] = service;
+    }
+
+    Handle AddService(Services::ServiceBase* service) {
+        Handle handle = service_pool.size();
+        service_pool.push_back(service);
+
+        return handle;
+    }
+
+    template <typename T> Handle AddService() {
+        Handle handle = service_pool.size();
+        service_pool.push_back(new T(handle));
+
+        return handle;
+    }
 
   private:
     HW::MMU::MMUBase* mmu;
@@ -73,6 +96,10 @@ class Kernel {
     HW::MMU::Memory* rom_mem = nullptr;
     // HW::MMU::Memory* bss_mem;
     HW::MMU::Memory* heap_mem;
+
+    // Services
+    std::vector<Services::ServiceBase*> service_pool;
+    u8* service_scratch_buffer;
 };
 
 } // namespace Hydra::Horizon

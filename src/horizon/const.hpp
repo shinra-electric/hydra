@@ -70,17 +70,6 @@ enum class Permission : u32 {
 };
 ENABLE_ENUM_BITMASK_OPERATORS(Permission)
 
-enum class CmifCommandType {
-    Invalid = 0,
-    LegacyRequest = 1,
-    Close = 2,
-    LegacyControl = 3,
-    Request = 4,
-    Control = 5,
-    RequestWithContext = 6,
-    ControlWithContext = 7,
-};
-
 struct MemoryInfo {
     u64 addr;
     u64 size;
@@ -90,30 +79,6 @@ struct MemoryInfo {
     u32 ipc_ref_count;    // TODO: what
     u32 device_ref_count; // TODO: what
     u32 padding = 0;
-};
-
-typedef struct CmifInHeader {
-    u32 magic;
-    u32 version;
-    u32 command_id;
-    u32 token;
-} CmifInHeader;
-
-// From https://github.com/switchbrew/libnx
-struct CmifOutHeader {
-    u32 magic;
-    u32 version;
-    Result result;
-    u32 token;
-};
-
-#define CMIF_IN_HEADER_MAGIC 0x49434653  // "SFCI"
-#define CMIF_OUT_HEADER_MAGIC 0x4F434653 // "SFCO"
-
-// From https://github.com/switchbrew/libnx
-struct CmifDomainOutHeader {
-    u32 num_out_objects;
-    u32 padding[3];
 };
 
 enum class BreakReasonType {
