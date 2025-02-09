@@ -8,8 +8,7 @@ class DomainService : public ServiceBase {
   public:
     DomainService(Handle handle_) : ServiceBase(handle_) {}
 
-    void Request(Kernel& kernel, u8* out_ptr, usize& out_size,
-                 u8* in_ptr) override;
+    void Request(Kernel& kernel, Writer& writer, u8* in_ptr) override;
 
     Handle AddObject(ServiceBase* object) {
         Handle handle = object_pool.size();

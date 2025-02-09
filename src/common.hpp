@@ -14,6 +14,8 @@
 
 #include "nx_parser.hpp"
 
+namespace Hydra {
+
 // TODO: move this to a separate library
 using i8 = int8_t;
 using i16 = int16_t;
@@ -57,7 +59,7 @@ PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
         align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
 }
 
-inline std::ifstream OpenFile(const std::string& path, usize& size) {
+inline std::ifstream open_file(const std::string& path, usize& size) {
     const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
     auto ifs = std::ifstream{path, iflags};
     size = ifs.tellg();
@@ -65,3 +67,24 @@ inline std::ifstream OpenFile(const std::string& path, usize& size) {
 
     return ifs;
 }
+
+class Writer {
+  public:
+    Writer(u8* ptr_) : ptr{ptr_} {}
+
+    template <typename T> T* Write(const T& value) {
+        T* result = reinterpret_cast<T*>(ptr);
+        *result = value;
+        ptr += sizeof(T);
+
+        return result;
+    }
+
+    // Getters
+    usize GetWrittenSize(u8* base) const { return ptr - base; }
+
+  private:
+    u8* ptr;
+};
+
+} // namespace Hydra

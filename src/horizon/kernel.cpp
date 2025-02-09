@@ -410,17 +410,17 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    usize out_size = 0;
+    Writer writer(service_scratch_buffer);
     switch ((CmifCommandType)hipc_in.meta.type) {
     case CmifCommandType::Request: {
         printf("COMMAND: Request\n");
-        service->Request(*this, service_scratch_buffer, out_size, in_ptr);
+        service->Request(*this, writer, in_ptr);
 
         break;
     }
     case CmifCommandType::Control: {
         printf("COMMAND: Control\n");
-        service->Control(*this, service_scratch_buffer, out_size, in_ptr);
+        service->Control(*this, writer, in_ptr);
 
         break;
     }
@@ -432,6 +432,7 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     // Response
 
     // HIPC header
+    usize out_size = writer.GetWrittenSize(service_scratch_buffer);
     u32 num_words = static_cast<u32>(out_size / sizeof(u32));
     auto response = hipcMakeRequest(tls_ptr, {.num_data_words = num_words});
 

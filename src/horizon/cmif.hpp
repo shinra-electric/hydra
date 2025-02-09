@@ -57,19 +57,28 @@ inline CmifInHeader cmif_read_in_header(u8*& in_ptr) {
     return *hdr;
 }
 
-inline Result* cmif_write_out_header(u8*& out_ptr, usize& out_size) {
-    auto hdr = reinterpret_cast<CmifOutHeader*>(out_ptr);
-    *hdr = {
+inline Result* cmif_write_out_header(Writer& writer) {
+    auto hdr = writer.Write(CmifOutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0,
         .result = MAKE_KERNEL_RESULT(NotImplemented),
         .token = 0,
-    };
-
-    out_ptr += sizeof(CmifOutHeader);
-    out_size += sizeof(CmifOutHeader);
+    });
 
     return &hdr->result;
+}
+
+inline CmifDomainInHeader cmif_read_domain_in_header(u8*& in_ptr) {
+    auto hdr = reinterpret_cast<CmifDomainInHeader*>(in_ptr);
+    in_ptr += sizeof(CmifDomainInHeader);
+
+    return *hdr;
+}
+
+inline void cmif_write_domain_out_header(Writer& writer) {
+    writer.Write(CmifDomainOutHeader{
+        .num_out_objects = 0,
+    });
 }
 
 } // namespace Hydra::Horizon

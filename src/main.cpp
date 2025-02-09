@@ -93,7 +93,7 @@ void SET_INSTRUCTION(u32* data, i64 addr /*, u32 old_instruction*/,
 int main(int argc, const char* argv[]) {
     // Parse file
     usize size;
-    auto ifs = OpenFile(path, size);
+    auto ifs = Hydra::open_file(path, size);
     BinaryReader reader(ifs, size);
     Rom* rom = ParseNRO(reader);
     ifs.close();

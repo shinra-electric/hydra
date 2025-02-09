@@ -11,11 +11,10 @@ struct GetServiceHandleIn {
     char name[8];
 };
 
-void ServiceManager::Request(Kernel& kernel, u8* out_ptr, usize& out_size,
-                             u8* in_ptr) {
+void ServiceManager::Request(Kernel& kernel, Writer& writer, u8* in_ptr) {
     auto cmif_in = cmif_read_in_header(in_ptr);
 
-    Result* res = cmif_write_out_header(out_ptr, out_size);
+    Result* res = cmif_write_out_header(writer);
 
     switch (cmif_in.command_id) {
     case 1: {
