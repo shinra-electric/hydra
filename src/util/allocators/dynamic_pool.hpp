@@ -16,7 +16,7 @@ template <typename T> class DynamicPool {
         return index;
     }
 
-    T* Allocate() { return GetObject(AllocateForIndex()); }
+    T& Allocate() { return GetObjectRef(AllocateForIndex()); }
 
     void FreeByIndex(u32 index) {
         if (index == objects.size() - 1)
@@ -25,24 +25,12 @@ template <typename T> class DynamicPool {
             free.push_back(index);
     }
 
-    void Free(T* object) {
-        auto it = objects.find(object);
-        if (it == objects.end()) {
-            printf("Could not free %p\n", object);
-            return;
-        }
-
-        FreeByIndex(it.first);
-    }
-
     // Getters
-    T* GetObject(u32 index) const { return objects[index]; }
-
-    // Setters
-    void SetObject(u32 index, T* object) { objects[index] = object; }
+    T GetObject(u32 index) const { return objects[index]; }
+    T& GetObjectRef(u32 index) { return objects[index]; }
 
   private:
-    std::vector<T*> objects;
+    std::vector<T> objects;
     std::vector<u32> free;
 };
 

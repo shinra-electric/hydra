@@ -2,7 +2,7 @@
 
 #include "horizon/const.hpp"
 #include "hw/cpu/cpu.hpp"
-#include "util/allocators/dynamic_pool.hpp"
+#include "util/allocators/static_pool.hpp"
 
 namespace Hydra::HW::MMU {
 class Memory;
@@ -67,8 +67,8 @@ class Kernel {
 
     template <typename T, typename... ArgsT>
     void SetService(Handle handle, ArgsT&&... args) {
-        service_pool.SetObject(handle,
-                               new T(handle, std::forward<ArgsT>(args)...));
+        service_pool.GetObjectRef(handle) =
+            new T(handle, std::forward<ArgsT>(args)...);
     }
 
     template <typename T, typename... ArgsT>
@@ -96,7 +96,7 @@ class Kernel {
 
     // Services
     // TODO: what's the maximum number of services?
-    Allocators::DynamicPool<Services::ServiceBase> service_pool;
+    Allocators::StaticPool<Services::ServiceBase*, 16> service_pool;
     u8 service_scratch_buffer[0x1000];
     u8 service_scratch_buffer_move_handles[0x100];
 };

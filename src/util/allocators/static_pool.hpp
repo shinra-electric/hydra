@@ -29,20 +29,17 @@ template <typename T, u32 size> class StaticPool {
         return UINT32_MAX;
     }
 
-    T* Allocate() { return GetObject(AllocateForIndex()); }
+    T& Allocate() { return GetObjectRef(AllocateForIndex()); }
 
-    void FreeByIndex(u32 index) {
+    void Free(u32 index) {
         u8& free_slot = free[index / 8];
         u8 mask = (1 << index % 8);
         free_slot &= ~mask;
     }
 
-    void Free(T* object) {
-        FreeByIndex(static_cast<u32>(object - objects) / 4);
-    }
-
     // Getters
-    T* GetObject(u32 index) const { return &objects[index]; }
+    T GetObject(u32 index) const { return objects[index]; }
+    T& GetObjectRef(u32 index) { return objects[index]; }
 
   private:
     T objects[size];
