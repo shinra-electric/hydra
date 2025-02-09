@@ -2,11 +2,11 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Services::Time {
 
-class FileSystemProxy : public ServiceBase {
+class TimeZoneService : public ServiceBase {
   public:
-    FileSystemProxy(Handle handle_) : ServiceBase(handle_) {}
+    TimeZoneService(Handle handle_) : ServiceBase(handle_) {}
 
     void Request(Kernel& kernel, Writer& writer, Writer& move_handles_writer,
                  u8* in_ptr) override;
@@ -14,4 +14,4 @@ class FileSystemProxy : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Services::Time

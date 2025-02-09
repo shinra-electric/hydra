@@ -2,7 +2,7 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Services::Hid {
 
 class HidServer : public ServiceBase {
   public:
@@ -12,4 +12,4 @@ class HidServer : public ServiceBase {
                  u8* in_ptr) override;
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Services::Hid

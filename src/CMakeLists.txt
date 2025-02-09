@@ -14,10 +14,18 @@ add_executable(hydra
     horizon/services/domain_service.hpp
     horizon/services/sm.cpp
     horizon/services/sm.hpp
-    horizon/services/hid.cpp
-    horizon/services/hid.hpp
-    horizon/services/fsp_srv.cpp
-    horizon/services/fsp_srv.hpp
+    horizon/services/hid/hid_server.cpp
+    horizon/services/hid/hid_server.hpp
+    horizon/services/fssrv/filesystem_proxy.cpp
+    horizon/services/fssrv/filesystem_proxy.hpp
+    horizon/services/time/static_service.cpp
+    horizon/services/time/static_service.hpp
+    horizon/services/time/system_clock.cpp
+    horizon/services/time/system_clock.hpp
+    horizon/services/time/steady_clock.cpp
+    horizon/services/time/steady_clock.hpp
+    horizon/services/time/time_zone_service.cpp
+    horizon/services/time/time_zone_service.hpp
     hw/cpu/cpu.hpp
     hw/cpu/hypervisor/cpu.cpp
     hw/cpu/hypervisor/cpu.hpp

@@ -75,9 +75,10 @@ class Kernel {
         return handle;
     }
 
-    template <typename T> Handle AddService() {
+    template <typename T, typename... ArgsT>
+    Handle AddService(ArgsT&&... args) {
         Handle handle = service_pool.size();
-        service_pool.push_back(new T(handle));
+        service_pool.push_back(new T(handle, std::forward<ArgsT>(args)...));
 
         return handle;
     }

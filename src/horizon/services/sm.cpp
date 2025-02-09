@@ -2,8 +2,9 @@
 
 #include "horizon/cmif.hpp"
 #include "horizon/kernel.hpp"
-#include "horizon/services/fsp_srv.hpp"
-#include "horizon/services/hid.hpp"
+#include "horizon/services/fssrv/filesystem_proxy.hpp"
+#include "horizon/services/hid/hid_server.hpp"
+#include "horizon/services/time/static_service.hpp"
 
 namespace Hydra::Horizon::Services {
 
@@ -22,13 +23,17 @@ void ServiceManager::Request(Kernel& kernel, Writer& writer,
         printf("Get service handle\n");
         auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
         std::string name(in.name);
-        Handle handle{UINT32_MAX};
+        Handle handle;
         if (name == "hid") {
-            handle = kernel.AddService<Services::HidServer>();
+            handle = kernel.AddService<Hid::HidServer>();
         } else if (name == "fsp-srv") {
-            handle = kernel.AddService<Services::HidServer>();
+            handle = kernel.AddService<Fssrv::FileSystemProxy>();
+        } else if (name == "time:u" || name == "time:a" || name == "time:r") {
+            // TODO: are all these the same?
+            handle = kernel.AddService<Time::StaticService>();
         } else {
             printf("Unknown service name \"%s\"\n", name.c_str());
+            handle = UINT32_MAX;
         }
 
         // Out
