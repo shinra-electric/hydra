@@ -1,8 +1,8 @@
 #pragma once
 
+#include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
 #include "hw/cpu/cpu.hpp"
-#include "util/allocators/static_pool.hpp"
 
 namespace Hydra::HW::MMU {
 class Memory;

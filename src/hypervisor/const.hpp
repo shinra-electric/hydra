@@ -2,7 +2,7 @@
 
 #include <Hypervisor/Hypervisor.h>
 
-#include "common.hpp"
+#include "common/common.hpp"
 
 namespace Hydra::Hypervisor {
 

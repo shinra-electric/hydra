@@ -1,6 +1,6 @@
 #include "hypervisor/hypervisor.hpp"
 
-#include "common.hpp"
+#include "common/common.hpp"
 #include "horizon/horizon.hpp"
 #include "hw/cpu/hypervisor/cpu.hpp"
 #include "hw/mmu/hypervisor/mmu.hpp"

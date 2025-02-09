@@ -1,32 +1,15 @@
 #pragma once
 
 #include <assert.h>
-#include <errno.h>
 #include <fstream>
-#include <map>
-#include <span>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <string>
 #include <sys/mman.h>
-#include <thread>
 
-#include "nx_parser.hpp"
+#include "common/types.hpp"
 
 namespace Hydra {
-
-// TODO: move this to a separate library
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using usize = size_t;
-using uptr = uintptr_t;
 
 #define EXTRACT_BITS(value, high, low)                                         \
     (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))

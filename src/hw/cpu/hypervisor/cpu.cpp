@@ -1,6 +1,6 @@
 #include "hw/cpu/hypervisor/cpu.hpp"
 
-#include "common.hpp"
+#include "common/common.hpp"
 #include "hw/mmu/hypervisor/mmu.hpp"
 #include "hw/mmu/memory.hpp"
 #include <Hypervisor/hv_gic.h>
