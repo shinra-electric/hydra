@@ -4,6 +4,7 @@
 #include "horizon/kernel.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
+#include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/time/static_service.hpp"
 
 namespace Hydra::Horizon::Services {
@@ -31,6 +32,8 @@ void ServiceManager::Request(Kernel& kernel, Writer& writer,
         } else if (name == "time:u" || name == "time:a" || name == "time:r") {
             // TODO: are all these the same?
             handle = kernel.AddService<Time::StaticService>();
+        } else if (name == "nvdrv") {
+            handle = kernel.AddService<Nvdrv::NvDrvServices>();
         } else {
             printf("Unknown service name \"%s\"\n", name.c_str());
             handle = UINT32_MAX;

@@ -28,6 +28,8 @@ add_executable(hydra
     horizon/services/time/steady_clock.hpp
     horizon/services/time/time_zone_service.cpp
     horizon/services/time/time_zone_service.hpp
+    horizon/services/nvdrv/nvdrv_services.cpp
+    horizon/services/nvdrv/nvdrv_services.hpp
     hw/cpu/cpu.hpp
     hw/cpu/hypervisor/cpu.cpp
     hw/cpu/hypervisor/cpu.hpp
