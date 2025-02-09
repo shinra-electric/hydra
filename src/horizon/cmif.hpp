@@ -4,12 +4,12 @@
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
 
-namespace Hydra::Horizon {
+namespace Hydra::Horizon::Cmif {
 
 #define CMIF_IN_HEADER_MAGIC 0x49434653  // "SFCI"
 #define CMIF_OUT_HEADER_MAGIC 0x4F434653 // "SFCO"
 
-enum class CmifCommandType {
+enum class CommandType {
     Invalid = 0,
     LegacyRequest = 1,
     Close = 2,
@@ -20,7 +20,7 @@ enum class CmifCommandType {
     ControlWithContext = 7,
 };
 
-struct CmifDomainInHeader {
+struct DomainInHeader {
     u8 type;
     u8 num_in_objects;
     u16 data_size;
@@ -29,36 +29,36 @@ struct CmifDomainInHeader {
     u32 token;
 };
 
-typedef struct CmifInHeader {
+struct InHeader {
     u32 magic;
     u32 version;
     u32 command_id;
     u32 token;
-} CmifInHeader;
+};
 
 // From https://github.com/switchbrew/libnx
-struct CmifDomainOutHeader {
+struct DomainOutHeader {
     u32 num_out_objects;
     u32 padding[3];
 };
 
 // From https://github.com/switchbrew/libnx
-struct CmifOutHeader {
+struct OutHeader {
     u32 magic;
     u32 version;
     Result result;
     u32 token;
 };
 
-inline CmifInHeader cmif_read_in_header(u8*& in_ptr) {
-    auto hdr = reinterpret_cast<CmifInHeader*>(in_ptr);
-    in_ptr += sizeof(CmifInHeader);
+inline InHeader read_in_header(u8*& in_ptr) {
+    auto hdr = reinterpret_cast<InHeader*>(in_ptr);
+    in_ptr += sizeof(InHeader);
 
     return *hdr;
 }
 
-inline Result* cmif_write_out_header(Writer& writer) {
-    auto hdr = writer.Write(CmifOutHeader{
+inline Result* write_out_header(Writer& writer) {
+    auto hdr = writer.Write(OutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0,
         .result = MAKE_KERNEL_RESULT(NotImplemented),
@@ -68,17 +68,17 @@ inline Result* cmif_write_out_header(Writer& writer) {
     return &hdr->result;
 }
 
-inline CmifDomainInHeader cmif_read_domain_in_header(u8*& in_ptr) {
-    auto hdr = reinterpret_cast<CmifDomainInHeader*>(in_ptr);
-    in_ptr += sizeof(CmifDomainInHeader);
+inline DomainInHeader read_domain_in_header(u8*& in_ptr) {
+    auto hdr = reinterpret_cast<DomainInHeader*>(in_ptr);
+    in_ptr += sizeof(DomainInHeader);
 
     return *hdr;
 }
 
-inline void cmif_write_domain_out_header(Writer& writer) {
-    writer.Write(CmifDomainOutHeader{
+inline void write_domain_out_header(Writer& writer) {
+    writer.Write(DomainOutHeader{
         .num_out_objects = 0,
     });
 }
 
-} // namespace Hydra::Horizon
+} // namespace Hydra::Horizon::Cmif

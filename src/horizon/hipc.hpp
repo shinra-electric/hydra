@@ -2,13 +2,13 @@
 
 #include "horizon/const.hpp"
 
-namespace Hydra::Horizon {
+namespace Hydra::Horizon::Hipc {
 
 #define HIPC_AUTO_RECV_STATIC UINT8_MAX
 #define HIPC_RESPONSE_NO_PID UINT32_MAX
 
 // From https://github.com/switchbrew/libnx
-struct HipcMetadata {
+struct Metadata {
     u32 type;
     u32 num_send_statics;
     u32 num_send_buffers;
@@ -21,7 +21,7 @@ struct HipcMetadata {
     u32 num_move_handles;
 };
 
-struct HipcBufferDescriptor {
+struct BufferDescriptor {
     u32 size_low;
     u32 address_low;
     u32 mode : 2;
@@ -30,14 +30,14 @@ struct HipcBufferDescriptor {
     u32 address_mid : 4;
 };
 
-struct HipcRecvListEntry {
+struct RecvListEntry {
     u32 address_low;
     u32 address_high : 16;
     u32 size : 16;
 };
 
 // From https://github.com/switchbrew/libnx
-struct HipcHeader {
+struct Header {
     u32 type : 16;
     u32 num_send_statics : 4;
     u32 num_send_buffers : 4;
@@ -51,7 +51,7 @@ struct HipcHeader {
 };
 
 // From https://github.com/switchbrew/libnx
-struct HipcStaticDescriptor {
+struct StaticDescriptor {
     u32 index : 6;
     u32 address_high : 6;
     u32 address_mid : 4;
@@ -60,39 +60,39 @@ struct HipcStaticDescriptor {
 };
 
 // From https://github.com/switchbrew/libnx
-struct HipcResponse {
+struct Response {
     u64 pid;
     u32 num_statics;
     u32 num_data_words;
     u32 num_copy_handles;
     u32 num_move_handles;
-    HipcStaticDescriptor* statics;
+    StaticDescriptor* statics;
     u32* data_words;
     Handle* copy_handles;
     Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
-struct HipcRequest {
-    HipcStaticDescriptor* send_statics;
-    HipcBufferDescriptor* send_buffers;
-    HipcBufferDescriptor* recv_buffers;
-    HipcBufferDescriptor* exch_buffers;
+struct Request {
+    StaticDescriptor* send_statics;
+    BufferDescriptor* send_buffers;
+    BufferDescriptor* recv_buffers;
+    BufferDescriptor* exch_buffers;
     u32* data_words;
-    HipcRecvListEntry* recv_list;
+    RecvListEntry* recv_list;
     Handle* copy_handles;
     Handle* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
-typedef struct HipcParsedRequest {
-    HipcMetadata meta;
-    HipcRequest data;
+struct ParsedRequest {
+    Metadata meta;
+    Request data;
     u64 pid;
-} HipcParsedRequest;
+};
 
 // From https://github.com/switchbrew/libnx
-struct HipcSpecialHeader {
+struct SpecialHeader {
     u32 send_pid : 1;
     u32 num_copy_handles : 4;
     u32 num_move_handles : 4;
@@ -100,7 +100,7 @@ struct HipcSpecialHeader {
 };
 
 // From https://github.com/switchbrew/libnx
-inline HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base) {
+inline Request calc_request_layout(Metadata meta, void* base) {
     // Copy handles
     Handle* copy_handles = NULL;
     if (meta.num_copy_handles) {
@@ -116,30 +116,30 @@ inline HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base) {
     }
 
     // Send statics
-    HipcStaticDescriptor* send_statics = NULL;
+    StaticDescriptor* send_statics = NULL;
     if (meta.num_send_statics) {
-        send_statics = (HipcStaticDescriptor*)base;
+        send_statics = (StaticDescriptor*)base;
         base = send_statics + meta.num_send_statics;
     }
 
     // Send buffers
-    HipcBufferDescriptor* send_buffers = NULL;
+    BufferDescriptor* send_buffers = NULL;
     if (meta.num_send_buffers) {
-        send_buffers = (HipcBufferDescriptor*)base;
+        send_buffers = (BufferDescriptor*)base;
         base = send_buffers + meta.num_send_buffers;
     }
 
     // Recv buffers
-    HipcBufferDescriptor* recv_buffers = NULL;
+    BufferDescriptor* recv_buffers = NULL;
     if (meta.num_recv_buffers) {
-        recv_buffers = (HipcBufferDescriptor*)base;
+        recv_buffers = (BufferDescriptor*)base;
         base = recv_buffers + meta.num_recv_buffers;
     }
 
     // Exch buffers
-    HipcBufferDescriptor* exch_buffers = NULL;
+    BufferDescriptor* exch_buffers = NULL;
     if (meta.num_exch_buffers) {
-        exch_buffers = (HipcBufferDescriptor*)base;
+        exch_buffers = (BufferDescriptor*)base;
         base = exch_buffers + meta.num_exch_buffers;
     }
 
@@ -151,11 +151,11 @@ inline HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base) {
     }
 
     // Recv list
-    HipcRecvListEntry* recv_list = NULL;
+    RecvListEntry* recv_list = NULL;
     if (meta.num_recv_statics)
-        recv_list = (HipcRecvListEntry*)base;
+        recv_list = (RecvListEntry*)base;
 
-    return (HipcRequest){
+    return (Request){
         .send_statics = send_statics,
         .send_buffers = send_buffers,
         .recv_buffers = recv_buffers,
@@ -167,9 +167,9 @@ inline HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base) {
     };
 }
 
-inline HipcParsedRequest hipcParseRequest(void* base) {
+inline ParsedRequest parse_request(void* base) {
     // Parse message header
-    HipcHeader hdr = {};
+    Header hdr = {};
     memcpy(&hdr, base, sizeof(hdr));
     base = (u8*)base + sizeof(hdr);
     u32 num_recv_statics = 0;
@@ -184,7 +184,7 @@ inline HipcParsedRequest hipcParseRequest(void* base) {
     }
 
     // Parse special header
-    HipcSpecialHeader sphdr = {};
+    SpecialHeader sphdr = {};
     if (hdr.has_special_header) {
         memcpy(&sphdr, base, sizeof(sphdr));
         base = (u8*)base + sizeof(sphdr);
@@ -196,7 +196,7 @@ inline HipcParsedRequest hipcParseRequest(void* base) {
         }
     }
 
-    const HipcMetadata meta = {
+    const Metadata meta = {
         .type = hdr.type,
         .num_send_statics = hdr.num_send_statics,
         .num_send_buffers = hdr.num_send_buffers,
@@ -209,20 +209,20 @@ inline HipcParsedRequest hipcParseRequest(void* base) {
         .num_move_handles = sphdr.num_move_handles,
     };
 
-    return (HipcParsedRequest){
+    return {
         .meta = meta,
-        .data = hipcCalcRequestLayout(meta, base),
+        .data = calc_request_layout(meta, base),
         .pid = pid,
     };
 }
 
-inline HipcRequest hipcMakeRequest(void* base, HipcMetadata meta) {
+inline Request make_request(void* base, Metadata meta) {
     // Write message header
     bool has_special_header =
         meta.send_pid || meta.num_copy_handles || meta.num_move_handles;
-    HipcHeader* hdr = (HipcHeader*)base;
+    Header* hdr = (Header*)base;
     base = hdr + 1;
-    *hdr = (HipcHeader){
+    *hdr = (Header){
         .type = meta.type,
         .num_send_statics = meta.num_send_statics,
         .num_send_buffers = meta.num_send_buffers,
@@ -242,9 +242,9 @@ inline HipcRequest hipcMakeRequest(void* base, HipcMetadata meta) {
 
     // Write special header
     if (has_special_header) {
-        HipcSpecialHeader* sphdr = (HipcSpecialHeader*)base;
+        SpecialHeader* sphdr = (SpecialHeader*)base;
         base = sphdr + 1;
-        *sphdr = (HipcSpecialHeader){
+        *sphdr = (SpecialHeader){
             .send_pid = meta.send_pid,
             .num_copy_handles = meta.num_copy_handles,
             .num_move_handles = meta.num_move_handles,
@@ -254,7 +254,7 @@ inline HipcRequest hipcMakeRequest(void* base, HipcMetadata meta) {
     }
 
     // Calculate layout
-    return hipcCalcRequestLayout(meta, base);
+    return calc_request_layout(meta, base);
 }
 
-} // namespace Hydra::Horizon
+} // namespace Hydra::Horizon::Hipc

@@ -1,6 +1,7 @@
 #include "horizon/kernel.hpp"
 
 #include "horizon/cmif.hpp"
+#include "horizon/hipc.hpp"
 #include "horizon/services/domain_service.hpp"
 #include "horizon/services/sm.hpp"
 #include "hw/cpu/cpu.hpp"
@@ -404,18 +405,18 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     // Request
 
     // HIPC header
-    HipcParsedRequest hipc_in = hipcParseRequest(tls_ptr);
+    Hipc::ParsedRequest hipc_in = Hipc::parse_request(tls_ptr);
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
     Writer writer(service_scratch_buffer);
     Writer move_handles_writer(service_scratch_buffer_move_handles);
-    switch ((CmifCommandType)hipc_in.meta.type) {
-    case CmifCommandType::Request:
+    switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
+    case Cmif::CommandType::Request:
         printf("COMMAND: Request\n");
         service->Request(*this, writer, move_handles_writer, in_ptr);
         break;
-    case CmifCommandType::Control:
+    case Cmif::CommandType::Control:
         printf("COMMAND: Control\n");
         service->Control(*this, writer, in_ptr);
         break;
@@ -430,7 +431,7 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 #define GET_ARRAY_SIZE(writer)                                                 \
     static_cast<u32>(align(writer.GetWrittenSize(), (usize)4) / sizeof(u32))
 
-    auto response = hipcMakeRequest(
+    auto response = Hipc::make_request(
         tls_ptr, {.num_data_words = GET_ARRAY_SIZE(writer),
                   .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)});
 

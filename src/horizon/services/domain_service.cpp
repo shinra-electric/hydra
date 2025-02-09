@@ -9,11 +9,11 @@ void DomainService::Request(Kernel& kernel, Writer& writer,
     printf("Domain service request\n");
 
     // Domain in
-    auto cmif_in = cmif_read_domain_in_header(in_ptr);
+    auto cmif_in = Cmif::read_domain_in_header(in_ptr);
     printf("Object ID: 0x%08x\n", cmif_in.object_id);
     auto subservice = object_pool[cmif_in.object_id];
 
-    cmif_write_domain_out_header(writer);
+    Cmif::write_domain_out_header(writer);
 
     switch (cmif_in.type) {
     case 1:

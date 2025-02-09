@@ -8,9 +8,9 @@
 namespace Hydra::Horizon::Services {
 
 void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
-    auto cmif_in = cmif_read_in_header(in_ptr);
+    auto cmif_in = Cmif::read_in_header(in_ptr);
 
-    Result* res = cmif_write_out_header(writer);
+    Result* res = Cmif::write_out_header(writer);
 
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
