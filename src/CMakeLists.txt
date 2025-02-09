@@ -1,6 +1,8 @@
 add_executable(hydra
     main.cpp
     common.hpp
+    util/allocators/static_pool.hpp
+    util/allocators/dynamic_pool.hpp
     horizon/horizon.cpp
     horizon/horizon.hpp
     horizon/const.hpp

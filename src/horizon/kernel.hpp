@@ -2,6 +2,7 @@
 
 #include "horizon/const.hpp"
 #include "hw/cpu/cpu.hpp"
+#include "util/allocators/dynamic_pool.hpp"
 
 namespace Hydra::HW::MMU {
 class Memory;
@@ -61,24 +62,19 @@ class Kernel {
 
     // Helpers
     Services::ServiceBase* GetService(Handle handle) const {
-        return service_pool[handle];
+        return service_pool.GetObject(handle);
     }
 
-    void SetService(Handle handle, Services::ServiceBase* service) {
-        service_pool[handle] = service;
-    }
-
-    Handle AddService(Services::ServiceBase* service) {
-        Handle handle = service_pool.size();
-        service_pool.push_back(service);
-
-        return handle;
+    template <typename T, typename... ArgsT>
+    void SetService(Handle handle, ArgsT&&... args) {
+        service_pool.SetObject(handle,
+                               new T(handle, std::forward<ArgsT>(args)...));
     }
 
     template <typename T, typename... ArgsT>
     Handle AddService(ArgsT&&... args) {
-        Handle handle = service_pool.size();
-        service_pool.push_back(new T(handle, std::forward<ArgsT>(args)...));
+        Handle handle = service_pool.AllocateForIndex();
+        SetService<T>(handle, std::forward<ArgsT>(args)...);
 
         return handle;
     }
@@ -99,7 +95,8 @@ class Kernel {
     HW::MMU::Memory* heap_mem;
 
     // Services
-    std::vector<Services::ServiceBase*> service_pool;
+    // TODO: what's the maximum number of services?
+    Allocators::DynamicPool<Services::ServiceBase> service_pool;
     u8 service_scratch_buffer[0x1000];
     u8 service_scratch_buffer_move_handles[0x100];
 };
