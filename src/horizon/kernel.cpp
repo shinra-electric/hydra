@@ -264,7 +264,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         HorizonKernel,
         "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
         "{})",
-        addr, size, (u32)permission);
+        addr, size, permission);
 
     HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
     if (!mem) {
@@ -345,12 +345,11 @@ Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
 
 Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
                                        Permission permission) {
-    // TODO: don't cast to u32
     LOG_DEBUG(
         HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
         "perm: {})",
-        address, size, (u32)permission);
+        address, size, permission);
 
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
@@ -523,11 +522,10 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 
 Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
                         usize buffer_size) {
-    // TODO: don't cast to u32
     LOG_DEBUG(HorizonKernel,
               "svcBreak called (reason: {}, buffer ptr: 0x{:08x}, buffer "
               "size: 0x{:08x})",
-              (u32)reason.type, buffer_ptr, buffer_size);
+              reason.type, buffer_ptr, buffer_size);
 
     if (buffer_ptr && buffer_size == 0x4) {
         LOG_DEBUG(HorizonKernel, "diagAbortWithResult (description: {})",

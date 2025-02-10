@@ -16,11 +16,6 @@
     inline e operator~(e a) { return static_cast<e>(~static_cast<u32>(a)); }   \
     inline bool any(e a) { return a != e::None; }
 
-#define ENUM_CASE(e, value, n)                                                 \
-    case e::value:                                                             \
-        name = n;                                                              \
-        break;
-
 #define PARENS ()
 
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
@@ -37,9 +32,13 @@
 
 #define FOR_EACH_AGAIN() FOR_EACH_HELPER
 
-// Main macro to enable to_string conversion
+#define ENUM_CASE(e, value, n)                                                 \
+    case e::value:                                                             \
+        name = n;                                                              \
+        break;
+
 #define ENABLE_ENUM_FORMATTING(e, ...)                                         \
-    template <> struct fmt::formatter<const e> : formatter<string_view> {      \
+    template <> struct fmt::formatter<e> : formatter<string_view> {            \
         template <typename FormatContext>                                      \
         auto format(e c, FormatContext& ctx) const {                           \
             string_view name;                                                  \
@@ -49,6 +48,28 @@
                 name = "unknown";                                              \
                 break;                                                         \
             }                                                                  \
+            return formatter<string_view>::format(name, ctx);                  \
+        }                                                                      \
+    };
+
+#define ENUM_BIT_TEST(e, value, n)                                             \
+    if (any(c & e::value)) {                                                   \
+        if (added)                                                             \
+            name += " | ";                                                     \
+        else                                                                   \
+            added = true;                                                      \
+        name += n;                                                             \
+    }
+
+#define ENABLE_ENUM_FLAGS_FORMATTING(e, ...)                                   \
+    template <> struct fmt::formatter<e> : formatter<string_view> {            \
+        template <typename FormatContext>                                      \
+        auto format(e c, FormatContext& ctx) const {                           \
+            std::string name;                                                  \
+            bool added = false;                                                \
+            FOR_EACH(ENUM_BIT_TEST, e, __VA_ARGS__)                            \
+            if (!added)                                                        \
+                name = "none";                                                 \
             return formatter<string_view>::format(name, ctx);                  \
         }                                                                      \
     };

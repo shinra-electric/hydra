@@ -80,12 +80,10 @@ void log(Level level, Class c, const std::string& file, u32 line,
             break;
         }
 
-        // TODO: don't cast to u32
-        fmt::print(fg(color), "[{:<7}]", (u32)level);
+        fmt::print(fg(color), "[{:<7}]", level);
 
         // Class + debug info
-        // TODO: don't cast to u32
-        fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", (u32)c, function,
+        fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", c, function,
                    fmt::format("{}:{}", file, line));
 
         // Message
