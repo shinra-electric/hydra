@@ -143,7 +143,7 @@ void Hypervisor::Run() {
 
                     break;
                 case 0x18:
-                    Logging::log(Logging::Level::Debug, "MSR MSR");
+                    LOG_DEBUG(Hypervisor, "MSR MSR");
                     // TODO: implement
                     throw;
                     break;
@@ -151,10 +151,10 @@ void Hypervisor::Run() {
                     // Debug
                     // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                    Logging::log(Logging::Level::Debug,
-                                 "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
-                                 "instruction: 0x{:08x})",
-                                 elr, far, instruction);
+                    LOG_DEBUG(Hypervisor,
+                              "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
+                              "instruction: 0x{:08x})",
+                              elr, far, instruction);
 
                     // TODO: check if valid
 
@@ -191,8 +191,8 @@ void Hypervisor::Run() {
                     // Debug
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                    Logging::log(
-                        Logging::Level::Error,
+                    LOG_ERROR(
+                        Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR_ "
                         "0x{:08x})",
@@ -215,7 +215,7 @@ void Hypervisor::Run() {
                 // register holds 0x%llx", x0);
                 // Logging::log(Logging::Level::Debug, "Return to get on next
                 // instruction.");
-                Logging::log(Logging::Level::Warning, "SMC instruction");
+                LOG_WARNING(Hypervisor, "SMC instruction");
 
                 cpu->AdvancePC();
             } else if (hvEc == 0x18) {
@@ -224,7 +224,7 @@ void Hypervisor::Run() {
                 // Debug
                 cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                Logging::log(Logging::Level::Debug, "MSR MRS instruction");
+                LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
                 // Manually execute the instruction
                 u32 instruction =
@@ -257,7 +257,7 @@ void Hypervisor::Run() {
                 // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                 cpu->AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
-                Logging::log(Logging::Level::Error, "BRK instruction");
+                LOG_ERROR(Hypervisor, "BRK instruction");
                 cpu->LogRegisters();
                 break;
             } else {
@@ -265,8 +265,8 @@ void Hypervisor::Run() {
                 cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
                 cpu->LogRegisters();
 
-                Logging::log(
-                    Logging::Level::Error,
+                LOG_ERROR(
+                    Hypervisor,
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
                     "0x{:08x}, "
                     "VirtAddr: "
@@ -284,11 +284,11 @@ void Hypervisor::Run() {
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
             cpu->UpdateVTimer();
-            Logging::log(Logging::Level::Debug, "VTimer");
+            LOG_DEBUG(Hypervisor, "VTimer");
         } else {
             // TODO: don't cast to u32
-            Logging::log(Logging::Level::Error, "Unexpected VM exit reason {}",
-                         (u32)exit->reason);
+            LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
+                      (u32)exit->reason);
             break;
         }
     }

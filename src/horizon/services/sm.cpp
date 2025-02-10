@@ -32,7 +32,7 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     case 1: {
-        Logging::log(Logging::Level::Debug, "GetServiceHandle");
+        LOG_DEBUG(HorizonServices, "GetServiceHandle");
 
         // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
         // std::string name(in.name);
@@ -61,9 +61,8 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
             add_service(new Am::ApplicationProxyService());
             break;
         default:
-            Logging::log(Logging::Level::Warning,
-                         "Unknown service 0x{:08x} -> {}", (u64)service,
-                         std::string((char*)in_ptr, 8));
+            LOG_WARNING(HorizonServices, "Unknown service 0x{:08x} -> {}",
+                        (u64)service, std::string((char*)in_ptr, 8));
             handle = UINT32_MAX;
             *res = MAKE_KERNEL_RESULT(NotFound);
             throw;
@@ -92,8 +91,8 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
         break;
     }
     default:
-        Logging::log(Logging::Level::Warning, "Unknown sm command {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown sm command {}",
+                    cmif_in.command_id);
         break;
     }
 }

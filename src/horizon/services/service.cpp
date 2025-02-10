@@ -14,7 +14,7 @@ void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
 
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
-        Logging::log(Logging::Level::Debug, "CONVERT TO DOMAIN");
+        LOG_DEBUG(HorizonServices, "CONVERT TO DOMAIN");
 
         auto domain_service = new DomainService();
         kernel.SetService(handle, domain_service);
@@ -26,8 +26,8 @@ void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
         break;
     }
     default:
-        Logging::log(Logging::Level::Warning,
-                     "Unimplemented control request {}", cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unimplemented control request {}",
+                    cmif_in.command_id);
         break;
     }
 

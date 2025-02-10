@@ -12,9 +12,9 @@ void FileSystemProxy::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     default:
-        Logging::log(Logging::Level::Warning,
-                     "Unknown fssrv::filesystem_proxy request {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices,
+                    "Unknown fssrv::filesystem_proxy request {}",
+                    cmif_in.command_id);
         break;
     }
 

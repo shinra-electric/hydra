@@ -44,9 +44,7 @@
         auto format(e c, FormatContext& ctx) const {                           \
             string_view name;                                                  \
             switch (c) {                                                       \
-            case e::Panic:                                                     \
-                name = "panic";                                                \
-                break;                                                         \
+                FOR_EACH(ENUM_CASE, e, __VA_ARGS__)                            \
             default:                                                           \
                 name = "unknown";                                              \
                 break;                                                         \

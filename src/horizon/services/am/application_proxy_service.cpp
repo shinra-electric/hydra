@@ -15,15 +15,15 @@ void ApplicationProxyService::Request(
 
     switch (cmif_in.command_id) {
     case 0: {
-        Logging::log(Logging::Level::Debug, "OpenApplicationProxy");
+        LOG_DEBUG(HorizonServices, "OpenApplicationProxy");
 
         add_service(new ApplicationProxy());
 
         break;
     }
     default:
-        Logging::log(Logging::Level::Warning, "Unknown appletOE request {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown appletOE request {}",
+                    cmif_in.command_id);
         break;
     }
 

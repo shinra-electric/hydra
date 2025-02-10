@@ -13,8 +13,8 @@ void SystemSettingsServer::Request(
 
     switch (cmif_in.command_id) {
     default:
-        Logging::log(Logging::Level::Warning, "Unknown set::sys request {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown set::sys request {}",
+                    cmif_in.command_id);
         break;
     }
 

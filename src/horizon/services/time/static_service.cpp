@@ -24,9 +24,8 @@ void StaticService::Request(Writers& writers, u8* in_ptr,
         CreateService(cmif_in.command_id, add_service);
         break;
     default:
-        Logging::log(Logging::Level::Warning,
-                     "Unknown time::static_service request {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown time::static_service request {}",
+                    cmif_in.command_id);
         break;
     }
 
@@ -67,8 +66,8 @@ void StaticService::CreateService(
         add_service(new TimeZoneService());
         break;
     default:
-        Logging::log(Logging::Level::Warning,
-                     "Unknown time service CreateService command {}", id);
+        LOG_WARNING(HorizonServices,
+                    "Unknown time service CreateService command {}", id);
         break;
     }
 }

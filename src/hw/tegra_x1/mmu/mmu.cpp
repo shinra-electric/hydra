@@ -37,7 +37,7 @@ Memory* MMUBase::UnmapPtrToMemory(uptr ptr) {
         }
     }
 
-    Logging::log(Logging::Level::Error, "Failed to unmap ptr 0x{:08x}", ptr);
+    LOG_ERROR(MMU, "Failed to unmap ptr 0x{:08x}", ptr);
 
     return nullptr;
 }

@@ -12,9 +12,8 @@ void SteadyClock::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     default:
-        Logging::log(Logging::Level::Warning,
-                     "Unknown time::steady_clock request {}",
-                     cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown time::steady_clock request {}",
+                    cmif_in.command_id);
         break;
     }
 

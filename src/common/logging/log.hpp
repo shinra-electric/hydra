@@ -3,7 +3,33 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 
+#include "common/macros.hpp"
+#include "common/types.hpp"
+
+#define LOG(level, c, ...)                                                     \
+    Logging::log(Logging::Level::level, Logging::Class::c,                     \
+                 Logging::TrimSourcePath(__FILE__), __LINE__, __func__,        \
+                 __VA_ARGS__)
+
+// TODO: only log on debug builds
+#define LOG_DEBUG(c, ...) LOG(Debug, c, __VA_ARGS__)
+#define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
+#define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
+#define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
+
 namespace Hydra::Logging {
+
+// From yuzu
+constexpr const char* TrimSourcePath(std::string_view source) {
+    const auto rfind = [source](const std::string_view match) {
+        return source.rfind(match) == source.npos
+                   ? 0
+                   : (source.rfind(match) + match.size());
+    };
+    auto idx =
+        std::max({rfind("src/"), rfind("src\\"), rfind("../"), rfind("..\\")});
+    return source.data() + idx;
+}
 
 enum class Output {
     Stdout,
@@ -17,29 +43,52 @@ enum class Level {
     Error,
 };
 
+enum class Class {
+    Common,
+    CPU,
+    MMU,
+    Horizon,
+    HorizonKernel,
+    HorizonServices,
+    Hypervisor,
+};
+
 extern Output g_output;
 
 inline void initialize(Output output) { g_output = output; }
 
 template <typename... T>
-void log(Level level, fmt::format_string<T...> fmt, T&&... args) {
-    switch (level) {
-    case Level::Debug:
-        fmt::print(fg(fmt::terminal_color::cyan), "[debug] ");
-        break;
-    case Level::Info:
-        fmt::print(fg(fmt::terminal_color::white), "[info] ");
-        break;
-    case Level::Warning:
-        fmt::print(fg(fmt::terminal_color::bright_yellow), "[warning] ");
-        break;
-    case Level::Error:
-        fmt::print(fg(fmt::terminal_color::red), "[error] ");
-        break;
-    }
-
+void log(Level level, Class c, const std::string& file, u32 line,
+         const std::string& function, fmt::format_string<T...> fmt,
+         T&&... args) {
     switch (g_output) {
     case Output::Stdout:
+        // Level
+        fmt::terminal_color color;
+        switch (level) {
+        case Level::Debug:
+            color = fmt::terminal_color::cyan;
+            break;
+        case Level::Info:
+            color = fmt::terminal_color::white;
+            break;
+        case Level::Warning:
+            color = fmt::terminal_color::bright_yellow;
+            break;
+        case Level::Error:
+            color = fmt::terminal_color::red;
+            break;
+        }
+
+        // TODO: don't cast to u32
+        fmt::print(fg(color), "[{:<7}]", (u32)level);
+
+        // Class + debug info
+        // TODO: don't cast to u32
+        fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", (u32)c, function,
+                   fmt::format("{}:{}", file, line));
+
+        // Message
         fmt::print(fmt, std::forward<T>(args)...);
         fmt::print("\n");
         break;
@@ -51,3 +100,11 @@ void log(Level level, fmt::format_string<T...> fmt, T&&... args) {
 }
 
 } // namespace Hydra::Logging
+
+ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
+                       Warning, "warning", Error, "error")
+
+ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", CPU, "CPU", MMU,
+                       "MMU", Horizon, "Horizon", HorizonKernel,
+                       "Horizon::Kernel", HorizonServices, "Horizon::Services",
+                       Hypervisor, "Hypervisor")

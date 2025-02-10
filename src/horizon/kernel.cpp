@@ -233,7 +233,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         cpu->SetRegX(1, tmpU64);
         break;
     default:
-        Logging::log(Logging::Level::Warning, "Unimplemented SVC 0x{:08x}", id);
+        LOG_WARNING(HorizonKernel, "Unimplemented SVC 0x{:08x}", id);
         res = MAKE_KERNEL_RESULT(NotImplemented);
         cpu->SetRegX(0, res);
         break;
@@ -243,8 +243,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
 }
 
 Result Kernel::svcSetHeapSize(uptr* out, usize size) {
-    Logging::log(Logging::Level::Debug,
-                 "svcSetHeapSize called (size: 0x{:08x})", size);
+    LOG_DEBUG(HorizonKernel, "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
@@ -261,8 +260,8 @@ Result Kernel::svcSetHeapSize(uptr* out, usize size) {
 
 Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
                                       Permission permission) {
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
         "{})",
         addr, size, (u32)permission);
@@ -282,22 +281,21 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
 
 Result Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
                                      u32 value) {
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcSetMemoryAttribute called (addr: 0x{:08x}, size: 0x{:08x}, mask: "
         "0x{:08x}, value: 0x{:08x})",
         addr, size, mask, value);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
-    Logging::log(Logging::Level::Debug,
-                 "svcQueryMemory called (addr: 0x{:08x})", addr);
+    LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
     HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
     if (!mem) {
@@ -322,26 +320,25 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
 }
 
 void Kernel::svcExitProcess() {
-    Logging::log(Logging::Level::Debug, "svcExitProcess called");
+    LOG_DEBUG(HorizonKernel, "svcExitProcess called");
 }
 
 void Kernel::svcSleepThread(i64 nano) {
-    Logging::log(Logging::Level::Debug,
-                 "svcSleepThread called (nano: 0x{:08x})", nano);
+    LOG_DEBUG(HorizonKernel, "svcSleepThread called (nano: 0x{:08x})", nano);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
 Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
                                   Permission permission) {
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x}, perm: {})",
         handle, addr, size, (u32)permission);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
@@ -349,38 +346,38 @@ Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
 Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
                                        Permission permission) {
     // TODO: don't cast to u32
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
         "perm: {})",
         address, size, (u32)permission);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcCloseHandle(Handle handle) {
-    Logging::log(Logging::Level::Debug,
-                 "svcCloseHandle called (handle: 0x{:08x})", handle);
+    LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
+              handle);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
                                       i32 handles_count, i64 timeout) {
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcWaitSynchronization called (handles: 0x{:08x}, count: {}, timeout: "
         "{})",
         (void*)handles_ptr, handles_count, timeout);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     // HACK
     handle_index = 0;
@@ -389,50 +386,48 @@ Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
 }
 
 Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
-    Logging::log(
-        Logging::Level::Debug,
-        "svcArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
-        "0x{:08x})",
-        wait_tag, mutex_addr, self_tag);
+    LOG_DEBUG(HorizonKernel,
+              "svcArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
+              "0x{:08x})",
+              wait_tag, mutex_addr, self_tag);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
-    Logging::log(Logging::Level::Debug,
-                 "svcArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
+    LOG_DEBUG(HorizonKernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
+              mutex_addr);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                            u32 self_tag, i64 timeout) {
-    Logging::log(
-        Logging::Level::Debug,
+    LOG_DEBUG(
+        HorizonKernel,
         "svcWaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
         "self: 0x{:08x}, timeout: {})",
         mutex_addr, var_addr, self_tag, timeout);
 
     // TODO: implement
-    Logging::log(Logging::Level::Warning, "Not implemented");
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
-    Logging::log(Logging::Level::Debug,
-                 "svcConnectToNamedPort called (name: {})", name);
+    LOG_DEBUG(HorizonKernel, "svcConnectToNamedPort called (name: {})", name);
 
     if (name == "sm:") {
         *out = AddService(new Services::ServiceManager());
     } else {
-        Logging::log(Logging::Level::Error, "Unknown service name: {}", name);
+        LOG_ERROR(HorizonKernel, "Unknown service name: {}", name);
         return MAKE_KERNEL_RESULT(NotFound);
     }
 
@@ -440,9 +435,8 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
 }
 
 Result Kernel::svcSendSyncRequest(Handle session_handle) {
-    Logging::log(Logging::Level::Debug,
-                 "svcSendSyncRequest called (session: 0x{:08x})",
-                 session_handle);
+    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (session: 0x{:08x})",
+              session_handle);
 
     Services::ServiceBase* service = GetService(session_handle);
     u8* tls_ptr = tls_mem->GetPtrU8();
@@ -460,19 +454,18 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
                               Writer(service_scratch_buffer_copy_handles)};
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
-        Logging::log(Logging::Level::Debug, "COMMAND: Request");
+        LOG_DEBUG(HorizonKernel, "COMMAND: Request");
         service->Request(writers, in_ptr, [&](Services::ServiceBase* service) {
             Handle handle = AddService(service);
             writers.move_handles_writer.Write(handle);
         });
         break;
     case Cmif::CommandType::Control:
-        Logging::log(Logging::Level::Debug, "COMMAND: Control");
+        LOG_DEBUG(HorizonKernel, "COMMAND: Control");
         service->Control(*this, writers.writer, in_ptr);
         break;
     default:
-        Logging::log(Logging::Level::Warning, "Unknown command {}",
-                     hipc_in.meta.type);
+        LOG_WARNING(HorizonKernel, "Unknown command {}", hipc_in.meta.type);
         break;
     }
 
@@ -531,15 +524,14 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
                         usize buffer_size) {
     // TODO: don't cast to u32
-    Logging::log(Logging::Level::Debug,
-                 "svcBreak called (reason: {}, buffer ptr: 0x{:08x}, buffer "
-                 "size: 0x{:08x})",
-                 (u32)reason.type, buffer_ptr, buffer_size);
+    LOG_DEBUG(HorizonKernel,
+              "svcBreak called (reason: {}, buffer ptr: 0x{:08x}, buffer "
+              "size: 0x{:08x})",
+              (u32)reason.type, buffer_ptr, buffer_size);
 
     if (buffer_ptr && buffer_size == 0x4) {
-        Logging::log(Logging::Level::Debug,
-                     "diagAbortWithResult (description: {})",
-                     ((*(u32*)buffer_ptr) >> 9) & 0x1FFF);
+        LOG_DEBUG(HorizonKernel, "diagAbortWithResult (description: {})",
+                  ((*(u32*)buffer_ptr) >> 9) & 0x1FFF);
     }
 
     if (!reason.notification_only)
@@ -549,35 +541,34 @@ Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
 }
 
 Result Kernel::svcOutputDebugString(const char* str, usize len) {
-    Logging::log(Logging::Level::Debug, "svcOutputDebugString called");
+    LOG_DEBUG(HorizonKernel, "svcOutputDebugString called");
     if (len != 0) {
         // TODO: handle differently
-        Logging::log(Logging::Level::Info, "{}", std::string(str, len));
+        LOG_INFO(HorizonKernel, "{}", std::string(str, len));
     }
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcGetInfo(u64* out, Info info) {
-    Logging::log(Logging::Level::Debug, "svcGetInfo called");
+    LOG_DEBUG(HorizonKernel, "svcGetInfo called");
 
     if (info.is_system_info) {
         switch (info.system_info_type) {
         default:
-            Logging::log(Logging::Level::Warning,
-                         "Unimplemented system info type {}",
-                         (u32)info.system_info_type);
+            LOG_WARNING(HorizonKernel, "Unimplemented system info type {}",
+                        (u32)info.system_info_type);
             return MAKE_KERNEL_RESULT(NotImplemented);
         }
     } else {
         switch (info.info_type) {
         case InfoType::AliasRegionAddress:
-            Logging::log(Logging::Level::Warning, "Not implemented");
+            LOG_WARNING(HorizonKernel, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         case InfoType::AliasRegionSize:
-            Logging::log(Logging::Level::Warning, "Not implemented");
+            LOG_WARNING(HorizonKernel, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
@@ -588,12 +579,12 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             *out = heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AslrRegionAddress:
-            Logging::log(Logging::Level::Warning, "Not implemented");
+            LOG_WARNING(HorizonKernel, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         case InfoType::AslrRegionSize:
-            Logging::log(Logging::Level::Warning, "Not implemented");
+            LOG_WARNING(HorizonKernel, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
@@ -614,13 +605,13 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
                    heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AliasRegionExtraSize:
-            Logging::log(Logging::Level::Warning, "Not implemented");
+            LOG_WARNING(HorizonKernel, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         default:
-            Logging::log(Logging::Level::Warning, "Unimplemented info type {}",
-                         (u32)info.info_type);
+            LOG_WARNING(HorizonKernel, "Unimplemented info type {}",
+                        (u32)info.info_type);
             return MAKE_KERNEL_RESULT(NotImplemented);
         }
     }
