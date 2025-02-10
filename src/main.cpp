@@ -28,6 +28,10 @@ int main(int argc, const char* argv[]) {
     // Parse file
     usize size;
     auto ifs = Hydra::open_file(path, size);
+    // std::vector<u8> d(size);
+    // ifs.read((char*)d.data(), size);
+    // printf("AAA: 0x%llx\n", *((u64*)(d.data() + 0x17498)));
+    // return 0;
     BinaryReader reader(ifs, size);
     Rom* rom = ParseNRO(reader);
     ifs.close();
@@ -72,7 +76,11 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0x634, BRK);
+    // SET_INSTRUCTION(data, 0x4750, BRK);
+    // printf("BSS: 0x%08x - 0x%08x\n",
+    //       *((u32*)(rom->GetRom().data() + 0xf0 + 0x8)),
+    //       *((u32*)(rom->GetRom().data() + 0xf0 + 0xc)));
+    // return 0;
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 

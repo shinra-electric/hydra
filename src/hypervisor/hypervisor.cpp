@@ -93,7 +93,7 @@ void Hypervisor::LoadROM(Rom* rom) {
                    horizon.GetKernel().GetTlsMemory()->GetBase());
 
     // HACK: g_overrideHeapAddr is 0x5b982811ce0afbf4 for no reason
-    *((u64*)mmu->UnmapPtr(0x80017498)) = 0x0;
+    //*((u64*)mmu->UnmapPtr(0x80017498)) = 0x0;
     // printf("LoadROM HEAP OVERRIDE: 0x%08llx\n",
     //        *((u64*)mmu->UnmapPtr(0x80017498)));
 }
@@ -119,6 +119,8 @@ void Hypervisor::Run() {
                 u8 ec = (esr >> 26) & 0x3f;
 
                 u64 elr = cpu->GetSysReg(HV_SYS_REG_ELR_EL1);
+
+                u64 far = cpu->GetSysReg(HV_SYS_REG_FAR_EL1);
 
                 // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
                 // u64 mode = (spsr >> 2) & 0x3;
@@ -149,17 +151,37 @@ void Hypervisor::Run() {
                     // Debug
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
+                    printf("Data abort (PC 0x%08llx FAR 0x%08llx)\n", elr, far);
+
                     // TODO: check if valid
-                    printf("Data abort (PC 0x%08llx)\n", elr);
 
                     // printf("X3: 0x%08llx\n", cpu->GetReg(HV_REG_X3));
+                    printf("INSTRUCTION: 0x%08x\n", instruction);
 
-                    // HACK: write the result code to a register in case of
-                    // STLXR or LDAXR
-                    if ((instruction & 0xFF800000) == 0x88000000)
-                        cpu->SetReg((hv_reg_t)(HV_REG_X0 +
-                                               EXTRACT_BITS(instruction, 4, 0)),
-                                    0);
+                    if ((instruction & 0xFF800000) ==
+                        0x88000000) { // STLXR or LDAXR
+                        if ((instruction & 0x001F0000) == 0x001F0000) { // LDAXR
+                            // TODO
+
+                            // HACK
+                            cpu->SetReg(
+                                (hv_reg_t)(HV_REG_X0 +
+                                           EXTRACT_BITS(instruction, 4, 0)),
+                                0);
+                        } else { // STLXR
+                            // TODO
+
+                            // Result code
+                            cpu->SetReg(
+                                (hv_reg_t)(HV_REG_X0 +
+                                           EXTRACT_BITS(instruction, 4, 0)),
+                                0);
+                        }
+                    } else if ((instruction & 0xFF800000) == 0xD5000000) { // DC
+                        const size_t cacheLineSize = 64;
+                        // Zero out the memory
+                        memset((void*)mmu->UnmapPtr(far), 0, cacheLineSize);
+                    }
 
                     // Set the return address
                     // TODO: correct?

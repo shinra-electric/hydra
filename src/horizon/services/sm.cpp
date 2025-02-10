@@ -1,6 +1,7 @@
 #include "horizon/services/sm.hpp"
 
 #include "horizon/cmif.hpp"
+#include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
@@ -18,6 +19,7 @@ void ServiceManager::Request(Kernel& kernel, Writer& writer,
     auto cmif_in = Cmif::read_in_header(in_ptr);
 
     Result* res = Cmif::write_out_header(writer);
+    *res = RESULT_SUCCESS;
 
     switch (cmif_in.command_id) {
     case 1: {
@@ -37,6 +39,7 @@ void ServiceManager::Request(Kernel& kernel, Writer& writer,
         } else {
             printf("Unknown service name \"%s\"\n", name.c_str());
             handle = UINT32_MAX;
+            *res = MAKE_KERNEL_RESULT(NotFound);
         }
 
         // Out
@@ -48,8 +51,6 @@ void ServiceManager::Request(Kernel& kernel, Writer& writer,
         printf("Unknown sm command %u\n", cmif_in.command_id);
         break;
     }
-
-    *res = RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services
