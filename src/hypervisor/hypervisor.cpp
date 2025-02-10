@@ -254,6 +254,10 @@ void Hypervisor::Run() {
             } else if (hvEc == 0x3C) { // BRK
                 printf("BRK instruction\n");
                 cpu->LogRegisters();
+                printf("g_appletProxySession session: 0x%08x\n",
+                       *((u32*)mmu->UnmapPtr(0x80017368)));
+                printf("g_appletProxySession object_id: 0x%08x\n",
+                       *((u32*)mmu->UnmapPtr(0x80017368 + 0x8)));
                 break;
             } else {
                 // Debug

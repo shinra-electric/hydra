@@ -6,14 +6,13 @@ namespace Hydra::Horizon::Services {
 
 class DomainService : public ServiceBase {
   public:
-    DomainService(Handle handle_) : ServiceBase(handle_) {}
-
-    void Request(Kernel& kernel, Writer& writer, Writer& move_handles_writer,
-                 u8* in_ptr) override;
+    void Request(Writers& writers, u8* in_ptr,
+                 std::function<void(ServiceBase*)> add_service) override;
 
     Handle AddObject(ServiceBase* object) {
         Handle handle = object_pool.size();
         object_pool.push_back(object);
+        object->SetHandle(handle);
 
         return handle;
     }

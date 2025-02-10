@@ -6,13 +6,11 @@ namespace Hydra::Horizon::Services::Time {
 
 class StaticService : public ServiceBase {
   public:
-    StaticService(Handle handle_) : ServiceBase(handle_) {}
-
-    void Request(Kernel& kernel, Writer& writer, Writer& move_handles_writer,
-                 u8* in_ptr) override;
+    void Request(Writers& writers, u8* in_ptr,
+                 std::function<void(ServiceBase*)> add_service) override;
 
   private:
-    void CreateService(Kernel& kernel, Writer& move_handles_writer, u32 id);
+    void CreateService(u32 id, std::function<void(ServiceBase*)> add_service);
 };
 
 } // namespace Hydra::Horizon::Services::Time

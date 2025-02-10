@@ -76,11 +76,7 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0x4750, BRK);
-    // printf("BSS: 0x%08x - 0x%08x\n",
-    //       *((u32*)(rom->GetRom().data() + 0xf0 + 0x8)),
-    //       *((u32*)(rom->GetRom().data() + 0xf0 + 0xc)));
-    // return 0;
+    // SET_INSTRUCTION(data, 0x419c, BRK);
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 

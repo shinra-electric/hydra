@@ -67,19 +67,9 @@ class Kernel {
         return service_pool.GetObject(handle);
     }
 
-    template <typename T, typename... ArgsT>
-    void SetService(Handle handle, ArgsT&&... args) {
-        service_pool.GetObjectRef(handle) =
-            new T(handle, std::forward<ArgsT>(args)...);
-    }
+    void SetService(Handle handle, Services::ServiceBase* service);
 
-    template <typename T, typename... ArgsT>
-    Handle AddService(ArgsT&&... args) {
-        Handle handle = service_pool.AllocateForIndex();
-        SetService<T>(handle, std::forward<ArgsT>(args)...);
-
-        return handle;
-    }
+    Handle AddService(Services::ServiceBase* service);
 
   private:
     HW::MMU::MMUBase* mmu;
@@ -100,7 +90,9 @@ class Kernel {
     // TODO: what's the maximum number of services?
     Allocators::StaticPool<Services::ServiceBase*, 16> service_pool;
     u8 service_scratch_buffer[0x1000];
+    u8 service_scratch_buffer_objects[0x100];
     u8 service_scratch_buffer_move_handles[0x100];
+    u8 service_scratch_buffer_copy_handles[0x100];
 };
 
 } // namespace Hydra::Horizon

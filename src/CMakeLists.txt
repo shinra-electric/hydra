@@ -32,6 +32,14 @@ add_executable(hydra
     horizon/services/time/time_zone_service.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
+    horizon/services/settings/system_settings_server.cpp
+    horizon/services/settings/system_settings_server.hpp
+    horizon/services/apm/manager.cpp
+    horizon/services/apm/manager.hpp
+    horizon/services/am/application_proxy_service.cpp
+    horizon/services/am/application_proxy_service.hpp
+    horizon/services/am/application_proxy.cpp
+    horizon/services/am/application_proxy.hpp
     hw/cpu/cpu.hpp
     hw/cpu/hypervisor/cpu.cpp
     hw/cpu/hypervisor/cpu.hpp

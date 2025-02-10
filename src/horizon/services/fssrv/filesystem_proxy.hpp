@@ -6,10 +6,8 @@ namespace Hydra::Horizon::Services::Fssrv {
 
 class FileSystemProxy : public ServiceBase {
   public:
-    FileSystemProxy(Handle handle_) : ServiceBase(handle_) {}
-
-    void Request(Kernel& kernel, Writer& writer, Writer& move_handles_writer,
-                 u8* in_ptr) override;
+    void Request(Writers& writers, u8* in_ptr,
+                 std::function<void(ServiceBase*)> add_service) override;
 
   private:
 };

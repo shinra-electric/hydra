@@ -8,16 +8,24 @@ class Kernel;
 
 namespace Hydra::Horizon::Services {
 
+struct Writers {
+    Writer writer;
+    Writer objects_writer;
+    Writer move_handles_writer;
+    Writer copy_handles_writer;
+};
+
 class ServiceBase {
   public:
-    ServiceBase(Handle handle_) : handle{handle_} {}
-
-    virtual void Request(Kernel& kernel, Writer& writer,
-                         Writer& move_handles_writer, u8* in_ptr) = 0;
+    virtual void Request(Writers& writers, u8* in_ptr,
+                         std::function<void(ServiceBase*)> add_service) = 0;
     void Control(Kernel& kernel, Writer& writer, u8* in_ptr);
 
     // Getters
     // Handle GetHandle() const { return handle; }
+
+    // Setters
+    void SetHandle(Handle handle_) { handle = handle_; }
 
   private:
     Handle handle;

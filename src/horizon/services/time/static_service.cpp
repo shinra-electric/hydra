@@ -8,11 +8,11 @@
 
 namespace Hydra::Horizon::Services::Time {
 
-void StaticService::Request(Kernel& kernel, Writer& writer,
-                            Writer& move_handles_writer, u8* in_ptr) {
+void StaticService::Request(Writers& writers, u8* in_ptr,
+                            std::function<void(ServiceBase*)> add_service) {
     auto cmif_in = Cmif::read_in_header(in_ptr);
 
-    Result* res = Cmif::write_out_header(writer);
+    Result* res = Cmif::write_out_header(writers.writer);
 
     switch (cmif_in.command_id) {
     case 0:
@@ -21,7 +21,7 @@ void StaticService::Request(Kernel& kernel, Writer& writer,
     case 3:
     case 4:
     case 5:
-        CreateService(kernel, move_handles_writer, cmif_in.command_id);
+        CreateService(cmif_in.command_id, add_service);
         break;
     default:
         printf("Unknown time::static_service request %u\n", cmif_in.command_id);
@@ -31,8 +31,8 @@ void StaticService::Request(Kernel& kernel, Writer& writer,
     *res = RESULT_SUCCESS;
 }
 
-void StaticService::CreateService(Kernel& kernel, Writer& move_handles_writer,
-                                  u32 id) {
+void StaticService::CreateService(
+    u32 id, std::function<void(ServiceBase*)> add_service) {
     Handle handle;
     switch (id) {
     case 0:
@@ -55,22 +55,19 @@ void StaticService::CreateService(Kernel& kernel, Writer& move_handles_writer,
             break;
         }
 
-        handle = kernel.AddService<SystemClock>(type);
+        add_service(new SystemClock());
         break;
     }
     case 2:
-        handle = kernel.AddService<SteadyClock>();
+        add_service(new SteadyClock());
         break;
     case 3:
-        handle = kernel.AddService<TimeZoneService>();
+        add_service(new TimeZoneService());
         break;
     default:
         printf("Unknown time service command %u\n", id);
         break;
     }
-
-    // Out
-    move_handles_writer.Write(handle);
 }
 
 } // namespace Hydra::Horizon::Services::Time

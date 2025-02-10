@@ -15,9 +15,9 @@ void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
         printf("CONVERT TO DOMAIN\n");
-        kernel.SetService<DomainService>(handle);
-        auto domain_service =
-            static_cast<DomainService*>(kernel.GetService(handle));
+
+        auto domain_service = new DomainService();
+        kernel.SetService(handle, domain_service);
         handle = domain_service->AddObject(this);
 
         // Out

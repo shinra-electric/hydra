@@ -4,8 +4,8 @@
 
 namespace Hydra::Horizon::Services {
 
-void DomainService::Request(Kernel& kernel, Writer& writer,
-                            Writer& move_handles_writer, u8* in_ptr) {
+void DomainService::Request(Writers& writers, u8* in_ptr,
+                            std::function<void(ServiceBase*)> add_service) {
     printf("Domain service request\n");
 
     // Domain in
@@ -13,11 +13,14 @@ void DomainService::Request(Kernel& kernel, Writer& writer,
     printf("Object ID: 0x%08x\n", cmif_in.object_id);
     auto subservice = object_pool[cmif_in.object_id];
 
-    Cmif::write_domain_out_header(writer);
+    Cmif::write_domain_out_header(writers.writer);
 
     switch (cmif_in.type) {
     case 1:
-        subservice->Request(kernel, writer, move_handles_writer, in_ptr);
+        subservice->Request(writers, in_ptr, [&](ServiceBase* service) {
+            Handle handle = AddObject(service);
+            writers.objects_writer.Write(handle);
+        });
         break;
     default:
         printf("Unknown domain request type: %u\n", cmif_in.type);

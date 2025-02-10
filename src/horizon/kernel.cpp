@@ -407,7 +407,7 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
     printf("svcConnectToNamedPort called (name: %s)\n", name.c_str());
 
     if (name == "sm:") {
-        *out = AddService<Services::ServiceManager>();
+        *out = AddService(new Services::ServiceManager());
     } else {
         printf("Unknown service name: %s\n", name.c_str());
         return MAKE_KERNEL_RESULT(NotFound);
@@ -429,16 +429,21 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    Writer writer(service_scratch_buffer);
-    Writer move_handles_writer(service_scratch_buffer_move_handles);
+    Services::Writers writers{Writer(service_scratch_buffer),
+                              Writer(service_scratch_buffer_objects),
+                              Writer(service_scratch_buffer_move_handles),
+                              Writer(service_scratch_buffer_copy_handles)};
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
         printf("COMMAND: Request\n");
-        service->Request(*this, writer, move_handles_writer, in_ptr);
+        service->Request(writers, in_ptr, [&](Services::ServiceBase* service) {
+            Handle handle = AddService(service);
+            writers.move_handles_writer.Write(handle);
+        });
         break;
     case Cmif::CommandType::Control:
         printf("COMMAND: Control\n");
-        service->Control(*this, writer, in_ptr);
+        service->Control(*this, writers.writer, in_ptr);
         break;
     default:
         printf("Unknown command %u\n", hipc_in.meta.type);
@@ -449,25 +454,34 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 
     // HIPC header
 #define GET_ARRAY_SIZE(writer)                                                 \
-    static_cast<u32>(align(writer.GetWrittenSize(), (usize)4) / sizeof(u32))
+    static_cast<u32>(align(writers.writer.GetWrittenSize(), (usize)4) /        \
+                     sizeof(u32))
 
-    auto response = Hipc::make_request(
-        tls_ptr, {.num_data_words = GET_ARRAY_SIZE(writer),
-                  .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)});
-
-#undef GET_ARRAY_SIZE
-
-#define WRITE_ARRAY(writer, ptr, align)                                        \
-    if (response.ptr) {                                                        \
-        u8* aligned_ptr = (u8*)response.ptr;                                   \
-        if (align)                                                             \
-            aligned_ptr = align_ptr(aligned_ptr, 0x10);                        \
-        memcpy(aligned_ptr, writer.GetBase(), writer.GetWrittenSize());        \
+#define WRITE_ARRAY(writer, ptr)                                               \
+    if (ptr) {                                                                 \
+        memcpy(ptr, writers.writer.GetBase(),                                  \
+               writers.writer.GetWrittenSize());                               \
     }
 
-    WRITE_ARRAY(writer, data_words, true);
-    WRITE_ARRAY(move_handles_writer, move_handles, false);
+    Hipc::Metadata meta{.num_data_words = GET_ARRAY_SIZE(writer) +
+                                          GET_ARRAY_SIZE(objects_writer),
+                        .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
+                        .num_move_handles =
+                            GET_ARRAY_SIZE(move_handles_writer)};
+    auto response = Hipc::make_request(tls_ptr, meta);
 
+    u8* data_start =
+        reinterpret_cast<u8*>(align_ptr(response.data_words, 0x10));
+    WRITE_ARRAY(writer, data_start);
+    if (writers.objects_writer.GetWrittenSize() != 0) {
+        memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
+               writers.objects_writer.GetBase(),
+               writers.objects_writer.GetWrittenSize());
+    }
+    WRITE_ARRAY(copy_handles_writer, response.copy_handles);
+    WRITE_ARRAY(move_handles_writer, response.move_handles);
+
+#undef GET_ARRAY_SIZE
 #undef WRITE_ARRAY
 
     // AppletMessage_FocusStateChanged for _appletReceiveMessage
@@ -605,6 +619,18 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             return MAKE_KERNEL_RESULT(NotImplemented);
         }
     }
+}
+
+void Kernel::SetService(Handle handle, Services::ServiceBase* service) {
+    service_pool.GetObjectRef(handle) = service;
+    service->SetHandle(handle);
+}
+
+Handle Kernel::AddService(Services::ServiceBase* service) {
+    Handle handle = service_pool.AllocateForIndex();
+    SetService(handle, service);
+
+    return handle;
 }
 
 } // namespace Hydra::Horizon

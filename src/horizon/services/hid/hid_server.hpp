@@ -6,10 +6,8 @@ namespace Hydra::Horizon::Services::Hid {
 
 class HidServer : public ServiceBase {
   public:
-    HidServer(Handle handle_) : ServiceBase(handle_) {}
-
-    void Request(Kernel& kernel, Writer& writer, Writer& move_handles_writer,
-                 u8* in_ptr) override;
+    void Request(Writers& writers, u8* in_ptr,
+                 std::function<void(ServiceBase*)> add_service) override;
 };
 
 } // namespace Hydra::Horizon::Services::Hid
