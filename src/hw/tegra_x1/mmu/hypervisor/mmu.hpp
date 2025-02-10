@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hw/mmu/mmu.hpp"
+#include "hw/tegra_x1/mmu/mmu.hpp"
 
 namespace Hydra::HW::MMU::Hypervisor {
 

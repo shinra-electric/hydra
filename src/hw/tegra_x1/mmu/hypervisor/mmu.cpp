@@ -1,6 +1,6 @@
-#include "hw/mmu/hypervisor/mmu.hpp"
+#include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
 
-#include "hw/mmu/memory.hpp"
+#include "hw/tegra_x1/mmu/memory.hpp"
 #include "hypervisor/const.hpp"
 
 namespace Hydra::HW::MMU::Hypervisor {

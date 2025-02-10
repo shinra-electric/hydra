@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hw/cpu/cpu.hpp"
+#include "hw/tegra_x1/cpu/cpu.hpp"
 #include "hypervisor/const.hpp"
 
 namespace Hydra::HW::MMU {

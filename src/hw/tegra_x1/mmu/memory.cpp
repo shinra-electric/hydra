@@ -1,4 +1,4 @@
-#include "hw/mmu/memory.hpp"
+#include "hw/tegra_x1/mmu/memory.hpp"
 
 #define MEMORY_ALIGNMENT 0x4000
 

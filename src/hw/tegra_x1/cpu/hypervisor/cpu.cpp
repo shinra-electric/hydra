@@ -1,8 +1,7 @@
-#include "hw/cpu/hypervisor/cpu.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 
-#include "common/common.hpp"
-#include "hw/mmu/hypervisor/mmu.hpp"
-#include "hw/mmu/memory.hpp"
+#include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
+#include "hw/tegra_x1/mmu/memory.hpp"
 #include <Hypervisor/hv_gic.h>
 #include <Hypervisor/hv_vcpu.h>
 

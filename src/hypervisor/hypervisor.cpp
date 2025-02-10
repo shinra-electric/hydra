@@ -2,9 +2,9 @@
 
 #include "common/common.hpp"
 #include "horizon/horizon.hpp"
-#include "hw/cpu/hypervisor/cpu.hpp"
-#include "hw/mmu/hypervisor/mmu.hpp"
-#include "hw/mmu/memory.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
+#include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
+#include "hw/tegra_x1/mmu/memory.hpp"
 
 namespace Hydra::Hypervisor {
 

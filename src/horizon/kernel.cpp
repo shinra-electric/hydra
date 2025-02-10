@@ -3,9 +3,9 @@
 #include "horizon/cmif.hpp"
 #include "horizon/hipc.hpp"
 #include "horizon/services/sm.hpp"
-#include "hw/cpu/cpu.hpp"
-#include "hw/mmu/memory.hpp"
-#include "hw/mmu/mmu.hpp"
+#include "hw/tegra_x1/cpu/cpu.hpp"
+#include "hw/tegra_x1/mmu/memory.hpp"
+#include "hw/tegra_x1/mmu/mmu.hpp"
 
 namespace Hydra::Horizon {
 

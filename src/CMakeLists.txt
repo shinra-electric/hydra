@@ -40,15 +40,15 @@ add_executable(hydra
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
-    hw/cpu/cpu.hpp
-    hw/cpu/hypervisor/cpu.cpp
-    hw/cpu/hypervisor/cpu.hpp
-    hw/mmu/mmu.cpp
-    hw/mmu/mmu.hpp
-    hw/mmu/memory.cpp
-    hw/mmu/memory.hpp
-    hw/mmu/hypervisor/mmu.cpp
-    hw/mmu/hypervisor/mmu.hpp
+    hw/tegra_x1/cpu/cpu.hpp
+    hw/tegra_x1/cpu/hypervisor/cpu.cpp
+    hw/tegra_x1/cpu/hypervisor/cpu.hpp
+    hw/tegra_x1/mmu/mmu.cpp
+    hw/tegra_x1/mmu/mmu.hpp
+    hw/tegra_x1/mmu/memory.cpp
+    hw/tegra_x1/mmu/memory.hpp
+    hw/tegra_x1/mmu/hypervisor/mmu.cpp
+    hw/tegra_x1/mmu/hypervisor/mmu.hpp
     hypervisor/const.hpp
     hypervisor/hypervisor.cpp
     hypervisor/hypervisor.hpp
