@@ -71,9 +71,10 @@ void CPU::SetSysReg(hv_sys_reg_t sys_reg, u64 value) {
 }
 
 void CPU::LogRegisters(u32 count) {
-    printf("Reg dump:\n");
+    Logging::log(Logging::Level::Debug, "Reg dump:");
     for (u32 i = 0; i < count; i++) {
-        printf("X%u: 0x%llx\n", i, GetReg((hv_reg_t)(HV_REG_X0 + i)));
+        Logging::log(Logging::Level::Debug, "X{}: 0x{:08x}", i,
+                     GetReg((hv_reg_t)(HV_REG_X0 + i)));
     }
 }
 
@@ -82,13 +83,13 @@ void CPU::LogStackTrace(HW::MMU::Memory* stack_mem) {
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
 
-    printf("Stack trace:\n");
-    printf("SP: 0x%08llx\n", sp);
+    Logging::log(Logging::Level::Debug, "Stack trace:");
+    Logging::log(Logging::Level::Debug, "SP: 0x{:08x}", sp);
 
     for (uint64_t frame = 0; fp != 0; frame++) {
-        printf("LR = 0x%llx\n", lr - 0x4);
+        Logging::log(Logging::Level::Debug, "LR = 0x{:08x}", lr - 0x4);
         if (frame == MAX_STACK_TRACE_DEPTH - 1) {
-            printf("... (more frames)\n");
+            Logging::log(Logging::Level::Debug, "... (more frames)");
             break;
         }
 

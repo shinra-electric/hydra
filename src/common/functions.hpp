@@ -11,22 +11,6 @@
 
 namespace Hydra {
 
-#define EXTRACT_BITS(value, high, low)                                         \
-    (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))
-
-#define BIT(n) (1 << (n))
-#define ENABLE_ENUM_BITMASK_OPERATORS(x)                                       \
-    inline x operator|(x a, x b) {                                             \
-        return static_cast<x>(static_cast<u32>(a) | static_cast<u32>(b));      \
-    }                                                                          \
-    inline x& operator|=(x& a, x b) { return a = a | b; }                      \
-    inline x operator&(x a, x b) {                                             \
-        return static_cast<x>(static_cast<u32>(a) & static_cast<u32>(b));      \
-    }                                                                          \
-    inline x& operator&=(x& a, x b) { return a = a & b; }                      \
-    inline x operator~(x a) { return static_cast<x>(~static_cast<u32>(a)); }   \
-    inline bool any(x a) { return a != x::None; }
-
 template <typename T, typename SrcT> T bit_cast(SrcT src) {
     static_assert(sizeof(T) == sizeof(SrcT));
     return *reinterpret_cast<T*>(&src);

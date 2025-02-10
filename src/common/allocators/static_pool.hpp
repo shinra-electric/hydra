@@ -24,7 +24,7 @@ template <typename T, u32 size> class StaticPool {
             }
         }
 
-        printf("Free index not found\n");
+        Logging::log(Logging::Level::Error, "Free index not found");
 
         return UINT32_MAX;
     }

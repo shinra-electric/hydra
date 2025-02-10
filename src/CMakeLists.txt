@@ -2,7 +2,10 @@ add_executable(hydra
     main.cpp
     common/common.hpp
     common/types.hpp
+    common/macros.hpp
     common/functions.hpp
+    common/logging/log.cpp
+    common/logging/log.hpp
     common/allocators/static_pool.hpp
     common/allocators/dynamic_pool.hpp
     horizon/horizon.cpp
@@ -55,7 +58,7 @@ add_executable(hydra
 )
 
 target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/src) # TODO: dependencies directory
-target_link_libraries(hydra PRIVATE "-framework Hypervisor" nx-parser)
+target_link_libraries(hydra PUBLIC "-framework Hypervisor" nx-parser fmt::fmt)
 
 # Signing
 set(CODESIGN_IDENTITY "Apple Development: samuliak@icloud.com (RMHRRGUDTQ)") # TODO: don't hardcode

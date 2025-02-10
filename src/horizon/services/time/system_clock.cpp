@@ -12,7 +12,9 @@ void SystemClock::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     default:
-        printf("Unknown time::system_clock request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning,
+                     "Unknown time::system_clock request {}",
+                     cmif_in.command_id);
         break;
     }
 

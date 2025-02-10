@@ -233,7 +233,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         cpu->SetRegX(1, tmpU64);
         break;
     default:
-        printf("Unimplemented SVC 0x%08llx\n", id);
+        Logging::log(Logging::Level::Warning, "Unimplemented SVC 0x{:08x}", id);
         res = MAKE_KERNEL_RESULT(NotImplemented);
         cpu->SetRegX(0, res);
         break;
@@ -243,7 +243,8 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
 }
 
 Result Kernel::svcSetHeapSize(uptr* out, usize size) {
-    printf("svcSetHeapSize called (size: 0x%08zx)\n", size);
+    Logging::log(Logging::Level::Debug,
+                 "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
@@ -260,9 +261,11 @@ Result Kernel::svcSetHeapSize(uptr* out, usize size) {
 
 Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
                                       Permission permission) {
-    printf("svcSetMemoryPermission called (addr: 0x%08lx, size: 0x%08zx, perm: "
-           "%u)\n",
-           addr, size, (u32)permission);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
+        "{})",
+        addr, size, (u32)permission);
 
     HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
     if (!mem) {
@@ -279,19 +282,22 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
 
 Result Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
                                      u32 value) {
-    printf("svcSetMemoryAttribute called (addr: 0x%08lx, size: 0x%08zx, mask: "
-           "0x%08x, value: 0x%08x)\n",
-           addr, size, mask, value);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcSetMemoryAttribute called (addr: 0x{:08x}, size: 0x{:08x}, mask: "
+        "0x{:08x}, value: 0x{:08x})",
+        addr, size, mask, value);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
-    printf("svcQueryMemory called (addr: 0x%08lx)\n", addr);
+    Logging::log(Logging::Level::Debug,
+                 "svcQueryMemory called (addr: 0x{:08x})", addr);
 
     HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
     if (!mem) {
@@ -315,55 +321,66 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitProcess() { printf("svcExitProcess called\n"); }
+void Kernel::svcExitProcess() {
+    Logging::log(Logging::Level::Debug, "svcExitProcess called");
+}
 
 void Kernel::svcSleepThread(i64 nano) {
-    printf("svcSleepThread called (nano: %lld)\n", nano);
+    Logging::log(Logging::Level::Debug,
+                 "svcSleepThread called (nano: 0x{:08x})", nano);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
 Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
                                   Permission permission) {
-    printf("svcMapSharedMemory called (handle: 0x%08x, addr: 0x%08lx, size: "
-           "0x%08zx, perm: %u)\n",
-           handle, addr, size, (u32)permission);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
+        "0x{:08x}, perm: {})",
+        handle, addr, size, (u32)permission);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
                                        Permission permission) {
-    printf("svcCreateTransferMemory called (address: 0x%08lx, size: %llu, "
-           "perm: %u)\n",
-           address, size, (u32)permission);
+    // TODO: don't cast to u32
+    Logging::log(
+        Logging::Level::Debug,
+        "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
+        "perm: {})",
+        address, size, (u32)permission);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcCloseHandle(Handle handle) {
-    printf("svcCloseHandle called (handle: 0x%08x)\n", handle);
+    Logging::log(Logging::Level::Debug,
+                 "svcCloseHandle called (handle: 0x{:08x})", handle);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
                                       i32 handles_count, i64 timeout) {
-    printf("svcWaitSynchronization called (handles: %p, count: %d, timeout: "
-           "%lld)\n",
-           handles_ptr, handles_count, timeout);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcWaitSynchronization called (handles: 0x{:08x}, count: {}, timeout: "
+        "{})",
+        (void*)handles_ptr, handles_count, timeout);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     // HACK
     handle_index = 0;
@@ -372,44 +389,50 @@ Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
 }
 
 Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
-    printf("svcArbitrateLock called (wait: 0x%08x, mutex: 0x%08lx, self: "
-           "0x%08x)\n",
-           wait_tag, mutex_addr, self_tag);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
+        "0x{:08x})",
+        wait_tag, mutex_addr, self_tag);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
-    printf("svcArbitrateUnlock called (mutex: 0x%08lx)\n", mutex_addr);
+    Logging::log(Logging::Level::Debug,
+                 "svcArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                            u32 self_tag, i64 timeout) {
-    printf("svcWaitProcessWideKeyAtomic called (mutex: 0x%08lx, var: 0x%08lx, "
-           "self: 0x%08x, timeout: %llu)\n",
-           mutex_addr, var_addr, self_tag, timeout);
+    Logging::log(
+        Logging::Level::Debug,
+        "svcWaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
+        "self: 0x{:08x}, timeout: {})",
+        mutex_addr, var_addr, self_tag, timeout);
 
     // TODO: implement
-    printf("Not implemented\n");
+    Logging::log(Logging::Level::Warning, "Not implemented");
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
-    printf("svcConnectToNamedPort called (name: %s)\n", name.c_str());
+    Logging::log(Logging::Level::Debug,
+                 "svcConnectToNamedPort called (name: {})", name);
 
     if (name == "sm:") {
         *out = AddService(new Services::ServiceManager());
     } else {
-        printf("Unknown service name: %s\n", name.c_str());
+        Logging::log(Logging::Level::Error, "Unknown service name: {}", name);
         return MAKE_KERNEL_RESULT(NotFound);
     }
 
@@ -417,7 +440,9 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
 }
 
 Result Kernel::svcSendSyncRequest(Handle session_handle) {
-    printf("svcSendSyncRequest called (session: 0x%08x)\n", session_handle);
+    Logging::log(Logging::Level::Debug,
+                 "svcSendSyncRequest called (session: 0x{:08x})",
+                 session_handle);
 
     Services::ServiceBase* service = GetService(session_handle);
     u8* tls_ptr = tls_mem->GetPtrU8();
@@ -435,18 +460,19 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
                               Writer(service_scratch_buffer_copy_handles)};
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
-        printf("COMMAND: Request\n");
+        Logging::log(Logging::Level::Debug, "COMMAND: Request");
         service->Request(writers, in_ptr, [&](Services::ServiceBase* service) {
             Handle handle = AddService(service);
             writers.move_handles_writer.Write(handle);
         });
         break;
     case Cmif::CommandType::Control:
-        printf("COMMAND: Control\n");
+        Logging::log(Logging::Level::Debug, "COMMAND: Control");
         service->Control(*this, writers.writer, in_ptr);
         break;
     default:
-        printf("Unknown command %u\n", hipc_in.meta.type);
+        Logging::log(Logging::Level::Warning, "Unknown command {}",
+                     hipc_in.meta.type);
         break;
     }
 
@@ -490,7 +516,7 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     /*
     static int num_executed = 0;
     num_executed++;
-    printf("NUM EXECUTED: %i\n", num_executed);
+    Logging::log(Logging::Level::Debug, "NUM EXECUTED: %i", num_executed);
     if (num_executed == 25)
         *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
                  sizeof(CmifOutHeader))) = 15;
@@ -504,40 +530,16 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
 
 Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
                         usize buffer_size) {
-    printf("svcBreak called (reason: ");
-    switch (reason.type) {
-    case BreakReasonType::Panic:
-        printf("panic");
-        break;
-    case BreakReasonType::Assert:
-        printf("assert");
-        break;
-    case BreakReasonType::User:
-        printf("user");
-        break;
-    case BreakReasonType::PreLoadDll:
-        printf("pre load dll");
-        break;
-    case BreakReasonType::PostLoadDll:
-        printf("post load dll");
-        break;
-    case BreakReasonType::PreUnloadDll:
-        printf("pre unload dll");
-        break;
-    case BreakReasonType::PostUnloadDll:
-        printf("post unload dll");
-        break;
-    case BreakReasonType::CppException:
-        printf("cpp exception");
-        break;
-    }
-
-    printf(", buffer ptr: 0x%08lx, buffer size: 0x%08zx)\n", buffer_ptr,
-           buffer_size);
+    // TODO: don't cast to u32
+    Logging::log(Logging::Level::Debug,
+                 "svcBreak called (reason: {}, buffer ptr: 0x{:08x}, buffer "
+                 "size: 0x{:08x})",
+                 (u32)reason.type, buffer_ptr, buffer_size);
 
     if (buffer_ptr && buffer_size == 0x4) {
-        printf("diagAbortWithResult (description: %u)\n",
-               ((*(u32*)buffer_ptr) >> 9) & 0x1FFF);
+        Logging::log(Logging::Level::Debug,
+                     "diagAbortWithResult (description: {})",
+                     ((*(u32*)buffer_ptr) >> 9) & 0x1FFF);
     }
 
     if (!reason.notification_only)
@@ -547,33 +549,35 @@ Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
 }
 
 Result Kernel::svcOutputDebugString(const char* str, usize len) {
-    printf("svcOutputDebugString called\n");
+    Logging::log(Logging::Level::Debug, "svcOutputDebugString called");
     if (len != 0) {
-        printf("%.*s", (int)len, str);
+        // TODO: handle differently
+        Logging::log(Logging::Level::Info, "{}", std::string(str, len));
     }
 
     return RESULT_SUCCESS;
 }
 
 Result Kernel::svcGetInfo(u64* out, Info info) {
-    printf("svcGetInfo called\n");
+    Logging::log(Logging::Level::Debug, "svcGetInfo called");
 
     if (info.is_system_info) {
         switch (info.system_info_type) {
         default:
-            printf("Unimplemented system info type %u\n",
-                   (u32)info.system_info_type);
+            Logging::log(Logging::Level::Warning,
+                         "Unimplemented system info type {}",
+                         (u32)info.system_info_type);
             return MAKE_KERNEL_RESULT(NotImplemented);
         }
     } else {
         switch (info.info_type) {
         case InfoType::AliasRegionAddress:
-            printf("Not implemented\n");
+            Logging::log(Logging::Level::Warning, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         case InfoType::AliasRegionSize:
-            printf("Not implemented\n");
+            Logging::log(Logging::Level::Warning, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
@@ -584,12 +588,12 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
             *out = heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AslrRegionAddress:
-            printf("Not implemented\n");
+            Logging::log(Logging::Level::Warning, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         case InfoType::AslrRegionSize:
-            printf("Not implemented\n");
+            Logging::log(Logging::Level::Warning, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
@@ -610,12 +614,13 @@ Result Kernel::svcGetInfo(u64* out, Info info) {
                    heap_mem->GetSize();
             return RESULT_SUCCESS;
         case InfoType::AliasRegionExtraSize:
-            printf("Not implemented\n");
+            Logging::log(Logging::Level::Warning, "Not implemented");
             // HACK
             *out = 0;
             return RESULT_SUCCESS;
         default:
-            printf("Unimplemented info type %u\n", (u32)info.info_type);
+            Logging::log(Logging::Level::Warning, "Unimplemented info type {}",
+                         (u32)info.info_type);
             return MAKE_KERNEL_RESULT(NotImplemented);
         }
     }

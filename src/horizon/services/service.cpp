@@ -14,7 +14,7 @@ void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
 
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
-        printf("CONVERT TO DOMAIN\n");
+        Logging::log(Logging::Level::Debug, "CONVERT TO DOMAIN");
 
         auto domain_service = new DomainService();
         kernel.SetService(handle, domain_service);
@@ -26,7 +26,8 @@ void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
         break;
     }
     default:
-        printf("Unimplemented control request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning,
+                     "Unimplemented control request {}", cmif_in.command_id);
         break;
     }
 

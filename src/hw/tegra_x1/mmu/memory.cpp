@@ -36,7 +36,7 @@ bool Memory::PtrIsInRange(uptr p) { return p >= base && p < base + size; }
 void Memory::Allocate() {
     posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);
     if (!ptr) {
-        printf("Failed to allocate memory\n");
+        Logging::log(Logging::Level::Error, "Failed to allocate memory");
         return;
     }
 }

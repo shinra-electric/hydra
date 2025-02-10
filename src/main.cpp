@@ -7,11 +7,14 @@ const std::string path =
 
 // HACK
 // #define PRINT_ADDR_TO_INDEX(addr) \
-//    printf("PRINT_ADDR_TO_INDEX: %u\n", (addr - 0x80) / 4)
+//    Logging::log(Logging::Level::Debug, "PRINT_ADDR_TO_INDEX: %u", (addr -
+//    0x80) / 4)
 // #define PRINT_INDEX_TO_ADDR(addr) \
-//    printf("PRINT_INDEX_TO_ADDR: 0x%08x\n", addr * 4 + 0x80)
+//    Logging::log(Logging::Level::Debug, "PRINT_INDEX_TO_ADDR: 0x%08x", addr
+//    * 4 + 0x80)
 // #define PRINT_PC_TO_ADDR(pc) \
-//    printf("PRINT_PC_TO_ADDR: 0x%016x\n", pc - 0x80000000 + 0x80)
+//    Logging::log(Logging::Level::Debug, "PRINT_PC_TO_ADDR: 0x%016x", pc -
+//    0x80000000 + 0x80)
 
 // HACK
 void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
@@ -30,8 +33,8 @@ int main(int argc, const char* argv[]) {
     auto ifs = Hydra::open_file(path, size);
     // std::vector<u8> d(size);
     // ifs.read((char*)d.data(), size);
-    // printf("AAA: 0x%llx\n", *((u64*)(d.data() + 0x17498)));
-    // return 0;
+    // Logging::log(Logging::Level::Debug, "AAA: 0x%llx", *((u64*)(d.data() +
+    // 0x17498))); return 0;
     BinaryReader reader(ifs, size);
     Rom* rom = ParseNRO(reader);
     ifs.close();

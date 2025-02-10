@@ -32,7 +32,7 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     case 1: {
-        printf("Get service handle\n");
+        Logging::log(Logging::Level::Debug, "GetServiceHandle");
 
         // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
         // std::string name(in.name);
@@ -61,8 +61,9 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
             add_service(new Am::ApplicationProxyService());
             break;
         default:
-            printf("Unknown service 0x%016llx -> %s\n", service,
-                   std::string((char*)in_ptr, 8).c_str());
+            Logging::log(Logging::Level::Warning,
+                         "Unknown service 0x{:08x} -> {}", (u64)service,
+                         std::string((char*)in_ptr, 8));
             handle = UINT32_MAX;
             *res = MAKE_KERNEL_RESULT(NotFound);
             throw;
@@ -83,16 +84,16 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
         } else if (name == "apm" || name == "apm:am") {
             handle = kernel.AddService<Apm::Manager>();
         } else {
-            printf("Unknown service name \"%s\"\n", name.c_str());
-            handle = UINT32_MAX;
-            *res = MAKE_KERNEL_RESULT(NotFound);
+            Logging::log(Logging::Level::Debug, "Unknown service name \"%s\"",
+        name.c_str()); handle = UINT32_MAX; *res = MAKE_KERNEL_RESULT(NotFound);
         }
         */
 
         break;
     }
     default:
-        printf("Unknown sm command %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning, "Unknown sm command {}",
+                     cmif_in.command_id);
         break;
     }
 }

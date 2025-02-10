@@ -15,14 +15,15 @@ void ApplicationProxyService::Request(
 
     switch (cmif_in.command_id) {
     case 0: {
-        printf("OpenApplicationProxy\n");
+        Logging::log(Logging::Level::Debug, "OpenApplicationProxy");
 
         add_service(new ApplicationProxy());
 
         break;
     }
     default:
-        printf("Unknown appletOE request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning, "Unknown appletOE request {}",
+                     cmif_in.command_id);
         break;
     }
 

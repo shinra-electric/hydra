@@ -24,7 +24,9 @@ void StaticService::Request(Writers& writers, u8* in_ptr,
         CreateService(cmif_in.command_id, add_service);
         break;
     default:
-        printf("Unknown time::static_service request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning,
+                     "Unknown time::static_service request {}",
+                     cmif_in.command_id);
         break;
     }
 
@@ -65,7 +67,8 @@ void StaticService::CreateService(
         add_service(new TimeZoneService());
         break;
     default:
-        printf("Unknown time service command %u\n", id);
+        Logging::log(Logging::Level::Warning,
+                     "Unknown time service CreateService command {}", id);
         break;
     }
 }

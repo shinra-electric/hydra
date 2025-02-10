@@ -12,7 +12,8 @@ void Manager::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     default:
-        printf("Unknown apm:am request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning, "Unknown apm:am request {}",
+                     cmif_in.command_id);
         break;
     }
 

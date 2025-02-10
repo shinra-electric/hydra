@@ -37,7 +37,7 @@ Memory* MMUBase::UnmapPtrToMemory(uptr ptr) {
         }
     }
 
-    printf("Failed to unmap ptr: 0x%lx\n", ptr);
+    Logging::log(Logging::Level::Error, "Failed to unmap ptr 0x{:08x}", ptr);
 
     return nullptr;
 }

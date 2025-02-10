@@ -94,7 +94,7 @@ void Hypervisor::LoadROM(Rom* rom) {
 
     // HACK: g_overrideHeapAddr is 0x5b982811ce0afbf4 for no reason
     //*((u64*)mmu->UnmapPtr(0x80017498)) = 0x0;
-    // printf("LoadROM HEAP OVERRIDE: 0x%08llx\n",
+    // Logging::log(Logging::Level::Debug, "LoadROM HEAP OVERRIDE: 0x%08llx",
     //        *((u64*)mmu->UnmapPtr(0x80017498)));
 }
 
@@ -112,8 +112,8 @@ void Hypervisor::Run() {
             if (hvEc == 0x16) { // HVC
                 // u64 x0;
                 // HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, HV_REG_X0, &x0));
-                // printf("VM made an HVC call! x0 register holds 0x%llx\n",
-                // x0);
+                // Logging::log(Logging::Level::Debug, "VM made an HVC call! x0
+                // register holds 0x%llx", x0);
 
                 u64 esr = cpu->GetSysReg(HV_SYS_REG_ESR_EL1);
                 u8 ec = (esr >> 26) & 0x3f;
@@ -143,20 +143,20 @@ void Hypervisor::Run() {
 
                     break;
                 case 0x18:
-                    printf("MSR MSR\n");
+                    Logging::log(Logging::Level::Debug, "MSR MSR");
                     // TODO: implement
                     throw;
                     break;
                 case 0x25:
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                    printf("Data abort (PC 0x%08llx FAR 0x%08llx)\n", elr, far);
+                    Logging::log(Logging::Level::Debug,
+                                 "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
+                                 "instruction: 0x{:08x})",
+                                 elr, far, instruction);
 
                     // TODO: check if valid
-
-                    // printf("X3: 0x%08llx\n", cpu->GetReg(HV_REG_X3));
-                    printf("INSTRUCTION: 0x%08x\n", instruction);
 
                     if ((instruction & 0xFF800000) ==
                         0x88000000) { // STLXR or LDAXR
@@ -191,12 +191,15 @@ void Hypervisor::Run() {
                     // Debug
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                    printf("Unknown HVC code (EC 0x%08x, ESR 0x%08llx, PC "
-                           "0x%08llx, FAR "
-                           "0x%08llx)\n",
-                           ec, esr, cpu->GetSysReg(HV_SYS_REG_ELR_EL1),
-                           cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
-                    // printf("X3: 0x%08llx\n", cpu->GetReg(HV_REG_X3));
+                    Logging::log(
+                        Logging::Level::Error,
+                        "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
+                        "0x{:08x}, FAR_ "
+                        "0x{:08x})",
+                        ec, esr, cpu->GetSysReg(HV_SYS_REG_ELR_EL1),
+                        cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
+                    // Logging::log(Logging::Level::Debug, "X3: 0x%08llx",
+                    // cpu->GetReg(HV_REG_X3));
                     break;
                 }
 
@@ -208,9 +211,11 @@ void Hypervisor::Run() {
             } else if (hvEc == 0x17) { // SMC
                 // uint64_t x0;
                 // HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, HV_REG_X0, &x0));
-                // printf("VM made an SMC call! x0 register holds 0x%llx\n",
-                // x0); printf("Return to get on next instruction.\n");
-                printf("SMC instruction\n");
+                // Logging::log(Logging::Level::Debug, "VM made an SMC call! x0
+                // register holds 0x%llx", x0);
+                // Logging::log(Logging::Level::Debug, "Return to get on next
+                // instruction.");
+                Logging::log(Logging::Level::Warning, "SMC instruction");
 
                 cpu->AdvancePC();
             } else if (hvEc == 0x18) {
@@ -219,7 +224,7 @@ void Hypervisor::Run() {
                 // Debug
                 cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                printf("MSR MRS instruction\n");
+                Logging::log(Logging::Level::Debug, "MSR MRS instruction");
 
                 // Manually execute the instruction
                 u32 instruction =
@@ -235,14 +240,14 @@ void Hypervisor::Run() {
                 u8 crm = (instruction >> 8) & 0xF;  // Extract CRm (bits 11-8)
                 u8 op2 = (instruction >> 5) & 0x7;  // Extract op2 (bits 7-5)
 
-                std::cout << "Opcode: 0x" << std::hex << (int)opcode
-                          << std::endl;
-                std::cout << "First Operand (Rt): X" << std::dec << (int)rt
-                          << std::endl;
-                std::cout << "Second Operand (System Register): "
-                          << "op0=" << (int)op0 << ", op1=" << (int)op1
-                          << ", CRn=" << (int)crn << ", CRm=" << (int)crm
-                          << ", op2=" << (int)op2 << std::endl;
+                // std::cout << "Opcode: 0x" << std::hex << (int)opcode
+                //           << std::endl;
+                // std::cout << "First Operand (Rt): X" << std::dec << (int)rt
+                //           << std::endl;
+                // std::cout << "Second Operand (System Register): "
+                //           << "op0=" << (int)op0 << ", op1=" << (int)op1
+                //           << ", CRn=" << (int)crn << ", CRm=" << (int)crm
+                //           << ", op2=" << (int)op2 << std::endl;
 
                 cpu->SetReg((hv_reg_t)(HV_REG_X0 + rt), 0);
 
@@ -252,38 +257,38 @@ void Hypervisor::Run() {
                 // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                 cpu->AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
-                printf("BRK instruction\n");
+                Logging::log(Logging::Level::Error, "BRK instruction");
                 cpu->LogRegisters();
-                printf("g_appletProxySession session: 0x%08x\n",
-                       *((u32*)mmu->UnmapPtr(0x80017368)));
-                printf("g_appletProxySession object_id: 0x%08x\n",
-                       *((u32*)mmu->UnmapPtr(0x80017368 + 0x8)));
                 break;
             } else {
                 // Debug
                 cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
                 cpu->LogRegisters();
 
-                fprintf(stderr,
-                        "Unexpected VM exception: 0x%llx, EC 0x%x, ESR 0x%llx, "
-                        "VirtAddr "
-                        "0x%llx, IPA 0x%llx, PC 0x%llx, FAR 0x%llx\n",
-                        syndrome, hvEc, cpu->GetSysReg(HV_SYS_REG_ESR_EL1),
-                        exit->exception.virtual_address,
-                        exit->exception.physical_address,
-                        cpu->GetReg(HV_REG_PC),
-                        cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
-                // printf("X2: 0x%08llx\n", cpu->GetReg(HV_REG_X2));
-                //  printf("INSTRUCTION: 0x%08x\n",
+                Logging::log(
+                    Logging::Level::Error,
+                    "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
+                    "0x{:08x}, "
+                    "VirtAddr: "
+                    "0x{:08x}, IPA: 0x{:08x}, PC: 0x{:08x}, FAR: 0x{:08x})",
+                    syndrome, hvEc, cpu->GetSysReg(HV_SYS_REG_ESR_EL1),
+                    exit->exception.virtual_address,
+                    exit->exception.physical_address, cpu->GetReg(HV_REG_PC),
+                    cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
+                // Logging::log(Logging::Level::Debug, "X2: 0x%08llx",
+                // cpu->GetReg(HV_REG_X2));
+                //  Logging::log(Logging::Level::Debug, "INSTRUCTION: 0x%08x",
                 //        *((u32*)horizon.GetKernel().UnmapPtr(
                 //            cpu->GetReg(HV_REG_PC))));
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
             cpu->UpdateVTimer();
-            printf("VTimer\n");
+            Logging::log(Logging::Level::Debug, "VTimer");
         } else {
-            fprintf(stderr, "Unexpected VM exit reason: %d\n", exit->reason);
+            // TODO: don't cast to u32
+            Logging::log(Logging::Level::Error, "Unexpected VM exit reason {}",
+                         (u32)exit->reason);
             break;
         }
     }

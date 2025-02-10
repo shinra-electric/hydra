@@ -88,7 +88,7 @@ class Kernel {
 
     // Services
     // TODO: what's the maximum number of services?
-    Allocators::StaticPool<Services::ServiceBase*, 16> service_pool;
+    Allocators::StaticPool<Services::ServiceBase*, 64> service_pool;
     u8 service_scratch_buffer[0x1000];
     u8 service_scratch_buffer_objects[0x100];
     u8 service_scratch_buffer_move_handles[0x100];

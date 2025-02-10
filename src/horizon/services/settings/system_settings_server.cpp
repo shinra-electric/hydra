@@ -13,7 +13,8 @@ void SystemSettingsServer::Request(
 
     switch (cmif_in.command_id) {
     default:
-        printf("Unknown set::sys request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning, "Unknown set::sys request {}",
+                     cmif_in.command_id);
         break;
     }
 

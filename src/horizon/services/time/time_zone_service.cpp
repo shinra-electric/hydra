@@ -12,7 +12,9 @@ void TimeZoneService::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     default:
-        printf("Unknown time::static_service request %u\n", cmif_in.command_id);
+        Logging::log(Logging::Level::Warning,
+                     "Unknown time::static_service request {}",
+                     cmif_in.command_id);
         break;
     }
 

@@ -190,3 +190,9 @@ struct Info {
 };
 
 } // namespace Hydra::Horizon
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::BreakReasonType, Panic, "panic", Assert,
+                       "assert", User, "user", PreLoadDll, "pre load dll",
+                       PostLoadDll, "post load dll", PreUnloadDll,
+                       "pre unload dll", PostUnloadDll, "post unload dll",
+                       CppException, "cpp exception")
