@@ -2,7 +2,7 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services::Time {
+namespace Hydra::Horizon::Services::TimeSrv {
 
 enum class SystemClockType {
     StandardUser,
@@ -11,7 +11,7 @@ enum class SystemClockType {
     EphemeralNetwork,
 };
 
-class SystemClock : public ServiceBase {
+class ISystemClock : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;
@@ -20,4 +20,4 @@ class SystemClock : public ServiceBase {
     SystemClockType type;
 };
 
-} // namespace Hydra::Horizon::Services::Time
+} // namespace Hydra::Horizon::Services::TimeSrv

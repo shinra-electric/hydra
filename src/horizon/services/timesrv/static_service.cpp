@@ -1,15 +1,15 @@
-#include "horizon/services/time/static_service.hpp"
+#include "horizon/services/timesrv/static_service.hpp"
 
 #include "horizon/cmif.hpp"
 #include "horizon/kernel.hpp"
-#include "horizon/services/time/steady_clock.hpp"
-#include "horizon/services/time/system_clock.hpp"
-#include "horizon/services/time/time_zone_service.hpp"
+#include "horizon/services/timesrv/steady_clock.hpp"
+#include "horizon/services/timesrv/system_clock.hpp"
+#include "horizon/services/timesrv/time_zone_service.hpp"
 
-namespace Hydra::Horizon::Services::Time {
+namespace Hydra::Horizon::Services::TimeSrv {
 
-void StaticService::Request(Writers& writers, u8* in_ptr,
-                            std::function<void(ServiceBase*)> add_service) {
+void IStaticService::Request(Writers& writers, u8* in_ptr,
+                             std::function<void(ServiceBase*)> add_service) {
     auto cmif_in = Cmif::read_in_header(in_ptr);
 
     Result* res = Cmif::write_out_header(writers.writer);
@@ -24,15 +24,14 @@ void StaticService::Request(Writers& writers, u8* in_ptr,
         CreateService(cmif_in.command_id, add_service);
         break;
     default:
-        LOG_WARNING(HorizonServices, "Unknown time::static_service request {}",
-                    cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
         break;
     }
 
     *res = RESULT_SUCCESS;
 }
 
-void StaticService::CreateService(
+void IStaticService::CreateService(
     u32 id, std::function<void(ServiceBase*)> add_service) {
     Handle handle;
     switch (id) {
@@ -56,14 +55,14 @@ void StaticService::CreateService(
             break;
         }
 
-        add_service(new SystemClock());
+        add_service(new ISystemClock());
         break;
     }
     case 2:
-        add_service(new SteadyClock());
+        add_service(new ISteadyClock());
         break;
     case 3:
-        add_service(new TimeZoneService());
+        add_service(new ITimeZoneService());
         break;
     default:
         LOG_WARNING(HorizonServices,
@@ -72,4 +71,4 @@ void StaticService::CreateService(
     }
 }
 
-} // namespace Hydra::Horizon::Services::Time
+} // namespace Hydra::Horizon::Services::TimeSrv

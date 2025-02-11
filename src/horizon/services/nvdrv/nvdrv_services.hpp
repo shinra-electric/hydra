@@ -2,9 +2,9 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services::Nvdrv {
+namespace Hydra::Horizon::Services::NvDrv {
 
-class NvDrvServices : public ServiceBase {
+class INvDrvServices : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;
@@ -12,4 +12,4 @@ class NvDrvServices : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::Nvdrv
+} // namespace Hydra::Horizon::Services::NvDrv

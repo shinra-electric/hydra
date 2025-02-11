@@ -3,13 +3,13 @@
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
+#include "horizon/services/am/apm_manager.hpp"
 #include "horizon/services/am/application_proxy_service.hpp"
-#include "horizon/services/apm/manager.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
-#include "horizon/services/time/static_service.hpp"
+#include "horizon/services/timesrv/static_service.hpp"
 
 namespace Hydra::Horizon::Services {
 
@@ -40,25 +40,25 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
         Handle handle;
         switch (service) {
         case Service::Hid:
-            add_service(new Hid::HidServer());
+            add_service(new Hid::IHidServer());
             break;
         case Service::FspSrv:
-            add_service(new Fssrv::FileSystemProxy());
+            add_service(new Fssrv::IFileSystemProxy());
             break;
         case Service::TimeU:
-            add_service(new Time::StaticService());
+            add_service(new TimeSrv::IStaticService());
             break;
         case Service::Nvdrv:
-            add_service(new Nvdrv::NvDrvServices());
+            add_service(new NvDrv::INvDrvServices());
             break;
         case Service::SetSys:
-            add_service(new Settings::SystemSettingsServer());
+            add_service(new Settings::ISystemSettingsServer());
             break;
         case Service::Apm:
-            add_service(new Apm::Manager());
+            add_service(new Am::IApmManager());
             break;
         case Service::AppletOE:
-            add_service(new Am::ApplicationProxyService());
+            add_service(new Am::IApplicationProxyService());
             break;
         default:
             LOG_WARNING(HorizonServices, "Unknown service 0x{:08x} -> {}",

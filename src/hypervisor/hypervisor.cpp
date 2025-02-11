@@ -346,8 +346,8 @@ void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
         return;
     }
 
-    LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
-              size * 8, out_reg0, out_reg1, addr);
+    // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
+    //           size * 8, out_reg0, out_reg1, addr);
 
     if (size == 4) {
         cpu->SetRegX(out_reg0, *((u32*)mmu->UnmapPtr(addr)));

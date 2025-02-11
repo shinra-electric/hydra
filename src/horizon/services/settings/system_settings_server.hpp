@@ -4,7 +4,7 @@
 
 namespace Hydra::Horizon::Services::Settings {
 
-class SystemSettingsServer : public ServiceBase {
+class ISystemSettingsServer : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;

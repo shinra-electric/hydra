@@ -25,20 +25,20 @@ add_executable(hydra
     horizon/services/hid/hid_server.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
     horizon/services/fssrv/filesystem_proxy.hpp
-    horizon/services/time/static_service.cpp
-    horizon/services/time/static_service.hpp
-    horizon/services/time/system_clock.cpp
-    horizon/services/time/system_clock.hpp
-    horizon/services/time/steady_clock.cpp
-    horizon/services/time/steady_clock.hpp
-    horizon/services/time/time_zone_service.cpp
-    horizon/services/time/time_zone_service.hpp
+    horizon/services/timesrv/static_service.cpp
+    horizon/services/timesrv/static_service.hpp
+    horizon/services/timesrv/system_clock.cpp
+    horizon/services/timesrv/system_clock.hpp
+    horizon/services/timesrv/steady_clock.cpp
+    horizon/services/timesrv/steady_clock.hpp
+    horizon/services/timesrv/time_zone_service.cpp
+    horizon/services/timesrv/time_zone_service.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
     horizon/services/settings/system_settings_server.cpp
     horizon/services/settings/system_settings_server.hpp
-    horizon/services/apm/manager.cpp
-    horizon/services/apm/manager.hpp
+    horizon/services/am/apm_manager.cpp
+    horizon/services/am/apm_manager.hpp
     horizon/services/am/application_proxy_service.cpp
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp

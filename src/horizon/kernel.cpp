@@ -371,7 +371,7 @@ Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
                                       i32 handles_count, i64 timeout) {
     LOG_DEBUG(
         HorizonKernel,
-        "svcWaitSynchronization called (handles: 0x{:08x}, count: {}, timeout: "
+        "svcWaitSynchronization called (handles: 0x{}, count: {}, timeout: "
         "{})",
         (void*)handles_ptr, handles_count, timeout);
 

@@ -2,9 +2,9 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services::Apm {
+namespace Hydra::Horizon::Services::TimeSrv {
 
-class Manager : public ServiceBase {
+class ISteadyClock : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;
@@ -12,4 +12,4 @@ class Manager : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::Apm
+} // namespace Hydra::Horizon::Services::TimeSrv

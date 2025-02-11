@@ -4,7 +4,7 @@
 
 namespace Hydra::Horizon::Services::Settings {
 
-void SystemSettingsServer::Request(
+void ISystemSettingsServer::Request(
     Writers& writers, u8* in_ptr,
     std::function<void(ServiceBase*)> add_service) {
     auto cmif_in = Cmif::read_in_header(in_ptr);
@@ -13,8 +13,7 @@ void SystemSettingsServer::Request(
 
     switch (cmif_in.command_id) {
     default:
-        LOG_WARNING(HorizonServices, "Unknown set::sys request {}",
-                    cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
         break;
     }
 

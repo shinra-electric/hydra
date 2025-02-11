@@ -1,10 +1,10 @@
-#include "horizon/services/fssrv/filesystem_proxy.hpp"
+#include "horizon/services/timesrv/time_zone_service.hpp"
 
 #include "horizon/cmif.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace Hydra::Horizon::Services::TimeSrv {
 
-void IFileSystemProxy::Request(Writers& writers, u8* in_ptr,
+void ITimeZoneService::Request(Writers& writers, u8* in_ptr,
                                std::function<void(ServiceBase*)> add_service) {
     auto cmif_in = Cmif::read_in_header(in_ptr);
 
@@ -19,4 +19,4 @@ void IFileSystemProxy::Request(Writers& writers, u8* in_ptr,
     *res = RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace Hydra::Horizon::Services::TimeSrv

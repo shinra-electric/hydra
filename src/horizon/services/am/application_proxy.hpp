@@ -4,7 +4,7 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-class ApplicationProxy : public ServiceBase {
+class IApplicationProxy : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;

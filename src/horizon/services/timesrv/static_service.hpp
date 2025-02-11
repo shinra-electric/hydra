@@ -2,9 +2,9 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services::Time {
+namespace Hydra::Horizon::Services::TimeSrv {
 
-class StaticService : public ServiceBase {
+class IStaticService : public ServiceBase {
   public:
     void Request(Writers& writers, u8* in_ptr,
                  std::function<void(ServiceBase*)> add_service) override;
@@ -13,4 +13,4 @@ class StaticService : public ServiceBase {
     void CreateService(u32 id, std::function<void(ServiceBase*)> add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Time
+} // namespace Hydra::Horizon::Services::TimeSrv

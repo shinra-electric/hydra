@@ -6,7 +6,7 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-void ApplicationProxyService::Request(
+void IApplicationProxyService::Request(
     Writers& writers, u8* in_ptr,
     std::function<void(ServiceBase*)> add_service) {
     auto cmif_in = Cmif::read_in_header(in_ptr);
@@ -17,13 +17,12 @@ void ApplicationProxyService::Request(
     case 0: {
         LOG_DEBUG(HorizonServices, "OpenApplicationProxy");
 
-        add_service(new ApplicationProxy());
+        add_service(new IApplicationProxy());
 
         break;
     }
     default:
-        LOG_WARNING(HorizonServices, "Unknown appletOE request {}",
-                    cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
         break;
     }
 
