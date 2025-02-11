@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/macros.hpp"
 
 namespace Hydra::Horizon {
 
@@ -172,23 +173,6 @@ enum class SystemInfoType {
 #define INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE3 3
 #define INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL 0xFFFFFFFF
 
-struct Info {
-    union {
-        u32 value;
-        InfoType info_type;
-        SystemInfoType system_info_type;
-    };
-
-    Handle handle;
-    bool is_system_info;
-
-    u64 info_sub_type;
-
-    Info(u32 id0, Handle handle_, u64 id1)
-        : value{id0}, handle{handle_}, is_system_info{handle == INVALID_HANDLE},
-          info_sub_type{id1} {}
-};
-
 } // namespace Hydra::Horizon
 
 ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Permission, Read, "read", Write,
@@ -200,3 +184,30 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::BreakReasonType, Panic, "panic", Assert,
                        PostLoadDll, "post load dll", PreUnloadDll,
                        "pre unload dll", PostUnloadDll, "post unload dll",
                        CppException, "cpp exception")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::InfoType, CoreMask, "core mask", PriorityMask,
+    "priority mask", AliasRegionAddress, "alias region address",
+    AliasRegionSize, "alias region size", HeapRegionAddress,
+    "heap region address", HeapRegionSize, "heap region size", TotalMemorySize,
+    "total memory size", UsedMemorySize, "used memory size", DebuggerAttached,
+    "debugger attached", ResourceLimit, "resource limit", IdleTickCount,
+    "idle tick count", RandomEntropy, "random entropy", AslrRegionAddress,
+    "aslr region address", AslrRegionSize, "aslr region size",
+    StackRegionAddress, "stack region address", StackRegionSize,
+    "stack region size", SystemResourceSizeTotal, "system resource size total",
+    SystemResourceSizeUsed, "system resource size used", ProgramId,
+    "program id", InitialProcessIdRange, "initial process id range",
+    UserExceptionContextAddress, "user exception context address",
+    TotalNonSystemMemorySize, "total non-system memory size",
+    UsedNonSystemMemorySize, "used non-system memory size", IsApplication,
+    "is application", FreeThreadCount, "free thread count", ThreadTickCount,
+    "thread tick count", IsSvcPermitted, "is svc permitted", IoRegionHint,
+    "io region hint", AliasRegionExtraSize, "alias region extra size",
+    TransferMemoryHint, "transfer memory hint", ThreadTickCountDeprecated,
+    "thread tick count deprecated")
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::SystemInfoType, TotalPhysicalMemorySize,
+                       "total physical memory size", UsedPhysicalMemorySize,
+                       "used physical memory size", InitialProcessIdRange,
+                       "initial process id range")

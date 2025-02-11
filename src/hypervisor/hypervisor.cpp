@@ -54,7 +54,7 @@ void Hypervisor::LoadROM(Rom* rom) {
     // NRO
     // TODO: should be ptr to env context
     cpu->SetReg(HV_REG_X0, 0);
-    cpu->SetReg(HV_REG_X1, 0xFFFFFFFFFFFFFFFF);
+    cpu->SetReg(HV_REG_X1, 0x0000000F);
 
     // User-mode exception entry
     // TODO: what is this?
@@ -232,9 +232,9 @@ void Hypervisor::Run() {
             } else if (hvEc == 0x3C) { // BRK
                 LOG_ERROR(Hypervisor, "BRK instruction");
                 cpu->LogRegisters();
-                LOG_DEBUG(Hypervisor, "cbAlloc: 0x{:08x} -> 0x{:08x}",
-                          cpu->GetRegX(0) + 0x10,
-                          *((u64*)mmu->UnmapPtr(cpu->GetRegX(0) + 0x10)));
+                // LOG_DEBUG(Hypervisor, "cbAlloc: 0x{:08x} -> 0x{:08x}",
+                //           cpu->GetRegX(0) + 0x10,
+                //           *((u64*)mmu->UnmapPtr(cpu->GetRegX(0) + 0x10)));
                 break;
             } else {
                 // Debug
@@ -279,10 +279,11 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
         (instruction & 0x0f000000) == 0x08000000) {     // STLXR or LDAXR
         if ((instruction & 0x001f0000) == 0x001f0000) { // LDAXR
             cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
-            InterpretLDAXR(EXTRACT_BITS(instruction, 5, 0), far); // TODO: check
+            InterpretLDAXR(EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
         } else {                                                  // STLXR
             InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
-                           EXTRACT_BITS(instruction, 5, 0), far); // TODO: check
+                           cpu->GetRegX(EXTRACT_BITS(instruction, 4, 0)),
+                           far); // TODO: check
         }
     } else if ((instruction & 0xff800000) == 0xd5000000) { // DC
         InterpretDC(far);

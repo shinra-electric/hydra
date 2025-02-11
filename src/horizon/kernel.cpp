@@ -1,6 +1,7 @@
 #include "horizon/kernel.hpp"
 
 #include "horizon/cmif.hpp"
+#include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
 #include "horizon/services/sm.hpp"
 #include "hw/tegra_x1/cpu/cpu.hpp"
@@ -28,6 +29,10 @@ namespace Hydra::Horizon {
 #define HEAP_MEM_BASE 0x20000000
 #define DEFAULT_HEAP_MEM_SIZE 0x1000000
 #define HEAP_MEM_ALIGNMENT 0x00200000
+
+// TODO: what is this?
+#define ASLR_MEM_BASE 0x40000000
+#define ASLR_MEM_SIZE 0x1000000
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -75,6 +80,11 @@ Kernel::Kernel() {
         new HW::MMU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
 
+    // ASLR memory
+    aslr_mem = new HW::MMU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
+                                   Permission::ReadWrite);
+    aslr_mem->Clear();
+
     // Heap memory
     heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
                                    Permission::ReadWrite);
@@ -85,6 +95,7 @@ Kernel::~Kernel() {
     delete stack_mem;
     delete kernel_mem;
     delete tls_mem;
+    delete aslr_mem;
     if (rom_mem)
         delete rom_mem;
     // delete bss_mem;
@@ -97,6 +108,7 @@ void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {
     mmu->MapMemory(stack_mem);
     mmu->MapMemory(kernel_mem);
     mmu->MapMemory(tls_mem);
+    mmu->MapMemory(aslr_mem);
     mmu->MapMemory(heap_mem);
 }
 
@@ -227,8 +239,8 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         cpu->SetRegX(0, res);
         break;
     case 0x29:
-        res = svcGetInfo(
-            &tmpU64, Info(cpu->GetRegX(1), cpu->GetRegX(2), cpu->GetRegX(3)));
+        res = svcGetInfo(&tmpU64, static_cast<InfoType>(cpu->GetRegX(1)),
+                         cpu->GetRegX(2), cpu->GetRegX(3));
         cpu->SetRegX(0, res);
         cpu->SetRegX(1, tmpU64);
         break;
@@ -393,6 +405,9 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
 
+    LOG_DEBUG(Hypervisor, "g_VirtmemMutex: 0x{:08x}",
+              *((u64*)mmu->UnmapPtr(0x8001a470)));
+
     return RESULT_SUCCESS;
 }
 
@@ -548,70 +563,63 @@ Result Kernel::svcOutputDebugString(const char* str, usize len) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcGetInfo(u64* out, Info info) {
-    LOG_DEBUG(HorizonKernel, "svcGetInfo called");
+Result Kernel::svcGetInfo(u64* out, InfoType info_type, Handle handle,
+                          u64 info_sub_type) {
+    LOG_DEBUG(HorizonKernel,
+              "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
+              info_type, handle, info_sub_type);
 
-    if (info.is_system_info) {
-        switch (info.system_info_type) {
-        default:
-            LOG_WARNING(HorizonKernel, "Unimplemented system info type {}",
-                        (u32)info.system_info_type);
-            return MAKE_KERNEL_RESULT(NotImplemented);
-        }
-    } else {
-        switch (info.info_type) {
-        case InfoType::AliasRegionAddress:
-            LOG_WARNING(HorizonKernel, "Not implemented");
-            // HACK
-            *out = 0;
-            return RESULT_SUCCESS;
-        case InfoType::AliasRegionSize:
-            LOG_WARNING(HorizonKernel, "Not implemented");
-            // HACK
-            *out = 0;
-            return RESULT_SUCCESS;
-        case InfoType::HeapRegionAddress:
-            *out = heap_mem->GetBase();
-            return RESULT_SUCCESS;
-        case InfoType::HeapRegionSize:
-            *out = heap_mem->GetSize();
-            return RESULT_SUCCESS;
-        case InfoType::AslrRegionAddress:
-            LOG_WARNING(HorizonKernel, "Not implemented");
-            // HACK
-            *out = 0;
-            return RESULT_SUCCESS;
-        case InfoType::AslrRegionSize:
-            LOG_WARNING(HorizonKernel, "Not implemented");
-            // HACK
-            *out = 0;
-            return RESULT_SUCCESS;
-        case InfoType::StackRegionAddress:
-            *out = stack_mem->GetBase();
-            return RESULT_SUCCESS;
-        case InfoType::StackRegionSize:
-            *out = stack_mem->GetSize();
-            return RESULT_SUCCESS;
-        case InfoType::TotalMemorySize:
-            // TODO: what should this be?
-            *out = 4u * 1024u * 1024u * 1024u;
-            return RESULT_SUCCESS;
-        case InfoType::UsedMemorySize:
-            // TODO: correct?
-            *out = stack_mem->GetSize() + kernel_mem->GetSize() +
-                   tls_mem->GetSize() + rom_mem->GetSize() +
-                   heap_mem->GetSize();
-            return RESULT_SUCCESS;
-        case InfoType::AliasRegionExtraSize:
-            LOG_WARNING(HorizonKernel, "Not implemented");
-            // HACK
-            *out = 0;
-            return RESULT_SUCCESS;
-        default:
-            LOG_WARNING(HorizonKernel, "Unimplemented info type {}",
-                        (u32)info.info_type);
-            return MAKE_KERNEL_RESULT(NotImplemented);
-        }
+    switch (info_type) {
+    case InfoType::AliasRegionAddress:
+        LOG_WARNING(HorizonKernel, "Not implemented");
+        // HACK
+        *out = 0;
+        return RESULT_SUCCESS;
+    case InfoType::AliasRegionSize:
+        LOG_WARNING(HorizonKernel, "Not implemented");
+        // HACK
+        *out = 0;
+        return RESULT_SUCCESS;
+    case InfoType::HeapRegionAddress:
+        *out = heap_mem->GetBase();
+        return RESULT_SUCCESS;
+    case InfoType::HeapRegionSize:
+        *out = heap_mem->GetSize();
+        return RESULT_SUCCESS;
+    case InfoType::AslrRegionAddress:
+        *out = aslr_mem->GetBase();
+        return RESULT_SUCCESS;
+    case InfoType::AslrRegionSize:
+        *out = aslr_mem->GetSize();
+        return RESULT_SUCCESS;
+    case InfoType::StackRegionAddress:
+        *out = stack_mem->GetBase();
+        return RESULT_SUCCESS;
+    case InfoType::StackRegionSize:
+        *out = stack_mem->GetSize();
+        return RESULT_SUCCESS;
+    case InfoType::TotalMemorySize:
+        // TODO: what should this be?
+        *out = 4u * 1024u * 1024u * 1024u;
+        return RESULT_SUCCESS;
+    case InfoType::UsedMemorySize:
+        // TODO: correct?
+        *out = stack_mem->GetSize() + kernel_mem->GetSize() +
+               tls_mem->GetSize() + aslr_mem->GetSize() + rom_mem->GetSize() +
+               heap_mem->GetSize();
+        return RESULT_SUCCESS;
+    case InfoType::RandomEntropy:
+        // TODO: correct?
+        *out = rand();
+        return RESULT_SUCCESS;
+    case InfoType::AliasRegionExtraSize:
+        LOG_WARNING(HorizonKernel, "Not implemented");
+        // HACK
+        *out = 0;
+        return RESULT_SUCCESS;
+    default:
+        LOG_WARNING(HorizonKernel, "Unimplemented info type {}", info_type);
+        return MAKE_KERNEL_RESULT(NotImplemented);
     }
 }
 

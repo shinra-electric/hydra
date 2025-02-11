@@ -53,7 +53,8 @@ class Kernel {
     Result svcSendSyncRequest(Handle session_handle);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(u64* out, Info info);
+    Result svcGetInfo(u64* out, InfoType info_type, Handle handle,
+                      u64 info_sub_type);
 
     // Getters
     HW::MMU::Memory* GetRomMemory() { return rom_mem; }
@@ -80,6 +81,7 @@ class Kernel {
     HW::MMU::Memory* stack_mem;
     HW::MMU::Memory* kernel_mem;
     HW::MMU::Memory* tls_mem;
+    HW::MMU::Memory* aslr_mem;
 
     // Dynamic
     HW::MMU::Memory* rom_mem = nullptr;
