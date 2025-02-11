@@ -10,7 +10,6 @@ class IStaticService : public ServiceBase {
                  std::function<void(ServiceBase*)> add_service) override;
 
   private:
-    void CreateService(u32 id, std::function<void(ServiceBase*)> add_service);
 };
 
 } // namespace Hydra::Horizon::Services::TimeSrv

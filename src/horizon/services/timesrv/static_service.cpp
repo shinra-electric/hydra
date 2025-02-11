@@ -16,12 +16,22 @@ void IStaticService::Request(Writers& writers, u8* in_ptr,
 
     switch (cmif_in.command_id) {
     case 0:
+        add_service(new ISystemClock(SystemClockType::StandardUser));
+        break;
     case 1:
+        add_service(new ISystemClock(SystemClockType::StandardNetwork));
+        break;
     case 2:
+        add_service(new ISteadyClock());
+        break;
     case 3:
+        add_service(new ITimeZoneService());
+        break;
     case 4:
+        add_service(new ISystemClock(SystemClockType::StandardLocal));
+        break;
     case 5:
-        CreateService(cmif_in.command_id, add_service);
+        add_service(new ISystemClock(SystemClockType::EphemeralNetwork));
         break;
     default:
         LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
@@ -29,46 +39,6 @@ void IStaticService::Request(Writers& writers, u8* in_ptr,
     }
 
     *res = RESULT_SUCCESS;
-}
-
-void IStaticService::CreateService(
-    u32 id, std::function<void(ServiceBase*)> add_service) {
-    Handle handle;
-    switch (id) {
-    case 0:
-    case 1:
-    case 4:
-    case 5: {
-        SystemClockType type;
-        switch (id) {
-        case 0:
-            type = SystemClockType::StandardUser;
-            break;
-        case 1:
-            type = SystemClockType::StandardNetwork;
-            break;
-        case 2:
-            type = SystemClockType::StandardLocal;
-            break;
-        case 3:
-            type = SystemClockType::EphemeralNetwork;
-            break;
-        }
-
-        add_service(new ISystemClock());
-        break;
-    }
-    case 2:
-        add_service(new ISteadyClock());
-        break;
-    case 3:
-        add_service(new ITimeZoneService());
-        break;
-    default:
-        LOG_WARNING(HorizonServices,
-                    "Unknown time service CreateService command {}", id);
-        break;
-    }
 }
 
 } // namespace Hydra::Horizon::Services::TimeSrv

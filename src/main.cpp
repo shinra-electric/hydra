@@ -79,7 +79,7 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0xf7c, BRK);
+    // SET_INSTRUCTION(data, 0x30f0, BRK);
     // SET_INSTRUCTION(data, 0x8f0, BRK);
     // SET_INSTRUCTION(data, 0x7a8, BRK);
     // SET_INSTRUCTION(data, 0x7c4, BRK);

@@ -37,8 +37,11 @@ add_executable(hydra
     horizon/services/nvdrv/nvdrv_services.hpp
     horizon/services/settings/system_settings_server.cpp
     horizon/services/settings/system_settings_server.hpp
+    horizon/services/am/const.hpp
     horizon/services/am/apm_manager.cpp
     horizon/services/am/apm_manager.hpp
+    horizon/services/am/common_state_getter.cpp
+    horizon/services/am/common_state_getter.hpp
     horizon/services/am/application_proxy_service.cpp
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
