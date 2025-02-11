@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/common.hpp"
+#include "hypervisor/const.hpp"
 
 namespace Hydra::Horizon {
 
@@ -36,6 +36,14 @@ class Hypervisor {
 
     HW::MMU::Hypervisor::MMU* mmu;
     HW::CPU::Hypervisor::CPU* cpu;
+
+    void DataAbort(u32 instruction, u64 far, u64 elr);
+
+    // Interpreter
+    void InterpretLDAXR(u8 out_reg, u64 addr);
+    void InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr);
+    void InterpretDC(u64 addr);
+    void InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1, u64 addr);
 };
 
 } // namespace Hydra::Hypervisor

@@ -151,41 +151,14 @@ void Hypervisor::Run() {
                     // Debug
                     // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
 
-                    LOG_DEBUG(Hypervisor,
-                              "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
-                              "instruction: 0x{:08x})",
-                              elr, far, instruction);
+                    // LOG_DEBUG(Hypervisor,
+                    //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
+                    //           "instruction: 0x{:08x})",
+                    //           elr, far, instruction);
 
                     // TODO: check if valid
 
-                    if ((instruction & 0xFF800000) ==
-                        0x88000000) { // STLXR or LDAXR
-                        if ((instruction & 0x001F0000) == 0x001F0000) { // LDAXR
-                            // TODO
-
-                            // HACK
-                            cpu->SetReg(
-                                (hv_reg_t)(HV_REG_X0 +
-                                           EXTRACT_BITS(instruction, 4, 0)),
-                                0);
-                        } else { // STLXR
-                            // TODO
-
-                            // Result code
-                            cpu->SetReg(
-                                (hv_reg_t)(HV_REG_X0 +
-                                           EXTRACT_BITS(instruction, 4, 0)),
-                                0);
-                        }
-                    } else if ((instruction & 0xFF800000) == 0xD5000000) { // DC
-                        const size_t cacheLineSize = 64;
-                        // Zero out the memory
-                        memset((void*)mmu->UnmapPtr(far), 0, cacheLineSize);
-                    }
-
-                    // Set the return address
-                    // TODO: correct?
-                    cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+                    DataAbort(instruction, far, elr);
                     break;
                 default:
                     // Debug
@@ -259,6 +232,9 @@ void Hypervisor::Run() {
             } else if (hvEc == 0x3C) { // BRK
                 LOG_ERROR(Hypervisor, "BRK instruction");
                 cpu->LogRegisters();
+                LOG_DEBUG(Hypervisor, "cbAlloc: 0x{:08x} -> 0x{:08x}",
+                          cpu->GetRegX(0) + 0x10,
+                          *((u64*)mmu->UnmapPtr(cpu->GetRegX(0) + 0x10)));
                 break;
             } else {
                 // Debug
@@ -291,6 +267,96 @@ void Hypervisor::Run() {
                       (u32)exit->reason);
             break;
         }
+    }
+}
+
+void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
+    // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}", elr,
+    //           instruction);
+
+    if (/*(instruction & 0xFF800000) ==
+        0x88000000*/
+        (instruction & 0x0f000000) == 0x08000000) {     // STLXR or LDAXR
+        if ((instruction & 0x001f0000) == 0x001f0000) { // LDAXR
+            cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+            InterpretLDAXR(EXTRACT_BITS(instruction, 5, 0), far); // TODO: check
+        } else {                                                  // STLXR
+            InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
+                           EXTRACT_BITS(instruction, 5, 0), far); // TODO: check
+        }
+    } else if ((instruction & 0xff800000) == 0xd5000000) { // DC
+        InterpretDC(far);
+        // LOG_DEBUG(Hypervisor, "DC: 0x{:08x}",
+        //           mmu->UnmapPtr(far));
+        // cpu->LogRegisters(5);
+    } else if ((instruction & 0x7B000000) == 0x29000000) {
+        InterpretLDP(EXTRACT_BITS(instruction, 31, 31),
+                     EXTRACT_BITS(instruction, 26, 26),
+                     EXTRACT_BITS(instruction, 14, 10),
+                     EXTRACT_BITS(instruction, 9, 5), far);
+    } else if (false) {
+        // TODO: implement
+        // InterpretSTR();
+    } else {
+        cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+        LOG_WARNING(Hypervisor,
+                    "Unimplemented data abort instruction "
+                    "0x{:08x} (PC: 0x{:08x})",
+                    instruction, far);
+    }
+
+    // Set the return address
+    // TODO: correct?
+    cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+}
+
+void Hypervisor::InterpretLDAXR(u8 out_reg, u64 addr) {
+    // TODO: barrier
+
+    u64 v = *((u64*)mmu->UnmapPtr(addr));
+
+    cpu->SetRegX(out_reg, v);
+    // LOG_DEBUG(Hypervisor, "loaded 0x{:08x} into X{} from 0x{:08x}", v,
+    // out_reg,
+    //           addr);
+}
+
+void Hypervisor::InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr) {
+    // TODO: barrier
+
+    *((u64*)mmu->UnmapPtr(addr)) = v;
+
+    cpu->SetRegX(out_res_reg, 0);
+    // LOG_DEBUG(Hypervisor, "stored 0x{:08x} into 0x{:08x}, result reg X{}", v,
+    //           addr, out_res_reg);
+}
+
+void Hypervisor::InterpretDC(u64 addr) {
+    constexpr usize CACHE_LINE_SIZE = 0x40;
+
+    // Zero out the memory
+    memset((void*)mmu->UnmapPtr(addr), 0, CACHE_LINE_SIZE);
+}
+
+void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
+                              u64 addr) {
+    u8 size = (4 << size0) << size1;
+    if (size == 16) {
+        LOG_WARNING(Hypervisor, "128-bit LDP is not supported");
+        return;
+    }
+
+    LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
+              size * 8, out_reg0, out_reg1, addr);
+
+    if (size == 4) {
+        cpu->SetRegX(out_reg0, *((u32*)mmu->UnmapPtr(addr)));
+        cpu->SetRegX(out_reg1, *((u32*)mmu->UnmapPtr(addr) + 1));
+    } else if (size == 8) {
+        cpu->SetRegX(out_reg0, *((u64*)mmu->UnmapPtr(addr)));
+        cpu->SetRegX(out_reg1, *((u64*)mmu->UnmapPtr(addr) + 1));
+    } else {
+        LOG_ERROR(Hypervisor, "Unsupported LDP size: {}", size);
     }
 }
 
