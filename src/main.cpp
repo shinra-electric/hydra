@@ -1,4 +1,5 @@
 #include "horizon/horizon.hpp"
+#include "hw/display/display.hpp"
 #include "hypervisor/hypervisor.hpp"
 
 // HACK
@@ -92,8 +93,14 @@ int main(int argc, const char* argv[]) {
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 
+    // Display
+    // TODO: instantiate a subclass instead
+    Hydra::HW::Display::DisplayBase* display =
+        new Hydra::HW::Display::DisplayBase();
+
     // Horizon OS
     Hydra::Horizon::OS horizon;
+    horizon.SetDisplay(display, 0);
 
     // Hypervisor
     Hydra::Hypervisor::Hypervisor hypervisor(horizon);

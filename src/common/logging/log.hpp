@@ -17,6 +17,15 @@
 #define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 
+#define ASSERT(condition, c, ...)                                              \
+    if (!(condition)) {                                                        \
+        LOG_ERROR(c, __VA_ARGS__);                                             \
+        throw;                                                                 \
+    }
+
+// TODO: only log on debug builds
+#define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
+
 namespace Hydra::Logging {
 
 // From yuzu

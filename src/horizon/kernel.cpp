@@ -56,7 +56,14 @@ const u32 exception_trampoline[] = {
     0xd4200000u, // brk #0
 };
 
+Kernel* s_kernel = nullptr;
+
+Kernel& Kernel::GetInstance() { return *s_kernel; }
+
 Kernel::Kernel() {
+    ASSERT(s_kernel == nullptr, HorizonKernel, "Kernel already exists");
+    s_kernel = this;
+
     // Memory
 
     // Stack memory
@@ -100,6 +107,10 @@ Kernel::~Kernel() {
         delete rom_mem;
     // delete bss_mem;
     delete heap_mem;
+}
+
+void Kernel::SetDisplay(HW::Display::DisplayBase* display, u32 display_id) {
+    displays[display_id] = display;
 }
 
 void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {

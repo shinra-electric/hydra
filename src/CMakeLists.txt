@@ -46,10 +46,16 @@ add_executable(hydra
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/visrv/system_display_service.cpp
+    horizon/services/visrv/system_display_service.hpp
+    horizon/services/visrv/manager_display_service.cpp
+    horizon/services/visrv/manager_display_service.hpp
     horizon/services/visrv/application_display_service.cpp
     horizon/services/visrv/application_display_service.hpp
     horizon/services/visrv/manager_root_service.cpp
     horizon/services/visrv/manager_root_service.hpp
+    horizon/services/hosbinder/hos_binder_driver.cpp
+    horizon/services/hosbinder/hos_binder_driver.hpp
     hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
@@ -59,6 +65,7 @@ add_executable(hydra
     hw/tegra_x1/mmu/memory.hpp
     hw/tegra_x1/mmu/hypervisor/mmu.cpp
     hw/tegra_x1/mmu/hypervisor/mmu.hpp
+    hw/display/display.hpp
     hypervisor/const.hpp
     hypervisor/hypervisor.cpp
     hypervisor/hypervisor.hpp

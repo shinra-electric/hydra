@@ -11,18 +11,26 @@ class MMUBase;
 
 namespace Hydra::HW::CPU {
 class CPUBase;
-} // namespace Hydra::HW::CPU
+}
+
+namespace Hydra::HW::Display {
+class DisplayBase;
+}
 
 namespace Hydra::Horizon {
 
 namespace Services {
 class ServiceBase;
-} // namespace Services
+}
 
 class Kernel {
   public:
+    static Kernel& GetInstance();
+
     Kernel();
     ~Kernel();
+
+    void SetDisplay(HW::Display::DisplayBase* display, u32 display_id);
 
     void SetMMU(HW::MMU::MMUBase* mmu_);
 
@@ -57,6 +65,10 @@ class Kernel {
                       u64 info_sub_type);
 
     // Getters
+    HW::Display::DisplayBase* GetDisplay(u32 display_id) {
+        return displays[display_id];
+    }
+
     HW::MMU::Memory* GetRomMemory() { return rom_mem; }
     // HW::MMU::Memory* GetBssMemory() { return bss_mem; }
     HW::MMU::Memory* GetStackMemory() { return stack_mem; }
@@ -73,7 +85,10 @@ class Kernel {
     Handle AddService(Services::ServiceBase* service);
 
   private:
+    // HW
     HW::MMU::MMUBase* mmu;
+    HW::Display::DisplayBase*
+        displays[2]; // TODO: what's the maximum number of displays?
 
     // Memory
 
