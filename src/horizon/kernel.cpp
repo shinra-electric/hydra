@@ -610,6 +610,7 @@ Result Kernel::svcGetInfo(u64* out, InfoType info_type, Handle handle,
         return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
         // TODO: correct?
+        // TODO: subtype 0-3
         *out = rand();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:

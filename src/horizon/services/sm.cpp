@@ -10,6 +10,7 @@
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
 #include "horizon/services/timesrv/static_service.hpp"
+#include "horizon/services/visrv/manager_root_service.hpp"
 
 namespace Hydra::Horizon::Services {
 
@@ -21,6 +22,7 @@ enum class Service : u64 {
     SetSys = 0x007379733a746573,
     Apm = 0x00000000006d7061,
     AppletOE = 0x454f74656c707061,
+    ViM = 0x000000006d3a6976,
 };
 
 void ServiceManager::Request(Writers& writers, u8* in_ptr,
@@ -60,11 +62,15 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
         case Service::AppletOE:
             add_service(new Am::IApplicationProxyService());
             break;
+        case Service::ViM:
+            add_service(new ViSrv::IManagerRootService());
+            break;
         default:
-            LOG_WARNING(HorizonServices, "Unknown service 0x{:08x} -> {}",
+            LOG_WARNING(HorizonServices, "Unknown service 0x{:016x} -> {}",
                         (u64)service, std::string((char*)in_ptr, 8));
             handle = UINT32_MAX;
             *res = MAKE_KERNEL_RESULT(NotFound);
+            // TODO: don't throw
             throw;
             break;
         }

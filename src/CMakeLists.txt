@@ -46,6 +46,10 @@ add_executable(hydra
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/visrv/application_display_service.cpp
+    horizon/services/visrv/application_display_service.hpp
+    horizon/services/visrv/manager_root_service.cpp
+    horizon/services/visrv/manager_root_service.hpp
     hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp

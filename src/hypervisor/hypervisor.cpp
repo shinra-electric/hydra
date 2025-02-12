@@ -274,11 +274,9 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}", elr,
     //           instruction);
 
-    if (/*(instruction & 0xFF800000) ==
-        0x88000000*/
-        (instruction & 0x0f000000) == 0x08000000) {     // STLXR or LDAXR
-        if ((instruction & 0x001f0000) == 0x001f0000) { // LDAXR
-            cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+    if ((instruction & 0xbfe00000) ==
+        0x88000000) { // STLXR or LDAXR (TODO: correct?)
+        if ((instruction & 0x001f0000) == 0x001f0000) {           // LDAXR
             InterpretLDAXR(EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
         } else {                                                  // STLXR
             InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
