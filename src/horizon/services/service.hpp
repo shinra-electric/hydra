@@ -17,9 +17,9 @@ struct Writers {
 
 class ServiceBase {
   public:
-    virtual void Request(Writers& writers, u8* in_ptr,
+    virtual void Request(Writers& writers, Reader& reader,
                          std::function<void(ServiceBase*)> add_service) = 0;
-    void Control(Kernel& kernel, Writer& writer, u8* in_ptr);
+    void Control(Kernel& kernel, Writer& writer, Reader& reader);
 
     // Getters
     // Handle GetHandle() const { return handle; }

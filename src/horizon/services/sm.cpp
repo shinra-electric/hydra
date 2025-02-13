@@ -25,9 +25,9 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void ServiceManager::Request(Writers& writers, u8* in_ptr,
+void ServiceManager::Request(Writers& writers, Reader& reader,
                              std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = Cmif::read_in_header(in_ptr);
+    auto cmif_in = reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writers.writer);
     *res = RESULT_SUCCESS;
@@ -38,7 +38,7 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
 
         // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
         // std::string name(in.name);
-        Service service = *reinterpret_cast<Service*>(in_ptr);
+        Service service = reader.Read<Service>();
         Handle handle;
         switch (service) {
         case Service::Hid:
@@ -67,7 +67,7 @@ void ServiceManager::Request(Writers& writers, u8* in_ptr,
             break;
         default:
             LOG_WARNING(HorizonServices, "Unknown service 0x{:016x} -> {}",
-                        (u64)service, std::string((char*)in_ptr, 8));
+                        (u64)service, std::string((char*)(&service), 8));
             handle = UINT32_MAX;
             *res = MAKE_KERNEL_RESULT(NotFound);
             // TODO: don't throw

@@ -412,9 +412,6 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
 
-    LOG_DEBUG(Hypervisor, "g_VirtmemMutex: 0x{:08x}",
-              *((u64*)mmu->UnmapPtr(0x8001a470)));
-
     return RESULT_SUCCESS;
 }
 
@@ -473,17 +470,18 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
                               Writer(service_scratch_buffer_objects),
                               Writer(service_scratch_buffer_move_handles),
                               Writer(service_scratch_buffer_copy_handles)};
+    Reader reader(in_ptr);
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
-        service->Request(writers, in_ptr, [&](Services::ServiceBase* service) {
+        service->Request(writers, reader, [&](Services::ServiceBase* service) {
             Handle handle = AddService(service);
             writers.move_handles_writer.Write(handle);
         });
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
-        service->Control(*this, writers.writer, in_ptr);
+        service->Control(*this, writers.writer, reader);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unknown command {}", hipc_in.meta.type);

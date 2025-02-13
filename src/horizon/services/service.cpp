@@ -7,8 +7,8 @@
 
 namespace Hydra::Horizon::Services {
 
-void ServiceBase::Control(Kernel& kernel, Writer& writer, u8* in_ptr) {
-    auto cmif_in = Cmif::read_in_header(in_ptr);
+void ServiceBase::Control(Kernel& kernel, Writer& writer, Reader& reader) {
+    auto cmif_in = reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writer);
 

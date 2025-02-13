@@ -4,9 +4,9 @@
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
-void ISteadyClock::Request(Writers& writers, u8* in_ptr,
+void ISteadyClock::Request(Writers& writers, Reader& reader,
                            std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = Cmif::read_in_header(in_ptr);
+    auto cmif_in = reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writers.writer);
 

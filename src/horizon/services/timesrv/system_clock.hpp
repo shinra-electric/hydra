@@ -15,7 +15,7 @@ class ISystemClock : public ServiceBase {
   public:
     ISystemClock(SystemClockType type_) : type{type_} {}
 
-    void Request(Writers& writers, u8* in_ptr,
+    void Request(Writers& writers, Reader& reader,
                  std::function<void(ServiceBase*)> add_service) override;
 
   private:

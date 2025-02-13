@@ -7,7 +7,7 @@ namespace Hydra::Horizon::Services {
 class ServiceManager : public ServiceBase {
   public:
     virtual void
-    Request(Writers& writers, u8* in_ptr,
+    Request(Writers& writers, Reader& reader,
             std::function<void(ServiceBase*)> add_service) override;
 
   private:

@@ -35,6 +35,28 @@ inline std::ifstream open_file(const std::string& path, usize& size) {
     return ifs;
 }
 
+class Reader {
+  public:
+    Reader(u8* base_) : ptr{base_} {}
+
+    template <typename T> T Read() {
+        T result = *reinterpret_cast<T*>(ptr);
+        ptr += sizeof(T);
+
+        return result;
+    }
+
+    template <typename T> T* Read(T* ptr, usize count) {
+        T* result = reinterpret_cast<T*>(ptr);
+        ptr += sizeof(T) * count;
+
+        return result;
+    }
+
+  private:
+    u8* ptr;
+};
+
 class Writer {
   public:
     Writer(u8* base_) : base{base_}, ptr{base_} {}

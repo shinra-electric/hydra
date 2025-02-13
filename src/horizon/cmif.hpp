@@ -50,13 +50,6 @@ struct OutHeader {
     u32 token;
 };
 
-inline InHeader read_in_header(u8*& in_ptr) {
-    auto hdr = reinterpret_cast<InHeader*>(in_ptr);
-    in_ptr += sizeof(InHeader);
-
-    return *hdr;
-}
-
 inline Result* write_out_header(Writer& writer) {
     auto hdr = writer.Write(OutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
@@ -66,13 +59,6 @@ inline Result* write_out_header(Writer& writer) {
     });
 
     return &hdr->result;
-}
-
-inline DomainInHeader read_domain_in_header(u8*& in_ptr) {
-    auto hdr = reinterpret_cast<DomainInHeader*>(in_ptr);
-    in_ptr += sizeof(DomainInHeader);
-
-    return *hdr;
 }
 
 inline void write_domain_out_header(Writer& writer) {
