@@ -5,6 +5,7 @@
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "horizon/services/visrv/manager_display_service.hpp"
 #include "horizon/services/visrv/system_display_service.hpp"
+#include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
@@ -28,7 +29,7 @@ void IApplicationDisplayService::Request(
         break;
     case 1010: {            // OpenDisplay
         u64 display_id = 0; // TODO: get based on the name
-        Kernel::GetInstance().GetDisplay(display_id)->Open();
+        Kernel::GetInstance().GetBus().GetDisplay(display_id)->Open();
         writers.writer.Write(display_id);
         break;
     }

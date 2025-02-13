@@ -60,7 +60,7 @@ Kernel* s_kernel = nullptr;
 
 Kernel& Kernel::GetInstance() { return *s_kernel; }
 
-Kernel::Kernel() {
+Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
     ASSERT(s_kernel == nullptr, HorizonKernel, "Kernel already exists");
     s_kernel = this;
 
@@ -107,10 +107,6 @@ Kernel::~Kernel() {
         delete rom_mem;
     // delete bss_mem;
     delete heap_mem;
-}
-
-void Kernel::SetDisplay(HW::Display::DisplayBase* display, u32 display_id) {
-    displays[display_id] = display;
 }
 
 void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {

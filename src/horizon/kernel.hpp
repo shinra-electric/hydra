@@ -13,8 +13,8 @@ namespace Hydra::HW::CPU {
 class CPUBase;
 }
 
-namespace Hydra::HW::Display {
-class DisplayBase;
+namespace Hydra::HW {
+class Bus;
 }
 
 namespace Hydra::Horizon {
@@ -27,10 +27,8 @@ class Kernel {
   public:
     static Kernel& GetInstance();
 
-    Kernel();
+    Kernel(HW::Bus& bus_);
     ~Kernel();
-
-    void SetDisplay(HW::Display::DisplayBase* display, u32 display_id);
 
     void SetMMU(HW::MMU::MMUBase* mmu_);
 
@@ -65,15 +63,13 @@ class Kernel {
                       u64 info_sub_type);
 
     // Getters
-    HW::Display::DisplayBase* GetDisplay(u32 display_id) {
-        return displays[display_id];
-    }
+    HW::Bus& GetBus() const { return bus; }
 
-    HW::MMU::Memory* GetRomMemory() { return rom_mem; }
-    // HW::MMU::Memory* GetBssMemory() { return bss_mem; }
-    HW::MMU::Memory* GetStackMemory() { return stack_mem; }
-    HW::MMU::Memory* GetKernelMemory() { return kernel_mem; }
-    HW::MMU::Memory* GetTlsMemory() { return tls_mem; }
+    HW::MMU::Memory* GetRomMemory() const { return rom_mem; }
+    // HW::MMU::Memory* GetBssMemory() const { return bss_mem; }
+    HW::MMU::Memory* GetStackMemory() const { return stack_mem; }
+    HW::MMU::Memory* GetKernelMemory() const { return kernel_mem; }
+    HW::MMU::Memory* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
     Services::ServiceBase* GetService(Handle handle) const {
@@ -85,10 +81,8 @@ class Kernel {
     Handle AddService(Services::ServiceBase* service);
 
   private:
-    // HW
+    HW::Bus& bus;
     HW::MMU::MMUBase* mmu;
-    HW::Display::DisplayBase*
-        displays[2]; // TODO: what's the maximum number of displays?
 
     // Memory
 

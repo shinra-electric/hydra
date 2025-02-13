@@ -66,6 +66,7 @@ add_executable(hydra
     hw/tegra_x1/mmu/hypervisor/mmu.cpp
     hw/tegra_x1/mmu/hypervisor/mmu.hpp
     hw/display/display.hpp
+    hw/bus.hpp
     hypervisor/const.hpp
     hypervisor/hypervisor.cpp
     hypervisor/hypervisor.hpp

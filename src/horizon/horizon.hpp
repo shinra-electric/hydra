@@ -14,10 +14,8 @@ namespace Hydra::Horizon {
 
 class OS {
   public:
-    OS();
+    OS(HW::Bus& bus);
     ~OS();
-
-    void SetDisplay(HW::Display::DisplayBase* display, u32 display_id);
 
     void SetMMU(HW::MMU::MMUBase* mmu);
 

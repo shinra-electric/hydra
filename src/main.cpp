@@ -1,4 +1,5 @@
 #include "horizon/horizon.hpp"
+#include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 #include "hypervisor/hypervisor.hpp"
 
@@ -95,12 +96,15 @@ int main(int argc, const char* argv[]) {
 
     // Display
     // TODO: instantiate a subclass instead
-    Hydra::HW::Display::DisplayBase* display =
+    Hydra::HW::Display::DisplayBase* builtin_display =
         new Hydra::HW::Display::DisplayBase();
 
+    // Bus
+    Hydra::HW::Bus bus;
+    bus.SetDisplay(builtin_display, 0);
+
     // Horizon OS
-    Hydra::Horizon::OS horizon;
-    horizon.SetDisplay(display, 0);
+    Hydra::Horizon::OS horizon(bus);
 
     // Hypervisor
     Hydra::Hypervisor::Hypervisor hypervisor(horizon);
