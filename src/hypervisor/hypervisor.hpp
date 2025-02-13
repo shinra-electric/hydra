@@ -44,7 +44,7 @@ class Hypervisor {
     void InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr);
     void InterpretDC(u64 addr);
     void InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1, u64 addr);
-    // void InterpretSTR();
+    void InterpretSTR(u8 size0, u8 reg, u64 addr);
     void InterpretSTP(u8 size0, u8 size1, u8 reg0, u8 reg1, u64 addr);
 };
 
