@@ -296,12 +296,17 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     } else if (false) {
         // TODO: implement
         // InterpretSTR();
+    } else if ((instruction & 0x7FC00000) == 0x28800000) {
+        InterpretSTP(EXTRACT_BITS(instruction, 31, 31),
+                     EXTRACT_BITS(instruction, 26, 26),
+                     EXTRACT_BITS(instruction, 14, 10),
+                     EXTRACT_BITS(instruction, 9, 5), far);
     } else {
         cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
         LOG_WARNING(Hypervisor,
                     "Unimplemented data abort instruction "
                     "0x{:08x} (PC: 0x{:08x})",
-                    instruction, far);
+                    instruction, elr);
     }
 
     // Set the return address
@@ -340,22 +345,54 @@ void Hypervisor::InterpretDC(u64 addr) {
 void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
                               u64 addr) {
     u8 size = (4 << size0) << size1;
-    if (size == 16) {
-        LOG_WARNING(Hypervisor, "128-bit LDP is not supported");
-        return;
-    }
 
     // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
     //           size * 8, out_reg0, out_reg1, addr);
 
-    if (size == 4) {
-        cpu->SetRegX(out_reg0, *((u32*)mmu->UnmapPtr(addr)));
-        cpu->SetRegX(out_reg1, *((u32*)mmu->UnmapPtr(addr) + 1));
-    } else if (size == 8) {
-        cpu->SetRegX(out_reg0, *((u64*)mmu->UnmapPtr(addr)));
-        cpu->SetRegX(out_reg1, *((u64*)mmu->UnmapPtr(addr) + 1));
-    } else {
-        LOG_ERROR(Hypervisor, "Unsupported LDP size: {}", size);
+    switch (size) {
+    case 4:
+        cpu->SetRegX(out_reg0, mmu->Load<u32>(addr));
+        cpu->SetRegX(out_reg1, mmu->Load<u32>(addr + sizeof(u32)));
+        break;
+    case 8:
+        cpu->SetRegX(out_reg0, mmu->Load<u64>(addr));
+        cpu->SetRegX(out_reg1, mmu->Load<u64>(addr + sizeof(u64)));
+        break;
+    case 16:
+        cpu->SetRegQ(out_reg0, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+        cpu->SetRegQ(out_reg1, mmu->Load<hv_simd_fp_uchar16_t>(
+                                   addr + sizeof(hv_simd_fp_uchar16_t)));
+        break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
+    }
+}
+
+void Hypervisor::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
+                              u64 addr) {
+    u8 size = (4 << size0) << size1;
+
+    // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
+    //           size * 8, out_reg0, out_reg1, addr);
+
+    switch (size) {
+    case 4:
+        mmu->Store<u32>(addr, cpu->GetRegX(out_reg0));
+        mmu->Store<u32>(addr + sizeof(u32), cpu->GetRegX(out_reg1));
+        break;
+    case 8:
+        mmu->Store<u64>(addr, cpu->GetRegX(out_reg0));
+        mmu->Store<u64>(addr + sizeof(u64), cpu->GetRegX(out_reg1));
+        break;
+    case 16:
+        mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(out_reg0));
+        mmu->Store<hv_simd_fp_uchar16_t>(addr + sizeof(hv_simd_fp_uchar16_t),
+                                         cpu->GetRegQ(out_reg1));
+        break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
     }
 }
 

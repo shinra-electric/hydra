@@ -48,28 +48,6 @@ void CPU::UpdateVTimer() {
     hv_vcpu_set_vtimer_mask(vcpu, false);
 }
 
-u64 CPU::GetReg(hv_reg_t reg) const {
-    u64 value;
-    HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, reg, &value));
-
-    return value;
-}
-
-u64 CPU::GetSysReg(hv_sys_reg_t sys_reg) const {
-    u64 value;
-    HYP_ASSERT_SUCCESS(hv_vcpu_get_sys_reg(vcpu, sys_reg, &value));
-
-    return value;
-}
-
-void CPU::SetReg(hv_reg_t reg, u64 value) {
-    HYP_ASSERT_SUCCESS(hv_vcpu_set_reg(vcpu, reg, value));
-}
-
-void CPU::SetSysReg(hv_sys_reg_t sys_reg, u64 value) {
-    HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(vcpu, sys_reg, value));
-}
-
 void CPU::LogRegisters(u32 count) {
     LOG_DEBUG(CPU, "Reg dump:");
     for (u32 i = 0; i < count; i++) {

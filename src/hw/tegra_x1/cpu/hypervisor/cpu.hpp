@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/cpu/cpu.hpp"
 #include "hypervisor/const.hpp"
+#include <Hypervisor/hv_vcpu_types.h>
 
 namespace Hydra::HW::MMU {
 
@@ -40,14 +41,41 @@ class CPU : public CPUBase {
     // Getters
     hv_vcpu_exit_t* GetExit() { return vcpu_exit; }
 
-    u64 GetReg(hv_reg_t reg) const;
+    u64 GetReg(hv_reg_t reg) const {
+        u64 value;
+        HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, reg, &value));
 
-    u64 GetSysReg(hv_sys_reg_t reg) const;
+        return value;
+    }
+
+    hv_simd_fp_uchar16_t GetRegQ(u8 reg) const {
+        hv_simd_fp_uchar16_t value;
+        HYP_ASSERT_SUCCESS(hv_vcpu_get_simd_fp_reg(
+            vcpu, (hv_simd_fp_reg_t)(HV_SIMD_FP_REG_Q0 + reg), &value));
+
+        return value;
+    }
+
+    u64 GetSysReg(hv_sys_reg_t reg) const {
+        u64 value;
+        HYP_ASSERT_SUCCESS(hv_vcpu_get_sys_reg(vcpu, reg, &value));
+
+        return value;
+    }
 
     // Setters
-    void SetReg(hv_reg_t reg, u64 value);
+    void SetReg(hv_reg_t reg, u64 value) {
+        HYP_ASSERT_SUCCESS(hv_vcpu_set_reg(vcpu, reg, value));
+    }
 
-    void SetSysReg(hv_sys_reg_t sys_reg, u64 value);
+    void SetRegQ(u8 reg, hv_simd_fp_uchar16_t value) {
+        HYP_ASSERT_SUCCESS(hv_vcpu_set_simd_fp_reg(
+            vcpu, (hv_simd_fp_reg_t)(HV_SIMD_FP_REG_Q0 + reg), value));
+    }
+
+    void SetSysReg(hv_sys_reg_t reg, u64 value) {
+        HYP_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(vcpu, reg, value));
+    }
 
     // Debug
     void LogRegisters(u32 count = 31);

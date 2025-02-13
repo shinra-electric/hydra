@@ -30,20 +30,20 @@ void MMUBase::RemapMemory(Memory* mem) {
     MapMemoryImpl(mem);
 }
 
-Memory* MMUBase::UnmapPtrToMemory(uptr ptr) {
+Memory* MMUBase::UnmapPtrToMemory(uptr addr) {
     for (Memory* mem : memories) {
-        if (ptr >= mem->GetBase() && ptr < mem->GetBase() + mem->GetSize()) {
+        if (addr >= mem->GetBase() && addr < mem->GetBase() + mem->GetSize()) {
             return mem;
         }
     }
 
-    LOG_ERROR(MMU, "Failed to unmap ptr 0x{:08x}", ptr);
+    LOG_ERROR(MMU, "Failed to unmap addr 0x{:08x}", addr);
 
     return nullptr;
 }
 
-uptr MMUBase::UnmapPtr(uptr ptr) {
-    return UnmapPtrToMemory(ptr)->UnmapPtr(ptr);
+uptr MMUBase::UnmapPtr(uptr addr) {
+    return UnmapPtrToMemory(addr)->UnmapPtr(addr);
 }
 
 } // namespace Hydra::HW::MMU
