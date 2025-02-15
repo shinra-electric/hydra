@@ -13,7 +13,7 @@ u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
     u64 addr = descriptor->address_low | (u64)descriptor->address_mid << 32 |
                (u64)descriptor->address_high << 36;
 
-    return reinterpret_cast<u8*>(mmu->UnmapPtr(addr));
+    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
 }
 
 void ServiceBase::Request(REQUEST_PARAMS) {

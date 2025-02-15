@@ -16,9 +16,9 @@ class Memory {
 
     uptr MapPtr(uptr p);
 
-    uptr UnmapPtr(uptr p);
+    uptr UnmapAddr(uptr p);
 
-    bool PtrIsInRange(uptr p);
+    bool AddrIsInRange(uptr p);
 
     // Getters
     uptr GetPtr() const { return ptr; }

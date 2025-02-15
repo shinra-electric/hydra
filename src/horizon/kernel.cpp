@@ -174,7 +174,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         break;
     case 0x6:
         res = svcQueryMemory(
-            reinterpret_cast<MemoryInfo*>(mmu->UnmapPtr(cpu->GetRegX(0))),
+            reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(cpu->GetRegX(0))),
             &tmpU32, cpu->GetRegX(2));
         cpu->SetRegX(0, res);
         cpu->SetRegX(1, tmpU32);
@@ -227,7 +227,7 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
     case 0x1f:
         res = svcConnectToNamedPort(
             &tmpHandle,
-            reinterpret_cast<const char*>(mmu->UnmapPtr(cpu->GetRegX(1))));
+            reinterpret_cast<const char*>(mmu->UnmapAddr(cpu->GetRegX(1))));
         cpu->SetRegX(0, res);
         cpu->SetRegX(1, tmpHandle);
         break;
@@ -237,12 +237,12 @@ bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
         break;
     case 0x26:
         res = svcBreak(BreakReason(cpu->GetRegX(0)),
-                       mmu->UnmapPtr(cpu->GetRegX(1)), cpu->GetRegX(2));
+                       mmu->UnmapAddr(cpu->GetRegX(1)), cpu->GetRegX(2));
         cpu->SetRegX(0, res);
         break;
     case 0x27:
         res = svcOutputDebugString(
-            reinterpret_cast<const char*>(mmu->UnmapPtr(cpu->GetRegX(0))),
+            reinterpret_cast<const char*>(mmu->UnmapAddr(cpu->GetRegX(0))),
             cpu->GetRegX(1));
         cpu->SetRegX(0, res);
         break;
@@ -286,7 +286,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         "{})",
         addr, size, permission);
 
-    HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
+    HW::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
@@ -317,7 +317,7 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    HW::MMU::Memory* mem = mmu->UnmapPtrToMemory(addr);
+    HW::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);

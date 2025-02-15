@@ -30,7 +30,7 @@ void MMUBase::RemapMemory(Memory* mem) {
     MapMemoryImpl(mem);
 }
 
-Memory* MMUBase::UnmapPtrToMemory(uptr addr) const {
+Memory* MMUBase::UnmapAddrToMemory(uptr addr) const {
     for (Memory* mem : memories) {
         if (addr >= mem->GetBase() && addr < mem->GetBase() + mem->GetSize()) {
             return mem;
@@ -42,8 +42,12 @@ Memory* MMUBase::UnmapPtrToMemory(uptr addr) const {
     return nullptr;
 }
 
-uptr MMUBase::UnmapPtr(uptr addr) const {
-    return UnmapPtrToMemory(addr)->UnmapPtr(addr);
+uptr MMUBase::UnmapAddr(uptr addr) const {
+    Memory* mem = UnmapAddrToMemory(addr);
+    if (!mem)
+        return 0;
+
+    return mem->UnmapAddr(addr);
 }
 
 } // namespace Hydra::HW::MMU

@@ -126,7 +126,7 @@ void Hypervisor::Run() {
                 // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
                 // u64 mode = (spsr >> 2) & 0x3;
 
-                u32 instruction = *((u32*)mmu->UnmapPtr(elr));
+                u32 instruction = *((u32*)mmu->UnmapAddr(elr));
 
                 switch (ec) {
                 case 0x15:
@@ -212,7 +212,7 @@ void Hypervisor::Run() {
 
                 // Manually execute the instruction
                 u32 instruction =
-                    *((u32*)mmu->UnmapPtr(cpu->GetReg(HV_REG_PC)));
+                    *((u32*)mmu->UnmapAddr(cpu->GetReg(HV_REG_PC)));
 
                 u8 opcode =
                     (instruction >> 24) & 0xFF; // Extract opcode (bits 31-24)
@@ -335,7 +335,7 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
 void Hypervisor::InterpretLDAXR(u8 out_reg, u64 addr) {
     // TODO: barrier
 
-    u64 v = *((u64*)mmu->UnmapPtr(addr));
+    u64 v = *((u64*)mmu->UnmapAddr(addr));
 
     cpu->SetRegX(out_reg, v);
     // LOG_DEBUG(Hypervisor, "loaded 0x{:08x} into X{} from 0x{:08x}", v,
@@ -346,7 +346,7 @@ void Hypervisor::InterpretLDAXR(u8 out_reg, u64 addr) {
 void Hypervisor::InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr) {
     // TODO: barrier
 
-    *((u64*)mmu->UnmapPtr(addr)) = v;
+    *((u64*)mmu->UnmapAddr(addr)) = v;
 
     cpu->SetRegX(out_res_reg, 0);
     // LOG_DEBUG(Hypervisor, "stored 0x{:08x} into 0x{:08x}, result reg X{}", v,
@@ -357,7 +357,7 @@ void Hypervisor::InterpretDC(u64 addr) {
     constexpr usize CACHE_LINE_SIZE = 0x40;
 
     // Zero out the memory
-    memset((void*)mmu->UnmapPtr(addr), 0, CACHE_LINE_SIZE);
+    memset((void*)mmu->UnmapAddr(addr), 0, CACHE_LINE_SIZE);
 }
 
 void Hypervisor::InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr) {

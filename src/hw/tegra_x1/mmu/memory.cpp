@@ -29,9 +29,9 @@ void Memory::Clear() { memset((void*)ptr, 0, size); }
 
 uptr Memory::MapPtr(uptr p) { return base + (p - ptr); }
 
-uptr Memory::UnmapPtr(uptr p) { return ptr + (p - base); }
+uptr Memory::UnmapAddr(uptr p) { return ptr + (p - base); }
 
-bool Memory::PtrIsInRange(uptr p) { return p >= base && p < base + size; }
+bool Memory::AddrIsInRange(uptr p) { return p >= base && p < base + size; }
 
 void Memory::Allocate() {
     posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);

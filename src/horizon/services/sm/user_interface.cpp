@@ -65,6 +65,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         throw;
         break;
     }
+    LOG_DEBUG(HorizonServices, "Service {}", std::string((char*)(&service), 8));
     /*
     if (name == "hid") {
         handle = kernel.AddService<Hid::HidServer>();

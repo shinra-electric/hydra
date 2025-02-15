@@ -13,15 +13,15 @@ class MMUBase {
     void RemapMemory(Memory* mem);
     virtual void ReprotectMemory(Memory* mem) = 0;
 
-    Memory* UnmapPtrToMemory(uptr addr) const;
-    uptr UnmapPtr(uptr addr) const;
+    Memory* UnmapAddrToMemory(uptr addr) const;
+    uptr UnmapAddr(uptr addr) const;
 
     template <typename T> T Load(uptr addr) const {
-        return *reinterpret_cast<T*>(UnmapPtr(addr));
+        return *reinterpret_cast<T*>(UnmapAddr(addr));
     }
 
     template <typename T> void Store(uptr addr, T value) const {
-        *reinterpret_cast<T*>(UnmapPtr(addr)) = value;
+        *reinterpret_cast<T*>(UnmapAddr(addr)) = value;
     }
 
   protected:

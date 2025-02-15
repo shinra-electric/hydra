@@ -71,11 +71,11 @@ void CPU::LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc) {
             break;
         }
 
-        if (!stack_mem->PtrIsInRange(fp))
+        if (!stack_mem->AddrIsInRange(fp))
             break;
 
-        u64 new_fp = *((u64*)stack_mem->UnmapPtr(fp));
-        lr = *((u64*)stack_mem->UnmapPtr(fp + 8));
+        u64 new_fp = *((u64*)stack_mem->UnmapAddr(fp));
+        lr = *((u64*)stack_mem->UnmapAddr(fp + 8));
 
         fp = new_fp;
     }
