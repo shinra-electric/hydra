@@ -4,19 +4,17 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-void IManagerRootService::RequestImpl(REQUEST_IMPL_PARAMS) {
-    switch (id) {
-    case 0: // GetDisplayService
-        add_service(new IApplicationDisplayService());
-        break;
-    case 2: // GetDisplayServiceWithProxyNameExchange
-        // TODO: should take input u64 and u32
-        add_service(new IApplicationDisplayService());
-        break;
-    default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", id);
-        break;
-    }
+DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
+                             GetDisplayServiceWithProxyNameExchange)
+
+void IManagerRootService::GetDisplayService(REQUEST_COMMAND_PARAMS) {
+    add_service(new IApplicationDisplayService());
+}
+
+void IManagerRootService::GetDisplayServiceWithProxyNameExchange(
+    REQUEST_COMMAND_PARAMS) {
+    // TODO: should take input u64 and u32
+    add_service(new IApplicationDisplayService());
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

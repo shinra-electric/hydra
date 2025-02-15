@@ -2,8 +2,6 @@
 
 namespace Hydra::Horizon::Services::NvDrv {
 
-void INvDrvServices::RequestImpl(REQUEST_IMPL_PARAMS) {
-    LOG_WARNING(HorizonServices, "Unknown request {}", id);
-}
+DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices)
 
 } // namespace Hydra::Horizon::Services::NvDrv

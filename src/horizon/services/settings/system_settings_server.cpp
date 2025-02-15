@@ -2,8 +2,6 @@
 
 namespace Hydra::Horizon::Services::Settings {
 
-void ISystemSettingsServer::RequestImpl(REQUEST_IMPL_PARAMS) {
-    LOG_WARNING(HorizonServices, "Unknown request {}", id);
-}
+DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer)
 
 } // namespace Hydra::Horizon::Services::Settings

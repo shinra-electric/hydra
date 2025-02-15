@@ -14,7 +14,7 @@ struct CreateStrayLayerOut {
     u64 native_window_size;
 };
 
-void DisplayServiceBase::CmdCreateStrayLayer(REQUEST_PARAMS_WITH_RESULT) {
+void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<CreateStrayLayerIn>();
     CreateStrayLayerOut out{
         .layer_id = 0,           // TODO

@@ -5,26 +5,15 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-void ICommonStateGetter::RequestImpl(REQUEST_IMPL_PARAMS) {
-    switch (id) {
-    case 1: // ReceiveMessage
-        CmdReceiveMessage(PASS_REQUEST_PARAMS_WITH_RESULT);
-        break;
-    case 9: // GetCurrentFocusState
-        CmdGetCurrentFocusState(PASS_REQUEST_PARAMS_WITH_RESULT);
-        break;
-    default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", id);
-        break;
-    }
-}
+DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 1, ReceiveMessage, 9,
+                             GetCurrentFocusState)
 
-void ICommonStateGetter::CmdReceiveMessage(REQUEST_PARAMS_WITH_RESULT) {
+void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {
     writers.writer.Write(APPLET_NO_MESSAGE); // No message
     LOG_WARNING(HorizonServices, "Not implemented");
 }
 
-void ICommonStateGetter::CmdGetCurrentFocusState(REQUEST_PARAMS_WITH_RESULT) {
+void ICommonStateGetter::GetCurrentFocusState(REQUEST_COMMAND_PARAMS) {
     writers.writer.Write(AppletFocusState::InFocus);
 }
 

@@ -24,13 +24,19 @@
 #define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
 #define EXPAND1(...) __VA_ARGS__
 
-#define FOR_EACH(macro, e, ...)                                                \
-    __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, e, __VA_ARGS__)))
+#define FOR_EACH_0_2(macro, ...)                                               \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_0_2(macro, __VA_ARGS__)))
+#define FOR_EACH_1_2(macro, e, ...)                                            \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_1_2(macro, e, __VA_ARGS__)))
 
-#define FOR_EACH_HELPER(macro, e, a1, a2, ...)                                 \
-    macro(e, a1, a2) __VA_OPT__(FOR_EACH_AGAIN PARENS(macro, e, __VA_ARGS__))
+#define FOR_EACH_HELPER_0_2(macro, a1, a2, ...)                                \
+    macro(a1, a2) __VA_OPT__(FOR_EACH_AGAIN_0_2 PARENS(macro, __VA_ARGS__))
+#define FOR_EACH_HELPER_1_2(macro, e, a1, a2, ...)                             \
+    macro(e, a1, a2)                                                           \
+        __VA_OPT__(FOR_EACH_AGAIN_1_2 PARENS(macro, e, __VA_ARGS__))
 
-#define FOR_EACH_AGAIN() FOR_EACH_HELPER
+#define FOR_EACH_AGAIN_0_2() FOR_EACH_HELPER_0_2
+#define FOR_EACH_AGAIN_1_2() FOR_EACH_HELPER_1_2
 
 #define ENUM_CASE(e, value, n)                                                 \
     case e::value:                                                             \
@@ -43,7 +49,7 @@
         auto format(e c, FormatContext& ctx) const {                           \
             string_view name;                                                  \
             switch (c) {                                                       \
-                FOR_EACH(ENUM_CASE, e, __VA_ARGS__)                            \
+                FOR_EACH_1_2(ENUM_CASE, e, __VA_ARGS__)                        \
             default:                                                           \
                 name = "unknown";                                              \
                 break;                                                         \
@@ -67,7 +73,7 @@
         auto format(e c, FormatContext& ctx) const {                           \
             std::string name;                                                  \
             bool added = false;                                                \
-            FOR_EACH(ENUM_BIT_TEST, e, __VA_ARGS__)                            \
+            FOR_EACH_1_2(ENUM_BIT_TEST, e, __VA_ARGS__)                        \
             if (!added)                                                        \
                 name = "none";                                                 \
             return formatter<string_view>::format(name, ctx);                  \

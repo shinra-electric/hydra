@@ -23,7 +23,7 @@ struct Parcel {
 class DisplayServiceBase : public ServiceBase {
   protected:
     // Commands
-    void CmdCreateStrayLayer(REQUEST_PARAMS_WITH_RESULT);
+    void CreateStrayLayer(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

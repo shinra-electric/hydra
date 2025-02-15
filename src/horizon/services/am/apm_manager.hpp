@@ -5,7 +5,6 @@
 namespace Hydra::Horizon::Services::Am {
 
 class IApmManager : public ServiceBase {
-  public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

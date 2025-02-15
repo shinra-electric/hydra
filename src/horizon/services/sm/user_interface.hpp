@@ -5,11 +5,12 @@
 namespace Hydra::Horizon::Services::Sm {
 
 class IUserInterface : public ServiceBase {
-  public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void GetServiceHandle(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Sm

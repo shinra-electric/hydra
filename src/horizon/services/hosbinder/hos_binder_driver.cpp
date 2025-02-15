@@ -15,24 +15,18 @@ struct AdjustRefcountIn {
     BinderType type;
 };
 
-void IHOSBinderDriver::RequestImpl(REQUEST_IMPL_PARAMS) {
-    switch (id) {
-    case 1: { // AdjustRefcount
-        auto in = readers.reader.Read<AdjustRefcountIn>();
-        auto& binder =
-            OS::GetInstance().GetDisplayBinderManager().GetBinder(in.binder_id);
-        switch (in.type) {
-        case BinderType::Weak:
-            binder.weak_ref_count += in.addval;
-            break;
-        case BinderType::Strong:
-            binder.strong_ref_count += in.addval;
-            break;
-        }
+DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 1, AdjustRefcount)
+
+void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
+    auto in = readers.reader.Read<AdjustRefcountIn>();
+    auto& binder =
+        OS::GetInstance().GetDisplayBinderManager().GetBinder(in.binder_id);
+    switch (in.type) {
+    case BinderType::Weak:
+        binder.weak_ref_count += in.addval;
         break;
-    }
-    default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", id);
+    case BinderType::Strong:
+        binder.strong_ref_count += in.addval;
         break;
     }
 }

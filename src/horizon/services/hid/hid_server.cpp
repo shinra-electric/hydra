@@ -2,8 +2,6 @@
 
 namespace Hydra::Horizon::Services::Hid {
 
-void IHidServer::RequestImpl(REQUEST_IMPL_PARAMS) {
-    LOG_WARNING(HorizonServices, "Unknown request {}", id);
-}
+DEFINE_SERVICE_COMMAND_TABLE(IHidServer)
 
 } // namespace Hydra::Horizon::Services::Hid

@@ -9,15 +9,17 @@ class IHOSBinderDriver;
 namespace Hydra::Horizon::Services::ViSrv {
 
 class IApplicationDisplayService : public DisplayServiceBase {
-  public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   protected:
     // Commands
-    void CmdOpenDisplay(REQUEST_PARAMS_WITH_RESULT);
-    void CmdCloseDisplay(REQUEST_PARAMS_WITH_RESULT);
-    void CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT);
+    void GetRelayService(REQUEST_COMMAND_PARAMS);
+    void GetSystemDisplayService(REQUEST_COMMAND_PARAMS);
+    void GetManagerDisplayService(REQUEST_COMMAND_PARAMS);
+    void OpenDisplay(REQUEST_COMMAND_PARAMS);
+    void CloseDisplay(REQUEST_COMMAND_PARAMS);
+    void OpenLayer(REQUEST_COMMAND_PARAMS);
 
   private:
 };

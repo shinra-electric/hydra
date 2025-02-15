@@ -4,15 +4,10 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-void IApplicationProxy::RequestImpl(REQUEST_IMPL_PARAMS) {
-    switch (id) {
-    case 0: // GetCommonStateGetter
-        add_service(new ICommonStateGetter());
-        break;
-    default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", id);
-        break;
-    }
+DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxy, 0, GetCommonStateGetter)
+
+void IApplicationProxy::GetCommonStateGetter(REQUEST_COMMAND_PARAMS) {
+    add_service(new ICommonStateGetter());
 }
 
 } // namespace Hydra::Horizon::Services::Am

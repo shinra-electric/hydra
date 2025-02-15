@@ -5,7 +5,6 @@
 namespace Hydra::Horizon::Services::Hid {
 
 class IHidServer : public ServiceBase {
-  public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 };

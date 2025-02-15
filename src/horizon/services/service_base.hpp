@@ -3,6 +3,31 @@
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
 
+#define REQUEST_PARAMS                                                         \
+    Readers &readers, Writers &writers,                                        \
+        const std::function<void(ServiceBase*)>&add_service
+#define REQUEST_COMMAND_PARAMS REQUEST_PARAMS, Result& result
+#define REQUEST_IMPL_PARAMS REQUEST_COMMAND_PARAMS, u32 id
+
+#define PASS_REQUEST_PARAMS readers, writers, add_service
+#define PASS_REQUEST_COMMAND_PARAMS PASS_REQUEST_PARAMS, result
+#define PASS_REQUEST_IMPL_PARAMS PASS_REQUEST_COMMAND_PARAMS, id
+
+#define SERVICE_COMMAND_CASE(id, func)                                         \
+    case id:                                                                   \
+        func(PASS_REQUEST_COMMAND_PARAMS);                                     \
+        break;
+
+#define DEFINE_SERVICE_COMMAND_TABLE(service, ...)                             \
+    void service::RequestImpl(REQUEST_IMPL_PARAMS) {                           \
+        switch (id) {                                                          \
+            FOR_EACH_0_2(SERVICE_COMMAND_CASE, __VA_ARGS__)                    \
+        default:                                                               \
+            LOG_WARNING(HorizonServices, "Unknown request {}", id);            \
+            break;                                                             \
+        }                                                                      \
+    }
+
 namespace Hydra::HW::MMU {
 class MMUBase;
 }
@@ -46,16 +71,6 @@ struct Writers {
     Writer move_handles_writer;
     Writer copy_handles_writer;
 };
-
-#define REQUEST_PARAMS                                                         \
-    Readers &readers, Writers &writers,                                        \
-        const std::function<void(ServiceBase*)>&add_service
-#define REQUEST_PARAMS_WITH_RESULT REQUEST_PARAMS, Result& result
-#define REQUEST_IMPL_PARAMS REQUEST_PARAMS_WITH_RESULT, u32 id
-
-#define PASS_REQUEST_PARAMS readers, writers, add_service
-#define PASS_REQUEST_PARAMS_WITH_RESULT PASS_REQUEST_PARAMS, result
-#define PASS_REQUEST_IMPL_PARAMS PASS_REQUEST_PARAMS_WITH_RESULT, id
 
 class ServiceBase {
   public:

@@ -11,50 +11,43 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
+DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
+                             101, GetSystemDisplayService, 102,
+                             GetManagerDisplayService, 1010, OpenDisplay, 1020,
+                             CloseDisplay, 2020, OpenLayer)
+
 struct OpenLayerIn {
     u64 display_name;
     u64 layer_id;
     u64 applet_resource_user_id;
 };
 
-void IApplicationDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
-    switch (id) {
-    case 100: // GetRelayService
-        add_service(new HosBinder::IHOSBinderDriver());
-        break;
-    case 101: // GetSystemDisplayService
-        add_service(new ISystemDisplayService());
-        break;
-    case 102: // GetManagerDisplayService
-        add_service(new IManagerDisplayService());
-        break;
-    case 1010: // OpenDisplay
-        CmdOpenDisplay(PASS_REQUEST_PARAMS_WITH_RESULT);
-        break;
-    case 1020: // CloseDisplay
-        CmdCloseDisplay(PASS_REQUEST_PARAMS_WITH_RESULT);
-        break;
-    case 2020: // OpenLayer
-        CmdOpenLayer(PASS_REQUEST_PARAMS_WITH_RESULT);
-        break;
-    default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", id);
-        break;
-    }
+void IApplicationDisplayService::GetRelayService(REQUEST_COMMAND_PARAMS) {
+    add_service(new HosBinder::IHOSBinderDriver());
 }
 
-void IApplicationDisplayService::CmdOpenDisplay(REQUEST_PARAMS_WITH_RESULT) {
+void IApplicationDisplayService::GetSystemDisplayService(
+    REQUEST_COMMAND_PARAMS) {
+    add_service(new ISystemDisplayService());
+}
+
+void IApplicationDisplayService::GetManagerDisplayService(
+    REQUEST_COMMAND_PARAMS) {
+    add_service(new IManagerDisplayService());
+}
+
+void IApplicationDisplayService::OpenDisplay(REQUEST_COMMAND_PARAMS) {
     u64 display_id = 0; // TODO: get based on the name
     Kernel::GetInstance().GetBus().GetDisplay(display_id)->Open();
     writers.writer.Write(display_id);
 }
 
-void IApplicationDisplayService::CmdCloseDisplay(REQUEST_PARAMS_WITH_RESULT) {
+void IApplicationDisplayService::CloseDisplay(REQUEST_COMMAND_PARAMS) {
     u64 display_id = readers.reader.Read<u64>();
     Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
 }
 
-void IApplicationDisplayService::CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT) {
+void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<OpenLayerIn>();
 
     // Out

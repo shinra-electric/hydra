@@ -5,7 +5,6 @@
 namespace Hydra::Horizon::Services::ViSrv {
 
 class ISystemDisplayService : public DisplayServiceBase {
-  public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

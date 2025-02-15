@@ -2,8 +2,6 @@
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
-void ITimeZoneService::RequestImpl(REQUEST_IMPL_PARAMS) {
-    LOG_WARNING(HorizonServices, "Unknown request {}", id);
-}
+DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService)
 
 } // namespace Hydra::Horizon::Services::TimeSrv
