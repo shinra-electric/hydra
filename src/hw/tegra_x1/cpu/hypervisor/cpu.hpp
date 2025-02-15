@@ -80,7 +80,7 @@ class CPU : public CPUBase {
     // Debug
     void LogRegisters(u32 count = 31);
 
-    void LogStackTrace(HW::MMU::Memory* stack_mem);
+    void LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc);
 
   private:
     HW::MMU::Hypervisor::MMU& mmu;

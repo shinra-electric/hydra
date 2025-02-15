@@ -55,16 +55,17 @@ void CPU::LogRegisters(u32 count) {
     }
 }
 
-void CPU::LogStackTrace(HW::MMU::Memory* stack_mem) {
+void CPU::LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc) {
     u64 fp = GetReg(HV_REG_FP);
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
 
     LOG_DEBUG(CPU, "Stack trace:");
-    LOG_DEBUG(CPU, "SP: 0x{:08x}", sp);
+    // LOG_DEBUG(CPU, "SP: 0x{:08x}", sp);
+    LOG_DEBUG(CPU, "0x{:08x}", pc);
 
     for (uint64_t frame = 0; fp != 0; frame++) {
-        LOG_DEBUG(CPU, "LR = 0x{:08x}", lr - 0x4);
+        LOG_DEBUG(CPU, "0x{:08x}", lr - 0x4);
         if (frame == MAX_STACK_TRACE_DEPTH - 1) {
             LOG_DEBUG(CPU, "... (more frames)");
             break;

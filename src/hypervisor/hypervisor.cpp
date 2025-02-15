@@ -5,6 +5,7 @@
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
 #include "hw/tegra_x1/mmu/memory.hpp"
+#include <Hypervisor/hv_vcpu_types.h>
 
 namespace Hydra::Hypervisor {
 
@@ -130,7 +131,8 @@ void Hypervisor::Run() {
                 switch (ec) {
                 case 0x15:
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                                       elr);
                     // cpu->LogRegisters();
 
                     running =
@@ -149,7 +151,8 @@ void Hypervisor::Run() {
                     break;
                 case 0x25:
                     // Debug
-                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                    //                   elr);
 
                     // LOG_DEBUG(Hypervisor,
                     //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
@@ -159,10 +162,12 @@ void Hypervisor::Run() {
                     // TODO: check if valid
 
                     DataAbort(instruction, far, elr);
+
                     break;
                 default:
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                                       elr);
 
                     LOG_ERROR(
                         Hypervisor,
@@ -195,7 +200,8 @@ void Hypervisor::Run() {
                 // TODO: this should not happen
 
                 // Debug
-                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                                   cpu->GetReg(HV_REG_PC));
 
                 LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
@@ -238,7 +244,8 @@ void Hypervisor::Run() {
                 break;
             } else {
                 // Debug
-                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                                   cpu->GetReg(HV_REG_PC));
                 cpu->LogRegisters();
 
                 LOG_ERROR(
@@ -246,10 +253,10 @@ void Hypervisor::Run() {
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
                     "0x{:08x}, "
                     "VirtAddr: "
-                    "0x{:08x}, IPA: 0x{:08x}, PC: 0x{:08x}, FAR: 0x{:08x})",
+                    "0x{:08x}, IPA: 0x{:08x}, FAR: 0x{:08x})",
                     syndrome, hvEc, cpu->GetSysReg(HV_SYS_REG_ESR_EL1),
                     exit->exception.virtual_address,
-                    exit->exception.physical_address, cpu->GetReg(HV_REG_PC),
+                    exit->exception.physical_address,
                     cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
                 // Logging::log(Logging::Level::Debug, "X2: 0x%08llx",
                 // cpu->GetReg(HV_REG_X2));
@@ -308,11 +315,11 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
                      EXTRACT_BITS(instruction, 14, 10),
                      EXTRACT_BITS(instruction, 9, 5), far);
     } else {
-        cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
+        cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(), elr);
         LOG_WARNING(Hypervisor,
                     "Unimplemented data abort instruction "
-                    "0x{:08x} (PC: 0x{:08x})",
-                    instruction, elr);
+                    "0x{:08x}",
+                    instruction);
     }
 
     // Set the return address
