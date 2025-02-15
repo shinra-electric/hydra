@@ -15,8 +15,8 @@ add_executable(hydra
     horizon/cmif.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
-    horizon/services/service.cpp
-    horizon/services/service.hpp
+    horizon/services/service_base.cpp
+    horizon/services/service_base.hpp
     horizon/services/domain_service.cpp
     horizon/services/domain_service.hpp
     horizon/services/sm/user_interface.cpp
@@ -46,8 +46,8 @@ add_executable(hydra
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
-    horizon/services/visrv/display_service.cpp
-    horizon/services/visrv/display_service.hpp
+    horizon/services/visrv/display_service_base.cpp
+    horizon/services/visrv/display_service_base.hpp
     horizon/services/visrv/system_display_service.cpp
     horizon/services/visrv/system_display_service.hpp
     horizon/services/visrv/manager_display_service.cpp
@@ -58,11 +58,11 @@ add_executable(hydra
     horizon/services/visrv/manager_root_service.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
-    hw/tegra_x1/cpu/cpu.hpp
+    hw/tegra_x1/cpu/cpu_base.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
-    hw/tegra_x1/mmu/mmu.cpp
-    hw/tegra_x1/mmu/mmu.hpp
+    hw/tegra_x1/mmu/mmu_base.cpp
+    hw/tegra_x1/mmu/mmu_base.hpp
     hw/tegra_x1/mmu/memory.cpp
     hw/tegra_x1/mmu/memory.hpp
     hw/tegra_x1/mmu/hypervisor/mmu.cpp

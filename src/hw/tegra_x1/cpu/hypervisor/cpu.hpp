@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hw/tegra_x1/cpu/cpu.hpp"
+#include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hypervisor/const.hpp"
 #include <Hypervisor/hv_vcpu_types.h>
 

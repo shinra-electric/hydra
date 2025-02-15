@@ -1,6 +1,6 @@
 #pragma once
 
-#include "horizon/services/visrv/display_service.hpp"
+#include "horizon/services/visrv/display_service_base.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 

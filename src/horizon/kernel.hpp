@@ -2,7 +2,7 @@
 
 #include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
-#include "hw/tegra_x1/cpu/cpu.hpp"
+#include "hw/tegra_x1/cpu/cpu_base.hpp"
 
 namespace Hydra::HW::MMU {
 class Memory;

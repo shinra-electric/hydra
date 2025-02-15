@@ -1,7 +1,7 @@
 #include "horizon/services/am/common_state_getter.hpp"
 
 #include "horizon/services/am/const.hpp"
-#include "horizon/services/service.hpp"
+#include "horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 

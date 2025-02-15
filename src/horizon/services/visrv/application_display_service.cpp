@@ -3,7 +3,7 @@
 #include "horizon/kernel.hpp"
 #include "horizon/os.hpp"
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
-#include "horizon/services/service.hpp"
+#include "horizon/services/service_base.hpp"
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 

@@ -1,4 +1,4 @@
-#include "hw/tegra_x1/mmu/mmu.hpp"
+#include "hw/tegra_x1/mmu/mmu_base.hpp"
 
 #include "hw/tegra_x1/mmu/memory.hpp"
 

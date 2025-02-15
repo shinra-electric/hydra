@@ -3,10 +3,10 @@
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
-#include "horizon/services/service.hpp"
-#include "hw/tegra_x1/cpu/cpu.hpp"
+#include "horizon/services/service_base.hpp"
+#include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/mmu/memory.hpp"
-#include "hw/tegra_x1/mmu/mmu.hpp"
+#include "hw/tegra_x1/mmu/mmu_base.hpp"
 
 namespace Hydra::Horizon {
 

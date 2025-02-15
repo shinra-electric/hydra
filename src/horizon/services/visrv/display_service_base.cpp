@@ -1,4 +1,4 @@
-#include "horizon/services/visrv/display_service.hpp"
+#include "horizon/services/visrv/display_service_base.hpp"
 
 #include "horizon/os.hpp"
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"

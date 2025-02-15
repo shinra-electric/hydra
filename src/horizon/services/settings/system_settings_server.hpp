@@ -1,6 +1,6 @@
 #pragma once
 
-#include "horizon/services/service.hpp"
+#include "horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Settings {
 

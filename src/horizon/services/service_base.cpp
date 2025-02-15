@@ -1,10 +1,10 @@
-#include "horizon/services/service.hpp"
+#include "horizon/services/service_base.hpp"
 
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/domain_service.hpp"
-#include "hw/tegra_x1/mmu/mmu.hpp"
+#include "hw/tegra_x1/mmu/mmu_base.hpp"
 
 namespace Hydra::Horizon::Services {
 

@@ -1,7 +1,7 @@
 #include "horizon/services/domain_service.hpp"
 
 #include "horizon/cmif.hpp"
-#include "horizon/services/service.hpp"
+#include "horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services {
 
