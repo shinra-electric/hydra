@@ -57,13 +57,14 @@ const u32 exception_trampoline[] = {
     0xd4200000u, // brk #0
 };
 
-Kernel* s_kernel = nullptr;
+static Kernel* s_instance = nullptr;
 
-Kernel& Kernel::GetInstance() { return *s_kernel; }
+Kernel& Kernel::GetInstance() { return *s_instance; }
 
 Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
-    ASSERT(s_kernel == nullptr, HorizonKernel, "Kernel already exists");
-    s_kernel = this;
+    ASSERT(s_instance == nullptr, HorizonKernel,
+           "Horizon kernel already exists");
+    s_instance = this;
 
     // Memory
 
