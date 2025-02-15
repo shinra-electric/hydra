@@ -33,7 +33,7 @@ void DisplayServiceBase::CmdCreateStrayLayer(REQUEST_PARAMS_WITH_RESULT) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = GET_SERVICE(HosBinder, hos_binder_driver)->AddBinder(),
+        .binder_id = OS::GetInstance().GetHosBinderDriver()->AddBinder(),
     };
     writers.revc_buffers_writer.Write(data);
 }

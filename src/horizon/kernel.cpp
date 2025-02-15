@@ -3,8 +3,14 @@
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
+<<<<<<< HEAD
 #include "horizon/services/service_base.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
+=======
+#include "horizon/services/service.hpp"
+#include "horizon/services/sm.hpp"
+#include "hw/tegra_x1/cpu/cpu.hpp"
+>>>>>>> parent of 0dd47dc (make os own all services)
 #include "hw/tegra_x1/mmu/memory.hpp"
 #include "hw/tegra_x1/mmu/mmu_base.hpp"
 
@@ -443,13 +449,12 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
 Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
     LOG_DEBUG(HorizonKernel, "svcConnectToNamedPort called (name: {})", name);
 
-    auto it = service_ports.find(name);
-    if (it == service_ports.end()) {
-        LOG_ERROR(HorizonKernel, "Unknown service name \"{}\"", name);
+    if (name == "sm:") {
+        *out = AddService(new Services::ServiceManager());
+    } else {
+        LOG_ERROR(HorizonKernel, "Unknown service name: {}", name);
         return MAKE_KERNEL_RESULT(NotFound);
     }
-
-    *out = AddService(it->second);
 
     return RESULT_SUCCESS;
 }

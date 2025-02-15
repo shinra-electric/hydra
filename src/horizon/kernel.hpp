@@ -34,11 +34,6 @@ class Kernel {
 
     void LoadROM(Rom* rom);
 
-    void ConnectServiceToPort(const std::string& port_name,
-                              Services::ServiceBase* service) {
-        service_ports[port_name] = service;
-    }
-
     bool SupervisorCall(HW::CPU::CPUBase* cpu, u64 id);
 
     // SVCs
@@ -103,7 +98,6 @@ class Kernel {
     HW::MMU::Memory* heap_mem;
 
     // Services
-    std::map<std::string, Services::ServiceBase*> service_ports;
     // TODO: what's the maximum number of services?
     Allocators::StaticPool<Services::ServiceBase*, 64> service_pool;
     u8 service_scratch_buffer[0x1000];

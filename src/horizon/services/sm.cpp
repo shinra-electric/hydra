@@ -1,9 +1,17 @@
-#include "horizon/services/sm/user_interface.hpp"
+#include "horizon/services/sm.hpp"
 
 #include "horizon/const.hpp"
-#include "horizon/os.hpp"
+#include "horizon/kernel.hpp"
+#include "horizon/services/am/apm_manager.hpp"
+#include "horizon/services/am/application_proxy_service.hpp"
+#include "horizon/services/fssrv/filesystem_proxy.hpp"
+#include "horizon/services/hid/hid_server.hpp"
+#include "horizon/services/nvdrv/nvdrv_services.hpp"
+#include "horizon/services/settings/system_settings_server.hpp"
+#include "horizon/services/timesrv/static_service.hpp"
+#include "horizon/services/visrv/manager_root_service.hpp"
 
-namespace Hydra::Horizon::Services::Sm {
+namespace Hydra::Horizon::Services {
 
 enum class Service : u64 {
     Hid = 0x0000000000646968,
@@ -16,7 +24,7 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void IUserInterface::RequestImpl(REQUEST_IMPL_PARAMS) {
+void ServiceManager::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: {
         LOG_DEBUG(HorizonServices, "GetServiceHandle");
@@ -27,28 +35,28 @@ void IUserInterface::RequestImpl(REQUEST_IMPL_PARAMS) {
         Handle handle;
         switch (service) {
         case Service::Hid:
-            add_service(GET_SERVICE_EXPLICIT(Hid, hid_server));
+            add_service(new Hid::IHidServer());
             break;
         case Service::FspSrv:
-            add_service(GET_SERVICE_EXPLICIT(FsSrv, filesystem_proxy));
+            add_service(new Fssrv::IFileSystemProxy());
             break;
         case Service::TimeU:
-            add_service(GET_SERVICE_EXPLICIT(TimeSrv, static_service));
+            add_service(new TimeSrv::IStaticService());
             break;
         case Service::Nvdrv:
-            add_service(GET_SERVICE_EXPLICIT(NvDrv, nvdrv_services));
+            add_service(new NvDrv::INvDrvServices());
             break;
         case Service::SetSys:
-            add_service(GET_SERVICE_EXPLICIT(Settings, system_settings_server));
+            add_service(new Settings::ISystemSettingsServer());
             break;
         case Service::Apm:
-            add_service(GET_SERVICE_EXPLICIT(Am, apm_manager));
+            add_service(new Am::IApmManager());
             break;
         case Service::AppletOE:
-            add_service(GET_SERVICE_EXPLICIT(Am, application_proxy_service));
+            add_service(new Am::IApplicationProxyService());
             break;
         case Service::ViM:
-            add_service(GET_SERVICE_EXPLICIT(ViSrv, manager_root_service));
+            add_service(new ViSrv::IManagerRootService());
             break;
         default:
             LOG_WARNING(HorizonServices, "Unknown service 0x{:016x} -> {}",
@@ -87,4 +95,4 @@ void IUserInterface::RequestImpl(REQUEST_IMPL_PARAMS) {
     }
 }
 
-} // namespace Hydra::Horizon::Services::Sm
+} // namespace Hydra::Horizon::Services

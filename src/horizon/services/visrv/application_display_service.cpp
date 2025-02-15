@@ -3,7 +3,13 @@
 #include "horizon/kernel.hpp"
 #include "horizon/os.hpp"
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
+<<<<<<< HEAD
 #include "horizon/services/service_base.hpp"
+=======
+#include "horizon/services/service.hpp"
+#include "horizon/services/visrv/manager_display_service.hpp"
+#include "horizon/services/visrv/system_display_service.hpp"
+>>>>>>> parent of 0dd47dc (make os own all services)
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 
@@ -18,13 +24,13 @@ struct OpenLayerIn {
 void IApplicationDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 100: // GetRelayService
-        add_service(GET_SERVICE_EXPLICIT(HosBinder, hos_binder_driver));
+        add_service(OS::GetInstance().GetHosBinderDriver());
         break;
     case 101: // GetSystemDisplayService
-        add_service(GET_SERVICE_EXPLICIT(ViSrv, system_display_service));
+        add_service(new ISystemDisplayService());
         break;
     case 102: // GetManagerDisplayService
-        add_service(GET_SERVICE_EXPLICIT(ViSrv, manager_display_service));
+        add_service(new IManagerDisplayService());
         break;
     case 1010: // OpenDisplay
         CmdOpenDisplay(PASS_REQUEST_PARAMS_WITH_RESULT);
@@ -69,7 +75,7 @@ void IApplicationDisplayService::CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = GET_SERVICE(HosBinder, hos_binder_driver)->AddBinder(),
+        .binder_id = OS::GetInstance().GetHosBinderDriver()->AddBinder(),
     };
     writers.revc_buffers_writer.Write(data);
 }
