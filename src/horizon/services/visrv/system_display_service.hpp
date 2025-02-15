@@ -1,10 +1,10 @@
 #pragma once
 
-#include "horizon/services/service.hpp"
+#include "horizon/services/visrv/application_display_service.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-class ISystemDisplayService : public ServiceBase {
+class ISystemDisplayService : public IApplicationDisplayService {
   public:
   protected:
     void RequestImpl(Readers& readers, Writers& writers,
