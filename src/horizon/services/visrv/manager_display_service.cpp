@@ -5,9 +5,9 @@
 namespace Hydra::Horizon::Services::ViSrv {
 
 void IManagerDisplayService::Request(
-    Writers& writers, Reader& reader,
+    Readers& readers, Writers& writers,
     std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = reader.Read<Cmif::InHeader>();
+    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writers.writer);
 

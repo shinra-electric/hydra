@@ -25,9 +25,9 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void ServiceManager::Request(Writers& writers, Reader& reader,
+void ServiceManager::Request(Readers& readers, Writers& writers,
                              std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = reader.Read<Cmif::InHeader>();
+    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writers.writer);
     *res = RESULT_SUCCESS;
@@ -38,7 +38,7 @@ void ServiceManager::Request(Writers& writers, Reader& reader,
 
         // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
         // std::string name(in.name);
-        Service service = reader.Read<Service>();
+        Service service = readers.reader.Read<Service>();
         Handle handle;
         switch (service) {
         case Service::Hid:

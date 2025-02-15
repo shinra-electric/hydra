@@ -3,6 +3,7 @@
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
+#include "horizon/services/service.hpp"
 #include "horizon/services/sm.hpp"
 #include "hw/tegra_x1/cpu/cpu.hpp"
 #include "hw/tegra_x1/mmu/memory.hpp"
@@ -466,22 +467,28 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    Services::Writers writers{Writer(service_scratch_buffer),
-                              Writer(service_scratch_buffer_objects),
-                              Writer(service_scratch_buffer_move_handles),
-                              Writer(service_scratch_buffer_copy_handles)};
-    Reader reader(in_ptr);
+    Services::Readers readers{
+        Reader(in_ptr),
+        Services::create_buffer_reader(mmu, hipc_in.data.send_buffers),
+        Services::create_buffer_reader(mmu, hipc_in.data.exch_buffers)};
+    Services::Writers writers{
+        Writer(service_scratch_buffer),
+        Services::create_buffer_writer(mmu, hipc_in.data.recv_buffers),
+        Services::create_buffer_writer(mmu, hipc_in.data.exch_buffers),
+        Writer(service_scratch_buffer_objects),
+        Writer(service_scratch_buffer_move_handles),
+        Writer(service_scratch_buffer_copy_handles)};
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
-        service->Request(writers, reader, [&](Services::ServiceBase* service) {
+        service->Request(readers, writers, [&](Services::ServiceBase* service) {
             Handle handle = AddService(service);
             writers.move_handles_writer.Write(handle);
         });
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
-        service->Control(*this, writers.writer, reader);
+        service->Control(*this, readers.reader, writers.writer);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unknown command {}", hipc_in.meta.type);

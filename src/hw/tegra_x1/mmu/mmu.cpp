@@ -30,7 +30,7 @@ void MMUBase::RemapMemory(Memory* mem) {
     MapMemoryImpl(mem);
 }
 
-Memory* MMUBase::UnmapPtrToMemory(uptr addr) {
+Memory* MMUBase::UnmapPtrToMemory(uptr addr) const {
     for (Memory* mem : memories) {
         if (addr >= mem->GetBase() && addr < mem->GetBase() + mem->GetSize()) {
             return mem;
@@ -42,7 +42,7 @@ Memory* MMUBase::UnmapPtrToMemory(uptr addr) {
     return nullptr;
 }
 
-uptr MMUBase::UnmapPtr(uptr addr) {
+uptr MMUBase::UnmapPtr(uptr addr) const {
     return UnmapPtrToMemory(addr)->UnmapPtr(addr);
 }
 

@@ -8,7 +8,7 @@ constexpr u32 APPLET_NO_MESSAGE = 0x680;
 
 class ICommonStateGetter : public ServiceBase {
   public:
-    void Request(Writers& writers, Reader& reader,
+    void Request(Readers& readers, Writers& writers,
                  std::function<void(ServiceBase*)> add_service) override;
 
   private:

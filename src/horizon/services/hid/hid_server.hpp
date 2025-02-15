@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Hid {
 
 class IHidServer : public ServiceBase {
   public:
-    void Request(Writers& writers, Reader& reader,
+    void Request(Readers& readers, Writers& writers,
                  std::function<void(ServiceBase*)> add_service) override;
 };
 

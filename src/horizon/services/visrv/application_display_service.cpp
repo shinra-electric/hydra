@@ -11,9 +11,9 @@
 namespace Hydra::Horizon::Services::ViSrv {
 
 void IApplicationDisplayService::Request(
-    Writers& writers, Reader& reader,
+    Readers& readers, Writers& writers,
     std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = reader.Read<Cmif::InHeader>();
+    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* res = Cmif::write_out_header(writers.writer);
 
@@ -34,7 +34,7 @@ void IApplicationDisplayService::Request(
         break;
     }
     case 1020: { // CloseDisplay
-        u64 display_id = reader.Read<u64>();
+        u64 display_id = readers.reader.Read<u64>();
         Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
         break;
     }

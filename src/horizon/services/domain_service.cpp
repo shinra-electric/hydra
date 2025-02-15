@@ -4,12 +4,12 @@
 
 namespace Hydra::Horizon::Services {
 
-void DomainService::Request(Writers& writers, Reader& reader,
+void DomainService::Request(Readers& readers, Writers& writers,
                             std::function<void(ServiceBase*)> add_service) {
     LOG_DEBUG(HorizonServices, "Domain service request");
 
     // Domain in
-    auto cmif_in = reader.Read<Cmif::DomainInHeader>();
+    auto cmif_in = readers.reader.Read<Cmif::DomainInHeader>();
     LOG_DEBUG(HorizonServices, "Object ID: 0x{:08x}", cmif_in.object_id);
     auto subservice = object_pool[cmif_in.object_id];
 
@@ -17,7 +17,7 @@ void DomainService::Request(Writers& writers, Reader& reader,
 
     switch (cmif_in.type) {
     case 1:
-        subservice->Request(writers, reader, [&](ServiceBase* service) {
+        subservice->Request(readers, writers, [&](ServiceBase* service) {
             Handle handle = AddObject(service);
             writers.objects_writer.Write(handle);
         });
