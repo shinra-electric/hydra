@@ -4,6 +4,16 @@
 
 namespace Hydra::Horizon::Services::HosBinder {
 
+DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
+                             AdjustRefcount)
+
+void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
+    // TODO: what should this do?
+    // Parcel
+    Parcel parcel = readers.send_buffers_reader.Read<Parcel>();
+    writers.revc_buffers_writer.Write(parcel);
+}
+
 enum class BinderType : i32 {
     Weak = 0,
     Strong = 1,
@@ -14,8 +24,6 @@ struct AdjustRefcountIn {
     i32 addval;
     BinderType type;
 };
-
-DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 1, AdjustRefcount)
 
 void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<AdjustRefcountIn>();

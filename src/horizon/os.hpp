@@ -16,6 +16,23 @@ namespace Services::Sm {
 class IUserInterface;
 }
 
+// TODO: move to a separate file
+struct ParcelData {
+    u32 unknown0;
+    u32 unknown1;
+    u32 binder_id;
+    u32 unknown2[3];
+    u64 str;
+    u64 unknown3;
+};
+
+struct Parcel {
+    u32 data_size;
+    u32 data_offset;
+    u32 objects_size;
+    u32 objects_offset;
+};
+
 struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
