@@ -274,39 +274,39 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}", elr,
     //           instruction);
 
-    if ((instruction & 0xbfe00000) ==
-        0x88000000) { // STLXR or LDAXR (TODO: correct?)
-        if ((instruction & 0x001f0000) == 0x001f0000) {           // LDAXR
-            InterpretLDAXR(EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
-        } else {                                                  // STLXR
-            InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
-                           cpu->GetRegX(EXTRACT_BITS(instruction, 4, 0)),
-                           far); // TODO: check
-        }
+    if ((instruction & 0xbfe00000) == 0x88400000) {           // LDAXR
+        InterpretLDAXR(EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
+    } else if ((instruction & 0xbfe00000) == 0x88000000) {    // STLXR
+        InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
+                       cpu->GetRegX(EXTRACT_BITS(instruction, 4, 0)),
+                       far);                               // TODO: check
     } else if ((instruction & 0xff800000) == 0xd5000000) { // DC
         InterpretDC(far);
         // LOG_DEBUG(Hypervisor, "DC: 0x{:08x}",
         //           mmu->UnmapPtr(far));
         // cpu->LogRegisters(5);
-    } else if ((instruction & 0x7b000000) == 0x29000000) {
+    } else if ((instruction & 0xbfe00000) == 0xb8400000) { // LDR
+        // TODO: doesn't seem work
+        InterpretLDR(EXTRACT_BITS(instruction, 30, 30), 0,
+                     EXTRACT_BITS(instruction, 4, 0), far);
+    } else if ((instruction & 0xbe000000) ==
+               0x3c000000) { // LDR and LDUR (simd) (TODO: correct?)
+        InterpretLDR(1, 1, EXTRACT_BITS(instruction, 4, 0), far);
+    } else if ((instruction & 0xbfc00000) == 0xb8000000) { // STR and STUR
+        // TODO: support simd
+        InterpretSTR(EXTRACT_BITS(instruction, 30, 30), 0,
+                     EXTRACT_BITS(instruction, 4, 0), far);
+    } else if ((instruction & 0x7b000000) == 0x29000000) { // LDP
         InterpretLDP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
                      EXTRACT_BITS(instruction, 14, 10),
                      EXTRACT_BITS(instruction, 9, 5), far);
-    } else if ((instruction & 0x7fc00000) == 0x28800000) {
+    } else if ((instruction & 0x7fc00000) == 0x28800000) { // STP
         // TODO: is this even necessary?
         InterpretSTP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
                      EXTRACT_BITS(instruction, 14, 10),
                      EXTRACT_BITS(instruction, 9, 5), far);
-    } else if (false) {
-        // TODO: implement
-        // InterpretSTR();
-    } else if ((instruction & 0xbfc00000) == 0xb8000000) { // STR and STUR
-        // TODO: is it okay to just use STR in case of STUR?
-        // TODO: support simd
-        InterpretSTR(EXTRACT_BITS(instruction, 30, 30),
-                     EXTRACT_BITS(instruction, 4, 0), far);
     } else {
         cpu->LogStackTrace(horizon.GetKernel().GetStackMemory());
         LOG_WARNING(Hypervisor,
@@ -346,6 +346,44 @@ void Hypervisor::InterpretDC(u64 addr) {
 
     // Zero out the memory
     memset((void*)mmu->UnmapPtr(addr), 0, CACHE_LINE_SIZE);
+}
+
+void Hypervisor::InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr) {
+    u8 size = (4 << size0) << size1;
+
+    switch (size) {
+    case 4:
+        cpu->SetRegX(out_reg, mmu->Load<u32>(addr));
+        break;
+    case 8:
+        cpu->SetRegX(out_reg, mmu->Load<u64>(addr));
+        break;
+    case 16:
+        cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+        break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
+    }
+}
+
+void Hypervisor::InterpretSTR(u8 size0, u8 size1, u8 reg, u64 addr) {
+    u8 size = (4 << size0) << size1;
+
+    switch (size) {
+    case 4:
+        mmu->Store<u32>(addr, cpu->GetRegX(reg));
+        break;
+    case 8:
+        mmu->Store<u64>(addr, cpu->GetRegX(reg));
+        break;
+    case 16:
+        mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(reg));
+        break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
+    }
 }
 
 void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
@@ -395,22 +433,6 @@ void Hypervisor::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
         mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(out_reg0));
         mmu->Store<hv_simd_fp_uchar16_t>(addr + sizeof(hv_simd_fp_uchar16_t),
                                          cpu->GetRegQ(out_reg1));
-        break;
-    default:
-        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
-        break;
-    }
-}
-
-void Hypervisor::InterpretSTR(u8 size0, u8 reg, u64 addr) {
-    u8 size = 4 << size;
-
-    switch (size) {
-    case 4:
-        mmu->Store<u32>(addr, cpu->GetRegX(reg));
-        break;
-    case 8:
-        mmu->Store<u64>(addr, cpu->GetRegX(reg));
         break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
