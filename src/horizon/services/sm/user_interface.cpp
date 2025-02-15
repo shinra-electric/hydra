@@ -1,4 +1,4 @@
-#include "horizon/services/sm.hpp"
+#include "horizon/services/sm/user_interface.hpp"
 
 #include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
@@ -11,7 +11,7 @@
 #include "horizon/services/timesrv/static_service.hpp"
 #include "horizon/services/visrv/manager_root_service.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Services::Sm {
 
 enum class Service : u64 {
     Hid = 0x0000000000646968,
@@ -24,7 +24,7 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void ServiceManager::RequestImpl(REQUEST_IMPL_PARAMS) {
+void IUserInterface::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: {
         LOG_DEBUG(HorizonServices, "GetServiceHandle");
@@ -95,4 +95,4 @@ void ServiceManager::RequestImpl(REQUEST_IMPL_PARAMS) {
     }
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Services::Sm

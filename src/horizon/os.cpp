@@ -1,6 +1,6 @@
 #include "horizon/os.hpp"
 
-#include "horizon/services/hosbinder/hos_binder_driver.hpp"
+#include "horizon/services/sm/user_interface.hpp"
 
 namespace Hydra::Horizon {
 
@@ -13,7 +13,9 @@ OS::OS(HW::Bus& bus) : kernel(bus) {
     s_instance = this;
 
     // Services
-    hos_binder_driver = new Services::HosBinder::IHOSBinderDriver();
+    sm_user_interface = new Services::Sm::IUserInterface();
+
+    kernel.ConnectServiceToPort("sm:", sm_user_interface);
 }
 
 OS::~OS() {}

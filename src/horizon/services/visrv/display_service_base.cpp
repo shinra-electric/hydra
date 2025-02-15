@@ -1,7 +1,6 @@
 #include "horizon/services/visrv/display_service_base.hpp"
 
 #include "horizon/os.hpp"
-#include "horizon/services/hosbinder/hos_binder_driver.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
@@ -33,7 +32,7 @@ void DisplayServiceBase::CmdCreateStrayLayer(REQUEST_PARAMS_WITH_RESULT) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = OS::GetInstance().GetHosBinderDriver()->AddBinder(),
+        .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
     };
     writers.revc_buffers_writer.Write(data);
 }

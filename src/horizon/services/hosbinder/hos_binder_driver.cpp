@@ -1,5 +1,7 @@
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 
+#include "horizon/os.hpp"
+
 namespace Hydra::Horizon::Services::HosBinder {
 
 enum class BinderType : i32 {
@@ -17,7 +19,8 @@ void IHOSBinderDriver::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: { // AdjustRefcount
         auto in = readers.reader.Read<AdjustRefcountIn>();
-        auto& binder = binders[in.binder_id];
+        auto& binder =
+            OS::GetInstance().GetDisplayBinderManager().GetBinder(in.binder_id);
         switch (in.type) {
         case BinderType::Weak:
             binder.weak_ref_count += in.addval;

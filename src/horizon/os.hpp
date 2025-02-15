@@ -12,9 +12,29 @@ class DisplayBase;
 
 namespace Hydra::Horizon {
 
-namespace Services::HosBinder {
-class IHOSBinderDriver;
+namespace Services::Sm {
+class IUserInterface;
 }
+
+struct DisplayBinder {
+    u32 weak_ref_count = 0;
+    u32 strong_ref_count = 0;
+};
+
+class DisplayBinderManager {
+  public:
+    u32 AddBinder() {
+        binders[binder_count] = DisplayBinder{};
+        return binder_count++;
+    }
+
+    DisplayBinder& GetBinder(u32 id) { return binders[id]; }
+
+  private:
+    DisplayBinder
+        binders[0x100]; // TODO: what should be the max number of binders?
+    u32 binder_count = 0;
+};
 
 class OS {
   public:
@@ -28,15 +48,18 @@ class OS {
     // Getters
     Kernel& GetKernel() { return kernel; }
 
-    Services::HosBinder::IHOSBinderDriver* GetHosBinderDriver() {
-        return hos_binder_driver;
+    DisplayBinderManager& GetDisplayBinderManager() {
+        return display_binder_manager;
     }
 
   private:
     Kernel kernel;
 
     // Services
-    Services::HosBinder::IHOSBinderDriver* hos_binder_driver;
+    Services::Sm::IUserInterface* sm_user_interface;
+
+    // Managers
+    DisplayBinderManager display_binder_manager;
 };
 
 } // namespace Hydra::Horizon
