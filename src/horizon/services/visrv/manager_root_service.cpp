@@ -1,18 +1,13 @@
 #include "horizon/services/visrv/manager_root_service.hpp"
 
-#include "horizon/cmif.hpp"
 #include "horizon/services/visrv/application_display_service.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-void IManagerRootService::Request(
+void IManagerRootService::RequestImpl(
     Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
-
-    Result* res = Cmif::write_out_header(writers.writer);
-
-    switch (cmif_in.command_id) {
+    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+    switch (id) {
     case 0: // GetDisplayService
         add_service(new IApplicationDisplayService());
         break;
@@ -21,11 +16,9 @@ void IManagerRootService::Request(
         add_service(new IApplicationDisplayService());
         break;
     default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", id);
         break;
     }
-
-    *res = RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

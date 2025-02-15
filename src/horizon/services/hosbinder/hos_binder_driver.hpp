@@ -11,13 +11,15 @@ struct Binder {
 
 class IHOSBinderDriver : public ServiceBase {
   public:
-    void Request(Readers& readers, Writers& writers,
-                 std::function<void(ServiceBase*)> add_service) override;
-
     u32 AddBinder() {
         binders[binder_count] = Binder{};
         return binder_count++;
     }
+
+  protected:
+    void RequestImpl(Readers& readers, Writers& writers,
+                     std::function<void(ServiceBase*)> add_service,
+                     Result& result, u32 id) override;
 
   private:
     Binder binders[0x100]; // TODO: what should be the max number of binders?

@@ -50,7 +50,7 @@ struct Writers {
 class ServiceBase {
   public:
     virtual void Request(Readers& readers, Writers& writers,
-                         std::function<void(ServiceBase*)> add_service) = 0;
+                         std::function<void(ServiceBase*)> add_service);
     void Control(Kernel& kernel, Reader& reader, Writer& writer);
 
     // Getters
@@ -58,6 +58,11 @@ class ServiceBase {
 
     // Setters
     void SetHandle(Handle handle_) { handle = handle_; }
+
+  protected:
+    virtual void RequestImpl(Readers& readers, Writers& writers,
+                             std::function<void(ServiceBase*)> add_service,
+                             Result& result, u32 id) {}
 
   private:
     Handle handle;

@@ -1,32 +1,21 @@
 #include "horizon/services/am/application_proxy_service.hpp"
 
-#include "horizon/cmif.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/am/application_proxy.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-void IApplicationProxyService::Request(
+void IApplicationProxyService::RequestImpl(
     Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
-
-    Result* res = Cmif::write_out_header(writers.writer);
-
-    switch (cmif_in.command_id) {
-    case 0: {
-        LOG_DEBUG(HorizonServices, "OpenApplicationProxy");
-
+    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+    switch (id) {
+    case 0: // OpenApplicationProxy
         add_service(new IApplicationProxy());
-
         break;
-    }
     default:
-        LOG_WARNING(HorizonServices, "Unknown request {}", cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", id);
         break;
     }
-
-    *res = RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

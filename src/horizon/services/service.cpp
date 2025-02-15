@@ -16,6 +16,16 @@ u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
     return reinterpret_cast<u8*>(mmu->UnmapPtr(addr));
 }
 
+void ServiceBase::Request(Readers& readers, Writers& writers,
+                          std::function<void(ServiceBase*)> add_service) {
+    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
+
+    Result* result = Cmif::write_out_header(writers.writer);
+    *result = RESULT_SUCCESS;
+
+    RequestImpl(readers, writers, add_service, *result, cmif_in.command_id);
+}
+
 void ServiceBase::Control(Kernel& kernel, Reader& reader, Writer& writer) {
     auto cmif_in = reader.Read<Cmif::InHeader>();
 

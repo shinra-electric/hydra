@@ -149,21 +149,26 @@ void Hypervisor::Run() {
                     // TODO: implement
                     throw;
                     break;
-                case 0x25:
+                case 0x25: {
                     // Debug
-                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                    //                   elr);
+                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                                       elr);
 
                     // LOG_DEBUG(Hypervisor,
                     //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
                     //           "instruction: 0x{:08x})",
                     //           elr, far, instruction);
 
-                    // TODO: check if valid
-
-                    DataAbort(instruction, far, elr);
+                    bool far_valid = (esr & 0x00000400) == 0;
+                    if (far_valid) {
+                        DataAbort(instruction, far, elr);
+                    } else {
+                        LOG_ERROR(Hypervisor,
+                                  "Invalid data abort address 0x{:08x}", far);
+                    }
 
                     break;
+                }
                 default:
                     // Debug
                     cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
@@ -306,14 +311,14 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     } else if ((instruction & 0x7b000000) == 0x29000000) { // LDP
         InterpretLDP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
-                     EXTRACT_BITS(instruction, 14, 10),
-                     EXTRACT_BITS(instruction, 9, 5), far);
+                     EXTRACT_BITS(instruction, 4, 0),
+                     EXTRACT_BITS(instruction, 14, 10), far);
     } else if ((instruction & 0x7fc00000) == 0x28800000) { // STP
         // TODO: is this even necessary?
         InterpretSTP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
-                     EXTRACT_BITS(instruction, 14, 10),
-                     EXTRACT_BITS(instruction, 9, 5), far);
+                     EXTRACT_BITS(instruction, 4, 0),
+                     EXTRACT_BITS(instruction, 14, 10), far);
     } else {
         cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(), elr);
         LOG_WARNING(Hypervisor,
@@ -397,8 +402,8 @@ void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
                               u64 addr) {
     u8 size = (4 << size0) << size1;
 
-    // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
-    //           size * 8, out_reg0, out_reg1, addr);
+    LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
+              size * 8, out_reg0, out_reg1, addr);
 
     switch (size) {
     case 4:

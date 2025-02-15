@@ -1,6 +1,5 @@
 #include "horizon/services/sm.hpp"
 
-#include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/am/apm_manager.hpp"
@@ -25,14 +24,10 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void ServiceManager::Request(Readers& readers, Writers& writers,
-                             std::function<void(ServiceBase*)> add_service) {
-    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
-
-    Result* res = Cmif::write_out_header(writers.writer);
-    *res = RESULT_SUCCESS;
-
-    switch (cmif_in.command_id) {
+void ServiceManager::RequestImpl(Readers& readers, Writers& writers,
+                                 std::function<void(ServiceBase*)> add_service,
+                                 Result& result, u32 id) {
+    switch (id) {
     case 1: {
         LOG_DEBUG(HorizonServices, "GetServiceHandle");
 
@@ -69,7 +64,7 @@ void ServiceManager::Request(Readers& readers, Writers& writers,
             LOG_WARNING(HorizonServices, "Unknown service 0x{:016x} -> {}",
                         (u64)service, std::string((char*)(&service), 8));
             handle = UINT32_MAX;
-            *res = MAKE_KERNEL_RESULT(NotFound);
+            result = MAKE_KERNEL_RESULT(NotFound);
             // TODO: don't throw
             throw;
             break;
@@ -97,8 +92,7 @@ void ServiceManager::Request(Readers& readers, Writers& writers,
         break;
     }
     default:
-        LOG_WARNING(HorizonServices, "Unknown sm command {}",
-                    cmif_in.command_id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", id);
         break;
     }
 }
