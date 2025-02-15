@@ -1,6 +1,6 @@
-#include "horizon/horizon.hpp"
+#include "horizon/os.hpp"
 
-// #include "horizon/services/hosbinder/hos_binder_driver.hpp"
+#include "horizon/services/hosbinder/hos_binder_driver.hpp"
 
 namespace Hydra::Horizon {
 
@@ -13,7 +13,7 @@ OS::OS(HW::Bus& bus) : kernel(bus) {
     s_instance = this;
 
     // Services
-    // hos_binder_driver = new Services::HosBinder::IHOSBinderDriver();
+    hos_binder_driver = new Services::HosBinder::IHOSBinderDriver();
 }
 
 OS::~OS() {}

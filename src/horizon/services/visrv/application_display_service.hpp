@@ -20,7 +20,6 @@ class IApplicationDisplayService : public DisplayServiceBase {
     void CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT);
 
   private:
-    HosBinder::IHOSBinderDriver* hos_binder_driver = nullptr;
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

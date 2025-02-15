@@ -1,4 +1,4 @@
-#include "horizon/horizon.hpp"
+#include "horizon/os.hpp"
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 #include "hypervisor/hypervisor.hpp"
@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    SET_INSTRUCTION(data, 0x1061c, BRK);
+    // SET_INSTRUCTION(data, 0x1061c, BRK);
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 

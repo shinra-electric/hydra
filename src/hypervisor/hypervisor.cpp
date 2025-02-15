@@ -1,7 +1,7 @@
 #include "hypervisor/hypervisor.hpp"
 
 #include "common/common.hpp"
-#include "horizon/horizon.hpp"
+#include "horizon/os.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
 #include "hw/tegra_x1/mmu/memory.hpp"
@@ -151,8 +151,8 @@ void Hypervisor::Run() {
                     break;
                 case 0x25: {
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                                       elr);
+                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
+                    //                   elr);
 
                     // LOG_DEBUG(Hypervisor,
                     //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
@@ -402,8 +402,8 @@ void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
                               u64 addr) {
     u8 size = (4 << size0) << size1;
 
-    LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
-              size * 8, out_reg0, out_reg1, addr);
+    // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
+    //           size * 8, out_reg0, out_reg1, addr);
 
     switch (size) {
     case 4:

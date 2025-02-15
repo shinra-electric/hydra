@@ -3,21 +3,15 @@
 #include "hypervisor/const.hpp"
 
 namespace Hydra::Horizon {
-
 class OS;
-
 }
 
 namespace Hydra::HW::MMU::Hypervisor {
-
 class MMU;
-
 }
 
 namespace Hydra::HW::CPU::Hypervisor {
-
 class CPU;
-
 }
 
 namespace Hydra::Hypervisor {

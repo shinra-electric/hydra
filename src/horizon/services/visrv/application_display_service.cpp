@@ -1,7 +1,7 @@
 #include "horizon/services/visrv/application_display_service.hpp"
 
-#include "horizon/horizon.hpp"
 #include "horizon/kernel.hpp"
+#include "horizon/os.hpp"
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "horizon/services/service.hpp"
 #include "horizon/services/visrv/manager_display_service.hpp"
@@ -10,22 +10,6 @@
 #include "hw/display/display.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
-
-struct ParcelData {
-    u32 unknown0;
-    u32 unknown1;
-    u32 binder_id;
-    u32 unknown2[3];
-    u64 str;
-    u64 unknown3;
-};
-
-struct Parcel {
-    u32 data_size;
-    u32 data_offset;
-    u32 objects_size;
-    u32 objects_offset;
-};
 
 struct OpenLayerIn {
     u64 display_name;
@@ -36,8 +20,7 @@ struct OpenLayerIn {
 void IApplicationDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 100: // GetRelayService
-        hos_binder_driver = new HosBinder::IHOSBinderDriver();
-        add_service(hos_binder_driver);
+        add_service(OS::GetInstance().GetHosBinderDriver());
         break;
     case 101: // GetSystemDisplayService
         add_service(new ISystemDisplayService());
@@ -88,7 +71,7 @@ void IApplicationDisplayService::CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = hos_binder_driver->AddBinder(),
+        .binder_id = OS::GetInstance().GetHosBinderDriver()->AddBinder(),
     };
     writers.revc_buffers_writer.Write(data);
 }
