@@ -24,9 +24,7 @@ enum class Service : u64 {
     ViM = 0x000000006d3a6976,
 };
 
-void ServiceManager::RequestImpl(Readers& readers, Writers& writers,
-                                 std::function<void(ServiceBase*)> add_service,
-                                 Result& result, u32 id) {
+void ServiceManager::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: {
         LOG_DEBUG(HorizonServices, "GetServiceHandle");

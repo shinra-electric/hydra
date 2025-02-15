@@ -1,18 +1,17 @@
 #include "horizon/services/am/common_state_getter.hpp"
 
 #include "horizon/services/am/const.hpp"
+#include "horizon/services/service.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-void ICommonStateGetter::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void ICommonStateGetter::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: // ReceiveMessage
-        ReceiveMessage(writers);
+        CmdReceiveMessage(PASS_REQUEST_PARAMS_WITH_RESULT);
         break;
     case 9: // GetCurrentFocusState
-        GetCurrentFocusState(writers);
+        CmdGetCurrentFocusState(PASS_REQUEST_PARAMS_WITH_RESULT);
         break;
     default:
         LOG_WARNING(HorizonServices, "Unknown request {}", id);
@@ -20,12 +19,12 @@ void ICommonStateGetter::RequestImpl(
     }
 }
 
-void ICommonStateGetter::ReceiveMessage(Writers& writers) {
+void ICommonStateGetter::CmdReceiveMessage(REQUEST_PARAMS_WITH_RESULT) {
     writers.writer.Write(APPLET_NO_MESSAGE); // No message
     LOG_WARNING(HorizonServices, "Not implemented");
 }
 
-void ICommonStateGetter::GetCurrentFocusState(Writers& writers) {
+void ICommonStateGetter::CmdGetCurrentFocusState(REQUEST_PARAMS_WITH_RESULT) {
     writers.writer.Write(AppletFocusState::InFocus);
 }
 

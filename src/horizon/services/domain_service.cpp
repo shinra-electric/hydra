@@ -1,11 +1,11 @@
 #include "horizon/services/domain_service.hpp"
 
 #include "horizon/cmif.hpp"
+#include "horizon/services/service.hpp"
 
 namespace Hydra::Horizon::Services {
 
-void DomainService::Request(Readers& readers, Writers& writers,
-                            std::function<void(ServiceBase*)> add_service) {
+void DomainService::Request(REQUEST_PARAMS) {
     LOG_DEBUG(HorizonServices, "Domain service request");
 
     // Domain in

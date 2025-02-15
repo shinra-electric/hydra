@@ -2,13 +2,13 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-void ISystemDisplayService::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void ISystemDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
+    case 2312: // CreateStrayLayer
+        CmdCreateStrayLayer(PASS_REQUEST_PARAMS_WITH_RESULT);
+        break;
     default:
-        IApplicationDisplayService::RequestImpl(readers, writers, add_service,
-                                                result, id);
+        LOG_WARNING(HorizonServices, "Unknown request {}", id);
         break;
     }
 }

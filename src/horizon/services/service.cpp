@@ -16,8 +16,7 @@ u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
     return reinterpret_cast<u8*>(mmu->UnmapPtr(addr));
 }
 
-void ServiceBase::Request(Readers& readers, Writers& writers,
-                          std::function<void(ServiceBase*)> add_service) {
+void ServiceBase::Request(REQUEST_PARAMS) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* result = Cmif::write_out_header(writers.writer);
@@ -26,17 +25,16 @@ void ServiceBase::Request(Readers& readers, Writers& writers,
     RequestImpl(readers, writers, add_service, *result, cmif_in.command_id);
 }
 
-void ServiceBase::Control(Kernel& kernel, Reader& reader, Writer& writer) {
+void ServiceBase::Control(Reader& reader, Writer& writer) {
     auto cmif_in = reader.Read<Cmif::InHeader>();
 
-    Result* res = Cmif::write_out_header(writer);
+    Result* result = Cmif::write_out_header(writer);
+    *result = RESULT_SUCCESS;
 
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
-        LOG_DEBUG(HorizonServices, "CONVERT TO DOMAIN");
-
         auto domain_service = new DomainService();
-        kernel.SetService(handle, domain_service);
+        Kernel::GetInstance().SetService(handle, domain_service);
         handle = domain_service->AddObject(this);
 
         // Out
@@ -49,8 +47,6 @@ void ServiceBase::Control(Kernel& kernel, Reader& reader, Writer& writer) {
                     cmif_in.command_id);
         break;
     }
-
-    *res = RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services

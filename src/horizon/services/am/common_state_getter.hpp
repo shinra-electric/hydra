@@ -9,14 +9,12 @@ constexpr u32 APPLET_NO_MESSAGE = 0x680;
 class ICommonStateGetter : public ServiceBase {
   public:
   protected:
-    void RequestImpl(Readers& readers, Writers& writers,
-                     std::function<void(ServiceBase*)> add_service,
-                     Result& result, u32 id) override;
+    void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
-    // Requests
-    void ReceiveMessage(Writers& writers);
-    void GetCurrentFocusState(Writers& writers);
+    // Commands
+    void CmdReceiveMessage(REQUEST_PARAMS_WITH_RESULT);
+    void CmdGetCurrentFocusState(REQUEST_PARAMS_WITH_RESULT);
 };
 
 } // namespace Hydra::Horizon::Services::Am

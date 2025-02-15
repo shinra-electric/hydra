@@ -47,11 +47,20 @@ struct Writers {
     Writer copy_handles_writer;
 };
 
+#define REQUEST_PARAMS                                                         \
+    Readers &readers, Writers &writers,                                        \
+        const std::function<void(ServiceBase*)>&add_service
+#define REQUEST_PARAMS_WITH_RESULT REQUEST_PARAMS, Result& result
+#define REQUEST_IMPL_PARAMS REQUEST_PARAMS_WITH_RESULT, u32 id
+
+#define PASS_REQUEST_PARAMS readers, writers, add_service
+#define PASS_REQUEST_PARAMS_WITH_RESULT PASS_REQUEST_PARAMS, result
+#define PASS_REQUEST_IMPL_PARAMS PASS_REQUEST_PARAMS_WITH_RESULT, id
+
 class ServiceBase {
   public:
-    virtual void Request(Readers& readers, Writers& writers,
-                         std::function<void(ServiceBase*)> add_service);
-    void Control(Kernel& kernel, Reader& reader, Writer& writer);
+    virtual void Request(REQUEST_PARAMS);
+    void Control(Reader& reader, Writer& writer);
 
     // Getters
     // Handle GetHandle() const { return handle; }
@@ -60,9 +69,7 @@ class ServiceBase {
     void SetHandle(Handle handle_) { handle = handle_; }
 
   protected:
-    virtual void RequestImpl(Readers& readers, Writers& writers,
-                             std::function<void(ServiceBase*)> add_service,
-                             Result& result, u32 id) {}
+    virtual void RequestImpl(REQUEST_IMPL_PARAMS) {}
 
   private:
     Handle handle;

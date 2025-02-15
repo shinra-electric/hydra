@@ -1,16 +1,10 @@
 #include "horizon/services/visrv/manager_display_service.hpp"
+#include "horizon/services/service.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-void IManagerDisplayService::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
-    switch (id) {
-    default:
-        IApplicationDisplayService::RequestImpl(readers, writers, add_service,
-                                                result, id);
-        break;
-    }
+void IManagerDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
+    LOG_WARNING(HorizonServices, "Unknown request {}", id);
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

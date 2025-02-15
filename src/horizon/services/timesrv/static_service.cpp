@@ -7,9 +7,7 @@
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
-void IStaticService::RequestImpl(Readers& readers, Writers& writers,
-                                 std::function<void(ServiceBase*)> add_service,
-                                 Result& result, u32 id) {
+void IStaticService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 0:
         add_service(new ISystemClock(SystemClockType::StandardUser));

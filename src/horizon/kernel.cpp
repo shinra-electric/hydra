@@ -489,7 +489,7 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
-        service->Control(*this, readers.reader, writers.writer);
+        service->Control(readers.reader, writers.writer);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unknown command {}", hipc_in.meta.type);

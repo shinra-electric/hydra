@@ -4,12 +4,10 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-class IManagerRootService : public ServiceBase {
-  public:
+class DisplayServiceBase : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
-
-  private:
+    // Commands
+    void CmdCreateStrayLayer(REQUEST_PARAMS_WITH_RESULT);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

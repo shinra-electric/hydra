@@ -1,15 +1,13 @@
 #pragma once
 
-#include "horizon/services/visrv/application_display_service.hpp"
+#include "horizon/services/visrv/display_service.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-class ISystemDisplayService : public IApplicationDisplayService {
+class ISystemDisplayService : public DisplayServiceBase {
   public:
   protected:
-    void RequestImpl(Readers& readers, Writers& writers,
-                     std::function<void(ServiceBase*)> add_service,
-                     Result& result, u32 id) override;
+    void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
 };

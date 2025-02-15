@@ -7,9 +7,7 @@ namespace Hydra::Horizon::Services::Am {
 class IApmManager : public ServiceBase {
   public:
   protected:
-    void RequestImpl(Readers& readers, Writers& writers,
-                     std::function<void(ServiceBase*)> add_service,
-                     Result& result, u32 id) override;
+    void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
 };

@@ -2,9 +2,7 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-void IFileSystemProxy::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void IFileSystemProxy::RequestImpl(REQUEST_IMPL_PARAMS) {
     LOG_WARNING(HorizonServices, "Unknown request {}", id);
 }
 

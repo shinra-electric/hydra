@@ -6,8 +6,7 @@ namespace Hydra::Horizon::Services {
 
 class DomainService : public ServiceBase {
   public:
-    void Request(Readers& readers, Writers& writers,
-                 std::function<void(ServiceBase*)> add_service) override;
+    void Request(REQUEST_PARAMS) override;
 
     Handle AddObject(ServiceBase* object) {
         Handle handle = object_pool.size();

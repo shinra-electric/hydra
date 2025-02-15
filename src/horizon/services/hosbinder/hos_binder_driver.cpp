@@ -13,9 +13,7 @@ struct AdjustRefcountIn {
     BinderType type;
 };
 
-void IHOSBinderDriver::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void IHOSBinderDriver::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 1: { // AdjustRefcount
         auto in = readers.reader.Read<AdjustRefcountIn>();

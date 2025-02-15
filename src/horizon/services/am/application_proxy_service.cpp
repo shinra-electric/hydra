@@ -5,9 +5,7 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-void IApplicationProxyService::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void IApplicationProxyService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 0: // OpenApplicationProxy
         add_service(new IApplicationProxy());

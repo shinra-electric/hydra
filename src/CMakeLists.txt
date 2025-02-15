@@ -46,6 +46,8 @@ add_executable(hydra
     horizon/services/am/application_proxy_service.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/visrv/display_service.cpp
+    horizon/services/visrv/display_service.hpp
     horizon/services/visrv/system_display_service.cpp
     horizon/services/visrv/system_display_service.hpp
     horizon/services/visrv/manager_display_service.cpp

@@ -4,9 +4,7 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-void IManagerRootService::RequestImpl(
-    Readers& readers, Writers& writers,
-    std::function<void(ServiceBase*)> add_service, Result& result, u32 id) {
+void IManagerRootService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 0: // GetDisplayService
         add_service(new IApplicationDisplayService());

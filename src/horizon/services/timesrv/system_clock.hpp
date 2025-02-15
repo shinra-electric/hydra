@@ -16,9 +16,7 @@ class ISystemClock : public ServiceBase {
     ISystemClock(SystemClockType type_) : type{type_} {}
 
   protected:
-    void RequestImpl(Readers& readers, Writers& writers,
-                     std::function<void(ServiceBase*)> add_service,
-                     Result& result, u32 id) override;
+    void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
     SystemClockType type;
