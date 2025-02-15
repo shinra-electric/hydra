@@ -4,8 +4,6 @@
 #include "horizon/os.hpp"
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "horizon/services/service.hpp"
-#include "horizon/services/visrv/manager_display_service.hpp"
-#include "horizon/services/visrv/system_display_service.hpp"
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 
@@ -20,13 +18,13 @@ struct OpenLayerIn {
 void IApplicationDisplayService::RequestImpl(REQUEST_IMPL_PARAMS) {
     switch (id) {
     case 100: // GetRelayService
-        add_service(OS::GetInstance().GetHosBinderDriver());
+        add_service(GET_SERVICE_EXPLICIT(HosBinder, hos_binder_driver));
         break;
     case 101: // GetSystemDisplayService
-        add_service(new ISystemDisplayService());
+        add_service(GET_SERVICE_EXPLICIT(ViSrv, system_display_service));
         break;
     case 102: // GetManagerDisplayService
-        add_service(new IManagerDisplayService());
+        add_service(GET_SERVICE_EXPLICIT(ViSrv, manager_display_service));
         break;
     case 1010: // OpenDisplay
         CmdOpenDisplay(PASS_REQUEST_PARAMS_WITH_RESULT);
@@ -71,7 +69,7 @@ void IApplicationDisplayService::CmdOpenLayer(REQUEST_PARAMS_WITH_RESULT) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = OS::GetInstance().GetHosBinderDriver()->AddBinder(),
+        .binder_id = GET_SERVICE(HosBinder, hos_binder_driver)->AddBinder(),
     };
     writers.revc_buffers_writer.Write(data);
 }

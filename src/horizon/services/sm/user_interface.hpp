@@ -2,9 +2,9 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Services::Sm {
 
-class ServiceManager : public ServiceBase {
+class IUserInterface : public ServiceBase {
   public:
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
@@ -12,4 +12,4 @@ class ServiceManager : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Services::Sm

@@ -2,7 +2,7 @@
 
 #include "horizon/services/service.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace Hydra::Horizon::Services::FsSrv {
 
 class IFileSystemProxy : public ServiceBase {
   public:
@@ -12,4 +12,4 @@ class IFileSystemProxy : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace Hydra::Horizon::Services::FsSrv
