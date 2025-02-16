@@ -12,8 +12,8 @@
         break;                                                                 \
     }
 
-#define DEFINE_IOCTL_TABLE(c, ...)                                             \
-    void c::Ioctl(IOCTL_PARAMS) {                                              \
+#define DEFINE_IOCTL_TABLE(fd, ...)                                            \
+    void fd::Ioctl(IOCTL_PARAMS) {                                             \
         switch (nr) {                                                          \
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
@@ -35,7 +35,7 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-class IoctlBase {
+class FdBase {
   public:
     virtual void Ioctl(IOCTL_PARAMS) = 0;
 };

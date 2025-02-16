@@ -1,10 +1,10 @@
 #pragma once
 
-#include "horizon/services/nvdrv/ioctl/ioctl_base.hpp"
+#include "horizon/services/nvdrv/ioctl/fd_base.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-class NvMap : public IoctlBase {
+class NvMap : public FdBase {
   public:
     void Ioctl(IOCTL_PARAMS) override;
 

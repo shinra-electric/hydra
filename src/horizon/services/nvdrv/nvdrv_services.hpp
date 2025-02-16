@@ -7,7 +7,7 @@
 namespace Hydra::Horizon::Services::NvDrv {
 
 namespace Ioctl {
-class IoctlBase;
+class FdBase;
 }
 
 class INvDrvServices : public ServiceBase {
@@ -23,7 +23,7 @@ class INvDrvServices : public ServiceBase {
     void Ioctl(REQUEST_COMMAND_PARAMS);
 
     // TODO: what should be the max number of ioctls?
-    Allocators::StaticPool<Ioctl::IoctlBase*, 64> ioctl_pool;
+    Allocators::StaticPool<Ioctl::FdBase*, 64> ioctl_pool;
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv
