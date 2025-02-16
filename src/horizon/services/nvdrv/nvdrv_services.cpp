@@ -9,7 +9,7 @@ namespace Hydra::Horizon::Services::NvDrv {
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
-    auto path = readers.send_buffers_reader.ReadString();
+    auto path = readers.send_buffers_readers[0].ReadString();
     Handle handle = 0;
     if (path == "/dev/nvmap") {
         handle = ioctl_pool.AllocateForIndex();
@@ -30,11 +30,22 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<IoctlIn>();
     auto ioctl = ioctl_pool.GetObject(in.handle);
 
+    // Reader
+    Reader* reader = nullptr;
+    if (readers.send_buffers_readers.size() != 0)
+        reader = &readers.send_buffers_readers[0];
+
+    // Writer
+    Writer* writer = nullptr;
+    if (writers.recv_buffers_writers.size() != 0)
+        writer = &writers.recv_buffers_writers[0];
+
+    // Dispatch
     u32 nr = in.code & 0xFF;
     NvResult r = NvResult::Success;
-    ioctl->Ioctl(readers.send_buffers_reader, writers.recv_buffers_writer, nr,
-                 r);
+    ioctl->Ioctl(reader, writer, nr, r);
 
+    // Write result
     writers.writer.Write(r);
 
     if (r != NvResult::Success)

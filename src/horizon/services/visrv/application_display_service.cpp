@@ -60,13 +60,13 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
         .objects_size = 0,
         .objects_offset = 0,
     };
-    writers.recv_buffers_writer.Write(parcel);
+    writers.recv_buffers_writers[0].Write(parcel);
 
     // Parcel data
     ParcelData data{
         .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
     };
-    writers.recv_buffers_writer.Write(data);
+    writers.recv_buffers_writers[0].Write(data);
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

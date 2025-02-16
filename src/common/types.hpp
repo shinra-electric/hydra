@@ -18,6 +18,7 @@ using uptr = uintptr_t;
 
 template <typename T> class readonly {
   public:
+    readonly() {}
     readonly(const T& value_) : value{value_} {}
     void operator=(const T&) = delete;
 
@@ -27,12 +28,13 @@ template <typename T> class readonly {
     const T& Get() const { return value; }
 
   private:
-    const T value;
+    T value;
 };
 
 template <typename T> class writeonly {
   public:
-    writeonly(T& value_) : value{value_} {}
+    writeonly() {}
+    writeonly(const T& value_) : value{value_} {}
     void operator=(const T& new_value) { value = new_value; }
 
     // Getters

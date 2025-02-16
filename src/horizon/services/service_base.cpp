@@ -9,9 +9,9 @@
 namespace Hydra::Horizon::Services {
 
 u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
-                   Hipc::BufferDescriptor* descriptor) {
-    u64 addr = descriptor->address_low | (u64)descriptor->address_mid << 32 |
-               (u64)descriptor->address_high << 36;
+                   const Hipc::BufferDescriptor& descriptor) {
+    u64 addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
+               (u64)descriptor.address_high << 36;
 
     return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
 }

@@ -2,13 +2,16 @@
 
 #include "horizon/services/nvdrv/const.hpp"
 
-#define IOCTL_PARAMS Reader &reader, Writer &writer, u32 nr, NvResult &result
+#define IOCTL_PARAMS Reader *reader, Writer *writer, u32 nr, NvResult &result
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
-        auto data = reader.Read<func##Data>();                                 \
+        func##Data data;                                                       \
+        if (reader)                                                            \
+            data = reader->Read<func##Data>();                                 \
         func(data, result);                                                    \
-        writer.Write(data);                                                    \
+        if (writer)                                                            \
+            writer->Write(data);                                               \
         break;                                                                 \
     }
 

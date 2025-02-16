@@ -39,37 +39,51 @@ class Kernel;
 namespace Hydra::Horizon::Services {
 
 u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
-                   Hipc::BufferDescriptor* descriptor);
-
-inline Reader create_buffer_reader(const HW::MMU::MMUBase* mmu,
-                                   Hipc::BufferDescriptor* descriptor) {
-    if (!descriptor)
-        return Reader(nullptr);
-
-    return Reader(get_buffer_ptr(mmu, descriptor));
-}
-
-inline Writer create_buffer_writer(const HW::MMU::MMUBase* mmu,
-                                   Hipc::BufferDescriptor* descriptor) {
-    if (!descriptor)
-        return Writer(nullptr);
-
-    return Writer(get_buffer_ptr(mmu, descriptor));
-}
+                   const Hipc::BufferDescriptor& descriptor);
 
 struct Readers {
     Reader reader;
-    Reader send_buffers_reader;
-    Reader exch_buffers_reader;
+    std::vector<Reader> send_buffers_readers;
+    std::vector<Reader> exch_buffers_readers;
+
+    Readers(const HW::MMU::MMUBase* mmu, Hipc::ParsedRequest hipc_in)
+        : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10)) {
+        send_buffers_readers.reserve(hipc_in.meta.num_send_buffers);
+        for (u32 i = 0; i < hipc_in.meta.num_send_buffers; i++)
+            send_buffers_readers.emplace_back(
+                get_buffer_ptr(mmu, hipc_in.data.send_buffers[i]));
+
+        exch_buffers_readers.reserve(hipc_in.meta.num_exch_buffers);
+        for (u32 i = 0; i < hipc_in.meta.num_exch_buffers; i++)
+            exch_buffers_readers.emplace_back(
+                get_buffer_ptr(mmu, hipc_in.data.exch_buffers[i]));
+    }
 };
 
 struct Writers {
     Writer writer;
-    Writer recv_buffers_writer;
-    Writer exch_buffers_writer;
+    std::vector<Writer> recv_buffers_writers;
+    std::vector<Writer> exch_buffers_writers;
     Writer objects_writer;
     Writer move_handles_writer;
     Writer copy_handles_writer;
+
+    Writers(const HW::MMU::MMUBase* mmu, Hipc::ParsedRequest hipc_in,
+            u8* scratch_buffer, u8* scratch_buffer_objects,
+            u8* scratch_buffer_move_handles, u8* scratch_buffer_copy_handles)
+        : writer(scratch_buffer), objects_writer(scratch_buffer_objects),
+          move_handles_writer(scratch_buffer_move_handles),
+          copy_handles_writer(scratch_buffer_copy_handles) {
+        recv_buffers_writers.reserve(hipc_in.meta.num_recv_buffers);
+        for (u32 i = 0; i < hipc_in.meta.num_recv_buffers; i++)
+            recv_buffers_writers.emplace_back(
+                get_buffer_ptr(mmu, hipc_in.data.recv_buffers[i]));
+
+        exch_buffers_writers.reserve(hipc_in.meta.num_exch_buffers);
+        for (u32 i = 0; i < hipc_in.meta.num_exch_buffers; i++)
+            exch_buffers_writers.emplace_back(
+                get_buffer_ptr(mmu, hipc_in.data.exch_buffers[i]));
+    }
 };
 
 class ServiceBase {

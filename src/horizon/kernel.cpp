@@ -468,17 +468,11 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    Services::Readers readers{
-        Reader(in_ptr),
-        Services::create_buffer_reader(mmu, hipc_in.data.send_buffers),
-        Services::create_buffer_reader(mmu, hipc_in.data.exch_buffers)};
-    Services::Writers writers{
-        Writer(service_scratch_buffer),
-        Services::create_buffer_writer(mmu, hipc_in.data.recv_buffers),
-        Services::create_buffer_writer(mmu, hipc_in.data.exch_buffers),
-        Writer(service_scratch_buffer_objects),
-        Writer(service_scratch_buffer_move_handles),
-        Writer(service_scratch_buffer_copy_handles)};
+    Services::Readers readers(mmu, hipc_in);
+    Services::Writers writers(mmu, hipc_in, service_scratch_buffer,
+                              service_scratch_buffer_objects,
+                              service_scratch_buffer_move_handles,
+                              service_scratch_buffer_copy_handles);
     switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");

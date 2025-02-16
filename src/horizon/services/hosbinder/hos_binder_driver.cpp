@@ -10,8 +10,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
 void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     // TODO: what should this do?
     // Parcel
-    Parcel parcel = readers.send_buffers_reader.Read<Parcel>();
-    writers.recv_buffers_writer.Write(parcel);
+    Parcel parcel = readers.send_buffers_readers[0].Read<Parcel>();
+    writers.recv_buffers_writers[0].Write(parcel);
 }
 
 enum class BinderType : i32 {
