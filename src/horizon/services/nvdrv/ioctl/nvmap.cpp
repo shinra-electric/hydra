@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(NvMap, 1, Create)
 
-void NvMap::Create(CreateData& data, IoctlResult& result) {
+void NvMap::Create(CreateData& data, NvResult& result) {
     LOG_DEBUG(HorizonServices, "Size: {}", data.size.Get());
     LOG_WARNING(HorizonServices, "Not implemented");
 }

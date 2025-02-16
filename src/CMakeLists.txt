@@ -36,6 +36,7 @@ add_executable(hydra
     horizon/services/nvdrv/ioctl/ioctl_base.hpp
     horizon/services/nvdrv/ioctl/nvmap.cpp
     horizon/services/nvdrv/ioctl/nvmap.hpp
+    horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
     horizon/services/settings/system_settings_server.cpp

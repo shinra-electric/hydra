@@ -1,12 +1,8 @@
 #pragma once
 
-#include "horizon/const.hpp"
+#include "horizon/services/nvdrv/const.hpp"
 
-enum class IoctlResult : u32 {
-    Success = 0,
-};
-
-#define IOCTL_PARAMS Reader &reader, Writer &writer, u32 nr, IoctlResult &result
+#define IOCTL_PARAMS Reader &reader, Writer &writer, u32 nr, NvResult &result
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
@@ -18,7 +14,6 @@ enum class IoctlResult : u32 {
 
 #define DEFINE_IOCTL_TABLE(c, ...)                                             \
     void c::Ioctl(IOCTL_PARAMS) {                                              \
-        result = IoctlResult::Success;                                         \
         switch (nr) {                                                          \
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
@@ -36,7 +31,7 @@ enum class IoctlResult : u32 {
             FOR_EACH_0_1(IOCTL_OUT_MEMBER_COPY, __VA_ARGS__)                   \
         }                                                                      \
     };                                                                         \
-    void ioctl(ioctl##Data& data, IoctlResult& result);
+    void ioctl(ioctl##Data& data, NvResult& result);
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 

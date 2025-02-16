@@ -65,7 +65,7 @@ struct Readers {
 
 struct Writers {
     Writer writer;
-    Writer revc_buffers_writer;
+    Writer recv_buffers_writer;
     Writer exch_buffers_writer;
     Writer objects_writer;
     Writer move_handles_writer;

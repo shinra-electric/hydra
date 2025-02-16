@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/allocators/static_pool.hpp"
+#include "horizon/services/nvdrv/const.hpp"
 #include "horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
@@ -19,6 +20,7 @@ class INvDrvServices : public ServiceBase {
   private:
     // Commands
     void Open(REQUEST_COMMAND_PARAMS);
+    void Ioctl(REQUEST_COMMAND_PARAMS);
 
     // TODO: what should be the max number of ioctls?
     Allocators::StaticPool<Ioctl::IoctlBase*, 64> ioctl_pool;

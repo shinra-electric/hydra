@@ -11,7 +11,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     // TODO: what should this do?
     // Parcel
     Parcel parcel = readers.send_buffers_reader.Read<Parcel>();
-    writers.revc_buffers_writer.Write(parcel);
+    writers.recv_buffers_writer.Write(parcel);
 }
 
 enum class BinderType : i32 {

@@ -28,13 +28,13 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
         .objects_size = 0,
         .objects_offset = 0,
     };
-    writers.revc_buffers_writer.Write(parcel);
+    writers.recv_buffers_writer.Write(parcel);
 
     // Parcel data
     ParcelData data{
         .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
     };
-    writers.revc_buffers_writer.Write(data);
+    writers.recv_buffers_writer.Write(data);
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv
