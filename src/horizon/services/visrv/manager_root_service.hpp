@@ -5,6 +5,9 @@
 namespace Hydra::Horizon::Services::ViSrv {
 
 class IManagerRootService : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(IManagerRootService)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

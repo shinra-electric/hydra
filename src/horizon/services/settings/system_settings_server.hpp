@@ -5,6 +5,9 @@
 namespace Hydra::Horizon::Services::Settings {
 
 class ISystemSettingsServer : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(ISystemSettingsServer)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

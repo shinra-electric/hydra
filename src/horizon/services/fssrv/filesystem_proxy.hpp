@@ -5,6 +5,9 @@
 namespace Hydra::Horizon::Services::Fssrv {
 
 class IFileSystemProxy : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(IFileSystemProxy)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

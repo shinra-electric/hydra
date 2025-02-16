@@ -9,6 +9,9 @@ class IHOSBinderDriver;
 namespace Hydra::Horizon::Services::ViSrv {
 
 class IApplicationDisplayService : public DisplayServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(IApplicationDisplayService)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

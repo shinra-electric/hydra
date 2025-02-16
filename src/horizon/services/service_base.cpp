@@ -42,6 +42,12 @@ void ServiceBase::Control(Reader& reader, Writer& writer) {
 
         break;
     }
+    case 4: { // clone current ex
+        // TODO: u32 tag
+        Handle handle = Kernel::GetInstance().AddService(Clone());
+        writer.Write(handle);
+        break;
+    }
     default:
         LOG_WARNING(HorizonServices, "Unimplemented control request {}",
                     cmif_in.command_id);

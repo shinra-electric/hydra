@@ -7,6 +7,9 @@ namespace Hydra::Horizon::Services::Am {
 constexpr u32 APPLET_NO_MESSAGE = 0x680;
 
 class ICommonStateGetter : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(ICommonStateGetter)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

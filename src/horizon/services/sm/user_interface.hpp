@@ -5,6 +5,9 @@
 namespace Hydra::Horizon::Services::Sm {
 
 class IUserInterface : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(IUserInterface)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 

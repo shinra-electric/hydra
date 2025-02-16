@@ -74,6 +74,8 @@ struct Writers {
 
 class ServiceBase {
   public:
+    virtual ServiceBase* Clone() const = 0;
+
     virtual void Request(REQUEST_PARAMS);
     void Control(Reader& reader, Writer& writer);
 

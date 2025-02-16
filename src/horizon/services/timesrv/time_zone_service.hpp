@@ -5,6 +5,9 @@
 namespace Hydra::Horizon::Services::TimeSrv {
 
 class ITimeZoneService : public ServiceBase {
+  public:
+    DEFINE_VIRTUAL_CLONE(ITimeZoneService)
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
