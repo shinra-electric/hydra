@@ -27,18 +27,23 @@
 #define EXPAND2(...) EXPAND1(EXPAND1(EXPAND1(EXPAND1(__VA_ARGS__))))
 #define EXPAND1(...) __VA_ARGS__
 
+#define FOR_EACH_0_1(macro, ...)                                               \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_0_1(macro, __VA_ARGS__)))
+#define FOR_EACH_HELPER_0_1(macro, a, ...)                                     \
+    macro(a) __VA_OPT__(FOR_EACH_AGAIN_0_1 PARENS(macro, __VA_ARGS__))
+#define FOR_EACH_AGAIN_0_1() FOR_EACH_HELPER_0_1
+
 #define FOR_EACH_0_2(macro, ...)                                               \
     __VA_OPT__(EXPAND(FOR_EACH_HELPER_0_2(macro, __VA_ARGS__)))
-#define FOR_EACH_1_2(macro, e, ...)                                            \
-    __VA_OPT__(EXPAND(FOR_EACH_HELPER_1_2(macro, e, __VA_ARGS__)))
-
 #define FOR_EACH_HELPER_0_2(macro, a1, a2, ...)                                \
     macro(a1, a2) __VA_OPT__(FOR_EACH_AGAIN_0_2 PARENS(macro, __VA_ARGS__))
+#define FOR_EACH_AGAIN_0_2() FOR_EACH_HELPER_0_2
+
+#define FOR_EACH_1_2(macro, e, ...)                                            \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_1_2(macro, e, __VA_ARGS__)))
 #define FOR_EACH_HELPER_1_2(macro, e, a1, a2, ...)                             \
     macro(e, a1, a2)                                                           \
         __VA_OPT__(FOR_EACH_AGAIN_1_2 PARENS(macro, e, __VA_ARGS__))
-
-#define FOR_EACH_AGAIN_0_2() FOR_EACH_HELPER_0_2
 #define FOR_EACH_AGAIN_1_2() FOR_EACH_HELPER_1_2
 
 #define ENUM_CASE(e, value, n)                                                 \
