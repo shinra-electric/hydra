@@ -39,7 +39,7 @@ template <typename T> class writeonly {
     const T& Get() const { return value; }
 
   private:
-    T& value;
+    T value;
 };
 
 class Reader {

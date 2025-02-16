@@ -42,6 +42,10 @@ void ServiceBase::Control(Reader& reader, Writer& writer) {
 
         break;
     }
+    case 3: // query pointer buffer size
+        // TODO: what's the point of this?
+        writer.Write(0);
+        break;
     case 4: { // clone current ex
         // TODO: u32 tag
         Handle handle = Kernel::GetInstance().AddService(Clone());
