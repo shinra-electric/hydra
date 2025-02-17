@@ -55,7 +55,7 @@ class Reader {
         return result;
     }
 
-    template <typename T> T* Read(T* ptr, usize count) {
+    template <typename T> T* Read(T* read_ptr, usize count) {
         T* result = reinterpret_cast<T*>(ptr);
         ptr += sizeof(T) * count;
 
@@ -88,6 +88,14 @@ class Writer {
         T* result = reinterpret_cast<T*>(ptr);
         *result = value;
         ptr += sizeof(T);
+
+        return result;
+    }
+
+    template <typename T> T* Write(const T* write_ptr, usize count) {
+        T* result = reinterpret_cast<T*>(ptr);
+        memcpy(result, write_ptr, sizeof(T) * count);
+        ptr += sizeof(T) * count;
 
         return result;
     }

@@ -381,8 +381,8 @@ Result Kernel::svcCloseHandle(Handle handle) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
               handle);
 
-    // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    // HACK
+    // delete GetService(handle);
 
     return RESULT_SUCCESS;
 }

@@ -88,6 +88,7 @@ struct Writers {
 
 class ServiceBase {
   public:
+    virtual ~ServiceBase() = default;
     virtual ServiceBase* Clone() const = 0;
 
     virtual void Request(REQUEST_PARAMS);

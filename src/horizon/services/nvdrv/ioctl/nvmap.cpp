@@ -2,7 +2,7 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvMap, 1, Create)
+DEFINE_IOCTL_TABLE(NvMap, 0x01, Create)
 
 void NvMap::Create(CreateData& data, NvResult& result) {
     LOG_DEBUG(HorizonServices, "Size: 0x{:08x}", data.size.Get());
