@@ -34,8 +34,8 @@ class Hypervisor {
     void DataAbort(u32 instruction, u64 far, u64 elr);
 
     // Interpreter
-    void InterpretLDAXR(u8 out_reg, u64 addr);
-    void InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr);
+    void InterpretLDAXR(u8 size0, u8 out_reg, u64 addr);
+    void InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr);
     void InterpretDC(u64 addr);
     void InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr);
     void InterpretSTR(u8 size0, u8 size1, u8 reg, u64 addr);

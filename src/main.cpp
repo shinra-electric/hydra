@@ -81,7 +81,9 @@ int main(int argc, const char* argv[]) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0x1061c, BRK);
+    // 0x80020708
+    // SET_INSTRUCTION(data, 0x5910, BRK);
+    // SET_INSTRUCTION(data, 0x59f0, BRK);
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 

@@ -286,11 +286,13 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}", elr,
     //           instruction);
 
-    if ((instruction & 0xbfe00000) == 0x88400000) {           // LDAXR
-        InterpretLDAXR(EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
+    if ((instruction & 0xbfe00000) == 0x88400000) { // LDAXR
+        InterpretLDAXR(EXTRACT_BITS(instruction, 30, 30),
+                       EXTRACT_BITS(instruction, 4, 0), far); // TODO: check
     } else if ((instruction & 0xbfe00000) == 0x88000000) {    // STLXR
-        InterpretSTLXR(EXTRACT_BITS(instruction, 23, 16),
-                       cpu->GetRegX(EXTRACT_BITS(instruction, 4, 0)),
+        InterpretSTLXR(EXTRACT_BITS(instruction, 30, 30),
+                       EXTRACT_BITS(instruction, 23, 16),
+                       EXTRACT_BITS(instruction, 4, 0),
                        far);                               // TODO: check
     } else if ((instruction & 0xff800000) == 0xd5000000) { // DC
         InterpretDC(far);
@@ -332,25 +334,55 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
     cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
 }
 
-void Hypervisor::InterpretLDAXR(u8 out_reg, u64 addr) {
-    // TODO: barrier
+void Hypervisor::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
+    u8 size = (4 << size0);
 
-    u64 v = *((u64*)mmu->UnmapAddr(addr));
-
-    cpu->SetRegX(out_reg, v);
     // LOG_DEBUG(Hypervisor, "loaded 0x{:08x} into X{} from 0x{:08x}", v,
     // out_reg,
     //           addr);
-}
 
-void Hypervisor::InterpretSTLXR(u8 out_res_reg, u64 v, u64 addr) {
     // TODO: barrier
 
-    *((u64*)mmu->UnmapAddr(addr)) = v;
+    switch (size) {
+    case 4:
+        cpu->SetRegX(out_reg, mmu->Load<u32>(addr));
+        break;
+    case 8:
+        cpu->SetRegX(out_reg, mmu->Load<u64>(addr));
+        break;
+    case 16:
+        cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+        break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
+    }
+}
 
-    cpu->SetRegX(out_res_reg, 0);
+void Hypervisor::InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr) {
+    u8 size = (4 << size0);
+
+    // TODO: barrier
+
     // LOG_DEBUG(Hypervisor, "stored 0x{:08x} into 0x{:08x}, result reg X{}", v,
     //           addr, out_res_reg);
+
+    switch (size) {
+    case 4:
+        mmu->Store<u32>(addr, cpu->GetRegX(reg));
+        break;
+    case 8:
+        mmu->Store<u64>(addr, cpu->GetRegX(reg));
+        break;
+    // case 16:
+    //     mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(reg));
+    //     break;
+    default:
+        LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
+        break;
+    }
+
+    cpu->SetRegX(out_res_reg, 0);
 }
 
 void Hypervisor::InterpretDC(u64 addr) {
