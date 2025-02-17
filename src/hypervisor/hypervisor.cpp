@@ -350,9 +350,9 @@ void Hypervisor::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
     case 8:
         cpu->SetRegX(out_reg, mmu->Load<u64>(addr));
         break;
-    case 16:
-        cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
-        break;
+    // case 16:
+    //     cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+    //     break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
         break;

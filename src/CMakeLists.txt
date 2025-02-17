@@ -34,6 +34,8 @@ add_executable(hydra
     horizon/services/timesrv/time_zone_service.cpp
     horizon/services/timesrv/time_zone_service.hpp
     horizon/services/nvdrv/ioctl/fd_base.hpp
+    horizon/services/nvdrv/ioctl/nvhost_ctrl.cpp
+    horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp
     horizon/services/nvdrv/ioctl/nvmap.cpp
     horizon/services/nvdrv/ioctl/nvmap.hpp
     horizon/services/nvdrv/const.hpp

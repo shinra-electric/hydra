@@ -2,6 +2,7 @@
 
 #include "horizon/const.hpp"
 #include "horizon/services/nvdrv/const.hpp"
+#include "horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
 #include "horizon/services/nvdrv/ioctl/nvmap.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
@@ -10,12 +11,15 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
-    Handle handle = 0;
-    if (path == "/dev/nvmap") {
-        handle = ioctl_pool.AllocateForIndex();
+    Handle handle = ioctl_pool.AllocateForIndex();
+    if (path == "/dev/nvhost-ctrl") {
+        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostCtrl();
+    } else if (path == "/dev/nvmap") {
         ioctl_pool.GetObjectRef(handle) = new Ioctl::NvMap();
     } else {
         LOG_WARNING(HorizonServices, "Unknown path \"{}\"", path);
+        // TODO: don't throw
+        throw;
     }
 
     writers.writer.Write(handle);

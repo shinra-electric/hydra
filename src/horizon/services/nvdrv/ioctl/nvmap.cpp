@@ -1,5 +1,4 @@
 #include "horizon/services/nvdrv/ioctl/nvmap.hpp"
-#include "common/logging/log.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
