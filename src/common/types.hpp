@@ -46,7 +46,9 @@ template <typename T> class writeonly {
 
 class Reader {
   public:
-    Reader(u8* base_) : ptr{base_} {}
+    Reader(u8* base_) : base{base_}, ptr{base_} {}
+
+    void JumpToOffset(u32 offset) { ptr = base + offset; }
 
     template <typename T> T Read() {
         T result = *reinterpret_cast<T*>(ptr);
@@ -77,6 +79,7 @@ class Reader {
     }
 
   private:
+    u8* base;
     u8* ptr;
 };
 
