@@ -243,9 +243,8 @@ void Hypervisor::Run() {
             } else if (hvEc == 0x3C) { // BRK
                 LOG_ERROR(Hypervisor, "BRK instruction");
                 cpu->LogRegisters();
-                // LOG_DEBUG(Hypervisor, "cbAlloc: 0x{:08x} -> 0x{:08x}",
-                //           cpu->GetRegX(0) + 0x10,
-                //           *((u64*)mmu->UnmapPtr(cpu->GetRegX(0) + 0x10)));
+                // LOG_DEBUG(Hypervisor, "buf_linear(0x{:08x}): 0x{:08x}",
+                //           0x011ffdd0 + 48, mmu->Load<u64>(0x011ffdd0 + 48));
                 break;
             } else {
                 // Debug
@@ -283,8 +282,9 @@ void Hypervisor::Run() {
 }
 
 void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
-    // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}", elr,
-    //           instruction);
+    // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}, FAR:
+    // 0x{:08x}",
+    //           elr, instruction, far);
 
     if ((instruction & 0xbfe00000) == 0x88400000) { // LDAXR
         InterpretLDAXR(EXTRACT_BITS(instruction, 30, 30),
@@ -310,13 +310,12 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
         // TODO: support simd
         InterpretSTR(EXTRACT_BITS(instruction, 30, 30), 0,
                      EXTRACT_BITS(instruction, 4, 0), far);
-    } else if ((instruction & 0x7b000000) == 0x29000000) { // LDP
+    } else if ((instruction & 0x7a400000) == 0x28400000) { // LDP
         InterpretLDP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
                      EXTRACT_BITS(instruction, 4, 0),
                      EXTRACT_BITS(instruction, 14, 10), far);
-    } else if ((instruction & 0x7fc00000) == 0x28800000) { // STP
-        // TODO: is this even necessary?
+    } else if ((instruction & 0x7a400000) == 0x28000000) { // STP
         InterpretSTP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
                      EXTRACT_BITS(instruction, 4, 0),

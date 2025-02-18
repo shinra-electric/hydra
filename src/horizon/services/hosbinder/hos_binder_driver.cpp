@@ -7,6 +7,17 @@ namespace Hydra::Horizon::Services::HosBinder {
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
                              AdjustRefcount)
 
+// TODO: define these somewhere else
+struct NvFence {
+    u32 id;
+    u32 value;
+};
+
+struct NvMultiFence {
+    u32 num_fences;
+    NvFence fences[4];
+};
+
 enum class TransactCode : u32 {
     RequestBuffer = 1,
     SetBufferCount,
@@ -33,27 +44,40 @@ struct TransactParcelIn {
 void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<TransactParcelIn>();
 
-    auto parcel_out = writers.recv_buffers_writers[0].Write<Parcel>(
-        {.data_offset = sizeof(Parcel)});
+    auto& writer = writers.recv_buffers_writers[0];
+
+    auto parcel_out = writer.Write<Parcel>({.data_offset = sizeof(Parcel)});
+    usize written_begin = writer.GetWrittenSize();
 
     switch (in.code) {
     case TransactCode::DequeueBuffer: {
-        LOG_DEBUG(HorizonServices, "DequeueBuffer not implemented");
+        LOG_WARNING(HorizonServices, "DequeueBuffer not implemented");
 
         // HACK
-        u64 arr[16] = {0};
-        writers.recv_buffers_writers[0].Write<u64>(arr, 16);
-        parcel_out->data_size = 16 * sizeof(u64);
+        writer.Write((i32)0);
+        writer.Write((i32)1);
+
+        // Flattened object
+        ParcelFlattenedObject flattened_obj = {
+            .size = sizeof(NvMultiFence),
+            .fd_count = 0,
+        };
+        writer.Write(flattened_obj);
+
+        // NvMultiFence
+        NvMultiFence nv_multi_fence = {
+            .num_fences = 0,
+        };
+        writer.Write(nv_multi_fence);
 
         break;
     }
     case TransactCode::Connect: {
-        LOG_DEBUG(HorizonServices, "Connect not implemented");
+        LOG_WARNING(HorizonServices, "Connect not implemented");
 
         // HACK
         u64 arr[16] = {0};
-        writers.recv_buffers_writers[0].Write<u64>(arr, 16);
-        parcel_out->data_size = 16 * sizeof(u64);
+        writer.Write(arr, 16);
 
         break;
     }
@@ -61,6 +85,8 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         LOG_WARNING(HorizonServices, "Unknown code {}", in.code);
         break;
     }
+
+    parcel_out->data_size = writer.GetWrittenSize() - written_begin;
 
     // Parcel
     // auto parcel = readers.send_buffers_readers[0].Read<Parcel>();

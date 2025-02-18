@@ -53,6 +53,7 @@ void CPU::LogRegisters(u32 count) {
     for (u32 i = 0; i < count; i++) {
         LOG_DEBUG(CPU, "X{}: 0x{:08x}", i, GetReg((hv_reg_t)(HV_REG_X0 + i)));
     }
+    LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
 
 void CPU::LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc) {

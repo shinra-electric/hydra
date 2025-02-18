@@ -33,6 +33,11 @@ struct Parcel {
     u32 objects_offset;
 };
 
+struct ParcelFlattenedObject {
+    i32 size;
+    i32 fd_count;
+};
+
 struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
