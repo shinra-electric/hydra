@@ -14,13 +14,7 @@ namespace Hydra::Horizon::Services::ViSrv {
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
                              GetManagerDisplayService, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 2020, OpenLayer)
-
-struct OpenLayerIn {
-    u64 display_name;
-    u64 layer_id;
-    u64 applet_resource_user_id;
-};
+                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer)
 
 void IApplicationDisplayService::GetRelayService(REQUEST_COMMAND_PARAMS) {
     add_service(new HosBinder::IHOSBinderDriver());
@@ -47,8 +41,19 @@ void IApplicationDisplayService::CloseDisplay(REQUEST_COMMAND_PARAMS) {
     Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
 }
 
+struct OpenLayerIn {
+    u64 display_name;
+    u64 layer_id;
+    u64 applet_resource_user_id;
+};
+
 void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<OpenLayerIn>();
+
+    u64 display_id = 0; // TODO: get based on the name
+
+    // TODO: layer ID?
+    Kernel::GetInstance().GetBus().GetDisplay(display_id)->OpenLayer();
 
     // Out
     // TODO: output window size
@@ -67,6 +72,15 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
         .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
     };
     writers.recv_buffers_writers[0].Write(data);
+}
+
+void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
+    auto layer_id = readers.reader.Read<u64>();
+
+    u64 display_id = 0; // TODO: get from layer ID
+
+    // TODO: layer ID?
+    Kernel::GetInstance().GetBus().GetDisplay(display_id)->CloseLayer();
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

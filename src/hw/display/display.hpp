@@ -6,8 +6,10 @@ namespace Hydra::HW::Display {
 
 class DisplayBase {
   public:
-    virtual void Open() {}  // TODO: = 0
-    virtual void Close() {} // TODO: = 0
+    virtual void Open() {}       // TODO: = 0
+    virtual void Close() {}      // TODO: = 0
+    virtual void OpenLayer() {}  // TODO: = 0
+    virtual void CloseLayer() {} // TODO: = 0
 };
 
 } // namespace Hydra::HW::Display

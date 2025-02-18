@@ -23,6 +23,7 @@ class IApplicationDisplayService : public DisplayServiceBase {
     void OpenDisplay(REQUEST_COMMAND_PARAMS);
     void CloseDisplay(REQUEST_COMMAND_PARAMS);
     void OpenLayer(REQUEST_COMMAND_PARAMS);
+    void CloseLayer(REQUEST_COMMAND_PARAMS);
 
   private:
 };
