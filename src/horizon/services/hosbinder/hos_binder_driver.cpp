@@ -7,6 +7,26 @@ namespace Hydra::Horizon::Services::HosBinder {
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
                              AdjustRefcount)
 
+enum class BinderResult : i32 {
+    Success = 0,
+    PermissionDenied = -1,
+    NameNotFound = -2,
+    WouldBlock = -11,
+    NoMemory = -12,
+    AlreadyExists = -17,
+    NoInit = -19,
+    BadValue = -22,
+    DeadObject = -32,
+    InvalidOperation = -38,
+    NotEnoughData = -61,
+    UnknownTransaction = -74,
+    BadIndex = -75,
+    TimedOut = -110,
+    FdsNotAllowed = INT32_MIN + 7,
+    FailedTransaction = INT32_MIN + 2,
+    BadType = INT32_MIN + 1,
+};
+
 // TODO: define these somewhere else
 struct NvFence {
     u32 id;
@@ -16,6 +36,13 @@ struct NvFence {
 struct NvMultiFence {
     u32 num_fences;
     NvFence fences[4];
+};
+
+struct BqBufferOutput {
+    u32 width;
+    u32 height;
+    u32 transformHint;
+    u32 numPendingBuffers;
 };
 
 enum class TransactCode : u32 {
@@ -49,6 +76,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto parcel_out = writer.Write<Parcel>({.data_offset = sizeof(Parcel)});
     usize written_begin = writer.GetWrittenSize();
 
+    BinderResult b_result = BinderResult::Success;
     switch (in.code) {
     case TransactCode::DequeueBuffer: {
         LOG_WARNING(HorizonServices, "DequeueBuffer not implemented");
@@ -72,6 +100,19 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         break;
     }
+    case TransactCode::QueueBuffer: {
+        LOG_WARNING(HorizonServices, "QueueBuffer not implemented");
+
+        // Buffer output
+        writer.Write<BqBufferOutput>({
+            .width = 0,
+            .height = 0,
+            .transformHint = 0,
+            .numPendingBuffers = 0,
+        });
+
+        break;
+    }
     case TransactCode::Connect: {
         LOG_WARNING(HorizonServices, "Connect not implemented");
 
@@ -86,11 +127,10 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
 
-    parcel_out->data_size = writer.GetWrittenSize() - written_begin;
+    // Result
+    writer.Write(b_result);
 
-    // Parcel
-    // auto parcel = readers.send_buffers_readers[0].Read<Parcel>();
-    // writers.recv_buffers_writers[0].Write(parcel);
+    parcel_out->data_size = writer.GetWrittenSize() - written_begin;
 }
 
 enum class BinderType : i32 {
