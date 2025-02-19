@@ -28,7 +28,7 @@
         }                                                                      \
     }
 
-namespace Hydra::HW::TegraX1::MMU {
+namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
 }
 
@@ -38,7 +38,7 @@ class Kernel;
 
 namespace Hydra::Horizon::Services {
 
-u8* get_buffer_ptr(const HW::TegraX1::MMU::MMUBase* mmu,
+u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
                    const Hipc::BufferDescriptor& descriptor);
 
 struct Readers {
@@ -46,7 +46,7 @@ struct Readers {
     std::vector<Reader> send_buffers_readers;
     std::vector<Reader> exch_buffers_readers;
 
-    Readers(const HW::TegraX1::MMU::MMUBase* mmu, Hipc::ParsedRequest hipc_in)
+    Readers(const HW::TegraX1::CPU::MMUBase* mmu, Hipc::ParsedRequest hipc_in)
         : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10)) {
         send_buffers_readers.reserve(hipc_in.meta.num_send_buffers);
         for (u32 i = 0; i < hipc_in.meta.num_send_buffers; i++)
@@ -68,7 +68,7 @@ struct Writers {
     Writer move_handles_writer;
     Writer copy_handles_writer;
 
-    Writers(const HW::TegraX1::MMU::MMUBase* mmu, Hipc::ParsedRequest hipc_in,
+    Writers(const HW::TegraX1::CPU::MMUBase* mmu, Hipc::ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
             u8* scratch_buffer_move_handles, u8* scratch_buffer_copy_handles)
         : writer(scratch_buffer), objects_writer(scratch_buffer_objects),

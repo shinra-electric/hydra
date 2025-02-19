@@ -2,10 +2,6 @@
 
 #include "horizon/kernel.hpp"
 
-namespace Hydra::HW::TegraX1::MMU {
-class MMUBase;
-}
-
 namespace Hydra::HW::Display {
 class DisplayBase;
 }
@@ -165,10 +161,10 @@ class OS {
   public:
     static OS& GetInstance();
 
-    OS(HW::Bus& bus);
+    OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu);
     ~OS();
 
-    void SetMMU(HW::TegraX1::MMU::MMUBase* mmu);
+    void LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread);
 
     // Getters
     Kernel& GetKernel() { return kernel; }

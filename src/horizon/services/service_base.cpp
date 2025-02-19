@@ -4,11 +4,11 @@
 #include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/domain_service.hpp"
-#include "hw/tegra_x1/mmu/mmu_base.hpp"
+#include "hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace Hydra::Horizon::Services {
 
-u8* get_buffer_ptr(const HW::TegraX1::MMU::MMUBase* mmu,
+u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
                    const Hipc::BufferDescriptor& descriptor) {
     u64 addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
                (u64)descriptor.address_high << 36;

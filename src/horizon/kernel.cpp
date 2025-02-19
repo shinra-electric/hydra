@@ -5,8 +5,8 @@
 #include "horizon/hipc.hpp"
 #include "horizon/services/service_base.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
-#include "hw/tegra_x1/mmu/memory.hpp"
-#include "hw/tegra_x1/mmu/mmu_base.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
+#include "hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace Hydra::Horizon {
 
@@ -14,9 +14,7 @@ namespace Hydra::Horizon {
 // #define BSS_MEM_BASE 0x00010000
 
 #define STACK_MEM_BASE 0x01000000
-#define STACK_SIZE 0x200000
-// For EL0 and EL1
-#define STACK_MEM_SIZE (STACK_SIZE * 2)
+#define STACK_MEM_SIZE 0x200000
 
 #define KERNEL_MEM_BASE 0xF0000000
 #define KERNEL_MEM_SIZE 0x10000
@@ -60,7 +58,8 @@ static Kernel* s_instance = nullptr;
 
 Kernel& Kernel::GetInstance() { return *s_instance; }
 
-Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
+Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
+    : bus{bus_}, mmu{mmu_} {
     ASSERT(s_instance == nullptr, HorizonKernel,
            "Horizon kernel already exists");
     s_instance = this;
@@ -68,12 +67,13 @@ Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
     // Memory
 
     // Stack memory
-    stack_mem = new HW::TegraX1::MMU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
+    stack_mem = new HW::TegraX1::CPU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
                                              Permission::ReadWrite);
     stack_mem->Clear();
+    mmu->MapMemory(stack_mem);
 
     // Kernel memory
-    kernel_mem = new HW::TegraX1::MMU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
+    kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
                                               Permission::Execute);
     kernel_mem->Clear();
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -83,20 +83,25 @@ Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
     memcpy(kernel_mem->GetPtrU8() + 0x800, exception_trampoline,
            sizeof(exception_trampoline));
 
+    mmu->MapMemory(kernel_mem);
+
     // TLS memory
-    tls_mem = new HW::TegraX1::MMU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE,
+    tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE,
                                            Permission::ReadWrite);
     tls_mem->Clear();
+    mmu->MapMemory(tls_mem);
 
     // ASLR memory
-    aslr_mem = new HW::TegraX1::MMU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
+    aslr_mem = new HW::TegraX1::CPU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
                                             Permission::ReadWrite);
     aslr_mem->Clear();
+    mmu->MapMemory(aslr_mem);
 
     // Heap memory
-    heap_mem = new HW::TegraX1::MMU::Memory(
+    heap_mem = new HW::TegraX1::CPU::Memory(
         HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE, Permission::ReadWrite);
     heap_mem->Clear();
+    mmu->MapMemory(heap_mem);
 }
 
 Kernel::~Kernel() {
@@ -110,47 +115,46 @@ Kernel::~Kernel() {
     delete heap_mem;
 }
 
-void Kernel::SetMMU(HW::TegraX1::MMU::MMUBase* mmu_) {
-    mmu = mmu_;
-
-    mmu->MapMemory(stack_mem);
-    mmu->MapMemory(kernel_mem);
-    mmu->MapMemory(tls_mem);
-    mmu->MapMemory(aslr_mem);
-    mmu->MapMemory(heap_mem);
+void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
+    thread->Configure(kernel_mem->GetBase(), tls_mem->GetBase(),
+                      stack_mem->GetBase() + stack_mem->GetSize());
 }
 
-void Kernel::LoadROM(Rom* rom) {
+void Kernel::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
     if (rom_mem) {
         mmu->UnmapMemory(rom_mem);
         delete rom_mem;
     }
 
-    rom_mem = new HW::TegraX1::MMU::Memory(
+    // ROM memory
+    rom_mem = new HW::TegraX1::CPU::Memory(
         ROM_MEM_BASE, rom->GetRom().size(),
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
     rom_mem->Clear();
-
     memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
-
-    // Text
-    // memcpy(rom_mem->GetPtr(), rom->GetText().data(), rom->GetText().size());
-
-    // RO data
-    // memcpy(rom_mem->GetPtr() + RO_DATA_OFFSET, rom->GetRoData().data(),
-    //       rom->GetRoData().size());
-
-    // BSS memory
-    // bss_mem = new HW::MMU::Memory(BSS_MEM_BASE, rom->GetBssSize(),
-    //                              Permission::ReadWrite);
-    // bss_mem->Clear();
-
     mmu->MapMemory(rom_mem);
-    // mmu->MapMemory(horizon.GetKernel().GetBssMemory());
+
+    // Set initial PC
+    thread->SetRegPC(rom_mem->GetBase() + rom->GetTextOffset());
+
+    // Set arguments
+
+    // From https://github.com/switchbrew/libnx
+
+    // NSO
+    // TODO
+
+    // NRO
+    // TODO: should be ptr to env context
+    thread->SetRegX(0, 0);
+    thread->SetRegX(1, 0x0000000F);
+
+    // User-mode exception entry
+    // TODO: what is this?
 }
 
-bool Kernel::SupervisorCall(HW::TegraX1::CPU::CPUBase* cpu, u64 id) {
+bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     Result res;
     u32 tmpU32;
     u64 tmpU64;
@@ -158,104 +162,106 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::CPUBase* cpu, u64 id) {
     Handle tmpHandle;
     switch (id) {
     case 0x1:
-        res = svcSetHeapSize(&tmpUPTR, cpu->GetRegX(1));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpUPTR);
+        res = svcSetHeapSize(&tmpUPTR, thread->GetRegX(1));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpUPTR);
         break;
     case 0x2:
-        res = svcSetMemoryPermission(cpu->GetRegX(0), cpu->GetRegX(1),
-                                     static_cast<Permission>(cpu->GetRegX(2)));
-        cpu->SetRegX(0, res);
+        res =
+            svcSetMemoryPermission(thread->GetRegX(0), thread->GetRegX(1),
+                                   static_cast<Permission>(thread->GetRegX(2)));
+        thread->SetRegX(0, res);
         break;
     case 0x3:
-        res = svcSetMemoryAttribute(cpu->GetRegX(0), cpu->GetRegX(1),
-                                    cpu->GetRegX(2), cpu->GetRegX(3));
-        cpu->SetRegX(0, res);
+        res = svcSetMemoryAttribute(thread->GetRegX(0), thread->GetRegX(1),
+                                    thread->GetRegX(2), thread->GetRegX(3));
+        thread->SetRegX(0, res);
         break;
     case 0x6:
         res = svcQueryMemory(
-            reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(cpu->GetRegX(0))),
-            &tmpU32, cpu->GetRegX(2));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpU32);
+            reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(thread->GetRegX(0))),
+            &tmpU32, thread->GetRegX(2));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpU32);
         break;
     case 0x7:
         svcExitProcess();
         return false;
     case 0xb:
-        svcSleepThread(bit_cast<i64>(cpu->GetRegX(0)));
+        svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
     case 0x13:
-        res = svcMapSharedMemory(cpu->GetRegX(0), cpu->GetRegX(1),
-                                 cpu->GetRegX(2),
-                                 static_cast<Permission>(cpu->GetRegX(3)));
-        cpu->SetRegX(0, res);
+        res = svcMapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
+                                 thread->GetRegX(2),
+                                 static_cast<Permission>(thread->GetRegX(3)));
+        thread->SetRegX(0, res);
         break;
     case 0x15:
-        res = svcCreateTransferMemory(&tmpHandle, cpu->GetRegX(1),
-                                      cpu->GetRegX(2),
-                                      static_cast<Permission>(cpu->GetRegX(3)));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpHandle);
+        res = svcCreateTransferMemory(
+            &tmpHandle, thread->GetRegX(1), thread->GetRegX(2),
+            static_cast<Permission>(thread->GetRegX(3)));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpHandle);
         break;
     case 0x16:
-        res = svcCloseHandle(cpu->GetRegX(0));
-        cpu->SetRegX(0, res);
+        res = svcCloseHandle(thread->GetRegX(0));
+        thread->SetRegX(0, res);
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            tmpU64, reinterpret_cast<Handle*>(cpu->GetRegX(1)),
-            bit_cast<i64>(cpu->GetRegX(2)), bit_cast<i64>(cpu->GetRegX(3)));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpU64);
+            tmpU64, reinterpret_cast<Handle*>(thread->GetRegX(1)),
+            bit_cast<i64>(thread->GetRegX(2)),
+            bit_cast<i64>(thread->GetRegX(3)));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpU64);
         break;
     case 0x1a:
-        res =
-            svcArbitrateLock(cpu->GetRegX(0), cpu->GetRegX(1), cpu->GetRegX(2));
-        cpu->SetRegX(0, res);
+        res = svcArbitrateLock(thread->GetRegX(0), thread->GetRegX(1),
+                               thread->GetRegX(2));
+        thread->SetRegX(0, res);
         break;
     case 0x1b:
-        res = svcArbitrateUnlock(cpu->GetRegX(0));
-        cpu->SetRegX(0, res);
+        res = svcArbitrateUnlock(thread->GetRegX(0));
+        thread->SetRegX(0, res);
         break;
     case 0x1c:
-        res = svcWaitProcessWideKeyAtomic(cpu->GetRegX(0), cpu->GetRegX(1),
-                                          cpu->GetRegX(2),
-                                          bit_cast<i64>(cpu->GetRegX(3)));
-        cpu->SetRegX(0, res);
+        res = svcWaitProcessWideKeyAtomic(
+            thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
+            bit_cast<i64>(thread->GetRegX(3)));
+        thread->SetRegX(0, res);
         break;
     case 0x1f:
         res = svcConnectToNamedPort(
             &tmpHandle,
-            reinterpret_cast<const char*>(mmu->UnmapAddr(cpu->GetRegX(1))));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpHandle);
+            reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpHandle);
         break;
     case 0x21:
-        res = svcSendSyncRequest(cpu->GetRegX(0));
-        cpu->SetRegX(0, res);
+        res = svcSendSyncRequest(thread->GetRegX(0));
+        thread->SetRegX(0, res);
         break;
     case 0x26:
-        res = svcBreak(BreakReason(cpu->GetRegX(0)),
-                       mmu->UnmapAddr(cpu->GetRegX(1)), cpu->GetRegX(2));
-        cpu->SetRegX(0, res);
+        res = svcBreak(BreakReason(thread->GetRegX(0)),
+                       mmu->UnmapAddr(thread->GetRegX(1)), thread->GetRegX(2));
+        thread->SetRegX(0, res);
         break;
     case 0x27:
         res = svcOutputDebugString(
-            reinterpret_cast<const char*>(mmu->UnmapAddr(cpu->GetRegX(0))),
-            cpu->GetRegX(1));
-        cpu->SetRegX(0, res);
+            reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(0))),
+            thread->GetRegX(1));
+        thread->SetRegX(0, res);
         break;
     case 0x29:
-        res = svcGetInfo(&tmpU64, static_cast<InfoType>(cpu->GetRegX(1)),
-                         cpu->GetRegX(2), cpu->GetRegX(3));
-        cpu->SetRegX(0, res);
-        cpu->SetRegX(1, tmpU64);
+        res = svcGetInfo(&tmpU64, static_cast<InfoType>(thread->GetRegX(1)),
+                         thread->GetRegX(2), thread->GetRegX(3));
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpU64);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented SVC 0x{:08x}", id);
         res = MAKE_KERNEL_RESULT(NotImplemented);
-        cpu->SetRegX(0, res);
+        thread->SetRegX(0, res);
         break;
     }
 
@@ -286,7 +292,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         "{})",
         addr, size, permission);
 
-    HW::TegraX1::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    HW::TegraX1::CPU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
@@ -317,7 +323,7 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    HW::TegraX1::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    HW::TegraX1::CPU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);

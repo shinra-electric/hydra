@@ -8,7 +8,7 @@ static OS* s_instance = nullptr;
 
 OS& OS::GetInstance() { return *s_instance; }
 
-OS::OS(HW::Bus& bus) : kernel(bus) {
+OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu) : kernel(bus, mmu) {
     ASSERT(s_instance == nullptr, Horizon, "Horizon OS already exists");
     s_instance = this;
 
@@ -20,6 +20,8 @@ OS::OS(HW::Bus& bus) : kernel(bus) {
 
 OS::~OS() {}
 
-void OS::SetMMU(HW::TegraX1::MMU::MMUBase* mmu) { kernel.SetMMU(mmu); }
+void OS::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
+    kernel.LoadROM(rom, thread);
+}
 
 } // namespace Hydra::Horizon

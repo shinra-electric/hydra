@@ -1,8 +1,8 @@
-#include "hw/tegra_x1/mmu/memory.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
 
 #define MEMORY_ALIGNMENT 0x4000
 
-namespace Hydra::HW::TegraX1::MMU {
+namespace Hydra::HW::TegraX1::CPU {
 
 Memory::Memory(uptr base_, usize size_, Horizon::Permission permission_)
     : base{base_}, size{align(size_, (usize)MEMORY_ALIGNMENT)},
@@ -41,4 +41,4 @@ void Memory::Allocate() {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::MMU
+} // namespace Hydra::HW::TegraX1::CPU

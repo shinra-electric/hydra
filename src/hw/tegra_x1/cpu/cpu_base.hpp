@@ -1,13 +1,13 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 
 class CPUBase {
   public:
-    virtual u64 GetRegX(u8 reg) const = 0;
-    virtual void SetRegX(u8 reg, u64 value) = 0;
+    virtual ThreadBase* CreateThread() = 0;
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

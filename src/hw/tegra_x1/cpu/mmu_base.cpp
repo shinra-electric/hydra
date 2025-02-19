@@ -1,8 +1,8 @@
-#include "hw/tegra_x1/mmu/mmu_base.hpp"
+#include "hw/tegra_x1/cpu/mmu_base.hpp"
 
-#include "hw/tegra_x1/mmu/memory.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
 
-namespace Hydra::HW::TegraX1::MMU {
+namespace Hydra::HW::TegraX1::CPU {
 
 void MMUBase::MapMemory(Memory* mem) {
     memories.push_back(mem);
@@ -50,4 +50,4 @@ uptr MMUBase::UnmapAddr(uptr addr) const {
     return mem->UnmapAddr(addr);
 }
 
-} // namespace Hydra::HW::TegraX1::MMU
+} // namespace Hydra::HW::TegraX1::CPU

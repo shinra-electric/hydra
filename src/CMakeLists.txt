@@ -64,22 +64,23 @@ add_executable(hydra
     horizon/services/visrv/manager_root_service.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
+    hw/tegra_x1/cpu/memory.cpp
+    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/mmu_base.cpp
+    hw/tegra_x1/cpu/mmu_base.hpp
+    hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.hpp
+    hw/tegra_x1/cpu/hypervisor/const.hpp
+    hw/tegra_x1/cpu/hypervisor/mmu.cpp
+    hw/tegra_x1/cpu/hypervisor/mmu.hpp
+    hw/tegra_x1/cpu/hypervisor/thread.cpp
+    hw/tegra_x1/cpu/hypervisor/thread.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
-    hw/tegra_x1/mmu/mmu_base.cpp
-    hw/tegra_x1/mmu/mmu_base.hpp
-    hw/tegra_x1/mmu/memory.cpp
-    hw/tegra_x1/mmu/memory.hpp
-    hw/tegra_x1/mmu/hypervisor/mmu.cpp
-    hw/tegra_x1/mmu/hypervisor/mmu.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/display/display.hpp
     hw/bus.hpp
-    hypervisor/const.hpp
-    hypervisor/hypervisor.cpp
-    hypervisor/hypervisor.hpp
 )
 
 target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/src) # TODO: dependencies directory

@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "horizon/const.hpp"
 
-namespace Hydra::HW::TegraX1::MMU {
+namespace Hydra::HW::TegraX1::CPU {
 
 class Memory {
   public:
@@ -47,4 +47,4 @@ class Memory {
     void Allocate();
 };
 
-} // namespace Hydra::HW::TegraX1::MMU
+} // namespace Hydra::HW::TegraX1::CPU

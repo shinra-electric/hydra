@@ -1,111 +1,68 @@
-#include "hypervisor/hypervisor.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
-#include "common/common.hpp"
 #include "horizon/os.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
-#include "hw/tegra_x1/mmu/memory.hpp"
-#include <Hypervisor/hv_vcpu_types.h>
+#include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
 
-namespace Hydra::Hypervisor {
+#define MAX_STACK_TRACE_DEPTH 32
 
-Hypervisor::Hypervisor(Horizon::OS& horizon_) : horizon{horizon_} {
-    // Create VM
-    hv_vm_config_t vm_config = hv_vm_config_create();
-    // hv_vm_config_set_el2_enabled(config, true);
-    HYP_ASSERT_SUCCESS(hv_vm_create(vm_config));
+namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-    // Create GIC
-    // hv_gic_config_t gic_config = hv_gic_config_create();
-    // hv_gic_config_set_msi_region_base(&gic_config, TODO);
-    // hv_gic_config_set_msi_interrupt_range(&gic_config, TODO);
-    // HYP_ASSERT_SUCCESS(hv_gic_create(gic_config));
+Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
+    // Create
+    HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
-    // MMU
-    mmu = new HW::TegraX1::MMU::Hypervisor::MMU();
-    horizon.SetMMU(mmu);
+    // TODO: what are these?
+    SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519UL);
+    // SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925UL);
 
-    // CPU
-    cpu = new HW::TegraX1::CPU::Hypervisor::CPU(*mmu);
+    // Enable FP and SIMD instructions.
+    // TODO: find out how this works
+    SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
 
-    // Configure timers
-    cpu->SetupVTimer();
+    SetSysReg(HV_SYS_REG_MAIR_EL1, 0xffUL);
+
+    // Trap debug access
+    HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
+    // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
 }
 
-Hypervisor::~Hypervisor() {
-    delete cpu;
+Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
-    hv_vm_destroy();
-}
-
-void Hypervisor::LoadROM(Rom* rom) {
-    horizon.GetKernel().LoadROM(rom);
-
-    // Set initial PC
-    cpu->SetReg(HV_REG_PC, horizon.GetKernel().GetRomMemory()->GetBase() +
-                               rom->GetTextOffset());
-
-    // Set arguments
-
-    // From https://github.com/switchbrew/libnx
-
-    // NSO
-    // TODO
-
-    // NRO
-    // TODO: should be ptr to env context
-    cpu->SetReg(HV_REG_X0, 0);
-    cpu->SetReg(HV_REG_X1, 0x0000000F);
-
-    // User-mode exception entry
-    // TODO: what is this?
-
+void Thread::Configure(uptr kernel_mem_base,
+                       uptr tls_mem_base /*,
+  uptr rom_mem_base*/, uptr stack_mem_end) {
     // Trampoline
-    cpu->SetSysReg(HV_SYS_REG_VBAR_EL1,
-                   horizon.GetKernel().GetKernelMemory()->GetBase());
+    SetSysReg(HV_SYS_REG_VBAR_EL1, kernel_mem_base);
 
     // Set the CPU's PC to execute from the trampoline
     // HYP_ASSERT_SUCCESS(
     //    hv_vcpu_set_reg(vcpu, HV_REG_PC, KERNEL_MEM_ADDR + 0x800));
 
     // Explicitly set CPSR
-    cpu->SetReg(HV_REG_CPSR, 0x3c4);
+    SetReg(HV_REG_CPSR, 0x3c4);
 
     // TODO: correct?
-    cpu->SetSysReg(HV_SYS_REG_TTBR0_EL1,
-                   /*_userRange.GetIpaBase()*/ horizon.GetKernel()
-                       .GetRomMemory()
-                       ->GetBase());
-    cpu->SetSysReg(HV_SYS_REG_TTBR1_EL1,
-                   /*_kernelRange.GetIpaBase()*/ horizon.GetKernel()
-                       .GetKernelMemory()
-                       ->GetBase());
+    // SetSysReg(HV_SYS_REG_TTBR0_EL1,
+    //          /*_userRange.GetIpaBase()*/ rom_mem_base);
+    // SetSysReg(HV_SYS_REG_TTBR1_EL1,
+    //          /*_kernelRange.GetIpaBase()*/ kernel_mem_base);
 
     // Initialize the stack pointer
-    auto stack_mem = horizon.GetKernel().GetStackMemory();
-    cpu->SetSysReg(HV_SYS_REG_SP_EL0,
-                   stack_mem->GetBase() + stack_mem->GetSize() / 2);
-    cpu->SetSysReg(HV_SYS_REG_SP_EL1,
-                   stack_mem->GetBase() + stack_mem->GetSize());
+    SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
+    // TODO: set SP_EL1 as well?
 
     // Setup TLS pointer
     // TODO: offset by thread id * some alignment?
-    cpu->SetSysReg(HV_SYS_REG_TPIDRRO_EL0,
-                   horizon.GetKernel().GetTlsMemory()->GetBase());
-
-    // HACK: g_overrideHeapAddr is 0x5b982811ce0afbf4 for no reason
-    //*((u64*)mmu->UnmapPtr(0x80017498)) = 0x0;
-    // Logging::log(Logging::Level::Debug, "LoadROM HEAP OVERRIDE: 0x%08llx",
-    //        *((u64*)mmu->UnmapPtr(0x80017498)));
+    SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
 }
 
-void Hypervisor::Run() {
+void Thread::Run() {
     // Main run loop
     bool running = true;
     while (running) {
-        cpu->Run();
+        HYP_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
-        auto exit = cpu->GetExit();
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;
             u8 hvEc = (syndrome >> 26) & 0x3f;
@@ -116,12 +73,12 @@ void Hypervisor::Run() {
                 // Logging::log(Logging::Level::Debug, "VM made an HVC call! x0
                 // register holds 0x%llx", x0);
 
-                u64 esr = cpu->GetSysReg(HV_SYS_REG_ESR_EL1);
+                u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
                 u8 ec = (esr >> 26) & 0x3f;
 
-                u64 elr = cpu->GetSysReg(HV_SYS_REG_ELR_EL1);
+                u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
 
-                u64 far = cpu->GetSysReg(HV_SYS_REG_FAR_EL1);
+                u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
                 // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
                 // u64 mode = (spsr >> 2) & 0x3;
@@ -131,12 +88,11 @@ void Hypervisor::Run() {
                 switch (ec) {
                 case 0x15:
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                                       elr);
+                    LogStackTrace(os->GetKernel().GetStackMemory(), elr);
                     // cpu->LogRegisters();
 
                     running =
-                        horizon.GetKernel().SupervisorCall(cpu, esr & 0xffff);
+                        os->GetKernel().SupervisorCall(this, esr & 0xffff);
 
                     // HACK
                     // cpu->SetSysReg(HV_SYS_REG_SPSR_EL1,
@@ -171,16 +127,15 @@ void Hypervisor::Run() {
                 }
                 default:
                     // Debug
-                    cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                                       elr);
+                    LogStackTrace(os->GetKernel().GetStackMemory(), elr);
 
                     LOG_ERROR(
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR_ "
                         "0x{:08x})",
-                        ec, esr, cpu->GetSysReg(HV_SYS_REG_ELR_EL1),
-                        cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
+                        ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
+                        GetSysReg(HV_SYS_REG_FAR_EL1));
                     // Logging::log(Logging::Level::Debug, "X3: 0x%08llx",
                     // cpu->GetReg(HV_REG_X3));
                     break;
@@ -188,9 +143,8 @@ void Hypervisor::Run() {
 
                 // Set the PC to trampoline
                 // TODO: most of the time we can skip msr, find out when
-                cpu->SetReg(HV_REG_PC,
-                            horizon.GetKernel().GetKernelMemory()->GetBase() +
-                                0x800);
+                SetReg(HV_REG_PC,
+                       os->GetKernel().GetKernelMemory()->GetBase() + 0x800);
             } else if (hvEc == 0x17) { // SMC
                 // uint64_t x0;
                 // HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, HV_REG_X0, &x0));
@@ -200,19 +154,18 @@ void Hypervisor::Run() {
                 // instruction.");
                 LOG_WARNING(Hypervisor, "SMC instruction");
 
-                cpu->AdvancePC();
+                AdvancePC();
             } else if (hvEc == 0x18) {
                 // TODO: this should not happen
 
                 // Debug
-                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                                   cpu->GetReg(HV_REG_PC));
+                LogStackTrace(os->GetKernel().GetStackMemory(),
+                              GetReg(HV_REG_PC));
 
                 LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
                 // Manually execute the instruction
-                u32 instruction =
-                    *((u32*)mmu->UnmapAddr(cpu->GetReg(HV_REG_PC)));
+                u32 instruction = mmu->Load<u32>(GetReg(HV_REG_PC));
 
                 u8 opcode =
                     (instruction >> 24) & 0xFF; // Extract opcode (bits 31-24)
@@ -233,24 +186,24 @@ void Hypervisor::Run() {
                 //           << ", CRn=" << (int)crn << ", CRm=" << (int)crm
                 //           << ", op2=" << (int)op2 << std::endl;
 
-                cpu->SetReg((hv_reg_t)(HV_REG_X0 + rt), 0);
+                SetReg((hv_reg_t)(HV_REG_X0 + rt), 0);
 
                 // Set the return address
                 // TODO: correct?
                 // u64 elr = cpu->GetSysReg(HV_SYS_REG_ELR_EL1);
                 // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
-                cpu->AdvancePC();
+                AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
                 LOG_ERROR(Hypervisor, "BRK instruction");
-                cpu->LogRegisters();
+                LogRegisters();
                 // LOG_DEBUG(Hypervisor, "buf_linear(0x{:08x}): 0x{:08x}",
                 //           0x011ffdd0 + 48, mmu->Load<u64>(0x011ffdd0 + 48));
                 break;
             } else {
                 // Debug
-                cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                                   cpu->GetReg(HV_REG_PC));
-                cpu->LogRegisters();
+                LogStackTrace(os->GetKernel().GetStackMemory(),
+                              GetReg(HV_REG_PC));
+                LogRegisters();
 
                 LOG_ERROR(
                     Hypervisor,
@@ -258,10 +211,10 @@ void Hypervisor::Run() {
                     "0x{:08x}, "
                     "VirtAddr: "
                     "0x{:08x}, IPA: 0x{:08x}, FAR: 0x{:08x})",
-                    syndrome, hvEc, cpu->GetSysReg(HV_SYS_REG_ESR_EL1),
+                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1),
                     exit->exception.virtual_address,
                     exit->exception.physical_address,
-                    cpu->GetSysReg(HV_SYS_REG_FAR_EL1));
+                    GetSysReg(HV_SYS_REG_FAR_EL1));
                 // Logging::log(Logging::Level::Debug, "X2: 0x%08llx",
                 // cpu->GetReg(HV_REG_X2));
                 //  Logging::log(Logging::Level::Debug, "INSTRUCTION: 0x%08x",
@@ -270,7 +223,7 @@ void Hypervisor::Run() {
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
-            cpu->UpdateVTimer();
+            UpdateVTimer();
             LOG_DEBUG(Hypervisor, "VTimer");
         } else {
             // TODO: don't cast to u32
@@ -281,7 +234,57 @@ void Hypervisor::Run() {
     }
 }
 
-void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
+void Thread::AdvancePC() {
+    u64 pc = GetReg(HV_REG_PC);
+    SetReg(HV_REG_PC, pc + 4);
+}
+
+void Thread::SetupVTimer() {
+    SetSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
+    SetSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
+              1000000000000000000); // TODO: set to current time
+}
+
+void Thread::UpdateVTimer() {
+    SetupVTimer();
+    hv_vcpu_set_vtimer_mask(vcpu, false);
+}
+
+void Thread::LogRegisters(u32 count) {
+    LOG_DEBUG(CPU, "Reg dump:");
+    for (u32 i = 0; i < count; i++) {
+        LOG_DEBUG(CPU, "X{}: 0x{:08x}", i, GetReg((hv_reg_t)(HV_REG_X0 + i)));
+    }
+    LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
+}
+
+void Thread::LogStackTrace(Memory* stack_mem, uptr pc) {
+    u64 fp = GetReg(HV_REG_FP);
+    u64 lr = GetReg(HV_REG_LR);
+    u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
+
+    LOG_DEBUG(CPU, "Stack trace:");
+    // LOG_DEBUG(CPU, "SP: 0x{:08x}", sp);
+    LOG_DEBUG(CPU, "0x{:08x}", pc);
+
+    for (uint64_t frame = 0; fp != 0; frame++) {
+        LOG_DEBUG(CPU, "0x{:08x}", lr - 0x4);
+        if (frame == MAX_STACK_TRACE_DEPTH - 1) {
+            LOG_DEBUG(CPU, "... (more frames)");
+            break;
+        }
+
+        if (!stack_mem->AddrIsInRange(fp))
+            break;
+
+        u64 new_fp = *((u64*)stack_mem->UnmapAddr(fp));
+        lr = *((u64*)stack_mem->UnmapAddr(fp + 8));
+
+        fp = new_fp;
+    }
+}
+
+void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
     // LOG_DEBUG(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}, FAR:
     // 0x{:08x}",
     //           elr, instruction, far);
@@ -321,7 +324,7 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
                      EXTRACT_BITS(instruction, 4, 0),
                      EXTRACT_BITS(instruction, 14, 10), far);
     } else {
-        cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(), elr);
+        LogStackTrace(os->GetKernel().GetStackMemory(), elr);
         LOG_WARNING(Hypervisor,
                     "Unimplemented data abort instruction "
                     "0x{:08x}",
@@ -330,10 +333,10 @@ void Hypervisor::DataAbort(u32 instruction, u64 far, u64 elr) {
 
     // Set the return address
     // TODO: correct?
-    cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+    SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
 }
 
-void Hypervisor::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
+void Thread::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
     u8 size = (4 << size0);
 
     // LOG_DEBUG(Hypervisor, "loaded 0x{:08x} into X{} from 0x{:08x}", v,
@@ -344,10 +347,10 @@ void Hypervisor::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
 
     switch (size) {
     case 4:
-        cpu->SetRegX(out_reg, mmu->Load<u32>(addr));
+        SetRegX(out_reg, mmu->Load<u32>(addr));
         break;
     case 8:
-        cpu->SetRegX(out_reg, mmu->Load<u64>(addr));
+        SetRegX(out_reg, mmu->Load<u64>(addr));
         break;
     // case 16:
     //     cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
@@ -358,7 +361,7 @@ void Hypervisor::InterpretLDAXR(u8 size0, u8 out_reg, u64 addr) {
     }
 }
 
-void Hypervisor::InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr) {
+void Thread::InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr) {
     u8 size = (4 << size0);
 
     // TODO: barrier
@@ -368,10 +371,10 @@ void Hypervisor::InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr) {
 
     switch (size) {
     case 4:
-        mmu->Store<u32>(addr, cpu->GetRegX(reg));
+        mmu->Store<u32>(addr, GetRegX(reg));
         break;
     case 8:
-        mmu->Store<u64>(addr, cpu->GetRegX(reg));
+        mmu->Store<u64>(addr, GetRegX(reg));
         break;
     // case 16:
     //     mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(reg));
@@ -381,28 +384,28 @@ void Hypervisor::InterpretSTLXR(u8 size0, u8 out_res_reg, u8 reg, u64 addr) {
         break;
     }
 
-    cpu->SetRegX(out_res_reg, 0);
+    SetRegX(out_res_reg, 0);
 }
 
-void Hypervisor::InterpretDC(u64 addr) {
+void Thread::InterpretDC(u64 addr) {
     constexpr usize CACHE_LINE_SIZE = 0x40;
 
     // Zero out the memory
     memset((void*)mmu->UnmapAddr(addr), 0, CACHE_LINE_SIZE);
 }
 
-void Hypervisor::InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr) {
+void Thread::InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr) {
     u8 size = (4 << size0) << size1;
 
     switch (size) {
     case 4:
-        cpu->SetRegX(out_reg, mmu->Load<u32>(addr));
+        SetRegX(out_reg, mmu->Load<u32>(addr));
         break;
     case 8:
-        cpu->SetRegX(out_reg, mmu->Load<u64>(addr));
+        SetRegX(out_reg, mmu->Load<u64>(addr));
         break;
     case 16:
-        cpu->SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+        SetRegQ(out_reg, mmu->Load<hv_simd_fp_uchar16_t>(addr));
         break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
@@ -410,18 +413,18 @@ void Hypervisor::InterpretLDR(u8 size0, u8 size1, u8 out_reg, u64 addr) {
     }
 }
 
-void Hypervisor::InterpretSTR(u8 size0, u8 size1, u8 reg, u64 addr) {
+void Thread::InterpretSTR(u8 size0, u8 size1, u8 reg, u64 addr) {
     u8 size = (4 << size0) << size1;
 
     switch (size) {
     case 4:
-        mmu->Store<u32>(addr, cpu->GetRegX(reg));
+        mmu->Store<u32>(addr, GetRegX(reg));
         break;
     case 8:
-        mmu->Store<u64>(addr, cpu->GetRegX(reg));
+        mmu->Store<u64>(addr, GetRegX(reg));
         break;
     case 16:
-        mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(reg));
+        mmu->Store<hv_simd_fp_uchar16_t>(addr, GetRegQ(reg));
         break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
@@ -429,8 +432,8 @@ void Hypervisor::InterpretSTR(u8 size0, u8 size1, u8 reg, u64 addr) {
     }
 }
 
-void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
-                              u64 addr) {
+void Thread::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
+                          u64 addr) {
     u8 size = (4 << size0) << size1;
 
     // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
@@ -438,17 +441,17 @@ void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
 
     switch (size) {
     case 4:
-        cpu->SetRegX(out_reg0, mmu->Load<u32>(addr));
-        cpu->SetRegX(out_reg1, mmu->Load<u32>(addr + sizeof(u32)));
+        SetRegX(out_reg0, mmu->Load<u32>(addr));
+        SetRegX(out_reg1, mmu->Load<u32>(addr + sizeof(u32)));
         break;
     case 8:
-        cpu->SetRegX(out_reg0, mmu->Load<u64>(addr));
-        cpu->SetRegX(out_reg1, mmu->Load<u64>(addr + sizeof(u64)));
+        SetRegX(out_reg0, mmu->Load<u64>(addr));
+        SetRegX(out_reg1, mmu->Load<u64>(addr + sizeof(u64)));
         break;
     case 16:
-        cpu->SetRegQ(out_reg0, mmu->Load<hv_simd_fp_uchar16_t>(addr));
-        cpu->SetRegQ(out_reg1, mmu->Load<hv_simd_fp_uchar16_t>(
-                                   addr + sizeof(hv_simd_fp_uchar16_t)));
+        SetRegQ(out_reg0, mmu->Load<hv_simd_fp_uchar16_t>(addr));
+        SetRegQ(out_reg1, mmu->Load<hv_simd_fp_uchar16_t>(
+                              addr + sizeof(hv_simd_fp_uchar16_t)));
         break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
@@ -456,8 +459,8 @@ void Hypervisor::InterpretLDP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
     }
 }
 
-void Hypervisor::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
-                              u64 addr) {
+void Thread::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
+                          u64 addr) {
     u8 size = (4 << size0) << size1;
 
     // LOG_DEBUG(Hypervisor, "size: {}, reg0: X{}, reg1: X{}, addr: 0x{:08x}",
@@ -465,17 +468,17 @@ void Hypervisor::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
 
     switch (size) {
     case 4:
-        mmu->Store<u32>(addr, cpu->GetRegX(out_reg0));
-        mmu->Store<u32>(addr + sizeof(u32), cpu->GetRegX(out_reg1));
+        mmu->Store<u32>(addr, GetRegX(out_reg0));
+        mmu->Store<u32>(addr + sizeof(u32), GetRegX(out_reg1));
         break;
     case 8:
-        mmu->Store<u64>(addr, cpu->GetRegX(out_reg0));
-        mmu->Store<u64>(addr + sizeof(u64), cpu->GetRegX(out_reg1));
+        mmu->Store<u64>(addr, GetRegX(out_reg0));
+        mmu->Store<u64>(addr + sizeof(u64), GetRegX(out_reg1));
         break;
     case 16:
-        mmu->Store<hv_simd_fp_uchar16_t>(addr, cpu->GetRegQ(out_reg0));
+        mmu->Store<hv_simd_fp_uchar16_t>(addr, GetRegQ(out_reg0));
         mmu->Store<hv_simd_fp_uchar16_t>(addr + sizeof(hv_simd_fp_uchar16_t),
-                                         cpu->GetRegQ(out_reg1));
+                                         GetRegQ(out_reg1));
         break;
     default:
         LOG_ERROR(Hypervisor, "Unsupported size: {}", size);
@@ -483,4 +486,4 @@ void Hypervisor::InterpretSTP(u8 size0, u8 size1, u8 out_reg0, u8 out_reg1,
     }
 }
 
-} // namespace Hydra::Hypervisor
+} // namespace Hydra::HW::TegraX1::CPU::Hypervisor

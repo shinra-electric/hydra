@@ -1,9 +1,9 @@
-#include "hw/tegra_x1/mmu/hypervisor/mmu.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
-#include "hw/tegra_x1/mmu/memory.hpp"
-#include "hypervisor/const.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/const.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
 
-namespace Hydra::HW::TegraX1::MMU::Hypervisor {
+namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 inline hv_memory_flags_t PermisionToHV(Horizon::Permission permission) {
     hv_memory_flags_t flags = 0;
@@ -36,4 +36,4 @@ void MMU::UnmapMemoryImpl(Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_unmap(mem->GetBase(), mem->GetSize()));
 }
 
-} // namespace Hydra::HW::TegraX1::MMU::Hypervisor
+} // namespace Hydra::HW::TegraX1::CPU::Hypervisor

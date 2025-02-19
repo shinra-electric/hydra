@@ -2,16 +2,12 @@
 
 #include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
-#include "hw/tegra_x1/cpu/cpu_base.hpp"
-
-namespace Hydra::HW::TegraX1::MMU {
-class Memory;
-class MMUBase;
-} // namespace Hydra::HW::TegraX1::MMU
 
 namespace Hydra::HW::TegraX1::CPU {
-class CPUBase;
-}
+class Memory;
+class MMUBase;
+class ThreadBase;
+} // namespace Hydra::HW::TegraX1::CPU
 
 namespace Hydra::HW {
 class Bus;
@@ -27,19 +23,19 @@ class Kernel {
   public:
     static Kernel& GetInstance();
 
-    Kernel(HW::Bus& bus_);
+    Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_);
     ~Kernel();
 
-    void SetMMU(HW::TegraX1::MMU::MMUBase* mmu_);
+    void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread);
 
-    void LoadROM(Rom* rom);
+    void LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread);
 
     void ConnectServiceToPort(const std::string& port_name,
                               Services::ServiceBase* service) {
         service_ports[port_name] = service;
     }
 
-    bool SupervisorCall(HW::TegraX1::CPU::CPUBase* cpu, u64 id);
+    bool SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id);
 
     // SVCs
     Result svcSetHeapSize(uptr* out, usize size);
@@ -70,11 +66,11 @@ class Kernel {
     // Getters
     HW::Bus& GetBus() const { return bus; }
 
-    HW::TegraX1::MMU::Memory* GetRomMemory() const { return rom_mem; }
+    HW::TegraX1::CPU::Memory* GetRomMemory() const { return rom_mem; }
     // HW::MMU::Memory* GetBssMemory() const { return bss_mem; }
-    HW::TegraX1::MMU::Memory* GetStackMemory() const { return stack_mem; }
-    HW::TegraX1::MMU::Memory* GetKernelMemory() const { return kernel_mem; }
-    HW::TegraX1::MMU::Memory* GetTlsMemory() const { return tls_mem; }
+    HW::TegraX1::CPU::Memory* GetStackMemory() const { return stack_mem; }
+    HW::TegraX1::CPU::Memory* GetKernelMemory() const { return kernel_mem; }
+    HW::TegraX1::CPU::Memory* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
     Services::ServiceBase* GetService(Handle handle) const {
@@ -87,20 +83,20 @@ class Kernel {
 
   private:
     HW::Bus& bus;
-    HW::TegraX1::MMU::MMUBase* mmu;
+    HW::TegraX1::CPU::MMUBase* mmu;
 
     // Memory
 
     // Static
-    HW::TegraX1::MMU::Memory* stack_mem;
-    HW::TegraX1::MMU::Memory* kernel_mem;
-    HW::TegraX1::MMU::Memory* tls_mem;
-    HW::TegraX1::MMU::Memory* aslr_mem;
+    HW::TegraX1::CPU::Memory* stack_mem;
+    HW::TegraX1::CPU::Memory* kernel_mem;
+    HW::TegraX1::CPU::Memory* tls_mem;
+    HW::TegraX1::CPU::Memory* aslr_mem;
 
     // Dynamic
-    HW::TegraX1::MMU::Memory* rom_mem = nullptr;
+    HW::TegraX1::CPU::Memory* rom_mem = nullptr;
     // HW::MMU::Memory* bss_mem;
-    HW::TegraX1::MMU::Memory* heap_mem;
+    HW::TegraX1::CPU::Memory* heap_mem;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;
