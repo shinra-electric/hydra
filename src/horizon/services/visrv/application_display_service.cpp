@@ -52,8 +52,11 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
 
     u64 display_id = 0; // TODO: get based on the name
 
-    // TODO: layer ID?
-    Kernel::GetInstance().GetBus().GetDisplay(display_id)->OpenLayer();
+    auto layer = Kernel::GetInstance()
+                     .GetBus()
+                     .GetDisplay(display_id)
+                     ->GetLayer(in.layer_id);
+    layer->Open();
 
     // Out
     // TODO: output window size
@@ -69,7 +72,7 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
+        .binder_id = layer->GetBinderId(),
     };
     writers.recv_buffers_writers[0].Write(data);
 }
@@ -79,8 +82,11 @@ void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
 
     u64 display_id = 0; // TODO: get from layer ID
 
-    // TODO: layer ID?
-    Kernel::GetInstance().GetBus().GetDisplay(display_id)->CloseLayer();
+    Kernel::GetInstance()
+        .GetBus()
+        .GetDisplay(display_id)
+        ->GetLayer(layer_id)
+        ->Close();
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

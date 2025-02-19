@@ -1,11 +1,14 @@
 #include "horizon/services/visrv/display_service_base.hpp"
 
 #include "horizon/os.hpp"
+#include "hw/bus.hpp"
+#include "hw/display/display.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
 struct CreateStrayLayerIn {
     u32 layer_flags;
+    u32 pad;
     u64 display_id;
 };
 
@@ -16,10 +19,18 @@ struct CreateStrayLayerOut {
 
 void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<CreateStrayLayerIn>();
+
+    u32 binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder();
+
+    // Out
     CreateStrayLayerOut out{
-        .layer_id = 0,           // TODO
-        .native_window_size = 0, // TODO
+        .layer_id = Kernel::GetInstance()
+                        .GetBus()
+                        .GetDisplay(in.display_id)
+                        ->CreateLayer(binder_id),
+        .native_window_size = sizeof(ParcelData) + sizeof(Parcel),
     };
+    writers.writer.Write(out);
 
     // Parcel
     Parcel parcel{
@@ -32,7 +43,7 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
 
     // Parcel data
     ParcelData data{
-        .binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder(),
+        .binder_id = binder_id,
     };
     writers.recv_buffers_writers[0].Write(data);
 }
