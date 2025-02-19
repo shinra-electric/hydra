@@ -29,9 +29,14 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
-void Thread::Configure(uptr kernel_mem_base,
+void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
+                           svc_handler_,
+                       uptr kernel_mem_base,
                        uptr tls_mem_base /*,
-  uptr rom_mem_base*/, uptr stack_mem_end) {
+  uptr rom_mem_base*/, uptr stack_mem_end, uptr exception_trampoline_base_) {
+    svc_handler = svc_handler_;
+    exception_trampoline_base = exception_trampoline_base_;
+
     // Trampoline
     SetSysReg(HV_SYS_REG_VBAR_EL1, kernel_mem_base);
 
@@ -83,16 +88,15 @@ void Thread::Run() {
                 // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
                 // u64 mode = (spsr >> 2) & 0x3;
 
-                u32 instruction = *((u32*)mmu->UnmapAddr(elr));
+                u32 instruction = mmu->Load<u32>(elr);
 
                 switch (ec) {
                 case 0x15:
                     // Debug
-                    LogStackTrace(os->GetKernel().GetStackMemory(), elr);
+                    LogStackTrace(elr);
                     // cpu->LogRegisters();
 
-                    running =
-                        os->GetKernel().SupervisorCall(this, esr & 0xffff);
+                    running = svc_handler(this, esr & 0xffff);
 
                     // HACK
                     // cpu->SetSysReg(HV_SYS_REG_SPSR_EL1,
@@ -127,7 +131,7 @@ void Thread::Run() {
                 }
                 default:
                     // Debug
-                    LogStackTrace(os->GetKernel().GetStackMemory(), elr);
+                    LogStackTrace(elr);
 
                     LOG_ERROR(
                         Hypervisor,
@@ -143,8 +147,7 @@ void Thread::Run() {
 
                 // Set the PC to trampoline
                 // TODO: most of the time we can skip msr, find out when
-                SetReg(HV_REG_PC,
-                       os->GetKernel().GetKernelMemory()->GetBase() + 0x800);
+                SetReg(HV_REG_PC, exception_trampoline_base);
             } else if (hvEc == 0x17) { // SMC
                 // uint64_t x0;
                 // HYP_ASSERT_SUCCESS(hv_vcpu_get_reg(vcpu, HV_REG_X0, &x0));
@@ -159,8 +162,7 @@ void Thread::Run() {
                 // TODO: this should not happen
 
                 // Debug
-                LogStackTrace(os->GetKernel().GetStackMemory(),
-                              GetReg(HV_REG_PC));
+                LogStackTrace(GetReg(HV_REG_PC));
 
                 LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
@@ -201,8 +203,7 @@ void Thread::Run() {
                 break;
             } else {
                 // Debug
-                LogStackTrace(os->GetKernel().GetStackMemory(),
-                              GetReg(HV_REG_PC));
+                LogStackTrace(GetReg(HV_REG_PC));
                 LogRegisters();
 
                 LOG_ERROR(
@@ -258,7 +259,7 @@ void Thread::LogRegisters(u32 count) {
     LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
 
-void Thread::LogStackTrace(Memory* stack_mem, uptr pc) {
+void Thread::LogStackTrace(uptr pc) {
     u64 fp = GetReg(HV_REG_FP);
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
@@ -274,11 +275,11 @@ void Thread::LogStackTrace(Memory* stack_mem, uptr pc) {
             break;
         }
 
-        if (!stack_mem->AddrIsInRange(fp))
-            break;
+        // if (!stack_mem->AddrIsInRange(fp))
+        //     break;
 
-        u64 new_fp = *((u64*)stack_mem->UnmapAddr(fp));
-        lr = *((u64*)stack_mem->UnmapAddr(fp + 8));
+        u64 new_fp = mmu->Load<u64>(fp);
+        lr = mmu->Load<u64>(fp + 8);
 
         fp = new_fp;
     }
@@ -324,7 +325,7 @@ void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
                      EXTRACT_BITS(instruction, 4, 0),
                      EXTRACT_BITS(instruction, 14, 10), far);
     } else {
-        LogStackTrace(os->GetKernel().GetStackMemory(), elr);
+        LogStackTrace(elr);
         LOG_WARNING(Hypervisor,
                     "Unimplemented data abort instruction "
                     "0x{:08x}",

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/const.hpp"
+#include "hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra::Horizon {
 class OS;
@@ -21,11 +21,11 @@ class Thread : public ThreadBase {
     Thread(MMU* mmu_, CPU* cpu_);
     ~Thread() override;
 
-    void SetOS(Horizon::OS* os_) { os = os_; };
-
-    void Configure(uptr kernel_mem_base,
+    void Configure(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
+                   uptr kernel_mem_base,
                    uptr tls_mem_base /*, uptr rom_mem_base*/,
-                   uptr stack_mem_end) override;
+                   uptr stack_mem_end,
+                   uptr exception_trampoline_base_) override;
 
     void Run() override;
 
@@ -85,14 +85,14 @@ class Thread : public ThreadBase {
     // Debug
     void LogRegisters(u32 count = 31);
 
-    void LogStackTrace(Memory* stack_mem, uptr pc);
+    void LogStackTrace(uptr pc);
 
   private:
     MMU* mmu;
     CPU* cpu;
 
-    // TODO: use only handler functions
-    Horizon::OS* os;
+    std::function<bool(ThreadBase*, u64)> svc_handler;
+    uptr exception_trampoline_base;
 
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;

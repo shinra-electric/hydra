@@ -7,6 +7,7 @@
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/cpu/memory.hpp"
 #include "hw/tegra_x1/cpu/mmu_base.hpp"
+#include "hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra::Horizon {
 
@@ -31,6 +32,8 @@ namespace Hydra::Horizon {
 // TODO: what is this?
 #define ASLR_MEM_BASE 0x40000000
 #define ASLR_MEM_SIZE 0x1000000
+
+#define EXCEPTION_TRAMPOLINE_OFFSET 0x800
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -80,8 +83,8 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
         memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,
                sizeof(exception_handler));
     }
-    memcpy(kernel_mem->GetPtrU8() + 0x800, exception_trampoline,
-           sizeof(exception_trampoline));
+    memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
+           exception_trampoline, sizeof(exception_trampoline));
 
     mmu->MapMemory(kernel_mem);
 
@@ -116,8 +119,11 @@ Kernel::~Kernel() {
 }
 
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
-    thread->Configure(kernel_mem->GetBase(), tls_mem->GetBase(),
-                      stack_mem->GetBase() + stack_mem->GetSize());
+    thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
+                          u64 id) { return SupervisorCall(thread, id); },
+                      kernel_mem->GetBase(), tls_mem->GetBase(),
+                      stack_mem->GetBase() + stack_mem->GetSize(),
+                      kernel_mem->GetBase() + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
 void Kernel::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {

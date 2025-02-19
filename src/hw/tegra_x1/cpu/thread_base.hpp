@@ -8,9 +8,12 @@ class ThreadBase {
   public:
     virtual ~ThreadBase() {}
 
-    virtual void Configure(uptr kernel_mem_base,
+    virtual void Configure(const std::function<bool(ThreadBase*, u64)>&
+                               svc_handler,
+                           uptr kernel_mem_base,
                            uptr tls_mem_base /*,
-      uptr rom_mem_base*/, uptr stack_mem_end) = 0;
+      uptr rom_mem_base*/, uptr stack_mem_end,
+                           uptr exception_trampoline_base) = 0;
 
     virtual void Run() = 0;
 

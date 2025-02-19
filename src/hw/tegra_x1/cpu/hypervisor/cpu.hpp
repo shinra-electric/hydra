@@ -17,17 +17,12 @@ class CPU : public CPUBase {
     CPU();
     ~CPU();
 
-    void SetOS(Horizon::OS* os_) { os = os_; };
-
     ThreadBase* CreateThread() override;
 
     // Getters
-    MMU* GetMMU() const { return mmu; }
+    MMUBase* GetMMU() const override;
 
   private:
-    // TODO: use only handler functions
-    Horizon::OS* os;
-
     MMU* mmu;
 };
 

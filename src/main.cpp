@@ -1,6 +1,7 @@
 #include "horizon/os.hpp"
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
+#include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
@@ -90,7 +91,12 @@ int main(int argc, const char* argv[]) {
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 
     // CPU
-    Hydra::HW::TegraX1::CPU::Hypervisor::CPU cpu;
+    Hydra::HW::TegraX1::CPU::CPUBase* cpu;
+    // TODO: choose based on CPU backend
+    {
+        auto hypervisorCPU = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
+        cpu = hypervisorCPU;
+    }
 
     // Display
     // TODO: instantiate a subclass instead
@@ -102,17 +108,16 @@ int main(int argc, const char* argv[]) {
     bus.SetDisplay(builtin_display, 0);
 
     // Horizon OS
-    Hydra::Horizon::OS os(bus, cpu.GetMMU());
-    cpu.SetOS(&os);
+    Hydra::Horizon::OS os(bus, cpu->GetMMU());
 
     // Main thread
-    Hydra::HW::TegraX1::CPU::ThreadBase* thread = cpu.CreateThread();
+    Hydra::HW::TegraX1::CPU::ThreadBase* thread = cpu->CreateThread();
     os.GetKernel().ConfigureThread(thread);
 
     // Load ROM
     os.LoadROM(rom, thread);
 
-    // Hypervisor
+    // Run
     thread->Run();
 
     return 0;

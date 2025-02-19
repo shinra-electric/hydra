@@ -28,10 +28,11 @@ CPU::~CPU() { hv_vm_destroy(); }
 
 ThreadBase* CPU::CreateThread() {
     Thread* thread = new Thread(mmu, this);
-    thread->SetOS(os);
     thread->SetupVTimer();
 
     return thread;
 }
+
+MMUBase* CPU::GetMMU() const { return mmu; }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor
