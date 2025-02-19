@@ -6,11 +6,11 @@ namespace Hydra::Horizon {
 class OS;
 }
 
-namespace Hydra::HW::MMU::Hypervisor {
+namespace Hydra::HW::TegraX1::MMU::Hypervisor {
 class MMU;
 }
 
-namespace Hydra::HW::CPU::Hypervisor {
+namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 class CPU;
 }
 
@@ -28,8 +28,8 @@ class Hypervisor {
   private:
     Horizon::OS& horizon;
 
-    HW::MMU::Hypervisor::MMU* mmu;
-    HW::CPU::Hypervisor::CPU* cpu;
+    HW::TegraX1::MMU::Hypervisor::MMU* mmu;
+    HW::TegraX1::CPU::Hypervisor::CPU* cpu;
 
     void DataAbort(u32 instruction, u64 far, u64 elr);
 

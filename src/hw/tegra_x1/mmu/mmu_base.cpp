@@ -2,7 +2,7 @@
 
 #include "hw/tegra_x1/mmu/memory.hpp"
 
-namespace Hydra::HW::MMU {
+namespace Hydra::HW::TegraX1::MMU {
 
 void MMUBase::MapMemory(Memory* mem) {
     memories.push_back(mem);
@@ -50,4 +50,4 @@ uptr MMUBase::UnmapAddr(uptr addr) const {
     return mem->UnmapAddr(addr);
 }
 
-} // namespace Hydra::HW::MMU
+} // namespace Hydra::HW::TegraX1::MMU

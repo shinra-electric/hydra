@@ -7,9 +7,9 @@
 
 #define MAX_STACK_TRACE_DEPTH 32
 
-namespace Hydra::HW::CPU::Hypervisor {
+namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-CPU::CPU(HW::MMU::Hypervisor::MMU& mmu_) : mmu{mmu_} {
+CPU::CPU(MMU::Hypervisor::MMU& mmu_) : mmu{mmu_} {
     // Create
     HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &vcpu_exit, NULL));
 
@@ -56,7 +56,7 @@ void CPU::LogRegisters(u32 count) {
     LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
 
-void CPU::LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc) {
+void CPU::LogStackTrace(MMU::Memory* stack_mem, uptr pc) {
     u64 fp = GetReg(HV_REG_FP);
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
@@ -82,4 +82,4 @@ void CPU::LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc) {
     }
 }
 
-} // namespace Hydra::HW::CPU::Hypervisor
+} // namespace Hydra::HW::TegraX1::CPU::Hypervisor

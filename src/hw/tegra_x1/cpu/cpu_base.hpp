@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW::CPU {
+namespace Hydra::HW::TegraX1::CPU {
 
 class CPUBase {
   public:
@@ -10,4 +10,4 @@ class CPUBase {
     virtual void SetRegX(u8 reg, u64 value) = 0;
 };
 
-} // namespace Hydra::HW::CPU
+} // namespace Hydra::HW::TegraX1::CPU

@@ -4,12 +4,12 @@
 #include "horizon/const.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
 
-namespace Hydra::HW::MMU {
+namespace Hydra::HW::TegraX1::MMU {
 class Memory;
 class MMUBase;
-} // namespace Hydra::HW::MMU
+} // namespace Hydra::HW::TegraX1::MMU
 
-namespace Hydra::HW::CPU {
+namespace Hydra::HW::TegraX1::CPU {
 class CPUBase;
 }
 
@@ -30,7 +30,7 @@ class Kernel {
     Kernel(HW::Bus& bus_);
     ~Kernel();
 
-    void SetMMU(HW::MMU::MMUBase* mmu_);
+    void SetMMU(HW::TegraX1::MMU::MMUBase* mmu_);
 
     void LoadROM(Rom* rom);
 
@@ -39,7 +39,7 @@ class Kernel {
         service_ports[port_name] = service;
     }
 
-    bool SupervisorCall(HW::CPU::CPUBase* cpu, u64 id);
+    bool SupervisorCall(HW::TegraX1::CPU::CPUBase* cpu, u64 id);
 
     // SVCs
     Result svcSetHeapSize(uptr* out, usize size);
@@ -70,11 +70,11 @@ class Kernel {
     // Getters
     HW::Bus& GetBus() const { return bus; }
 
-    HW::MMU::Memory* GetRomMemory() const { return rom_mem; }
+    HW::TegraX1::MMU::Memory* GetRomMemory() const { return rom_mem; }
     // HW::MMU::Memory* GetBssMemory() const { return bss_mem; }
-    HW::MMU::Memory* GetStackMemory() const { return stack_mem; }
-    HW::MMU::Memory* GetKernelMemory() const { return kernel_mem; }
-    HW::MMU::Memory* GetTlsMemory() const { return tls_mem; }
+    HW::TegraX1::MMU::Memory* GetStackMemory() const { return stack_mem; }
+    HW::TegraX1::MMU::Memory* GetKernelMemory() const { return kernel_mem; }
+    HW::TegraX1::MMU::Memory* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
     Services::ServiceBase* GetService(Handle handle) const {
@@ -87,20 +87,20 @@ class Kernel {
 
   private:
     HW::Bus& bus;
-    HW::MMU::MMUBase* mmu;
+    HW::TegraX1::MMU::MMUBase* mmu;
 
     // Memory
 
     // Static
-    HW::MMU::Memory* stack_mem;
-    HW::MMU::Memory* kernel_mem;
-    HW::MMU::Memory* tls_mem;
-    HW::MMU::Memory* aslr_mem;
+    HW::TegraX1::MMU::Memory* stack_mem;
+    HW::TegraX1::MMU::Memory* kernel_mem;
+    HW::TegraX1::MMU::Memory* tls_mem;
+    HW::TegraX1::MMU::Memory* aslr_mem;
 
     // Dynamic
-    HW::MMU::Memory* rom_mem = nullptr;
+    HW::TegraX1::MMU::Memory* rom_mem = nullptr;
     // HW::MMU::Memory* bss_mem;
-    HW::MMU::Memory* heap_mem;
+    HW::TegraX1::MMU::Memory* heap_mem;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;

@@ -8,7 +8,7 @@
 
 namespace Hydra::Horizon::Services {
 
-u8* get_buffer_ptr(const HW::MMU::MMUBase* mmu,
+u8* get_buffer_ptr(const HW::TegraX1::MMU::MMUBase* mmu,
                    const Hipc::BufferDescriptor& descriptor) {
     u64 addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
                (u64)descriptor.address_high << 36;

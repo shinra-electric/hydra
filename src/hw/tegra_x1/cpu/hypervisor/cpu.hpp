@@ -4,23 +4,19 @@
 #include "hypervisor/const.hpp"
 #include <Hypervisor/hv_vcpu_types.h>
 
-namespace Hydra::HW::MMU {
-
+namespace Hydra::HW::TegraX1::MMU {
 class Memory;
-
 }
 
-namespace Hydra::HW::MMU::Hypervisor {
-
+namespace Hydra::HW::TegraX1::MMU::Hypervisor {
 class MMU;
-
 }
 
-namespace Hydra::HW::CPU::Hypervisor {
+namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 class CPU : public CPUBase {
   public:
-    CPU(HW::MMU::Hypervisor::MMU& mmu_);
+    CPU(MMU::Hypervisor::MMU& mmu_);
     ~CPU();
 
     void Run();
@@ -80,13 +76,13 @@ class CPU : public CPUBase {
     // Debug
     void LogRegisters(u32 count = 31);
 
-    void LogStackTrace(HW::MMU::Memory* stack_mem, uptr pc);
+    void LogStackTrace(MMU::Memory* stack_mem, uptr pc);
 
   private:
-    HW::MMU::Hypervisor::MMU& mmu;
+    MMU::Hypervisor::MMU& mmu;
 
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* vcpu_exit;
 };
 
-} // namespace Hydra::HW::CPU::Hypervisor
+} // namespace Hydra::HW::TegraX1::CPU::Hypervisor

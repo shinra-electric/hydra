@@ -20,6 +20,6 @@ OS::OS(HW::Bus& bus) : kernel(bus) {
 
 OS::~OS() {}
 
-void OS::SetMMU(HW::MMU::MMUBase* mmu) { kernel.SetMMU(mmu); }
+void OS::SetMMU(HW::TegraX1::MMU::MMUBase* mmu) { kernel.SetMMU(mmu); }
 
 } // namespace Hydra::Horizon

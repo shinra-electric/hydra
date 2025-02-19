@@ -68,13 +68,13 @@ Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
     // Memory
 
     // Stack memory
-    stack_mem = new HW::MMU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
-                                    Permission::ReadWrite);
+    stack_mem = new HW::TegraX1::MMU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
+                                             Permission::ReadWrite);
     stack_mem->Clear();
 
     // Kernel memory
-    kernel_mem = new HW::MMU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
-                                     Permission::Execute);
+    kernel_mem = new HW::TegraX1::MMU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
+                                              Permission::Execute);
     kernel_mem->Clear();
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,
@@ -84,18 +84,18 @@ Kernel::Kernel(HW::Bus& bus_) : bus{bus_} {
            sizeof(exception_trampoline));
 
     // TLS memory
-    tls_mem =
-        new HW::MMU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE, Permission::ReadWrite);
+    tls_mem = new HW::TegraX1::MMU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE,
+                                           Permission::ReadWrite);
     tls_mem->Clear();
 
     // ASLR memory
-    aslr_mem = new HW::MMU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
-                                   Permission::ReadWrite);
+    aslr_mem = new HW::TegraX1::MMU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
+                                            Permission::ReadWrite);
     aslr_mem->Clear();
 
     // Heap memory
-    heap_mem = new HW::MMU::Memory(HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE,
-                                   Permission::ReadWrite);
+    heap_mem = new HW::TegraX1::MMU::Memory(
+        HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE, Permission::ReadWrite);
     heap_mem->Clear();
 }
 
@@ -110,7 +110,7 @@ Kernel::~Kernel() {
     delete heap_mem;
 }
 
-void Kernel::SetMMU(HW::MMU::MMUBase* mmu_) {
+void Kernel::SetMMU(HW::TegraX1::MMU::MMUBase* mmu_) {
     mmu = mmu_;
 
     mmu->MapMemory(stack_mem);
@@ -126,7 +126,7 @@ void Kernel::LoadROM(Rom* rom) {
         delete rom_mem;
     }
 
-    rom_mem = new HW::MMU::Memory(
+    rom_mem = new HW::TegraX1::MMU::Memory(
         ROM_MEM_BASE, rom->GetRom().size(),
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
@@ -150,7 +150,7 @@ void Kernel::LoadROM(Rom* rom) {
     // mmu->MapMemory(horizon.GetKernel().GetBssMemory());
 }
 
-bool Kernel::SupervisorCall(HW::CPU::CPUBase* cpu, u64 id) {
+bool Kernel::SupervisorCall(HW::TegraX1::CPU::CPUBase* cpu, u64 id) {
     Result res;
     u32 tmpU32;
     u64 tmpU64;
@@ -286,7 +286,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         "{})",
         addr, size, permission);
 
-    HW::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    HW::TegraX1::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
@@ -317,7 +317,7 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    HW::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    HW::TegraX1::MMU::Memory* mem = mmu->UnmapAddrToMemory(addr);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);

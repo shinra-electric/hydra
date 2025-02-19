@@ -3,7 +3,7 @@
 #include "hw/tegra_x1/mmu/memory.hpp"
 #include "hypervisor/const.hpp"
 
-namespace Hydra::HW::MMU::Hypervisor {
+namespace Hydra::HW::TegraX1::MMU::Hypervisor {
 
 inline hv_memory_flags_t PermisionToHV(Horizon::Permission permission) {
     hv_memory_flags_t flags = 0;
@@ -36,4 +36,4 @@ void MMU::UnmapMemoryImpl(Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_unmap(mem->GetBase(), mem->GetSize()));
 }
 
-} // namespace Hydra::HW::MMU::Hypervisor
+} // namespace Hydra::HW::TegraX1::MMU::Hypervisor

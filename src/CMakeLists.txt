@@ -73,6 +73,8 @@ add_executable(hydra
     hw/tegra_x1/mmu/memory.hpp
     hw/tegra_x1/mmu/hypervisor/mmu.cpp
     hw/tegra_x1/mmu/hypervisor/mmu.hpp
+    hw/tegra_x1/gpu/gpu.cpp
+    hw/tegra_x1/gpu/gpu.hpp
     hw/display/display.hpp
     hw/bus.hpp
     hypervisor/const.hpp

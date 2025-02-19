@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW::MMU {
+namespace Hydra::HW::TegraX1::MMU {
 
 class Memory;
 
@@ -32,4 +32,4 @@ class MMUBase {
     std::vector<Memory*> memories;
 };
 
-} // namespace Hydra::HW::MMU
+} // namespace Hydra::HW::TegraX1::MMU

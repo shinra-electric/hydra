@@ -2,7 +2,7 @@
 
 #include "horizon/kernel.hpp"
 
-namespace Hydra::HW::MMU {
+namespace Hydra::HW::TegraX1::MMU {
 class MMUBase;
 }
 
@@ -168,7 +168,7 @@ class OS {
     OS(HW::Bus& bus);
     ~OS();
 
-    void SetMMU(HW::MMU::MMUBase* mmu);
+    void SetMMU(HW::TegraX1::MMU::MMUBase* mmu);
 
     // Getters
     Kernel& GetKernel() { return kernel; }

@@ -2,7 +2,7 @@
 
 #include "hw/tegra_x1/mmu/mmu_base.hpp"
 
-namespace Hydra::HW::MMU::Hypervisor {
+namespace Hydra::HW::TegraX1::MMU::Hypervisor {
 
 class MMU : public MMUBase {
   public:
@@ -16,4 +16,4 @@ class MMU : public MMUBase {
     void UnmapMemoryImpl(Memory* mem) override;
 };
 
-} // namespace Hydra::HW::MMU::Hypervisor
+} // namespace Hydra::HW::TegraX1::MMU::Hypervisor

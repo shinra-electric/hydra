@@ -22,11 +22,11 @@ Hypervisor::Hypervisor(Horizon::OS& horizon_) : horizon{horizon_} {
     // HYP_ASSERT_SUCCESS(hv_gic_create(gic_config));
 
     // MMU
-    mmu = new HW::MMU::Hypervisor::MMU();
+    mmu = new HW::TegraX1::MMU::Hypervisor::MMU();
     horizon.SetMMU(mmu);
 
     // CPU
-    cpu = new HW::CPU::Hypervisor::CPU(*mmu);
+    cpu = new HW::TegraX1::CPU::Hypervisor::CPU(*mmu);
 
     // Configure timers
     cpu->SetupVTimer();
