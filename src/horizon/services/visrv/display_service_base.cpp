@@ -2,7 +2,7 @@
 
 #include "horizon/os.hpp"
 #include "hw/bus.hpp"
-#include "hw/display/display.hpp"
+#include "hw/display/display_base.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 

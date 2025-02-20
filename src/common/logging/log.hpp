@@ -58,6 +58,7 @@ enum class Class {
     CPU,
     GPU,
     MetalRenderer,
+    SDL3Display,
     Horizon,
     HorizonKernel,
     HorizonServices,
@@ -115,6 +116,6 @@ ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", MetalRenderer, "Renderer::Metal",
-                       Horizon, "Horizon", HorizonKernel, "Horizon::Kernel",
-                       HorizonServices, "Horizon::Services", Hypervisor,
-                       "Hypervisor")
+                       SDL3Display, "Display::SDL3", Horizon, "Horizon",
+                       HorizonKernel, "Horizon::Kernel", HorizonServices,
+                       "Horizon::Services", Hypervisor, "Hypervisor")

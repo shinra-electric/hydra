@@ -12,6 +12,7 @@ if (APPLE)
 endif()
 
 find_package(fmt CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 
 add_subdirectory(/Users/samuliak/Documents/nx-parser build/nx-parser) # TODO: dependencies directory
 #add_subdirectory(externals/fmt)

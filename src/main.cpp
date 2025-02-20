@@ -1,6 +1,6 @@
 #include "horizon/os.hpp"
 #include "hw/bus.hpp"
-#include "hw/display/display.hpp"
+#include "hw/display/sdl3/display.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
@@ -103,8 +103,10 @@ int main(int argc, const char* argv[]) {
 
     // Display
     // TODO: instantiate a subclass instead
-    Hydra::HW::Display::DisplayBase* builtin_display =
-        new Hydra::HW::Display::DisplayBase();
+    Hydra::HW::Display::DisplayBase* builtin_display;
+    {
+        builtin_display = new Hydra::HW::Display::SDL3::Display();
+    }
 
     // Bus
     Hydra::HW::Bus bus;
@@ -113,15 +115,29 @@ int main(int argc, const char* argv[]) {
     // Horizon OS
     Hydra::Horizon::OS os(bus, cpu->GetMMU());
 
-    // Main thread
-    Hydra::HW::TegraX1::CPU::ThreadBase* thread = cpu->CreateThread();
-    os.GetKernel().ConfigureThread(thread);
-
-    // Load ROM
-    os.LoadROM(rom, thread);
-
     // Run
-    thread->Run();
+    // TODO: find out why running CPU in a separate thread alongside the display
+    // sometimes causes a crash
+    std::thread t([&]() {
+        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();
+        os.GetKernel().ConfigureThread(main_thread);
+
+        // Load ROM
+        os.LoadROM(rom, main_thread);
+
+        // Run
+        main_thread->Run();
+
+        // Cleanup
+        delete main_thread;
+    });
+
+    builtin_display->Run();
+
+    // Cleanup
+    // HACK
+    t.~thread();
+    // t.join();
 
     return 0;
 }

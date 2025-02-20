@@ -7,7 +7,8 @@
 #include "horizon/services/visrv/manager_display_service.hpp"
 #include "horizon/services/visrv/system_display_service.hpp"
 #include "hw/bus.hpp"
-#include "hw/display/display.hpp"
+#include "hw/display/display_base.hpp"
+#include "hw/display/layer_base.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 

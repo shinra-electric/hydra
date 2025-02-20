@@ -90,12 +90,18 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
     hw/tegra_x1/gpu/renderer/renderer_base.hpp
-    hw/display/display.hpp
+    hw/display/layer_base.hpp
+    hw/display/display_base.hpp
+    hw/display/sdl3/const.hpp
+    hw/display/sdl3/layer.cpp
+    hw/display/sdl3/layer.hpp
+    hw/display/sdl3/display.cpp
+    hw/display/sdl3/display.hpp
     hw/bus.hpp
 )
 
 target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/src) # TODO: dependencies directory
-target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" nx-parser fmt::fmt)
+target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" nx-parser fmt::fmt SDL3::SDL3)
 
 # Signing
 set(CODESIGN_IDENTITY "Apple Development: samuliak@icloud.com (RMHRRGUDTQ)") # TODO: don't hardcode
