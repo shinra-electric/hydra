@@ -20,7 +20,7 @@
         switch (nr) {                                                          \
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
-            LOG_WARNING(HorizonServices, "Unknown ioctl {}", nr);              \
+            LOG_WARNING(HorizonServices, "Unknown ioctl 0x{:08x}", nr);        \
             break;                                                             \
         }                                                                      \
     }

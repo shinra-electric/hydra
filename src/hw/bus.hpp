@@ -10,14 +10,13 @@ class DisplayBase;
 
 class Bus {
   public:
+    void ConnectDisplay(Display::DisplayBase* display, u32 display_id) {
+        displays[display_id] = display;
+    }
+
     // Getters
     Display::DisplayBase* GetDisplay(u32 display_id) const {
         return displays[display_id];
-    }
-
-    // Setters
-    void SetDisplay(Display::DisplayBase* display, u32 display_id) {
-        displays[display_id] = display;
     }
 
   private:

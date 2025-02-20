@@ -54,8 +54,9 @@ enum class Level {
 
 enum class Class {
     Common,
-    CPU,
     MMU,
+    CPU,
+    GPU,
     Horizon,
     HorizonKernel,
     HorizonServices,
@@ -111,7 +112,7 @@ void log(Level level, Class c, const std::string& file, u32 line,
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
                        Warning, "warning", Error, "error")
 
-ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", CPU, "CPU", MMU,
-                       "MMU", Horizon, "Horizon", HorizonKernel,
+ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
+                       "CPU", GPU, "GPU", Horizon, "Horizon", HorizonKernel,
                        "Horizon::Kernel", HorizonServices, "Horizon::Services",
                        Hypervisor, "Hypervisor")

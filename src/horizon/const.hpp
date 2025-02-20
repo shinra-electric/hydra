@@ -5,9 +5,6 @@
 
 namespace Hydra::Horizon {
 
-typedef u32 Handle;
-#define INVALID_HANDLE 0
-
 // From https://github.com/switchbrew/libnx
 enum class Error {
     OutOfSessions = 7,

@@ -11,7 +11,7 @@ template <typename T> class DynamicPool {
 
     u32 AllocateForIndex() {
         u32 index = objects.size();
-        objects.push_back(nullptr);
+        objects.push_back({});
 
         return index;
     }

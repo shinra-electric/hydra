@@ -5,6 +5,7 @@
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
+#include "hw/tegra_x1/gpu/gpu.hpp"
 
 // HACK
 const std::string path =
@@ -98,6 +99,9 @@ int main(int argc, const char* argv[]) {
         cpu = hypervisorCPU;
     }
 
+    // GPU
+    Hydra::HW::TegraX1::GPU::GPU gpu(cpu->GetMMU());
+
     // Display
     // TODO: instantiate a subclass instead
     Hydra::HW::Display::DisplayBase* builtin_display =
@@ -105,7 +109,7 @@ int main(int argc, const char* argv[]) {
 
     // Bus
     Hydra::HW::Bus bus;
-    bus.SetDisplay(builtin_display, 0);
+    bus.ConnectDisplay(builtin_display, 0);
 
     // Horizon OS
     Hydra::Horizon::OS os(bus, cpu->GetMMU());

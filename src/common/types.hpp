@@ -15,6 +15,9 @@ using u32 = uint32_t;
 using u64 = uint64_t;
 using usize = size_t;
 using uptr = uintptr_t;
+using Handle = u32;
+
+#define INVALID_HANDLE 0
 
 template <typename T> class readonly {
   public:
@@ -36,6 +39,21 @@ template <typename T> class writeonly {
     writeonly() {}
     writeonly(const T& value_) : value{value_} {}
     void operator=(const T& new_value) { value = new_value; }
+
+    // Getters
+    const T& Get() const { return value; }
+
+  private:
+    T value;
+};
+
+template <typename T> class readwrite {
+  public:
+    readwrite() {}
+    readwrite(const T& value_) : value{value_} {}
+    void operator=(const T& new_value) { value = new_value; }
+
+    operator T() const { return value; }
 
     // Getters
     const T& Get() const { return value; }
