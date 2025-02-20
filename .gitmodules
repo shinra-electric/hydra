@@ -1,0 +1,3 @@
+[submodule "externals/metal-cpp"]
+	path = externals/metal-cpp
+	url = https://github.com/bkaradzic/metal-cpp.git

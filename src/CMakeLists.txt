@@ -77,6 +77,12 @@ add_executable(hydra
     hw/tegra_x1/cpu/hypervisor/thread.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
+    hw/tegra_x1/gpu/renderer/metal/const.hpp
+    hw/tegra_x1/gpu/renderer/metal/impl.cpp
+    hw/tegra_x1/gpu/renderer/metal/renderer.cpp
+    hw/tegra_x1/gpu/renderer/metal/renderer.hpp
+    hw/tegra_x1/gpu/renderer/renderer_base.cpp
+    hw/tegra_x1/gpu/renderer/renderer_base.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/display/display.hpp
@@ -84,7 +90,7 @@ add_executable(hydra
 )
 
 target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/src) # TODO: dependencies directory
-target_link_libraries(hydra PUBLIC "-framework Hypervisor" nx-parser fmt::fmt)
+target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" nx-parser fmt::fmt)
 
 # Signing
 set(CODESIGN_IDENTITY "Apple Development: samuliak@icloud.com (RMHRRGUDTQ)") # TODO: don't hardcode

@@ -7,11 +7,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(hydra VERSION 1.0 LANGUAGES CXX)
 
+if (APPLE)
+    enable_language(OBJC OBJCXX)
+endif()
+
 find_package(fmt CONFIG REQUIRED)
 
 add_subdirectory(/Users/samuliak/Documents/nx-parser build/nx-parser) # TODO: dependencies directory
 #add_subdirectory(externals/fmt)
 
 #include_directories(externals/fmt/include)
+include_directories(externals/metal-cpp)
 
 add_subdirectory(src)

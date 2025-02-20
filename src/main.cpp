@@ -95,8 +95,7 @@ int main(int argc, const char* argv[]) {
     Hydra::HW::TegraX1::CPU::CPUBase* cpu;
     // TODO: choose based on CPU backend
     {
-        auto hypervisorCPU = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
-        cpu = hypervisorCPU;
+        cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
     }
 
     // GPU
