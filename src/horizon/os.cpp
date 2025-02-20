@@ -18,7 +18,7 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu) : kernel(bus, mmu) {
     kernel.ConnectServiceToPort("sm:", sm_user_interface);
 }
 
-OS::~OS() {}
+OS::~OS() { s_instance = nullptr; }
 
 void OS::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
     kernel.LoadROM(rom, thread);

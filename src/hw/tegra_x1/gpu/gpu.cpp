@@ -18,6 +18,10 @@ GPU::GPU(CPU::MMUBase* mmu_) : mmu{mmu_} {
     }
 }
 
-GPU::~GPU() { delete renderer; }
+GPU::~GPU() {
+    delete renderer;
+
+    s_instance = nullptr;
+}
 
 } // namespace Hydra::HW::TegraX1::GPU

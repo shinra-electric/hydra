@@ -77,14 +77,19 @@ add_executable(hydra
     hw/tegra_x1/cpu/hypervisor/thread.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
-    hw/tegra_x1/gpu/renderer/metal/const.hpp
-    hw/tegra_x1/gpu/renderer/metal/impl.cpp
-    hw/tegra_x1/gpu/renderer/metal/renderer.cpp
-    hw/tegra_x1/gpu/renderer/metal/renderer.hpp
-    hw/tegra_x1/gpu/renderer/renderer_base.cpp
-    hw/tegra_x1/gpu/renderer/renderer_base.hpp
+    hw/tegra_x1/gpu/const.hpp
+    hw/tegra_x1/gpu/texture_cache.cpp
+    hw/tegra_x1/gpu/texture_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
+    hw/tegra_x1/gpu/renderer/metal/const.hpp
+    hw/tegra_x1/gpu/renderer/metal/impl.cpp
+    hw/tegra_x1/gpu/renderer/metal/texture.cpp
+    hw/tegra_x1/gpu/renderer/metal/texture.hpp
+    hw/tegra_x1/gpu/renderer/metal/renderer.cpp
+    hw/tegra_x1/gpu/renderer/metal/renderer.hpp
+    hw/tegra_x1/gpu/renderer/texture_base.hpp
+    hw/tegra_x1/gpu/renderer/renderer_base.hpp
     hw/display/display.hpp
     hw/bus.hpp
 )

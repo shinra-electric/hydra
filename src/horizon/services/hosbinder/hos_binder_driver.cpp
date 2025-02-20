@@ -1,6 +1,7 @@
 #include "horizon/services/hosbinder/hos_binder_driver.hpp"
 
 #include "horizon/os.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 
 namespace Hydra::Horizon::Services::HosBinder {
 
@@ -199,7 +200,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         reader.Read<i32>(); // fd_count
 
         auto input_buffer = reader.Read<InputBuffer>();
-        auto texture = reader.Read<TextureDescriptor>();
+        auto texture = reader.Read<HW::TegraX1::GPU::NvGraphicsBuffer>();
 
         binder.AddBuffer(slot, texture);
 

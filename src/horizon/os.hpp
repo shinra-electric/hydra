@@ -1,6 +1,7 @@
 #pragma once
 
 #include "horizon/kernel.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 
 namespace Hydra::HW::Display {
 class DisplayBase;
@@ -34,48 +35,10 @@ struct ParcelFlattenedObject {
     i32 fd_count;
 };
 
-struct Surface {
-    u32 width;
-    u32 height;
-    /*ColorFormat*/ u32 color_format;
-    /*Layout*/ u32 layout;
-    u32 pitch;
-    u32 unused; // usually this field contains the nvmap handle, but it's
-                // completely unused/overwritten during marshalling
-    u32 offset;
-    /*Kind*/ u32 kind;
-    u32 block_height_log2;
-    /*DisplayScanFormat*/ u32 scan;
-    u32 second_field_offset;
-    u64 flags;
-    u64 size;
-    u32 unk[6]; // compression related
-};
-
-struct TextureDescriptor {
-    i32 unk0;       // -1
-    i32 nvmap_id;   // nvmap object id
-    u32 unk2;       // 0
-    u32 magic;      // 0xDAFFCAFF
-    u32 pid;        // 42
-    u32 type;       // ?
-    u32 usage;      // GRALLOC_USAGE_* bitmask
-    u32 format;     // PIXEL_FORMAT_*
-    u32 ext_format; // copy of the above (in most cases)
-    u32 stride;     // in pixels!
-    u32 total_size; // in bytes
-    u32 num_planes; // usually 1
-    u32 unk12;      // 0
-    Surface planes[3];
-    u64 unused; // official sw writes a pointer to bookkeeping data here, but
-                // it's otherwise completely unused/overwritten during
-                // marshalling
-};
-
 struct DisplayBuffer {
     bool initialized = false;
     bool queued = false;
-    TextureDescriptor tex;
+    HW::TegraX1::GPU::NvGraphicsBuffer buff;
 };
 
 struct DisplayBinder {
@@ -84,9 +47,9 @@ struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    void AddBuffer(i32 slot, TextureDescriptor tex) {
+    void AddBuffer(i32 slot, HW::TegraX1::GPU::NvGraphicsBuffer buff) {
         buffers[slot].initialized = true;
-        buffers[slot].tex = tex;
+        buffers[slot].buff = buff;
         buffer_count++;
     }
 
@@ -132,7 +95,9 @@ struct DisplayBinder {
     }
 
     // Getters
-    TextureDescriptor& GetBuffer(i32 slot) { return buffers[slot].tex; }
+    HW::TegraX1::GPU::NvGraphicsBuffer& GetBuffer(i32 slot) {
+        return buffers[slot].buff;
+    }
 
   private:
     DisplayBuffer buffers[8]; // TODO: what should be the max number of buffers?

@@ -116,6 +116,8 @@ Kernel::~Kernel() {
         delete rom_mem;
     // delete bss_mem;
     delete heap_mem;
+
+    s_instance = nullptr;
 }
 
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
