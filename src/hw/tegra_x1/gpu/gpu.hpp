@@ -3,6 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/common.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
+#include "hw/tegra_x1/gpu/texture_cache.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
@@ -43,16 +44,28 @@ class GPU {
 
     u32 GetMapId(Handle handle) { return handle + 1; }
 
+    MemoryMap& GetMapById(u32 id) { return memory_maps.GetObjectRef(id - 1); }
+
+    // Descriptors
+
+    // Texture
+    TextureDescriptor CreateTextureDescriptor(const NvGraphicsBuffer& buff);
+
+    // Getters
+    CPU::MMUBase* GetMMU() const { return mmu; }
+
+    TextureCache& GetTextureCache() { return texture_cache; }
+
+    Renderer::RendererBase* GetRenderer() const { return renderer; }
+
   private:
     CPU::MMUBase* mmu;
+
+    TextureCache texture_cache;
 
     Renderer::RendererBase* renderer;
 
     Allocators::DynamicPool<MemoryMap> memory_maps;
-
-    MemoryMap& GetMemoryMapById(u32 id) {
-        return memory_maps.GetObjectRef(id - 1);
-    }
 };
 
 } // namespace Hydra::HW::TegraX1::GPU

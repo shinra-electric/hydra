@@ -43,15 +43,10 @@ struct NvGraphicsBuffer {
 };
 
 struct TextureDescriptor {
+    uptr ptr;
     u32 width;
     u32 height;
     // TODO: more
-
-    TextureDescriptor(const NvGraphicsBuffer& buff) {
-        // TODO: why are there more planes?
-        width = buff.planes[0].width;
-        height = buff.planes[0].height;
-    }
 };
 
 } // namespace Hydra::HW::TegraX1::GPU

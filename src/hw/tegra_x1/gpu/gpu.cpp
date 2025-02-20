@@ -1,5 +1,7 @@
 #include "hw/tegra_x1/gpu/gpu.hpp"
 
+#include "hw/tegra_x1/cpu/mmu_base.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
 namespace Hydra::HW::TegraX1::GPU {
@@ -22,6 +24,17 @@ GPU::~GPU() {
     delete renderer;
 
     s_instance = nullptr;
+}
+
+TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
+    TextureDescriptor descriptor;
+    descriptor.ptr =
+        mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset);
+    // TODO: why are there more planes?
+    descriptor.width = buff.planes[0].width;
+    descriptor.height = buff.planes[0].height;
+
+    return descriptor;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU
