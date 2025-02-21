@@ -9,6 +9,7 @@
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
+    printf("Thread 1\n");
     // Create
     HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
@@ -25,6 +26,7 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // Trap debug access
     HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
     // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
+    printf("Thread 2\n");
 }
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
@@ -36,6 +38,7 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
   uptr rom_mem_base*/, uptr stack_mem_end, uptr exception_trampoline_base_) {
     svc_handler = svc_handler_;
     exception_trampoline_base = exception_trampoline_base_;
+    printf("Configure 1\n");
 
     // Trampoline
     SetSysReg(HV_SYS_REG_VBAR_EL1, kernel_mem_base);
@@ -60,9 +63,11 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
     // Setup TLS pointer
     // TODO: offset by thread id * some alignment?
     SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
+    printf("Configure 2\n");
 }
 
 void Thread::Run() {
+    printf("Run 1\n");
     // Main run loop
     bool running = true;
     while (running) {

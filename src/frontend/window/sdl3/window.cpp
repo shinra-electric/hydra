@@ -1,5 +1,9 @@
 #include "frontend/window/sdl3/window.hpp"
 
+// HACK
+const std::string rom_filename =
+    "/Users/samuliak/Documents/deko3d_examples/build/0_hello_world.nro";
+
 namespace Hydra::Frontend::Window::SDL3 {
 
 Window::Window() {
@@ -18,14 +22,26 @@ Window::~Window() {
 }
 
 void Window::Run() {
-    bool running = true;
+    // emulation_context = new EmulationContext(rom_filename);
 
+    // HACK
+    i32 timer = 60;
+
+    bool running = true;
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
         }
+
+        // HACK
+        if (!emulation_context && timer-- <= 0) {
+            emulation_context = new EmulationContext(rom_filename);
+        }
+
+        // HACK
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
 

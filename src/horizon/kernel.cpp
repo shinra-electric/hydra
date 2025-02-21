@@ -128,23 +128,11 @@ void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
                       kernel_mem->GetBase() + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
-void Kernel::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
-    if (rom_mem) {
-        mmu->UnmapMemory(rom_mem);
-        delete rom_mem;
-    }
-
-    // ROM memory
-    rom_mem = new HW::TegraX1::CPU::Memory(
-        ROM_MEM_BASE, rom->GetRom().size(),
-        Permission::ReadExecute |
-            Permission::Write); // TODO: should write be possible?
-    rom_mem->Clear();
-    memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
-    mmu->MapMemory(rom_mem);
+void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
+    ConfigureThread(thread);
 
     // Set initial PC
-    thread->SetRegPC(rom_mem->GetBase() + rom->GetTextOffset());
+    thread->SetRegPC(rom_mem->GetBase() + rom_text_offset);
 
     // Set arguments
 
@@ -160,6 +148,24 @@ void Kernel::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
 
     // User-mode exception entry
     // TODO: what is this?
+}
+
+void Kernel::LoadROM(Rom* rom) {
+    if (rom_mem) {
+        mmu->UnmapMemory(rom_mem);
+        delete rom_mem;
+    }
+
+    // ROM memory
+    rom_mem = new HW::TegraX1::CPU::Memory(
+        ROM_MEM_BASE, rom->GetRom().size(),
+        Permission::ReadExecute |
+            Permission::Write); // TODO: should write be possible?
+    rom_mem->Clear();
+    memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
+    mmu->MapMemory(rom_mem);
+
+    rom_text_offset = rom->GetTextOffset();
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {

@@ -20,8 +20,6 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu) : kernel(bus, mmu) {
 
 OS::~OS() { s_instance = nullptr; }
 
-void OS::LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread) {
-    kernel.LoadROM(rom, thread);
-}
+void OS::LoadROM(Rom* rom) { kernel.LoadROM(rom); }
 
 } // namespace Hydra::Horizon

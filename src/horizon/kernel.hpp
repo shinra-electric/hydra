@@ -27,8 +27,9 @@ class Kernel {
     ~Kernel();
 
     void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread);
+    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
-    void LoadROM(Rom* rom, HW::TegraX1::CPU::ThreadBase* thread);
+    void LoadROM(Rom* rom);
 
     void ConnectServiceToPort(const std::string& port_name,
                               Services::ServiceBase* service) {
@@ -84,6 +85,8 @@ class Kernel {
   private:
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
+
+    u32 rom_text_offset{0};
 
     // Memory
 

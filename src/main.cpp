@@ -1,16 +1,5 @@
+#include "frontend/window/glfw/window.hpp"
 #include "frontend/window/sdl3/window.hpp"
-#include "horizon/os.hpp"
-#include "hw/bus.hpp"
-#include "hw/display/display.hpp"
-#include "hw/tegra_x1/cpu/cpu_base.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
-#include "hw/tegra_x1/gpu/gpu.hpp"
-
-// HACK
-const std::string path =
-    "/Users/samuliak/Documents/deko3d_examples/build/0_hello_world.nro";
 
 // HACK
 // #define PRINT_ADDR_TO_INDEX(addr) \
@@ -35,19 +24,8 @@ void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
 #define BRK 0xd4200000u
 
 int main(int argc, const char* argv[]) {
-    // Parse file
-    usize size;
-    auto ifs = Hydra::open_file(path, size);
-    // std::vector<u8> d(size);
-    // ifs.read((char*)d.data(), size);
-    // Logging::log(Logging::Level::Debug, "AAA: 0x%llx", *((u64*)(d.data() +
-    // 0x17498))); return 0;
-    BinaryReader reader(ifs, size);
-    Rom* rom = ParseNRO(reader);
-    ifs.close();
-
     // HACK
-    u32* data = (u32*)(rom->GetRom().data() + rom->GetTextOffset());
+    // u32* data = (u32*)(rom->GetRom().data() + rom->GetTextOffset());
     // data[10] = NOP; // __nx_dynamic
     // data[16] = NOP; // __libnx_init
     // SET_INSTRUCTION(data, 3176, 0xa9be7bfd, RET); // mutexLock
@@ -92,57 +70,14 @@ int main(int argc, const char* argv[]) {
 
     // PRINT_PC_TO_ADDR(0x80000030); // write to code memory
 
-    // CPU
-    Hydra::HW::TegraX1::CPU::CPUBase* cpu;
-    // TODO: choose based on CPU backend
-    {
-        cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
-    }
-
-    // GPU
-    Hydra::HW::TegraX1::GPU::GPU gpu(cpu->GetMMU());
-
-    // Display
-    Hydra::HW::Display::Display* builtin_display =
-        new Hydra::HW::Display::Display();
-
-    // Bus
-    Hydra::HW::Bus bus;
-    bus.ConnectDisplay(builtin_display, 0);
-
-    // Horizon OS
-    Hydra::Horizon::OS os(bus, cpu->GetMMU());
-
     // Window
     // TODO: choose based on frontend
     Hydra::Frontend::Window::WindowBase* window;
     {
-        window = new Hydra::Frontend::Window::SDL3::Window();
+        window = new Hydra::Frontend::Window::GLFW::Window();
     }
 
-    // Run
-    // TODO: find out why running CPU in a separate thread alongside the display
-    // sometimes causes a crash
-    std::thread t([&]() {
-        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();
-        os.GetKernel().ConfigureThread(main_thread);
-
-        // Load ROM
-        os.LoadROM(rom, main_thread);
-
-        // Run
-        main_thread->Run();
-
-        // Cleanup
-        delete main_thread;
-    });
-
     window->Run();
-
-    // Cleanup
-    // HACK
-    t.~thread();
-    // t.join();
 
     return 0;
 }
