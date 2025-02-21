@@ -5,22 +5,22 @@
 namespace Hydra::HW {
 
 namespace Display {
-class DisplayBase;
+class Display;
 }
 
 class Bus {
   public:
-    void ConnectDisplay(Display::DisplayBase* display, u32 display_id) {
+    void ConnectDisplay(Display::Display* display, u32 display_id) {
         displays[display_id] = display;
     }
 
     // Getters
-    Display::DisplayBase* GetDisplay(u32 display_id) const {
+    Display::Display* GetDisplay(u32 display_id) const {
         return displays[display_id];
     }
 
   private:
-    Display::DisplayBase*
+    Display::Display*
         displays[2]; // TODO: what's the maximum number of displays?
 };
 

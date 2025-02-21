@@ -90,13 +90,13 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
     hw/tegra_x1/gpu/renderer/renderer_base.hpp
-    hw/display/layer_base.hpp
-    hw/display/display_base.hpp
-    hw/display/sdl3/const.hpp
-    hw/display/sdl3/layer.cpp
-    hw/display/sdl3/layer.hpp
-    hw/display/sdl3/display.cpp
-    hw/display/sdl3/display.hpp
+    hw/display/layer.hpp
+    hw/display/display.hpp
+    frontend/window/sdl3/const.hpp
+    frontend/window/sdl3/window.cpp
+    frontend/window/sdl3/window.hpp
+    frontend/window/window_base.cpp
+    frontend/window/window_base.hpp
     hw/bus.hpp
 )
 

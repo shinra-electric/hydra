@@ -1,10 +1,8 @@
-#include "hw/display/sdl3/display.hpp"
+#include "frontend/window/sdl3/window.hpp"
 
-#include "hw/display/sdl3/layer.hpp"
+namespace Hydra::Frontend::Window::SDL3 {
 
-namespace Hydra::HW::Display::SDL3 {
-
-Display::Display() {
+Window::Window() {
     if (!SDL_Init(SDL_INIT_VIDEO))
         LOG_ERROR(SDL3Display, "Failed to initialize SDL3: {}", SDL_GetError());
 
@@ -14,12 +12,12 @@ Display::Display() {
                   SDL_GetError());
 }
 
-Display::~Display() {
+Window::~Window() {
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-void Display::Run() {
+void Window::Run() {
     bool running = true;
 
     while (running) {
@@ -31,8 +29,4 @@ void Display::Run() {
     }
 }
 
-LayerBase* Display::CreateLayerImpl(u32 binder_id) {
-    return new Layer(binder_id);
-}
-
-} // namespace Hydra::HW::Display::SDL3
+} // namespace Hydra::Frontend::Window::SDL3

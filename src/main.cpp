@@ -1,6 +1,7 @@
+#include "frontend/window/sdl3/window.hpp"
 #include "horizon/os.hpp"
 #include "hw/bus.hpp"
-#include "hw/display/sdl3/display.hpp"
+#include "hw/display/display.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
@@ -102,11 +103,8 @@ int main(int argc, const char* argv[]) {
     Hydra::HW::TegraX1::GPU::GPU gpu(cpu->GetMMU());
 
     // Display
-    // TODO: instantiate a subclass instead
-    Hydra::HW::Display::DisplayBase* builtin_display;
-    {
-        builtin_display = new Hydra::HW::Display::SDL3::Display();
-    }
+    Hydra::HW::Display::Display* builtin_display =
+        new Hydra::HW::Display::Display();
 
     // Bus
     Hydra::HW::Bus bus;
@@ -114,6 +112,13 @@ int main(int argc, const char* argv[]) {
 
     // Horizon OS
     Hydra::Horizon::OS os(bus, cpu->GetMMU());
+
+    // Window
+    // TODO: choose based on frontend
+    Hydra::Frontend::Window::WindowBase* window;
+    {
+        window = new Hydra::Frontend::Window::SDL3::Window();
+    }
 
     // Run
     // TODO: find out why running CPU in a separate thread alongside the display
@@ -132,7 +137,7 @@ int main(int argc, const char* argv[]) {
         delete main_thread;
     });
 
-    builtin_display->Run();
+    window->Run();
 
     // Cleanup
     // HACK
