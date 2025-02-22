@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include <fmt/color.h>
 #include <fmt/core.h>
 
@@ -66,6 +68,7 @@ enum class Class {
 };
 
 extern Output g_output;
+extern std::mutex g_log_mutex;
 
 inline void initialize(Output output) { g_output = output; }
 
@@ -73,6 +76,8 @@ template <typename... T>
 void log(Level level, Class c, const std::string& file, u32 line,
          const std::string& function, fmt::format_string<T...> fmt,
          T&&... args) {
+    g_log_mutex.lock();
+
     switch (g_output) {
     case Output::Stdout:
         // Level
@@ -107,6 +112,8 @@ void log(Level level, Class c, const std::string& file, u32 line,
         // fmt::print(file, fmt, std::forward<T>(args)...);
         break;
     }
+
+    g_log_mutex.unlock();
 }
 
 } // namespace Hydra::Logging

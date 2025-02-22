@@ -32,7 +32,7 @@ template <typename T> class readonly {
 
   private:
     T value;
-};
+} __attribute__((packed));
 
 template <typename T> class writeonly {
   public:
@@ -45,7 +45,7 @@ template <typename T> class writeonly {
 
   private:
     T value;
-};
+} __attribute__((packed));
 
 template <typename T> class readwrite {
   public:
@@ -60,7 +60,7 @@ template <typename T> class readwrite {
 
   private:
     T value;
-};
+} __attribute__((packed));
 
 class Reader {
   public:
@@ -68,23 +68,18 @@ class Reader {
 
     void JumpToOffset(u32 offset) { ptr = base + offset; }
 
-    template <typename T> T Read() {
-        T result = *reinterpret_cast<T*>(ptr);
+    template <typename T> T* ReadPtr() {
+        T* result = reinterpret_cast<T*>(ptr);
         ptr += sizeof(T);
 
         return result;
     }
+
+    template <typename T> T Read() { return *ReadPtr<T>(); }
 
     template <typename T> T* Read(T* read_ptr, usize count) {
         T* result = reinterpret_cast<T*>(ptr);
         ptr += sizeof(T) * count;
-
-        return result;
-    }
-
-    template <typename T> T* ReadPtr() {
-        T* result = reinterpret_cast<T*>(ptr);
-        ptr += sizeof(T);
 
         return result;
     }
@@ -95,6 +90,9 @@ class Reader {
 
         return result;
     }
+
+    // Getters
+    u8* GetBase() const { return base; }
 
   private:
     u8* base;

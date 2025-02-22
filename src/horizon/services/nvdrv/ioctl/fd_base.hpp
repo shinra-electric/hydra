@@ -6,12 +6,12 @@
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
-        func##Data data;                                                       \
+        func##Data* data = nullptr;                                            \
         if (reader)                                                            \
-            data = reader->Read<func##Data>();                                 \
-        func(data, result);                                                    \
+            data = reader->ReadPtr<func##Data>();                              \
+        func(*data, result);                                                   \
         if (writer)                                                            \
-            writer->Write(data);                                               \
+            writer->Write(*data);                                              \
         break;                                                                 \
     }
 

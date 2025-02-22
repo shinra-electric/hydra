@@ -34,7 +34,7 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0x9d54, BRK);
+    // SET_INSTRUCTION(data, 0x4e3c, BRK);
 
     // Emulation
     // TODO: choose based on CPU backend
