@@ -10,6 +10,9 @@ class Texture : public TextureBase {
     Texture(const TextureDescriptor& descriptor);
     ~Texture() override;
 
+    // Getters
+    MTL::Texture* GetTexture() const { return texture; }
+
   private:
     MTL::Texture* texture;
 };
