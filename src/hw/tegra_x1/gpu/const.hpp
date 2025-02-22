@@ -7,7 +7,7 @@ namespace Hydra::HW::TegraX1::GPU {
 struct NvSurface {
     u32 width;
     u32 height;
-    /*ColorFormat*/ u32 color_format;
+    /*ColorFormat*/ u64 color_format;
     /*Layout*/ u32 layout;
     u32 pitch;
     u32 unused; // usually this field contains the nvmap handle, but it's
