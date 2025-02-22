@@ -83,7 +83,7 @@ class Thread : public ThreadBase {
     }
 
     // Debug
-    void LogRegisters(u32 count = 31);
+    void LogRegisters(bool simd = false, u32 count = 32);
 
     void LogStackTrace(uptr pc);
 

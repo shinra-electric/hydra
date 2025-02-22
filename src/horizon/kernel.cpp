@@ -11,11 +11,8 @@
 
 namespace Hydra::Horizon {
 
-// HACK: no idea what I am doing, but _impure_ptr seems to point there
-// #define BSS_MEM_BASE 0x00010000
-
-#define STACK_MEM_BASE 0x01000000
-#define STACK_MEM_SIZE 0x200000
+#define STACK_MEM_BASE 0x10000000
+#define STACK_MEM_SIZE 0x2000000
 
 #define KERNEL_MEM_BASE 0xF0000000
 #define KERNEL_MEM_SIZE 0x10000

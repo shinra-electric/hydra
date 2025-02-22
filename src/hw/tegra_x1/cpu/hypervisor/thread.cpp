@@ -197,7 +197,9 @@ void Thread::Run() {
                 AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
                 LOG_ERROR(Hypervisor, "BRK instruction");
-                LogRegisters();
+                LogRegisters(true);
+                LOG_DEBUG(Hypervisor, "offset(0x{:08x}) = 0x{:08x}",
+                          0x11fffdd0 + 92, mmu->Load<u32>(0x11fffdd0 + 92));
                 break;
             } else {
                 // Debug
@@ -249,10 +251,17 @@ void Thread::UpdateVTimer() {
     hv_vcpu_set_vtimer_mask(vcpu, false);
 }
 
-void Thread::LogRegisters(u32 count) {
+void Thread::LogRegisters(bool simd, u32 count) {
     LOG_DEBUG(CPU, "Reg dump:");
     for (u32 i = 0; i < count; i++) {
-        LOG_DEBUG(CPU, "X{}: 0x{:08x}", i, GetReg((hv_reg_t)(HV_REG_X0 + i)));
+        LOG_DEBUG(CPU, "X{}: 0x{:08x}", i, GetRegX(i));
+    }
+    if (simd) {
+        for (u32 i = 0; i < count; i++) {
+            auto reg = GetRegQ(i);
+            LOG_DEBUG(CPU, "Q{}: 0x{:08x}{:08x}", i, *(u64*)&reg,
+                      *((u64*)&reg + 1)); // TODO: correct?
+        }
     }
     LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
@@ -301,17 +310,18 @@ void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
         // LOG_DEBUG(Hypervisor, "DC: 0x{:08x}",
         //           mmu->UnmapPtr(far));
         // cpu->LogRegisters(5);
-    } else if ((instruction & 0xbfe00000) == 0xb8400000) { // LDR
-        // TODO: doesn't seem work
+    } else if ((instruction & 0xbec00000) == 0xb8400000) { // LDR and LDUR
         InterpretLDR(EXTRACT_BITS(instruction, 30, 30), 0,
                      EXTRACT_BITS(instruction, 4, 0), far);
-    } else if ((instruction & 0xbe000000) ==
-               0x3c000000) { // LDR and LDUR (simd) (TODO: correct?)
+    } else if ((instruction & 0xfe000000) ==
+               0x3c400000) { // LDR and LDUR (simd) (TODO: correct?)
         InterpretLDR(1, 1, EXTRACT_BITS(instruction, 4, 0), far);
-    } else if ((instruction & 0xbfc00000) == 0xb8000000) { // STR and STUR
-        // TODO: support simd
+    } else if ((instruction & 0xbec00000) == 0xb8000000) { // STR or STUR
         InterpretSTR(EXTRACT_BITS(instruction, 30, 30), 0,
                      EXTRACT_BITS(instruction, 4, 0), far);
+    } else if ((instruction & 0xfe000000) ==
+               0x3c000000) { // STR or STUR (simd) (TODO: correct?)
+        InterpretSTR(1, 1, EXTRACT_BITS(instruction, 4, 0), far);
     } else if ((instruction & 0x7a400000) == 0x28400000) { // LDP
         InterpretLDP(EXTRACT_BITS(instruction, 31, 31),
                      EXTRACT_BITS(instruction, 26, 26),
