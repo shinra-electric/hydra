@@ -11,10 +11,27 @@ namespace Hydra::HW::TegraX1::GPU {
 
 Renderer::TextureBase*
 TextureCache::FindTexture(const TextureDescriptor& descriptor) {
+    auto render = GPU::GetInstance().GetRenderer();
+
     u64 hash = CalculateTextureHash(descriptor);
     auto& texture = textures[hash];
-    if (!texture)
-        texture = GPU::GetInstance().GetRenderer()->CreateTexture(descriptor);
+
+    bool dirty = false;
+    if (!texture) {
+        texture = render->CreateTexture(descriptor);
+        dirty = true;
+    } else {
+        // TODO: if data changed
+        if (true)
+            dirty = true;
+    }
+
+    if (dirty) {
+        // TODO: decode
+        uptr data = descriptor.ptr;
+
+        render->UploadTexture(texture, reinterpret_cast<void*>(data));
+    }
 
     return texture;
 }
