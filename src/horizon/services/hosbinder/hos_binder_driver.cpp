@@ -200,9 +200,9 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         reader.Read<i32>(); // fd_count
 
         auto input_buffer = reader.Read<InputBuffer>();
-        auto texture = reader.Read<HW::TegraX1::GPU::NvGraphicsBuffer>();
+        auto buffer = reader.Read<HW::TegraX1::GPU::NvGraphicsBuffer>();
 
-        binder.AddBuffer(slot, texture);
+        binder.AddBuffer(slot, buffer);
 
         break;
     }

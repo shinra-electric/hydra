@@ -1,5 +1,16 @@
 #include "emulation_context.hpp"
 
+// HACK
+void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
+    data[addr / 4] = new_instruction;
+}
+
+// HACK
+#define NOP 0xd503201fu
+#define RET 0xd65f03c0u
+#define MOV_X0_XZR 0xaa1f03e0u
+#define BRK 0xd4200000u
+
 namespace Hydra {
 
 EmulationContext::EmulationContext(const std::string& rom_filename) {
@@ -13,6 +24,17 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
     BinaryReader reader(ifs, size);
     Rom* rom = ParseNRO(reader);
     ifs.close();
+
+    // HACK
+    u32* data = (u32*)(rom->GetRom().data());
+    // SET_INSTRUCTION(data, 0x00000c28,
+    //                MOV_X0_XZR); // appletInitialize, infinite sleep on exit
+    // SET_INSTRUCTION(data, 0x0000161c,
+    //                NOP); // _fsdevUnmountDeviceStruct, crashes due to "str
+    //                x5,
+
+    // HACK: for testing
+    // SET_INSTRUCTION(data, 0x9d54, BRK);
 
     // Emulation
     // TODO: choose based on CPU backend
@@ -31,8 +53,17 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
 
     // Load ROM
     os->LoadROM(rom);
+}
 
-    // Run
+EmulationContext::~EmulationContext() {
+    for (auto t : threads) {
+        // HACK
+        delete t;
+        // t.join();
+    }
+}
+
+void EmulationContext::Start() {
     // TODO: find out why running CPU in a separate thread alongside the display
     // sometimes causes a crash
     std::thread* t = new std::thread([&]() {
@@ -46,14 +77,6 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
         // Cleanup
         delete main_thread;
     });
-}
-
-EmulationContext::~EmulationContext() {
-    for (auto t : threads) {
-        // HACK
-        delete t;
-        // t.join();
-    }
 }
 
 } // namespace Hydra

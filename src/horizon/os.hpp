@@ -61,7 +61,7 @@ struct DisplayBinder {
 
         // Find an available slot
         for (i32 i = 0; i < 8; i++) {
-            if (!buffers[i].initialized) {
+            if (buffers[i].initialized && !buffers[i].queued) {
                 return i;
             }
         }
@@ -71,11 +71,10 @@ struct DisplayBinder {
     }
 
     void QueueBuffer(i32 slot) {
-        queue_mutex.lock();
+        std::lock_guard<std::mutex> lock(queue_mutex);
         queued_buffers.push(slot);
         buffers[slot].queued = true;
-        queue_mutex.unlock();
-        queue_cv.notify_all(); // TODO: all?
+        queue_cv.notify_all();
     }
 
     i32 ConsumeBuffer() {
@@ -84,12 +83,10 @@ struct DisplayBinder {
         queue_cv.wait(lock, [&] { return !queued_buffers.empty(); });
 
         // Get the first queued buffer
-        queue_mutex.lock();
         i32 slot = queued_buffers.front();
         queued_buffers.pop();
         buffers[slot].queued = false;
-        queue_mutex.unlock();
-        queue_cv.notify_all(); // TODO: all?
+        queue_cv.notify_all();
 
         return slot;
     }

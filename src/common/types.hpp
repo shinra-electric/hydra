@@ -82,7 +82,7 @@ class Reader {
         return result;
     }
 
-    template <typename T> T ReadPtr() {
+    template <typename T> T* ReadPtr() {
         T* result = reinterpret_cast<T*>(ptr);
         ptr += sizeof(T);
 

@@ -18,6 +18,14 @@ class Display {
         return id;
     }
 
+    // TODO: make this more sophisticated
+    Layer* GetPresentableLayer() {
+        if (layers.empty())
+            return nullptr;
+
+        return layers.back();
+    }
+
     // Getters
     Layer* GetLayer(u32 id) { return layers[id]; }
 

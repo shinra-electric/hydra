@@ -10,6 +10,10 @@ class RendererBase {
   public:
     virtual ~RendererBase() {}
 
+    virtual void SetSurface(void* surface) = 0;
+
+    virtual void Present(TextureBase* texture) = 0;
+
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
 

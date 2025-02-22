@@ -12,8 +12,12 @@ class Window : public WindowBase {
 
     void Run() override;
 
+  protected:
+    void* CreateSurfaceImpl() override;
+
   private:
     SDL_Window* window;
+    SDL_Renderer* renderer;
 };
 
 } // namespace Hydra::Frontend::Window::SDL3

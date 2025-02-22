@@ -12,6 +12,10 @@ class Renderer : public RendererBase {
     Renderer();
     ~Renderer() override;
 
+    void SetSurface(void* surface) override;
+
+    void Present(TextureBase* texture) override;
+
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
 
@@ -21,6 +25,8 @@ class Renderer : public RendererBase {
   private:
     MTL::Device* device;
     MTL::CommandQueue* command_queue;
+
+    CA::MetalLayer* layer;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

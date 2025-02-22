@@ -33,7 +33,7 @@
         void operator=(const ioctl##Data& o) {                                 \
             FOR_EACH_0_1(IOCTL_OUT_MEMBER_COPY, __VA_ARGS__)                   \
         }                                                                      \
-    };                                                                         \
+    } __attribute__((packed));                                                 \
     void ioctl(ioctl##Data& data, NvResult& result);
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {

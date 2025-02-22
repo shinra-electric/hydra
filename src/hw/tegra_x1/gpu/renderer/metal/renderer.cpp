@@ -24,6 +24,15 @@ Renderer::~Renderer() {
     s_instance = nullptr;
 }
 
+void Renderer::SetSurface(void* surface) {
+    layer = reinterpret_cast<CA::MetalLayer*>(surface);
+    layer->setDevice(device);
+}
+
+void Renderer::Present(TextureBase* texture) {
+    LOG_WARNING(MetalRenderer, "Not implemented");
+}
+
 TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }

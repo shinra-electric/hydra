@@ -98,9 +98,6 @@ add_executable(hydra
     frontend/window/sdl3/const.hpp
     frontend/window/sdl3/window.cpp
     frontend/window/sdl3/window.hpp
-    frontend/window/glfw/const.hpp
-    frontend/window/glfw/window.cpp
-    frontend/window/glfw/window.hpp
     frontend/window/window_base.cpp
     frontend/window/window_base.hpp
 )

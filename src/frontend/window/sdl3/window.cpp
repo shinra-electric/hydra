@@ -7,13 +7,17 @@ const std::string rom_filename =
 namespace Hydra::Frontend::Window::SDL3 {
 
 Window::Window() {
-    if (!SDL_Init(SDL_INIT_VIDEO))
-        LOG_ERROR(SDL3Display, "Failed to initialize SDL3: {}", SDL_GetError());
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        LOG_ERROR(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
+        return;
+    }
 
-    window = SDL_CreateWindow("Hydra", 1280, 720, 0);
-    if (!window)
-        LOG_ERROR(SDL3Display, "Failed to create SDL3 window: {}",
+    if (!SDL_CreateWindowAndRenderer("Hydra", 1280, 720, 0, &window,
+                                     &renderer)) {
+        LOG_ERROR(SDL3Window, "Failed to create SDL3 window/renderer: {}",
                   SDL_GetError());
+        return;
+    }
 }
 
 Window::~Window() {
@@ -22,8 +26,6 @@ Window::~Window() {
 }
 
 void Window::Run() {
-    // emulation_context = new EmulationContext(rom_filename);
-
     // HACK
     i32 timer = 60;
 
@@ -36,12 +38,22 @@ void Window::Run() {
         }
 
         // HACK
-        if (!emulation_context && timer-- <= 0) {
-            emulation_context = new EmulationContext(rom_filename);
+        if (!IsEmulating() && timer-- <= 0) {
+            InitializeEmulationContext(rom_filename);
         }
 
         // HACK
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
+
+        if (IsEmulating())
+            Present();
+    }
+}
+
+void* Window::CreateSurfaceImpl() {
+    // TODO: choose based on Renderer backend
+    {
+        return SDL_GetRenderMetalLayer(renderer);
     }
 }
 

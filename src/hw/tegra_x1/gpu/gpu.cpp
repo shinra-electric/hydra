@@ -27,6 +27,10 @@ GPU::~GPU() {
 }
 
 TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
+    LOG_DEBUG(GPU,
+              "Map id: {}, width: {}, "
+              "height: {}",
+              buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
     TextureDescriptor descriptor;
     descriptor.ptr =
         mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset);

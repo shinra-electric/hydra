@@ -40,6 +40,7 @@ class GPU {
         MemoryMap& memory_map = memory_maps.GetObjectRef(handle);
         memory_map.addr = addr;
         memory_map.write = write;
+        LOG_DEBUG(GPU, "Addr: 0x{:08x}, map ID: {}", addr, GetMapId(handle));
     }
 
     u32 GetMapId(Handle handle) { return handle + 1; }

@@ -15,6 +15,14 @@ class EmulationContext {
     EmulationContext(const std::string& rom_filename);
     ~EmulationContext();
 
+    void Start();
+
+    // Getters
+    Hydra::HW::TegraX1::CPU::CPUBase* GetCPU() const { return cpu; }
+    Hydra::HW::TegraX1::GPU::GPU* GetGPU() const { return gpu; }
+    Hydra::HW::Bus* GetBus() const { return bus; }
+    Hydra::Horizon::OS* GetOS() const { return os; }
+
   private:
     Hydra::HW::TegraX1::CPU::CPUBase* cpu;
     Hydra::HW::TegraX1::GPU::GPU* gpu;
