@@ -112,6 +112,7 @@ Renderer::~Renderer() {
 void Renderer::SetSurface(void* surface) {
     layer = reinterpret_cast<CA::MetalLayer*>(surface);
     layer->setDevice(device);
+    // TODO: set pixel format
 }
 
 void Renderer::Present(TextureBase* texture) {

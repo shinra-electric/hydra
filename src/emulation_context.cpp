@@ -64,8 +64,6 @@ EmulationContext::~EmulationContext() {
 }
 
 void EmulationContext::Start() {
-    // TODO: find out why running CPU in a separate thread alongside the display
-    // sometimes causes a crash
     std::thread* t = new std::thread([&]() {
         // Main thread
         Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();

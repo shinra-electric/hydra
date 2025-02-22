@@ -12,6 +12,9 @@ Window::Window() {
         return;
     }
 
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
+
     if (!SDL_CreateWindowAndRenderer("Hydra", 1280, 720, 0, &window,
                                      &renderer)) {
         LOG_ERROR(SDL3Window, "Failed to create SDL3 window/renderer: {}",
@@ -26,8 +29,7 @@ Window::~Window() {
 }
 
 void Window::Run() {
-    // HACK
-    i32 timer = 60;
+    InitializeEmulationContext(rom_filename);
 
     bool running = true;
     while (running) {
@@ -36,14 +38,6 @@ void Window::Run() {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
         }
-
-        // HACK
-        if (!IsEmulating() && timer-- <= 0) {
-            InitializeEmulationContext(rom_filename);
-        }
-
-        // HACK
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
         if (IsEmulating())
             Present();
