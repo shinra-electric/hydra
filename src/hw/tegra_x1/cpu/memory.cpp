@@ -4,9 +4,10 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
-Memory::Memory(uptr base_, usize size_, Horizon::Permission permission_)
+Memory::Memory(uptr base_, usize size_, Horizon::Permission permission_,
+               bool is_kernel_)
     : base{base_}, size{align(size_, (usize)MEMORY_ALIGNMENT)},
-      permission{permission_} {
+      permission{permission_}, is_kernel{is_kernel_} {
     Allocate();
 }
 
