@@ -40,6 +40,8 @@ class PageTable {
     PageTable();
     ~PageTable();
 
+    void Allocate(MemoryAllocator& allocator);
+
     void MapMemory(Memory* mem);
     void UnmapMemory(Memory* mem);
 

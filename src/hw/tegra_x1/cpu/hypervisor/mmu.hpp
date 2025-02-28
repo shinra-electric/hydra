@@ -10,10 +10,17 @@ class MMU : public MMUBase {
     MMU();
     ~MMU();
 
+    void Allocate(MemoryAllocator& allocator) override {
+        page_table.Allocate(allocator);
+    }
+
+    void MapPhysicalMemory(uptr ptr, uptr pa, usize size) override;
+    void UnmapPhysicalMemory(uptr pa, usize size) override;
+
     void ReprotectMemory(Memory* mem) override;
 
     // Getters
-    uptr GetPageTablePa() const { return page_table.GetMemory()->GetBase(); }
+    uptr GetPageTablePa() const { return page_table.GetMemory()->GetPa(); }
     // Memory* GetKernelRangeMemory() const { return kernel_range.mem; }
 
   protected:

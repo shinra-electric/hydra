@@ -1,45 +1,33 @@
 #include "hw/tegra_x1/cpu/memory.hpp"
 
-#define MEMORY_ALIGNMENT 0x4000
+#include "hw/tegra_x1/cpu/memory_allocator.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 
-Memory::Memory(uptr base_, usize size_, Horizon::Permission permission_,
-               bool is_kernel_)
-    : base{base_}, size{align(size_, (usize)MEMORY_ALIGNMENT)},
-      permission{permission_}, is_kernel{is_kernel_} {
-    Allocate();
+Memory::Memory(MemoryAllocator& allocator_, uptr base_, usize size_,
+               Horizon::Permission permission_, bool is_kernel_)
+    : allocator{allocator_}, base{base_}, size{size_}, permission{permission_},
+      is_kernel{is_kernel_} {
+    pa = allocator.Allocate(size);
 }
 
-Memory::~Memory() { free((void*)ptr); }
+Memory::~Memory() {}
 
-void Memory::Resize(usize size_) {
-    uptr old_ptr = ptr;
-    usize old_size = size;
+// Should only be called on heap memory
+void Memory::Resize(usize size_) { allocator.AllocateExplicit(pa, size); }
 
-    size = align(size_, (usize)MEMORY_ALIGNMENT);
-    Allocate();
-    // TODO: is this necessary?
-    memcpy((void*)ptr, (void*)old_ptr, std::min(size, old_size));
+// uptr Memory::MapPtr(uptr p) { return base + (p - ptr); }
 
-    // Cleanup
-    free((void*)old_ptr);
+uptr Memory::UnmapAddr(uptr addr) {
+    return allocator.PaToPtr(pa + (addr - base));
 }
 
-void Memory::Clear() { memset((void*)ptr, 0, size); }
-
-uptr Memory::MapPtr(uptr p) { return base + (p - ptr); }
-
-uptr Memory::UnmapAddr(uptr p) { return ptr + (p - base); }
-
-bool Memory::AddrIsInRange(uptr p) { return p >= base && p < base + size; }
-
-void Memory::Allocate() {
-    posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);
-    if (!ptr) {
-        LOG_ERROR(MMU, "Failed to allocate memory");
-        return;
-    }
+bool Memory::AddrIsInRange(uptr addr) {
+    return addr >= base && addr < base + size;
 }
+
+uptr Memory::GetPtr() const { return allocator.PaToPtr(pa); }
+
+u8* Memory::GetPtrU8() const { return reinterpret_cast<u8*>(GetPtr()); }
 
 } // namespace Hydra::HW::TegraX1::CPU

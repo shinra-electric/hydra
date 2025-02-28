@@ -59,7 +59,7 @@ static Kernel* s_instance = nullptr;
 Kernel& Kernel::GetInstance() { return *s_instance; }
 
 Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
-    : bus{bus_}, mmu{mmu_} {
+    : bus{bus_}, mmu{mmu_}, memory_allocator(mmu) {
     ASSERT(s_instance == nullptr, HorizonKernel,
            "Horizon kernel already exists");
     s_instance = this;
@@ -67,15 +67,16 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     // Memory
 
     // Stack memory
-    stack_mem = new HW::TegraX1::CPU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
-                                             Permission::ReadWrite);
-    stack_mem->Clear();
+    stack_mem =
+        new HW::TegraX1::CPU::Memory(memory_allocator, STACK_MEM_BASE,
+                                     STACK_MEM_SIZE, Permission::ReadWrite);
     mmu->MapMemory(stack_mem);
 
     // Kernel memory
-    kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
+    kernel_mem = new HW::TegraX1::CPU::Memory(memory_allocator, KERNEL_MEM_BASE,
+                                              KERNEL_MEM_SIZE,
                                               Permission::Execute, true);
-    kernel_mem->Clear();
+
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,
                sizeof(exception_handler));
@@ -86,22 +87,14 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     mmu->MapMemory(kernel_mem);
 
     // TLS memory
-    tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE,
-                                           Permission::ReadWrite);
-    tls_mem->Clear();
+    tls_mem = new HW::TegraX1::CPU::Memory(memory_allocator, TLS_MEM_BASE,
+                                           TLS_MEM_SIZE, Permission::ReadWrite);
     mmu->MapMemory(tls_mem);
 
     // ASLR memory
-    aslr_mem = new HW::TegraX1::CPU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
-                                            Permission::ReadWrite);
-    aslr_mem->Clear();
+    aslr_mem = new HW::TegraX1::CPU::Memory(
+        memory_allocator, ASLR_MEM_BASE, ASLR_MEM_SIZE, Permission::ReadWrite);
     mmu->MapMemory(aslr_mem);
-
-    // Heap memory
-    heap_mem = new HW::TegraX1::CPU::Memory(
-        HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE, Permission::ReadWrite);
-    heap_mem->Clear();
-    mmu->MapMemory(heap_mem);
 }
 
 Kernel::~Kernel() {
@@ -155,14 +148,20 @@ void Kernel::LoadROM(Rom* rom) {
 
     // ROM memory
     rom_mem = new HW::TegraX1::CPU::Memory(
-        ROM_MEM_BASE, rom->GetRom().size(),
+        memory_allocator, ROM_MEM_BASE, rom->GetRom().size(),
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
-    rom_mem->Clear();
     memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
     mmu->MapMemory(rom_mem);
 
     rom_text_offset = rom->GetTextOffset();
+
+    // TODO: initialize somewhere else?
+    // Heap memory
+    heap_mem = new HW::TegraX1::CPU::Memory(memory_allocator, HEAP_MEM_BASE,
+                                            DEFAULT_HEAP_MEM_SIZE,
+                                            Permission::ReadWrite);
+    mmu->MapMemory(heap_mem);
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {

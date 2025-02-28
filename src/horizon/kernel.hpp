@@ -2,6 +2,7 @@
 
 #include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
+#include "hw/tegra_x1/cpu/memory_allocator.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 class Memory;
@@ -87,6 +88,8 @@ class Kernel {
     HW::TegraX1::CPU::MMUBase* mmu;
 
     u32 rom_text_offset{0};
+
+    HW::TegraX1::CPU::MemoryAllocator memory_allocator;
 
     // Memory
 

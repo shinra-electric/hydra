@@ -6,7 +6,7 @@
 #define PTE_RW (1ull << 6)              // Read write
 #define PTE_INNER_SHEREABLE (3ull << 8) // TODO: wht
 
-#define PT_MEM_BASE 0x00000000a0000000
+#define PT_MEM_PA 0x0000000010000000
 
 /*
 #define USER_RANGE_MEM_BASE 0x01000000
@@ -93,14 +93,15 @@ PageTable::PageTable() {
     levels[0] = PageTableLevel(0, 30); // 1gb
     // levels[1] = PtLevel(1, 21, &levels[2]); // 2mb
     // levels[2] = PtLevel(2, 12);             // 4kb
-
-    // Memory
-    page_table_mem = new Memory(PT_MEM_BASE, GetBlockCount() * sizeof(u64),
-                                Horizon::Permission::Read);
-    page_table_mem->Clear();
 }
 
 PageTable::~PageTable() { delete page_table_mem; }
+
+void PageTable::Allocate(MemoryAllocator& allocator) {
+    // Memory
+    page_table_mem = new Memory(allocator, 0x0, GetBlockCount() * sizeof(u64),
+                                Horizon::Permission::Read);
+}
 
 void PageTable::MapMemory(Memory* mem) {
     // Access permission flags
@@ -115,18 +116,22 @@ void PageTable::MapMemory(Memory* mem) {
         uptr start = mem->GetBase() & ~level.GetBlockMask(); // Round down
         uptr end = align(mem->GetBase() + mem->GetSize(),
                          level.GetBlockSize()); // Round up
+
+        uptr pa = mem->GetPa();
         for (uptr addr = start; addr < end; addr += level.GetBlockSize()) {
             u64 value = 0;
             if (next) // Table
                 value |= reinterpret_cast<u64>(
-                             reinterpret_cast<u64*>(page_table_mem->GetBase()) +
+                             reinterpret_cast<u64*>(page_table_mem->GetPa()) +
                              GetPaOffset(*next, addr)) |
                          PTE_TABLE;
             else // Page
                 value |=
-                    addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE | (u64)ap;
+                    pa | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE | (u64)ap;
 
             table[GetPaOffset(level, addr)] = value;
+
+            pa += level.GetBlockSize();
         }
     }
 }

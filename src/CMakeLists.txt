@@ -68,6 +68,8 @@ add_executable(hydra
     horizon/services/hosbinder/hos_binder_driver.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/memory_allocator.cpp
+    hw/tegra_x1/cpu/memory_allocator.hpp
     hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
     hw/tegra_x1/cpu/thread_base.hpp

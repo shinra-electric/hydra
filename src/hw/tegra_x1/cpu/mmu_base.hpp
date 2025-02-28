@@ -5,9 +5,15 @@
 namespace Hydra::HW::TegraX1::CPU {
 
 class Memory;
+class MemoryAllocator;
 
 class MMUBase {
   public:
+    virtual void Allocate(MemoryAllocator& allocator) = 0;
+
+    virtual void MapPhysicalMemory(uptr ptr, uptr pa, usize size) = 0;
+    virtual void UnmapPhysicalMemory(uptr pa, usize size) = 0;
+
     void MapMemory(Memory* mem);
     void UnmapMemory(Memory* mem);
     void RemapMemory(Memory* mem);
