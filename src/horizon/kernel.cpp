@@ -242,6 +242,11 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
             bit_cast<i64>(thread->GetRegX(3)));
         thread->SetRegX(0, res);
         break;
+    case 0x1d:
+        res = svcSignalProcessWideKey(mmu->UnmapAddr(thread->GetRegX(0)),
+                                      thread->GetRegX(1));
+        thread->SetRegX(0, res);
+        break;
     case 0x1f:
         res = svcConnectToNamedPort(
             &tmpHandle,
@@ -460,6 +465,17 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
         "svcWaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
         "self: 0x{:08x}, timeout: {})",
         mutex_addr, var_addr, self_tag, timeout);
+
+    // TODO: implement
+    LOG_WARNING(HorizonKernel, "Not implemented");
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
+    LOG_DEBUG(HorizonKernel,
+              "svcSignalProcessWideKey called (addr: 0x{:08x}, value: {})",
+              addr, v);
 
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");

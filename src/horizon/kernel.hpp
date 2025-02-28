@@ -74,6 +74,7 @@ class Kernel {
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
+    Result svcSignalProcessWideKey(uptr addr, i32 v);
     Result svcConnectToNamedPort(Handle* out, const std::string& name);
     Result svcSendSyncRequest(Handle session_handle);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
