@@ -7,6 +7,7 @@
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
+#include "horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
 #include "horizon/services/timesrv/static_service.hpp"
 #include "horizon/services/visrv/manager_root_service.hpp"
@@ -29,62 +30,36 @@ DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 1, GetServiceHandle)
 void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);
     // std::string name(in.name);
-    Service service = readers.reader.Read<Service>();
+    u64 name_u64 = readers.reader.Read<u64>();
+    const char* name_c = (const char*)(&name_u64);
+    std::string name(name_c, std::min(strlen(name_c), (usize)8));
+
     Handle handle;
-    switch (service) {
-    case Service::Hid:
+    if (name == "hid") {
         add_service(new Hid::IHidServer());
-        break;
-    case Service::FspSrv:
+    } else if (name == "fsp-srv") {
         add_service(new Fssrv::IFileSystemProxy());
-        break;
-    case Service::TimeU:
+    } else if (name == "time:u" || name == "time:a" || name == "time:r") {
         add_service(new TimeSrv::IStaticService());
-        break;
-    case Service::Nvdrv:
+    } else if (name == "nvdrv") {
         add_service(new NvDrv::INvDrvServices());
-        break;
-    case Service::SetSys:
+    } else if (name == "set:sys") {
         add_service(new Settings::ISystemSettingsServer());
-        break;
-    case Service::Apm:
+    } else if (name == "apm" || name == "apm:am") {
         add_service(new Am::IApmManager());
-        break;
-    case Service::AppletOE:
+    } else if (name == "appletOE") {
         add_service(new Am::IApplicationProxyService());
-        break;
-    case Service::ViM:
+    } else if (name == "vi:m") {
         add_service(new ViSrv::IManagerRootService());
-        break;
-    default:
-        LOG_WARNING(HorizonServices, "Unknown service 0x{:016x} -> {}",
-                    (u64)service, std::string((char*)(&service), 8));
+    } else if (name == "pl:u") {
+        add_service(new Pl::SharedResource::IPlatformSharedResourceManager());
+    } else {
+        LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         handle = UINT32_MAX;
         result = MAKE_KERNEL_RESULT(NotFound);
         // TODO: don't throw
         throw;
-        break;
     }
-    LOG_DEBUG(HorizonServices, "Service {}", std::string((char*)(&service), 8));
-    /*
-    if (name == "hid") {
-        handle = kernel.AddService<Hid::HidServer>();
-    } else if (name == "fsp-srv") {
-        handle = kernel.AddService<Fssrv::FileSystemProxy>();
-    } else if (name == "time:u" || name == "time:a" || name == "time:r") {
-        // TODO: are all these the same?
-        handle = kernel.AddService<Time::StaticService>();
-    } else if (name == "nvdrv") {
-        handle = kernel.AddService<Nvdrv::NvDrvServices>();
-    } else if (name == "set:sys") {
-        handle = kernel.AddService<Settings::SystemSettingsServer>();
-    } else if (name == "apm" || name == "apm:am") {
-        handle = kernel.AddService<Apm::Manager>();
-    } else {
-        Logging::log(Logging::Level::Debug, "Unknown service name \"%s\"",
-    name.c_str()); handle = UINT32_MAX; *res = MAKE_KERNEL_RESULT(NotFound);
-    }
-    */
 }
 
 } // namespace Hydra::Horizon::Services::Sm

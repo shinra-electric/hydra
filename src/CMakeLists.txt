@@ -70,6 +70,8 @@ add_executable(hydra
     horizon/services/visrv/manager_root_service.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
+    horizon/services/pl/sharedresource/platform_shared_resource_manager.cpp
+    horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
     hw/tegra_x1/cpu/mmu_base.cpp
