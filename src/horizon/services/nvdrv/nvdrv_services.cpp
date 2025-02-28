@@ -2,7 +2,9 @@
 
 #include "horizon/const.hpp"
 #include "horizon/services/nvdrv/const.hpp"
+#include "horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp"
 #include "horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
+#include "horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 #include "horizon/services/nvdrv/ioctl/nvmap.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
@@ -16,6 +18,10 @@ void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
         ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
         ioctl_pool.GetObjectRef(handle) = new Ioctl::NvMap();
+    } else if (path == "/dev/nvhost-as-gpu") {
+        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostAsGpu();
+    } else if (path == "/dev/nvhost-ctrl-gpu") {
+        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostCtrlGpu();
     } else {
         LOG_WARNING(HorizonServices, "Unknown path \"{}\"", path);
         // TODO: don't throw
