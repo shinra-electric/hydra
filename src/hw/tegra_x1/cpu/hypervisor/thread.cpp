@@ -14,10 +14,9 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // TODO: find out what this does
     SetReg(HV_REG_CPSR, 0x3c4);
 
-    // TODO: find out what these do
-    SetSysReg(HV_SYS_REG_MAIR_EL1, 0xffUL);
-    SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519UL);
-    SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925UL);
+    SetSysReg(HV_SYS_REG_MAIR_EL1, 0xfful);
+    SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519ul);
+    SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925ul);
 
     // Enable FP and SIMD instructions.
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
@@ -66,6 +65,7 @@ void Thread::Run() {
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;
             u8 hvEc = (syndrome >> 26) & 0x3f;
+            u64 pc = GetReg(HV_REG_PC);
 
             if (hvEc == 0x16) { // HVC
                 u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
@@ -139,10 +139,10 @@ void Thread::Run() {
                 LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
                 // Debug
-                LogStackTrace(GetReg(HV_REG_PC));
+                LogStackTrace(pc);
 
                 // Manually execute the instruction
-                u32 instruction = mmu->Load<u32>(GetReg(HV_REG_PC));
+                u32 instruction = mmu->Load<u32>(pc);
 
                 u8 opcode =
                     (instruction >> 24) & 0xFF; // Extract opcode (bits 31-24)
@@ -180,14 +180,16 @@ void Thread::Run() {
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
                     "0x{:08x}, "
                     "VirtAddr: "
-                    "0x{:08x}, IPA: 0x{:08x}, instruction: 0x{:08x})",
+                    "0x{:08x}, IPA: 0x{:08x}, PC: 0x{:08x}, ELR: 0x{:08x}, "
+                    "instruction: "
+                    "0x{:08x})",
                     syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1),
                     exit->exception.virtual_address,
-                    exit->exception.physical_address,
-                    mmu->Load<u32>(GetReg(HV_REG_PC)));
+                    exit->exception.physical_address, pc,
+                    GetSysReg(HV_SYS_REG_ELR_EL1), mmu->Load<u32>(pc));
 
                 // Debug
-                LogStackTrace(GetReg(HV_REG_PC));
+                LogStackTrace(pc);
                 LogRegisters();
 
                 break;

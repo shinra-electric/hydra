@@ -3,12 +3,13 @@
 #include "hw/tegra_x1/cpu/hypervisor/const.hpp"
 #include "hw/tegra_x1/cpu/memory.hpp"
 
-#define PTE_VALID (1ULL << 0)
-#define PTE_TABLE (1ULL << 1)           // For level 1-2 descriptors
-#define PTE_AF (1ULL << 10)             // Access Flag
-#define PTE_INNER_SHEREABLE (3ULL << 8) // TODO: wht
+#define PTE_BLOCK (1ull << 0)
+#define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
+#define PTE_AF (1ull << 10)             // Access Flag
+#define PTE_RW (1ull << 6)              // Read write
+#define PTE_INNER_SHEREABLE (3ull << 8) // TODO: wht
 
-#define PT_MEM_BASE 0x0000000100000000
+#define PT_MEM_BASE 0x00000000a0000000
 
 /*
 #define USER_RANGE_MEM_BASE 0x01000000
@@ -64,7 +65,8 @@ inline hv_memory_flags_t PermisionToHV(Horizon::Permission permission) {
 }
 
 inline ApFlags PermisionToAP(Horizon::Permission permission) {
-    return ApFlags::UserReadExecuteKernelReadExecute; // HACK
+    return ApFlags::UserNoneKernelReadWriteExecute; // HACK: wtf why does this
+                                                    // work
 
     if (any(permission & Horizon::Permission::Read)) {
         if (any(permission & Horizon::Permission::Write)) {
@@ -124,26 +126,27 @@ void MMU::MapMemoryImpl(Memory* mem) {
     // Page table
 
     // Access permission flags
-    ApFlags ap;
-    if (mem->IsKernel())
-        ap = ApFlags::UserNoneKernelReadWriteExecute;
-    else
-        ap = PermisionToAP(mem->GetPermission());
+    ApFlags ap = mem->IsKernel() ? ApFlags::UserNoneKernelReadWriteExecute
+                                 : PermisionToAP(mem->GetPermission());
 
     // Walk through the table
     u64* table = reinterpret_cast<u64*>(pt_mem->GetPtr());
     for (const auto& pt_level : pt_manager.GetPtLevels()) {
         auto next = pt_level.GetNext();
-        for (uptr addr = mem->GetBase(); addr < mem->GetBase() + mem->GetSize();
-             addr += pt_level.GetBlockSize()) {
-            u64 value = PTE_VALID | PTE_AF | PTE_INNER_SHEREABLE | (u64)ap;
+
+        uptr start = mem->GetBase() & ~pt_level.GetBlockMask(); // Round down
+        uptr end = align(mem->GetBase() + mem->GetSize(),
+                         pt_level.GetBlockSize()); // Round up
+        for (uptr addr = start; addr < end; addr += pt_level.GetBlockSize()) {
+            u64 value = 0;
             if (next) // Table
                 value |= reinterpret_cast<u64>(
                              reinterpret_cast<u64*>(pt_mem->GetBase()) +
                              pt_manager.GetPaOffset(*next, addr)) |
                          PTE_TABLE;
             else // Page
-                value |= addr;
+                value |=
+                    addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE | (u64)ap;
 
             table[pt_manager.GetPaOffset(pt_level, addr)] = value;
         }
