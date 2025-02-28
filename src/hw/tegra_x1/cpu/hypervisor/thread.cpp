@@ -44,7 +44,7 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
     //    hv_vcpu_set_reg(vcpu, HV_REG_PC, KERNEL_MEM_ADDR + 0x800));
 
     // TODO: what is this?
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, mmu->GetPtMemory()->GetBase());
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, mmu->GetPageTablePa());
     // SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelRangeMemory()->GetBase());
 
     // Initialize the stack pointer
