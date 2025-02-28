@@ -383,8 +383,9 @@ Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
         "0x{:08x}, perm: {})",
         handle, addr, size, (u32)permission);
 
-    // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    // Map
+    auto shared_mem = shared_memories.GetObjectRef(handle);
+    shared_mem.MapToRange(range(addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -407,7 +408,7 @@ Result Kernel::svcCloseHandle(Handle handle) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
               handle);
 
-    // HACK
+    // TODO: uncomment
     // delete GetService(handle);
 
     return RESULT_SUCCESS;
@@ -667,6 +668,10 @@ Handle Kernel::AddService(Services::ServiceBase* service) {
     SetService(handle, service);
 
     return handle;
+}
+
+Handle Kernel::CreateSharedMemory() {
+    return shared_memories.AllocateForIndex();
 }
 
 } // namespace Hydra::Horizon

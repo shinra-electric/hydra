@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/allocators/dynamic_pool.hpp"
 #include "common/macros.hpp"
 #include "horizon/services/service_base.hpp"
 
@@ -12,15 +13,15 @@ class DomainService : public ServiceBase {
     void Request(REQUEST_PARAMS) override;
 
     Handle AddObject(ServiceBase* object) {
-        Handle handle = object_pool.size();
-        object_pool.push_back(object);
+        Handle handle = object_pool.AllocateForIndex();
+        object_pool.GetObjectRef(handle) = object;
         object->SetHandle(handle);
 
         return handle;
     }
 
   private:
-    std::vector<ServiceBase*> object_pool;
+    Allocators::DynamicPool<ServiceBase*> object_pool;
 };
 
 } // namespace Hydra::Horizon::Services

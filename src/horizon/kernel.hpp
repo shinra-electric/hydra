@@ -20,6 +20,22 @@ namespace Services {
 class ServiceBase;
 }
 
+class SharedMemory {
+  public:
+    SharedMemory() = default;
+
+    void MapToRange(range<uptr> range) { ranges.Allocate() = range; }
+
+    void UnmapFromRange(uptr base) {
+        // TODO: implement
+        LOG_WARNING(HorizonKernel, "Not implemented");
+    }
+
+  private:
+    // TODO: use dynamic pool?
+    Allocators::StaticPool<range<uptr>, 8> ranges;
+};
+
 class Kernel {
   public:
     static Kernel& GetInstance();
@@ -83,6 +99,8 @@ class Kernel {
 
     Handle AddService(Services::ServiceBase* service);
 
+    Handle CreateSharedMemory();
+
   private:
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
@@ -101,6 +119,9 @@ class Kernel {
     HW::TegraX1::CPU::Memory* rom_mem = nullptr;
     // HW::MMU::Memory* bss_mem;
     HW::TegraX1::CPU::Memory* heap_mem;
+
+    // Shared
+    Allocators::DynamicPool<SharedMemory> shared_memories;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;

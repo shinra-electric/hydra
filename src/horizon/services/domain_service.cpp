@@ -11,7 +11,7 @@ void DomainService::Request(REQUEST_PARAMS) {
     // Domain in
     auto cmif_in = readers.reader.Read<Cmif::DomainInHeader>();
     LOG_DEBUG(HorizonServices, "Object ID: 0x{:08x}", cmif_in.object_id);
-    auto subservice = object_pool[cmif_in.object_id];
+    auto subservice = object_pool.GetObject(cmif_in.object_id);
 
     Cmif::write_domain_out_header(writers.writer);
 

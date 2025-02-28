@@ -17,7 +17,21 @@ using usize = size_t;
 using uptr = uintptr_t;
 using Handle = u32;
 
-#define INVALID_HANDLE 0
+constexpr Handle INVALID_HANDLE = 0;
+
+template <typename T> struct range {
+  public:
+    range() : base{0}, size{0} {}
+    range(T base_, usize size_) : base{base_}, size{size_} {}
+
+    // Getters
+    T GetBase() const { return base; }
+    usize GetSize() const { return size; }
+
+  private:
+    T base;
+    usize size;
+};
 
 template <typename T> class readonly {
   public:

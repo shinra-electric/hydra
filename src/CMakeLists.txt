@@ -23,6 +23,8 @@ add_executable(hydra
     horizon/services/domain_service.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
+    horizon/services/hid/applet_resource.cpp
+    horizon/services/hid/applet_resource.hpp
     horizon/services/hid/hid_server.cpp
     horizon/services/hid/hid_server.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
