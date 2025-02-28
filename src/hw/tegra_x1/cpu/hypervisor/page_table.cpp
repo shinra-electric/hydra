@@ -88,7 +88,7 @@ inline ApFlags PermisionToAP(Horizon::Permission permission) {
 } // namespace
 
 PageTable::PageTable() {
-    // TODO: use all 3 levels
+    // For now, only 1 level is used, creating a 1 to 1 mapping
     levels.resize(1);
     levels[0] = PageTableLevel(0, 30); // 1gb
     // levels[1] = PtLevel(1, 21, &levels[2]); // 2mb
@@ -98,16 +98,39 @@ PageTable::PageTable() {
     page_table_mem = new Memory(PT_MEM_BASE, GetBlockCount() * sizeof(u64),
                                 Horizon::Permission::Read);
     page_table_mem->Clear();
+
+    // Walk through the table
+    u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
+    // for (const auto& level : levels) {
+    //     auto next = level.GetNext();
+    const auto& level = levels[0];
+
+    for (uptr addr = 0x0; addr < ADDRESS_SPACE_SIZE;
+         addr += level.GetBlockSize()) {
+        u64 value = 0;
+        // if (next) // Table
+        //     value |= reinterpret_cast<u64>(
+        //                  reinterpret_cast<u64*>(page_table_mem->GetBase()) +
+        //                  GetPaOffset(*next, addr)) |
+        //              PTE_TABLE;
+        // else // Page
+        value |= addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
+                 (u64)ApFlags::UserNoneKernelReadWriteExecute;
+
+        table[GetPaOffset(level, addr)] = value;
+    }
+    //}
 }
 
 PageTable::~PageTable() { delete page_table_mem; }
 
 void PageTable::MapMemory(Memory* mem) {
     // Access permission flags
-    ApFlags ap = mem->IsKernel() ? ApFlags::UserNoneKernelReadWriteExecute
-                                 : PermisionToAP(mem->GetPermission());
+    // ApFlags ap = mem->IsKernel() ? ApFlags::UserNoneKernelReadWriteExecute
+    //                             : PermisionToAP(mem->GetPermission());
 
     // Walk through the table
+    /*
     u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
     for (const auto& level : levels) {
         auto next = level.GetNext();
@@ -129,6 +152,7 @@ void PageTable::MapMemory(Memory* mem) {
             table[GetPaOffset(level, addr)] = value;
         }
     }
+    */
 }
 
 void PageTable::UnmapMemory(Memory* mem) {
