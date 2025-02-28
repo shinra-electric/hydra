@@ -8,11 +8,16 @@ class IPlatformSharedResourceManager : public ServiceBase {
   public:
     DEFINE_VIRTUAL_CLONE(IPlatformSharedResourceManager)
 
+    IPlatformSharedResourceManager();
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    Handle shared_memory_handle;
+
     // Commands
+    void GetSharedMemoryNativeHandle(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Pl::SharedResource
