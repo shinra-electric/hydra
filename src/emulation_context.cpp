@@ -57,9 +57,8 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
 
 EmulationContext::~EmulationContext() {
     for (auto t : threads) {
-        // HACK
+        // Force the thead to exit
         delete t;
-        // t.join();
     }
 }
 
@@ -74,7 +73,12 @@ void EmulationContext::Start() {
 
         // Cleanup
         delete main_thread;
+
+        // Notify that emulation has ended
+        is_running = false;
     });
+
+    is_running = true;
 }
 
 } // namespace Hydra

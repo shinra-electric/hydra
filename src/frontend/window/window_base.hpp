@@ -20,7 +20,20 @@ class WindowBase {
 
     void Present();
 
-    bool IsEmulating() const { return emulation_context != nullptr; }
+    bool IsEmulating() {
+        if (emulation_context) {
+            if (emulation_context->IsRunning())
+                return true;
+            else {
+                delete emulation_context;
+                emulation_context = nullptr;
+
+                return false;
+            }
+        }
+
+        return emulation_context != nullptr;
+    }
 
   private:
     EmulationContext* emulation_context = nullptr;
