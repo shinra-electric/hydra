@@ -4,50 +4,45 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
-void MMUBase::MapMemory(Memory* mem) {
-    memories.push_back(mem);
-    MapMemoryImpl(mem);
+void MMUBase::Map(Memory* mem, uptr base) {
+    mapped_ranges[base] = mem;
+    MapImpl(mem, base);
 }
 
-void MMUBase::UnmapMemory(Memory* mem) {
-    std::vector<Memory*>::iterator it = memories.begin();
-    while (it != memories.end()) {
-        if (*it == mem) {
-            memories.erase(it);
-            UnmapMemoryImpl(mem);
-            return;
-        }
-        it++;
-    }
-
-    throw std::runtime_error("Memory not found");
+void MMUBase::Unmap(uptr base) {
+    auto mem = mapped_ranges.at(base);
+    UnmapImpl(mem, base);
 }
 
-void MMUBase::RemapMemory(Memory* mem) {
+void MMUBase::Remap(uptr base) {
+    auto mem = mapped_ranges.at(base);
+
     // We can just call the subclass implementations, since we don't want to
     // remove the memory from the list
-    UnmapMemoryImpl(mem);
-    MapMemoryImpl(mem);
+    UnmapImpl(mem, base);
+    MapImpl(mem, base);
 }
 
-Memory* MMUBase::UnmapAddrToMemory(uptr addr) const {
-    for (Memory* mem : memories) {
-        if (addr >= mem->GetBase() && addr < mem->GetBase() + mem->GetSize()) {
+Memory* MMUBase::FindMemoryForAddr(uptr addr, uptr& out_base) const {
+    for (auto [base, mem] : mapped_ranges) {
+        if (addr >= base && addr < base + mem->GetSize()) {
+            out_base = base;
             return mem;
         }
     }
 
-    LOG_ERROR(MMU, "Failed to unmap addr 0x{:08x}", addr);
+    LOG_ERROR(MMU, "Failed to find memory for addr 0x{:08x}", addr);
 
     return nullptr;
 }
 
 uptr MMUBase::UnmapAddr(uptr addr) const {
-    Memory* mem = UnmapAddrToMemory(addr);
+    uptr base;
+    Memory* mem = FindMemoryForAddr(addr, base);
     if (!mem)
-        return 0;
+        return 0x0;
 
-    return mem->UnmapAddr(addr);
+    return reinterpret_cast<uptr>(mem->GetPtrU8() + (addr - base));
 }
 
 } // namespace Hydra::HW::TegraX1::CPU

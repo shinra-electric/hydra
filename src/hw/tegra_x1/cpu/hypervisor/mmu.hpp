@@ -10,15 +10,15 @@ class MMU : public MMUBase {
     MMU();
     ~MMU();
 
-    void ReprotectMemory(Memory* mem) override;
+    // void ReprotectMemory(Memory* mem, uptr base) override;
 
     // Getters
-    uptr GetPageTablePa() const { return page_table.GetMemory()->GetBase(); }
+    // uptr GetPageTablePa() const { return page_table.GetMemory()->GetBase(); }
     // Memory* GetKernelRangeMemory() const { return kernel_range.mem; }
 
   protected:
-    void MapMemoryImpl(Memory* mem) override;
-    void UnmapMemoryImpl(Memory* mem) override;
+    void MapImpl(Memory* mem, uptr base) override;
+    void UnmapImpl(Memory* mem, uptr base) override;
 
   private:
     // Page table

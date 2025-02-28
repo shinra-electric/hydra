@@ -7,6 +7,7 @@
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 constexpr usize ADDRESS_SPACE_SIZE = (1ul << 39);
+constexpr uptr PAGE_TABLE_MEM_BASE = 0x00000000a0000000;
 
 struct PageTableLevel {
     PageTableLevel() = default;

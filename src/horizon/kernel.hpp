@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/allocators/dynamic_pool.hpp"
 #include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
 

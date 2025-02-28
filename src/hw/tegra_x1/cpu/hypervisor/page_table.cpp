@@ -6,8 +6,6 @@
 #define PTE_RW (1ull << 6)              // Read write
 #define PTE_INNER_SHEREABLE (3ull << 8) // TODO: wht
 
-#define PT_MEM_BASE 0x00000000a0000000
-
 /*
 #define USER_RANGE_MEM_BASE 0x01000000
 #define USER_RANGE_MEM_SIZE 0x1000000
@@ -95,31 +93,20 @@ PageTable::PageTable() {
     // levels[2] = PtLevel(2, 12);             // 4kb
 
     // Memory
-    page_table_mem = new Memory(PT_MEM_BASE, GetBlockCount() * sizeof(u64),
-                                Horizon::Permission::Read);
+    page_table_mem =
+        new Memory(GetBlockCount() * sizeof(u64), Horizon::Permission::Read);
     page_table_mem->Clear();
 
     // Walk through the table
     u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
-    // for (const auto& level : levels) {
-    //     auto next = level.GetNext();
     const auto& level = levels[0];
-
     for (uptr addr = 0x0; addr < ADDRESS_SPACE_SIZE;
          addr += level.GetBlockSize()) {
-        u64 value = 0;
-        // if (next) // Table
-        //     value |= reinterpret_cast<u64>(
-        //                  reinterpret_cast<u64*>(page_table_mem->GetBase()) +
-        //                  GetPaOffset(*next, addr)) |
-        //              PTE_TABLE;
-        // else // Page
-        value |= addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
-                 (u64)ApFlags::UserNoneKernelReadWriteExecute;
+        u64 value = addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
+                    (u64)ApFlags::UserNoneKernelReadWriteExecute;
 
         table[GetPaOffset(level, addr)] = value;
     }
-    //}
 }
 
 PageTable::~PageTable() { delete page_table_mem; }
@@ -153,6 +140,7 @@ void PageTable::MapMemory(Memory* mem) {
         }
     }
     */
+    LOG_WARNING(Hypervisor, "Not implemented");
 }
 
 void PageTable::UnmapMemory(Memory* mem) {

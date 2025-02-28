@@ -7,7 +7,7 @@ namespace Hydra::HW::TegraX1::CPU {
 
 class Memory {
   public:
-    Memory(uptr base_, usize size_, Horizon::Permission permission_,
+    Memory(usize size_, Horizon::Permission permission_,
            bool is_kernel_ = false);
     ~Memory();
 
@@ -15,18 +15,10 @@ class Memory {
 
     void Clear();
 
-    uptr MapPtr(uptr p);
-
-    uptr UnmapAddr(uptr p);
-
-    bool AddrIsInRange(uptr p);
-
     // Getters
     uptr GetPtr() const { return ptr; }
 
     u8* GetPtrU8() const { return (u8*)ptr; }
-
-    uptr GetBase() const { return base; }
 
     usize GetSize() const { return size; }
 
@@ -42,7 +34,6 @@ class Memory {
   private:
     uptr ptr;
 
-    uptr base;
     usize size;
 
     Horizon::Permission permission;

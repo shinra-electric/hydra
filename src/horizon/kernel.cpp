@@ -1,5 +1,6 @@
 #include "horizon/kernel.hpp"
 
+#include "common/logging/log.hpp"
 #include "horizon/cmif.hpp"
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
@@ -67,14 +68,15 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     // Memory
 
     // Stack memory
-    stack_mem = new HW::TegraX1::CPU::Memory(STACK_MEM_BASE, STACK_MEM_SIZE,
-                                             Permission::ReadWrite);
+    stack_mem =
+        new HW::TegraX1::CPU::Memory(STACK_MEM_SIZE, Permission::ReadWrite);
     stack_mem->Clear();
-    mmu->MapMemory(stack_mem);
+    mmu->Map(stack_mem, STACK_MEM_BASE);
 
     // Kernel memory
-    kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
+    kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_SIZE,
                                               Permission::Execute, true);
+
     kernel_mem->Clear();
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,
@@ -83,25 +85,24 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
            exception_trampoline, sizeof(exception_trampoline));
 
-    mmu->MapMemory(kernel_mem);
+    mmu->Map(kernel_mem, KERNEL_MEM_BASE);
 
     // TLS memory
-    tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_BASE, TLS_MEM_SIZE,
-                                           Permission::ReadWrite);
+    tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
-    mmu->MapMemory(tls_mem);
+    mmu->Map(tls_mem, TLS_MEM_BASE);
 
     // ASLR memory
-    aslr_mem = new HW::TegraX1::CPU::Memory(ASLR_MEM_BASE, ASLR_MEM_SIZE,
-                                            Permission::ReadWrite);
+    aslr_mem =
+        new HW::TegraX1::CPU::Memory(ASLR_MEM_SIZE, Permission::ReadWrite);
     aslr_mem->Clear();
-    mmu->MapMemory(aslr_mem);
+    mmu->Map(aslr_mem, ASLR_MEM_BASE);
 
     // Heap memory
-    heap_mem = new HW::TegraX1::CPU::Memory(
-        HEAP_MEM_BASE, DEFAULT_HEAP_MEM_SIZE, Permission::ReadWrite);
+    heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
+                                            Permission::ReadWrite);
     heap_mem->Clear();
-    mmu->MapMemory(heap_mem);
+    mmu->Map(heap_mem, HEAP_MEM_BASE);
 }
 
 Kernel::~Kernel() {
@@ -120,16 +121,16 @@ Kernel::~Kernel() {
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
                           u64 id) { return SupervisorCall(thread, id); },
-                      kernel_mem->GetBase(), tls_mem->GetBase(),
-                      stack_mem->GetBase() + stack_mem->GetSize(),
-                      kernel_mem->GetBase() + EXCEPTION_TRAMPOLINE_OFFSET);
+                      KERNEL_MEM_BASE, TLS_MEM_BASE,
+                      STACK_MEM_BASE + STACK_MEM_SIZE,
+                      KERNEL_MEM_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
 void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     ConfigureThread(thread);
 
     // Set initial PC
-    thread->SetRegPC(rom_mem->GetBase() + rom_text_offset);
+    thread->SetRegPC(ROM_MEM_BASE + rom_text_offset);
 
     // Set arguments
 
@@ -149,18 +150,18 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
 
 void Kernel::LoadROM(Rom* rom) {
     if (rom_mem) {
-        mmu->UnmapMemory(rom_mem);
+        mmu->Unmap(ROM_MEM_BASE);
         delete rom_mem;
     }
 
     // ROM memory
     rom_mem = new HW::TegraX1::CPU::Memory(
-        ROM_MEM_BASE, rom->GetRom().size(),
+        rom->GetRom().size(),
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
     rom_mem->Clear();
     memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
-    mmu->MapMemory(rom_mem);
+    mmu->Map(rom_mem, ROM_MEM_BASE);
 
     rom_text_offset = rom->GetTextOffset();
 }
@@ -287,10 +288,10 @@ Result Kernel::svcSetHeapSize(uptr* out, usize size) {
 
     if (size != heap_mem->GetSize()) {
         heap_mem->Resize(size);
-        mmu->RemapMemory(heap_mem);
+        mmu->Remap(HEAP_MEM_BASE);
     }
 
-    *out = heap_mem->GetBase();
+    *out = HEAP_MEM_BASE;
 
     return RESULT_SUCCESS;
 }
@@ -303,7 +304,8 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         "{})",
         addr, size, permission);
 
-    HW::TegraX1::CPU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    uptr base;
+    HW::TegraX1::CPU::Memory* mem = mmu->FindMemoryForAddr(addr, base);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
@@ -312,6 +314,9 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
     mem->SetPermission(permission);
     // TODO: uncomment
     // cpu->ReprotectMemory(mem);
+
+    // TODO: implement
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
@@ -334,14 +339,18 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    HW::TegraX1::CPU::Memory* mem = mmu->UnmapAddrToMemory(addr);
+    // TODO: implement
+    LOG_WARNING(HorizonKernel, "Not implemented");
+
+    uptr base;
+    HW::TegraX1::CPU::Memory* mem = mmu->FindMemoryForAddr(addr, base);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
     }
 
     *out_mem_info = MemoryInfo{
-        .addr = mem->GetBase(), // TODO: check
+        .addr = base, // TODO: check
         .size = mem->GetSize(),
         // TODO: type
         // TODO: attr
@@ -605,19 +614,19 @@ Result Kernel::svcGetInfo(u64* out, InfoType info_type, Handle handle,
         *out = 0;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
-        *out = heap_mem->GetBase();
+        *out = HEAP_MEM_BASE;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionSize:
         *out = heap_mem->GetSize();
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
-        *out = aslr_mem->GetBase();
+        *out = ASLR_MEM_BASE;
         return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
         *out = aslr_mem->GetSize();
         return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
-        *out = stack_mem->GetBase();
+        *out = STACK_MEM_BASE;
         return RESULT_SUCCESS;
     case InfoType::StackRegionSize:
         *out = stack_mem->GetSize();

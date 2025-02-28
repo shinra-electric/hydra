@@ -8,12 +8,12 @@ class Memory;
 
 class MMUBase {
   public:
-    void MapMemory(Memory* mem);
-    void UnmapMemory(Memory* mem);
-    void RemapMemory(Memory* mem);
-    virtual void ReprotectMemory(Memory* mem) = 0;
+    void Map(Memory* mem, uptr base);
+    void Unmap(uptr base);
+    void Remap(uptr base);
+    // virtual void ReprotectMemory(uptr base) = 0;
 
-    Memory* UnmapAddrToMemory(uptr addr) const;
+    Memory* FindMemoryForAddr(uptr addr, uptr& out_base) const;
     uptr UnmapAddr(uptr addr) const;
 
     template <typename T> T Load(uptr addr) const {
@@ -25,11 +25,11 @@ class MMUBase {
     }
 
   protected:
-    virtual void MapMemoryImpl(Memory* mem) = 0;
-    virtual void UnmapMemoryImpl(Memory* mem) = 0;
+    virtual void MapImpl(Memory* mem, uptr base) = 0;
+    virtual void UnmapImpl(Memory* mem, uptr base) = 0;
 
   private:
-    std::vector<Memory*> memories;
+    std::map<uptr, Memory*> mapped_ranges;
 };
 
 } // namespace Hydra::HW::TegraX1::CPU
