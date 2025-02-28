@@ -17,12 +17,12 @@ namespace Hydra::Horizon {
 #define KERNEL_MEM_BASE 0xF0000000
 #define KERNEL_MEM_SIZE 0x10000
 
-#define TLS_MEM_BASE 0x02000000
+#define TLS_MEM_BASE 0x20000000
 #define TLS_MEM_SIZE 0x20000
 
 #define ROM_MEM_BASE 0x80000000
 
-#define HEAP_MEM_BASE 0x20000000
+#define HEAP_MEM_BASE 0x60000000
 #define DEFAULT_HEAP_MEM_SIZE 0x1000000
 #define HEAP_MEM_ALIGNMENT 0x00200000
 
@@ -74,7 +74,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
 
     // Kernel memory
     kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_BASE, KERNEL_MEM_SIZE,
-                                              Permission::Execute);
+                                              Permission::Execute, true);
     kernel_mem->Clear();
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,

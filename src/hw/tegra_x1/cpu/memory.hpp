@@ -7,7 +7,8 @@ namespace Hydra::HW::TegraX1::CPU {
 
 class Memory {
   public:
-    Memory(uptr base_, usize size_, Horizon::Permission permission_);
+    Memory(uptr base_, usize size_, Horizon::Permission permission_,
+           bool is_kernel_ = false);
     ~Memory();
 
     void Resize(usize size_);
@@ -31,6 +32,8 @@ class Memory {
 
     Horizon::Permission GetPermission() const { return permission; }
 
+    bool IsKernel() const { return is_kernel; }
+
     // Setters
     void SetPermission(Horizon::Permission permission_) {
         permission = permission_;
@@ -43,6 +46,7 @@ class Memory {
     usize size;
 
     Horizon::Permission permission;
+    bool is_kernel;
 
     void Allocate();
 };

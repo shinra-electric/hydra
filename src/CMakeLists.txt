@@ -73,6 +73,8 @@ add_executable(hydra
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
+    hw/tegra_x1/cpu/hypervisor/page_table.cpp
+    hw/tegra_x1/cpu/hypervisor/page_table.hpp
     hw/tegra_x1/cpu/hypervisor/mmu.cpp
     hw/tegra_x1/cpu/hypervisor/mmu.hpp
     hw/tegra_x1/cpu/hypervisor/thread.cpp
