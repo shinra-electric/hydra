@@ -42,6 +42,16 @@ namespace Hydra::Horizon::Services {
 u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
                    const Hipc::BufferDescriptor& descriptor);
 
+#define CREATE_READERS_OR_WRITERS(reader_or_buffer, type)                      \
+    type##_buffers_##reader_or_buffer##s.reserve(                              \
+        hipc_in.meta.num_##type##_buffers);                                    \
+    for (u32 i = 0; i < hipc_in.meta.num_##type##_buffers; i++) {              \
+        u8* ptr = get_buffer_ptr(mmu, hipc_in.data.type##_buffers[i]);         \
+        if (!ptr)                                                              \
+            continue;                                                          \
+        type##_buffers_##reader_or_buffer##s.emplace_back(ptr);                \
+    }
+
 struct Readers {
     Reader reader;
     std::vector<Reader> send_buffers_readers;
@@ -50,14 +60,8 @@ struct Readers {
     Readers(const HW::TegraX1::CPU::MMUBase* mmu, Hipc::ParsedRequest hipc_in)
         : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10)) {
         send_buffers_readers.reserve(hipc_in.meta.num_send_buffers);
-        for (u32 i = 0; i < hipc_in.meta.num_send_buffers; i++)
-            send_buffers_readers.emplace_back(
-                get_buffer_ptr(mmu, hipc_in.data.send_buffers[i]));
-
-        exch_buffers_readers.reserve(hipc_in.meta.num_exch_buffers);
-        for (u32 i = 0; i < hipc_in.meta.num_exch_buffers; i++)
-            exch_buffers_readers.emplace_back(
-                get_buffer_ptr(mmu, hipc_in.data.exch_buffers[i]));
+        CREATE_READERS_OR_WRITERS(reader, send);
+        CREATE_READERS_OR_WRITERS(reader, exch);
     }
 };
 
@@ -75,17 +79,12 @@ struct Writers {
         : writer(scratch_buffer), objects_writer(scratch_buffer_objects),
           move_handles_writer(scratch_buffer_move_handles),
           copy_handles_writer(scratch_buffer_copy_handles) {
-        recv_buffers_writers.reserve(hipc_in.meta.num_recv_buffers);
-        for (u32 i = 0; i < hipc_in.meta.num_recv_buffers; i++)
-            recv_buffers_writers.emplace_back(
-                get_buffer_ptr(mmu, hipc_in.data.recv_buffers[i]));
-
-        exch_buffers_writers.reserve(hipc_in.meta.num_exch_buffers);
-        for (u32 i = 0; i < hipc_in.meta.num_exch_buffers; i++)
-            exch_buffers_writers.emplace_back(
-                get_buffer_ptr(mmu, hipc_in.data.exch_buffers[i]));
+        CREATE_READERS_OR_WRITERS(writer, recv);
+        CREATE_READERS_OR_WRITERS(writer, exch);
     }
 };
+
+#undef CREATE_READERS_OR_WRITERS
 
 class ServiceBase : public KernelHandle {
   public:

@@ -6,7 +6,10 @@
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
-        func##Data* data = nullptr;                                            \
+        /* HACK: for some reason, why need to do it this weird way, otherwise  \
+         * the data will be corrupt */                                         \
+        func##Data data_dummy;                                                 \
+        func##Data* data = &data_dummy;                                        \
         if (reader)                                                            \
             data = reader->ReadPtr<func##Data>();                              \
         func(*data, result);                                                   \
