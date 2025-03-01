@@ -12,12 +12,12 @@ class DomainService : public ServiceBase {
 
     void Request(REQUEST_PARAMS) override;
 
-    Handle AddObject(ServiceBase* object) {
-        Handle handle = object_pool.AllocateForIndex();
-        object_pool.GetObjectRef(handle) = object;
-        object->SetHandle(handle);
+    HandleId AddObject(ServiceBase* object) {
+        HandleId handle_id = object_pool.AllocateForIndex();
+        object_pool.GetObjectRef(handle_id) = object;
+        object->SetHandleId(handle_id);
 
-        return handle;
+        return handle_id;
     }
 
   private:

@@ -7,11 +7,11 @@ DEFINE_SERVICE_COMMAND_TABLE(IAppletResource, 0, GetSharedMemoryHandle)
 
 IAppletResource::IAppletResource() {
     // TODO: create once globally instead?
-    shared_memory_handle = Kernel::GetInstance().CreateSharedMemory();
+    shared_memory_handle_id = Kernel::GetInstance().CreateSharedMemory();
 }
 
 void IAppletResource::GetSharedMemoryHandle(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(shared_memory_handle);
+    writers.copy_handles_writer.Write(shared_memory_handle_id);
 }
 
 } // namespace Hydra::Horizon::Services::Hid

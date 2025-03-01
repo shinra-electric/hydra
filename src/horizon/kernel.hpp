@@ -20,6 +20,11 @@ namespace Services {
 class ServiceBase;
 }
 
+class KernelHandle {
+  public:
+    virtual ~KernelHandle() = default;
+};
+
 class SharedMemory {
   public:
     SharedMemory() = default;
@@ -63,23 +68,24 @@ class Kernel {
                           uptr addr);
     void svcExitProcess();
     void svcSleepThread(i64 nano);
-    Result svcMapSharedMemory(Handle handle, uptr addr, usize size,
+    Result svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
                               Permission permission);
-    Result svcCreateTransferMemory(Handle* out, uptr address, u64 size,
-                                   Permission permission);
-    Result svcCloseHandle(Handle handle);
-    Result svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
+    Result svcCreateTransferMemory(HandleId* out_handle_id, uptr address,
+                                   u64 size, Permission permission);
+    Result svcCloseHandle(HandleId handle_id);
+    Result svcWaitSynchronization(u64& handle_index, HandleId* handle_ids,
                                   i32 handles_count, i64 timeout);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
     Result svcSignalProcessWideKey(uptr addr, i32 v);
-    Result svcConnectToNamedPort(Handle* out, const std::string& name);
-    Result svcSendSyncRequest(Handle session_handle);
+    Result svcConnectToNamedPort(HandleId* out_handle_id,
+                                 const std::string& name);
+    Result svcSendSyncRequest(HandleId handle_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(u64* out, InfoType info_type, Handle handle,
+    Result svcGetInfo(u64* out, InfoType info_type, HandleId handle_id,
                       u64 info_sub_type);
 
     // Getters
@@ -92,15 +98,15 @@ class Kernel {
     HW::TegraX1::CPU::Memory* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
-    Services::ServiceBase* GetService(Handle handle) const {
-        return service_pool.GetObject(handle);
+    KernelHandle* GetHandle(HandleId handle_id) const {
+        return handle_pool.GetObject(handle_id);
     }
 
-    void SetService(Handle handle, Services::ServiceBase* service);
+    void SetHandle(HandleId handle_id, KernelHandle* handle);
 
-    Handle AddService(Services::ServiceBase* service);
+    HandleId AddHandle(KernelHandle* service);
 
-    Handle CreateSharedMemory();
+    HandleId CreateSharedMemory();
 
   private:
     HW::Bus& bus;
@@ -121,13 +127,12 @@ class Kernel {
     // HW::MMU::Memory* bss_mem;
     HW::TegraX1::CPU::Memory* heap_mem;
 
-    // Shared
-    Allocators::DynamicPool<SharedMemory> shared_memories;
+    // Handles
+    Allocators::DynamicPool<KernelHandle*> handle_pool;
+    Allocators::DynamicPool<SharedMemory> shared_memory_pool;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;
-    // TODO: what's the maximum number of services?
-    Allocators::StaticPool<Services::ServiceBase*, 64> service_pool;
     u8 service_scratch_buffer[0x200];
     u8 service_scratch_buffer_objects[0x100];
     u8 service_scratch_buffer_move_handles[0x100];

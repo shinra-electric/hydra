@@ -2,6 +2,7 @@
 
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
+#include "horizon/kernel.hpp"
 
 #define REQUEST_PARAMS                                                         \
     Readers &readers, Writers &writers,                                        \
@@ -86,9 +87,8 @@ struct Writers {
     }
 };
 
-class ServiceBase {
+class ServiceBase : public KernelHandle {
   public:
-    virtual ~ServiceBase() = default;
     virtual ServiceBase* Clone() const = 0;
 
     virtual void Request(REQUEST_PARAMS);
@@ -98,13 +98,13 @@ class ServiceBase {
     // Handle GetHandle() const { return handle; }
 
     // Setters
-    void SetHandle(Handle handle_) { handle = handle_; }
+    void SetHandleId(HandleId handle_id_) { handle_id = handle_id_; }
 
   protected:
     virtual void RequestImpl(REQUEST_IMPL_PARAMS) {}
 
   private:
-    Handle handle;
+    HandleId handle_id;
 };
 
 } // namespace Hydra::Horizon::Services

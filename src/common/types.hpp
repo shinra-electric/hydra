@@ -17,9 +17,7 @@ using u64 = uint64_t;
 using u128 = __uint128_t;
 using usize = size_t;
 using uptr = uintptr_t;
-using Handle = u32;
-
-constexpr Handle INVALID_HANDLE = 0;
+using HandleId = u32;
 
 template <typename T> struct range {
   public:

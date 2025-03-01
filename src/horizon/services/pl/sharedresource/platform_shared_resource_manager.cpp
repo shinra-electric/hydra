@@ -8,12 +8,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 4,
                              GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle = Kernel::GetInstance().CreateSharedMemory();
+    shared_memory_handle_id = Kernel::GetInstance().CreateSharedMemory();
 }
 
 void IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
     REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(shared_memory_handle);
+    writers.copy_handles_writer.Write(shared_memory_handle_id);
 }
 
 } // namespace Hydra::Horizon::Services::Pl::SharedResource

@@ -14,7 +14,7 @@ class IAppletResource : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
-    Handle shared_memory_handle;
+    HandleId shared_memory_handle_id;
 
     // Commands
     void GetSharedMemoryHandle(REQUEST_COMMAND_PARAMS);

@@ -28,21 +28,21 @@ class GPU {
 
     // Memory map
     u32 CreateMap(usize size) {
-        Handle handle = memory_maps.AllocateForIndex();
-        MemoryMap& memory_map = memory_maps.GetObjectRef(handle);
+        HandleId handle_id = memory_maps.AllocateForIndex();
+        MemoryMap& memory_map = memory_maps.GetObjectRef(handle_id);
         memory_map = {};
         memory_map.size = size;
 
-        return handle;
+        return handle_id;
     }
 
-    void AllocateMap(Handle handle, uptr addr, bool write) {
-        MemoryMap& memory_map = memory_maps.GetObjectRef(handle);
+    void AllocateMap(HandleId handle_id, uptr addr, bool write) {
+        MemoryMap& memory_map = memory_maps.GetObjectRef(handle_id);
         memory_map.addr = addr;
         memory_map.write = write;
     }
 
-    u32 GetMapId(Handle handle) { return handle + 1; }
+    u32 GetMapId(HandleId handle_id) { return handle_id + 1; }
 
     MemoryMap& GetMapById(u32 id) { return memory_maps.GetObjectRef(id - 1); }
 

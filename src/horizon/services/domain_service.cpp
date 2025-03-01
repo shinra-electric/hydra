@@ -18,8 +18,8 @@ void DomainService::Request(REQUEST_PARAMS) {
     switch (cmif_in.type) {
     case 1:
         subservice->Request(readers, writers, [&](ServiceBase* service) {
-            Handle handle = AddObject(service);
-            writers.objects_writer.Write(handle);
+            HandleId handle_id = AddObject(service);
+            writers.objects_writer.Write(handle_id);
         });
         break;
     default:

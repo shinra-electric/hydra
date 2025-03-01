@@ -11,6 +11,10 @@
 
 namespace Hydra {
 
+template <typename T> constexpr T invalid() {
+    return std::numeric_limits<T>::max();
+}
+
 template <typename T, typename SrcT> T bit_cast(SrcT src) {
     static_assert(sizeof(T) == sizeof(SrcT));
     return *reinterpret_cast<T*>(&src);

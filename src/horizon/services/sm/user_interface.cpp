@@ -34,7 +34,6 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     const char* name_c = (const char*)(&name_u64);
     std::string name(name_c, std::min(strlen(name_c), (usize)8));
 
-    Handle handle;
     if (name == "hid") {
         add_service(new Hid::IHidServer());
     } else if (name == "fsp-srv") {
@@ -55,7 +54,6 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Pl::SharedResource::IPlatformSharedResourceManager());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
-        handle = UINT32_MAX;
         result = MAKE_KERNEL_RESULT(NotFound);
         // TODO: don't throw
         throw;

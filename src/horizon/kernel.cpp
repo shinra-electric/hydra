@@ -171,7 +171,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     u32 tmpU32;
     u64 tmpU64;
     uptr tmpUPTR;
-    Handle tmpHandle;
+    HandleId tmpHandleId;
     switch (id) {
     case 0x1:
         res = svcSetHeapSize(&tmpUPTR, thread->GetRegX(1));
@@ -210,10 +210,10 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x15:
         res = svcCreateTransferMemory(
-            &tmpHandle, thread->GetRegX(1), thread->GetRegX(2),
+            &tmpHandleId, thread->GetRegX(1), thread->GetRegX(2),
             static_cast<Permission>(thread->GetRegX(3)));
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpHandle);
+        thread->SetRegX(1, tmpHandleId);
         break;
     case 0x16:
         res = svcCloseHandle(thread->GetRegX(0));
@@ -221,7 +221,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            tmpU64, reinterpret_cast<Handle*>(thread->GetRegX(1)),
+            tmpU64, reinterpret_cast<HandleId*>(thread->GetRegX(1)),
             bit_cast<i64>(thread->GetRegX(2)),
             bit_cast<i64>(thread->GetRegX(3)));
         thread->SetRegX(0, res);
@@ -249,10 +249,10 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x1f:
         res = svcConnectToNamedPort(
-            &tmpHandle,
+            &tmpHandleId,
             reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))));
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpHandle);
+        thread->SetRegX(1, tmpHandleId);
         break;
     case 0x21:
         res = svcSendSyncRequest(thread->GetRegX(0));
@@ -380,23 +380,23 @@ void Kernel::svcSleepThread(i64 nano) {
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
-Result Kernel::svcMapSharedMemory(Handle handle, uptr addr, usize size,
+Result Kernel::svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
                                   Permission permission) {
     LOG_DEBUG(
         HorizonKernel,
         "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x}, perm: {})",
-        handle, addr, size, (u32)permission);
+        handle_id, addr, size, (u32)permission);
 
     // Map
-    auto shared_mem = shared_memories.GetObjectRef(handle);
+    auto shared_mem = shared_memory_pool.GetObjectRef(handle_id);
     shared_mem.MapToRange(range(addr, size));
 
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
-                                       Permission permission) {
+Result Kernel::svcCreateTransferMemory(HandleId* out_handle_id, uptr address,
+                                       u64 size, Permission permission) {
     LOG_DEBUG(
         HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
@@ -406,26 +406,29 @@ Result Kernel::svcCreateTransferMemory(Handle* out, uptr address, u64 size,
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
 
+    // HACK
+    *out_handle_id = invalid<HandleId>();
+
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcCloseHandle(Handle handle) {
+Result Kernel::svcCloseHandle(HandleId handle_id) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
-              handle);
+              handle_id);
 
-    // TODO: uncomment
-    // delete GetService(handle);
+    delete GetHandle(handle_id);
+    handle_pool.FreeByIndex(handle_id);
 
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcWaitSynchronization(u64& handle_index, Handle* handles_ptr,
+Result Kernel::svcWaitSynchronization(u64& handle_index, HandleId* handle_ids,
                                       i32 handles_count, i64 timeout) {
     LOG_DEBUG(
         HorizonKernel,
         "svcWaitSynchronization called (handles: 0x{}, count: {}, timeout: "
         "{})",
-        (void*)handles_ptr, handles_count, timeout);
+        (void*)handle_ids, handles_count, timeout);
 
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
@@ -483,7 +486,8 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
+Result Kernel::svcConnectToNamedPort(HandleId* out_handle_id,
+                                     const std::string& name) {
     LOG_DEBUG(HorizonKernel, "svcConnectToNamedPort called (name: {})", name);
 
     auto it = service_ports.find(name);
@@ -492,16 +496,16 @@ Result Kernel::svcConnectToNamedPort(Handle* out, const std::string& name) {
         return MAKE_KERNEL_RESULT(NotFound);
     }
 
-    *out = AddService(it->second);
+    *out_handle_id = AddHandle(it->second);
 
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcSendSyncRequest(Handle session_handle) {
-    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (session: 0x{:08x})",
-              session_handle);
+Result Kernel::svcSendSyncRequest(HandleId handle_id) {
+    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:08x})",
+              handle_id);
 
-    Services::ServiceBase* service = GetService(session_handle);
+    auto service = static_cast<Services::ServiceBase*>(GetHandle(handle_id));
     u8* tls_ptr = tls_mem->GetPtrU8();
 
     // Request
@@ -520,8 +524,9 @@ Result Kernel::svcSendSyncRequest(Handle session_handle) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
         service->Request(readers, writers, [&](Services::ServiceBase* service) {
-            Handle handle = AddService(service);
-            writers.move_handles_writer.Write(handle);
+            HandleId handle_id = AddHandle(service);
+            service->SetHandleId(handle_id);
+            writers.move_handles_writer.Write(handle_id);
         });
         break;
     case Cmif::CommandType::Control:
@@ -613,11 +618,11 @@ Result Kernel::svcOutputDebugString(const char* str, usize len) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcGetInfo(u64* out, InfoType info_type, Handle handle,
+Result Kernel::svcGetInfo(u64* out, InfoType info_type, HandleId handle_id,
                           u64 info_sub_type) {
     LOG_DEBUG(HorizonKernel,
               "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
-              info_type, handle, info_sub_type);
+              info_type, handle_id, info_sub_type);
 
     switch (info_type) {
     case InfoType::AliasRegionAddress:
@@ -674,20 +679,19 @@ Result Kernel::svcGetInfo(u64* out, InfoType info_type, Handle handle,
     }
 }
 
-void Kernel::SetService(Handle handle, Services::ServiceBase* service) {
-    service_pool.GetObjectRef(handle) = service;
-    service->SetHandle(handle);
+void Kernel::SetHandle(HandleId handle_id, KernelHandle* handle) {
+    handle_pool.GetObjectRef(handle_id) = handle;
 }
 
-Handle Kernel::AddService(Services::ServiceBase* service) {
-    Handle handle = service_pool.AllocateForIndex();
-    SetService(handle, service);
+HandleId Kernel::AddHandle(KernelHandle* handle) {
+    HandleId handle_id = handle_pool.AllocateForIndex();
+    handle_pool.GetObjectRef(handle_id) = handle;
 
-    return handle;
+    return handle_id;
 }
 
-Handle Kernel::CreateSharedMemory() {
-    return shared_memories.AllocateForIndex();
+HandleId Kernel::CreateSharedMemory() {
+    return shared_memory_pool.AllocateForIndex();
 }
 
 } // namespace Hydra::Horizon

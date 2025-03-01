@@ -34,11 +34,12 @@ void ServiceBase::Control(Reader& reader, Writer& writer) {
     switch (cmif_in.command_id) {
     case 0: { // convert to domain
         auto domain_service = new DomainService();
-        Kernel::GetInstance().SetService(handle, domain_service);
-        handle = domain_service->AddObject(this);
+        Kernel::GetInstance().SetHandle(handle_id, domain_service);
+        domain_service->SetHandleId(handle_id);
+        handle_id = domain_service->AddObject(this);
 
         // Out
-        writer.Write(handle);
+        writer.Write(handle_id);
 
         break;
     }
@@ -48,8 +49,8 @@ void ServiceBase::Control(Reader& reader, Writer& writer) {
         break;
     case 4: { // clone current ex
         // TODO: u32 tag
-        Handle handle = Kernel::GetInstance().AddService(Clone());
-        writer.Write(handle);
+        HandleId handle_id = Kernel::GetInstance().AddHandle(Clone());
+        writer.Write(handle_id);
         break;
     }
     default:

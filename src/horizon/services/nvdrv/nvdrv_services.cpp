@@ -13,32 +13,32 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
-    Handle handle = ioctl_pool.AllocateForIndex();
+    HandleId handle_id = ioctl_pool.AllocateForIndex();
     if (path == "/dev/nvhost-ctrl") {
-        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostCtrl();
+        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
-        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvMap();
+        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvMap();
     } else if (path == "/dev/nvhost-as-gpu") {
-        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostAsGpu();
+        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostAsGpu();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
-        ioctl_pool.GetObjectRef(handle) = new Ioctl::NvHostCtrlGpu();
+        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrlGpu();
     } else {
         LOG_WARNING(HorizonServices, "Unknown path \"{}\"", path);
         // TODO: don't throw
         throw;
     }
 
-    writers.writer.Write(handle);
+    writers.writer.Write(handle_id);
 }
 
 struct IoctlIn {
-    Handle handle;
+    HandleId handle_id;
     u32 code;
 };
 
 void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<IoctlIn>();
-    auto ioctl = ioctl_pool.GetObject(in.handle);
+    auto ioctl = ioctl_pool.GetObject(in.handle_id);
 
     // Reader
     Reader* reader = nullptr;
