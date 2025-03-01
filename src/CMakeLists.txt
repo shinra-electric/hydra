@@ -97,6 +97,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/tegra_x1/gpu/renderer/metal/const.hpp
+    hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
+    hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp
     hw/tegra_x1/gpu/renderer/metal/impl.cpp
     hw/tegra_x1/gpu/renderer/metal/texture.cpp
     hw/tegra_x1/gpu/renderer/metal/texture.hpp
