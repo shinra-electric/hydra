@@ -17,7 +17,7 @@ class RendererBase {
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
     virtual void UploadTexture(TextureBase* texture, void* data,
-                               usize stride) = 0;
+                               usize pitch) = 0;
 
   private:
 };

@@ -6,17 +6,19 @@ namespace Hydra::HW::TegraX1::GPU {
 
 namespace {
 
-static void DecodeGeneric16BX2(u32 stride, u32 height, u32 block_height_log2,
-                               u8* in_data, u8* out_data) {
+static void DecodeGeneric16BX2(usize pitch, usize height,
+                               usize block_height_log2, u8* in_data,
+                               u8* out_data) {
     const u32 block_height_gobs = 1U << block_height_log2;
     const u32 block_height_px = 8U << block_height_log2;
 
-    const u32 width_blocks = stride >> 6;
+    const u32 width_blocks = pitch >> 6;
     const u32 height_blocks =
         (height + block_height_px - 1) >> (3 + block_height_log2);
 
     // Clear the output buffer first
-    memset(out_data, 0, stride * height);
+    // TODO: is this necessary?
+    memset(out_data, 0, pitch * height);
 
     for (u32 block_y = 0; block_y < height_blocks; block_y++) {
         for (u32 block_x = 0; block_x < width_blocks; block_x++) {
@@ -24,12 +26,12 @@ static void DecodeGeneric16BX2(u32 stride, u32 height, u32 block_height_log2,
                 const u32 x = block_x * 64;
                 const u32 y = block_y * block_height_px + gob_y * 8;
                 if (y < height) {
-                    u8* outgob = (u8*)out_data + y * stride + x;
+                    u8* outgob = (u8*)out_data + y * pitch + x;
                     // Reverse the 16Bx2 swizzling for each GOB
                     for (u32 i = 0; i < 32; i++) {
                         const u32 y = ((i >> 1) & 0x06) | (i & 0x01);
                         const u32 x = ((i << 3) & 0x10) | ((i << 1) & 0x20);
-                        *(u128*)(outgob + y * stride + x) = *(u128*)in_data;
+                        *(u128*)(outgob + y * pitch + x) = *(u128*)in_data;
                         in_data += sizeof(u128);
                     }
                 } else {
@@ -52,9 +54,10 @@ void TextureDecoder::Decode(const TextureDescriptor& descriptor,
 
     switch (descriptor.kind) {
     case NvKind::Generic_16BX2:
-        DecodeGeneric16BX2(descriptor.stride, descriptor.height,
+        DecodeGeneric16BX2(descriptor.pitch, descriptor.height,
                            descriptor.block_height_log2, in_data,
                            scratch_buffer);
+        // scratch_buffer = in_data;
         break;
     default:
         LOG_ERROR(GPU, "Unimplemented texture kind {}", descriptor.kind);
