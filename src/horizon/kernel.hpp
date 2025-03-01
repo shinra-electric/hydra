@@ -41,6 +41,17 @@ class SharedMemory {
     Allocators::StaticPool<range<uptr>, 8> ranges;
 };
 
+class TransferMemory : public KernelHandle {
+  public:
+    TransferMemory(uptr addr_, u64 size_, Permission permission_)
+        : addr{addr_}, size{size_}, permission{permission_} {}
+
+  private:
+    uptr addr;
+    u64 size;
+    Permission permission;
+};
+
 class Kernel {
   public:
     static Kernel& GetInstance();
@@ -70,8 +81,8 @@ class Kernel {
     void svcSleepThread(i64 nano);
     Result svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
                               Permission permission);
-    Result svcCreateTransferMemory(HandleId* out_handle_id, uptr address,
-                                   u64 size, Permission permission);
+    Result svcCreateTransferMemory(HandleId* out_handle_id, uptr addr, u64 size,
+                                   Permission permission);
     Result svcCloseHandle(HandleId handle_id);
     Result svcWaitSynchronization(u64& handle_index, HandleId* handle_ids,
                                   i32 handles_count, i64 timeout);
@@ -104,7 +115,7 @@ class Kernel {
 
     void SetHandle(HandleId handle_id, KernelHandle* handle);
 
-    HandleId AddHandle(KernelHandle* service);
+    HandleId AddHandle(KernelHandle* handle);
 
     HandleId CreateSharedMemory();
 

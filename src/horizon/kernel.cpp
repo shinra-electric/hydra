@@ -395,19 +395,15 @@ Result Kernel::svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcCreateTransferMemory(HandleId* out_handle_id, uptr address,
+Result Kernel::svcCreateTransferMemory(HandleId* out_handle_id, uptr addr,
                                        u64 size, Permission permission) {
     LOG_DEBUG(
         HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
         "perm: {})",
-        address, size, permission);
+        addr, size, permission);
 
-    // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
-
-    // HACK
-    *out_handle_id = invalid<HandleId>();
+    *out_handle_id = AddHandle(new TransferMemory(addr, size, permission));
 
     return RESULT_SUCCESS;
 }
