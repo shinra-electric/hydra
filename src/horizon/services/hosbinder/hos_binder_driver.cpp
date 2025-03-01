@@ -204,10 +204,10 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         // pitch, size and offset seem to have completely wrong values
         LOG_DEBUG(HorizonServices,
-                  "width: 0x{:08x}, height: 0x{:08x}, color_format: 0x{:08x}, "
-                  "layout: 0x{:08x}, pitch: 0x{:08x}, "
+                  "width: 0x{:08x}, height: 0x{:08x}, color_format: {}, "
+                  "layout: {}, pitch: 0x{:08x}, "
                   "unused: 0x{:08x}, offset: 0x{:08x}, kind: "
-                  "0x{:08x}, size: 0x{:08x}",
+                  "{}, size: 0x{:08x}",
                   buffer->planes[0].width, buffer->planes[0].height,
                   buffer->planes[0].color_format, buffer->planes[0].layout,
                   buffer->planes[0].pitch, buffer->planes[0].unused,

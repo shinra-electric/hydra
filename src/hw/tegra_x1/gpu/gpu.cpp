@@ -35,8 +35,13 @@ TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
     descriptor.ptr =
         mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset);
     // TODO: why are there more planes?
+    descriptor.color_format = buff.planes[0].color_format;
+    descriptor.kind = buff.planes[0].kind;
     descriptor.width = buff.planes[0].width;
     descriptor.height = buff.planes[0].height;
+    descriptor.stride = buff.stride;
+    descriptor.block_height_log2 = buff.planes[0].block_height_log2;
+    descriptor.pitch = buff.planes[0].pitch;
 
     return descriptor;
 }

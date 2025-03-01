@@ -26,7 +26,7 @@ class Renderer : public RendererBase {
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
-    void UploadTexture(TextureBase* texture, void* data) override;
+    void UploadTexture(TextureBase* texture, void* data, usize stride) override;
 
     // Getters
     MTL::Device* GetDevice() const { return device; }

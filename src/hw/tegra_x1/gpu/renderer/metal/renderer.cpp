@@ -150,17 +150,15 @@ TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
-void Renderer::UploadTexture(TextureBase* texture, void* data) {
+void Renderer::UploadTexture(TextureBase* texture, void* data, usize pitch) {
     auto texture_impl = static_cast<Texture*>(texture);
     auto mtl_texture = texture_impl->GetTexture();
-
-    u32 bytes_per_row = mtl_texture->bufferBytesPerRow();
 
     // TODO: do a GPU copy?
     // TODO: bytes per image
     mtl_texture->replaceRegion(
-        MTL::Region{0, 0, mtl_texture->width(), mtl_texture->height()}, 0, 0,
-        data, bytes_per_row, 0);
+        MTL::Region{0, 0, 0, mtl_texture->width(), mtl_texture->height(), 1}, 0,
+        0, data, pitch, 0);
 }
 
 MTL::CommandBuffer* Renderer::GetCommandBuffer() {

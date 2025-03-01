@@ -27,10 +27,13 @@ TextureCache::FindTexture(const TextureDescriptor& descriptor) {
     }
 
     if (dirty) {
-        // TODO: decode
-        uptr data = descriptor.ptr;
+        u8* scratch_buffer = new u8[descriptor.width * descriptor.height * 32];
+        u8* out_data = new u8[descriptor.width * descriptor.height *
+                              32]; // TODO: ask the renderer for the buffer?
 
-        render->UploadTexture(texture, reinterpret_cast<void*>(data));
+        texture_decoder.Decode(descriptor, scratch_buffer, out_data);
+
+        render->UploadTexture(texture, out_data, descriptor.pitch);
     }
 
     return texture;
