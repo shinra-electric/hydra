@@ -25,7 +25,7 @@
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
             LOG_WARNING(HorizonServices,                                       \
-                        "Unknown ioctl nr 0x{:08x} for type 0x{:08x}", nr,     \
+                        "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr,     \
                         type);                                                 \
             break;                                                             \
         }                                                                      \
@@ -36,7 +36,7 @@
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
-            LOG_WARNING(HorizonServices, "Unknown ioctl type 0x{:08x}", type); \
+            LOG_WARNING(HorizonServices, "Unknown ioctl type 0x{:02x}", type); \
             break;                                                             \
         }                                                                      \
     }
@@ -51,23 +51,24 @@
             FOR_EACH_0_1(IOCTL_OUT_MEMBER_COPY, __VA_ARGS__)                   \
         }                                                                      \
     } __attribute__((packed));                                                 \
-    attr void ioctl(ioctl##Data& data, NvResult& result)
+    attr void ioctl(ioctl##Data& data, NvResult& out_result)
 
 #define DECLARE_IOCTL(ioctl, args, ...)                                        \
     DECLARE_IOCTL_IMPL(ioctl, , args, __VA_ARGS__)
 
 #define DECLARE_VIRTUAL_IOCTL(ioctl, args, ...)                                \
-    DECLARE_IOCTL_IMPL(ioctl, virtual, args, __VA_ARGS__) = 0
+    DECLARE_IOCTL_IMPL(ioctl, virtual, args, __VA_ARGS__)
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 class FdBase {
   public:
     virtual void Ioctl(IOCTL_PARAMS) = 0;
-    virtual NvResult QueryEvent(u32 event_id_u32, HandleId& out_handle_id) {
+    virtual void QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
+                            NvResult& out_result) {
         LOG_WARNING(HorizonServices, "Unknown event id {}", event_id_u32);
 
-        return NvResult::NotSupported;
+        out_result = NvResult::NotSupported;
     }
 };
 

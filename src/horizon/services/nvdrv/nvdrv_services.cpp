@@ -78,7 +78,7 @@ void INvDrvServices::QueryEvent(REQUEST_COMMAND_PARAMS) {
     // Dispatch
     NvResult r = NvResult::Success;
     HandleId handle_id = 0x0;
-    fd->QueryEvent(in.event_id, handle_id);
+    fd->QueryEvent(in.event_id, handle_id, r);
 
     // Write result
     writers.writer.Write(r);
