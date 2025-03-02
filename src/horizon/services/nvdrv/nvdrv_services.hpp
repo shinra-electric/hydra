@@ -22,8 +22,8 @@ class INvDrvServices : public ServiceBase {
     void Open(REQUEST_COMMAND_PARAMS);
     void Ioctl(REQUEST_COMMAND_PARAMS);
 
-    // TODO: what should be the max number of ioctls?
-    Allocators::StaticPool<Ioctl::FdBase*, 64> ioctl_pool;
+    // TODO: what should be the max number of fds?
+    Allocators::StaticPool<Ioctl::FdBase*, 64> fd_pool;
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv

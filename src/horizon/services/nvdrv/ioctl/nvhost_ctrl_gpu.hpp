@@ -62,12 +62,12 @@ class NvHostCtrlGpu : public FdBase {
 
   private:
     // Ioctls
-    DECLARE_IOCTL(ZCullGetCtxSize, writeonly<u32> size, size)
-    DECLARE_IOCTL(ZCullGetInfo, writeonly<ZCullInfo> info, info)
+    DECLARE_IOCTL(ZCullGetCtxSize, writeonly<u32> size, size);
+    DECLARE_IOCTL(ZCullGetInfo, writeonly<ZCullInfo> info, info);
     DECLARE_IOCTL(GetCharacteristics, readwrite<u64> buf_size;
                   readonly<uptr> buf_addr;
                   writeonly<GpuCharacteristics> characteristics;
-                  , buf_size, characteristics)
+                  , buf_size, characteristics);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

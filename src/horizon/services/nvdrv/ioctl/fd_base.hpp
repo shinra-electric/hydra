@@ -2,7 +2,8 @@
 
 #include "horizon/services/nvdrv/const.hpp"
 
-#define IOCTL_PARAMS Reader *reader, Writer *writer, u32 nr, NvResult &result
+#define IOCTL_PARAMS                                                           \
+    Reader *reader, Writer *writer, u32 type, u32 nr, NvResult &result
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
@@ -18,19 +19,31 @@
         break;                                                                 \
     }
 
-#define DEFINE_IOCTL_TABLE(fd, ...)                                            \
-    void fd::Ioctl(IOCTL_PARAMS) {                                             \
+#define DEFINE_IOCTL_TABLE_ENTRY(type, ...)                                    \
+    case type:                                                                 \
         switch (nr) {                                                          \
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
-            LOG_WARNING(HorizonServices, "Unknown ioctl 0x{:08x}", nr);        \
+            LOG_WARNING(HorizonServices,                                       \
+                        "Unknown ioctl nr 0x{:08x} for type 0x{:08x}", nr,     \
+                        type);                                                 \
+            break;                                                             \
+        }                                                                      \
+        break;
+
+#define DEFINE_IOCTL_TABLE(fd, ...)                                            \
+    void fd::Ioctl(IOCTL_PARAMS) {                                             \
+        switch (type) {                                                        \
+            __VA_ARGS__                                                        \
+        default:                                                               \
+            LOG_WARNING(HorizonServices, "Unknown ioctl type 0x{:08x}", type); \
             break;                                                             \
         }                                                                      \
     }
 
 #define IOCTL_OUT_MEMBER_COPY(member) member = o.member.Get();
 
-#define DECLARE_IOCTL(ioctl, args, ...)                                        \
+#define DECLARE_IOCTL_IMPL(ioctl, attr, args, ...)                             \
     struct ioctl##Data {                                                       \
         args;                                                                  \
         ioctl##Data() {}                                                       \
@@ -38,7 +51,13 @@
             FOR_EACH_0_1(IOCTL_OUT_MEMBER_COPY, __VA_ARGS__)                   \
         }                                                                      \
     } __attribute__((packed));                                                 \
-    void ioctl(ioctl##Data& data, NvResult& result);
+    attr void ioctl(ioctl##Data& data, NvResult& result)
+
+#define DECLARE_IOCTL(ioctl, args, ...)                                        \
+    DECLARE_IOCTL_IMPL(ioctl, , args, __VA_ARGS__)
+
+#define DECLARE_VIRTUAL_IOCTL(ioctl, args, ...)                                \
+    DECLARE_IOCTL_IMPL(ioctl, virtual, args, __VA_ARGS__) = 0
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 

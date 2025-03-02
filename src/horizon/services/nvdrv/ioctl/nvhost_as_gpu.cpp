@@ -4,7 +4,8 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostAsGpu, 0x02, AllocSpace)
+DEFINE_IOCTL_TABLE(NvHostAsGpu,
+                   DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x02, AllocSpace))
 
 void NvHostAsGpu::AllocSpace(AllocSpaceData& data, NvResult& result) {
     data.offset = HW::TegraX1::GPU::GPU::GetInstance().CreateAddressSpace(

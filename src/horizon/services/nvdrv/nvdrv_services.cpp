@@ -5,6 +5,7 @@
 #include "horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp"
 #include "horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
 #include "horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
+#include "horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
 #include "horizon/services/nvdrv/ioctl/nvmap.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
@@ -13,15 +14,17 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
-    HandleId handle_id = ioctl_pool.AllocateForIndex();
+    HandleId handle_id = fd_pool.AllocateForIndex();
     if (path == "/dev/nvhost-ctrl") {
-        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrl();
+        fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
-        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvMap();
+        fd_pool.GetObjectRef(handle_id) = new Ioctl::NvMap();
     } else if (path == "/dev/nvhost-as-gpu") {
-        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostAsGpu();
+        fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostAsGpu();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
-        ioctl_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrlGpu();
+        fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrlGpu();
+    } else if (path == "/dev/nvhost-gpu") {
+        fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostGpu();
     } else {
         LOG_WARNING(HorizonServices, "Unknown path \"{}\"", path);
         // TODO: don't throw
@@ -32,13 +35,13 @@ void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
 }
 
 struct IoctlIn {
-    HandleId handle_id;
+    HandleId fd_id;
     u32 code;
 };
 
 void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<IoctlIn>();
-    auto ioctl = ioctl_pool.GetObject(in.handle_id);
+    auto fd = fd_pool.GetObject(in.fd_id);
 
     // Reader
     Reader* reader = nullptr;
@@ -51,9 +54,10 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
         writer = &writers.recv_buffers_writers[0];
 
     // Dispatch
-    u32 nr = in.code & 0xFF;
+    u32 type = (in.code >> 8) & 0xff;
+    u32 nr = in.code & 0xff;
     NvResult r = NvResult::Success;
-    ioctl->Ioctl(reader, writer, nr, r);
+    fd->Ioctl(reader, writer, type, nr, r);
 
     // Write result
     writers.writer.Write(r);

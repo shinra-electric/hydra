@@ -38,6 +38,8 @@ add_executable(hydra
     horizon/services/timesrv/time_zone_service.cpp
     horizon/services/timesrv/time_zone_service.hpp
     horizon/services/nvdrv/ioctl/fd_base.hpp
+    horizon/services/nvdrv/ioctl/channel_base.cpp
+    horizon/services/nvdrv/ioctl/channel_base.hpp
     horizon/services/nvdrv/ioctl/nvhost_ctrl.cpp
     horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp
     horizon/services/nvdrv/ioctl/nvmap.cpp
@@ -46,6 +48,7 @@ add_executable(hydra
     horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp
+    horizon/services/nvdrv/ioctl/nvhost_gpu.hpp
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp

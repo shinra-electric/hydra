@@ -531,7 +531,7 @@ Result Kernel::svcSendSyncRequest(HandleId handle_id) {
         service->Control(readers.reader, writers.writer);
         break;
     default:
-        LOG_ERROR(HorizonKernel, "Unknown command {}", command_type);
+        LOG_WARNING(HorizonKernel, "Unknown command {}", command_type);
         break;
     }
 

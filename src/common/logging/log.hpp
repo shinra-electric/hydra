@@ -17,12 +17,15 @@
 #define LOG_DEBUG(c, ...) LOG(Debug, c, __VA_ARGS__)
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
-#define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
+#define LOG_ERROR(c, ...)                                                      \
+    {                                                                          \
+        LOG(Error, c, __VA_ARGS__);                                            \
+        throw; /* TODO: only throw in debug */                                 \
+    }
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
         LOG_ERROR(c, __VA_ARGS__);                                             \
-        throw;                                                                 \
     }
 
 // TODO: only log on debug builds

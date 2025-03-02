@@ -16,7 +16,7 @@ class NvHostAsGpu : public FdBase {
             writeonly<u64> offset;
             readonly<u64> align;
         },
-                                                offset)
+                                                offset);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

@@ -82,11 +82,11 @@ void Thread::Run() {
 
                 switch (ec) {
                 case 0x15:
-                    running = svc_handler(this, esr & 0xffff);
-
                     // Debug
                     LogStackTrace(elr);
                     // cpu->LogRegisters();
+
+                    running = svc_handler(this, esr & 0xffff);
 
                     break;
                 case 0x18:
@@ -112,6 +112,9 @@ void Thread::Run() {
                     break;
                 }
                 default:
+                    // Debug
+                    LogStackTrace(elr);
+
                     LOG_ERROR(
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
@@ -119,9 +122,6 @@ void Thread::Run() {
                         "0x{:08x})",
                         ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
                         GetSysReg(HV_SYS_REG_FAR_EL1));
-
-                    // Debug
-                    LogStackTrace(elr);
 
                     break;
                 }
@@ -136,10 +136,10 @@ void Thread::Run() {
             } else if (hvEc == 0x18) {
                 // TODO: this should not happen
 
-                LOG_DEBUG(Hypervisor, "MSR MRS instruction");
-
                 // Debug
                 LogStackTrace(pc);
+
+                LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
                 // Manually execute the instruction
                 u32 instruction = mmu->Load<u32>(pc);
@@ -175,6 +175,10 @@ void Thread::Run() {
                 LogRegisters(true);
                 break;
             } else {
+                // Debug
+                LogStackTrace(pc);
+                LogRegisters();
+
                 LOG_ERROR(
                     Hypervisor,
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
@@ -187,10 +191,6 @@ void Thread::Run() {
                     exit->exception.virtual_address,
                     exit->exception.physical_address, pc,
                     GetSysReg(HV_SYS_REG_ELR_EL1), mmu->Load<u32>(pc));
-
-                // Debug
-                LogStackTrace(pc);
-                LogRegisters();
 
                 break;
             }

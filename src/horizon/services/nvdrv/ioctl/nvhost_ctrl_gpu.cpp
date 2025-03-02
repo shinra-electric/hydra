@@ -2,8 +2,10 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostCtrlGpu, 0x01, ZCullGetCtxSize, 0x02, ZCullGetInfo,
-                   0x05, GetCharacteristics)
+DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
+                   DEFINE_IOCTL_TABLE_ENTRY(0x47, 0x01, ZCullGetCtxSize, 0x02,
+                                            ZCullGetInfo, 0x05,
+                                            GetCharacteristics))
 
 void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
                                     NvResult& result) {

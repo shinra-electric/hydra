@@ -4,7 +4,9 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvMap, 0x01, Create, 0x04, Alloc, 0x05, Free, 0x0E, GetId)
+DEFINE_IOCTL_TABLE(NvMap,
+                   DEFINE_IOCTL_TABLE_ENTRY(0x01, 0x01, Create, 0x04, Alloc,
+                                            0x05, Free, 0x0E, GetId))
 
 void NvMap::Create(CreateData& data, NvResult& result) {
     data.handle_id = HW::TegraX1::GPU::GPU::GetInstance().CreateMap(data.size);
