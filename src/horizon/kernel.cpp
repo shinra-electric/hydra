@@ -156,7 +156,7 @@ void Kernel::LoadROM(Rom* rom) {
 
     // ROM memory
     rom_mem = new HW::TegraX1::CPU::Memory(
-        rom->GetRom().size(),
+        rom->GetRom().size() + rom->GetBssSize(), // TODO: correct?
         Permission::ReadExecute |
             Permission::Write); // TODO: should write be possible?
     rom_mem->Clear();
@@ -516,7 +516,8 @@ Result Kernel::svcSendSyncRequest(HandleId handle_id) {
                               service_scratch_buffer_objects,
                               service_scratch_buffer_move_handles,
                               service_scratch_buffer_copy_handles);
-    switch (static_cast<Cmif::CommandType>(hipc_in.meta.type)) {
+    auto command_type = static_cast<Cmif::CommandType>(hipc_in.meta.type);
+    switch (command_type) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
         service->Request(readers, writers, [&](Services::ServiceBase* service) {
@@ -530,7 +531,7 @@ Result Kernel::svcSendSyncRequest(HandleId handle_id) {
         service->Control(readers.reader, writers.writer);
         break;
     default:
-        LOG_WARNING(HorizonKernel, "Unknown command {}", hipc_in.meta.type);
+        LOG_ERROR(HorizonKernel, "Unknown command {}", command_type);
         break;
     }
 

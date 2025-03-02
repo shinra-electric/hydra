@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/common.hpp"
+#include "common/macros.hpp"
 #include "horizon/const.hpp"
 #include "horizon/hipc.hpp"
 
@@ -68,3 +69,10 @@ inline void write_domain_out_header(Writer& writer) {
 }
 
 } // namespace Hydra::Horizon::Cmif
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Cmif::CommandType, Invalid, "invalid",
+                       LegacyRequest, "legacy request", Close, "close",
+                       LegacyControl, "legacy control", Request, "request",
+                       Control, "control", RequestWithContext,
+                       "request with context", ControlWithContext,
+                       "control with context")

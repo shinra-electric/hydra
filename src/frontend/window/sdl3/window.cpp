@@ -1,8 +1,9 @@
 #include "frontend/window/sdl3/window.hpp"
 
 // HACK
-const std::string rom_filename =
-    "/Users/samuliak/Documents/deko3d_examples/build/0_hello_world.nro";
+const std::
+    string rom_filename = "/Users/samuliak/Downloads/space-nx-master/"
+                          "spacenx.nro"; // "/Users/samuliak/Documents/deko3d_examples/build/1_clear_color.nro"
 
 namespace Hydra::Frontend::Window::SDL3 {
 

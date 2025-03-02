@@ -8,6 +8,7 @@
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
+#include "horizon/services/psm/psm_server.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
 #include "horizon/services/timesrv/static_service.hpp"
 #include "horizon/services/visrv/manager_root_service.hpp"
@@ -52,6 +53,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new ViSrv::IManagerRootService());
     } else if (name == "pl:u") {
         add_service(new Pl::SharedResource::IPlatformSharedResourceManager());
+    } else if (name == "psm") {
+        add_service(new Psm::IPsmServer());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);
