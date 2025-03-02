@@ -84,6 +84,7 @@ class Kernel {
     Result svcCreateTransferMemory(HandleId* out_handle_id, uptr addr, u64 size,
                                    Permission permission);
     Result svcCloseHandle(HandleId handle_id);
+    Result svcResetSignal(HandleId handle_id);
     Result svcWaitSynchronization(u64& handle_index, HandleId* handle_ids,
                                   i32 handles_count, i64 timeout);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);

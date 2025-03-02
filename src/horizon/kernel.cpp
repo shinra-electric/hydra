@@ -219,6 +219,10 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcCloseHandle(thread->GetRegX(0));
         thread->SetRegX(0, res);
         break;
+    case 0x17:
+        res = svcResetSignal(thread->GetRegX(0));
+        thread->SetRegX(0, res);
+        break;
     case 0x18:
         res = svcWaitSynchronization(
             tmpU64, reinterpret_cast<HandleId*>(thread->GetRegX(1)),
@@ -414,6 +418,16 @@ Result Kernel::svcCloseHandle(HandleId handle_id) {
 
     delete GetHandle(handle_id);
     handle_pool.FreeByIndex(handle_id);
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcResetSignal(HandleId handle_id) {
+    LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:08x})",
+              handle_id);
+
+    // TODO: implement
+    LOG_WARNING(HorizonKernel, "Not implemented");
 
     return RESULT_SUCCESS;
 }
