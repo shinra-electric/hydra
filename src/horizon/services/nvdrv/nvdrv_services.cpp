@@ -10,7 +10,7 @@
 
 namespace Hydra::Horizon::Services::NvDrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl)
+DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 4, QueryEvent)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
@@ -61,6 +61,28 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
 
     // Write result
     writers.writer.Write(r);
+
+    if (r != NvResult::Success)
+        result = MAKE_KERNEL_RESULT(NotFound); // TODO: what should this be?
+}
+
+struct QueryEventIn {
+    HandleId fd_id;
+    u32 event_id;
+};
+
+void INvDrvServices::QueryEvent(REQUEST_COMMAND_PARAMS) {
+    auto in = readers.reader.Read<QueryEventIn>();
+    auto fd = fd_pool.GetObject(in.fd_id);
+
+    // Dispatch
+    NvResult r = NvResult::Success;
+    HandleId handle_id = 0x0;
+    fd->QueryEvent(in.event_id, handle_id);
+
+    // Write result
+    writers.writer.Write(r);
+    writers.copy_handles_writer.Write(handle_id);
 
     if (r != NvResult::Success)
         result = MAKE_KERNEL_RESULT(NotFound); // TODO: what should this be?

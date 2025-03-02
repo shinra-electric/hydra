@@ -48,6 +48,7 @@ add_executable(hydra
     horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp
+    horizon/services/nvdrv/ioctl/nvhost_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_gpu.hpp
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
