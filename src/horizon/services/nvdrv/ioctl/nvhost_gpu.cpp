@@ -1,5 +1,7 @@
 #include "horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
-#include "common/logging/log.hpp"
+
+#include "hw/tegra_x1/gpu/const.hpp"
+#include "hw/tegra_x1/gpu/gpu.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
@@ -27,6 +29,19 @@ void NvHostGpu::QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
     default:
         out_result = NvResult::NotSupported;
     }
+}
+
+void NvHostGpu::SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) {
+    LOG_WARNING(HorizonServices, "Not implemented");
+
+    auto ptr = const_cast<HW::TegraX1::GPU::GpfifoEntry*>(
+        &(data.entries[0].Get())); // HACK
+    HW::TegraX1::GPU::GPU::GetInstance().SubmitCommands(
+        std::vector<HW::TegraX1::GPU::GpfifoEntry>(ptr,
+                                                   ptr + data.num_entries));
+
+    // HACK
+    data.out_fence = HW::TegraX1::GPU::Fence{};
 }
 
 void NvHostGpu::GetErrorNotification(GetErrorNotificationData& data,

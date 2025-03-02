@@ -3,7 +3,8 @@
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(ChannelBase,
-                   DEFINE_IOCTL_TABLE_ENTRY(0x48, 0x01, SetNvMapFd, 0x17,
+                   DEFINE_IOCTL_TABLE_ENTRY(0x48, 0x01, SetNvMapFd, 0x08,
+                                            SubmitGpfifo, 0x17,
                                             GetErrorNotification))
 
 void ChannelBase::SetNvMapFd(SetNvMapFdData& data, NvResult& result) {

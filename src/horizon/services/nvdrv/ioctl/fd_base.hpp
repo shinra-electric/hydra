@@ -57,7 +57,9 @@
     DECLARE_IOCTL_IMPL(ioctl, , args, __VA_ARGS__)
 
 #define DECLARE_VIRTUAL_IOCTL(ioctl, args, ...)                                \
-    DECLARE_IOCTL_IMPL(ioctl, virtual, args, __VA_ARGS__)
+    DECLARE_IOCTL_IMPL(ioctl, virtual, args, __VA_ARGS__) {                    \
+        LOG_ERROR(HorizonServices, "Not implemented for this fb");             \
+    }
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 

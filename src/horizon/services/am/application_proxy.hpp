@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Am {
 
 class IApplicationProxy : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IApplicationProxy)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IApplicationProxy)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

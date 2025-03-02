@@ -10,7 +10,7 @@ namespace Hydra::Horizon::Services::ViSrv {
 
 class IApplicationDisplayService : public DisplayServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IApplicationDisplayService)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IApplicationDisplayService)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

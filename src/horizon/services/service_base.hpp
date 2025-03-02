@@ -86,6 +86,9 @@ struct Writers {
 
 #undef CREATE_READERS_OR_WRITERS
 
+#define DEFINE_SERVICE_VIRTUAL_FUNCTIONS(type)                                 \
+    virtual type* Clone() const override { return new type(*this); }
+
 class ServiceBase : public KernelHandle {
   public:
     virtual ServiceBase* Clone() const = 0;

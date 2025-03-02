@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Psm {
 
 class IPsmServer : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IPsmServer)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IPsmServer)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

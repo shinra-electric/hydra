@@ -8,7 +8,7 @@ namespace Hydra::Horizon::Services {
 
 class DomainService : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(DomainService)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(DomainService)
 
     void Request(REQUEST_PARAMS) override;
 

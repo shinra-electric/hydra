@@ -12,7 +12,7 @@ class FdBase;
 
 class INvDrvServices : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(INvDrvServices)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(INvDrvServices)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
@@ -24,7 +24,7 @@ class INvDrvServices : public ServiceBase {
     void QueryEvent(REQUEST_COMMAND_PARAMS);
 
     // TODO: what should be the max number of fds?
-    Allocators::StaticPool<Ioctl::FdBase*, 64> fd_pool;
+    static Allocators::StaticPool<Ioctl::FdBase*, 64> fd_pool;
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv

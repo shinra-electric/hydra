@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Am {
 
 class IApmManager : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IApmManager)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IApmManager)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

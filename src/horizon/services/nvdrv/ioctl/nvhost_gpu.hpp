@@ -10,6 +10,7 @@ class NvHostGpu : public ChannelBase {
                     NvResult& out_result) override;
 
   private:
+    void SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) override;
     void GetErrorNotification(GetErrorNotificationData& data,
                               NvResult& out_result) override;
 };

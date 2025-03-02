@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::TimeSrv {
 
 class ISteadyClock : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(ISteadyClock)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ISteadyClock)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

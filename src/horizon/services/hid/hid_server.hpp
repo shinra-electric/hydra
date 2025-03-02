@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Hid {
 
 class IHidServer : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IHidServer)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IHidServer)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

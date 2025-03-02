@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Pl::SharedResource {
 
 class IPlatformSharedResourceManager : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IPlatformSharedResourceManager)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IPlatformSharedResourceManager)
 
     IPlatformSharedResourceManager();
 

@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::TimeSrv {
 
 class IStaticService : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IStaticService)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStaticService)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

@@ -536,6 +536,18 @@ struct TextureDescriptor {
     // TODO: more
 };
 
+struct Fence {
+    u32 id;
+    u32 value;
+};
+
+struct GpfifoEntry {
+    union {
+        u64 entry;
+        u32 entry32[2];
+    };
+};
+
 } // namespace Hydra::HW::TegraX1::GPU
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::NvLayout, Pitch, "pitch", Tiled,

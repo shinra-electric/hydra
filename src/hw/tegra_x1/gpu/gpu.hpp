@@ -3,6 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/common.hpp"
 #include "hw/generic_mmu.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
@@ -79,6 +80,10 @@ class GPU {
 
         return base;
     }
+
+    // Commands
+    // TODO: use std::span instead
+    void SubmitCommands(const std::vector<GpfifoEntry>& entries);
 
     // Descriptors
 

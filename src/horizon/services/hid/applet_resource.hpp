@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::Hid {
 
 class IAppletResource : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IAppletResource)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAppletResource)
 
     IAppletResource();
 

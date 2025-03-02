@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::HosBinder {
 
 class IHOSBinderDriver : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(IHOSBinderDriver)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IHOSBinderDriver)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;

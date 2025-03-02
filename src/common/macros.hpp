@@ -16,9 +16,6 @@
     inline e operator~(e a) { return static_cast<e>(~static_cast<u32>(a)); }   \
     inline bool any(e a) { return a != e::None; }
 
-#define DEFINE_VIRTUAL_CLONE(type)                                             \
-    virtual type* Clone() const override { return new type(*this); }
-
 #define PARENS ()
 
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))

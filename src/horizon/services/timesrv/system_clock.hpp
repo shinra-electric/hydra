@@ -13,7 +13,7 @@ enum class SystemClockType {
 
 class ISystemClock : public ServiceBase {
   public:
-    DEFINE_VIRTUAL_CLONE(ISystemClock)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ISystemClock)
 
     ISystemClock(SystemClockType type_) : type{type_} {}
 

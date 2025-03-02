@@ -10,6 +10,8 @@
 
 namespace Hydra::Horizon::Services::NvDrv {
 
+Allocators::StaticPool<Ioctl::FdBase*, 64> INvDrvServices::fd_pool;
+
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 4, QueryEvent)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
