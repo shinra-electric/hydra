@@ -91,7 +91,7 @@ class ServiceBase : public KernelHandle {
     virtual ServiceBase* Clone() const = 0;
 
     virtual void Request(REQUEST_PARAMS);
-    void Control(Reader& reader, Writer& writer);
+    void Control(Readers& readers, Writers& writers);
 
     // Getters
     // Handle GetHandle() const { return handle; }

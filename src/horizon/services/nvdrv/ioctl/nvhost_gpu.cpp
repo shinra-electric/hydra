@@ -33,10 +33,10 @@ void NvHostGpu::GetErrorNotification(GetErrorNotificationData& data,
                                      NvResult& out_result) {
     LOG_WARNING(HorizonServices, "Not implemented");
 
-    data.timestamp = 0; // TODO
-    data.info32 = 0;    // TODO
-    data.info16 = 0;    // TODO
-    data.status = 0xffff;
+    data.timestamp = 0;           // TODO
+    data.info32 = 0;              // TODO
+    data.info16 = 0;              // TODO
+    data.status = /*0xffff*/ 0x0; // TODO: correct?
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

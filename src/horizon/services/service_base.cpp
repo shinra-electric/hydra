@@ -31,10 +31,10 @@ void ServiceBase::Request(REQUEST_PARAMS) {
     RequestImpl(readers, writers, add_service, *result, cmif_in.command_id);
 }
 
-void ServiceBase::Control(Reader& reader, Writer& writer) {
-    auto cmif_in = reader.Read<Cmif::InHeader>();
+void ServiceBase::Control(Readers& readers, Writers& writers) {
+    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
-    Result* result = Cmif::write_out_header(writer);
+    Result* result = Cmif::write_out_header(writers.writer);
     *result = RESULT_SUCCESS;
 
     switch (cmif_in.command_id) {
@@ -45,18 +45,20 @@ void ServiceBase::Control(Reader& reader, Writer& writer) {
         handle_id = domain_service->AddObject(this);
 
         // Out
-        writer.Write(handle_id);
+        writers.writer.Write(handle_id);
 
         break;
     }
     case 3: // query pointer buffer size
         // TODO: what's the point of this?
-        writer.Write(0);
+        writers.writer.Write(0);
         break;
     case 4: { // clone current ex
         // TODO: u32 tag
-        HandleId handle_id = Kernel::GetInstance().AddHandle(Clone());
-        writer.Write(handle_id);
+        auto clone = Clone();
+        HandleId handle_id = Kernel::GetInstance().AddHandle(clone);
+        clone->SetHandleId(handle_id);
+        writers.move_handles_writer.Write(handle_id);
         break;
     }
     default:

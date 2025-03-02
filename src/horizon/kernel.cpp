@@ -542,7 +542,7 @@ Result Kernel::svcSendSyncRequest(HandleId handle_id) {
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
-        service->Control(readers.reader, writers.writer);
+        service->Control(readers, writers);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unknown command {}", command_type);
