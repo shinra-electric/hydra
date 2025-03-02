@@ -71,7 +71,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     stack_mem =
         new HW::TegraX1::CPU::Memory(STACK_MEM_SIZE, Permission::ReadWrite);
     stack_mem->Clear();
-    mmu->Map(stack_mem, STACK_MEM_BASE);
+    mmu->Map(STACK_MEM_BASE, stack_mem);
 
     // Kernel memory
     kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_SIZE,
@@ -85,24 +85,24 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
            exception_trampoline, sizeof(exception_trampoline));
 
-    mmu->Map(kernel_mem, KERNEL_MEM_BASE);
+    mmu->Map(KERNEL_MEM_BASE, kernel_mem);
 
     // TLS memory
     tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
-    mmu->Map(tls_mem, TLS_MEM_BASE);
+    mmu->Map(TLS_MEM_BASE, tls_mem);
 
     // ASLR memory
     aslr_mem =
         new HW::TegraX1::CPU::Memory(ASLR_MEM_SIZE, Permission::ReadWrite);
     aslr_mem->Clear();
-    mmu->Map(aslr_mem, ASLR_MEM_BASE);
+    mmu->Map(ASLR_MEM_BASE, aslr_mem);
 
     // Heap memory
     heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
                                             Permission::ReadWrite);
     heap_mem->Clear();
-    mmu->Map(heap_mem, HEAP_MEM_BASE);
+    mmu->Map(HEAP_MEM_BASE, heap_mem);
 }
 
 Kernel::~Kernel() {
@@ -161,7 +161,7 @@ void Kernel::LoadROM(Rom* rom) {
             Permission::Write); // TODO: should write be possible?
     rom_mem->Clear();
     memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
-    mmu->Map(rom_mem, ROM_MEM_BASE);
+    mmu->Map(ROM_MEM_BASE, rom_mem);
 
     rom_text_offset = rom->GetTextOffset();
 }
@@ -310,7 +310,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         addr, size, permission);
 
     uptr base;
-    HW::TegraX1::CPU::Memory* mem = mmu->FindMemoryForAddr(addr, base);
+    HW::TegraX1::CPU::Memory* mem = mmu->FindAddrImpl(addr, base);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
@@ -348,7 +348,7 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
     LOG_WARNING(HorizonKernel, "Not implemented");
 
     uptr base;
-    HW::TegraX1::CPU::Memory* mem = mmu->FindMemoryForAddr(addr, base);
+    HW::TegraX1::CPU::Memory* mem = mmu->FindAddrImpl(addr, base);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);

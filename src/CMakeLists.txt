@@ -76,9 +76,9 @@ add_executable(hydra
     horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp
     horizon/services/psm/psm_server.cpp
     horizon/services/psm/psm_server.hpp
+    hw/generic_mmu.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
-    hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.hpp

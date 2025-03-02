@@ -33,6 +33,7 @@
 #define DECLARE_IOCTL(ioctl, args, ...)                                        \
     struct ioctl##Data {                                                       \
         args;                                                                  \
+        ioctl##Data() {}                                                       \
         void operator=(const ioctl##Data& o) {                                 \
             FOR_EACH_0_1(IOCTL_OUT_MEMBER_COPY, __VA_ARGS__)                   \
         }                                                                      \

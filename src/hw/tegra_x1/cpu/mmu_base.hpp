@@ -1,20 +1,13 @@
 #pragma once
 
-#include "common/common.hpp"
+#include "hw/generic_mmu.hpp"
+#include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 
-class Memory;
-
-class MMUBase {
+class MMUBase : public GenericMMU<MMUBase, Memory*> {
   public:
-    void Map(Memory* mem, uptr base);
-    void Unmap(uptr base);
-    void Remap(uptr base);
     // virtual void ReprotectMemory(uptr base) = 0;
-
-    Memory* FindMemoryForAddr(uptr addr, uptr& out_base) const;
-    uptr UnmapAddr(uptr addr) const;
 
     template <typename T> T Load(uptr addr) const {
         return *reinterpret_cast<T*>(UnmapAddr(addr));
@@ -24,12 +17,20 @@ class MMUBase {
         *reinterpret_cast<T*>(UnmapAddr(addr)) = value;
     }
 
-  protected:
-    virtual void MapImpl(Memory* mem, uptr base) = 0;
-    virtual void UnmapImpl(Memory* mem, uptr base) = 0;
+    uptr UnmapAddr(uptr addr) const {
+        uptr base;
+        Memory* mem = FindAddrImpl(addr, base);
+        if (mem) {
+            return reinterpret_cast<uptr>(mem->GetPtrU8() + (addr - base));
+        }
 
-  private:
-    std::map<uptr, Memory*> mapped_ranges;
+        return 0x0;
+    }
+
+    usize ImplGetSize(Memory* mem) const { return mem->GetSize(); }
+
+    virtual void MapImpl(uptr base, Memory* mem) = 0;
+    virtual void UnmapImpl(uptr base, Memory* mem) = 0;
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

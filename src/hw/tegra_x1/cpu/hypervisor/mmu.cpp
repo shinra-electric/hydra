@@ -45,7 +45,7 @@ void MMU::Reprotect(Memory* mem, uptr base) {
 }
 */
 
-void MMU::MapImpl(Memory* mem, uptr base) {
+void MMU::MapImpl(uptr base, Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_map(mem->GetPtrU8(), base, mem->GetSize(),
                                  PermisionToHV(mem->GetPermission())));
 
@@ -53,7 +53,7 @@ void MMU::MapImpl(Memory* mem, uptr base) {
     page_table.MapMemory(mem);
 }
 
-void MMU::UnmapImpl(Memory* mem, uptr base) {
+void MMU::UnmapImpl(uptr base, Memory* mem) {
     HYP_ASSERT_SUCCESS(hv_vm_unmap(base, mem->GetSize()));
 
     // Page table

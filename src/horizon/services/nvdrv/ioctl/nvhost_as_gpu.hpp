@@ -10,6 +10,13 @@ class NvHostAsGpu : public FdBase {
 
   private:
     // Ioctls
+    DECLARE_IOCTL(
+        AllocSpace, readonly<u32> pages; readonly<u32> page_size;
+        readonly<u32> flags; readonly<u32> pad; union {
+            writeonly<u64> offset;
+            readonly<u64> align;
+        },
+                                                offset)
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl
