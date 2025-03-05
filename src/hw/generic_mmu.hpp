@@ -35,7 +35,7 @@ template <typename T, typename Impl> class GenericMMU {
 
         LOG_ERROR(MMU, "Failed to find impl for addr 0x{:08x}", addr);
 
-        return nullptr;
+        return {};
     }
 
   private:

@@ -263,6 +263,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(0, res);
         break;
     case 0x26:
+        // Debug
+        thread->LogRegisters();
+
         res = svcBreak(BreakReason(thread->GetRegX(0)),
                        mmu->UnmapAddr(thread->GetRegX(1)), thread->GetRegX(2));
         thread->SetRegX(0, res);

@@ -22,6 +22,7 @@ struct MemoryMap {
 };
 
 struct AddressSpace {
+    uptr addr; // CPU address, 0x0 for private memory
     usize size;
 };
 
@@ -29,11 +30,20 @@ class MMU : public GenericMMU<MMU, AddressSpace> {
   public:
     usize ImplGetSize(AddressSpace as) const { return as.size; }
 
+    uptr UnmapAddr(uptr addr) {
+        usize base;
+        auto as = FindAddrImpl(addr, base);
+        ASSERT_DEBUG(as.addr != 0x0, GPU, "Address 0x{:08x} is not host mapped",
+                     addr);
+
+        return as.addr + (addr - base);
+    }
+
     void MapImpl(uptr base, AddressSpace as) {}
     void UnmapImpl(uptr base, AddressSpace as) {}
 };
 
-constexpr usize PAGE_SIZE = 0x4000; // TODO: what shoud this be?
+constexpr usize PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
 
 class GPU {
   public:
@@ -69,8 +79,9 @@ class GPU {
     MemoryMap& GetMapById(u32 id) { return GetMap(id - 1); }
 
     // Address space
-    uptr CreateAddressSpace(usize size, u32 flags) {
+    uptr CreateAddressSpace(uptr addr, usize size, u32 flags) {
         AddressSpace as;
+        as.addr = addr;
         as.size = size;
         // TODO: flags
 
@@ -79,6 +90,14 @@ class GPU {
         mmu_gpu.Map(base, as);
 
         return base;
+    }
+
+    uptr AllocatePrivateAddressSpace(usize size, u32 flags) {
+        return CreateAddressSpace(0, size, flags);
+    }
+
+    uptr MapBufferToAddressSpace(uptr addr, usize size, u32 flags) {
+        return CreateAddressSpace(addr, size, flags);
     }
 
     // Commands
