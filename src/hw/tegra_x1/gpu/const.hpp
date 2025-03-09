@@ -542,10 +542,11 @@ struct Fence {
 };
 
 struct GpfifoEntry {
-    union {
-        u64 entry;
-        u32 entry32[2];
-    };
+    uptr gpu_addr : 40;
+    bool allow_flush : 1;
+    bool is_push_buffer : 1;
+    u32 num_cmds : 18; // TODO: is the bit count correct?
+    bool sync : 1;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU

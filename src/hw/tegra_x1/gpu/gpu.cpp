@@ -28,17 +28,11 @@ GPU::~GPU() {
 
 void GPU::SubmitCommands(const std::vector<GpfifoEntry>& entries) {
     for (const auto& entry : entries) {
-        uptr gpu_addr = entry.entry & 0xffffffffff; // 40 bits
-        usize size = (entry.entry32[1] >> 10) &
-                     0xfffff; // TODO: is the mask correct? 20 bits
-        bool allow_flush = entry.entry32[1] & 0x100;
-        bool is_push_buf = entry.entry32[1] & 0x200;
-        bool sync = entry.entry32[1] & 0x10000000;
-
         LOG_DEBUG(GPU,
-                  "Gpfifo entry (address: 0x{:08x}, size: 0x{:08x}, allow "
-                  "flush: {}, is push buf: {}, sync: {})",
-                  gpu_addr, size, allow_flush, is_push_buf, sync);
+                  "Gpfifo entry (address: 0x{:08x}, num_cmds: 0x{:08x}, allow "
+                  "flush: {}, is push buffer: {}, sync: {})",
+                  entry.gpu_addr, entry.num_cmds, entry.allow_flush,
+                  entry.is_push_buffer, entry.sync);
     }
 }
 
