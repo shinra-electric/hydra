@@ -36,7 +36,7 @@ void NvHostGpu::SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) {
 
     auto ptr = const_cast<HW::TegraX1::GPU::GpfifoEntry*>(
         &(data.entries[0].Get())); // HACK
-    HW::TegraX1::GPU::GPU::GetInstance().SubmitCommands(
+    HW::TegraX1::GPU::GPU::GetInstance().GetPfifo().SubmitEntries(
         std::vector<HW::TegraX1::GPU::GpfifoEntry>(ptr,
                                                    ptr + data.num_entries));
 

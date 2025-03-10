@@ -96,6 +96,10 @@ add_executable(hydra
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
     hw/tegra_x1/gpu/const.hpp
+    hw/tegra_x1/gpu/gpu_mmu.cpp
+    hw/tegra_x1/gpu/gpu_mmu.hpp
+    hw/tegra_x1/gpu/pfifo.cpp
+    hw/tegra_x1/gpu/pfifo.hpp
     hw/tegra_x1/gpu/texture_decoder.cpp
     hw/tegra_x1/gpu/texture_decoder.hpp
     hw/tegra_x1/gpu/texture_cache.cpp

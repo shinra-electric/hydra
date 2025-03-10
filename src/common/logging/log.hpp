@@ -22,6 +22,7 @@
         LOG(Error, c, __VA_ARGS__);                                            \
         throw; /* TODO: only throw in debug */                                 \
     }
+#define LOG_NOT_IMPLEMENTED(c, v) LOG_WARNING(c, "{} not implemented", v)
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \

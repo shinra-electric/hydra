@@ -1,9 +1,10 @@
 #pragma once
 
 #include "common/allocators/dynamic_pool.hpp"
-#include "common/common.hpp"
-#include "hw/generic_mmu.hpp"
+#include "common/logging/log.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
+#include "hw/tegra_x1/gpu/gpu_mmu.hpp"
+#include "hw/tegra_x1/gpu/pfifo.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
@@ -19,28 +20,6 @@ struct MemoryMap {
     bool write;
     // TODO: alignment
     // TODO: kind
-};
-
-struct AddressSpace {
-    uptr addr; // CPU address, 0x0 for private memory
-    usize size;
-};
-
-class MMU : public GenericMMU<MMU, AddressSpace> {
-  public:
-    usize ImplGetSize(AddressSpace as) const { return as.size; }
-
-    uptr UnmapAddr(uptr addr) {
-        usize base;
-        auto as = FindAddrImpl(addr, base);
-        ASSERT_DEBUG(as.addr != 0x0, GPU, "Address 0x{:08x} is not host mapped",
-                     addr);
-
-        return as.addr + (addr - base);
-    }
-
-    void MapImpl(uptr base, AddressSpace as) {}
-    void UnmapImpl(uptr base, AddressSpace as) {}
 };
 
 constexpr usize PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
@@ -87,7 +66,7 @@ class GPU {
 
         uptr base = address_space_base;
         address_space_base += align(size, PAGE_SIZE);
-        mmu_gpu.Map(base, as);
+        gpu_mmu.Map(base, as);
 
         return base;
     }
@@ -100,9 +79,13 @@ class GPU {
         return CreateAddressSpace(addr, size, flags);
     }
 
-    // Commands
-    // TODO: use std::span instead
-    void SubmitCommands(const std::vector<GpfifoEntry>& entries);
+    // Engines
+    // TODO: get engine
+
+    void WriteSubchannelReg(Subchannel subchannel, u32 offset, u32 value) {
+        LOG_DEBUG(GPU, "Subchannel: {}, offset: 0x{:08x}, value: 0x{:08x}",
+                  subchannel, offset, value);
+    }
 
     // Descriptors
 
@@ -112,6 +95,8 @@ class GPU {
     // Getters
     CPU::MMUBase* GetMMU() const { return mmu; }
 
+    Pfifo& GetPfifo() { return pfifo; }
+
     TextureCache& GetTextureCache() { return texture_cache; }
 
     Renderer::RendererBase* GetRenderer() const { return renderer; }
@@ -120,8 +105,11 @@ class GPU {
     CPU::MMUBase* mmu;
 
     // Address space
-    MMU mmu_gpu;
+    GPUMMU gpu_mmu;
     uptr address_space_base = PAGE_SIZE;
+
+    // Pfifo
+    Pfifo pfifo;
 
     // Caches
     TextureCache texture_cache;

@@ -9,14 +9,6 @@ class MMUBase : public GenericMMU<MMUBase, Memory*> {
   public:
     // virtual void ReprotectMemory(uptr base) = 0;
 
-    template <typename T> T Load(uptr addr) const {
-        return *reinterpret_cast<T*>(UnmapAddr(addr));
-    }
-
-    template <typename T> void Store(uptr addr, T value) const {
-        *reinterpret_cast<T*>(UnmapAddr(addr)) = value;
-    }
-
     uptr UnmapAddr(uptr addr) const {
         uptr base;
         Memory* mem = FindAddrImpl(addr, base);
