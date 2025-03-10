@@ -106,6 +106,13 @@ add_executable(hydra
     hw/tegra_x1/gpu/texture_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
+    hw/tegra_x1/gpu/engines/engine_base.hpp
+    hw/tegra_x1/gpu/engines/3d.cpp
+    hw/tegra_x1/gpu/engines/3d.hpp
+    hw/tegra_x1/gpu/engines/inline.cpp
+    hw/tegra_x1/gpu/engines/inline.hpp
+    hw/tegra_x1/gpu/engines/2d.cpp
+    hw/tegra_x1/gpu/engines/2d.hpp
     hw/tegra_x1/gpu/renderer/metal/const.hpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp

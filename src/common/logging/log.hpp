@@ -8,6 +8,8 @@
 #include "common/macros.hpp"
 #include "common/types.hpp"
 
+#define PASS_VA_ARGS(...) , ##__VA_ARGS__
+
 #define LOG(level, c, ...)                                                     \
     Logging::log(Logging::Level::level, Logging::Class::c,                     \
                  Logging::TrimSourcePath(__FILE__), __LINE__, __func__,        \
@@ -22,7 +24,9 @@
         LOG(Error, c, __VA_ARGS__);                                            \
         throw; /* TODO: only throw in debug */                                 \
     }
-#define LOG_NOT_IMPLEMENTED(c, v) LOG_WARNING(c, "{} not implemented", v)
+
+#define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
+    LOG_WARNING(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \

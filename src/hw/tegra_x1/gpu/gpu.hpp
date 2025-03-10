@@ -3,6 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/logging/log.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
+#include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/gpu_mmu.hpp"
 #include "hw/tegra_x1/gpu/pfifo.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
@@ -23,6 +24,8 @@ struct MemoryMap {
 };
 
 constexpr usize PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
+
+constexpr usize SUBCHANNEL_COUNT = 5; // TODO: correct?
 
 class GPU {
   public:
@@ -80,12 +83,18 @@ class GPU {
     }
 
     // Engines
-    // TODO: get engine
+    Engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
+        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,
+                     "Invalid subchannel {}", subchannel);
 
-    void WriteSubchannelReg(Subchannel subchannel, u32 offset, u32 value) {
-        LOG_DEBUG(GPU, "Subchannel: {}, offset: 0x{:08x}, value: 0x{:08x}",
-                  subchannel, offset, value);
+        auto engine = subchannels[subchannel];
+        ASSERT_DEBUG(engine, GPU, "Subchannel {} does not have a bound engine",
+                     subchannel);
+
+        return engine;
     }
+
+    void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
 
     // Descriptors
 
@@ -106,10 +115,13 @@ class GPU {
 
     // Address space
     GPUMMU gpu_mmu;
-    uptr address_space_base = PAGE_SIZE;
+    uptr address_space_base{PAGE_SIZE};
 
     // Pfifo
     Pfifo pfifo;
+
+    // Engines
+    Engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
 
     // Caches
     TextureCache texture_cache;

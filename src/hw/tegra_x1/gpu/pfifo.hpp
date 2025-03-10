@@ -22,7 +22,7 @@ class Pfifo {
     GPUMMU& gpu_mmu;
 
     void SubmitEntry(const GpfifoEntry entry);
-    uptr SubmitCommand(uptr gpu_addr);
+    void SubmitCommand(uptr& gpu_addr);
 
     // Helpers
     template <typename T> T Read(uptr& gpu_addr) {
@@ -32,7 +32,7 @@ class Pfifo {
         return word;
     }
 
-    void ProcessMethodArg(Subchannel subchannel, uptr& gpu_addr, u32& offset,
+    void ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                           bool increment);
 };
 

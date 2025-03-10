@@ -20,9 +20,9 @@ enum class SecondaryOpcode {
 struct CommandHeader {
     u32 method : 12;
     u32 reserved : 1;
-    Subchannel subchannel : 3;
+    u32 subchannel : 3;
     u32 arg : 13;
-    SecondaryOpcode secondary_opcode : 3;
+    u32 secondary_opcode : 3; // TODO: use SecondaryOpcode as the type
 };
 
 } // namespace
@@ -35,62 +35,59 @@ void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries) {
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     LOG_DEBUG(GPU,
-              "Gpfifo entry (address: 0x{:08x}, num_cmds: 0x{:08x}, allow "
+              "Gpfifo entry (address: 0x{:08x}, size: 0x{:08x}, allow "
               "flush: {}, is push buffer: {}, sync: {})",
-              entry.gpu_addr, entry.num_cmds, entry.allow_flush,
+              entry.gpu_addr, entry.size, entry.allow_flush,
               entry.is_push_buffer, entry.sync);
 
     uptr gpu_addr = entry.gpu_addr;
-    for (u32 i = 0; i < entry.num_cmds; i++) {
-        gpu_addr = SubmitCommand(gpu_addr);
+    uptr end = entry.gpu_addr + entry.size * sizeof(u32);
+
+    // HACK: the last 4 words seem to always be the same, subchannel: 6, method:
+    // 0x00b
+    end -= 4 * sizeof(u32);
+
+    while (gpu_addr < end) {
+        SubmitCommand(gpu_addr);
     }
 }
 
-uptr Pfifo::SubmitCommand(uptr gpu_addr) {
+void Pfifo::SubmitCommand(uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gpu_addr);
 
-    if (header.method >= 0xe00) { // TODO: correct?
-        // Macro
-        LOG_NOT_IMPLEMENTED(GPU, "GPU macros");
-        return gpu_addr;
-    }
+    SecondaryOpcode secondary_opcode = (SecondaryOpcode)header.secondary_opcode;
+    LOG_DEBUG(GPU, "Secondary opcode: {}", secondary_opcode);
 
     u32 offset = header.method;
-    switch (header.secondary_opcode) {
-    case SecondaryOpcode::IncMethod: {
+    switch (secondary_opcode) {
+    case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
-    }
-    case SecondaryOpcode::NonIncMethod: {
+    case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
-    }
-    case SecondaryOpcode::ImmDataMethod: {
-        GPU::GetInstance().WriteSubchannelReg(header.subchannel, offset,
-                                              header.arg);
+    case SecondaryOpcode::ImmDataMethod:
+        GPU::GetInstance().SubchannelMethod(header.subchannel, offset,
+                                            header.arg);
         break;
-    }
-    case SecondaryOpcode::OneInc: {
+    case SecondaryOpcode::OneInc:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
-    }
     default:
-        LOG_NOT_IMPLEMENTED(GPU, header.secondary_opcode);
+        LOG_NOT_IMPLEMENTED(GPU, "{}", secondary_opcode);
         break;
     }
-
-    return gpu_addr;
 }
 
-void Pfifo::ProcessMethodArg(Subchannel subchannel, uptr& gpu_addr, u32& offset,
+void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
                              bool increment) {
     u32 arg = Read<u32>(gpu_addr);
-    GPU::GetInstance().WriteSubchannelReg(subchannel, offset, arg);
+    GPU::GetInstance().SubchannelMethod(subchannel, method, arg);
     if (increment)
-        offset += sizeof(u32);
+        method++;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU

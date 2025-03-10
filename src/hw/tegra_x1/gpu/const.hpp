@@ -5,15 +5,6 @@
 
 namespace Hydra::HW::TegraX1::GPU {
 
-enum class Subchannel {
-    _3D,
-    Compute,
-    Inline,
-    _2D,
-    Copy,
-    Gpfifo,
-};
-
 enum class NvLayout : u32 {
     Pitch = 1,
     Tiled = 2,
@@ -554,15 +545,13 @@ struct GpfifoEntry {
     uptr gpu_addr : 40;
     bool allow_flush : 1;
     bool is_push_buffer : 1;
-    u32 num_cmds : 18; // TODO: is the bit count correct?
+    usize size : 18; // TODO: is the bit count correct?
     bool sync : 1;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU
+constexpr u32 MACRO_METHODS_REGION = 0xe00;
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Subchannel, _3D, "3D", Compute,
-                       "compute", Inline, "inline", _2D, "2D", Copy, "copy",
-                       Gpfifo, "GPFIFO")
+} // namespace Hydra::HW::TegraX1::GPU
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::NvLayout, Pitch, "pitch", Tiled,
                        "tiled", BlockLinear, "block linear")
