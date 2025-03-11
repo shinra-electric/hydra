@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/allocators/dynamic_pool.hpp"
-#include "common/logging/log.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/gpu_mmu.hpp"

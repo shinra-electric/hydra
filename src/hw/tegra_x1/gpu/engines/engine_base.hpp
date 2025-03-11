@@ -1,6 +1,7 @@
 #pragma once
 
-#include "common/common.hpp"
+#include "common/logging/log.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 
 #define METHOD_CASE(method, func)                                              \
     case method:                                                               \
@@ -9,11 +10,14 @@
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
     void type::Method(u32 method, u32 arg) {                                   \
-        /* TODO: assert valid method */                                        \
+        if (method >= MACRO_METHODS_REGION) {                                  \
+            Macro(method, arg);                                                \
+            return;                                                            \
+        }                                                                      \
         switch (method) {                                                      \
             FOR_EACH_0_2(METHOD_CASE, __VA_ARGS__)                             \
         default:                                                               \
-            LOG_NOT_IMPLEMENTED(GPU, "Method 0x{:08x}", method);               \
+            WriteReg(method, arg);                                             \
             break;                                                             \
         }                                                                      \
     }
@@ -24,7 +28,17 @@ class EngineBase {
   public:
     virtual void Method(u32 method, u32 arg) = 0;
 
-  private:
+  protected:
+    virtual void WriteReg(u32 reg, u32 value) {
+        LOG_NOT_IMPLEMENTED(
+            GPU, "Writing to registers (0x{:08x}) in this engine", reg);
+    }
+
+    // TODO: how do macros actually function?
+    virtual void Macro(u32 method, u32 arg) {
+        LOG_ERROR(GPU, "This engine does not support macros (method: 0x{:08x})",
+                  method);
+    }
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
