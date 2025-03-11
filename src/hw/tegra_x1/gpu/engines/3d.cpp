@@ -5,8 +5,8 @@
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
 DEFINE_METHOD_TABLE(ThreeD, 0x45, LoadMmeInstructionRamPointer, 0x46,
-                    LoadMmeStartAddressRamPointer, 0x47,
-                    LoadMmeStartAddressRamPointer, 0x48, LoadMmeStartAddressRam)
+                    LoadMmeInstructionRam, 0x47, LoadMmeStartAddressRamPointer,
+                    0x48, LoadMmeStartAddressRam)
 
 ThreeD::ThreeD() {
     // TODO: choose based on Macro backend

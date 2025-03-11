@@ -4,6 +4,11 @@
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
 
+struct Instruction {
+    Operation op;
+    u8 rA;
+};
+
 class DriverBase {
   public:
     void Execute(u32 index);
@@ -15,6 +20,17 @@ class DriverBase {
 
   protected:
     virtual void ExecuteImpl(u32 pc) = 0;
+
+    virtual void InstAlu(AluOperation op, u8 rA, u8 rB) = 0;
+    virtual void InstAddImmediate(u8 rA, u32 imm) = 0;
+    virtual void InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) = 0;
+    virtual void InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB,
+                                               u8 size) = 0;
+    virtual void InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) = 0;
+    virtual void InstRead(u8 rA, u32 imm) = 0;
+    virtual void InstBranch(BranchCondition cond, u8 rA) = 0;
+
+    void ParseInstruction(u32 pc);
 
   private:
     u32 macro_instruction_ram[0x1000] = {0}; // TODO: what should be the size?
