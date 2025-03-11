@@ -27,7 +27,9 @@ struct CommandHeader {
 
 } // namespace
 
-void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries) {
+void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
+                          GpfifoFlags flags) {
+    LOG_DEBUG(GPU, "Flags: {}", flags);
     for (const auto& entry : entries) {
         SubmitEntry(entry);
     }
@@ -45,18 +47,25 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
 
     // HACK: the last 4 words seem to always be the same, subchannel: 6, method:
     // 0x00b
-    end -= 4 * sizeof(u32);
+    // end -= 4 * sizeof(u32);
 
     while (gpu_addr < end) {
-        SubmitCommand(gpu_addr);
+        if (!SubmitCommand(gpu_addr))
+            break;
     }
 }
 
-void Pfifo::SubmitCommand(uptr& gpu_addr) {
+bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gpu_addr);
 
     SecondaryOpcode secondary_opcode = (SecondaryOpcode)header.secondary_opcode;
     LOG_DEBUG(GPU, "Secondary opcode: {}", secondary_opcode);
+
+    // HACK
+    if (header.subchannel >= SUBCHANNEL_COUNT) {
+        LOG_WARNING(GPU, "Invalid subchannel {}", header.subchannel);
+        return false;
+    }
 
     u32 offset = header.method;
     switch (secondary_opcode) {
@@ -80,6 +89,8 @@ void Pfifo::SubmitCommand(uptr& gpu_addr) {
         LOG_NOT_IMPLEMENTED(GPU, "{}", secondary_opcode);
         break;
     }
+
+    return true;
 }
 
 void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,

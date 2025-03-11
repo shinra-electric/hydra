@@ -541,6 +541,18 @@ struct Fence {
     u32 value;
 };
 
+enum class GpfifoFlags : u32 {
+    None = 0,
+    FenceWait = BIT(0),
+    FenceGet = BIT(1),
+    HwFormat = BIT(2),
+    SyncFence = BIT(3),
+    SuppressWfi = BIT(4),
+    SkipBufferRefcounting = BIT(5),
+};
+
+ENABLE_ENUM_BITMASK_OPERATORS(GpfifoFlags);
+
 struct GpfifoEntry {
     uptr gpu_addr : 40;
     bool allow_flush : 1;
@@ -784,3 +796,9 @@ ENABLE_ENUM_FORMATTING(
     X6Bayer10GRBG, "x6bayer10grbg", Bayer8GBRG, "bayer8gbrg", Bayer16GBRG,
     "bayer16gbrg", BayerS16GBRG, "bayers16gbrg", X2Bayer14GBRG, "x2bayer14gbrg",
     X4Bayer12GBRG, "x4bayer12gbrg", X6Bayer10GBRG, "x6bayer10gbrg", XYZ, "xyz")
+
+ENABLE_ENUM_FLAGS_FORMATTING(Hydra::HW::TegraX1::GPU::GpfifoFlags, FenceWait,
+                             "fence wait", FenceGet, "fence get", HwFormat,
+                             "hw format", SyncFence, "sync fence", SuppressWfi,
+                             "suppress WFI", SkipBufferRefcounting,
+                             "skip buffer refcounting")

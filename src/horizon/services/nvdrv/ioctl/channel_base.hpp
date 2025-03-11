@@ -15,7 +15,7 @@ class ChannelBase : public FdBase {
     DECLARE_VIRTUAL_IOCTL(
         SubmitGpfifo, readonly<u64> gpfifo; readonly<u32> num_entries; union {
             writeonly<u32> detailed_error;
-            readonly<u32> flags;
+            readonly<HW::TegraX1::GPU::GpfifoFlags> flags;
         };
         readwrite<HW::TegraX1::GPU::Fence> out_fence;
         readonly<HW::TegraX1::GPU::GpfifoEntry> entries[];

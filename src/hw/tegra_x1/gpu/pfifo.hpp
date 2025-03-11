@@ -16,13 +16,14 @@ class Pfifo {
     Pfifo(GPUMMU& gpu_mmu_) : gpu_mmu{gpu_mmu_} {}
 
     // TODO: use std::span instead
-    void SubmitEntries(const std::vector<GpfifoEntry>& entries);
+    void SubmitEntries(const std::vector<GpfifoEntry>& entries,
+                       GpfifoFlags flags);
 
   private:
     GPUMMU& gpu_mmu;
 
     void SubmitEntry(const GpfifoEntry entry);
-    void SubmitCommand(uptr& gpu_addr);
+    bool SubmitCommand(uptr& gpu_addr); // TODO: return void
 
     // Helpers
     template <typename T> T Read(uptr& gpu_addr) {
