@@ -79,12 +79,27 @@ class ThreeD : public EngineBase {
     void Method(u32 method, u32 arg) override;
 
   protected:
-    void WriteReg(u32 reg, u32 value) override { regs.raw[reg] = value; }
+    void WriteReg(u32 reg, u32 value) override {
+        LOG_DEBUG(GPU, "Writing to 3d reg 0x{:08x}", reg);
+        regs.raw[reg] = value;
+    }
 
     void Macro(u32 method, u32 arg) override;
 
   private:
     Regs3D regs;
+
+    // Macros
+    u32 macro_instruction_ram[0x1000] = {0}; // TODO: what should be the size?
+    u32 macro_instruction_ram_ptr;
+    u32 macro_start_address_ram[0x100] = {0}; // TODO: what should be the size?
+    u32 macro_start_address_ram_ptr;
+
+    // Commands
+    void LoadMmeInstructionRamPointer(u32 ptr);
+    void LoadMmeInstructionRam(u32 data);
+    void LoadMmeStartAddressRamPointer(u32 ptr);
+    void LoadMmeStartAddressRam(u32 data);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
