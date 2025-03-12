@@ -11,7 +11,7 @@ namespace Hydra::HW::TegraX1::GPU::Engines {
 
 union Regs3D {
     struct {
-        u32 padding[0x200];
+        u32 padding1[0x200];
 
         // Render targets
         struct {
@@ -73,6 +73,10 @@ union Regs3D {
             float near;
             float far;
         } viewports[VIEWPORT_COUNT];
+
+        u32 padding2[0x9c0];
+
+        u32 mme_firmware_args[8];
     };
 
     u32 raw[MACRO_METHODS_REGION];
@@ -85,6 +89,12 @@ class ThreeD : public EngineBase {
     void Method(u32 method, u32 arg) override;
 
     void FlushMacro() override;
+
+    u32 GetReg(u32 reg) const {
+        ASSERT_DEBUG(reg < MACRO_METHODS_REGION, Macro, "Invalid register {}",
+                     reg);
+        return regs.raw[reg];
+    }
 
   protected:
     void WriteReg(u32 reg, u32 value) override {
@@ -105,6 +115,7 @@ class ThreeD : public EngineBase {
     void LoadMmeInstructionRam(u32 data);
     void LoadMmeStartAddressRamPointer(u32 ptr);
     void LoadMmeStartAddressRam(u32 data);
+    void FirmwareCall4(u32 data);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

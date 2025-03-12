@@ -3,6 +3,10 @@
 #include "common/logging/log.hpp"
 #include "hw/tegra_x1/gpu/macro/const.hpp"
 
+namespace Hydra::HW::TegraX1::GPU::Engines {
+class ThreeD;
+}
+
 namespace Hydra::HW::TegraX1::GPU::Macro {
 
 struct Result {
@@ -12,7 +16,7 @@ struct Result {
 
 class DriverBase {
   public:
-    DriverBase(u32* regs_3d_) : regs_3d{regs_3d_} {}
+    DriverBase(Engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
 
     void Execute();
 
@@ -48,14 +52,11 @@ class DriverBase {
         return param;
     }
 
-    u32& Get3DReg(u32 reg_3d) {
-        ASSERT_DEBUG(reg_3d < MACRO_METHODS_REGION, Macro,
-                     "Invalid 3D register {}", reg_3d);
-        return regs_3d[reg_3d];
-    }
+    u32 Get3DReg(u32 reg_3d);
+    void Method(u32 value);
 
   private:
-    u32* regs_3d;
+    Engines::ThreeD* engine_3d;
 
     // Memory
     u32 instruction_ram[0x1000] = {0}; // TODO: what should be the size?

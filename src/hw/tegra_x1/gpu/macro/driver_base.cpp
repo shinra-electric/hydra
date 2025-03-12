@@ -1,4 +1,5 @@
 #include "hw/tegra_x1/gpu/macro/driver_base.hpp"
+#include "hw/tegra_x1/gpu/engines/3d.hpp"
 #include "hw/tegra_x1/gpu/macro/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
@@ -117,6 +118,14 @@ bool DriverBase::ParseInstruction(u32 pc) {
         exit_after = pc + 1;
 
     return pc == exit_after;
+}
+
+u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d->GetReg(reg_3d); }
+
+void DriverBase::Method(u32 value) {
+    u32 method = value & 0xfff;
+    u32 arg = (value >> 12) & 0x3f;
+    engine_3d->Method(method, arg);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro

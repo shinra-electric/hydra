@@ -63,7 +63,7 @@ u32 Driver::InstRead(u8 rA, u32 imm) {
 }
 
 void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm) {
-    LOG_DEBUG(Macro, "cond: {}, r{}: 0x:08x{}, imm: {}", cond, rA,
+    LOG_DEBUG(Macro, "cond: {}, r{}: 0x{:08x}, imm: {}", cond, rA,
               GetRegU32(rA), imm);
 
     bool branch = false;
@@ -99,7 +99,8 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         SetRegU32(rD, value);
         break;
     case ResultOperation::MoveAndSetMethod:
-        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethod");
+        SetRegU32(rD, value);
+        Method(value);
         break;
     case ResultOperation::FetchAndSend:
         LOG_NOT_IMPLEMENTED(Macro, "FetchAndSend");
@@ -109,12 +110,11 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         LOG_NOT_IMPLEMENTED(Macro, "MoveAndSend");
         break;
     case ResultOperation::FetchAndSetMethod:
-        LOG_NOT_IMPLEMENTED(Macro, "FetchAndSetMethod");
         SetRegU32(rD, FetchParam());
+        Method(value);
         break;
     case ResultOperation::MoveAndSetMethodFetchAndSend:
         LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodFetchAndSend");
-        SetRegU32(rD, FetchParam());
         break;
     case ResultOperation::MoveAndSetMethodSend:
         LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodSend");
