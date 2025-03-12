@@ -26,6 +26,13 @@ enum class AluOperation : int32_t {
     Nand = 12
 };
 
+enum class BranchCondition : int32_t {
+    Zero = 0,
+    NotZero = 1,
+    ZeroAnnul = 2,
+    NotZeroAnnul = 3,
+};
+
 enum class ResultOperation : int32_t {
     IgnoreAndFetch = 0,
     Move = 1,
@@ -37,11 +44,25 @@ enum class ResultOperation : int32_t {
     MoveAndSetMethodSend = 7
 };
 
-enum class BranchCondition : int32_t {
-    Zero = 0,
-    NotZero = 1,
-    ZeroAnnul = 2,
-    NotZeroAnnul = 3,
-};
+constexpr usize REG_COUNT = 8;
+constexpr u32 EXIT_BIT = BIT(7);
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::AluOperation, Add, "add",
+                       AddWithCarry, "add with carry", Subtract, "subtract",
+                       SubtractWithBorrow, "subtract with borrow", Xor, "xor",
+                       Or, "or", And, "and", AndNot, "and not", Nand, "nand")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::BranchCondition, Zero,
+                       "zero", NotZero, "not zero", ZeroAnnul, "zero annul",
+                       NotZeroAnnul, "not zero annul")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::ResultOperation,
+                       IgnoreAndFetch, "ignore and fetch", Move, "move",
+                       MoveAndSetMethod, "move and set method", FetchAndSend,
+                       "fetch and send", MoveAndSend, "move and send",
+                       FetchAndSetMethod, "fetch and set method",
+                       MoveAndSetMethodFetchAndSend,
+                       "move and set method fetch and send",
+                       MoveAndSetMethodSend, "move and set method send")

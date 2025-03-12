@@ -1,4 +1,5 @@
 #include "hw/tegra_x1/gpu/macro/driver_base.hpp"
+#include "hw/tegra_x1/gpu/macro/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
 
@@ -22,9 +23,9 @@ void DriverBase::LoadStartAddressRam(u32 data) {
     macro_start_address_ram[macro_start_address_ram_ptr++] = data;
 }
 
-void DriverBase::ParseInstruction(u32 pc) {
+bool DriverBase::ParseInstruction(u32 pc) {
     u32 instruction = macro_instruction_ram[pc];
-    LOG_DEBUG(GPU, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
+    LOG_DEBUG(Macro, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
 
 #define GET_DATA(shift, mask) ((instruction >> shift) & mask)
 #define GET_REG(shift) GET_DATA(shift, 0x7)
@@ -33,19 +34,21 @@ void DriverBase::ParseInstruction(u32 pc) {
 #define GET_IMM() ((instruction >> 14) & 0x3ffff)
 #define GET_SIZE(shift) GET_DATA(shift, 0x1f)
 
-    Operation op = static_cast<Operation>(instruction & 0x3);
+    // Operation
+    Operation op = static_cast<Operation>(instruction & 0x7);
+    u32 value;
     switch (op) {
     case Operation::Alu: {
         auto alu_op = static_cast<AluOperation>(GET_DATA(17, 0x4));
         u8 rA = GET_REG(11);
         u8 rB = GET_REG(14);
-        InstAlu(alu_op, rA, rB);
+        value = InstAlu(alu_op, rA, rB);
         break;
     }
     case Operation::AddImmediate: {
         u8 rA = GET_REG(11);
         u32 imm = GET_IMM();
-        InstAddImmediate(rA, imm);
+        value = InstAddImmediate(rA, imm);
         break;
     }
     case Operation::ExtractInsert: {
@@ -54,7 +57,7 @@ void DriverBase::ParseInstruction(u32 pc) {
         u8 bB = GET_B(17);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        InstExtractInsert(bA, rA, bB, rB, size);
+        value = InstExtractInsert(bA, rA, bB, rB, size);
         break;
     }
     case Operation::ExtractShiftLeftImmediate: {
@@ -62,7 +65,7 @@ void DriverBase::ParseInstruction(u32 pc) {
         u8 rA = GET_REG(11);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        InstExtractShiftLeftImmediate(bA, rA, rB, size);
+        value = InstExtractShiftLeftImmediate(bA, rA, rB, size);
         break;
     }
     case Operation::ExtractShiftLeftRegister: {
@@ -70,13 +73,13 @@ void DriverBase::ParseInstruction(u32 pc) {
         u8 bB = GET_B(17);
         u8 rB = GET_REG(14);
         u8 size = GET_SIZE(22);
-        InstExtractShiftLeftRegister(rA, bB, rB, size);
+        value = InstExtractShiftLeftRegister(rA, bB, rB, size);
         break;
     }
     case Operation::Read: {
         u8 rA = GET_REG(11);
         u32 imm = GET_IMM();
-        InstRead(rA, imm);
+        value = InstRead(rA, imm);
         break;
     }
     case Operation::Branch: {
@@ -86,6 +89,21 @@ void DriverBase::ParseInstruction(u32 pc) {
         break;
     }
     }
+
+    // Result operation
+    if (op != Operation::Branch) {
+        ResultOperation result_op =
+            static_cast<ResultOperation>(GET_DATA(4, 0x7));
+        u8 rD = GET_REG(8);
+        InstResult(result_op, rD, value);
+    }
+
+    // Check if exit
+    // TODO: is this logic correct?
+    if (instruction & EXIT_BIT)
+        exit_after = pc + 1;
+
+    return pc == exit_after;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro
