@@ -74,7 +74,7 @@ union Regs3D {
             float far;
         } viewports[VIEWPORT_COUNT];
 
-        u32 padding2[0x9c0];
+        u32 padding2[0x9b0];
 
         u32 mme_firmware_args[8];
     };

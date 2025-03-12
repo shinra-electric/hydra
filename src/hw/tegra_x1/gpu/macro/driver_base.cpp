@@ -50,6 +50,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     // Operation
     Operation op = static_cast<Operation>(instruction & 0x7);
     u32 value;
+    bool branched = false;
     switch (op) {
     case Operation::Alu: {
         auto alu_op = static_cast<AluOperation>(GET_DATA_U32(17, 4));
@@ -99,7 +100,9 @@ bool DriverBase::ParseInstruction(u32 pc) {
         auto cond = static_cast<BranchCondition>(GET_DATA_U32(4, 2));
         u8 rA = GET_REG(11);
         i32 imm = GET_IMM_I32();
-        InstBranch(cond, rA, imm);
+        InstBranch(cond, rA, imm, instruction & EXIT_BIT,
+                   branched); // TODO: for god's sake, is this
+                              // really the way it works?
         break;
     }
     }
@@ -113,8 +116,8 @@ bool DriverBase::ParseInstruction(u32 pc) {
     }
 
     // Check if exit
-    // TODO: is this logic correct?
-    if (instruction & EXIT_BIT)
+    // TODO: why is this so weird?
+    if (instruction & EXIT_BIT && !branched)
         exit_after = pc + 1;
 
     return pc == exit_after;
@@ -122,10 +125,12 @@ bool DriverBase::ParseInstruction(u32 pc) {
 
 u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d->GetReg(reg_3d); }
 
-void DriverBase::Method(u32 value) {
-    u32 method = value & 0xfff;
-    u32 arg = (value >> 12) & 0x3f;
-    engine_3d->Method(method, arg);
+void DriverBase::SetMethod(u32 value) {
+    method = value & 0xfff;
+    // TODO: what is this?
+    u32 todo = (value >> 12) & 0x3f;
 }
+
+void DriverBase::Send(u32 arg) { engine_3d->Method(method, arg); }
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro

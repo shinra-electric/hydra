@@ -10,10 +10,12 @@ void Driver::ExecuteImpl(u32 pc_, u32 param1) {
         if (ParseInstruction(pc))
             break;
 
-        if (increment_pc)
+        if (pc == branch_after) {
+            pc = branch_addr;
+            branch_after = invalid<u32>();
+        } else {
             pc++;
-        else
-            increment_pc = true;
+        }
     }
 }
 
@@ -62,7 +64,8 @@ u32 Driver::InstRead(u8 rA, u32 imm) {
     return Get3DReg(imm) << GetRegU32(rA); // TODO: correct?
 }
 
-void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm) {
+void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm,
+                        bool execute_one_more, bool& branched) {
     LOG_DEBUG(Macro, "cond: {}, r{}: 0x{:08x}, imm: {}", cond, rA,
               GetRegU32(rA), imm);
 
@@ -83,8 +86,11 @@ void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm) {
     }
 
     if (branch) {
-        pc = bit_cast<u32>(bit_cast<i32>(pc) + imm);
-        increment_pc = false;
+        branch_after = pc + (execute_one_more ? 1 : 0);
+        branch_addr = bit_cast<u32>(bit_cast<i32>(pc) + imm);
+        branched = true;
+    } else {
+        branched = false;
     }
 }
 
@@ -100,24 +106,27 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         break;
     case ResultOperation::MoveAndSetMethod:
         SetRegU32(rD, value);
-        Method(value);
+        SetMethod(value);
         break;
     case ResultOperation::FetchAndSend:
-        LOG_NOT_IMPLEMENTED(Macro, "FetchAndSend");
         SetRegU32(rD, FetchParam());
+        Send(value);
         break;
     case ResultOperation::MoveAndSend:
-        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSend");
+        SetRegU32(rD, value);
+        Send(value);
         break;
     case ResultOperation::FetchAndSetMethod:
         SetRegU32(rD, FetchParam());
-        Method(value);
+        SetMethod(value);
         break;
     case ResultOperation::MoveAndSetMethodFetchAndSend:
         LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodFetchAndSend");
         break;
     case ResultOperation::MoveAndSetMethodSend:
-        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodSend");
+        SetRegU32(rD, value);
+        SetMethod(value);
+        Send(value);
         break;
     }
 }

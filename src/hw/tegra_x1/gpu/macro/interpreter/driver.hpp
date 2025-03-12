@@ -17,13 +17,16 @@ class Driver : public DriverBase {
     u32 InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) override;
     u32 InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) override;
     u32 InstRead(u8 rA, u32 imm) override;
-    void InstBranch(BranchCondition cond, u8 rA, i32 imm) override;
+    void InstBranch(BranchCondition cond, u8 rA, i32 imm, bool execute_one_more,
+                    bool& branched) override;
     void InstResult(ResultOperation op, u8 rD, u32 value) override;
 
   private:
     u32 pc;
-    bool increment_pc = true;
     u32 regs[REG_COUNT] = {0};
+
+    u32 branch_after = invalid<u32>();
+    u32 branch_addr;
 
     // Helpers
     u32& GetRegRaw(u8 reg) {

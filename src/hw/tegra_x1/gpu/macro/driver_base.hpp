@@ -38,7 +38,9 @@ class DriverBase {
     virtual u32 InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) = 0;
     virtual u32 InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) = 0;
     virtual u32 InstRead(u8 rA, u32 imm) = 0;
-    virtual void InstBranch(BranchCondition cond, u8 rA, i32 imm) = 0;
+    virtual void
+    InstBranch(BranchCondition cond, u8 rA, i32 imm, bool execute_one_more,
+               bool& branched) = 0; // TODO: why is this instructions so weird
     virtual void InstResult(ResultOperation op, u8 rD, u32 value) = 0;
 
     bool ParseInstruction(u32 pc);
@@ -53,7 +55,8 @@ class DriverBase {
     }
 
     u32 Get3DReg(u32 reg_3d);
-    void Method(u32 value);
+    void SetMethod(u32 value);
+    void Send(u32 arg);
 
   private:
     Engines::ThreeD* engine_3d;
@@ -70,7 +73,10 @@ class DriverBase {
     std::queue<u32> param_queue;
 
     // Exit
-    u32 exit_after = 0;
+    u32 exit_after = invalid<u32>();
+
+    // Method
+    u32 method = invalid<u32>();
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro
