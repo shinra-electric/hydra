@@ -9,33 +9,36 @@ class DriverBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+struct RenderTarget {
+    u32 addr_hi;
+    u32 addr_lo;
+    u32 width;
+    u32 height;
+    ColorSurfaceFormat format;
+    struct {
+        u32 width : 4;
+        u32 height : 4;
+        u32 depth : 4;
+        bool is_linear : 1;
+        u32 unused : 3;
+        bool is_3d : 1;
+    } tile_mode;
+    struct {
+        u16 layers;
+        bool volume : 1; // TODO: what is this?
+    } array_mode;
+    u32 array_pitch;
+    u32 base_layer;
+    u32 mark; // TODO: what is this?
+    u32 padding[6];
+};
+
 union Regs3D {
     struct {
         u32 padding1[0x200];
 
         // Render targets
-        struct {
-            uptr addr;
-            u32 width;
-            u32 height;
-            u32 format; // TODO: enum class as type
-            struct {
-                u32 width : 4;
-                u32 height : 4;
-                u32 depth : 4;
-                bool is_linear : 1;
-                u32 unused : 3;
-                bool is_3d : 1;
-            } tile_mode;
-            struct {
-                u16 layers;
-                bool volume : 1; // TODO: what is this?
-            } array_mode;
-            u32 array_pitch;
-            u32 base_layer;
-            u32 mark; // TODO: what is this?
-            u32 padding[6];
-        } color_targets[COLOR_TARGET_COUNT];
+        RenderTarget color_targets[COLOR_TARGET_COUNT];
 
         // Viewport transforms
         struct {
@@ -104,6 +107,10 @@ class ThreeD : public EngineBase {
 
     void Macro(u32 method, u32 arg) override;
 
+    // Helpers
+    TextureDescriptor
+    CreateTextureDescriptor(const RenderTarget& render_target);
+
   private:
     Regs3D regs;
 
@@ -111,11 +118,25 @@ class ThreeD : public EngineBase {
     Macro::DriverBase* macro_driver;
 
     // Commands
-    void LoadMmeInstructionRamPointer(u32 ptr);
-    void LoadMmeInstructionRam(u32 data);
-    void LoadMmeStartAddressRamPointer(u32 ptr);
-    void LoadMmeStartAddressRam(u32 data);
-    void FirmwareCall4(u32 data);
+    void LoadMmeInstructionRamPointer(const u32 ptr);
+    void LoadMmeInstructionRam(const u32 data);
+    void LoadMmeStartAddressRamPointer(const u32 ptr);
+    void LoadMmeStartAddressRam(const u32 data);
+
+    struct ClearBufferData {
+        bool depth : 1;
+        bool stencil : 1;
+        bool red : 1;
+        bool green : 1;
+        bool blue : 1;
+        bool alpha : 1;
+        u32 target_id : 4;
+        u32 layer_id : 11;
+    };
+
+    void ClearBuffer(const ClearBufferData data);
+
+    void FirmwareCall4(const u32 data);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

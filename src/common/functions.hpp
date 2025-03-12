@@ -24,6 +24,12 @@ template <typename T> T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
 
+template <typename PtrT, typename AlignmentT>
+PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
+    return reinterpret_cast<PtrT*>(
+        align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
+}
+
 template <typename T, u32 bit_count> T sign_extend(T v) {
     static_assert(std::is_signed<T>::value);
     static_assert(bit_count < sizeof(T) * 8);
@@ -31,10 +37,8 @@ template <typename T, u32 bit_count> T sign_extend(T v) {
     return (v ^ m) - m;
 }
 
-template <typename PtrT, typename AlignmentT>
-PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
-    return reinterpret_cast<PtrT*>(
-        align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
+inline uptr make_addr(u32 lo, u32 hi) {
+    return (static_cast<uptr>(hi) << 32) | lo;
 }
 
 inline std::ifstream open_file(const std::string& path, usize& size) {

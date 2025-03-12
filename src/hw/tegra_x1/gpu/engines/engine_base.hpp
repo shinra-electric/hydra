@@ -3,9 +3,9 @@
 #include "common/logging/log.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
 
-#define METHOD_CASE(method, func)                                              \
+#define METHOD_CASE(method, func, arg_type)                                    \
     case method:                                                               \
-        func(arg);                                                             \
+        func(bit_cast<arg_type>(arg));                                         \
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
@@ -15,7 +15,7 @@
             return;                                                            \
         }                                                                      \
         switch (method) {                                                      \
-            FOR_EACH_0_2(METHOD_CASE, __VA_ARGS__)                             \
+            FOR_EACH_0_3(METHOD_CASE, __VA_ARGS__)                             \
         default:                                                               \
             WriteReg(method, arg);                                             \
             break;                                                             \

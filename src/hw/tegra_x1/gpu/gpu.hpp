@@ -8,6 +8,8 @@
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
+#define RENDERER GPU::GetInstance().GetRenderer()
+
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
 }
@@ -106,6 +108,8 @@ class GPU {
 
     // Getters
     CPU::MMUBase* GetMMU() const { return mmu; }
+
+    GPUMMU& GetGPUMMU() { return gpu_mmu; }
 
     Pfifo& GetPfifo() { return pfifo; }
 

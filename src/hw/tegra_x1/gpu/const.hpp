@@ -486,6 +486,73 @@ enum class NvColorFormat : u64 {
     XYZ = 0x140A886640UL,
 };
 
+enum ColorSurfaceFormat : u32 {
+    Bitmap = 0x1C,
+    Unknown1D = 0x1D,
+    RGBA32Float = 0xC0,
+    RGBA32Sint = 0xC1,
+    RGBA32Uint = 0xC2,
+    RGBX32Float = 0xC3,
+    RGBX32Sint = 0xC4,
+    RGBX32Uint = 0xC5,
+    RGBA16Unorm = 0xC6,
+    RGBA16Snorm = 0xC7,
+    RGBA16Sint = 0xC8,
+    RGBA16Uint = 0xC9,
+    RGBA16Float = 0xCA,
+    RG32Float = 0xCB,
+    RG32Sint = 0xCC,
+    RG32Uint = 0xCD,
+    RGBX16Float = 0xCE,
+    BGRA8Unorm = 0xCF,
+    BGRA8Srgb = 0xD0,
+    RGB10A2Unorm = 0xD1,
+    RGB10A2Uint = 0xD2,
+    RGBA8Unorm = 0xD5,
+    RGBA8Srgb = 0xD6,
+    RGBA8Snorm = 0xD7,
+    RGBA8Sint = 0xD8,
+    RGBA8Uint = 0xD9,
+    RG16Unorm = 0xDA,
+    RG16Snorm = 0xDB,
+    RG16Sint = 0xDC,
+    RG16Uint = 0xDD,
+    RG16Float = 0xDE,
+    BGR10A2Unorm = 0xDF,
+    R11G11B10Float = 0xE0,
+    R32Sint = 0xE3,
+    R32Uint = 0xE4,
+    R32Float = 0xE5,
+    BGRX8Unorm = 0xE6,
+    BGRX8Srgb = 0xE7,
+    B5G6R5Unorm = 0xE8,
+    BGR5A1Unorm = 0xE9,
+    RG8Unorm = 0xEA,
+    RG8Snorm = 0xEB,
+    RG8Sint = 0xEC,
+    RG8Uint = 0xED,
+    R16Unorm = 0xEE,
+    R16Snorm = 0xEF,
+    R16Sint = 0xF0,
+    R16Uint = 0xF1,
+    R16Float = 0xF2,
+    R8Unorm = 0xF3,
+    R8Snorm = 0xF4,
+    R8Sint = 0xF5,
+    R8Uint = 0xF6,
+    A8Unorm = 0xF7,
+    BGR5X1Unorm = 0xF8,
+    RGBX8Unorm = 0xF9,
+    RGBX8Srgb = 0xFA,
+    BGR5X1UnormUnknownFB = 0xFB,
+    BGR5X1UnormUnknownFC = 0xFC,
+    BGRX8UnormUnknownFD = 0xFD,
+    BGRX8UnormUnknownFE = 0xFE,
+    Y32UintUnknownFF = 0xFF,
+};
+
+ColorSurfaceFormat to_color_surface_format(NvColorFormat color_format);
+
 struct NvSurface {
     u32 width;
     u32 height;
@@ -526,7 +593,7 @@ struct NvGraphicsBuffer {
 
 struct TextureDescriptor {
     uptr ptr;
-    NvColorFormat color_format;
+    ColorSurfaceFormat color_surface_format;
     NvKind kind;
     usize width;
     usize height;
@@ -796,6 +863,32 @@ ENABLE_ENUM_FORMATTING(
     X6Bayer10GRBG, "x6bayer10grbg", Bayer8GBRG, "bayer8gbrg", Bayer16GBRG,
     "bayer16gbrg", BayerS16GBRG, "bayers16gbrg", X2Bayer14GBRG, "x2bayer14gbrg",
     X4Bayer12GBRG, "x4bayer12gbrg", X6Bayer10GBRG, "x6bayer10gbrg", XYZ, "xyz")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::ColorSurfaceFormat, Bitmap, "bitmap", Unknown1D,
+    "unknown1d", RGBA32Float, "rgba32float", RGBA32Sint, "rgba32sint",
+    RGBA32Uint, "rgba32uint", RGBX32Float, "rgbx32float", RGBX32Sint,
+    "rgbx32sint", RGBX32Uint, "rgbx32uint", RGBA16Unorm, "rgba16unorm",
+    RGBA16Snorm, "rgba16snorm", RGBA16Sint, "rgba16sint", RGBA16Uint,
+    "rgba16uint", RGBA16Float, "rgba16float", RG32Float, "rg32float", RG32Sint,
+    "rg32sint", RG32Uint, "rg32uint", RGBX16Float, "rgbx16float", BGRA8Unorm,
+    "bgra8unorm", BGRA8Srgb, "bgra8srgb", RGB10A2Unorm, "rgb10a2unorm",
+    RGB10A2Uint, "rgb10a2uint", RGBA8Unorm, "rgba8unorm", RGBA8Srgb,
+    "rgba8srgb", RGBA8Snorm, "rgba8snorm", RGBA8Sint, "rgba8sint", RGBA8Uint,
+    "rgba8uint", RG16Unorm, "rg16unorm", RG16Snorm, "rg16snorm", RG16Sint,
+    "rg16sint", RG16Uint, "rg16uint", RG16Float, "rg16float", BGR10A2Unorm,
+    "bgr10a2unorm", R11G11B10Float, "r11g11b10float", R32Sint, "r32sint",
+    R32Uint, "r32uint", R32Float, "r32float", BGRX8Unorm, "bgrx8unorm",
+    BGRX8Srgb, "bgrx8srgb", B5G6R5Unorm, "b5g6r5unorm", BGR5A1Unorm,
+    "bgr5a1unorm", RG8Unorm, "rg8unorm", RG8Snorm, "rg8snorm", RG8Sint,
+    "rg8sint", RG8Uint, "rg8uint", R16Unorm, "r16unorm", R16Snorm, "r16snorm",
+    R16Sint, "r16sint", R16Uint, "r16uint", R16Float, "r16float", R8Unorm,
+    "r8unorm", R8Snorm, "r8snorm", R8Sint, "r8sint", R8Uint, "r8uint", A8Unorm,
+    "a8unorm", BGR5X1Unorm, "bgr5x1unorm", RGBX8Unorm, "rgbx8unorm", RGBX8Srgb,
+    "rgbx8srgb", BGR5X1UnormUnknownFB, "bgr5x1unormunknownfb",
+    BGR5X1UnormUnknownFC, "bgr5x1unormunknownfc", BGRX8UnormUnknownFD,
+    "bgrx8unormunknownfd", BGRX8UnormUnknownFE, "bgrx8unormunknownfe",
+    Y32UintUnknownFF, "y32uintunknownff")
 
 ENABLE_ENUM_FLAGS_FORMATTING(Hydra::HW::TegraX1::GPU::GpfifoFlags, FenceWait,
                              "fence wait", FenceGet, "fence get", HwFormat,
