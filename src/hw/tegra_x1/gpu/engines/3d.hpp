@@ -84,9 +84,11 @@ class ThreeD : public EngineBase {
 
     void Method(u32 method, u32 arg) override;
 
+    void FlushMacro() override;
+
   protected:
     void WriteReg(u32 reg, u32 value) override {
-        LOG_DEBUG(GPU, "Writing to 3d reg 0x{:08x}", reg);
+        LOG_DEBUG(Engines, "Writing to 3d reg 0x{:08x}", reg);
         regs.raw[reg] = value;
     }
 

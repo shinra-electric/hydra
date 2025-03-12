@@ -2,70 +2,122 @@
 
 namespace Hydra::HW::TegraX1::GPU::Macro::Interpreter {
 
-void Driver::ExecuteImpl(u32 pc) {
+void Driver::ExecuteImpl(u32 pc_, u32 param1) {
+    pc = pc_;
+    SetRegU32(1, param1);
+
     while (true) {
-        if (ParseInstruction(pc++))
+        if (ParseInstruction(pc))
             break;
+
+        if (increment_pc)
+            pc++;
+        else
+            increment_pc = true;
     }
 }
 
-u32 Driver::InstAlu(AluOperation op, u8 u32, u8 rB) {
+u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
     LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "op: {}, u32: {}, rB: {}", op, u32, rB);
+    LOG_DEBUG(Macro, "op: {}, r{}: 0x{:08x}, r{}: 0x{:08x}", op, rA,
+              GetRegU32(rA), rB, GetRegU32(rB));
 
     return 0;
 }
 
-u32 Driver::InstAddImmediate(u8 rA, u32 imm) {
-    LOG_DEBUG(Macro, "rA: {}, imm: 0x{:08x}", rA, imm);
-    u32 value = GetReg(rA) + imm;
-
-    return value;
+u32 Driver::InstAddImmediate(u8 rA, i32 imm) {
+    LOG_DEBUG(Macro, "r{}: 0x{:08x}, imm: 0x{:08x}", rA, GetRegU32(rA), imm);
+    return bit_cast<u32>(GetRegI32(rA) + imm);
 }
 
 u32 Driver::InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "bA: {}, rA: {}, bB: {}, rB: {}, size: {}", bA, rA, bB, rB,
-              size);
+    LOG_DEBUG(Macro, "b{}: {}, r{}: 0x{:08x}, b{}: {}, r{}: 0x{:08x}, size: {}",
+              rA, bA, rA, GetRegU32(rA), rB, bB, rB, GetRegU32(rB), size);
+    u32 mask = (1 << size) - 1;
+    u32 valueA = (GetRegU32(rA) >> bA) & mask; // TODO: correct?
+    u32 valueB = (GetRegU32(rB) >> bB) & mask;
 
-    return 0;
+    // TODO: how to combine these?
+    return valueA | valueB;
 }
 
 u32 Driver::InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) {
     LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "bA: {}, rA: {}, rB: {}, size: {}", bA, rA, rB, size);
+    LOG_DEBUG(Macro, "b{}: {}, r{}: 0x{:08x}, r{}: 0x{:08x}, size: {}", rA, bA,
+              rA, GetRegU32(rA), rB, GetRegU32(rB), size);
 
     return 0;
 }
 
 u32 Driver::InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) {
     LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "rA: {}, bB: {}, rB: {}, size: {}", rA, bB, rB, size);
+    LOG_DEBUG(Macro, "r{}: 0x{:08x}, b{}: {}, r{}: 0x{:08x}, size: {}", rA,
+              GetRegU32(rA), rB, bB, rB, GetRegU32(rB), size);
 
     return 0;
 }
 
 u32 Driver::InstRead(u8 rA, u32 imm) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "rA: {}, imm: 0x{:08x}", rA, imm);
-
-    return 0;
+    LOG_DEBUG(Macro, "r{}: 0x{:08x}, imm: 0x{:08x}", rA, GetRegU32(rA), imm);
+    return Get3DReg(imm) << GetRegU32(rA); // TODO: correct?
 }
 
-void Driver::InstBranch(BranchCondition cond, u8 rA) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
-    LOG_DEBUG(Macro, "cond: {}, rA: {}", cond, rA);
+void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm) {
+    LOG_DEBUG(Macro, "cond: {}, r{}: 0x:08x{}, imm: {}", cond, rA,
+              GetRegU32(rA), imm);
+
+    bool branch = false;
+    switch (cond) {
+    case BranchCondition::Zero:
+        branch = (GetRegU32(rA) == 0);
+        break;
+    case BranchCondition::NotZero:
+        branch = (GetRegU32(rA) != 0);
+        break;
+    case BranchCondition::ZeroAnnul:
+        LOG_NOT_IMPLEMENTED(Macro, "ZeroAnnul");
+        break;
+    case BranchCondition::NotZeroAnnul:
+        LOG_NOT_IMPLEMENTED(Macro, "NotZeroAnnul");
+        break;
+    }
+
+    if (branch) {
+        pc = bit_cast<u32>(bit_cast<i32>(pc) + imm);
+        increment_pc = false;
+    }
 }
 
 void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
-    LOG_DEBUG(Macro, "result op: {}, rD: {}", op, rD);
+    LOG_DEBUG(Macro, "result op: {}, r{}, value: 0x{:08x}", op, rD, value);
 
     switch (op) {
-    case ResultOperation::Move:
-        SetReg(rD, value);
+    case ResultOperation::IgnoreAndFetch:
+        SetRegU32(rD, FetchParam());
         break;
-    default:
-        LOG_NOT_IMPLEMENTED(Macro, "Result operation {}", op);
+    case ResultOperation::Move:
+        SetRegU32(rD, value);
+        break;
+    case ResultOperation::MoveAndSetMethod:
+        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethod");
+        break;
+    case ResultOperation::FetchAndSend:
+        LOG_NOT_IMPLEMENTED(Macro, "FetchAndSend");
+        SetRegU32(rD, FetchParam());
+        break;
+    case ResultOperation::MoveAndSend:
+        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSend");
+        break;
+    case ResultOperation::FetchAndSetMethod:
+        LOG_NOT_IMPLEMENTED(Macro, "FetchAndSetMethod");
+        SetRegU32(rD, FetchParam());
+        break;
+    case ResultOperation::MoveAndSetMethodFetchAndSend:
+        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodFetchAndSend");
+        SetRegU32(rD, FetchParam());
+        break;
+    case ResultOperation::MoveAndSetMethodSend:
+        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodSend");
         break;
     }
 }

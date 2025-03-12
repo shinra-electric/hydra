@@ -95,6 +95,10 @@ class GPU {
 
     void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
 
+    void SubchannelFlushMacro(u32 subchannel) {
+        GetEngineAtSubchannel(subchannel)->FlushMacro();
+    }
+
     // Descriptors
 
     // Texture

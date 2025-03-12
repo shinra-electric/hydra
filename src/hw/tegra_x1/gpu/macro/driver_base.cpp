@@ -3,43 +3,55 @@
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
 
-void DriverBase::Execute(u32 index) {
-    ExecuteImpl(macro_start_address_ram[index]);
+void DriverBase::Execute() {
+    ExecuteImpl(start_address_ram[index], param1);
+
+    // TODO: what should happen when there are still parameters in the queue?
+    if (!param_queue.empty()) {
+        LOG_ERROR(Macro, "There are still parameters ({}) in the queue",
+                  param_queue.size());
+        std::queue<u32>().swap(param_queue);
+    }
 }
 
 void DriverBase::LoadInstructionRamPointer(u32 ptr) {
-    macro_instruction_ram_ptr = ptr;
+    instruction_ram_ptr = ptr;
 }
 
 void DriverBase::LoadInstructionRam(u32 data) {
-    macro_instruction_ram[macro_instruction_ram_ptr++] = data;
+    instruction_ram[instruction_ram_ptr++] = data;
 }
 
 void DriverBase::LoadStartAddressRamPointer(u32 ptr) {
-    macro_start_address_ram_ptr = ptr;
+    start_address_ram_ptr = ptr;
 }
 
 void DriverBase::LoadStartAddressRam(u32 data) {
-    macro_start_address_ram[macro_start_address_ram_ptr++] = data;
+    start_address_ram[start_address_ram_ptr++] = data;
 }
 
 bool DriverBase::ParseInstruction(u32 pc) {
-    u32 instruction = macro_instruction_ram[pc];
-    LOG_DEBUG(Macro, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
+    u32 instruction = instruction_ram[pc];
+    // LOG_DEBUG(Macro, "PC: 0x{:08x}, instruction: 0x{:08x}", pc, instruction);
 
-#define GET_DATA(shift, mask) ((instruction >> shift) & mask)
-#define GET_REG(shift) GET_DATA(shift, 0x7)
+#define GET_DATA_IMPL(inst, shift, bit_count)                                  \
+    ((inst >> shift) & ((1 << bit_count) - 1))
+#define GET_DATA_U32(shift, mask) GET_DATA_IMPL(instruction, shift, mask)
+#define GET_DATA_I32(shift, mask)                                              \
+    GET_DATA_IMPL(bit_cast<i32>(instruction), shift, mask)
+#define GET_REG(shift) GET_DATA_U32(shift, 3)
 // TODO: rename
-#define GET_B(shift) GET_DATA(shift, 0x1f)
-#define GET_IMM() ((instruction >> 14) & 0x3ffff)
-#define GET_SIZE(shift) GET_DATA(shift, 0x1f)
+#define GET_B(shift) GET_DATA_U32(shift, 5)
+#define GET_IMM_U32() GET_DATA_U32(14, 18)
+#define GET_IMM_I32() sign_extend<i32, 18>(GET_DATA_I32(14, 18))
+#define GET_SIZE(shift) GET_DATA_U32(shift, 5)
 
     // Operation
     Operation op = static_cast<Operation>(instruction & 0x7);
     u32 value;
     switch (op) {
     case Operation::Alu: {
-        auto alu_op = static_cast<AluOperation>(GET_DATA(17, 0x4));
+        auto alu_op = static_cast<AluOperation>(GET_DATA_U32(17, 4));
         u8 rA = GET_REG(11);
         u8 rB = GET_REG(14);
         value = InstAlu(alu_op, rA, rB);
@@ -47,7 +59,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     }
     case Operation::AddImmediate: {
         u8 rA = GET_REG(11);
-        u32 imm = GET_IMM();
+        i32 imm = GET_IMM_I32();
         value = InstAddImmediate(rA, imm);
         break;
     }
@@ -78,14 +90,15 @@ bool DriverBase::ParseInstruction(u32 pc) {
     }
     case Operation::Read: {
         u8 rA = GET_REG(11);
-        u32 imm = GET_IMM();
+        u32 imm = GET_IMM_U32();
         value = InstRead(rA, imm);
         break;
     }
     case Operation::Branch: {
-        auto cond = static_cast<BranchCondition>(GET_DATA(4, 0x3));
+        auto cond = static_cast<BranchCondition>(GET_DATA_U32(4, 2));
         u8 rA = GET_REG(11);
-        InstBranch(cond, rA);
+        i32 imm = GET_IMM_I32();
+        InstBranch(cond, rA, imm);
         break;
     }
     }
@@ -93,7 +106,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     // Result operation
     if (op != Operation::Branch) {
         ResultOperation result_op =
-            static_cast<ResultOperation>(GET_DATA(4, 0x7));
+            static_cast<ResultOperation>(GET_DATA_U32(4, 3));
         u8 rD = GET_REG(8);
         InstResult(result_op, rD, value);
     }

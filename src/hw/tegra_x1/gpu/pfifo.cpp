@@ -1,5 +1,6 @@
 #include "hw/tegra_x1/gpu/pfifo.hpp"
 
+#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/gpu.hpp"
 
 namespace Hydra::HW::TegraX1::GPU {
@@ -89,6 +90,10 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
         LOG_NOT_IMPLEMENTED(GPU, "{}", secondary_opcode);
         break;
     }
+
+    // TODO: is it okay to prefetch the parameters and then execute the macro?
+    if (header.method >= MACRO_METHODS_REGION)
+        GPU::GetInstance().SubchannelFlushMacro(header.subchannel);
 
     return true;
 }

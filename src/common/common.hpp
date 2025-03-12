@@ -3,6 +3,7 @@
 #include <bit>
 #include <errno.h>
 #include <map>
+#include <queue>
 #include <span>
 #include <string>
 #include <string_view>

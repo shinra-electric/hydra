@@ -28,15 +28,19 @@ class EngineBase {
   public:
     virtual void Method(u32 method, u32 arg) = 0;
 
+    virtual void FlushMacro() {
+        LOG_ERROR(Engines, "This engine does not support macros");
+    }
+
   protected:
     virtual void WriteReg(u32 reg, u32 value) {
         LOG_NOT_IMPLEMENTED(
-            GPU, "Writing to registers (0x{:08x}) in this engine", reg);
+            Engines, "Writing to registers (0x{:08x}) in this engine", reg);
     }
 
-    // TODO: how do macros actually function?
     virtual void Macro(u32 method, u32 arg) {
-        LOG_ERROR(GPU, "This engine does not support macros (method: 0x{:08x})",
+        LOG_ERROR(Engines,
+                  "This engine does not support macros (method: 0x{:08x})",
                   method);
     }
 };
