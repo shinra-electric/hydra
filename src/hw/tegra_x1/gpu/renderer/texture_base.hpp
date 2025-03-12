@@ -10,6 +10,9 @@ class TextureBase {
         : descriptor{descriptor_} {}
     virtual ~TextureBase() {}
 
+    // Getters
+    const TextureDescriptor& GetDescriptor() const { return descriptor; }
+
   private:
     TextureDescriptor descriptor;
 };

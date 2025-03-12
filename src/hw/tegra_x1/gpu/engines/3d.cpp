@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include "hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
+#include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
@@ -42,10 +43,8 @@ ThreeD::CreateTextureDescriptor(const RenderTarget& render_target) {
         .kind = NvKind::Generic_16BX2, // TODO: correct?
         .width = render_target.width,
         .height = render_target.height,
-        .stride = invalid<u32>(),                            // TODO
         .block_height_log2 = render_target.tile_mode.height, // TODO: correct?
-        .pitch =
-            render_target.array_pitch / render_target.height, // TODO: correct?
+        .stride = render_target.width * 4,                   // HACK
     };
 }
 
@@ -66,17 +65,30 @@ void ThreeD::LoadMmeStartAddressRam(const u32 data) {
 }
 
 void ThreeD::ClearBuffer(const ClearBufferData data) {
-    LOG_FUNC_NOT_IMPLEMENTED(Engines);
     LOG_DEBUG(GPU,
               "Depth: {}, stencil: {}, red: {}, green: {}, blue: {}, alpha: "
               "{}, target id: {}, layer id: {}",
               data.depth, data.stencil, data.red, data.green, data.blue,
               data.alpha, data.target_id, data.layer_id);
 
+    // Texture
     auto texture_descriptor =
         CreateTextureDescriptor(regs.color_targets[data.target_id]);
     auto texture =
         GPU::GetInstance().GetTextureCache().FindTexture(texture_descriptor);
+
+    // HACK
+    u32* d = new u32[texture_descriptor.width * texture_descriptor.height];
+    for (usize i = 0; i < texture_descriptor.width * texture_descriptor.height;
+         i++) {
+        u8* ptr = reinterpret_cast<u8*>(&d[i]);
+        ptr[0] = regs.clear_color[0] * 0xff;
+        ptr[1] = regs.clear_color[1] * 0xff;
+        ptr[2] = regs.clear_color[2] * 0xff;
+        ptr[3] = regs.clear_color[3] * 0xff;
+    }
+    RENDERER->UploadTexture(texture, d);
+    delete[] d;
 }
 
 void ThreeD::FirmwareCall4(const u32 data) {

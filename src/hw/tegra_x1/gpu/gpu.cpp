@@ -97,9 +97,9 @@ TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
         .kind = buff.planes[0].kind,
         .width = buff.planes[0].width,
         .height = buff.planes[0].height,
-        .stride = buff.stride,
+        //.stride = buff.stride,
         .block_height_log2 = buff.planes[0].block_height_log2,
-        .pitch = buff.planes[0].pitch,
+        .stride = buff.planes[0].pitch,
     };
 }
 

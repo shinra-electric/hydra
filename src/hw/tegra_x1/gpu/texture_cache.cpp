@@ -33,7 +33,7 @@ TextureCache::FindTexture(const TextureDescriptor& descriptor) {
 
         texture_decoder.Decode(descriptor, scratch_buffer, out_data);
 
-        render->UploadTexture(texture, out_data, descriptor.pitch);
+        render->UploadTexture(texture, out_data);
     }
 
     return texture;

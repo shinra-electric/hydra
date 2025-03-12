@@ -77,7 +77,20 @@ union Regs3D {
             float far;
         } viewports[VIEWPORT_COUNT];
 
-        u32 padding2[0x9b0];
+        u32 padding2[0x10];
+
+        // Clear data
+        float clear_color[4];
+        float clear_depth;
+
+        u32 padding3[0x2];
+
+        bool color_reduction_enable : 32;
+        u32 clear_stencil;
+
+        u32 padding4[0x7];
+
+        u32 padding5[0x990];
 
         u32 mme_firmware_args[8];
     };

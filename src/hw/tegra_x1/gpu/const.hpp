@@ -597,9 +597,8 @@ struct TextureDescriptor {
     NvKind kind;
     usize width;
     usize height;
-    usize stride;
     usize block_height_log2;
-    usize pitch;
+    usize stride;
     // TODO: more
 };
 

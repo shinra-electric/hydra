@@ -14,7 +14,6 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setPixelFormat(get_mtl_pixel_format(descriptor.color_surface_format));
 
     texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
-    LOG_DEBUG(MetalRenderer, "Created");
 }
 
 Texture::~Texture() { texture->release(); }
