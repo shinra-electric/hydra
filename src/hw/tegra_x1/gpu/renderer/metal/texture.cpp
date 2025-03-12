@@ -11,10 +11,10 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
 
-    // TODO: pixel format
-    desc->setPixelFormat(get_mtl_pixel_format(descriptor.color_format));
+    desc->setPixelFormat(get_mtl_pixel_format(descriptor.color_surface_format));
 
     texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
+    LOG_DEBUG(MetalRenderer, "Created");
 }
 
 Texture::~Texture() { texture->release(); }

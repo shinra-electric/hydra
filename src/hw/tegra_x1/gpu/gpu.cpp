@@ -1,6 +1,7 @@
 #include "hw/tegra_x1/gpu/gpu.hpp"
 
 #include "hw/tegra_x1/cpu/mmu_base.hpp"
+#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/2d.hpp"
 #include "hw/tegra_x1/gpu/engines/3d.hpp"
 #include "hw/tegra_x1/gpu/engines/inline.hpp"
@@ -86,19 +87,20 @@ TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
               "Map id: {}, width: {}, "
               "height: {}",
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
-    TextureDescriptor descriptor;
-    descriptor.ptr =
-        mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset);
-    // TODO: why are there more planes?
-    descriptor.color_format = buff.planes[0].color_format;
-    descriptor.kind = buff.planes[0].kind;
-    descriptor.width = buff.planes[0].width;
-    descriptor.height = buff.planes[0].height;
-    descriptor.stride = buff.stride;
-    descriptor.block_height_log2 = buff.planes[0].block_height_log2;
-    descriptor.pitch = buff.planes[0].pitch;
 
-    return descriptor;
+    // TODO: why are there more planes?
+    return {
+        .ptr = mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr +
+                              buff.planes[0].offset),
+        .color_surface_format =
+            to_color_surface_format(buff.planes[0].color_format),
+        .kind = buff.planes[0].kind,
+        .width = buff.planes[0].width,
+        .height = buff.planes[0].height,
+        .stride = buff.stride,
+        .block_height_log2 = buff.planes[0].block_height_log2,
+        .pitch = buff.planes[0].pitch,
+    };
 }
 
 } // namespace Hydra::HW::TegraX1::GPU

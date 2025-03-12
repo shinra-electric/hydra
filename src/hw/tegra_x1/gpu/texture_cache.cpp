@@ -22,7 +22,7 @@ TextureCache::FindTexture(const TextureDescriptor& descriptor) {
         dirty = true;
     } else {
         // TODO: if data changed
-        if (true)
+        if (false)
             dirty = true;
     }
 

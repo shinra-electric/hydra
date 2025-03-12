@@ -30,6 +30,17 @@ PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
         align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
 }
 
+template <typename T, u32 bit_count> T sign_extend(T v) {
+    static_assert(std::is_signed<T>::value);
+    static_assert(bit_count < sizeof(T) * 8);
+    T const m = T(1) << (bit_count - 1);
+    return (v ^ m) - m;
+}
+
+inline uptr make_addr(u32 lo, u32 hi) {
+    return (static_cast<uptr>(hi) << 32) | lo;
+}
+
 inline std::ifstream open_file(const std::string& path, usize& size) {
     const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
     auto ifs = std::ifstream{path, iflags};

@@ -27,6 +27,8 @@
 
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
     LOG_WARNING(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+// TODO: use the actual function name?
+#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "Function")
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
@@ -67,6 +69,8 @@ enum class Class {
     MMU,
     CPU,
     GPU,
+    Macro,
+    Engines,
     MetalRenderer,
     SDL3Window,
     Horizon,
@@ -130,7 +134,8 @@ ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
                        Warning, "warning", Error, "error")
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
-                       "CPU", GPU, "GPU", MetalRenderer, "Renderer::Metal",
-                       SDL3Window, "Window::SDL3", Horizon, "Horizon",
-                       HorizonKernel, "Horizon::Kernel", HorizonServices,
-                       "Horizon::Services", Hypervisor, "Hypervisor")
+                       "CPU", GPU, "GPU", Macro, "Macro", Engines, "Engines",
+                       MetalRenderer, "Renderer::Metal", SDL3Window,
+                       "Window::SDL3", Horizon, "Horizon", HorizonKernel,
+                       "Horizon::Kernel", HorizonServices, "Horizon::Services",
+                       Hypervisor, "Hypervisor")
