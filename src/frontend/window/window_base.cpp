@@ -28,8 +28,7 @@ void WindowBase::Present() {
     const auto& buffer = binder.GetBuffer(slot);
 
     auto gpu = emulation_context->GetGPU();
-    auto texture_descriptor = gpu->CreateTextureDescriptor(buffer);
-    auto texture = gpu->GetTextureCache().Find(texture_descriptor);
+    auto texture = gpu->GetTexture(buffer);
     gpu->GetRenderer()->Present(texture);
 }
 

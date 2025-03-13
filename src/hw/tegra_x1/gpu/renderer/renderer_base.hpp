@@ -22,6 +22,7 @@ class RendererBase {
     // Render pass
     virtual RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
+    virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
   private:
 };

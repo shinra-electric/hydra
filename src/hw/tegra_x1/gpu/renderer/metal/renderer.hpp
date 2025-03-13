@@ -6,6 +6,8 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
+class RenderPass;
+
 enum class EncoderType {
     None,
     Render,
@@ -31,6 +33,7 @@ class Renderer : public RendererBase {
     // Render pass
     RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) override;
+    void BindRenderPass(const RenderPassBase* render_pass) override;
 
     // Getters
     MTL::Device* GetDevice() const { return device; }
@@ -53,6 +56,15 @@ class Renderer : public RendererBase {
     MTL::CommandEncoder* command_encoder{nullptr};
     EncoderType encoder_type{EncoderType::None};
 
+    // State
+    struct {
+        const RenderPass* render_pass = nullptr;
+    } state;
+
+    struct {
+        const RenderPass* render_pass = nullptr;
+    } encoder_state;
+
     // Helpers
 
     // Command buffer
@@ -60,7 +72,9 @@ class Renderer : public RendererBase {
     void CommitCommandBuffer();
 
     // Command encoders
-    MTL::RenderCommandEncoder* GetTemporaryRenderCommandEncoder(
+    MTL::RenderCommandEncoder* GetRenderCommandEncoder();
+
+    MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
         MTL::RenderPassDescriptor* render_pass_descriptor);
     void EndEncoding();
 };

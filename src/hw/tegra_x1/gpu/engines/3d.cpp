@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include "hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
+#include "hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
@@ -34,22 +35,6 @@ void ThreeD::Macro(u32 method, u32 arg) {
     }
 }
 
-Renderer::TextureDescriptor
-ThreeD::CreateTextureDescriptor(u32 render_target_index) {
-    const auto& render_target = regs.color_targets[render_target_index];
-
-    return {
-        .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(
-            make_addr(render_target.addr_lo, render_target.addr_hi)),
-        .surface_format = render_target.surface_format,
-        .kind = NvKind::Generic_16BX2, // TODO: correct?
-        .width = render_target.width,
-        .height = render_target.height,
-        .block_height_log2 = render_target.tile_mode.height, // TODO: correct?
-        .stride = render_target.width * 4,                   // HACK
-    };
-}
-
 void ThreeD::LoadMmeInstructionRamPointer(const u32 ptr) {
     macro_driver->LoadInstructionRamPointer(ptr);
 }
@@ -73,10 +58,16 @@ void ThreeD::ClearBuffer(const ClearBufferData data) {
               data.depth, data.stencil, data.red, data.green, data.blue,
               data.alpha, data.target_id, data.layer_id);
 
+    // TODO: implement deferred clearing
+
+    // Render pass
+    const auto render_pass = GetRenderPass();
+    RENDERER->BindRenderPass(render_pass);
+
     // Texture
-    auto texture_descriptor = CreateTextureDescriptor(data.target_id);
-    auto texture =
-        GPU::GetInstance().GetTextureCache().Find(texture_descriptor);
+    /*
+    const auto texture = GetColorTargetTexture(data.target_id);
+    const auto& texture_descriptor = texture->GetDescriptor();
 
     // HACK
     u32* d = new u32[texture_descriptor.width * texture_descriptor.height];
@@ -90,6 +81,7 @@ void ThreeD::ClearBuffer(const ClearBufferData data) {
     }
     RENDERER->UploadTexture(texture, d);
     delete[] d;
+    */
 }
 
 void ThreeD::FirmwareCall4(const u32 data) {
@@ -97,6 +89,46 @@ void ThreeD::FirmwareCall4(const u32 data) {
 
     // TODO: find out what this does
     regs.mme_firmware_args[0] = 0x1;
+}
+
+Renderer::TextureBase*
+ThreeD::GetColorTargetTexture(u32 render_target_index) const {
+    const auto& render_target = regs.color_targets[render_target_index];
+
+    const auto addr = make_addr(render_target.addr_lo, render_target.addr_hi);
+    if (addr == 0x0)
+        return nullptr;
+
+    const Renderer::TextureDescriptor descriptor{
+        .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(addr),
+        .surface_format = render_target.surface_format,
+        .kind = NvKind::Generic_16BX2, // TODO: correct?
+        .width = render_target.width,
+        .height = render_target.height,
+        .block_height_log2 = render_target.tile_mode.height, // TODO: correct?
+        .stride = render_target.width * 4,                   // HACK
+    };
+
+    return GPU::GetInstance().GetTextureCache().Find(descriptor);
+}
+
+Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
+    Renderer::RenderPassDescriptor descriptor;
+
+    // Color targets
+    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        descriptor.color_targets[i] = {
+            .texture = GetColorTargetTexture(i),
+        };
+    }
+
+    // Depth stencil target
+    descriptor.depth_stencil_target = {
+        .texture = nullptr, // TODO
+        // TODO: stencil
+    };
+
+    return GPU::GetInstance().GetRenderPassCache().Find(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

@@ -130,7 +130,7 @@ void Renderer::Present(TextureBase* texture) {
     color_attachment->setLoadAction(MTL::LoadActionDontCare);
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
-    auto encoder = GetTemporaryRenderCommandEncoder(render_pass_descriptor);
+    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
     render_pass_descriptor->release();
 
     // Draw
@@ -167,6 +167,10 @@ Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
     return new RenderPass(descriptor);
 }
 
+void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
+    state.render_pass = static_cast<const RenderPass*>(render_pass);
+}
+
 MTL::CommandBuffer* Renderer::GetCommandBuffer() {
     if (!command_buffer)
         command_buffer = command_queue->commandBuffer();
@@ -180,13 +184,27 @@ void Renderer::CommitCommandBuffer() {
     command_buffer->commit();
     command_buffer->release(); // TODO: release?
     command_buffer = nullptr;
+
+    state.render_pass = nullptr;
 }
 
-MTL::RenderCommandEncoder* Renderer::GetTemporaryRenderCommandEncoder(
+MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
+    if (encoder_state.render_pass == state.render_pass)
+        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
+
+    encoder_state.render_pass = state.render_pass;
+
+    return CreateRenderCommandEncoder(
+        encoder_state.render_pass->GetRenderPassDescriptor());
+}
+
+MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
     MTL::RenderPassDescriptor* render_pass_descriptor) {
-    encoder_type = EncoderType::Render;
+    EndEncoding();
+
     command_encoder =
         GetCommandBuffer()->renderCommandEncoder(render_pass_descriptor);
+    encoder_type = EncoderType::Render;
 
     return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
 }

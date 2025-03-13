@@ -5,6 +5,7 @@
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/gpu_mmu.hpp"
 #include "hw/tegra_x1/gpu/pfifo.hpp"
+#include "hw/tegra_x1/gpu/render_pass_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
@@ -101,11 +102,8 @@ class GPU {
         GetEngineAtSubchannel(subchannel)->FlushMacro();
     }
 
-    // Descriptors
-
     // Texture
-    Renderer::TextureDescriptor
-    CreateTextureDescriptor(const NvGraphicsBuffer& buff);
+    Renderer::TextureBase* GetTexture(const NvGraphicsBuffer& buff);
 
     // Getters
     CPU::MMUBase* GetMMU() const { return mmu; }
@@ -115,6 +113,8 @@ class GPU {
     Pfifo& GetPfifo() { return pfifo; }
 
     TextureCache& GetTextureCache() { return texture_cache; }
+
+    RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
 
     Renderer::RendererBase* GetRenderer() const { return renderer; }
 
@@ -133,9 +133,12 @@ class GPU {
 
     // Caches
     TextureCache texture_cache;
+    RenderPassCache render_pass_cache;
 
+    // Renderer
     Renderer::RendererBase* renderer;
 
+    // Memory
     Allocators::DynamicPool<MemoryMap> memory_maps;
 };
 

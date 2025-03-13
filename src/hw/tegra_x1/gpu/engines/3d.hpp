@@ -7,6 +7,10 @@ namespace Hydra::HW::TegraX1::GPU::Macro {
 class DriverBase;
 }
 
+namespace Hydra::HW::TegraX1::GPU::Renderer {
+class RenderPassBase;
+}
+
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
 struct RenderTarget {
@@ -120,10 +124,6 @@ class ThreeD : public EngineBase {
 
     void Macro(u32 method, u32 arg) override;
 
-    // Helpers
-    Renderer::TextureDescriptor
-    CreateTextureDescriptor(u32 render_target_index);
-
   private:
     Regs3D regs;
 
@@ -150,6 +150,12 @@ class ThreeD : public EngineBase {
     void ClearBuffer(const ClearBufferData data);
 
     void FirmwareCall4(const u32 data);
+
+    // Texture
+    Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
+
+    // Helpers
+    Renderer::RenderPassBase* GetRenderPass() const;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

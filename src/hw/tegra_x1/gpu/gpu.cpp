@@ -82,15 +82,14 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-Renderer::TextureDescriptor
-GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
+Renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
     LOG_DEBUG(GPU,
               "Map id: {}, width: {}, "
               "height: {}",
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
 
     // TODO: why are there more planes?
-    return {
+    Renderer::TextureDescriptor descriptor{
         .ptr = mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr +
                               buff.planes[0].offset),
         .surface_format = to_surface_format(buff.planes[0].color_format),
@@ -101,6 +100,8 @@ GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
         .block_height_log2 = buff.planes[0].block_height_log2,
         .stride = buff.planes[0].pitch,
     };
+
+    return texture_cache.Find(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU
