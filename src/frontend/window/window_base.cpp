@@ -3,12 +3,12 @@
 namespace Hydra::Frontend::Window {
 
 void WindowBase::InitializeEmulationContext(const std::string& rom_filename) {
-    emulation_context = new EmulationContext(rom_filename);
+    emulation_context = new EmulationContext();
 
     void* surface = CreateSurfaceImpl();
     emulation_context->GetGPU()->GetRenderer()->SetSurface(surface);
 
-    emulation_context->Start();
+    emulation_context->Start(rom_filename);
 }
 
 void WindowBase::Run() {}

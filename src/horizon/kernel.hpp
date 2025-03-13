@@ -60,7 +60,8 @@ class Kernel {
     ~Kernel();
 
     void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread);
-    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
+    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
+                             const std::string& rom_filename);
 
     void LoadROM(Rom* rom);
 

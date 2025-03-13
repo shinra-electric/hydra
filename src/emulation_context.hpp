@@ -13,10 +13,10 @@ namespace Hydra {
 
 class EmulationContext {
   public:
-    EmulationContext(const std::string& rom_filename);
+    EmulationContext();
     ~EmulationContext();
 
-    void Start();
+    void Start(const std::string& rom_filename);
 
     // Getters
     Hydra::HW::TegraX1::CPU::CPUBase* GetCPU() const { return cpu; }

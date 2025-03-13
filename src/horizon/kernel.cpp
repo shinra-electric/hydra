@@ -33,7 +33,8 @@ constexpr usize ASLR_MEM_SIZE = 0x1000000;
 
 constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 
-constexpr uptr CONFIG_ENTRIES_ADDR = HEAP_MEM_BASE; // TODO: where to put this?
+constexpr uptr CONFIG_ENTRIES_ADDR = ASLR_MEM_BASE; // TODO: where to put this?
+constexpr uptr ARGV_ADDR = ASLR_MEM_BASE + 0x1000;  // TODO: where to put this?
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -128,7 +129,8 @@ void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
                       KERNEL_MEM_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
-void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
+void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
+                                 const std::string& rom_filename) {
     ConfigureThread(thread);
 
     // Set initial PC
@@ -150,7 +152,13 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     // TODO: if NRO
     if (true) {
         thread->SetRegX(0, CONFIG_ENTRIES_ADDR);
-        thread->SetRegX(1, 0xffffffffffffffff);
+        thread->SetRegX(1, UINT64_MAX);
+
+        // Args
+        std::string args = fmt::format("\"{}\"", rom_filename);
+        char* argv = reinterpret_cast<char*>(mmu->UnmapAddr(ARGV_ADDR));
+        memcpy(argv, args.c_str(), args.size());
+        argv[args.size()] = '\0';
 
 #define ADD_ENTRY(t, f, value0, value1)                                        \
     {                                                                          \
@@ -165,17 +173,17 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
 #define ADD_ENTRY_NON_MANDATORY(t, value0, value1)                             \
     ADD_ENTRY(t, IsMandatory, value0, value1)
 
-        // Config entries
+        // Entries
         ConfigEntry* entry =
             reinterpret_cast<ConfigEntry*>(mmu->UnmapAddr(CONFIG_ENTRIES_ADDR));
 
-        ADD_ENTRY_NON_MANDATORY(MainThreadHandle, 0x0000000f,
-                                0); // TODO: what thread handle should be used?
+        ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
+                            0); // TODO: what thread handle should be used?
+        ADD_ENTRY_MANDATORY(Argv, 0, ARGV_ADDR); // TODO: what should value0 be?
         // TODO: supply the actual availability
-        ADD_ENTRY_NON_MANDATORY(SyscallAvailableHint, 0xffffffffffffffff,
-                                0xffffffffffffffff);
-        ADD_ENTRY_NON_MANDATORY(SyscallAvailableHint2, 0xffffffffffffffff, 0);
-        ADD_ENTRY_NON_MANDATORY(EndOfList, 0, 0);
+        ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX, UINT64_MAX);
+        ADD_ENTRY_MANDATORY(SyscallAvailableHint2, UINT64_MAX, 0);
+        ADD_ENTRY_MANDATORY(EndOfList, 0, 0);
 
 #undef ADD_ENTRY_NON_MANDATORY
 #undef ADD_ENTRY_MANDATORY

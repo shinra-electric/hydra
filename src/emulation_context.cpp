@@ -13,7 +13,32 @@ void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
 
 namespace Hydra {
 
-EmulationContext::EmulationContext(const std::string& rom_filename) {
+EmulationContext::EmulationContext() {
+
+    // Emulation
+    // TODO: choose based on CPU backend
+    {
+        cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
+    }
+
+    gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
+
+    builtin_display = new Hydra::HW::Display::Display();
+
+    bus = new Hydra::HW::Bus();
+    bus->ConnectDisplay(builtin_display, 0);
+
+    os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
+}
+
+EmulationContext::~EmulationContext() {
+    for (auto t : threads) {
+        // Force the thead to exit
+        delete t;
+    }
+}
+
+void EmulationContext::Start(const std::string& rom_filename) {
     // Parse file
     usize size;
     auto ifs = Hydra::open_file(rom_filename, size);
@@ -34,49 +59,29 @@ EmulationContext::EmulationContext(const std::string& rom_filename) {
     //                x5,
 
     // HACK: for testing
-    // SET_INSTRUCTION(data, 0xf2f8, BRK);
-
-    // Emulation
-    // TODO: choose based on CPU backend
-    {
-        cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
-    }
-
-    gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
-
-    builtin_display = new Hydra::HW::Display::Display();
-
-    bus = new Hydra::HW::Bus();
-    bus->ConnectDisplay(builtin_display, 0);
-
-    os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
+    // SET_INSTRUCTION(data, 0xf1e8, BRK);
 
     // Load ROM
     os->LoadROM(rom);
-}
 
-EmulationContext::~EmulationContext() {
-    for (auto t : threads) {
-        // Force the thead to exit
-        delete t;
-    }
-}
+    // Main thread
+    std::thread* t = new std::thread(
+        [&](std::string rom_filename) {
+            // Main thread
+            Hydra::HW::TegraX1::CPU::ThreadBase* main_thread =
+                cpu->CreateThread();
+            os->GetKernel().ConfigureMainThread(main_thread, rom_filename);
 
-void EmulationContext::Start() {
-    std::thread* t = new std::thread([&]() {
-        // Main thread
-        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();
-        os->GetKernel().ConfigureMainThread(main_thread);
+            // Run
+            main_thread->Run();
 
-        // Run
-        main_thread->Run();
+            // Cleanup
+            delete main_thread;
 
-        // Cleanup
-        delete main_thread;
-
-        // Notify that emulation has ended
-        is_running = false;
-    });
+            // Notify that emulation has ended
+            is_running = false;
+        },
+        rom_filename);
 
     is_running = true;
 }
