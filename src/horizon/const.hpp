@@ -159,16 +159,54 @@ enum class SystemInfoType {
     InitialProcessIdRange = 2,   ///< Min/max initial process IDs.
 };
 
+enum class ConfigEntryType : u32 {
+    EndOfList = 0,        ///< Entry list terminator.
+    MainThreadHandle = 1, ///< Provides the handle to the main thread.
+    NextLoadPath = 2,    ///< Provides a buffer containing information about the
+                         ///< next homebrew application to load.
+    OverrideHeap = 3,    ///< Provides heap override information.
+    OverrideService = 4, ///< Provides service override information.
+    Argv = 5,            ///< Provides argv.
+    SyscallAvailableHint =
+        6,          ///< Provides syscall availability hints (SVCs 0x00..0x7F).
+    AppletType = 7, ///< Provides APT applet type.
+    AppletWorkaround =
+        8, ///< Indicates that APT is broken and should not be used.
+    Reserved9 =
+        9, ///< Unused/reserved entry type, formerly used by StdioSockets.
+    ProcessHandle = 10,  ///< Provides the process handle.
+    LastLoadResult = 11, ///< Provides the last load result.
+    RandomSeed = 14, ///< Provides random data used to seed the pseudo-random
+                     ///< number generator.
+    UserIdStorage =
+        15, ///< Provides persistent storage for the preselected user id.
+    HosVersion = 16, ///< Provides the currently running Horizon OS version.
+    SyscallAvailableHint2 =
+        17, ///< Provides syscall availability hints (SVCs 0x80..0xBF).
+};
+
+enum class ConfigEntryFlag : u32 {
+    None = 0,
+    IsMandatory = BIT(0), ///< Specifies that the entry **must** be processed by
+                          ///< the homebrew application.
+};
+
+struct ConfigEntry {
+    ConfigEntryType type;  ///< Type of entry
+    ConfigEntryFlag flags; ///< Entry flags
+    u64 values[2];         ///< Entry arguments (type-specific)
+};
+
 // TODO: idle tick count -1, {current coreid} (probably the same logic as thread
 // tick count)
 // TODO: random entropy 0 - 3
-#define INFO_SUB_TYPE_INITIAL_PROCESS_ID_RANGE_LOWER_BOUND 0
-#define INFO_SUB_TYPE_INITIAL_PROCESS_ID_RANGE_UPPER_BOUND 1
-#define INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE0 0
-#define INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE1 1
-#define INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE2 2
-#define INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE3 3
-#define INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL 0xFFFFFFFF
+constexpr u32 INFO_SUB_TYPE_INITIAL_PROCESS_ID_RANGE_LOWER_BOUND = 0;
+constexpr u32 INFO_SUB_TYPE_INITIAL_PROCESS_ID_RANGE_UPPER_BOUND = 1;
+constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE0 = 0;
+constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE1 = 1;
+constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE2 = 2;
+constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE3 = 3;
+constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL = 0xFFFFFFFF;
 
 } // namespace Hydra::Horizon
 

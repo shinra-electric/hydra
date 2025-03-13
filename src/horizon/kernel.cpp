@@ -12,26 +12,28 @@
 
 namespace Hydra::Horizon {
 
-#define STACK_MEM_BASE 0x10000000
-#define STACK_MEM_SIZE 0x2000000
+constexpr uptr STACK_MEM_BASE = 0x10000000;
+constexpr usize STACK_MEM_SIZE = 0x2000000;
 
-#define KERNEL_MEM_BASE 0xF0000000
-#define KERNEL_MEM_SIZE 0x10000
+constexpr uptr KERNEL_MEM_BASE = 0xF0000000;
+constexpr usize KERNEL_MEM_SIZE = 0x10000;
 
-#define TLS_MEM_BASE 0x20000000
-#define TLS_MEM_SIZE 0x20000
+constexpr uptr TLS_MEM_BASE = 0x20000000;
+constexpr usize TLS_MEM_SIZE = 0x20000;
 
-#define ROM_MEM_BASE 0x80000000
+constexpr uptr ROM_MEM_BASE = 0x80000000;
 
-#define HEAP_MEM_BASE 0x60000000
-#define DEFAULT_HEAP_MEM_SIZE 0x1000000
-#define HEAP_MEM_ALIGNMENT 0x00200000
+constexpr uptr HEAP_MEM_BASE = 0x60000000;
+constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
+constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
 // TODO: what is this?
-#define ASLR_MEM_BASE 0x40000000
-#define ASLR_MEM_SIZE 0x1000000
+constexpr uptr ASLR_MEM_BASE = 0x40000000;
+constexpr usize ASLR_MEM_SIZE = 0x1000000;
 
-#define EXCEPTION_TRAMPOLINE_OFFSET 0x800
+constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
+
+constexpr uptr CONFIG_ENTRIES_ADDR = HEAP_MEM_BASE; // TODO: where to put this?
 
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
@@ -137,15 +139,54 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     // From https://github.com/switchbrew/libnx
 
     // NSO
-    // TODO
+    // TODO: if NSO
+    if (false) {
+        thread->SetRegX(0, 0x0);
+        thread->SetRegX(1,
+                        0x0000000f); // TODO: what thread handle should be used?
+    }
 
     // NRO
-    // TODO: should be ptr to env context
-    thread->SetRegX(0, 0);
-    thread->SetRegX(1, 0x0000000F);
+    // TODO: if NRO
+    if (true) {
+        thread->SetRegX(0, CONFIG_ENTRIES_ADDR);
+        thread->SetRegX(1, 0xffffffffffffffff);
+
+#define ADD_ENTRY(t, f, value0, value1)                                        \
+    {                                                                          \
+        entry->type = ConfigEntryType::t;                                      \
+        entry->flags = ConfigEntryFlag::f;                                     \
+        entry->values[0] = value0;                                             \
+        entry->values[1] = value1;                                             \
+        entry++;                                                               \
+    }
+#define ADD_ENTRY_MANDATORY(t, value0, value1)                                 \
+    ADD_ENTRY(t, None, value0, value1)
+#define ADD_ENTRY_NON_MANDATORY(t, value0, value1)                             \
+    ADD_ENTRY(t, IsMandatory, value0, value1)
+
+        // Config entries
+        ConfigEntry* entry =
+            reinterpret_cast<ConfigEntry*>(mmu->UnmapAddr(CONFIG_ENTRIES_ADDR));
+
+        ADD_ENTRY_NON_MANDATORY(MainThreadHandle, 0x0000000f,
+                                0); // TODO: what thread handle should be used?
+        // TODO: supply the actual availability
+        ADD_ENTRY_NON_MANDATORY(SyscallAvailableHint, 0xffffffffffffffff,
+                                0xffffffffffffffff);
+        ADD_ENTRY_NON_MANDATORY(SyscallAvailableHint2, 0xffffffffffffffff, 0);
+        ADD_ENTRY_NON_MANDATORY(EndOfList, 0, 0);
+
+#undef ADD_ENTRY_NON_MANDATORY
+#undef ADD_ENTRY_MANDATORY
+#undef ADD_ENTRY
+    }
 
     // User-mode exception entry
-    // TODO: what is this?
+    // TODO: if user-mode exception
+    if (false) {
+        // TODO: what is this?
+    }
 }
 
 void Kernel::LoadROM(Rom* rom) {
