@@ -5,7 +5,7 @@ int main(int argc, const char* argv[]) {
     // TODO: choose based on frontend
     Hydra::Frontend::Window::WindowBase* window;
     {
-        window = new Hydra::Frontend::Window::SDL3::Window();
+        window = new Hydra::Frontend::Window::SDL3::Window(argc, argv);
     }
 
     window->Run();

@@ -1,12 +1,14 @@
 #include "frontend/window/sdl3/window.hpp"
 
-// HACK
-const std::string rom_filename =
-    "/Users/samuliak/Documents/deko3d_examples/build/1_clear_color.nro";
-
 namespace Hydra::Frontend::Window::SDL3 {
 
-Window::Window() {
+Window::Window(int argc, const char* argv[]) {
+    // Parse arguments
+    // TODO: use a parser library
+    ASSERT(argc == 2, SDL3Window, "Expected 1 argument, got {}", argc - 1);
+    const char* rom_filename = argv[1];
+
+    // SLD3 initialization
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         LOG_ERROR(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
         return;
@@ -21,6 +23,9 @@ Window::Window() {
                   SDL_GetError());
         return;
     }
+
+    // Begin emulation
+    InitializeEmulationContext(rom_filename);
 }
 
 Window::~Window() {
@@ -29,8 +34,6 @@ Window::~Window() {
 }
 
 void Window::Run() {
-    InitializeEmulationContext(rom_filename);
-
     bool running = true;
     while (running) {
         SDL_Event event;

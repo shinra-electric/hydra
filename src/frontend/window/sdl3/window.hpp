@@ -7,7 +7,7 @@ namespace Hydra::Frontend::Window::SDL3 {
 
 class Window : public WindowBase {
   public:
-    Window();
+    Window(int argc, const char* argv[]);
     ~Window() override;
 
     void Run() override;
