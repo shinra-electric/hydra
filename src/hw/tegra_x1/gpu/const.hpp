@@ -486,9 +486,10 @@ enum class NvColorFormat : u64 {
     XYZ = 0x140A886640UL,
 };
 
-enum ColorSurfaceFormat : u32 {
+enum SurfaceFormat : u32 {
+    // Color
     Bitmap = 0x1C,
-    Unknown1D = 0x1D,
+    // Unknown1D = 0x1D,
     RGBA32Float = 0xC0,
     RGBA32Sint = 0xC1,
     RGBA32Uint = 0xC2,
@@ -549,9 +550,22 @@ enum ColorSurfaceFormat : u32 {
     BGRX8UnormUnknownFD = 0xFD,
     BGRX8UnormUnknownFE = 0xFE,
     Y32UintUnknownFF = 0xFF,
+
+    // Depth stencil
+    Z32Float = 0x0A,
+    Z16Unorm = 0x13,
+    S8Z24Unorm = 0x14,
+    Z24X8Unorm = 0x15,
+    Z24S8Unorm = 0x16,
+    S8Uint = 0x17,
+    Z24C8Unorm = 0x18,
+    Z32S8X24Float = 0x19,
+    Z24X8S8C8X16Unorm = 0x1D,
+    Z32X8C8X16Float = 0x1E,
+    Z32S8C8X16Float = 0x1F,
 };
 
-ColorSurfaceFormat to_color_surface_format(NvColorFormat color_format);
+SurfaceFormat to_surface_format(NvColorFormat color_format);
 
 struct NvSurface {
     u32 width;
@@ -590,17 +604,6 @@ struct NvGraphicsBuffer {
                 // it's otherwise completely unused/overwritten during
                 // marshalling
 } __attribute__((packed));
-
-struct TextureDescriptor {
-    uptr ptr;
-    ColorSurfaceFormat color_surface_format;
-    NvKind kind;
-    usize width;
-    usize height;
-    usize block_height_log2;
-    usize stride;
-    // TODO: more
-};
 
 struct Fence {
     u32 id;
@@ -864,30 +867,34 @@ ENABLE_ENUM_FORMATTING(
     X4Bayer12GBRG, "x4bayer12gbrg", X6Bayer10GBRG, "x6bayer10gbrg", XYZ, "xyz")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::ColorSurfaceFormat, Bitmap, "bitmap", Unknown1D,
-    "unknown1d", RGBA32Float, "rgba32float", RGBA32Sint, "rgba32sint",
-    RGBA32Uint, "rgba32uint", RGBX32Float, "rgbx32float", RGBX32Sint,
-    "rgbx32sint", RGBX32Uint, "rgbx32uint", RGBA16Unorm, "rgba16unorm",
-    RGBA16Snorm, "rgba16snorm", RGBA16Sint, "rgba16sint", RGBA16Uint,
-    "rgba16uint", RGBA16Float, "rgba16float", RG32Float, "rg32float", RG32Sint,
-    "rg32sint", RG32Uint, "rg32uint", RGBX16Float, "rgbx16float", BGRA8Unorm,
-    "bgra8unorm", BGRA8Srgb, "bgra8srgb", RGB10A2Unorm, "rgb10a2unorm",
-    RGB10A2Uint, "rgb10a2uint", RGBA8Unorm, "rgba8unorm", RGBA8Srgb,
-    "rgba8srgb", RGBA8Snorm, "rgba8snorm", RGBA8Sint, "rgba8sint", RGBA8Uint,
-    "rgba8uint", RG16Unorm, "rg16unorm", RG16Snorm, "rg16snorm", RG16Sint,
-    "rg16sint", RG16Uint, "rg16uint", RG16Float, "rg16float", BGR10A2Unorm,
-    "bgr10a2unorm", R11G11B10Float, "r11g11b10float", R32Sint, "r32sint",
-    R32Uint, "r32uint", R32Float, "r32float", BGRX8Unorm, "bgrx8unorm",
-    BGRX8Srgb, "bgrx8srgb", B5G6R5Unorm, "b5g6r5unorm", BGR5A1Unorm,
-    "bgr5a1unorm", RG8Unorm, "rg8unorm", RG8Snorm, "rg8snorm", RG8Sint,
-    "rg8sint", RG8Uint, "rg8uint", R16Unorm, "r16unorm", R16Snorm, "r16snorm",
-    R16Sint, "r16sint", R16Uint, "r16uint", R16Float, "r16float", R8Unorm,
-    "r8unorm", R8Snorm, "r8snorm", R8Sint, "r8sint", R8Uint, "r8uint", A8Unorm,
-    "a8unorm", BGR5X1Unorm, "bgr5x1unorm", RGBX8Unorm, "rgbx8unorm", RGBX8Srgb,
-    "rgbx8srgb", BGR5X1UnormUnknownFB, "bgr5x1unormunknownfb",
-    BGR5X1UnormUnknownFC, "bgr5x1unormunknownfc", BGRX8UnormUnknownFD,
-    "bgrx8unormunknownfd", BGRX8UnormUnknownFE, "bgrx8unormunknownfe",
-    Y32UintUnknownFF, "y32uintunknownff")
+    Hydra::HW::TegraX1::GPU::SurfaceFormat, Bitmap, "bitmap", RGBA32Float,
+    "rgba32float", RGBA32Sint, "rgba32sint", RGBA32Uint, "rgba32uint",
+    RGBX32Float, "rgbx32float", RGBX32Sint, "rgbx32sint", RGBX32Uint,
+    "rgbx32uint", RGBA16Unorm, "rgba16unorm", RGBA16Snorm, "rgba16snorm",
+    RGBA16Sint, "rgba16sint", RGBA16Uint, "rgba16uint", RGBA16Float,
+    "rgba16float", RG32Float, "rg32float", RG32Sint, "rg32sint", RG32Uint,
+    "rg32uint", RGBX16Float, "rgbx16float", BGRA8Unorm, "bgra8unorm", BGRA8Srgb,
+    "bgra8srgb", RGB10A2Unorm, "rgb10a2unorm", RGB10A2Uint, "rgb10a2uint",
+    RGBA8Unorm, "rgba8unorm", RGBA8Srgb, "rgba8srgb", RGBA8Snorm, "rgba8snorm",
+    RGBA8Sint, "rgba8sint", RGBA8Uint, "rgba8uint", RG16Unorm, "rg16unorm",
+    RG16Snorm, "rg16snorm", RG16Sint, "rg16sint", RG16Uint, "rg16uint",
+    RG16Float, "rg16float", BGR10A2Unorm, "bgr10a2unorm", R11G11B10Float,
+    "r11g11b10float", R32Sint, "r32sint", R32Uint, "r32uint", R32Float,
+    "r32float", BGRX8Unorm, "bgrx8unorm", BGRX8Srgb, "bgrx8srgb", B5G6R5Unorm,
+    "b5g6r5unorm", BGR5A1Unorm, "bgr5a1unorm", RG8Unorm, "rg8unorm", RG8Snorm,
+    "rg8snorm", RG8Sint, "rg8sint", RG8Uint, "rg8uint", R16Unorm, "r16unorm",
+    R16Snorm, "r16snorm", R16Sint, "r16sint", R16Uint, "r16uint", R16Float,
+    "r16float", R8Unorm, "r8unorm", R8Snorm, "r8snorm", R8Sint, "r8sint",
+    R8Uint, "r8uint", A8Unorm, "a8unorm", BGR5X1Unorm, "bgr5x1unorm",
+    RGBX8Unorm, "rgbx8unorm", RGBX8Srgb, "rgbx8srgb", BGR5X1UnormUnknownFB,
+    "bgr5x1unormunknownfb", BGR5X1UnormUnknownFC, "bgr5x1unormunknownfc",
+    BGRX8UnormUnknownFD, "bgrx8unormunknownfd", BGRX8UnormUnknownFE,
+    "bgrx8unormunknownfe", Y32UintUnknownFF, "y32uintunknownff", Z32Float,
+    "z32float", Z16Unorm, "z16unorm", S8Z24Unorm, "s8z24unorm", Z24X8Unorm,
+    "z24x8unorm", Z24S8Unorm, "z24s8unorm", S8Uint, "s8uint", Z24C8Unorm,
+    "z24c8unorm", Z32S8X24Float, "z32s8x24float", Z24X8S8C8X16Unorm,
+    "z24x8s8c8x16unorm", Z32X8C8X16Float, "z32x8c8x16float", Z32S8C8X16Float,
+    "z32s8c8x16float")
 
 ENABLE_ENUM_FLAGS_FORMATTING(Hydra::HW::TegraX1::GPU::GpfifoFlags, FenceWait,
                              "fence wait", FenceGet, "fence get", HwFormat,

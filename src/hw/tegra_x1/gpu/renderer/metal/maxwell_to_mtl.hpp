@@ -11,12 +11,10 @@ struct PixelFormatInfo {
     // TODO: format decoder
 };
 
-const PixelFormatInfo&
-get_mtl_pixel_format_info(ColorSurfaceFormat color_surface_format);
+const PixelFormatInfo& get_mtl_pixel_format_info(SurfaceFormat surface_format);
 
-inline MTL::PixelFormat
-get_mtl_pixel_format(ColorSurfaceFormat color_surface_format) {
-    return get_mtl_pixel_format_info(color_surface_format).pixel_format;
+inline MTL::PixelFormat get_mtl_pixel_format(SurfaceFormat surface_format) {
+    return get_mtl_pixel_format_info(surface_format).pixel_format;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

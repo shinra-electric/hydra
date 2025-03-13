@@ -104,7 +104,8 @@ class GPU {
     // Descriptors
 
     // Texture
-    TextureDescriptor CreateTextureDescriptor(const NvGraphicsBuffer& buff);
+    Renderer::TextureDescriptor
+    CreateTextureDescriptor(const NvGraphicsBuffer& buff);
 
     // Getters
     CPU::MMUBase* GetMMU() const { return mmu; }

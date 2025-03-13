@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
+#include "hw/tegra_x1/gpu/renderer/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
 class DriverBase;
@@ -14,7 +14,7 @@ struct RenderTarget {
     u32 addr_lo;
     u32 width;
     u32 height;
-    ColorSurfaceFormat format;
+    SurfaceFormat surface_format;
     struct {
         u32 width : 4;
         u32 height : 4;
@@ -121,8 +121,8 @@ class ThreeD : public EngineBase {
     void Macro(u32 method, u32 arg) override;
 
     // Helpers
-    TextureDescriptor
-    CreateTextureDescriptor(const RenderTarget& render_target);
+    Renderer::TextureDescriptor
+    CreateTextureDescriptor(u32 render_target_index);
 
   private:
     Regs3D regs;

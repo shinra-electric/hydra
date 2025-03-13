@@ -34,12 +34,14 @@ void ThreeD::Macro(u32 method, u32 arg) {
     }
 }
 
-TextureDescriptor
-ThreeD::CreateTextureDescriptor(const RenderTarget& render_target) {
+Renderer::TextureDescriptor
+ThreeD::CreateTextureDescriptor(u32 render_target_index) {
+    const auto& render_target = regs.color_targets[render_target_index];
+
     return {
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(
             make_addr(render_target.addr_lo, render_target.addr_hi)),
-        .color_surface_format = render_target.format,
+        .surface_format = render_target.surface_format,
         .kind = NvKind::Generic_16BX2, // TODO: correct?
         .width = render_target.width,
         .height = render_target.height,
@@ -72,8 +74,7 @@ void ThreeD::ClearBuffer(const ClearBufferData data) {
               data.alpha, data.target_id, data.layer_id);
 
     // Texture
-    auto texture_descriptor =
-        CreateTextureDescriptor(regs.color_targets[data.target_id]);
+    auto texture_descriptor = CreateTextureDescriptor(data.target_id);
     auto texture =
         GPU::GetInstance().GetTextureCache().FindTexture(texture_descriptor);
 

@@ -11,7 +11,7 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
 
-    desc->setPixelFormat(get_mtl_pixel_format(descriptor.color_surface_format));
+    desc->setPixelFormat(get_mtl_pixel_format(descriptor.surface_format));
 
     texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
 }

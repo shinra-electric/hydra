@@ -82,7 +82,8 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
+Renderer::TextureDescriptor
+GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
     LOG_DEBUG(GPU,
               "Map id: {}, width: {}, "
               "height: {}",
@@ -92,8 +93,7 @@ TextureDescriptor GPU::CreateTextureDescriptor(const NvGraphicsBuffer& buff) {
     return {
         .ptr = mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr +
                               buff.planes[0].offset),
-        .color_surface_format =
-            to_color_surface_format(buff.planes[0].color_format),
+        .surface_format = to_surface_format(buff.planes[0].color_format),
         .kind = buff.planes[0].kind,
         .width = buff.planes[0].width,
         .height = buff.planes[0].height,

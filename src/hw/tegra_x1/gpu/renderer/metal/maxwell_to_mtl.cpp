@@ -2,19 +2,20 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
-#define PIXEL_FORMAT_ENTRY(color_surface_format, pixel_format, has_stencil)    \
+#define PIXEL_FORMAT_ENTRY(surface_format, pixel_format, has_stencil)          \
     {                                                                          \
-        ColorSurfaceFormat::color_surface_format, {                            \
+        SurfaceFormat::surface_format, {                                       \
             MTL::PixelFormat##pixel_format, has_stencil                        \
         }                                                                      \
     }
 
-#define COLOR_PIXEL_FORMAT_ENTRY(color_surface_format, pixel_format)           \
-    PIXEL_FORMAT_ENTRY(color_surface_format, pixel_format, false)
+#define COLOR_PIXEL_FORMAT_ENTRY(surface_format, pixel_format)                 \
+    PIXEL_FORMAT_ENTRY(surface_format, pixel_format, false)
 
-std::map<ColorSurfaceFormat, PixelFormatInfo> pixel_format_lut = {
+std::map<SurfaceFormat, PixelFormatInfo> pixel_format_lut = {
+    // Color
     COLOR_PIXEL_FORMAT_ENTRY(Bitmap, Invalid),
-    COLOR_PIXEL_FORMAT_ENTRY(Unknown1D, Invalid),
+    // COLOR_PIXEL_FORMAT_ENTRY(Unknown1D, Invalid),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA32Float, RGBA32Float),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA32Sint, RGBA32Sint),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA32Uint, RGBA32Uint),
@@ -76,6 +77,20 @@ std::map<ColorSurfaceFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(BGRX8UnormUnknownFD, Invalid),
     COLOR_PIXEL_FORMAT_ENTRY(BGRX8UnormUnknownFE, Invalid),
     COLOR_PIXEL_FORMAT_ENTRY(Y32UintUnknownFF, Invalid),
+
+    // Depth stencil
+    PIXEL_FORMAT_ENTRY(Z32Float, Depth32Float, false),
+    PIXEL_FORMAT_ENTRY(Z16Unorm, Depth16Unorm, false),
+    PIXEL_FORMAT_ENTRY(S8Z24Unorm, Depth24Unorm_Stencil8,
+                       true), // TODO: swizzle?
+    PIXEL_FORMAT_ENTRY(Z24X8Unorm, Invalid, false),
+    PIXEL_FORMAT_ENTRY(Z24S8Unorm, Depth24Unorm_Stencil8, true),
+    PIXEL_FORMAT_ENTRY(S8Uint, Stencil8, true),
+    PIXEL_FORMAT_ENTRY(Z24C8Unorm, Invalid, false),
+    PIXEL_FORMAT_ENTRY(Z32S8X24Float, Invalid, false),
+    PIXEL_FORMAT_ENTRY(Z24X8S8C8X16Unorm, Invalid, false),
+    PIXEL_FORMAT_ENTRY(Z32X8C8X16Float, Invalid, false),
+    PIXEL_FORMAT_ENTRY(Z32S8C8X16Float, Invalid, false),
 };
 
 /*
@@ -172,15 +187,14 @@ std::map<NvColorFormat, PixelFormatInfo> pixel_format_lut = {
 };
 */
 
-const PixelFormatInfo&
-get_mtl_pixel_format_info(ColorSurfaceFormat color_surface_format) {
-    auto it = pixel_format_lut.find(color_surface_format);
+const PixelFormatInfo& get_mtl_pixel_format_info(SurfaceFormat surface_format) {
+    auto it = pixel_format_lut.find(surface_format);
     ASSERT_DEBUG(it != pixel_format_lut.end(), MetalRenderer,
-                 "Unknown color surface format {}", color_surface_format);
+                 "Unknown surface format {}", surface_format);
 
     const auto& info = it->second;
     ASSERT_DEBUG(info.pixel_format != MTL::PixelFormatInvalid, MetalRenderer,
-                 "Unimplemented color surface format {}", color_surface_format);
+                 "Unimplemented surface format {}", surface_format);
 
     return info;
 }

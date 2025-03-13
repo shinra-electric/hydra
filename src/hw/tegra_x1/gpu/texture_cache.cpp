@@ -10,27 +10,24 @@ template <typename T> T rotl(T v, u64 shift) {
 namespace Hydra::HW::TegraX1::GPU {
 
 Renderer::TextureBase*
-TextureCache::FindTexture(const TextureDescriptor& descriptor) {
+TextureCache::FindTexture(const Renderer::TextureDescriptor& descriptor) {
     auto render = GPU::GetInstance().GetRenderer();
 
     u64 hash = CalculateTextureHash(descriptor);
     auto& texture = textures[hash];
 
-    bool dirty = false;
+    bool cpu_dirty = false;
     if (!texture) {
         texture = render->CreateTexture(descriptor);
-        dirty = true;
+        cpu_dirty = true;
     } else {
         // TODO: if data changed
         if (false)
-            dirty = true;
+            cpu_dirty = true;
     }
 
-    if (dirty) {
-        u8* scratch_buffer = new u8[descriptor.width * descriptor.height * 32];
-        u8* out_data = new u8[descriptor.width * descriptor.height *
-                              32]; // TODO: ask the renderer for the buffer?
-
+    if (cpu_dirty) {
+        u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
         texture_decoder.Decode(descriptor, scratch_buffer, out_data);
 
         render->UploadTexture(texture, out_data);
@@ -39,7 +36,8 @@ TextureCache::FindTexture(const TextureDescriptor& descriptor) {
     return texture;
 }
 
-u64 TextureCache::CalculateTextureHash(const TextureDescriptor& descriptor) {
+u64 TextureCache::CalculateTextureHash(
+    const Renderer::TextureDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
     hash = rotl(hash, 13);

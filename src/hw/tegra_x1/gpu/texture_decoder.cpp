@@ -48,7 +48,7 @@ static void DecodeGeneric16BX2(usize stride, usize height,
 TextureDecoder::TextureDecoder() {}
 TextureDecoder::~TextureDecoder() {}
 
-void TextureDecoder::Decode(const TextureDescriptor& descriptor,
+void TextureDecoder::Decode(const Renderer::TextureDescriptor& descriptor,
                             u8* scratch_buffer, u8*& out_data) {
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
 

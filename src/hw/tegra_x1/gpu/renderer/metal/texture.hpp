@@ -5,7 +5,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
-class Texture : public TextureBase {
+class Texture final : public TextureBase {
   public:
     Texture(const TextureDescriptor& descriptor);
     ~Texture() override;
