@@ -13,8 +13,12 @@ class Texture final : public TextureBase {
     // Getters
     MTL::Texture* GetTexture() const { return texture; }
 
+    MTL::PixelFormat GetPixelFormat() const { return pixel_format; }
+
   private:
     MTL::Texture* texture;
+
+    MTL::PixelFormat pixel_format;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

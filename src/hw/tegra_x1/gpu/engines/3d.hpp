@@ -84,7 +84,7 @@ union Regs3D {
         u32 padding2[0x10];
 
         // Clear data
-        float clear_color[4];
+        u32 clear_color[4];
         float clear_depth;
 
         u32 padding3[0x2];
@@ -139,10 +139,7 @@ class ThreeD : public EngineBase {
     struct ClearBufferData {
         bool depth : 1;
         bool stencil : 1;
-        bool red : 1;
-        bool green : 1;
-        bool blue : 1;
-        bool alpha : 1;
+        u8 color_mask : 4;
         u32 target_id : 4;
         u32 layer_id : 11;
     };

@@ -22,7 +22,7 @@ u64 RenderPassCache::Hash(const Renderer::RenderPassDescriptor& descriptor) {
     return 0;
 }
 
-void RenderPassCache::Destroy(Renderer::RenderPassBase* render_pass) {
+void RenderPassCache::DestroyElement(Renderer::RenderPassBase* render_pass) {
     delete render_pass;
 }
 

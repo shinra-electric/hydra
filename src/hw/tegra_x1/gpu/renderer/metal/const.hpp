@@ -3,6 +3,8 @@
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
+#include "hw/tegra_x1/gpu/renderer/const.hpp"
+
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
 // Cast from const char* to NS::String*

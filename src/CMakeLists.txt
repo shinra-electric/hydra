@@ -133,6 +133,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/texture.hpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.cpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.hpp
+    hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
+    hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     hw/display/layer.hpp

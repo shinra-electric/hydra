@@ -12,12 +12,14 @@ class RenderPassCache
     : public CacheBase<RenderPassCache, Renderer::RenderPassBase*,
                        Renderer::RenderPassDescriptor> {
   public:
+    void Destroy() {}
+
     Renderer::RenderPassBase*
     Create(const Renderer::RenderPassDescriptor& descriptor);
     void Update(Renderer::RenderPassBase* render_pass) {}
     u64 Hash(const Renderer::RenderPassDescriptor& descriptor);
 
-    void Destroy(Renderer::RenderPassBase* render_pass);
+    void DestroyElement(Renderer::RenderPassBase* render_pass);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU

@@ -55,30 +55,29 @@ Renderer::Renderer() {
     MTL::Library* library =
         device->newLibrary(ToNSString(utility_shader_source), nullptr, &error);
     if (error) {
-        LOG_ERROR(GPU, "Failed to create library: {}",
+        LOG_ERROR(GPU, "Failed to create utility library: {}",
                   error->localizedDescription()->utf8String());
         error->release(); // TODO: release?
     }
 
     // Functions
-    auto vertex_function =
+    auto vertex_fullscreen =
         library->newFunction(ToNSString("vertex_fullscreen"));
-    auto fragment_function =
+    auto fragment_texture =
         library->newFunction(ToNSString("fragment_texture"));
 
     // Pipeline states
 
     // Present pipeline
-    auto present_pipeline_descriptor =
-        MTL::RenderPipelineDescriptor::alloc()->init();
-    present_pipeline_descriptor->setVertexFunction(vertex_function);
-    present_pipeline_descriptor->setFragmentFunction(fragment_function);
-    present_pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
+    auto pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+    pipeline_descriptor->setVertexFunction(vertex_fullscreen);
+    pipeline_descriptor->setFragmentFunction(fragment_texture);
+    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
         MTL::PixelFormatBGRA8Unorm); // TODO: get from layer
 
-    present_pipeline_state =
-        device->newRenderPipelineState(present_pipeline_descriptor, &error);
-    present_pipeline_descriptor->release();
+    present_pipeline =
+        device->newRenderPipelineState(pipeline_descriptor, &error);
+    pipeline_descriptor->release();
     if (error) {
         LOG_ERROR(GPU, "Failed to create present pipeline state: {}",
                   error->localizedDescription()->utf8String());
@@ -96,13 +95,23 @@ Renderer::Renderer() {
     sampler_state_descriptor->setMagFilter(MTL::SamplerMinMagFilterLinear);
     linear_sampler = device->newSamplerState(sampler_state_descriptor);
     sampler_state_descriptor->release();
+
+    // Caches
+    clear_color_pipeline_cache = new ClearColorPipelineCache(device);
+
+    // Release
+    vertex_fullscreen->release();
+    fragment_texture->release();
 }
 
 Renderer::~Renderer() {
+    delete clear_color_pipeline_cache;
+
     linear_sampler->release();
     nearest_sampler->release();
 
-    present_pipeline_state->release();
+    present_pipeline->release();
+    clear_color_pipeline->release();
 
     command_queue->release();
     device->release();
@@ -134,7 +143,7 @@ void Renderer::Present(TextureBase* texture) {
     render_pass_descriptor->release();
 
     // Draw
-    encoder->setRenderPipelineState(present_pipeline_state);
+    encoder->setRenderPipelineState(present_pipeline);
     encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
     encoder->setFragmentSamplerState(linear_sampler, NS::UInteger(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
@@ -169,6 +178,24 @@ Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
 
 void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
     state.render_pass = static_cast<const RenderPass*>(render_pass);
+}
+
+void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
+                          const u32 color[4]) {
+    auto encoder = GetRenderCommandEncoder();
+
+    auto texture =
+        static_cast<Texture*>(encoder_state.render_pass->GetDescriptor()
+                                  .color_targets[render_target_id]
+                                  .texture);
+
+    encoder->setRenderPipelineState(clear_color_pipeline_cache->Find(
+        {texture->GetPixelFormat(), render_target_id, mask}));
+    // TODO: set viewport and scissor
+    encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
+    encoder->setFragmentBytes(color, sizeof(u32) * 4, 0);
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
 }
 
 MTL::CommandBuffer* Renderer::GetCommandBuffer() {

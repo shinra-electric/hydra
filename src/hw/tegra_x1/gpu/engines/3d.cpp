@@ -53,16 +53,27 @@ void ThreeD::LoadMmeStartAddressRam(const u32 data) {
 
 void ThreeD::ClearBuffer(const ClearBufferData data) {
     LOG_DEBUG(GPU,
-              "Depth: {}, stencil: {}, red: {}, green: {}, blue: {}, alpha: "
-              "{}, target id: {}, layer id: {}",
-              data.depth, data.stencil, data.red, data.green, data.blue,
-              data.alpha, data.target_id, data.layer_id);
+              "Depth: {}, stencil: {}, color mask: 0x{:x}, target id: {}, "
+              "layer id: {}",
+              data.depth, data.stencil, data.color_mask, data.target_id,
+              data.layer_id);
 
-    // TODO: implement deferred clearing
+    // Deferred clear
+    // TODO: implement
 
-    // Render pass
+    // Regular clear
     const auto render_pass = GetRenderPass();
     RENDERER->BindRenderPass(render_pass);
+
+    if (data.color_mask != 0x0)
+        RENDERER->ClearColor(data.target_id, data.layer_id, data.color_mask,
+                             regs.clear_color);
+
+    if (data.depth)
+        LOG_NOT_IMPLEMENTED(Engines, "Depth clears");
+
+    if (data.stencil)
+        LOG_NOT_IMPLEMENTED(Engines, "Stencil clears");
 
     // Texture
     /*

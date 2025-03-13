@@ -15,12 +15,14 @@ class TextureBase;
 class TextureCache : public CacheBase<TextureCache, Renderer::TextureBase*,
                                       Renderer::TextureDescriptor> {
   public:
+    void Destroy() {}
+
     Renderer::TextureBase*
     Create(const Renderer::TextureDescriptor& descriptor);
     void Update(Renderer::TextureBase* texture);
     u64 Hash(const Renderer::TextureDescriptor& descriptor);
 
-    void Destroy(Renderer::TextureBase* texture);
+    void DestroyElement(Renderer::TextureBase* texture);
 
   private:
     TextureDecoder texture_decoder;

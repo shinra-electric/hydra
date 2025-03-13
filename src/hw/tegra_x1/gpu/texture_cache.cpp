@@ -35,7 +35,9 @@ u64 TextureCache::Hash(const Renderer::TextureDescriptor& descriptor) {
     return hash;
 }
 
-void TextureCache::Destroy(Renderer::TextureBase* texture) { delete texture; }
+void TextureCache::DestroyElement(Renderer::TextureBase* texture) {
+    delete texture;
+}
 
 void TextureCache::DecodeTexture(Renderer::TextureBase* texture) {
     u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;

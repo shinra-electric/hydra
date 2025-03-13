@@ -24,6 +24,10 @@ class RendererBase {
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
+    // Clear
+    virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+                            const u32 color[4]) = 0;
+
   private:
 };
 

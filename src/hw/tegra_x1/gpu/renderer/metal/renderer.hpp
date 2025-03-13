@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Metal/MTLRenderPass.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
@@ -35,6 +36,10 @@ class Renderer : public RendererBase {
     CreateRenderPass(const RenderPassDescriptor& descriptor) override;
     void BindRenderPass(const RenderPassBase* render_pass) override;
 
+    // Clear
+    void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+                    const u32 color[4]) override;
+
     // Getters
     MTL::Device* GetDevice() const { return device; }
 
@@ -45,11 +50,15 @@ class Renderer : public RendererBase {
     CA::MetalLayer* layer;
 
     // Pipelines
-    MTL::RenderPipelineState* present_pipeline_state;
+    MTL::RenderPipelineState* present_pipeline;
+    MTL::RenderPipelineState* clear_color_pipeline;
 
     // Samplers
     MTL::SamplerState* nearest_sampler;
     MTL::SamplerState* linear_sampler;
+
+    // Caches
+    ClearColorPipelineCache* clear_color_pipeline_cache;
 
     // Command buffer
     MTL::CommandBuffer* command_buffer{nullptr};
