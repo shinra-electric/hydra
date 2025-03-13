@@ -1,5 +1,7 @@
 #pragma once
 
+#define THIS ((SubclassT*)this)
+
 #define EXTRACT_BITS(value, high, low)                                         \
     (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))
 

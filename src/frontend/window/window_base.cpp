@@ -29,7 +29,7 @@ void WindowBase::Present() {
 
     auto gpu = emulation_context->GetGPU();
     auto texture_descriptor = gpu->CreateTextureDescriptor(buffer);
-    auto texture = gpu->GetTextureCache().FindTexture(texture_descriptor);
+    auto texture = gpu->GetTextureCache().Find(texture_descriptor);
     gpu->GetRenderer()->Present(texture);
 }
 

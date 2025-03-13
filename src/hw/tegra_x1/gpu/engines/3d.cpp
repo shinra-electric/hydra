@@ -76,7 +76,7 @@ void ThreeD::ClearBuffer(const ClearBufferData data) {
     // Texture
     auto texture_descriptor = CreateTextureDescriptor(data.target_id);
     auto texture =
-        GPU::GetInstance().GetTextureCache().FindTexture(texture_descriptor);
+        GPU::GetInstance().GetTextureCache().Find(texture_descriptor);
 
     // HACK
     u32* d = new u32[texture_descriptor.width * texture_descriptor.height];

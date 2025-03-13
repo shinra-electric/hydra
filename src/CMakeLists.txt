@@ -105,6 +105,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/texture_decoder.hpp
     hw/tegra_x1/gpu/texture_cache.cpp
     hw/tegra_x1/gpu/texture_cache.hpp
+    hw/tegra_x1/gpu/render_pass_cache.cpp
+    hw/tegra_x1/gpu/render_pass_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/tegra_x1/gpu/engines/engine_base.hpp

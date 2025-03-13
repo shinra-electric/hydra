@@ -5,6 +5,7 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 class TextureBase;
+class RenderPassBase;
 
 class RendererBase {
   public:
@@ -17,6 +18,10 @@ class RendererBase {
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
     virtual void UploadTexture(TextureBase* texture, void* data) = 0;
+
+    // Render pass
+    virtual RenderPassBase*
+    CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
 
   private:
 };

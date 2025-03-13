@@ -4,8 +4,6 @@
 
 namespace Hydra::HW {
 
-#define THIS ((SubclassT*)this)
-
 template <typename SubclassT, typename Impl> class GenericMMU {
   public:
     void Map(uptr base, Impl impl) {

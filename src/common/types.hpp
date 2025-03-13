@@ -1,7 +1,10 @@
 #pragma once
 
+#include <map>
 #include <stdint.h>
 #include <string>
+
+#include "common/macros.hpp"
 
 namespace Hydra {
 
@@ -141,6 +144,34 @@ class Writer {
   private:
     u8* base;
     u8* ptr;
+};
+
+template <typename SubclassT, typename T, typename DescriptorT>
+class CacheBase {
+  public:
+    ~CacheBase() {
+        for (const auto& [key, value] : cache) {
+            THIS->Destroy(value);
+        }
+    }
+
+    T Find(const DescriptorT& descriptor) {
+        u64 hash = THIS->Hash(descriptor);
+        auto& element = cache[hash];
+        if (element) { // TODO: make this so that non-pointer types are
+                       // supported
+                       // as well
+            THIS->Update(element);
+            return element;
+        }
+
+        element = THIS->Create(descriptor);
+
+        return element;
+    }
+
+  private:
+    std::map<u64, T> cache;
 };
 
 } // namespace Hydra

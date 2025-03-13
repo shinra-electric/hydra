@@ -12,20 +12,25 @@ namespace Renderer {
 class TextureBase;
 }
 
-class TextureCache {
+class TextureCache : public CacheBase<TextureCache, Renderer::TextureBase*,
+                                      Renderer::TextureDescriptor> {
   public:
     Renderer::TextureBase*
-    FindTexture(const Renderer::TextureDescriptor& descriptor);
+    Create(const Renderer::TextureDescriptor& descriptor);
+    void Update(Renderer::TextureBase* texture);
+    u64 Hash(const Renderer::TextureDescriptor& descriptor);
+
+    void Destroy(Renderer::TextureBase* texture);
 
   private:
     TextureDecoder texture_decoder;
 
-    std::map<u64, Renderer::TextureBase*> textures;
-
     // Buffers
     u8 scratch_buffer[0x4000 * 0x4000 * 0x4]; // TODO: allocate dynamically
 
-    u64 CalculateTextureHash(const Renderer::TextureDescriptor& descriptor);
+    // Helpers
+    void DecodeTexture(Renderer::TextureBase* texture);
+    // TODO: encode texture
 };
 
 } // namespace Hydra::HW::TegraX1::GPU

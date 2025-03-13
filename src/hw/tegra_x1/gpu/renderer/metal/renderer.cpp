@@ -3,6 +3,7 @@
 #include "Foundation/NSTypes.hpp"
 #include "Metal/MTLRenderCommandEncoder.hpp"
 #include "Metal/MTLRenderPass.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 // TODO: define in a separate file
@@ -159,6 +160,11 @@ void Renderer::UploadTexture(TextureBase* texture, void* data) {
     mtl_texture->replaceRegion(
         MTL::Region{0, 0, 0, mtl_texture->width(), mtl_texture->height(), 1}, 0,
         0, data, texture_impl->GetDescriptor().stride, 0);
+}
+
+RenderPassBase*
+Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
+    return new RenderPass(descriptor);
 }
 
 MTL::CommandBuffer* Renderer::GetCommandBuffer() {

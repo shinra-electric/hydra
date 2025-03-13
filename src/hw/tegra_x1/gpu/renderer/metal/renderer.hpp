@@ -28,6 +28,10 @@ class Renderer : public RendererBase {
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
     void UploadTexture(TextureBase* texture, void* data) override;
 
+    // Render pass
+    RenderPassBase*
+    CreateRenderPass(const RenderPassDescriptor& descriptor) override;
+
     // Getters
     MTL::Device* GetDevice() const { return device; }
 

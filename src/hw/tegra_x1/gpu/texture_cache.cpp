@@ -1,6 +1,7 @@
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
 #include "hw/tegra_x1/gpu/gpu.hpp"
+#include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 // HACK
 template <typename T> T rotl(T v, u64 shift) {
@@ -10,34 +11,20 @@ template <typename T> T rotl(T v, u64 shift) {
 namespace Hydra::HW::TegraX1::GPU {
 
 Renderer::TextureBase*
-TextureCache::FindTexture(const Renderer::TextureDescriptor& descriptor) {
-    auto render = GPU::GetInstance().GetRenderer();
-
-    u64 hash = CalculateTextureHash(descriptor);
-    auto& texture = textures[hash];
-
-    bool cpu_dirty = false;
-    if (!texture) {
-        texture = render->CreateTexture(descriptor);
-        cpu_dirty = true;
-    } else {
-        // TODO: if data changed
-        if (false)
-            cpu_dirty = true;
-    }
-
-    if (cpu_dirty) {
-        u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
-        texture_decoder.Decode(descriptor, scratch_buffer, out_data);
-
-        render->UploadTexture(texture, out_data);
-    }
+TextureCache::Create(const Renderer::TextureDescriptor& descriptor) {
+    auto texture = RENDERER->CreateTexture(descriptor);
+    DecodeTexture(texture);
 
     return texture;
 }
 
-u64 TextureCache::CalculateTextureHash(
-    const Renderer::TextureDescriptor& descriptor) {
+void TextureCache::Update(Renderer::TextureBase* texture) {
+    // TODO: if data changed
+    if (false)
+        DecodeTexture(texture);
+}
+
+u64 TextureCache::Hash(const Renderer::TextureDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
     hash = rotl(hash, 13);
@@ -46,6 +33,15 @@ u64 TextureCache::CalculateTextureHash(
     hash += descriptor.height;
 
     return hash;
+}
+
+void TextureCache::Destroy(Renderer::TextureBase* texture) { delete texture; }
+
+void TextureCache::DecodeTexture(Renderer::TextureBase* texture) {
+    u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
+    texture_decoder.Decode(texture->GetDescriptor(), scratch_buffer, out_data);
+
+    RENDERER->UploadTexture(texture, out_data);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU

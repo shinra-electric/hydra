@@ -19,7 +19,7 @@ struct TextureDescriptor {
 
 struct RenderTargetDescriptor {
     TextureBase* texture;
-    bool load_action_clear;
+    bool load_action_clear = false;
     union {
         float color[4];
         struct {
