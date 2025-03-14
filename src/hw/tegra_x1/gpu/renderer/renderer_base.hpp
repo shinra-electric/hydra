@@ -28,6 +28,13 @@ class RendererBase {
     virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
                             const u32 color[4]) = 0;
 
+    // Draw
+    virtual void Draw(const u32 start, const u32 count) = 0;
+
+  protected:
+    // State getters
+    // TODO
+
   private:
 };
 

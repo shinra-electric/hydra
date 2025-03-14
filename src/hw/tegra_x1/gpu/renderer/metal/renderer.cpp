@@ -195,6 +195,14 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                             NS::UInteger(3));
 }
 
+void Renderer::Draw(const u32 start, const u32 count) {
+    auto encoder = GetRenderCommandEncoder();
+
+    // TODO: use the actual primitive type
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(start),
+                            NS::UInteger(count));
+}
+
 MTL::CommandBuffer* Renderer::GetCommandBuffer() {
     if (!command_buffer)
         command_buffer = command_queue->commandBuffer();

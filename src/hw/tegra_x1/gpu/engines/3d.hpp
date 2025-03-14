@@ -37,14 +37,19 @@ struct RenderTarget {
     u32 padding[6];
 };
 
+enum class ViewportZClip : u32 {
+    MinusOneToOne,
+    OneToOne,
+};
+
 union Regs3D {
     struct {
         u32 padding1[0x200];
 
-        // Render targets
+        // 0x200 Render targets
         RenderTarget color_targets[COLOR_TARGET_COUNT];
 
-        // Viewport transforms
+        // 0x280 Viewport transforms
         struct {
             float scale_x;
             float scale_y;
@@ -53,21 +58,21 @@ union Regs3D {
             float offset_y;
             float offset_z;
             struct {
-                u8 x : 3;
-                u8 y : 3;
-                u8 z : 3;
-                u8 w : 3;
+                u32 x : 3;
+                u32 y : 3;
+                u32 z : 3;
+                u32 w : 3;
                 u32 unused : 20;
             } coord_swizzle;
             struct {
-                u8 x : 5;
+                u32 x : 5;
                 u32 unused1 : 3;
-                u8 y : 5;
+                u32 y : 5;
                 u32 unused2 : 19;
             } subpixel_precision_bias;
         } viewport_transforms[VIEWPORT_COUNT];
 
-        // Viewports
+        // 0x300 Viewports
         struct {
             struct {
                 u16 x;
@@ -81,9 +86,29 @@ union Regs3D {
             float far;
         } viewports[VIEWPORT_COUNT];
 
-        u32 padding2[0x10];
+        // 0x340 Window rectangle
+        struct {
+            struct {
+                u16 min;
+                u16 max;
+            } horizontal;
+            struct {
+                u16 min;
+                u16 max;
+            } vertical;
+        } window_rects[8];
 
-        // Clear data
+        u32 padding2[0xd];
+
+        // 0x35d
+        u32 vertex_array_start;
+
+        u32 not_a_register_0x35e;
+
+        // 0x35f
+        ViewportZClip viewport_z_clip;
+
+        // 0x360 Clear data
         u32 clear_color[4];
         float clear_depth;
 
@@ -138,6 +163,8 @@ class ThreeD : public EngineBase {
     void LoadMmeInstructionRam(const u32 data);
     void LoadMmeStartAddressRamPointer(const u32 ptr);
     void LoadMmeStartAddressRam(const u32 data);
+
+    void DrawVertexArray(const u32 count);
 
     struct ClearBufferData {
         bool depth : 1;

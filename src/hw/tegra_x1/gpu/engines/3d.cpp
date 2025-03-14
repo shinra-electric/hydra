@@ -10,8 +10,9 @@ namespace Hydra::HW::TegraX1::GPU::Engines {
 DEFINE_METHOD_TABLE(ThreeD, 0x45, LoadMmeInstructionRamPointer, u32, 0x46,
                     LoadMmeInstructionRam, u32, 0x47,
                     LoadMmeStartAddressRamPointer, u32, 0x48,
-                    LoadMmeStartAddressRam, u32, 0x674, ClearBuffer,
-                    ClearBufferData, 0x8c4, FirmwareCall4, u32)
+                    LoadMmeStartAddressRam, u32, 0x35e, DrawVertexArray, u32,
+                    0x674, ClearBuffer, ClearBufferData, 0x8c4, FirmwareCall4,
+                    u32)
 
 SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
 
@@ -59,6 +60,20 @@ void ThreeD::LoadMmeStartAddressRamPointer(const u32 ptr) {
 
 void ThreeD::LoadMmeStartAddressRam(const u32 data) {
     macro_driver->LoadStartAddressRam(data);
+}
+
+void ThreeD::DrawVertexArray(const u32 count) {
+    LOG_DEBUG(Engines, "Draw: {}", count);
+
+    const auto render_pass = GetRenderPass();
+    RENDERER->BindRenderPass(render_pass);
+
+    // TODO: pipeline
+    // TODO: viewport and scissor
+    // TODO: buffers
+    // TODO: textures
+
+    RENDERER->Draw(regs.vertex_array_start, count);
 }
 
 void ThreeD::ClearBuffer(const ClearBufferData data) {
