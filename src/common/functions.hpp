@@ -41,10 +41,10 @@ inline uptr make_addr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
-inline std::ifstream open_file(const std::string& path, usize& size) {
+inline std::ifstream open_file(const std::string& path, usize& out_size) {
     const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
     auto ifs = std::ifstream{path, iflags};
-    size = ifs.tellg();
+    out_size = ifs.tellg();
     ifs.seekg(0, std::ios::beg);
 
     return ifs;

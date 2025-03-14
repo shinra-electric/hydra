@@ -28,6 +28,7 @@ class IFile : public ServiceBase {
     FileFlags flags;
 
     // Commands
+    void Read(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv
