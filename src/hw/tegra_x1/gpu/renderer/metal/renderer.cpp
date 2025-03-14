@@ -3,6 +3,8 @@
 #include "Foundation/NSTypes.hpp"
 #include "Metal/MTLRenderCommandEncoder.hpp"
 #include "Metal/MTLRenderPass.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/pipeline.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
@@ -48,14 +50,8 @@ Renderer::Renderer() {
     command_queue = device->newCommandQueue();
 
     // Library
-    NS::Error* error;
     MTL::Library* library =
-        device->newLibrary(ToNSString(utility_shader_source), nullptr, &error);
-    if (error) {
-        LOG_ERROR(GPU, "Failed to create utility library: {}",
-                  error->localizedDescription()->utf8String());
-        error->release(); // TODO: release?
-    }
+        CreateLibraryFromSource(device, utility_shader_source);
 
     // Functions
     auto vertex_fullscreen =
@@ -72,6 +68,7 @@ Renderer::Renderer() {
     pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
         MTL::PixelFormatBGRA8Unorm); // TODO: get from layer
 
+    NS::Error* error;
     present_pipeline =
         device->newRenderPipelineState(pipeline_descriptor, &error);
     pipeline_descriptor->release();
@@ -177,6 +174,14 @@ void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
     state.render_pass = static_cast<const RenderPass*>(render_pass);
 }
 
+PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
+    return new Pipeline(descriptor);
+}
+
+void Renderer::BindPipeline(const PipelineBase* pipeline) {
+    state.pipeline = static_cast<const Pipeline*>(pipeline);
+}
+
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                           const u32 color[4]) {
     auto encoder = GetRenderCommandEncoder();
@@ -198,6 +203,13 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
 void Renderer::Draw(const u32 start, const u32 count) {
     auto encoder = GetRenderCommandEncoder();
 
+    // Pipeline
+    if (encoder_state.pipeline != state.pipeline) {
+        encoder->setRenderPipelineState(state.pipeline->GetPipeline());
+        encoder_state.pipeline = state.pipeline;
+    }
+
+    // Draw
     // TODO: use the actual primitive type
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(start),
                             NS::UInteger(count));

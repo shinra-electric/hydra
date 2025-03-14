@@ -9,7 +9,8 @@ class DriverBase;
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 class RenderPassBase;
-}
+class PipelineBase;
+} // namespace Hydra::HW::TegraX1::GPU::Renderer
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
@@ -183,6 +184,7 @@ class ThreeD : public EngineBase {
 
     // Helpers
     Renderer::RenderPassBase* GetRenderPass() const;
+    Renderer::PipelineBase* GetPipeline() const;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

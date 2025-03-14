@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Metal/MTLRenderPass.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
@@ -8,12 +7,18 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
 class RenderPass;
+class Pipeline;
 
 enum class EncoderType {
     None,
     Render,
     Compute,
     Blit,
+};
+
+struct State {
+    const RenderPass* render_pass = nullptr;
+    const Pipeline* pipeline = nullptr;
 };
 
 class Renderer : public RendererBase {
@@ -35,6 +40,10 @@ class Renderer : public RendererBase {
     RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) override;
     void BindRenderPass(const RenderPassBase* render_pass) override;
+
+    // Pipeline
+    PipelineBase* CreatePipeline(const PipelineDescriptor& descriptor) override;
+    void BindPipeline(const PipelineBase* pipeline) override;
 
     // Clear
     void ClearColor(u32 render_target_id, u32 layer, u8 mask,
@@ -69,13 +78,8 @@ class Renderer : public RendererBase {
     EncoderType encoder_type{EncoderType::None};
 
     // State
-    struct {
-        const RenderPass* render_pass = nullptr;
-    } state;
-
-    struct {
-        const RenderPass* render_pass = nullptr;
-    } encoder_state;
+    State state;
+    State encoder_state;
 
     // Helpers
 

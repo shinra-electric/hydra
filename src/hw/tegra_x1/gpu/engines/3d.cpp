@@ -65,10 +65,9 @@ void ThreeD::LoadMmeStartAddressRam(const u32 data) {
 void ThreeD::DrawVertexArray(const u32 count) {
     LOG_DEBUG(Engines, "Draw: {}", count);
 
-    const auto render_pass = GetRenderPass();
-    RENDERER->BindRenderPass(render_pass);
+    RENDERER->BindRenderPass(GetRenderPass());
 
-    // TODO: pipeline
+    RENDERER->BindPipeline(GetPipeline());
     // TODO: viewport and scissor
     // TODO: buffers
     // TODO: textures
@@ -87,8 +86,7 @@ void ThreeD::ClearBuffer(const ClearBufferData data) {
     // TODO: implement
 
     // Regular clear
-    const auto render_pass = GetRenderPass();
-    RENDERER->BindRenderPass(render_pass);
+    RENDERER->BindRenderPass(GetRenderPass());
 
     if (data.color_mask != 0x0)
         RENDERER->ClearColor(data.target_id, data.layer_id, data.color_mask,
@@ -165,6 +163,13 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
     };
 
     return GPU::GetInstance().GetRenderPassCache().Find(descriptor);
+}
+
+Renderer::PipelineBase* ThreeD::GetPipeline() const {
+    // TODO: fill the descriptor
+    const Renderer::PipelineDescriptor descriptor{};
+
+    return GPU::GetInstance().GetPipelineCache().Find(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

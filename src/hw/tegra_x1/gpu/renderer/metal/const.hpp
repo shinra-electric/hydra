@@ -31,4 +31,29 @@ inline NS::String* GetLabel(const std::string& label, const void* identifier) {
                       ")");
 }
 
+inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
+                                             const std::string& source) {
+    NS::Error* error;
+    MTL::Library* library =
+        device->newLibrary(ToNSString(source), nullptr, &error);
+    if (error) {
+        LOG_ERROR(GPU, "Failed to create library: {}",
+                  error->localizedDescription()->utf8String());
+        error->release(); // TODO: release?
+        return nullptr;
+    }
+
+    return library;
+}
+
+inline MTL::Function* CreateFunctionFromSource(MTL::Device* device,
+                                               const std::string& source,
+                                               const std::string& name) {
+    auto library = CreateLibraryFromSource(device, source);
+    auto function = library->newFunction(ToNSString(name));
+    library->release();
+
+    return function;
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

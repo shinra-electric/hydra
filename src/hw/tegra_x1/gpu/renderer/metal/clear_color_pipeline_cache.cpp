@@ -30,19 +30,9 @@ ClearColorPipelineCache::ClearColorPipelineCache(MTL::Device* device_)
         }
     )";
 
-    // Library
-    NS::Error* error;
-    MTL::Library* library =
-        device->newLibrary(ToNSString(shader_source), nullptr, &error);
-    if (error) {
-        LOG_ERROR(GPU, "Failed to create clear color vertex library: {}",
-                  error->localizedDescription()->utf8String());
-        error->release(); // TODO: release?
-    }
-
     // Function
     auto vertex_clear_color =
-        library->newFunction(ToNSString("vertex_clear_color"));
+        CreateFunctionFromSource(device, shader_source, "vertex_clear_color");
 
     // Pipeline descriptor
     pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
@@ -66,19 +56,9 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
         }
     )";
 
-    // Library
-    NS::Error* error;
-    MTL::Library* library =
-        device->newLibrary(ToNSString(shader_source), nullptr, &error);
-    if (error) {
-        LOG_ERROR(GPU, "Failed to create clear color fragment library: {}",
-                  error->localizedDescription()->utf8String());
-        error->release(); // TODO: release?
-    }
-
     // Function
     auto fragment_clear_color =
-        library->newFunction(ToNSString("fragment_clear_color"));
+        CreateFunctionFromSource(device, shader_source, "fragment_clear_color");
 
     // Pipeline
     pipeline_descriptor->setFragmentFunction(fragment_clear_color);
@@ -99,6 +79,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
 
     fragment_clear_color->release();
 
+    NS::Error* error;
     auto pipeline = device->newRenderPipelineState(pipeline_descriptor, &error);
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create clear color pipeline: {}",

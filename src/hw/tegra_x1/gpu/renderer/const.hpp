@@ -36,4 +36,9 @@ struct RenderPassDescriptor {
     RenderTargetDescriptor depth_stencil_target;
 };
 
+struct PipelineDescriptor {
+    // TODO: shaders
+    // TODO: other stuff
+};
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

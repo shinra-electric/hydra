@@ -113,6 +113,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/texture_cache.hpp
     hw/tegra_x1/gpu/render_pass_cache.cpp
     hw/tegra_x1/gpu/render_pass_cache.hpp
+    hw/tegra_x1/gpu/pipeline_cache.cpp
+    hw/tegra_x1/gpu/pipeline_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/tegra_x1/gpu/engines/engine_base.hpp
@@ -130,6 +132,7 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
     hw/tegra_x1/gpu/renderer/render_pass_base.hpp
+    hw/tegra_x1/gpu/renderer/pipeline_base.hpp
     hw/tegra_x1/gpu/renderer/renderer_base.hpp
     hw/tegra_x1/gpu/renderer/metal/const.hpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
@@ -139,6 +142,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/texture.hpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.cpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.hpp
+    hw/tegra_x1/gpu/renderer/metal/pipeline.cpp
+    hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp

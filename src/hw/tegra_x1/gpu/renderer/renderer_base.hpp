@@ -6,6 +6,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 class TextureBase;
 class RenderPassBase;
+class PipelineBase;
 
 class RendererBase {
   public:
@@ -23,6 +24,11 @@ class RendererBase {
     virtual RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
+
+    // Pipeline
+    virtual PipelineBase*
+    CreatePipeline(const PipelineDescriptor& descriptor) = 0;
+    virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Clear
     virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,

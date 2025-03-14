@@ -12,9 +12,7 @@ namespace Hydra::HW::TegraX1::GPU {
 
 Renderer::RenderPassBase*
 RenderPassCache::Create(const Renderer::RenderPassDescriptor& descriptor) {
-    auto render_pass = RENDERER->CreateRenderPass(descriptor);
-
-    return render_pass;
+    return RENDERER->CreateRenderPass(descriptor);
 }
 
 u64 RenderPassCache::Hash(const Renderer::RenderPassDescriptor& descriptor) {
