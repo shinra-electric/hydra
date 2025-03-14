@@ -58,15 +58,11 @@ const u32 exception_trampoline[] = {
     0xd4200000u, // brk #0
 };
 
-static Kernel* s_instance = nullptr;
-
-Kernel& Kernel::GetInstance() { return *s_instance; }
+SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
 
 Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
-    ASSERT(s_instance == nullptr, HorizonKernel,
-           "Horizon kernel already exists");
-    s_instance = this;
+    SINGLETON_SET_INSTANCE(HorizonKernel, "Kernel");
 
     // Memory
 
@@ -118,7 +114,7 @@ Kernel::~Kernel() {
     // delete bss_mem;
     delete heap_mem;
 
-    s_instance = nullptr;
+    SINGLETON_UNSET_INSTANCE();
 }
 
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {

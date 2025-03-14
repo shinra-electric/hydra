@@ -26,6 +26,8 @@ namespace Hydra::HW::TegraX1::GPU::Engines {
 
 class EngineBase {
   public:
+    virtual ~EngineBase() = default;
+
     virtual void Method(u32 method, u32 arg) = 0;
 
     virtual void FlushMacro() {

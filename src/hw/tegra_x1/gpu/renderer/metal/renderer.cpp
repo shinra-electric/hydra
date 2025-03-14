@@ -38,13 +38,10 @@ fragment float4 fragment_texture(FullscreenVertexOut in [[stage_in]], texture2d<
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
-static Renderer* s_instance;
-
-Renderer& Renderer::GetInstance() { return *s_instance; }
+SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer, "Metal renderer")
 
 Renderer::Renderer() {
-    ASSERT(s_instance == nullptr, GPU, "Metal renderer already exists");
-    s_instance = this;
+    SINGLETON_SET_INSTANCE(MetalRenderer, "Metal renderer");
 
     // Device
     device = MTL::CreateSystemDefaultDevice();
@@ -116,7 +113,7 @@ Renderer::~Renderer() {
     command_queue->release();
     device->release();
 
-    s_instance = nullptr;
+    SINGLETON_UNSET_INSTANCE();
 }
 
 void Renderer::SetSurface(void* surface) {

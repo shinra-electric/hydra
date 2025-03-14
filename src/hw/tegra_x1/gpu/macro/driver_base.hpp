@@ -17,6 +17,7 @@ struct Result {
 class DriverBase {
   public:
     DriverBase(Engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
+    virtual ~DriverBase() = default;
 
     void Execute();
 

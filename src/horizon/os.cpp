@@ -4,13 +4,10 @@
 
 namespace Hydra::Horizon {
 
-static OS* s_instance = nullptr;
-
-OS& OS::GetInstance() { return *s_instance; }
+SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon, "Horizon OS")
 
 OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu) : kernel(bus, mmu) {
-    ASSERT(s_instance == nullptr, Horizon, "Horizon OS already exists");
-    s_instance = this;
+    SINGLETON_SET_INSTANCE(Horizon, "Horizon OS");
 
     // Services
     sm_user_interface = new Services::Sm::IUserInterface();
@@ -18,7 +15,7 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu) : kernel(bus, mmu) {
     kernel.ConnectServiceToPort("sm:", sm_user_interface);
 }
 
-OS::~OS() { s_instance = nullptr; }
+OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
 void OS::LoadROM(Rom* rom) { kernel.LoadROM(rom); }
 

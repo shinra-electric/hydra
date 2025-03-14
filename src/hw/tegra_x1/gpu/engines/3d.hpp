@@ -104,7 +104,10 @@ union Regs3D {
 
 class ThreeD : public EngineBase {
   public:
+    static ThreeD& GetInstance();
+
     ThreeD();
+    ~ThreeD() override;
 
     void Method(u32 method, u32 arg) override;
 

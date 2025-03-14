@@ -2,6 +2,20 @@
 
 #define THIS ((SubclassT*)this)
 
+#define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class, name)               \
+    static type* g_instance = nullptr;                                         \
+    type& type::GetInstance() {                                                \
+        ASSERT_DEBUG(g_instance, logging_class,                                \
+                     name " hasn't been instantiated");                        \
+        return *g_instance;                                                    \
+    }
+
+#define SINGLETON_SET_INSTANCE(logging_class, name)                            \
+    ASSERT(!g_instance, logging_class, name " already exists");                \
+    g_instance = this;
+
+#define SINGLETON_UNSET_INSTANCE() g_instance = nullptr
+
 #define EXTRACT_BITS(value, high, low)                                         \
     (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))
 

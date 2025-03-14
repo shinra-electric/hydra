@@ -13,11 +13,21 @@ DEFINE_METHOD_TABLE(ThreeD, 0x45, LoadMmeInstructionRamPointer, u32, 0x46,
                     LoadMmeStartAddressRam, u32, 0x674, ClearBuffer,
                     ClearBufferData, 0x8c4, FirmwareCall4, u32)
 
+SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
+
 ThreeD::ThreeD() {
+    SINGLETON_SET_INSTANCE(Engines, "3D engine");
+
     // TODO: choose based on Macro backend
     {
         macro_driver = new Macro::Interpreter::Driver(this);
     }
+}
+
+ThreeD::~ThreeD() {
+    delete macro_driver;
+
+    SINGLETON_UNSET_INSTANCE();
 }
 
 void ThreeD::FlushMacro() { macro_driver->Execute(); }

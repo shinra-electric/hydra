@@ -18,13 +18,10 @@ struct SetObjectArg {
 
 } // namespace
 
-static GPU* s_instance = nullptr;
-
-GPU& GPU::GetInstance() { return *s_instance; }
+SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU, "GPU")
 
 GPU::GPU(CPU::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
-    ASSERT(s_instance == nullptr, GPU, "GPU already exists");
-    s_instance = this;
+    SINGLETON_SET_INSTANCE(GPU, "GPU");
 
     // TODO: choose based on the Renderer backend
     {
@@ -33,9 +30,14 @@ GPU::GPU(CPU::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
 }
 
 GPU::~GPU() {
+    for (u32 i = 0; i < SUBCHANNEL_COUNT; i++) {
+        if (subchannels[i])
+            delete subchannels[i];
+    }
+
     delete renderer;
 
-    s_instance = nullptr;
+    SINGLETON_UNSET_INSTANCE();
 }
 
 void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
