@@ -30,6 +30,8 @@ void IFile::Read(REQUEST_COMMAND_PARAMS) {
         reinterpret_cast<char*>(writers.recv_buffers_writers[0].GetBase()),
         in.read_size);
     // writers.recv_buffers_writers[0].Write(file., in.read_size);
+
+    writers.writer.Write(in.read_size);
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv
