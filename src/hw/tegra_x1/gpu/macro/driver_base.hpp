@@ -38,9 +38,8 @@ class DriverBase {
     virtual u32 InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) = 0;
     virtual u32 InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) = 0;
     virtual u32 InstRead(u8 rA, u32 imm) = 0;
-    virtual void
-    InstBranch(BranchCondition cond, u8 rA, i32 imm, bool execute_one_more,
-               bool& branched) = 0; // TODO: why is this instructions so weird
+    virtual void InstBranch(BranchCondition cond, u8 rA, i32 imm,
+                            bool& branched) = 0;
     virtual void InstResult(ResultOperation op, u8 rD, u32 value) = 0;
 
     bool ParseInstruction(u32 pc);

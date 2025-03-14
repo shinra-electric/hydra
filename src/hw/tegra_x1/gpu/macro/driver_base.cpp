@@ -100,9 +100,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
         auto cond = static_cast<BranchCondition>(GET_DATA_U32(4, 2));
         u8 rA = GET_REG(11);
         i32 imm = GET_IMM_I32();
-        InstBranch(cond, rA, imm, instruction & EXIT_BIT,
-                   branched); // TODO: for god's sake, is this
-                              // really the way it works?
+        InstBranch(cond, rA, imm, branched);
         break;
     }
     }

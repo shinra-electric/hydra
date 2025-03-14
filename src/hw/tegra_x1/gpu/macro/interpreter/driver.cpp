@@ -20,11 +20,45 @@ void Driver::ExecuteImpl(u32 pc_, u32 param1) {
 }
 
 u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
     LOG_DEBUG(Macro, "op: {}, r{}: 0x{:08x}, r{}: 0x{:08x}", op, rA,
               GetRegU32(rA), rB, GetRegU32(rB));
 
-    return 0;
+    i32 valueA = GetRegI32(rA);
+    i32 valueB = GetRegI32(rB);
+#define RET(v) return bit_cast<u32>(v)
+    // TODO: simplify the carry stuff
+    switch (op) {
+    case AluOperation::Add: {
+        i32 value = valueA + valueB;
+        carry = value < valueA;
+        RET(value);
+    }
+    case AluOperation::AddWithCarry: {
+        i32 value = valueA + valueB + carry;
+        carry = value < valueA;
+        RET(value);
+    }
+    case AluOperation::Subtract: {
+        i32 result = valueA - valueB;
+        carry = valueA < (valueB + carry);
+        RET(valueA - valueB - carry);
+    }
+    case AluOperation::SubtractWithBorrow: {
+        i32 result = valueA - valueB - carry;
+        carry = valueA < (valueB + carry);
+        RET(valueA - valueB - carry);
+    }
+    case AluOperation::Xor:
+        RET(valueA ^ valueB);
+    case AluOperation::Or:
+        RET(valueA | valueB);
+    case AluOperation::And:
+        RET(valueA & valueB);
+    case AluOperation::AndNot:
+        RET(valueA & ~valueB);
+    case AluOperation::Nand:
+        RET(~(valueA & valueB));
+    }
 }
 
 u32 Driver::InstAddImmediate(u8 rA, i32 imm) {
@@ -64,24 +98,26 @@ u32 Driver::InstRead(u8 rA, u32 imm) {
     return Get3DReg(imm) << GetRegU32(rA); // TODO: correct?
 }
 
-void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm,
-                        bool execute_one_more, bool& branched) {
+void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm, bool& branched) {
     LOG_DEBUG(Macro, "cond: {}, r{}: 0x{:08x}, imm: {}", cond, rA,
               GetRegU32(rA), imm);
 
     bool branch = false;
+    bool execute_one_more = false;
     switch (cond) {
     case BranchCondition::Zero:
         branch = (GetRegU32(rA) == 0);
+        execute_one_more = true;
         break;
     case BranchCondition::NotZero:
         branch = (GetRegU32(rA) != 0);
+        execute_one_more = true;
         break;
     case BranchCondition::ZeroAnnul:
-        LOG_NOT_IMPLEMENTED(Macro, "ZeroAnnul");
+        branch = (GetRegU32(rA) == 0);
         break;
     case BranchCondition::NotZeroAnnul:
-        LOG_NOT_IMPLEMENTED(Macro, "NotZeroAnnul");
+        branch = (GetRegU32(rA) != 0);
         break;
     }
 
@@ -121,7 +157,11 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         SetMethod(value);
         break;
     case ResultOperation::MoveAndSetMethodFetchAndSend:
-        LOG_NOT_IMPLEMENTED(Macro, "MoveAndSetMethodFetchAndSend");
+        // TODO: is this correct?
+        SetRegU32(rD, value);
+        SetMethod(value);
+        SetRegU32(rD, FetchParam());
+        Send(value);
         break;
     case ResultOperation::MoveAndSetMethodSend:
         SetRegU32(rD, value);
