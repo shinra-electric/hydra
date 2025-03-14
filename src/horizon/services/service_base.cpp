@@ -22,6 +22,19 @@ u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
     return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
 }
 
+u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+                   const Hipc::StaticDescriptor& descriptor) {
+    uptr addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
+                (u64)descriptor.address_high << 36;
+    if (addr == 0x0)
+        return nullptr;
+
+    if (descriptor.size == 0x0)
+        return nullptr;
+
+    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
+}
+
 void ServiceBase::Request(REQUEST_PARAMS) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
@@ -50,8 +63,7 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
         break;
     }
     case 3: // query pointer buffer size
-        // TODO: what's the point of this?
-        writers.writer.Write(0);
+        writers.writer.Write(GetPointerBufferSize());
         break;
     case 4: { // clone current ex
         // TODO: u32 tag

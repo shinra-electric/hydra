@@ -27,6 +27,12 @@ add_executable(hydra
     horizon/services/hid/applet_resource.hpp
     horizon/services/hid/hid_server.cpp
     horizon/services/hid/hid_server.hpp
+    horizon/services/fssrv/file.cpp
+    horizon/services/fssrv/file.hpp
+    horizon/services/fssrv/directory.cpp
+    horizon/services/fssrv/directory.hpp
+    horizon/services/fssrv/filesystem.cpp
+    horizon/services/fssrv/filesystem.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
     horizon/services/fssrv/filesystem_proxy.hpp
     horizon/services/timesrv/static_service.cpp

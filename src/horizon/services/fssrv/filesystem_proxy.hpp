@@ -12,6 +12,8 @@ class IFileSystemProxy : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

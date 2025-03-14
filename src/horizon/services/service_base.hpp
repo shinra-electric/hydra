@@ -42,31 +42,43 @@ namespace Hydra::Horizon::Services {
 u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
                    const Hipc::BufferDescriptor& descriptor);
 
-#define CREATE_READERS_OR_WRITERS(reader_or_buffer, type)                      \
-    type##_buffers_##reader_or_buffer##s.reserve(                              \
-        hipc_in.meta.num_##type##_buffers);                                    \
-    for (u32 i = 0; i < hipc_in.meta.num_##type##_buffers; i++) {              \
-        u8* ptr = get_buffer_ptr(mmu, hipc_in.data.type##_buffers[i]);         \
+u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+                   const Hipc::StaticDescriptor& descriptor);
+
+#define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
+    type##_##buffer_or_static##s_##reader_or_writer##s.reserve(                \
+        hipc_in.meta.num_##type##_##buffer_or_static##s);                      \
+    for (u32 i = 0; i < hipc_in.meta.num_##type##_##buffer_or_static##s;       \
+         i++) {                                                                \
+        u8* ptr = get_##buffer_or_static##_ptr(                                \
+            mmu, hipc_in.data.type##_##buffer_or_static##s[i]);                \
         if (!ptr)                                                              \
             continue;                                                          \
-        type##_buffers_##reader_or_buffer##s.emplace_back(ptr);                \
+        type##_##buffer_or_static##s_##reader_or_writer##s.emplace_back(ptr);  \
     }
+
+#define CREATE_STATIC_READERS_OR_WRITERS(reader_or_writer, type)               \
+    CREATE_READERS_OR_WRITERS(static, reader_or_writer, type)
+#define CREATE_BUFFER_READERS_OR_WRITERS(reader_or_writer, type)               \
+    CREATE_READERS_OR_WRITERS(buffer, reader_or_writer, type)
 
 struct Readers {
     Reader reader;
+    std::vector<Reader> send_statics_readers;
     std::vector<Reader> send_buffers_readers;
     std::vector<Reader> exch_buffers_readers;
 
     Readers(const HW::TegraX1::CPU::MMUBase* mmu, Hipc::ParsedRequest hipc_in)
         : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10)) {
-        send_buffers_readers.reserve(hipc_in.meta.num_send_buffers);
-        CREATE_READERS_OR_WRITERS(reader, send);
-        CREATE_READERS_OR_WRITERS(reader, exch);
+        CREATE_STATIC_READERS_OR_WRITERS(reader, send);
+        CREATE_BUFFER_READERS_OR_WRITERS(reader, send);
+        CREATE_BUFFER_READERS_OR_WRITERS(reader, exch);
     }
 };
 
 struct Writers {
     Writer writer;
+    std::vector<Writer> recv_statics_writers;
     std::vector<Writer> recv_buffers_writers;
     std::vector<Writer> exch_buffers_writers;
     Writer objects_writer;
@@ -79,8 +91,10 @@ struct Writers {
         : writer(scratch_buffer), objects_writer(scratch_buffer_objects),
           move_handles_writer(scratch_buffer_move_handles),
           copy_handles_writer(scratch_buffer_copy_handles) {
-        CREATE_READERS_OR_WRITERS(writer, recv);
-        CREATE_READERS_OR_WRITERS(writer, exch);
+        // TODO: uncomment
+        // CREATE_STATIC_READERS_OR_WRITERS(writer, recv);
+        CREATE_BUFFER_READERS_OR_WRITERS(writer, recv);
+        CREATE_BUFFER_READERS_OR_WRITERS(writer, exch);
     }
 };
 
@@ -104,6 +118,8 @@ class ServiceBase : public KernelHandle {
 
   protected:
     virtual void RequestImpl(REQUEST_IMPL_PARAMS) {}
+
+    virtual usize GetPointerBufferSize() { return 0; }
 
   private:
     HandleId handle_id;
