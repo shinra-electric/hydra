@@ -16,11 +16,15 @@ void DomainService::Request(REQUEST_PARAMS) {
     Cmif::write_domain_out_header(writers.writer);
 
     switch (cmif_in.type) {
-    case 1:
+    case Cmif::DomainCommandType::SendMessage:
         subservice->Request(readers, writers, [&](ServiceBase* service) {
             HandleId handle_id = AddObject(service);
             writers.objects_writer.Write(handle_id);
         });
+        break;
+    case Cmif::DomainCommandType::Close:
+        delete subservice;
+        object_pool.FreeByIndex(cmif_in.object_id);
         break;
     default:
         LOG_WARNING(HorizonServices, "Unknown domain request type {}",

@@ -10,19 +10,25 @@ namespace Hydra::Horizon::Cmif {
 #define CMIF_IN_HEADER_MAGIC 0x49434653  // "SFCI"
 #define CMIF_OUT_HEADER_MAGIC 0x4F434653 // "SFCO"
 
+enum class DomainCommandType : u8 {
+    Invalid,
+    SendMessage,
+    Close,
+};
+
 enum class CommandType {
-    Invalid = 0,
-    LegacyRequest = 1,
-    Close = 2,
-    LegacyControl = 3,
-    Request = 4,
-    Control = 5,
-    RequestWithContext = 6,
-    ControlWithContext = 7,
+    Invalid,
+    LegacyRequest,
+    Close,
+    LegacyControl,
+    Request,
+    Control,
+    RequestWithContext,
+    ControlWithContext,
 };
 
 struct DomainInHeader {
-    u8 type;
+    DomainCommandType type;
     u8 num_in_objects;
     u16 data_size;
     u32 object_id;
@@ -69,6 +75,9 @@ inline void write_domain_out_header(Writer& writer) {
 }
 
 } // namespace Hydra::Horizon::Cmif
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Cmif::DomainCommandType, Invalid,
+                       "invalid", SendMessage, "send message", Close, "close")
 
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::Cmif::CommandType, Invalid, "invalid",
                        LegacyRequest, "legacy request", Close, "close",
