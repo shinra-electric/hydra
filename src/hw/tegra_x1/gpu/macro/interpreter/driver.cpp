@@ -161,7 +161,7 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         SetRegU32(rD, value);
         SetMethod(value);
         SetRegU32(rD, FetchParam());
-        Send(value);
+        Send(GetRegU32(rD));
         break;
     case ResultOperation::MoveAndSetMethodSend:
         SetRegU32(rD, value);

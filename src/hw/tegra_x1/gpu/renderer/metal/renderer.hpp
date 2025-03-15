@@ -16,9 +16,13 @@ enum class EncoderType {
     Blit,
 };
 
+struct RenderState {
+    const Pipeline* pipeline = nullptr;
+};
+
 struct State {
     const RenderPass* render_pass = nullptr;
-    const Pipeline* pipeline = nullptr;
+    RenderState render;
 };
 
 class Renderer : public RendererBase {
@@ -35,6 +39,10 @@ class Renderer : public RendererBase {
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
     void UploadTexture(TextureBase* texture, void* data) override;
+
+    // Command buffer
+    void BeginCommandBuffer() override;
+    void EndCommandBuffer() override;
 
     // Render pass
     RenderPassBase*
@@ -81,11 +89,10 @@ class Renderer : public RendererBase {
     State state;
     State encoder_state;
 
-    // Helpers
+    // Debug
+    bool capturing = false;
 
-    // Command buffer
-    MTL::CommandBuffer* GetCommandBuffer();
-    void CommitCommandBuffer();
+    // Helpers
 
     // Command encoders
     MTL::RenderCommandEncoder* GetRenderCommandEncoder();
@@ -93,6 +100,10 @@ class Renderer : public RendererBase {
     MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
         MTL::RenderPassDescriptor* render_pass_descriptor);
     void EndEncoding();
+
+    // Debug
+    void BeginCapture();
+    void EndCapture();
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

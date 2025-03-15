@@ -125,6 +125,9 @@ void Renderer::Present(TextureBase* texture) {
     // TODO: acquire drawable earlier?
     auto drawable = layer->nextDrawable();
 
+    // Command buffer
+    MTL::CommandBuffer* command_buffer = command_queue->commandBuffer();
+
     // Render pass
     auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
@@ -133,7 +136,7 @@ void Renderer::Present(TextureBase* texture) {
     color_attachment->setLoadAction(MTL::LoadActionDontCare);
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
-    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+    auto encoder = command_buffer->renderCommandEncoder(render_pass_descriptor);
     render_pass_descriptor->release();
 
     // Draw
@@ -143,11 +146,27 @@ void Renderer::Present(TextureBase* texture) {
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
 
-    EndEncoding();
+    encoder->endEncoding();
 
     // Present
     command_buffer->presentDrawable(drawable);
-    CommitCommandBuffer();
+    command_buffer->commit();
+
+    // Debug
+    /*
+    static u32 frames = 0;
+    if (capturing) {
+        if (frames >= 3)
+            EndCapture();
+        frames++;
+    }
+
+    static bool did_capture = false;
+    if (!did_capture) {
+        BeginCapture();
+        did_capture = true;
+    }
+    */
 }
 
 TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
@@ -165,6 +184,22 @@ void Renderer::UploadTexture(TextureBase* texture, void* data) {
         0, data, texture_impl->GetDescriptor().stride, 0);
 }
 
+void Renderer::BeginCommandBuffer() {
+    ASSERT_DEBUG(!command_buffer, MetalRenderer,
+                 "Command buffer already started");
+    command_buffer = command_queue->commandBuffer();
+}
+
+void Renderer::EndCommandBuffer() {
+    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
+
+    EndEncoding();
+
+    command_buffer->commit();
+    command_buffer->release(); // TODO: release?
+    command_buffer = nullptr;
+}
+
 RenderPassBase*
 Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
     return new RenderPass(descriptor);
@@ -179,7 +214,7 @@ PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
 }
 
 void Renderer::BindPipeline(const PipelineBase* pipeline) {
-    state.pipeline = static_cast<const Pipeline*>(pipeline);
+    state.render.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
@@ -204,9 +239,9 @@ void Renderer::Draw(const u32 start, const u32 count) {
     auto encoder = GetRenderCommandEncoder();
 
     // Pipeline
-    if (encoder_state.pipeline != state.pipeline) {
-        encoder->setRenderPipelineState(state.pipeline->GetPipeline());
-        encoder_state.pipeline = state.pipeline;
+    if (encoder_state.render.pipeline != state.render.pipeline) {
+        encoder->setRenderPipelineState(state.render.pipeline->GetPipeline());
+        encoder_state.render.pipeline = state.render.pipeline;
     }
 
     // Draw
@@ -215,28 +250,12 @@ void Renderer::Draw(const u32 start, const u32 count) {
                             NS::UInteger(count));
 }
 
-MTL::CommandBuffer* Renderer::GetCommandBuffer() {
-    if (!command_buffer)
-        command_buffer = command_queue->commandBuffer();
-
-    return command_buffer;
-}
-
-void Renderer::CommitCommandBuffer() {
-    EndEncoding();
-
-    command_buffer->commit();
-    command_buffer->release(); // TODO: release?
-    command_buffer = nullptr;
-
-    state.render_pass = nullptr;
-}
-
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
     if (encoder_state.render_pass == state.render_pass)
         return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
 
     encoder_state.render_pass = state.render_pass;
+    encoder_state.render = {};
 
     return CreateRenderCommandEncoder(
         encoder_state.render_pass->GetRenderPassDescriptor());
@@ -244,10 +263,12 @@ MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
 
 MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
     MTL::RenderPassDescriptor* render_pass_descriptor) {
+    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
+
     EndEncoding();
 
     command_encoder =
-        GetCommandBuffer()->renderCommandEncoder(render_pass_descriptor);
+        command_buffer->renderCommandEncoder(render_pass_descriptor);
     encoder_type = EncoderType::Render;
 
     return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
@@ -261,6 +282,66 @@ void Renderer::EndEncoding() {
     command_encoder->release(); // TODO: release?
     command_encoder = nullptr;
     encoder_type = EncoderType::None;
+
+    // Reset the render pass
+    encoder_state.render_pass = nullptr;
+}
+
+void Renderer::BeginCapture() {
+    auto capture_manager = MTL::CaptureManager::sharedCaptureManager();
+    auto desc = MTL::CaptureDescriptor::alloc()->init();
+    desc->setCaptureObject(device);
+
+    // Check if a debugger with support for GPU capture is attached
+    if (capture_manager->supportsDestination(
+            MTL::CaptureDestinationDeveloperTools)) {
+        desc->setDestination(MTL::CaptureDestinationDeveloperTools);
+    } else {
+        // TODO: don't hardcode the directory
+        const std::string gpu_capture_dir = "/Users/samuliak/Downloads";
+        if (gpu_capture_dir.empty()) {
+            LOG_ERROR(
+                MetalRenderer,
+                "No GPU capture directory specified, cannot do a GPU capture");
+            return;
+        }
+
+        // Check if the GPU trace document destination is available
+        if (!capture_manager->supportsDestination(
+                MTL::CaptureDestinationGPUTraceDocument)) {
+            LOG_ERROR(MetalRenderer, "GPU trace document destination is not "
+                                     "available, cannot do a GPU capture");
+            return;
+        }
+
+        // Get current date and time as a string
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        std::ostringstream oss;
+        oss << std::put_time(std::localtime(&now_time), "%d.%m.%Y_%H:%M:%S");
+        std::string now_str = oss.str();
+
+        std::string capture_path =
+            fmt::format("{}/hydra_{}.gputrace", gpu_capture_dir, now_str);
+        desc->setDestination(MTL::CaptureDestinationGPUTraceDocument);
+        desc->setOutputURL(ToNSURL(capture_path));
+    }
+
+    NS::Error* error = nullptr;
+    capture_manager->startCapture(desc, &error);
+    if (error) {
+        LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
+                  error->localizedDescription()->utf8String());
+    }
+
+    capturing = true;
+}
+
+void Renderer::EndCapture() {
+    auto captureManager = MTL::CaptureManager::sharedCaptureManager();
+    captureManager->stopCapture();
+
+    capturing = false;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

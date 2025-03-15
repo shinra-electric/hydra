@@ -31,9 +31,11 @@ struct CommandHeader {
 void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
                           GpfifoFlags flags) {
     LOG_DEBUG(GPU, "Flags: {}", flags);
+    RENDERER->BeginCommandBuffer();
     for (const auto& entry : entries) {
         SubmitEntry(entry);
     }
+    RENDERER->EndCommandBuffer();
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {

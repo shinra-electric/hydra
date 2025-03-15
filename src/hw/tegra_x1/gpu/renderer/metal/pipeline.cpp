@@ -15,28 +15,32 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         #include <metal_stdlib>
         using namespace metal;
 
-        constant float2 vertices[3] = {
-            float2(-1.0, -3.0),
-            float2(-1.0,  1.0),
-            float2( 3.0,  1.0)
+        struct Vertex {
+            float3 position;
+            float3 color;
+        };
+
+        constant Vertex vertices[3] = {
+            Vertex{ {  0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+            Vertex{ { -0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+            Vertex{ {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
         };
 
         struct MainVertexOut {
             float4 position [[position]];
-            float2 tex_coord;
+            float3 color;
         };
 
         vertex MainVertexOut main_vertex(ushort vid [[vertex_id]]) {
             MainVertexOut out;
-            out.position = float4(vertices[vid], 0.0, 1.0);
-            out.tex_coord = vertices[vid] * 0.5 + 0.5;
-            out.tex_coord.y = 1.0 - out.tex_coord.y;
+            out.position = float4(vertices[vid].position, 1.0);
+            out.color = vertices[vid].color;
 
             return out;
         }
 
         fragment float4 main_fragment(MainVertexOut in [[stage_in]]) {
-            return float4(in.tex_coord, 0.0, 1.0);
+            return float4(in.color, 1.0);
         }
     )";
     auto library = CreateLibraryFromSource(Renderer::GetInstance().GetDevice(),
@@ -47,6 +51,10 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
     pipeline_descriptor->setFragmentFunction(fragment_function);
     vertex_function->release();
     fragment_function->release();
+
+    // HACK
+    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
+        MTL::PixelFormatBGRA8Unorm);
 
     // Pipeline
     NS::Error* error;

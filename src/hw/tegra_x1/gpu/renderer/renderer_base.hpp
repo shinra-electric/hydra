@@ -20,6 +20,10 @@ class RendererBase {
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
     virtual void UploadTexture(TextureBase* texture, void* data) = 0;
 
+    // Command buffer
+    virtual void BeginCommandBuffer() = 0;
+    virtual void EndCommandBuffer() = 0;
+
     // Render pass
     virtual RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
