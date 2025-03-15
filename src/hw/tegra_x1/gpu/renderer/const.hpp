@@ -6,6 +6,11 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 class TextureBase;
 
+struct BufferDescriptor {
+    uptr ptr;
+    usize size;
+};
+
 struct TextureDescriptor {
     uptr ptr;
     SurfaceFormat surface_format;

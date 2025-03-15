@@ -6,6 +6,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
+class Buffer;
 class RenderPass;
 class Pipeline;
 
@@ -16,13 +17,27 @@ enum class EncoderType {
     Blit,
 };
 
-struct RenderState {
-    const Pipeline* pipeline = nullptr;
+enum class ShaderType {
+    Vertex,
+    Fragment,
+
+    Count,
 };
 
 struct State {
-    const RenderPass* render_pass = nullptr;
-    RenderState render;
+    const RenderPass* render_pass{nullptr};
+    const Pipeline* pipeline{nullptr};
+    const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
+};
+
+struct EncoderRenderState {
+    MTL::RenderPipelineState* pipeline{nullptr};
+    MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
+};
+
+struct EncoderState {
+    MTL::RenderPassDescriptor* render_pass{nullptr};
+    EncoderRenderState render{};
 };
 
 class Renderer : public RendererBase {
@@ -35,6 +50,10 @@ class Renderer : public RendererBase {
     void SetSurface(void* surface) override;
 
     void Present(TextureBase* texture) override;
+
+    // Buffer
+    BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
+    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
@@ -87,7 +106,7 @@ class Renderer : public RendererBase {
 
     // State
     State state;
-    State encoder_state;
+    EncoderState encoder_state;
 
     // Debug
     bool capturing = false;
@@ -107,11 +126,11 @@ class Renderer : public RendererBase {
         MTL::RenderPassDescriptor* render_pass_descriptor);
     void EndEncoding();
 
-    // State setting
-    void SetRenderPipelineState(const Pipeline* pipeline);
-    void SetRenderPipelineState() {
-        SetRenderPipelineState(state.render.pipeline);
-    }
+    // Encoder state setting
+    void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
+    void SetRenderPipelineState();
+    void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
+    void SetVertexBuffer(u32 index);
 
     // Debug
     void BeginCapture();

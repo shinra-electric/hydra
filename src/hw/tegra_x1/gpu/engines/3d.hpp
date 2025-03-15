@@ -9,6 +9,8 @@ class DriverBase;
 }
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
+class BufferBase;
+class TextureBase;
 class RenderPassBase;
 class PipelineBase;
 } // namespace Hydra::HW::TegraX1::GPU::Renderer
@@ -208,10 +210,11 @@ class ThreeD : public EngineBase {
 
     void FirmwareCall4(const u32 data);
 
-    // Texture
-    Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
-
     // Helpers
+
+    Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index,
+                                          u32 max_vertex) const;
+    Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     Renderer::RenderPassBase* GetRenderPass() const;
     Renderer::PipelineBase* GetPipeline() const;
 };

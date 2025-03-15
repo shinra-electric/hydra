@@ -16,15 +16,9 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         #include <metal_stdlib>
         using namespace metal;
 
-        struct Vertex {
-            float3 position;
-            float3 color;
-        };
-
-        constant Vertex vertices[3] = {
-            Vertex{ {  0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-            Vertex{ { -0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-            Vertex{ {  0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+        struct VertexIn {
+            float3 position [[attribute(0)]];
+            float3 color [[attribute(1)]];
         };
 
         struct MainVertexOut {
@@ -32,10 +26,10 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
             float3 color;
         };
 
-        vertex MainVertexOut main_vertex(ushort vid [[vertex_id]]) {
+        vertex MainVertexOut main_vertex(VertexIn in [[stage_in]]) {
             MainVertexOut out;
-            out.position = float4(vertices[vid].position, 1.0);
-            out.color = vertices[vid].color;
+            out.position = float4(in.position, 1.0);
+            out.color = in.color;
 
             return out;
         }

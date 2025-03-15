@@ -4,6 +4,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
+class BufferBase;
 class TextureBase;
 class RenderPassBase;
 class PipelineBase;
@@ -15,6 +16,10 @@ class RendererBase {
     virtual void SetSurface(void* surface) = 0;
 
     virtual void Present(TextureBase* texture) = 0;
+
+    // Buffer
+    virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
+    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
 
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;

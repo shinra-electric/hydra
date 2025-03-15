@@ -67,7 +67,19 @@ void ThreeD::DrawVertexArray(const u32 count) {
 
     RENDERER->BindPipeline(GetPipeline());
     // TODO: viewport and scissor
-    // TODO: vertex buffers
+
+    for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
+        const auto& vertex_array = regs.vertex_arrays[i];
+        if (!vertex_array.config.enable)
+            continue;
+
+        const auto buffer = GetVertexBuffer(i, count - 1);
+        if (!buffer)
+            continue;
+
+        RENDERER->BindVertexBuffer(buffer, i);
+    }
+
     // TODO: buffers
     // TODO: textures
 
@@ -122,6 +134,19 @@ void ThreeD::FirmwareCall4(const u32 data) {
 
     // TODO: find out what this does
     regs.mme_firmware_args[0] = 0x1;
+}
+
+Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index,
+                                              u32 max_vertex) const {
+    const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
+
+    const Renderer::BufferDescriptor descriptor{
+        .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(
+            make_addr(vertex_array.addr_lo, vertex_array.addr_hi)),
+        .size = (max_vertex + 1) * vertex_array.config.stride,
+    };
+
+    return GPU::GetInstance().GetBufferCache().Find(descriptor);
 }
 
 Renderer::TextureBase*

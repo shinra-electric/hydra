@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/allocators/dynamic_pool.hpp"
+#include "hw/tegra_x1/gpu/buffer_cache.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/gpu_mmu.hpp"
@@ -113,10 +114,9 @@ class GPU {
 
     Pfifo& GetPfifo() { return pfifo; }
 
+    BufferCache& GetBufferCache() { return buffer_cache; }
     TextureCache& GetTextureCache() { return texture_cache; }
-
     RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
-
     PipelineCache& GetPipelineCache() { return pipeline_cache; }
 
     Renderer::RendererBase* GetRenderer() const { return renderer; }
@@ -135,6 +135,7 @@ class GPU {
     Engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
 
     // Caches
+    BufferCache buffer_cache;
     TextureCache texture_cache;
     RenderPassCache render_pass_cache;
     PipelineCache pipeline_cache;

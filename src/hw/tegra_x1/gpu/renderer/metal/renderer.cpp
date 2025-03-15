@@ -1,8 +1,6 @@
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-#include "Foundation/NSTypes.hpp"
-#include "Metal/MTLRenderCommandEncoder.hpp"
-#include "Metal/MTLRenderPass.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/pipeline.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
@@ -169,6 +167,14 @@ void Renderer::Present(TextureBase* texture) {
     */
 }
 
+BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
+    return new Buffer(descriptor);
+}
+
+void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
+    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+}
+
 TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
@@ -214,23 +220,19 @@ PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {
 }
 
 void Renderer::BindPipeline(const PipelineBase* pipeline) {
-    state.render.pipeline = static_cast<const Pipeline*>(pipeline);
+    state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                           const u32 color[4]) {
     auto encoder = GetRenderCommandEncoder();
 
-    auto texture =
-        static_cast<Texture*>(encoder_state.render_pass->GetDescriptor()
-                                  .color_targets[render_target_id]
-                                  .texture);
+    auto texture = static_cast<Texture*>(state.render_pass->GetDescriptor()
+                                             .color_targets[render_target_id]
+                                             .texture);
 
-    // TODO: maybe make this return a Pipeline?
-    encoder->setRenderPipelineState(clear_color_pipeline_cache->Find(
+    SetRenderPipelineState(clear_color_pipeline_cache->Find(
         {texture->GetPixelFormat(), render_target_id, mask}));
-    encoder_state.render.pipeline = nullptr;
-
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
     encoder->setFragmentBytes(color, sizeof(u32) * 4, 0);
@@ -243,6 +245,11 @@ void Renderer::Draw(const u32 start, const u32 count) {
 
     // State
     SetRenderPipelineState();
+    // TODO: viewport and scissor
+    for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
+        SetVertexBuffer(i);
+    // TODO: buffers
+    // TODO: textures
 
     // Draw
     // TODO: use the actual primitive type
@@ -251,14 +258,19 @@ void Renderer::Draw(const u32 start, const u32 count) {
 }
 
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
-    if (encoder_state.render_pass == state.render_pass)
+    auto mtl_render_pass = state.render_pass->GetRenderPassDescriptor();
+    if (mtl_render_pass == encoder_state.render_pass)
         return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
 
-    encoder_state.render_pass = state.render_pass;
+    encoder_state.render_pass = mtl_render_pass;
     encoder_state.render = {};
+    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
+         shader_type++) {
+        for (u32 i = 0; i < BUFFER_COUNT; i++)
+            encoder_state.render.buffers[shader_type][i] = nullptr;
+    }
 
-    return CreateRenderCommandEncoder(
-        encoder_state.render_pass->GetRenderPassDescriptor());
+    return CreateRenderCommandEncoder(mtl_render_pass);
 }
 
 MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
@@ -287,12 +299,50 @@ void Renderer::EndEncoding() {
     encoder_state.render_pass = nullptr;
 }
 
-void Renderer::SetRenderPipelineState(const Pipeline* pipeline) {
-    if (pipeline == encoder_state.render.pipeline)
+void Renderer::SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline) {
+    if (mtl_pipeline == encoder_state.render.pipeline)
         return;
 
-    GetRenderCommandEncoder()->setRenderPipelineState(pipeline->GetPipeline());
-    encoder_state.render.pipeline = pipeline;
+    GetRenderCommandEncoder()->setRenderPipelineState(mtl_pipeline);
+    encoder_state.render.pipeline = mtl_pipeline;
+}
+
+void Renderer::SetRenderPipelineState() {
+    SetRenderPipelineState(state.pipeline->GetPipeline());
+}
+
+void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,
+                         u32 index) {
+    ASSERT_DEBUG(index < BUFFER_COUNT, MetalRenderer, "Invalid buffer index {}",
+                 index);
+
+    auto& bound_buffer =
+        encoder_state.render.buffers[static_cast<u32>(shader_type)][index];
+    if (buffer == bound_buffer)
+        return;
+
+    switch (shader_type) {
+    case ShaderType::Vertex:
+        GetRenderCommandEncoder()->setVertexBuffer(buffer, 0, index);
+        break;
+    case ShaderType::Fragment:
+        GetRenderCommandEncoder()->setFragmentBuffer(buffer, 0, index);
+        break;
+    default:
+        LOG_ERROR(MetalRenderer, "Invalid shader type {}",
+                  static_cast<u32>(shader_type));
+        break;
+    }
+    bound_buffer = buffer;
+}
+
+void Renderer::SetVertexBuffer(u32 index) {
+    const auto& buffer = state.vertex_buffers[index];
+    if (!buffer)
+        return;
+
+    SetBuffer(buffer->GetBuffer(), ShaderType::Vertex,
+              GetVertexBufferIndex(index));
 }
 
 void Renderer::BeginCapture() {
