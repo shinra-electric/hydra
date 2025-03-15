@@ -125,10 +125,12 @@ u32 DriverBase::Get3DReg(u32 reg_3d) { return engine_3d->GetReg(reg_3d); }
 
 void DriverBase::SetMethod(u32 value) {
     method = value & 0xfff;
-    // TODO: what is this?
-    u32 todo = (value >> 12) & 0x3f;
+    increment = (value >> 12) & 0x3f;
 }
 
-void DriverBase::Send(u32 arg) { engine_3d->Method(method, arg); }
+void DriverBase::Send(u32 arg) {
+    engine_3d->Method(method, arg);
+    method += increment;
+}
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro

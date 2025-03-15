@@ -17,13 +17,6 @@ enum class EncoderType {
     Blit,
 };
 
-enum class ShaderType {
-    Vertex,
-    Fragment,
-
-    Count,
-};
-
 struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
@@ -67,6 +60,9 @@ class Renderer : public RendererBase {
     RenderPassBase*
     CreateRenderPass(const RenderPassDescriptor& descriptor) override;
     void BindRenderPass(const RenderPassBase* render_pass) override;
+
+    // Shader
+    ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
 
     // Pipeline
     PipelineBase* CreatePipeline(const PipelineDescriptor& descriptor) override;

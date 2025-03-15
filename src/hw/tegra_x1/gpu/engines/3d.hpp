@@ -46,6 +46,19 @@ enum class ViewportZClip : u32 {
     OneToOne,
 };
 
+// TODO: handle this differently
+inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
+    switch (stage) {
+    case ShaderStage::VertexB:
+        return Renderer::ShaderType::Vertex;
+    case ShaderStage::Fragment:
+        return Renderer::ShaderType::Fragment;
+    default:
+        LOG_NOT_IMPLEMENTED(Engines, "Shader stage {}", stage);
+        return Renderer::ShaderType::Count;
+    }
+}
+
 union Regs3D {
     struct {
         u32 padding1[0x200];
@@ -125,20 +138,29 @@ union Regs3D {
         u32 padding5[0xe0];
         u32 padding6[0x8];
 
-        // 0x458 vertex attribute state
+        // 0x458 vertex attribute states
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
         u32 padding7[0x8];
-        u32 padding8[0x1a0];
+
+        u32 padding8[0x102];
+
+        // 0x582
+        u32 shader_program_region_lo;
+        u32 shader_program_region_hi;
+
+        u32 padding9[0xc];
+
+        u32 padding10[0x90];
 
         // 0x620
         struct {
             bool enable : 32;
         } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-        u32 padding9[0xd0];
+        u32 padding11[0xd0];
 
-        // 0x700 vertex array
+        // 0x700 vertex arrays
         struct {
             struct {
                 u32 stride : 12;
@@ -150,7 +172,23 @@ union Regs3D {
             u32 divisor;
         } vertex_arrays[VERTEX_ARRAY_COUNT];
 
-        u32 padding10[0x5c0];
+        u32 padding12[0xc0];
+
+        // 0x800 shader programs
+        struct {
+            struct {
+                bool enable : 1;
+                u32 padding1 : 3;
+                ShaderStage stage : 4;
+                u32 padding2 : 24;
+            } config;
+            u32 offset_lo;
+            u32 offset_hi;
+            u32 num_registers;
+            u32 padding[0xc];
+        } shader_programs[u32(ShaderStage::Count)];
+
+        u32 padding14[0x4a0];
 
         // 0xd00
         u32 mme_firmware_args[8];
@@ -178,7 +216,8 @@ class ThreeD : public EngineBase {
 
   protected:
     void WriteReg(u32 reg, u32 value) override {
-        LOG_DEBUG(Engines, "Writing to 3d reg 0x{:08x}", reg);
+        LOG_DEBUG(Engines, "Writing to 3d reg 0x{:08x} (value: 0x{:08x})", reg,
+                  value);
         regs.raw[reg] = value;
     }
 
@@ -216,6 +255,7 @@ class ThreeD : public EngineBase {
                                           u32 max_vertex) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     Renderer::RenderPassBase* GetRenderPass() const;
+    Renderer::ShaderBase* GetShader(ShaderStage stage) const;
     Renderer::PipelineBase* GetPipeline() const;
 };
 

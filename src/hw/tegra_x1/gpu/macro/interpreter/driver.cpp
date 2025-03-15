@@ -70,11 +70,11 @@ u32 Driver::InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) {
     LOG_DEBUG(Macro, "b{}: {}, r{}: 0x{:08x}, b{}: {}, r{}: 0x{:08x}, size: {}",
               rA, bA, rA, GetRegU32(rA), rB, bB, rB, GetRegU32(rB), size);
     u32 mask = (1 << size) - 1;
-    u32 valueA = (GetRegU32(rA) >> bA) & mask; // TODO: correct?
-    u32 valueB = (GetRegU32(rB) >> bB) & mask;
 
-    // TODO: how to combine these?
-    return valueA | valueB;
+    // TODO: correct?
+    u32 value = (GetRegU32(rB) >> bB) & mask;
+
+    return GetRegU32(rA) + (value << bA);
 }
 
 u32 Driver::InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) {

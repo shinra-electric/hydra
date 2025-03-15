@@ -189,9 +189,36 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
     return GPU::GetInstance().GetRenderPassCache().Find(descriptor);
 }
 
+Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
+    const auto& program = regs.shader_programs[usize(stage)];
+    if (!program.config.enable)
+        return nullptr;
+
+    GuestShaderDescriptor descriptor{
+        .stage = stage,
+        .code_ptr = make_addr(regs.shader_program_region_lo,
+                              regs.shader_program_region_hi) +
+                    make_addr(program.offset_lo, program.offset_hi),
+    };
+
+    return GPU::GetInstance().GetShaderCache().Find(descriptor);
+}
+
 Renderer::PipelineBase* ThreeD::GetPipeline() const {
-    // TODO: fill the descriptor
     Renderer::PipelineDescriptor descriptor;
+
+    // Shaders
+    for (u32 shader_stage = 0; shader_stage < usize(ShaderStage::Count);
+         shader_stage++) {
+        ShaderStage stage = ShaderStage(shader_stage);
+        auto renderer_shader_type = to_renderer_shader_type(stage);
+
+        // HACK
+        if (renderer_shader_type == Renderer::ShaderType::Count)
+            continue;
+
+        descriptor.shaders[u32(renderer_shader_type)] = GetShader(stage);
+    }
 
     // Vertex state
 

@@ -4,6 +4,7 @@
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/pipeline.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/shader.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 // TODO: define in a separate file
@@ -213,6 +214,10 @@ Renderer::CreateRenderPass(const RenderPassDescriptor& descriptor) {
 
 void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
     state.render_pass = static_cast<const RenderPass*>(render_pass);
+}
+
+ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
+    return new Shader(descriptor);
 }
 
 PipelineBase* Renderer::CreatePipeline(const PipelineDescriptor& descriptor) {

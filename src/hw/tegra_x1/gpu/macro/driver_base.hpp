@@ -77,6 +77,7 @@ class DriverBase {
 
     // Method
     u32 method = invalid<u32>();
+    u32 increment = 0;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Macro

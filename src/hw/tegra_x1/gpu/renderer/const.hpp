@@ -5,6 +5,7 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 class TextureBase;
+class ShaderBase;
 
 struct BufferDescriptor {
     uptr ptr;
@@ -53,10 +54,25 @@ struct VertexState {
     VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
 };
 
+enum class ShaderType {
+    Vertex,
+    Fragment,
+
+    Count,
+};
+
+struct ShaderDescriptor {
+    ShaderType type;
+    std::vector<u8> code;
+};
+
 struct PipelineDescriptor {
-    // TODO: shaders
+    ShaderBase* shaders[usize(ShaderType::Count)];
     VertexState vertex_state;
     // TODO: other stuff
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Renderer::ShaderType, Vertex,
+                       "vertex", Fragment, "fragment", Count, "invalid")

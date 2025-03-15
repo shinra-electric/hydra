@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/shader.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
@@ -11,41 +12,12 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         MTL::RenderPipelineDescriptor::alloc()->init();
 
     // Shaders
-    // TODO: don't hardcode
-    static std::string shader_source = R"(
-        #include <metal_stdlib>
-        using namespace metal;
-
-        struct VertexIn {
-            float3 position [[attribute(0)]];
-            float3 color [[attribute(1)]];
-        };
-
-        struct MainVertexOut {
-            float4 position [[position]];
-            float3 color;
-        };
-
-        vertex MainVertexOut main_vertex(VertexIn in [[stage_in]]) {
-            MainVertexOut out;
-            out.position = float4(in.position, 1.0);
-            out.color = in.color;
-
-            return out;
-        }
-
-        fragment float4 main_fragment(MainVertexOut in [[stage_in]]) {
-            return float4(in.color, 1.0);
-        }
-    )";
-    auto library = CreateLibraryFromSource(Renderer::GetInstance().GetDevice(),
-                                           shader_source);
-    auto vertex_function = library->newFunction(ToNSString("main_vertex"));
-    auto fragment_function = library->newFunction(ToNSString("main_fragment"));
-    pipeline_descriptor->setVertexFunction(vertex_function);
-    pipeline_descriptor->setFragmentFunction(fragment_function);
-    vertex_function->release();
-    fragment_function->release();
+    const auto vertex_shader =
+        static_cast<Shader*>(descriptor.shaders[u32(ShaderType::Vertex)]);
+    const auto fragment_shader =
+        static_cast<Shader*>(descriptor.shaders[u32(ShaderType::Fragment)]);
+    pipeline_descriptor->setVertexFunction(vertex_shader->GetFunction());
+    pipeline_descriptor->setFragmentFunction(fragment_shader->GetFunction());
 
     // Vertex state
 

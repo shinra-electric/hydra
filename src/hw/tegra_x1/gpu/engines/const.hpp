@@ -49,6 +49,17 @@ struct VertexAttribState {
     bool bgra : 1;
 };
 
+enum class ShaderStage {
+    VertexA,
+    VertexB,
+    TessCtrl,
+    TessEval,
+    Geometry,
+    Fragment,
+
+    Count,
+};
+
 } // namespace Hydra::HW::TegraX1::GPU::Engines
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribType, None,
@@ -62,3 +73,9 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribSize,
                        _4x16, "4x16", _1x8, "1x8", _2x8, "2x8", _3x8, "3x8",
                        _4x8, "4x8", _10_10_10_2, "10_10_10_2", _11_11_10,
                        "11_11_10")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::ShaderStage, VertexA,
+                       "vertex A", VertexB, "vertex B", TessCtrl,
+                       "tessellation control", TessEval,
+                       "tessellation evaluation", Geometry, "geometry",
+                       Fragment, "fragment")

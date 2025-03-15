@@ -34,6 +34,9 @@ class RendererBase {
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
+    // Shader
+    virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
+
     // Pipeline
     virtual PipelineBase*
     CreatePipeline(const PipelineDescriptor& descriptor) = 0;

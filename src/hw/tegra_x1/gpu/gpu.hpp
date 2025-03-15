@@ -9,6 +9,7 @@
 #include "hw/tegra_x1/gpu/pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/render_pass_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
+#include "hw/tegra_x1/gpu/shader_cache.hpp"
 #include "hw/tegra_x1/gpu/texture_cache.hpp"
 
 #define RENDERER GPU::GetInstance().GetRenderer()
@@ -117,6 +118,7 @@ class GPU {
     BufferCache& GetBufferCache() { return buffer_cache; }
     TextureCache& GetTextureCache() { return texture_cache; }
     RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
+    ShaderCache& GetShaderCache() { return shader_cache; }
     PipelineCache& GetPipelineCache() { return pipeline_cache; }
 
     Renderer::RendererBase* GetRenderer() const { return renderer; }
@@ -138,6 +140,7 @@ class GPU {
     BufferCache buffer_cache;
     TextureCache texture_cache;
     RenderPassCache render_pass_cache;
+    ShaderCache shader_cache;
     PipelineCache pipeline_cache;
 
     // Renderer
