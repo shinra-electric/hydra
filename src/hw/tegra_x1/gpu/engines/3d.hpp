@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hw/tegra_x1/gpu/engines/const.hpp"
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 
@@ -119,9 +120,37 @@ union Regs3D {
         u32 clear_stencil;
 
         u32 padding4[0x7];
+        u32 padding5[0xe0];
+        u32 padding6[0x8];
 
-        u32 padding5[0x990];
+        // 0x458 vertex attribute state
+        VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
+        u32 padding7[0x8];
+        u32 padding8[0x1c0];
+
+        // 0x620
+        struct {
+            bool enable : 32;
+        } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
+
+        u32 padding9[0xe0];
+
+        // 0x700 vertex array
+        struct {
+            struct {
+                u32 stride : 12;
+                bool enable : 1;
+                u32 padding : 19;
+            } config;
+            u32 addr_hi;
+            u32 addr_lo;
+            u32 divisor;
+        } vertex_arrays[VERTEX_ARRAY_COUNT];
+
+        u32 padding10[0x590];
+
+        // 0xd00
         u32 mme_firmware_args[8];
     };
 

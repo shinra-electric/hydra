@@ -95,11 +95,23 @@ class Renderer : public RendererBase {
     // Helpers
 
     // Command encoders
+    MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
+        ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
+                     "Invalid encoder type");
+        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
+    }
+
     MTL::RenderCommandEncoder* GetRenderCommandEncoder();
 
     MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
         MTL::RenderPassDescriptor* render_pass_descriptor);
     void EndEncoding();
+
+    // State setting
+    void SetRenderPipelineState(const Pipeline* pipeline);
+    void SetRenderPipelineState() {
+        SetRenderPipelineState(state.render.pipeline);
+    }
 
     // Debug
     void BeginCapture();

@@ -634,6 +634,8 @@ constexpr u32 MACRO_METHODS_REGION = 0xe00;
 
 constexpr usize COLOR_TARGET_COUNT = 8;
 constexpr usize VIEWPORT_COUNT = 16;
+constexpr usize VERTEX_ATTRIB_COUNT = 32;
+constexpr usize VERTEX_ARRAY_COUNT = 16;
 
 } // namespace Hydra::HW::TegraX1::GPU
 

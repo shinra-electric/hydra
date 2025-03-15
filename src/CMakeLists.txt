@@ -117,6 +117,7 @@ add_executable(hydra
     hw/tegra_x1/gpu/pipeline_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
+    hw/tegra_x1/gpu/engines/const.hpp
     hw/tegra_x1/gpu/engines/engine_base.hpp
     hw/tegra_x1/gpu/engines/3d.cpp
     hw/tegra_x1/gpu/engines/3d.hpp

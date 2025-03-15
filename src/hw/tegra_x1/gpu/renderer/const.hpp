@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/const.hpp"
+#include "hw/tegra_x1/gpu/engines/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
@@ -36,8 +36,21 @@ struct RenderPassDescriptor {
     RenderTargetDescriptor depth_stencil_target;
 };
 
+struct VertexArray {
+    bool enable;
+    u32 stride;
+    uptr addr;
+    u32 divisor;
+};
+
+struct VertexState {
+    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
+};
+
 struct PipelineDescriptor {
     // TODO: shaders
+    VertexState vertex_state;
     // TODO: other stuff
 };
 

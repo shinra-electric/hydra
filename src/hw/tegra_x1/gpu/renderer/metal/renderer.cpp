@@ -226,8 +226,11 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                                   .color_targets[render_target_id]
                                   .texture);
 
+    // TODO: maybe make this return a Pipeline?
     encoder->setRenderPipelineState(clear_color_pipeline_cache->Find(
         {texture->GetPixelFormat(), render_target_id, mask}));
+    encoder_state.render.pipeline = nullptr;
+
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
     encoder->setFragmentBytes(color, sizeof(u32) * 4, 0);
@@ -238,11 +241,8 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
 void Renderer::Draw(const u32 start, const u32 count) {
     auto encoder = GetRenderCommandEncoder();
 
-    // Pipeline
-    if (encoder_state.render.pipeline != state.render.pipeline) {
-        encoder->setRenderPipelineState(state.render.pipeline->GetPipeline());
-        encoder_state.render.pipeline = state.render.pipeline;
-    }
+    // State
+    SetRenderPipelineState();
 
     // Draw
     // TODO: use the actual primitive type
@@ -285,6 +285,14 @@ void Renderer::EndEncoding() {
 
     // Reset the render pass
     encoder_state.render_pass = nullptr;
+}
+
+void Renderer::SetRenderPipelineState(const Pipeline* pipeline) {
+    if (pipeline == encoder_state.render.pipeline)
+        return;
+
+    GetRenderCommandEncoder()->setRenderPipelineState(pipeline->GetPipeline());
+    encoder_state.render.pipeline = pipeline;
 }
 
 void Renderer::BeginCapture() {

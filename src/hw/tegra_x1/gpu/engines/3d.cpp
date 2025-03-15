@@ -167,7 +167,26 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
 
 Renderer::PipelineBase* ThreeD::GetPipeline() const {
     // TODO: fill the descriptor
-    const Renderer::PipelineDescriptor descriptor{};
+    Renderer::PipelineDescriptor descriptor;
+
+    // Vertex state
+
+    // Vertex attribute state
+    for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+        descriptor.vertex_state.vertex_attrib_states[i] =
+            regs.vertex_attrib_states[i];
+    }
+
+    // Vertex arrays
+    for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
+        const auto& vertex_array = regs.vertex_arrays[i];
+        descriptor.vertex_state.vertex_arrays[i] = {
+            .enable = vertex_array.config.enable,
+            .stride = vertex_array.config.stride,
+            .addr = make_addr(vertex_array.addr_lo, vertex_array.addr_hi),
+            .divisor = vertex_array.divisor,
+        };
+    }
 
     return GPU::GetInstance().GetPipelineCache().Find(descriptor);
 }
