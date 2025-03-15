@@ -4,6 +4,17 @@
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+enum class VertexAttribType : u32 {
+    None,
+    Snorm,
+    Unorm,
+    Sint,
+    Uint,
+    Uscaled,
+    Sscaled,
+    Float,
+};
+
 enum class VertexAttribSize : u32 {
     // One to four 32-bit components
     _1x32 = 0x12,
@@ -28,19 +39,9 @@ enum class VertexAttribSize : u32 {
     _11_11_10 = 0x31,
 };
 
-enum class VertexAttribType : u32 {
-    None,
-    Snorm,
-    Unorm,
-    Sint,
-    Uint,
-    Uscaled,
-    Sscaled,
-    Float,
-};
-
 struct VertexAttribState {
     u32 buffer_id : 5;
+    u32 padding : 1;
     bool is_fixed : 1;
     u32 offset : 14;
     VertexAttribSize size : 6;
@@ -49,3 +50,15 @@ struct VertexAttribState {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribType, None,
+                       "none", Snorm, "snorm", Unorm, "unorm", Sint, "sint",
+                       Uint, "uint", Uscaled, "uscaled", Sscaled, "sscaled",
+                       Float, "float")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribSize,
+                       _1x32, "1x32", _2x32, "2x32", _3x32, "3x32", _4x32,
+                       "4x32", _1x16, "1x16", _2x16, "2x16", _3x16, "3x16",
+                       _4x16, "4x16", _1x8, "1x8", _2x8, "2x8", _3x8, "3x8",
+                       _4x8, "4x8", _10_10_10_2, "10_10_10_2", _11_11_10,
+                       "11_11_10")

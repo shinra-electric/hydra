@@ -31,6 +31,10 @@ inline NS::String* GetLabel(const std::string& label, const void* identifier) {
                       ")");
 }
 
+constexpr usize BUFFER_COUNT = 31;
+
+inline u32 GetVertexBufferIndex(u32 index) { return BUFFER_COUNT - index - 1; }
+
 inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
                                              const std::string& source) {
     NS::Error* error;

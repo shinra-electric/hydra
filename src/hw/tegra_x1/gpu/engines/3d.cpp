@@ -63,12 +63,11 @@ void ThreeD::LoadMmeStartAddressRam(const u32 data) {
 }
 
 void ThreeD::DrawVertexArray(const u32 count) {
-    LOG_DEBUG(Engines, "Draw: {}", count);
-
     RENDERER->BindRenderPass(GetRenderPass());
 
     RENDERER->BindPipeline(GetPipeline());
     // TODO: viewport and scissor
+    // TODO: vertex buffers
     // TODO: buffers
     // TODO: textures
 
@@ -171,7 +170,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() const {
 
     // Vertex state
 
-    // Vertex attribute state
+    // Vertex attribute states
     for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
         descriptor.vertex_state.vertex_attrib_states[i] =
             regs.vertex_attrib_states[i];
@@ -183,7 +182,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() const {
         descriptor.vertex_state.vertex_arrays[i] = {
             .enable = vertex_array.config.enable,
             .stride = vertex_array.config.stride,
-            .addr = make_addr(vertex_array.addr_lo, vertex_array.addr_hi),
+            .is_per_instance = regs.is_vertex_array_per_instance[i].enable,
             .divisor = vertex_array.divisor,
         };
     }

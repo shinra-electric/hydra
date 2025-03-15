@@ -17,4 +17,8 @@ inline MTL::PixelFormat get_mtl_pixel_format(SurfaceFormat surface_format) {
     return get_mtl_pixel_format_info(surface_format).pixel_format;
 }
 
+const MTL::VertexFormat get_mtl_vertex_format(Engines::VertexAttribType type,
+                                              Engines::VertexAttribSize size,
+                                              bool bgra);
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

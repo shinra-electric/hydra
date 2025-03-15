@@ -39,7 +39,7 @@ struct RenderPassDescriptor {
 struct VertexArray {
     bool enable;
     u32 stride;
-    uptr addr;
+    bool is_per_instance;
     u32 divisor;
 };
 

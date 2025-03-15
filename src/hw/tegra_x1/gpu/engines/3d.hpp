@@ -127,14 +127,14 @@ union Regs3D {
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
         u32 padding7[0x8];
-        u32 padding8[0x1c0];
+        u32 padding8[0x1a0];
 
         // 0x620
         struct {
             bool enable : 32;
         } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-        u32 padding9[0xe0];
+        u32 padding9[0xd0];
 
         // 0x700 vertex array
         struct {
@@ -148,7 +148,7 @@ union Regs3D {
             u32 divisor;
         } vertex_arrays[VERTEX_ARRAY_COUNT];
 
-        u32 padding10[0x590];
+        u32 padding10[0x5c0];
 
         // 0xd00
         u32 mme_firmware_args[8];
