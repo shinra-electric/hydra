@@ -134,6 +134,9 @@ add_executable(hydra
     hw/tegra_x1/gpu/macro/driver_base.hpp
     hw/tegra_x1/gpu/macro/interpreter/driver.cpp
     hw/tegra_x1/gpu/macro/interpreter/driver.hpp
+    hw/tegra_x1/gpu/shader_decompiler/const.hpp
+    hw/tegra_x1/gpu/shader_decompiler/decompiler.cpp
+    hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
