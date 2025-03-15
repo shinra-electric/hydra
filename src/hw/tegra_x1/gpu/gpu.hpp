@@ -66,25 +66,27 @@ class GPU {
     MemoryMap& GetMapById(u32 id) { return GetMap(id - 1); }
 
     // Address space
-    uptr CreateAddressSpace(uptr addr, usize size, u32 flags) {
+    uptr CreateAddressSpace(uptr addr, usize size, uptr gpu_addr) {
         AddressSpace as;
         as.addr = addr;
         as.size = size;
-        // TODO: flags
 
-        uptr base = address_space_base;
-        address_space_base += align(size, PAGE_SIZE);
-        gpu_mmu.Map(base, as);
+        if (gpu_addr == invalid<uptr>()) {
+            gpu_addr =
+                address_space_base; // TODO: ask the MMU for a base address
+            address_space_base += align(size, PAGE_SIZE * 16); // HACK
+        }
+        gpu_mmu.Map(gpu_addr, as);
 
-        return base;
+        return gpu_addr;
     }
 
-    uptr AllocatePrivateAddressSpace(usize size, u32 flags) {
-        return CreateAddressSpace(0, size, flags);
+    uptr AllocatePrivateAddressSpace(usize size, uptr gpu_addr) {
+        return CreateAddressSpace(0, size, gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(uptr addr, usize size, u32 flags) {
-        return CreateAddressSpace(addr, size, flags);
+    uptr MapBufferToAddressSpace(uptr addr, usize size, uptr gpu_addr) {
+        return CreateAddressSpace(addr, size, gpu_addr);
     }
 
     // Engines

@@ -17,7 +17,12 @@ class GPUMMU : public GenericMMU<GPUMMU, AddressSpace> {
   public:
     GPUMMU(CPU::MMUBase* mmu_) : mmu{mmu_} {}
 
-    usize ImplGetSize(AddressSpace as) const { return as.size; }
+    usize ImplGetSize(const AddressSpace& as) const { return as.size; }
+
+    AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
+        usize base;
+        return *FindAddrImplRef(gpu_addr, base);
+    }
 
     uptr UnmapAddrToCpuAddr(uptr gpu_addr);
     uptr UnmapAddr(uptr gpu_addr);

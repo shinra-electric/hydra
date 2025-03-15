@@ -18,9 +18,10 @@ ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     host_descriptor.type = Engines::to_renderer_shader_type(descriptor.stage);
 
     // Decompile
+    Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr));
     ShaderDecompiler::Decompiler decompiler;
-    decompiler.Decompile(reinterpret_cast<u32*>(descriptor.code_ptr),
-                         host_descriptor.type, host_descriptor.code);
+    decompiler.Decompile(code_reader, host_descriptor.type,
+                         host_descriptor.code);
 
     return RENDERER->CreateShader(host_descriptor);
 }

@@ -5,13 +5,9 @@
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
-class Decompiler final {
+class BuilderBase {
   public:
-    Decompiler() = default;
-    ~Decompiler() = default;
-
-    void Decompile(Reader& code_reader, Renderer::ShaderType type,
-                   std::vector<u8>& out_code);
+    virtual ~BuilderBase() {}
 
   private:
 };

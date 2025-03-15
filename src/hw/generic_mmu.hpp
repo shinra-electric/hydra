@@ -25,17 +25,21 @@ template <typename SubclassT, typename Impl> class GenericMMU {
         THIS->MapImpl(base, impl);
     }
 
-    Impl FindAddrImpl(uptr addr, uptr& out_base) const {
-        for (auto [base, impl] : mapped_ranges) {
+    Impl* FindAddrImplRef(uptr addr, uptr& out_base) {
+        for (auto& [base, impl] : mapped_ranges) {
             if (addr >= base && addr < base + THIS->ImplGetSize(impl)) {
                 out_base = base;
-                return impl;
+                return &impl;
             }
         }
 
         LOG_ERROR(MMU, "Failed to find impl for addr 0x{:08x}", addr);
 
-        return {};
+        return nullptr;
+    }
+
+    const Impl& FindAddrImpl(uptr addr, uptr& out_base) const {
+        return *const_cast<GenericMMU*>(this)->FindAddrImplRef(addr, out_base);
     }
 
     template <typename T> T Load(uptr addr) const {

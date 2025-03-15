@@ -194,11 +194,14 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
     if (!program.config.enable)
         return nullptr;
 
+    uptr gpu_addr = make_addr(regs.shader_program_region_lo,
+                              regs.shader_program_region_hi) +
+                    program.offset;
+    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
+
     GuestShaderDescriptor descriptor{
         .stage = stage,
-        .code_ptr = make_addr(regs.shader_program_region_lo,
-                              regs.shader_program_region_hi) +
-                    make_addr(program.offset_lo, program.offset_hi),
+        .code_ptr = ptr,
     };
 
     return GPU::GetInstance().GetShaderCache().Find(descriptor);

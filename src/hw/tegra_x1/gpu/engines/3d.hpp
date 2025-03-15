@@ -146,8 +146,8 @@ union Regs3D {
         u32 padding8[0x102];
 
         // 0x582
-        u32 shader_program_region_lo;
         u32 shader_program_region_hi;
+        u32 shader_program_region_lo;
 
         u32 padding9[0xc];
 
@@ -182,10 +182,10 @@ union Regs3D {
                 ShaderStage stage : 4;
                 u32 padding2 : 24;
             } config;
-            u32 offset_lo;
-            u32 offset_hi;
+            u32 offset;
+            u32 padding1;
             u32 num_registers;
-            u32 padding[0xc];
+            u32 padding2[0xc];
         } shader_programs[u32(ShaderStage::Count)];
 
         u32 padding14[0x4a0];
