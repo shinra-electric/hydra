@@ -9,6 +9,9 @@ class BuilderBase {
   public:
     virtual ~BuilderBase() {}
 
+    virtual void Start() = 0;
+    virtual void Finish() = 0;
+
   private:
 };
 

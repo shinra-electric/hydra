@@ -80,7 +80,7 @@ void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
     BuilderBase* builder;
     // TODO: choose based on the Shader Decompiler backend
     {
-        builder = new Lang::MSL::Builder();
+        builder = new Lang::MSL::Builder(out_code);
     }
 
     // Header
@@ -91,12 +91,17 @@ void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
                  "Invalid shader version {}", header.version);
 
     // Decompile
+    builder->Start();
+
     for (u32 i = 0; i < 12; i++) {
         u64 inst = code_reader.Read<u64>();
         LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
         ParseInstruction(inst);
     }
+
+    builder->Finish();
+    delete builder;
 
     // TODO: don't throw
     throw;

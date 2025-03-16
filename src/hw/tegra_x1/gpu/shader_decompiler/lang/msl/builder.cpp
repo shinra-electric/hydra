@@ -2,6 +2,9 @@
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL {
 
-;
+void Builder::EmitHeader() {
+    Write("#include <metal_stdlib>");
+    Write("using namespace metal;");
+}
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL
