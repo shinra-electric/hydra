@@ -20,8 +20,8 @@
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
-DEFINE_OPERAND_TABLE(Eff0_0, LDOperand, 0x0001800000000000, 0x0000000000000000,
-                     B32, 0x0000800000000000, B64, 0x0001000000000000, B96,
-                     0x0001800000000000, B128)
+DEFINE_OPERAND_TABLE(Eff0_0, LoadStoreMode, 0x0001800000000000,
+                     0x0000000000000000, B32, 0x0000800000000000, B64,
+                     0x0001000000000000, B96, 0x0001800000000000, B128)
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler

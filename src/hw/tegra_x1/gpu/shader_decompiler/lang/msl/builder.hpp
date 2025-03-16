@@ -10,6 +10,7 @@ class Builder final : public LangBuilderBase {
 
   protected:
     void EmitHeader() override;
+    void EmitTypeAliases() override;
 
   private:
 };

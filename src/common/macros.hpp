@@ -16,9 +16,6 @@
 
 #define SINGLETON_UNSET_INSTANCE() g_instance = nullptr
 
-#define EXTRACT_BITS(value, high, low)                                         \
-    (((value) >> (low)) & ((1 << ((high) - (low) + 1)) - 1))
-
 #define BIT(n) (1 << (n))
 #define ENABLE_ENUM_BITMASK_OPERATORS(e)                                       \
     inline e operator|(e a, e b) {                                             \

@@ -6,6 +6,8 @@
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
+class BuilderBase;
+
 class Decompiler final {
   public:
     Decompiler() = default;
@@ -15,6 +17,8 @@ class Decompiler final {
                    std::vector<u8>& out_code);
 
   private:
+    BuilderBase* builder{nullptr};
+
     void ParseInstruction(u64 inst);
 };
 

@@ -20,6 +20,18 @@ template <typename T, typename SrcT> T bit_cast(SrcT src) {
     return *reinterpret_cast<T*>(&src);
 }
 
+template <typename T, u64 b, u64 count, typename SrcT>
+T extract_bits(SrcT src) {
+    return static_cast<T>((src >> b) & ((1 << count) - 1));
+}
+
+template <typename T, u32 bit_count> T sign_extend(T v) {
+    static_assert(std::is_signed<T>::value);
+    static_assert(bit_count < sizeof(T) * 8);
+    T const m = T(1) << (bit_count - 1);
+    return (v ^ m) - m;
+}
+
 template <typename T> T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
@@ -28,13 +40,6 @@ template <typename PtrT, typename AlignmentT>
 PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
     return reinterpret_cast<PtrT*>(
         align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
-}
-
-template <typename T, u32 bit_count> T sign_extend(T v) {
-    static_assert(std::is_signed<T>::value);
-    static_assert(bit_count < sizeof(T) * 8);
-    T const m = T(1) << (bit_count - 1);
-    return (v ^ m) - m;
 }
 
 inline uptr make_addr(u32 lo, u32 hi) {

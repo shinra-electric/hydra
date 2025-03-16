@@ -1,5 +1,6 @@
 #include "hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp"
 
+#include "common/functions.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/tables.hpp"
 
@@ -77,7 +78,6 @@ struct ShaderHeader {
 void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
                            std::vector<u8>& out_code) {
     // Builder
-    BuilderBase* builder;
     // TODO: choose based on the Shader Decompiler backend
     {
         builder = new Lang::MSL::Builder(out_code);
@@ -158,6 +158,19 @@ void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
 }
 
 void Decompiler::ParseInstruction(u64 inst) {
+    struct Amem {
+        reg_t reg;
+        u64 imm;
+    };
+
+#define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
+#define GET_VALUE(b, count) (extract_bits<u32, b, count>(inst) << (32 - count))
+#define GET_AMEM(b)                                                            \
+    Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
+// TODO: what is this?
+#define GET_AMEM_IDX()                                                         \
+    Amem { GET_REG(8), invalid<u64>() }
+
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
     INST(0xf6e0000000000000, 0xfef8000000000000)
@@ -174,12 +187,32 @@ void Decompiler::ParseInstruction(u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "b2r");
     INST(0xf0a8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
-    INST(0xeff0000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "st");
+    INST(0xeff0000000000000, 0xfff8000000000000) {
+        const auto mode = GetOperandEff0_0(inst);
+        const auto amem = GET_AMEM(20);
+        const auto src = GET_REG(0);
+        const auto todo = GET_REG(39); // TODO: what is this?
+        LOG_DEBUG(ShaderDecompiler, "st {} a[r{} + 0x{:08x}] r{} r{}", mode,
+                  amem.reg, amem.imm, src, todo);
+
+        for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
+            builder->OpStore(src + i, amem.reg, amem.imm + i * sizeof(u32));
+        }
+    }
     INST(0xefe8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pixld");
-    INST(0xefd8000000000000, 0xfff8000000000000)
-    LOG_DEBUG(ShaderDecompiler, "ld {}", GetOperandEff0_0(inst));
+    INST(0xefd8000000000000, 0xfff8000000000000) {
+        const auto mode = GetOperandEff0_0(inst);
+        const auto dst = GET_REG(0);
+        const auto amem = GET_AMEM(20);
+        const auto todo = GET_REG(39); // TODO: what is this?
+        LOG_DEBUG(ShaderDecompiler, "ld {} r{} a[r{} + 0x{:08x}] r{}", mode,
+                  dst, amem.reg, amem.imm, todo);
+
+        for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
+            builder->OpLoad(dst + i, amem.reg, amem.imm + i * sizeof(u32));
+        }
+    }
     INST(0xefd0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "isberd");
     INST(0xefa0000000000000, 0xfff8000000000000)
@@ -748,8 +781,16 @@ void Decompiler::ParseInstruction(u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop32i");
     INST(0x0200000000000000, 0xfe00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop3");
-    INST(0x0100000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "mov32i");
+    INST(0x0100000000000000, 0xfff0000000000000) {
+        const auto dst = GET_REG(0);
+        const auto value = GET_VALUE(32, 20);
+        const auto todo =
+            extract_bits<u32, 4, 12>(inst) >> 8; // TODO: what is this?
+        LOG_DEBUG(ShaderDecompiler, "mov32i {} 0x{:08x} 0x{:08x}", dst, value,
+                  todo);
+
+        builder->OpMove(dst, value);
+    }
     INST(0x0000000000000000, 0x8000000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
     else {
