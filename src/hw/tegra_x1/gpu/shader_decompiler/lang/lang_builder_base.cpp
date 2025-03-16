@@ -166,6 +166,11 @@ void LangBuilderBase::OpStore(reg_t src, reg_t dst, u64 imm) {
     WriteStatement("{} = {}", GetA("0x{:08x}", imm), GetReg(src, false));
 }
 
+void LangBuilderBase::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
+    // TODO: support indexing with src
+    WriteStatement("{} = {}", GetReg(dst, true), GetA("0x{:08x}", imm));
+}
+
 std::string LangBuilderBase::GetMainArgs() {
 #define ADD_ARG(fmt, ...)                                                      \
     args += fmt::format(", {}", fmt::format(fmt, __VA_ARGS__))
@@ -182,16 +187,7 @@ void LangBuilderBase::EmitStageInputs() {
     EnterScope("struct StageIn");
 
     // SVs
-    for (const auto sv_semantic : analyzer.GetInputSVs()) {
-        switch (sv_semantic) {
-        case SVSemantic::Position:
-            Write("{};", GetQualifiedSVName(SVSemantic::Position, false,
-                                            "float4 position"));
-            break;
-        default:
-            break; // Handled in GetMainArgs
-        }
-    }
+    // Handled in GetMainArgs
 
     // Stage inputs
     switch (type) {

@@ -176,8 +176,8 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     (GET_VALUE_U(type_bit_count, b, count) << (type_bit_count - count))
 #define GET_VALUE_U32(b, count) GET_VALUE_U(32, b, count)
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
-#define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
-#define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
+// #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
+// #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
 #define GET_AMEM(b)                                                            \
     Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
 // TODO: what is this?
@@ -364,8 +364,18 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "jmx");
     INST(0xe200000000000000, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "jmx");
-    INST(0xe00000000000ff00, 0xff0000400000ff00)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ipa");
+    INST(0xe00000000000ff00, 0xff0000400000ff00) {
+        // TODO: mode
+        const auto dst = GET_REG(0);
+        const auto amem = GET_AMEM(28);
+        const auto interp_param = GET_REG(20);
+        const auto flag1 = GET_REG(39);
+        // TODO: another flag
+        LOG_DEBUG(ShaderDecompiler, "ipa r{} a[r{} + 0x{:08x}] r{} r{}", dst,
+                  amem.reg, amem.imm, interp_param, flag1);
+
+        observer->OpInterpolate(dst, amem.reg, amem.imm);
+    }
     INST(0xe000004000000000, 0xff00004000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ipa");
     INST(0xdf60000000000000, 0xfff8000000000000)
@@ -459,7 +469,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5c98000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        const auto todo = GET_VALUE_U64(39, 4); // TODO: what is this?
+        const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "mov r{} r{} 0x{:x}", dst, src, todo);
 
         observer->OpMove(dst, src);

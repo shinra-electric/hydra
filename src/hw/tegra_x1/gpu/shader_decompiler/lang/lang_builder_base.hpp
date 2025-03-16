@@ -25,6 +25,7 @@ class LangBuilderBase : public BuilderBase {
     void OpMoveImmediate(reg_t dst, u32 value) override;
     void OpLoad(reg_t dst, reg_t src, u64 imm) override;
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
+    void OpInterpolate(reg_t dst, reg_t src, u64 imm) override;
 
   protected:
     virtual void EmitHeader() = 0;

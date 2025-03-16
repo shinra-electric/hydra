@@ -38,4 +38,12 @@ void Analyzer::OpStore(reg_t src, reg_t dst, u64 imm) {
     push_sv(output_svs, stage_outputs, imm);
 }
 
+void Analyzer::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
+    // TODO: support indexing with src
+    ASSERT_DEBUG(src == RZ, ShaderDecompiler,
+                 "Indexing not implemented (src: r{})", src);
+
+    push_sv(input_svs, stage_inputs, imm);
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
