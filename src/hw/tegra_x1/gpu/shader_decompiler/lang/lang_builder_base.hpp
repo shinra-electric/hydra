@@ -12,8 +12,9 @@ static const std::string INVALID_VALUE = "INVALID";
 
 class LangBuilderBase : public BuilderBase {
   public:
-    LangBuilderBase(const Analyzer& analyzer, std::vector<u8>& out_code_)
-        : BuilderBase(analyzer), out_code{out_code_} {}
+    LangBuilderBase(const Analyzer& analyzer, const Renderer::ShaderType type,
+                    std::vector<u8>& out_code)
+        : BuilderBase(analyzer, type, out_code) {}
 
     void Start() override;
     void Finish() override;
@@ -28,7 +29,9 @@ class LangBuilderBase : public BuilderBase {
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
 
-    virtual std::string GetQualifierName(const Qualifier qualifier) = 0;
+    virtual std::string GetSVQualifierName(const SV sv, bool output) = 0;
+    virtual std::string GetStageQualifierName() = 0;
+    virtual std::string GetStageInQualifierName() = 0;
 
     template <typename... T> void Write(WRITE_ARGS) {
         // TODO: handle indentation differently
@@ -50,7 +53,9 @@ class LangBuilderBase : public BuilderBase {
         EnterScopeImpl("{} ", FMT);
     }
 
-    void ExitScopeEmpty() { ExitScopeImpl(""); }
+    void ExitScopeEmpty(bool semicolon = false) {
+        ExitScopeImpl(semicolon ? ";" : "");
+    }
 
     template <typename... T> void ExitScope(WRITE_ARGS) {
         ExitScopeImpl(" {};", FMT);
@@ -62,7 +67,7 @@ class LangBuilderBase : public BuilderBase {
         if (reg == RZ && !write)
             return fmt::format("0{}", data_type);
 
-        return fmt::format("r{}.{}", reg, data_type);
+        return fmt::format("r[{}].{}", reg, data_type);
     }
 
     std::string GetComponentFromIndex(u8 component_index) {
@@ -82,10 +87,10 @@ class LangBuilderBase : public BuilderBase {
         }
     }
 
-    std::string GetQualifiedName(const std::string& name,
-                                 const Qualifier qualifier) {
+    template <typename... T>
+    std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS) {
         // TODO: support qualifiers before the name as well
-        return fmt::format("{} {}", name, GetQualifierName(qualifier));
+        return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
     }
 
     std::string GetSVName(const SV sv) {
@@ -113,8 +118,11 @@ class LangBuilderBase : public BuilderBase {
 
     std::string GetMainArgs();
 
+    // Emit
+    void EmitStageInputs();
+    void EmitStageOutputs();
+
   private:
-    std::vector<u8>& out_code;
     std::string code_str;
 
     u32 indent = 0;

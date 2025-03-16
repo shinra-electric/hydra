@@ -29,22 +29,11 @@ struct SV {
     u8 index;
     u8 component_index;
     // TODO: more?
-};
 
-enum class QualifierType {
-    Invalid,
-    Position,
-    UserInOut,
-    StageIn,
-    // TODO: more
-};
-
-struct Qualifier {
-    QualifierType type;
-    u8 index;
-
-    Qualifier(QualifierType type_) : type{type_}, index{invalid<u8>()} {}
-    Qualifier(QualifierType type_, u8 index_) : type{type_}, index{index_} {}
+    SV(SVSemantic semantic_, u8 index_ = invalid<u8>(),
+       u8 component_index_ = invalid<u8>())
+        : semantic{semantic_}, index{index_},
+          component_index{component_index_} {}
 };
 
 enum class LoadStoreMode {
@@ -86,17 +75,15 @@ inline const SV GetSVFromAddr(u64 addr) {
 
     for (const auto& base : bases) {
         if (addr >= base.base_addr) {
-            return {
-                .semantic = base.semantic,
-                .index = static_cast<u8>((addr - base.base_addr) >> 4),
-                .component_index = static_cast<u8>((addr >> 2) & 0x3),
-            };
+            return SV(base.semantic,
+                      static_cast<u8>((addr - base.base_addr) >> 4),
+                      static_cast<u8>((addr >> 2) & 0x3));
         }
     }
 
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV address 0x{:02x}", addr);
 
-    return {SVSemantic::Invalid};
+    return SVSemantic::Invalid;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
@@ -107,10 +94,6 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::DataType, Int,
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::SVSemantic,
                        Invalid, "invalid", Position, "position", UserInOut,
                        "user in out")
-
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::QualifierType,
-                       Invalid, "invalid", Position, "position", UserInOut,
-                       "user in out", StageIn, "stage in")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::LoadStoreMode,
                        Invalid, "invalid", B32, "b32", B64, "b64", B96, "b96",

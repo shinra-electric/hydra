@@ -14,7 +14,7 @@ class Decompiler final {
     Decompiler() = default;
     ~Decompiler() = default;
 
-    void Decompile(Reader& code_reader, Renderer::ShaderType type,
+    void Decompile(Reader& code_reader, const Renderer::ShaderType type,
                    std::vector<u8>& out_code);
 
   private:

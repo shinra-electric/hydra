@@ -13,12 +13,16 @@ class Analyzer : public ObserverBase {
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
 
     // Getters
-    const std::vector<SV>& GetInputSVs() const { return input_svs; }
-    const std::vector<SV>& GetOutputSVs() const { return output_svs; }
+    const std::vector<SVSemantic>& GetInputSVs() const { return input_svs; }
+    const std::vector<SVSemantic>& GetOutputSVs() const { return output_svs; }
+    const std::vector<u8>& GetStageInputs() const { return stage_inputs; }
+    const std::vector<u8>& GetStageOutputs() const { return stage_outputs; }
 
   private:
-    std::vector<SV> input_svs;
-    std::vector<SV> output_svs;
+    std::vector<SVSemantic> input_svs;
+    std::vector<SVSemantic> output_svs;
+    std::vector<u8> stage_inputs;
+    std::vector<u8> stage_outputs;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
