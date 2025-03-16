@@ -6,9 +6,9 @@
 #define WRITE_ARGS fmt::format_string<T...> fmt, T &&... args
 #define FMT fmt::format(fmt, std::forward<T>(args)...)
 
-#define INVALID_VALUE "INVALID"
-
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang {
+
+static const std::string INVALID_VALUE = "INVALID";
 
 class LangBuilderBase : public BuilderBase {
   public:
@@ -25,6 +25,8 @@ class LangBuilderBase : public BuilderBase {
   protected:
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
+
+    virtual std::string GetQualifierName(const Qualifier qualifier) = 0;
 
     template <typename... T> void Write(WRITE_ARGS) {
         // TODO: handle indentation differently
@@ -78,6 +80,12 @@ class LangBuilderBase : public BuilderBase {
         }
     }
 
+    std::string GetQualifiedName(const std::string& name,
+                                 const Qualifier qualifier) {
+        // TODO: support qualifiers before the name as well
+        return fmt::format("{} {}", name, GetQualifierName(qualifier));
+    }
+
     const SV GetSVFromAddr(u64 addr) {
         SV sv;
 
@@ -128,6 +136,8 @@ class LangBuilderBase : public BuilderBase {
         return (output ? "__out" : "__in");
     }
 
+    std::string GetMainArgs();
+
   private:
     std::vector<u8>& out_code;
     std::string code_str;
@@ -151,6 +161,5 @@ class LangBuilderBase : public BuilderBase {
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang
 
-#undef INVALID_VALUE
 #undef FMT
 #undef WRITE_ARGS

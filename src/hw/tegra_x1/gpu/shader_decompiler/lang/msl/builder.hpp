@@ -12,6 +12,8 @@ class Builder final : public LangBuilderBase {
     void EmitHeader() override;
     void EmitTypeAliases() override;
 
+    std::string GetQualifierName(const Qualifier qualifier) override;
+
   private:
 };
 

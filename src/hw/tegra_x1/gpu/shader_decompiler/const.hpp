@@ -31,6 +31,22 @@ struct SV {
     // TODO: more?
 };
 
+enum class QualifierType {
+    Invalid,
+    Position,
+    UserInOut,
+    StageIn,
+    // TODO: more
+};
+
+struct Qualifier {
+    QualifierType type;
+    u8 index;
+
+    Qualifier(QualifierType type_) : type{type_}, index{invalid<u8>()} {}
+    Qualifier(QualifierType type_, u8 index_) : type{type_}, index{index_} {}
+};
+
 enum class LoadStoreMode {
     Invalid,
     B32,
@@ -63,6 +79,10 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::DataType, Int,
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::SVSemantic,
                        Invalid, "invalid", Position, "position", UserInOut,
                        "user in out")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::QualifierType,
+                       Invalid, "invalid", Position, "position", UserInOut,
+                       "user in out", StageIn, "stage in")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::LoadStoreMode,
                        Invalid, "invalid", B32, "b32", B64, "b64", B96, "b96",

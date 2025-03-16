@@ -9,8 +9,15 @@ void LangBuilderBase::Start() {
     EmitTypeAliases();
     WriteNewline();
 
-    // TODO: main function declaration
-    EnterScope("");
+    // TODO: declarations
+
+    EnterScope("StageOut main_({}{})",
+               GetQualifiedName("StageIn __in", QualifierType::StageIn),
+               GetMainArgs());
+
+    // Declare output
+    Write("StageOut __out;");
+    WriteNewline();
 
     // Declare registers
     EnterScope("union");
@@ -22,9 +29,17 @@ void LangBuilderBase::Start() {
 }
 
 void LangBuilderBase::Finish() {
+    WriteNewline();
+
+    // Return
+    WriteStatement("return __out");
+
+    // End
     ExitScopeEmpty();
     ASSERT_DEBUG(indent == 0, ShaderDecompiler,
                  "Scope not fully exited (indentation: {})", indent);
+
+    // TODO: footer
 
     // TODO: avoid copying
     out_code.resize(code_str.size());
@@ -54,6 +69,18 @@ void LangBuilderBase::OpStore(reg_t src, reg_t dst, u64 imm) {
 
     WriteStatement("{} = {}", GetSVNameQualified(GetSVFromAddr(imm), true),
                    GetReg(src, false));
+}
+
+std::string LangBuilderBase::GetMainArgs() {
+#define ADD_ARG(fmt, ...)                                                      \
+    args += fmt::format(", {}", fmt::format(fmt, __VA_ARGS__))
+
+    std::string args;
+    // TODO: more
+
+#undef ADD_ARG
+
+    return args;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang
