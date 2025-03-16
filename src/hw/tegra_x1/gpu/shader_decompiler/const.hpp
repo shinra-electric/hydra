@@ -40,6 +40,11 @@ inline DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
     }
 }
 
+inline DataType to_data_type(SurfaceFormat surface_format) {
+    // TODO: implement
+    return DataType::Float;
+}
+
 enum class SVSemantic {
     Invalid,
     Position,

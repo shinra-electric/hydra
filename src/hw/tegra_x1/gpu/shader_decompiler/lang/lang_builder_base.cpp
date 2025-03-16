@@ -125,7 +125,19 @@ void LangBuilderBase::OpExit() {
 #undef ADD_OUTPUT
         break;
     case Renderer::ShaderType::Fragment:
-        // TODO: to color attachments
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_format = state.color_target_formats[i];
+            if (color_target_format == SurfaceFormat::Invalid)
+                continue;
+
+            for (u32 c = 0; c < 4; c++) {
+                WriteStatement(
+                    "{} = as_type<{}>({})",
+                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), true),
+                    to_data_type(color_target_format),
+                    GetReg(i * 4 + c, false));
+            }
+        }
         break;
     default:
         break;
@@ -239,7 +251,16 @@ void LangBuilderBase::EmitStageOutputs() {
         }
         break;
     case Renderer::ShaderType::Fragment:
-        // TODO: from color attachments
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_format = state.color_target_formats[i];
+            if (color_target_format == SurfaceFormat::Invalid)
+                continue;
+
+            const auto sv = SV(SVSemantic::UserInOut, i);
+            Write("{};", GetQualifiedSVName(sv, true, "{}4 {}",
+                                            to_data_type(color_target_format),
+                                            GetSVName(sv)));
+        }
         break;
     default:
         break;

@@ -171,13 +171,13 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_VALUE(b, count) (extract_bits<u32, b, count>(inst) << (32 - count))
-#define GET_AMEM(b) Amem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
+#define GET_AMEM(b)                                                            \
+    Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
 // TODO: what is this?
-#define GET_AMEM_IDX() Amem{GET_REG(8), invalid<u64>()}
+#define GET_AMEM_IDX()                                                         \
+    Amem { GET_REG(8), invalid<u64>() }
 
-    INST0(0x0000000000000000, 0x8000000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
-    INST(0xfbe0000000000000, 0xfff8000000000000)
+    INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
     INST(0xf6e0000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -801,6 +801,10 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 
         observer->OpMove(dst, value);
     }
+    // TODO: where should this be? Cause it sometimes gets confused with other
+    // instructions
+    INST(0x0000000000000000, 0x8000000000000000)
+    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
     else {
         LOG_ERROR(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
     }

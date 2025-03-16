@@ -11,6 +11,8 @@ class ShaderBase;
 
 struct GuestShaderState {
     Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    SurfaceFormat color_target_formats[COLOR_TARGET_COUNT] = {
+        SurfaceFormat::Invalid};
 };
 
 struct GuestShaderDescriptor {

@@ -33,6 +33,7 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     hash += descriptor.code_ptr;
 
     // TODO: vertex attribute states
+    // TODO: color target formats
 
     return hash;
 }

@@ -209,6 +209,18 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
         descriptor.state.vertex_attrib_states[i] = regs.vertex_attrib_states[i];
     }
 
+    // Color target formats
+    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        const auto& render_target = regs.color_targets[i];
+        const auto addr =
+            make_addr(render_target.addr_lo, render_target.addr_hi);
+        if (addr == 0x0)
+            continue;
+
+        descriptor.state.color_target_formats[i] =
+            regs.color_targets[i].surface_format;
+    }
+
     return GPU::GetInstance().GetShaderCache().Find(descriptor);
 }
 
