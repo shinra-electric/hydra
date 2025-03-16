@@ -8,7 +8,8 @@ class Analyzer : public ObserverBase {
   public:
     // Operations
     void OpExit() override {}
-    void OpMove(reg_t dst, u32 value) override {}
+    void OpMove(reg_t dst, reg_t src) override {}
+    void OpMoveImmediate(reg_t dst, u32 value) override {}
     void OpLoad(reg_t dst, reg_t src, u64 imm) override;
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
 

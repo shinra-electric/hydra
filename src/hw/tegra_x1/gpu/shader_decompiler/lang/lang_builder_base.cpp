@@ -148,7 +148,11 @@ void LangBuilderBase::OpExit() {
     WriteStatement("return __out");
 }
 
-void LangBuilderBase::OpMove(reg_t dst, u32 value) {
+void LangBuilderBase::OpMove(reg_t dst, reg_t src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetReg(src, false));
+}
+
+void LangBuilderBase::OpMoveImmediate(reg_t dst, u32 value) {
     WriteStatement("{} = 0x{:08x}", GetReg(dst, true), value);
 }
 

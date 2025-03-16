@@ -170,7 +170,14 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     };
 
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
-#define GET_VALUE(b, count) (extract_bits<u32, b, count>(inst) << (32 - count))
+#define GET_VALUE_U(type_bit_count, b, count)                                  \
+    extract_bits<u##type_bit_count, b, count>(inst)
+#define GET_VALUE_U_EXTEND(type_bit_count, b, count)                           \
+    (GET_VALUE_U(type_bit_count, b, count) << (type_bit_count - count))
+#define GET_VALUE_U32(b, count) GET_VALUE_U(32, b, count)
+#define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
+#define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
+#define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
 #define GET_AMEM(b)                                                            \
     Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
 // TODO: what is this?
@@ -449,8 +456,14 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2f");
     INST(0x5ca0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sel");
-    INST(0x5c98000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "mov");
+    INST(0x5c98000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(20);
+        const auto todo = GET_VALUE_U64(39, 4); // TODO: what is this?
+        LOG_DEBUG(ShaderDecompiler, "mov r{} r{} 0x{:x}", dst, src, todo);
+
+        observer->OpMove(dst, src);
+    }
     INST(0x5c90000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
     INST(0x5c88000000000000, 0xfff8000000000000)
@@ -793,13 +806,13 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop3");
     INST(0x0100000000000000, 0xfff0000000000000) {
         const auto dst = GET_REG(0);
-        const auto value = GET_VALUE(32, 20);
+        const auto value = GET_VALUE_U32_EXTEND(32, 20);
         const auto todo =
             extract_bits<u32, 4, 12>(inst) >> 8; // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "mov32i {} 0x{:08x} 0x{:08x}", dst, value,
                   todo);
 
-        observer->OpMove(dst, value);
+        observer->OpMoveImmediate(dst, value);
     }
     // TODO: where should this be? Cause it sometimes gets confused with other
     // instructions

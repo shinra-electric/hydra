@@ -22,7 +22,7 @@ template <typename T, typename SrcT> T bit_cast(SrcT src) {
 
 template <typename T, u64 b, u64 count, typename SrcT>
 T extract_bits(SrcT src) {
-    return static_cast<T>((src >> b) & ((1 << count) - 1));
+    return static_cast<T>((src >> b) & ((1ull << count) - 1ull));
 }
 
 template <typename T, u32 bit_count> T sign_extend(T v) {

@@ -21,7 +21,8 @@ class LangBuilderBase : public BuilderBase {
 
     // Operations
     void OpExit() override;
-    void OpMove(reg_t dst, u32 value) override;
+    void OpMove(reg_t dst, reg_t src) override;
+    void OpMoveImmediate(reg_t dst, u32 value) override;
     void OpLoad(reg_t dst, reg_t src, u64 imm) override;
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
 
@@ -64,9 +65,6 @@ class LangBuilderBase : public BuilderBase {
     // Helpers
     std::string GetReg(reg_t reg, bool write = false,
                        DataType data_type = DataType::UInt) {
-        if (reg == RZ && !write)
-            return fmt::format("0{}", data_type);
-
         std::string data_type_str;
         switch (data_type) {
         case DataType::Int:
@@ -82,6 +80,9 @@ class LangBuilderBase : public BuilderBase {
             data_type_str = INVALID_VALUE;
             break;
         }
+
+        if (reg == RZ && !write)
+            return fmt::format("0{}", data_type_str);
 
         return fmt::format("r[{}].{}", reg, data_type_str);
     }
