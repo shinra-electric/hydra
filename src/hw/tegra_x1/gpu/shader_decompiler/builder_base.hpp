@@ -3,17 +3,20 @@
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
-class Analyzer;
+namespace Hydra::HW::TegraX1::GPU {
+class GuestShaderState;
 }
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
+class Analyzer;
+
 class BuilderBase : public ObserverBase {
   public:
     BuilderBase(const Analyzer& analyzer_, const Renderer::ShaderType type_,
-                std::vector<u8>& out_code_)
-        : analyzer{analyzer_}, type{type_}, out_code{out_code_} {}
+                const GuestShaderState& state_, std::vector<u8>& out_code_)
+        : analyzer{analyzer_}, type{type_}, state{state_}, out_code{out_code_} {
+    }
     virtual ~BuilderBase() {}
 
     virtual void Start() = 0;
@@ -22,6 +25,7 @@ class BuilderBase : public ObserverBase {
   protected:
     const Analyzer& analyzer;
     const Renderer::ShaderType type;
+    const GuestShaderState& state;
 
     std::vector<u8>& out_code;
 };

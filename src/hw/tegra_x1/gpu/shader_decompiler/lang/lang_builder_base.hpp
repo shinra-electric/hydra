@@ -13,8 +13,8 @@ static const std::string INVALID_VALUE = "INVALID";
 class LangBuilderBase : public BuilderBase {
   public:
     LangBuilderBase(const Analyzer& analyzer, const Renderer::ShaderType type,
-                    std::vector<u8>& out_code)
-        : BuilderBase(analyzer, type, out_code) {}
+                    const GuestShaderState& state, std::vector<u8>& out_code)
+        : BuilderBase(analyzer, type, state, out_code) {}
 
     void Start() override;
     void Finish() override;
@@ -67,7 +67,27 @@ class LangBuilderBase : public BuilderBase {
         if (reg == RZ && !write)
             return fmt::format("0{}", data_type);
 
-        return fmt::format("r[{}].{}", reg, data_type);
+        std::string data_type_str;
+        switch (data_type) {
+        case DataType::Int:
+            data_type_str = "i";
+            break;
+        case DataType::UInt:
+            data_type_str = "u";
+            break;
+        case DataType::Float:
+            data_type_str = "f";
+            break;
+        default:
+            data_type_str = INVALID_VALUE;
+            break;
+        }
+
+        return fmt::format("r[{}].{}", reg, data_type_str);
+    }
+
+    template <typename... T> std::string GetA(WRITE_ARGS) {
+        return fmt::format("a[{}]", FMT);
     }
 
     std::string GetComponentFromIndex(u8 component_index) {

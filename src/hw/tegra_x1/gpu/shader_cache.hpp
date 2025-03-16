@@ -9,9 +9,14 @@ namespace Renderer {
 class ShaderBase;
 }
 
+struct GuestShaderState {
+    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+};
+
 struct GuestShaderDescriptor {
     Engines::ShaderStage stage;
     uptr code_ptr;
+    GuestShaderState state;
 };
 
 class ShaderCache : public CacheBase<ShaderCache, Renderer::ShaderBase*,

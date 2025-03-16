@@ -204,6 +204,11 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
         .code_ptr = ptr,
     };
 
+    // Vertex attribute states
+    for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+        descriptor.state.vertex_attrib_states[i] = regs.vertex_attrib_states[i];
+    }
+
     return GPU::GetInstance().GetShaderCache().Find(descriptor);
 }
 

@@ -9,16 +9,7 @@ void Builder::EmitHeader() {
 }
 
 void Builder::EmitTypeAliases() {
-    Write("using i8 = int8_t;");
-    Write("using i16 = int16_t;");
-    Write("using i32 = int32_t;");
-    Write("using i64 = int64_t;");
-    Write("using u8 = uint8_t;");
-    Write("using u16 = uint16_t;");
-    Write("using u32 = uint32_t;");
-    Write("using u64 = uint64_t;");
-    Write("using f32 = float;");
-    // Write("using f64 = double;");
+    // Do nothing
 }
 
 std::string Builder::GetSVQualifierName(const SV sv, bool output) {

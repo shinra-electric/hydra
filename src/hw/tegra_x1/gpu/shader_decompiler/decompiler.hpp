@@ -4,6 +4,10 @@
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/const.hpp"
 
+namespace Hydra::HW::TegraX1::GPU {
+struct GuestShaderState;
+}
+
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
 class ObserverBase;
@@ -15,7 +19,7 @@ class Decompiler final {
     ~Decompiler() = default;
 
     void Decompile(Reader& code_reader, const Renderer::ShaderType type,
-                   std::vector<u8>& out_code);
+                   const GuestShaderState& state, std::vector<u8>& out_code);
 
   private:
     void ParseInstruction(ObserverBase* observer, u64 inst);

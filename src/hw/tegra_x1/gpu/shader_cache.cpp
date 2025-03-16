@@ -20,7 +20,7 @@ ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     // Decompile
     Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr));
     ShaderDecompiler::Decompiler decompiler;
-    decompiler.Decompile(code_reader, host_descriptor.type,
+    decompiler.Decompile(code_reader, host_descriptor.type, descriptor.state,
                          host_descriptor.code);
 
     return RENDERER->CreateShader(host_descriptor);
@@ -31,6 +31,8 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     hash += static_cast<u64>(descriptor.stage);
     hash = rotl(hash, 37);
     hash += descriptor.code_ptr;
+
+    // TODO: vertex attribute states
 
     return hash;
 }

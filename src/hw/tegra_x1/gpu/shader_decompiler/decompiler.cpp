@@ -1,6 +1,6 @@
 #include "hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp"
 
-#include "common/functions.hpp"
+#include "hw/tegra_x1/gpu/shader_cache.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/tables.hpp"
@@ -77,6 +77,7 @@ struct ShaderHeader {
 };
 
 void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
+                           const GuestShaderState& state,
                            std::vector<u8>& out_code) {
     Analyzer analyzer;
 
@@ -84,7 +85,7 @@ void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
     BuilderBase* builder;
     // TODO: choose based on the Shader Decompiler backend
     {
-        builder = new Lang::MSL::Builder(analyzer, type, out_code);
+        builder = new Lang::MSL::Builder(analyzer, type, state, out_code);
     }
 
     // Header
@@ -170,11 +171,9 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_VALUE(b, count) (extract_bits<u32, b, count>(inst) << (32 - count))
-#define GET_AMEM(b)                                                            \
-    Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
+#define GET_AMEM(b) Amem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
 // TODO: what is this?
-#define GET_AMEM_IDX()                                                         \
-    Amem { GET_REG(8), invalid<u64>() }
+#define GET_AMEM_IDX() Amem{GET_REG(8), invalid<u64>()}
 
     INST0(0x0000000000000000, 0x8000000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");

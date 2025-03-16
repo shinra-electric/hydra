@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hw/tegra_x1/gpu/const.hpp"
+#include "hw/tegra_x1/gpu/engines/const.hpp"
 
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
@@ -12,10 +13,32 @@ typedef u8 reg_t;
 constexpr reg_t RZ = 255;
 
 enum class DataType {
+    None,
     Int,
     UInt,
     Float,
 };
+
+inline DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
+    switch (vertex_attrib_type) {
+    case Engines::VertexAttribType::Snorm:
+        return DataType::Float;
+    case Engines::VertexAttribType::Unorm:
+        return DataType::Float;
+    case Engines::VertexAttribType::Sint:
+        return DataType::Int;
+    case Engines::VertexAttribType::Uint:
+        return DataType::UInt;
+    case Engines::VertexAttribType::Uscaled:
+        return DataType::None;
+    case Engines::VertexAttribType::Sscaled:
+        return DataType::None;
+    case Engines::VertexAttribType::Float:
+        return DataType::Float;
+    default:
+        return DataType::None;
+    }
+}
 
 enum class SVSemantic {
     Invalid,
@@ -89,7 +112,7 @@ inline const SV GetSVFromAddr(u64 addr) {
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::DataType, Int,
-                       "i", UInt, "u", Float, "f")
+                       "int", UInt, "uint", Float, "float")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::SVSemantic,
                        Invalid, "invalid", Position, "position", UserInOut,
