@@ -34,9 +34,14 @@
     if (!(condition)) {                                                        \
         LOG_ERROR(c, __VA_ARGS__);                                             \
     }
+#define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
+    ASSERT((value & (alignment - 1)) == 0x0, c,                                \
+           name " must be {}-byte aligned", alignment)
 
 // TODO: only log on debug builds
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
+#define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
+    ASSERT_ALIGNMENT(value, alignment, c, name)
 
 namespace Hydra::Logging {
 

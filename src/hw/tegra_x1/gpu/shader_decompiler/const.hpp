@@ -71,6 +71,34 @@ inline u32 GetLoadStoreCount(LoadStoreMode mode) {
     }
 }
 
+inline const SV GetSVFromAddr(u64 addr) {
+    ASSERT_ALIGNMENT_DEBUG(addr, 4, ShaderDecompiler, "Address");
+
+    struct SVBase {
+        SVSemantic semantic;
+        u64 base_addr;
+    };
+
+    static constexpr SVBase bases[] = {
+        {SVSemantic::UserInOut, 0x80},
+        {SVSemantic::Position, 0x70},
+    };
+
+    for (const auto& base : bases) {
+        if (addr >= base.base_addr) {
+            return {
+                .semantic = base.semantic,
+                .index = static_cast<u8>((addr - base.base_addr) >> 4),
+                .component_index = static_cast<u8>((addr >> 2) & 0x3),
+            };
+        }
+    }
+
+    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV address 0x{:02x}", addr);
+
+    return {SVSemantic::Invalid};
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::DataType, Int,

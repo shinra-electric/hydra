@@ -85,6 +85,8 @@ class Reader {
   public:
     Reader(u8* base_) : base{base_}, ptr{base_} {}
 
+    u32 GetCurrentOffset() { return static_cast<u32>(ptr - base); }
+
     void JumpToOffset(u32 offset) { ptr = base + offset; }
 
     template <typename T> T* ReadPtr() {

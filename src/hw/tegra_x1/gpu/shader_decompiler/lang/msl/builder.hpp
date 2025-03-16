@@ -6,7 +6,8 @@ namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL {
 
 class Builder final : public LangBuilderBase {
   public:
-    Builder(std::vector<u8>& out_code) : LangBuilderBase(out_code) {}
+    Builder(const Analyzer& analyzer, std::vector<u8>& out_code)
+        : LangBuilderBase(analyzer, out_code) {}
 
   protected:
     void EmitHeader() override;

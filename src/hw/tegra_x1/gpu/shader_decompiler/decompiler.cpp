@@ -1,6 +1,7 @@
 #include "hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp"
 
 #include "common/functions.hpp"
+#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
 #include "hw/tegra_x1/gpu/shader_decompiler/tables.hpp"
 
@@ -77,10 +78,13 @@ struct ShaderHeader {
 
 void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
                            std::vector<u8>& out_code) {
+    Analyzer analyzer;
+
     // Builder
+    BuilderBase* builder;
     // TODO: choose based on the Shader Decompiler backend
     {
-        builder = new Lang::MSL::Builder(out_code);
+        builder = new Lang::MSL::Builder(analyzer, out_code);
     }
 
     // Header
@@ -90,16 +94,15 @@ void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
 
+    u32 code_offset = code_reader.GetCurrentOffset();
+
+    // Analyze
+    Parse(&analyzer, code_reader);
+
     // Decompile
     builder->Start();
-
-    for (u32 i = 0; i < 12; i++) {
-        u64 inst = code_reader.Read<u64>();
-        LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
-
-        ParseInstruction(inst);
-    }
-
+    code_reader.JumpToOffset(code_offset);
+    Parse(builder, code_reader);
     builder->Finish();
     delete builder;
 
@@ -157,7 +160,7 @@ void Decompiler::Decompile(Reader& code_reader, Renderer::ShaderType type,
     }
 }
 
-void Decompiler::ParseInstruction(u64 inst) {
+void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     struct Amem {
         reg_t reg;
         u64 imm;
@@ -165,13 +168,13 @@ void Decompiler::ParseInstruction(u64 inst) {
 
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_VALUE(b, count) (extract_bits<u32, b, count>(inst) << (32 - count))
-#define GET_AMEM(b)                                                            \
-    Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
+#define GET_AMEM(b) Amem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
 // TODO: what is this?
-#define GET_AMEM_IDX()                                                         \
-    Amem { GET_REG(8), invalid<u64>() }
+#define GET_AMEM_IDX() Amem{GET_REG(8), invalid<u64>()}
 
-    INST0(0xfbe0000000000000, 0xfff8000000000000)
+    INST0(0x0000000000000000, 0x8000000000000000)
+    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
+    INST(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
     INST(0xf6e0000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -188,7 +191,7 @@ void Decompiler::ParseInstruction(u64 inst) {
     INST(0xf0a8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
     INST(0xeff0000000000000, 0xfff8000000000000) {
-        const auto mode = GetOperandEff0_0(inst);
+        const auto mode = GetOperand_eff0_0(inst);
         const auto amem = GET_AMEM(20);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
@@ -196,13 +199,13 @@ void Decompiler::ParseInstruction(u64 inst) {
                   amem.reg, amem.imm, src, todo);
 
         for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
-            builder->OpStore(src + i, amem.reg, amem.imm + i * sizeof(u32));
+            observer->OpStore(src + i, amem.reg, amem.imm + i * sizeof(u32));
         }
     }
     INST(0xefe8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pixld");
     INST(0xefd8000000000000, 0xfff8000000000000) {
-        const auto mode = GetOperandEff0_0(inst);
+        const auto mode = GetOperand_eff0_0(inst);
         const auto dst = GET_REG(0);
         const auto amem = GET_AMEM(20);
         const auto todo = GET_REG(39); // TODO: what is this?
@@ -210,7 +213,7 @@ void Decompiler::ParseInstruction(u64 inst) {
                   dst, amem.reg, amem.imm, todo);
 
         for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
-            builder->OpLoad(dst + i, amem.reg, amem.imm + i * sizeof(u32));
+            observer->OpLoad(dst + i, amem.reg, amem.imm + i * sizeof(u32));
         }
     }
     INST(0xefd0000000000000, 0xfff8000000000000)
@@ -291,8 +294,12 @@ void Decompiler::ParseInstruction(u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ret");
     INST(0xe310000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "longjmp");
-    INST(0xe300000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "exit");
+    INST(0xe300000000000000, 0xfff0000000000000) {
+        // TODO: f0f8_0
+        LOG_DEBUG(ShaderDecompiler, "exit");
+
+        observer->OpExit();
+    }
     INST(0xe2f0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "setlmembase");
     INST(0xe2e0000000000000, 0xfff0000000000000)
@@ -789,12 +796,20 @@ void Decompiler::ParseInstruction(u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "mov32i {} 0x{:08x} 0x{:08x}", dst, value,
                   todo);
 
-        builder->OpMove(dst, value);
+        observer->OpMove(dst, value);
     }
-    INST(0x0000000000000000, 0x8000000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
     else {
         LOG_ERROR(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
+    }
+}
+
+void Decompiler::Parse(ObserverBase* observer, Reader& code_reader) {
+    // TODO: don't limit the instruction count
+    for (u32 i = 0; i < 16; i++) {
+        u64 inst = code_reader.Read<u64>();
+        LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
+
+        ParseInstruction(observer, inst);
     }
 }
 

@@ -1,22 +1,23 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/shader_decompiler/const.hpp"
+#include "hw/tegra_x1/gpu/shader_decompiler/observer_base.hpp"
+
+namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+class Analyzer;
+}
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
-class BuilderBase {
+class BuilderBase : public ObserverBase {
   public:
+    BuilderBase(const Analyzer& analyzer_) : analyzer{analyzer_} {}
     virtual ~BuilderBase() {}
 
     virtual void Start() = 0;
     virtual void Finish() = 0;
 
-    // Operations
-    virtual void OpMove(reg_t dst, u32 value) = 0;
-    virtual void OpLoad(reg_t dst, reg_t src, u64 imm) = 0;
-    virtual void OpStore(reg_t src, reg_t dst, u64 imm) = 0;
-
-  private:
+  protected:
+    const Analyzer& analyzer;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler

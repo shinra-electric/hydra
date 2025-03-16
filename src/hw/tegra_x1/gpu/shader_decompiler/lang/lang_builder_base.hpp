@@ -12,12 +12,14 @@ static const std::string INVALID_VALUE = "INVALID";
 
 class LangBuilderBase : public BuilderBase {
   public:
-    LangBuilderBase(std::vector<u8>& out_code_) : out_code{out_code_} {}
+    LangBuilderBase(const Analyzer& analyzer, std::vector<u8>& out_code_)
+        : BuilderBase(analyzer), out_code{out_code_} {}
 
     void Start() override;
     void Finish() override;
 
     // Operations
+    void OpExit() override;
     void OpMove(reg_t dst, u32 value) override;
     void OpLoad(reg_t dst, reg_t src, u64 imm) override;
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
@@ -84,33 +86,6 @@ class LangBuilderBase : public BuilderBase {
                                  const Qualifier qualifier) {
         // TODO: support qualifiers before the name as well
         return fmt::format("{} {}", name, GetQualifierName(qualifier));
-    }
-
-    const SV GetSVFromAddr(u64 addr) {
-        SV sv;
-
-        struct SVBase {
-            SVSemantic semantic;
-            u64 base_addr;
-        };
-
-        static constexpr SVBase bases[] = {
-            {SVSemantic::UserInOut, 0x80},
-            {SVSemantic::Position, 0x70},
-        };
-
-        for (const auto& base : bases) {
-            if (addr >= base.base_addr) {
-                sv.semantic = base.semantic;
-                sv.index = (addr - base.base_addr) >> 4;
-                sv.component_index = (addr >> 2) & 0x3;
-                return sv;
-            }
-        }
-
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV address 0x{:02x}", addr);
-
-        return {SVSemantic::Invalid};
     }
 
     std::string GetSVName(const SV sv) {

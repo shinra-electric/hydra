@@ -7,7 +7,7 @@
         return e::operand;
 
 #define DEFINE_OPERAND_TABLE(name, e, mask, ...)                               \
-    inline e GetOperand##name(u64 inst) {                                      \
+    inline e GetOperand_##name(u64 inst) {                                     \
         switch (inst & mask) {                                                 \
             FOR_EACH_1_2(OPERAND_TABLE_ENTRY, e, __VA_ARGS__)                  \
         default:                                                               \
@@ -20,7 +20,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
 
-DEFINE_OPERAND_TABLE(Eff0_0, LoadStoreMode, 0x0001800000000000,
+DEFINE_OPERAND_TABLE(eff0_0, LoadStoreMode, 0x0001800000000000,
                      0x0000000000000000, B32, 0x0000800000000000, B64,
                      0x0001000000000000, B96, 0x0001800000000000, B128)
 
