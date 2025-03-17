@@ -46,4 +46,8 @@ void Analyzer::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
     push_sv(input_svs, stage_inputs, imm);
 }
 
+void Analyzer::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
+    push_unique(texture_slots, index);
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler

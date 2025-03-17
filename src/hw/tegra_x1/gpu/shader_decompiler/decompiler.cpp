@@ -347,8 +347,20 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld");
     INST(0xd200000000000000, 0xf600000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tlds");
-    INST(0xd000000000000000, 0xf600000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "texs");
+    INST(0xd000000000000000, 0xf600000000000000) {
+        const auto todo1 = GET_REG(28);
+        const auto dst = GET_REG(0);
+        const auto todo2 = GET_REG(8);
+        const auto coords = GET_REG(20);
+        const auto addr = GET_VALUE_U32(36, 13);
+        // TODO: texture type
+        // TODO: component mask?
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}",
+                            todo1, dst, todo2, coords, addr);
+
+        observer->OpTextureSample(
+            dst, addr - 0x1a4, coords); // TODO: how do texture addresses work?
+    }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");
     INST(0xc038000000000000, 0xfc38000000000000)

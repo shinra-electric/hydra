@@ -48,4 +48,8 @@ std::string Builder::GetStageQualifierName() {
     }
 }
 
+std::string Builder::EmitTextureSample(u32 index, const std::string& coords) {
+    return fmt::format("tex{}.sample(samplr{}, {})", index, index, coords);
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL

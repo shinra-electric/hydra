@@ -16,7 +16,16 @@ class Builder final : public LangBuilderBase {
 
     std::string GetSVQualifierName(const SV sv, bool output) override;
     std::string GetStageInQualifierName() override { return "[[stage_in]]"; }
+    std::string GetTextureQualifierName(const u32 index) override {
+        return fmt::format("[[texture({})]]", index);
+    }
+    std::string GetSamplerQualifierName(const u32 index) override {
+        return fmt::format("[[sampler({})]]", index);
+    }
     std::string GetStageQualifierName() override;
+
+    std::string EmitTextureSample(u32 index,
+                                  const std::string& coords) override;
 
   private:
 };

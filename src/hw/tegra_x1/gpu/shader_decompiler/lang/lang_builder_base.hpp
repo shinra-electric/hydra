@@ -6,6 +6,8 @@
 #define WRITE_ARGS fmt::format_string<T...> fmt, T &&... args
 #define FMT fmt::format(fmt, std::forward<T>(args)...)
 
+#define COMPONENT_STR(component) ("xyzw"[component])
+
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang {
 
 static const std::string INVALID_VALUE = "INVALID";
@@ -26,14 +28,20 @@ class LangBuilderBase : public BuilderBase {
     void OpLoad(reg_t dst, reg_t src, u64 imm) override;
     void OpStore(reg_t src, reg_t dst, u64 imm) override;
     void OpInterpolate(reg_t dst, reg_t src, u64 imm) override;
+    void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
   protected:
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
 
     virtual std::string GetSVQualifierName(const SV sv, bool output) = 0;
-    virtual std::string GetStageQualifierName() = 0;
     virtual std::string GetStageInQualifierName() = 0;
+    virtual std::string GetTextureQualifierName(const u32 index) = 0;
+    virtual std::string GetSamplerQualifierName(const u32 index) = 0;
+    virtual std::string GetStageQualifierName() = 0;
+
+    virtual std::string EmitTextureSample(u32 index,
+                                          const std::string& coords) = 0;
 
     template <typename... T> void Write(WRITE_ARGS) {
         // TODO: handle indentation differently
@@ -66,46 +74,34 @@ class LangBuilderBase : public BuilderBase {
     // Helpers
     std::string GetReg(reg_t reg, bool write = false,
                        DataType data_type = DataType::UInt) {
-        std::string data_type_str;
-        switch (data_type) {
-        case DataType::Int:
-            data_type_str = "i";
-            break;
-        case DataType::UInt:
-            data_type_str = "u";
-            break;
-        case DataType::Float:
-            data_type_str = "f";
-            break;
-        default:
-            data_type_str = INVALID_VALUE;
-            break;
-        }
-
         if (reg == RZ && !write)
-            return fmt::format("0{}", data_type_str);
+            return fmt::format("0{}", GetTypePrefix(data_type));
 
-        return fmt::format("r[{}].{}", reg, data_type_str);
+        return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
     template <typename... T> std::string GetA(WRITE_ARGS) {
         return fmt::format("a[{}]", FMT);
     }
 
-    std::string GetComponentFromIndex(u8 component_index) {
-        switch (component_index) {
-        case 0:
-            return "x";
-        case 1:
-            return "y";
-        case 2:
-            return "z";
-        case 3:
-            return "w";
+    const char GetComponentFromIndex(u8 component_index) {
+        ASSERT_DEBUG(component_index < 4, ShaderDecompiler,
+                     "Invalid component index {}", component_index);
+
+        return "xyzw"[component_index];
+    }
+
+    const char GetTypePrefix(DataType data_type) {
+        switch (data_type) {
+        case DataType::Int:
+            return 'i';
+        case DataType::UInt:
+            return 'u';
+        case DataType::Float:
+            return 'f';
         default:
-            LOG_ERROR(ShaderDecompiler, "Invalid component index {}",
-                      component_index);
-            return INVALID_VALUE;
+            LOG_ERROR(ShaderDecompiler, "Invalid data type {}", data_type);
+            return 'X';
         }
     }
 
@@ -162,6 +158,10 @@ class LangBuilderBase : public BuilderBase {
         indent--;
         Write("}}{}", FMT);
     }
+
+    // Helpers
+    void EmitReadToTemp(reg_t src, u32 count = 4);
+    void EmitWriteFromTemp(reg_t dst, u32 count = 4);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang

@@ -40,6 +40,14 @@ void LangBuilderBase::Start() {
     ExitScope("r[256]");
     WriteNewline();
 
+    // Temporary
+    EnterScope("union");
+    Write("int4 i;");
+    Write("uint4 u;");
+    Write("float4 f;");
+    ExitScope("temp");
+    WriteNewline();
+
     // A memory
     Write("uint a[0x200];"); // TODO: what should the size be?
     WriteNewline();
@@ -171,12 +179,36 @@ void LangBuilderBase::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
     WriteStatement("{} = {}", GetReg(dst, true), GetA("0x{:08x}", imm));
 }
 
+void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
+    EmitReadToTemp(coords, 2);
+    WriteStatement("temp.f = {}", EmitTextureSample(index, "temp.f.xy"));
+    EmitWriteFromTemp(dst);
+}
+
 std::string LangBuilderBase::GetMainArgs() {
 #define ADD_ARG(fmt, ...)                                                      \
     args += fmt::format(", {}", fmt::format(fmt, __VA_ARGS__))
 
     std::string args;
     // TODO: input SVs
+
+    // Uniform buffers
+    // TODO
+
+    // Storage buffers
+    // TODO
+
+    // Textures
+    for (const u32 index : analyzer.GetTextureSlots()) {
+        // TODO: don't hardcode texture type
+        args += fmt::format(", texture2d<float> tex{} {}", index,
+                            GetTextureQualifierName(index));
+        args += fmt::format(", sampler samplr{} {}", index,
+                            GetSamplerQualifierName(index));
+    }
+
+    // Images
+    // TODO
 
 #undef ADD_ARG
 
@@ -267,6 +299,20 @@ void LangBuilderBase::EmitStageOutputs() {
     }
 
     ExitScopeEmpty(true);
+}
+
+void LangBuilderBase::EmitReadToTemp(reg_t src, u32 count) {
+    for (u32 i = 0; i < count; i++) {
+        WriteStatement("temp.u.{} = {}", GetComponentFromIndex(i),
+                       GetReg(src + i, false));
+    }
+}
+
+void LangBuilderBase::EmitWriteFromTemp(reg_t dst, u32 count) {
+    for (u32 i = 0; i < count; i++) {
+        WriteStatement("{} = temp.u.{}", GetReg(dst + i, true),
+                       GetComponentFromIndex(i));
+    }
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang
