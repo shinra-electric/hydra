@@ -106,61 +106,6 @@ void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
     Parse(builder, code_reader);
     builder->Finish();
     delete builder;
-
-    // TODO: don't throw
-    // throw;
-
-    // HACK
-    /*
-    switch (type) {
-    case Renderer::ShaderType::Vertex:
-        static std::string vertex_shader_source = R"(
-            #include <metal_stdlib>
-            using namespace metal;
-
-            struct VertexIn {
-                float3 position [[attribute(0)]];
-                float3 color [[attribute(1)]];
-            };
-
-            struct VertexOut {
-                float4 position [[position]];
-                float3 color [[user(locn0)]];
-            };
-
-            vertex VertexOut main_(VertexIn in [[stage_in]]) {
-                VertexOut out;
-                out.position = float4(in.position, 1.0);
-                out.color = in.color;
-
-                return out;
-            }
-        )";
-        out_code.assign(vertex_shader_source.begin(),
-                        vertex_shader_source.end());
-        break;
-    case Renderer::ShaderType::Fragment:
-        static std::string fragment_shader_source = R"(
-            #include <metal_stdlib>
-            using namespace metal;
-
-            struct VertexOut {
-                float4 position [[position]];
-                float3 color [[user(locn0)]];
-            };
-
-            fragment float4 main_(VertexOut in [[stage_in]]) {
-                return float4(in.color, 1.0);
-            }
-        )";
-        out_code.assign(fragment_shader_source.begin(),
-                        fragment_shader_source.end());
-        break;
-    default:
-        LOG_ERROR(ShaderDecompiler, "Unknown shader type {}", type);
-        break;
-    }
-    */
 }
 
 void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
@@ -178,11 +123,9 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 // #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 // #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-#define GET_AMEM(b)                                                            \
-    Amem { GET_REG(8), extract_bits<u64, b, 10>(inst) }
+#define GET_AMEM(b) Amem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
 // TODO: what is this?
-#define GET_AMEM_IDX()                                                         \
-    Amem { GET_REG(8), invalid<u64>() }
+#define GET_AMEM_IDX() Amem{GET_REG(8), invalid<u64>()}
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
