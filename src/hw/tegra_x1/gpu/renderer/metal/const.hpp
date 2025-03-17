@@ -32,6 +32,8 @@ inline NS::String* GetLabel(const std::string& label, const void* identifier) {
 }
 
 constexpr usize BUFFER_COUNT = 31;
+constexpr usize TEXTURE_COUNT = 31;
+constexpr usize SAMPLER_COUNT = 16;
 
 inline u32 GetVertexBufferIndex(u32 index) { return BUFFER_COUNT - index - 1; }
 

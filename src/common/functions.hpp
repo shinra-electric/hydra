@@ -15,6 +15,10 @@ template <typename T> constexpr T invalid() {
     return std::numeric_limits<T>::max();
 }
 
+template <typename T, u64 b, u64 count> constexpr T mask() {
+    return ((1u << count) - 1u) << b;
+}
+
 template <typename T, typename SrcT> T bit_cast(SrcT src) {
     static_assert(sizeof(T) == sizeof(SrcT));
     return *reinterpret_cast<T*>(&src);
@@ -22,7 +26,7 @@ template <typename T, typename SrcT> T bit_cast(SrcT src) {
 
 template <typename T, u64 b, u64 count, typename SrcT>
 T extract_bits(SrcT src) {
-    return static_cast<T>((src >> b) & ((1ull << count) - 1ull));
+    return static_cast<T>((src >> b) & mask<T, 0, count>());
 }
 
 template <typename T, u32 bit_count> T sign_extend(T v) {

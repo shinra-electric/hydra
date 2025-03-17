@@ -34,6 +34,10 @@ class RendererBase {
     CreateRenderPass(const RenderPassDescriptor& descriptor) = 0;
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
+    // Clear
+    virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+                            const u32 color[4]) = 0;
+
     // Shader
     virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
 
@@ -42,9 +46,12 @@ class RendererBase {
     CreatePipeline(const PipelineDescriptor& descriptor) = 0;
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
-    // Clear
-    virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                            const u32 color[4]) = 0;
+    // Resource binding
+    // TODO: uniform buffers
+    // TODO: storage buffers
+    virtual void BindTexture(TextureBase* texture, ShaderType shader_type,
+                             u32 index) = 0;
+    // TODO: sampers
 
     // Draw
     virtual void Draw(const Engines::PrimitiveType primitive_type,

@@ -46,6 +46,96 @@ struct ComputeDriverCbuf {
     PerStageData data;
 };
 
+struct TicFormatWord {
+    // TODO: why is there yet another format enum...
+    u32 image_format : 7; // ImageFormat
+    u32 component_r : 3;  // ImageComponent
+    u32 component_g : 3;  // ImageComponent
+    u32 component_b : 3;  // ImageComponent
+    u32 component_a : 3;  // ImageComponent
+    u32 swizzle_x : 3;    // ImageSwizzle
+    u32 swizzle_y : 3;    // ImageSwizzle
+    u32 swizzle_z : 3;    // ImageSwizzle
+    u32 swizzle_w : 3;    // ImageSwizzle
+    u32 pack : 1;
+};
+
+struct TextureImageControl {
+    // 0x00
+    TicFormatWord format_word;
+
+    // 0x04
+    u32 address_lo;
+
+    // 0x08
+    u32 address_hi : 16;
+    u32 view_layer_base_3_7 : 5;
+    u32 hdr_version : 3;
+    u32 load_store_hint_maybe : 1;
+    u32 view_coherency_hash : 4;
+    u32 view_layer_base_8_10 : 3;
+
+    // 0x0C
+    union {
+        u16 width_minus_one_16_31;
+        u16 pitch_5_20;
+        struct {
+            u16 tile_width_gobs_log2 : 3;
+            u16 tile_height_gobs_log2 : 3;
+            u16 tile_depth_gobs_log2 : 3;
+            u16 : 1;
+            u16 sparse_tile_width_gobs_log2 : 3;
+            u16 gob_3d : 1;
+            u16 : 2;
+        };
+    };
+    u16 lod_aniso_quality_2 : 1;
+    u16 lod_aniso_quality : 1;            // LodQuality
+    u16 lod_iso_quality : 1;              // LodQuality
+    u16 aniso_coarse_spread_modifier : 2; // AnisoSpreadModifier
+    u16 aniso_spread_scale : 5;
+    u16 use_header_opt_control : 1;
+    u16 depth_texture : 1;
+    u16 mip_max_levels : 4;
+
+    // 0x10
+    u32 width_minus_one : 16;
+    u32 view_layer_base_0_2 : 3;
+    u32 aniso_spread_max_log2 : 3;
+    u32 is_sRGB : 1;
+    u32 texture_type : 4;     // TextureType
+    u32 sector_promotion : 2; // SectorPromotion
+    u32 border_size : 3;      // BorderSize
+
+    // 0x14
+    u32 height_minus_one : 16;
+    u32 depth_minus_one : 14;
+    u32 is_sparse : 1;
+    u32 normalized_coords : 1;
+
+    // 0x18
+    u32 color_key_op : 1;
+    u32 trilin_opt : 5;
+    u32 mip_lod_bias : 13;
+    u32 aniso_bias : 4;
+    u32 aniso_fine_spread_func : 2;     // AnisoSpreadFunc
+    u32 aniso_coarse_spread_func : 2;   // AnisoSpreadFunc
+    u32 max_anisotropy : 3;             // MaxAnisotropy
+    u32 aniso_fine_spread_modifier : 2; // AnisoSpreadModifier
+
+    // 0x1C
+    union {
+        u32 color_key_value;
+        struct {
+            u32 view_mip_min_level : 4;
+            u32 view_mip_max_level : 4;
+            u32 msaa_mode : 4; // MsaaMode
+            u32 min_lod_clamp : 12;
+            u32 : 8;
+        };
+    };
+};
+
 struct RenderTarget {
     u32 addr_hi;
     u32 addr_lo;
@@ -287,12 +377,12 @@ class ThreeD : public EngineBase {
     Macro::DriverBase* macro_driver;
 
     // Commands
-    void LoadMmeInstructionRamPointer(const u32 ptr);
-    void LoadMmeInstructionRam(const u32 data);
-    void LoadMmeStartAddressRamPointer(const u32 ptr);
-    void LoadMmeStartAddressRam(const u32 data);
+    void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
+    void LoadMmeInstructionRam(const u32 index, const u32 data);
+    void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
+    void LoadMmeStartAddressRam(const u32 index, const u32 data);
 
-    void DrawVertexArray(const u32 count);
+    void DrawVertexArray(const u32 index, const u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -302,20 +392,25 @@ class ThreeD : public EngineBase {
         u32 layer_id : 11;
     };
 
-    void ClearBuffer(const ClearBufferData data);
+    void ClearBuffer(const u32 index, const ClearBufferData data);
 
-    void FirmwareCall4(const u32 data);
+    void FirmwareCall4(const u32 index, const u32 data);
 
-    void LoadConstBuffer(const u32 data);
+    void LoadConstBuffer(const u32 index, const u32 data);
 
     // Helpers
-
     Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index,
                                           u32 max_vertex) const;
+    Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     Renderer::RenderPassBase* GetRenderPass() const;
     Renderer::ShaderBase* GetShader(ShaderStage stage) const;
     Renderer::PipelineBase* GetPipeline() const;
+
+    void ConfigureShaderStage(const ShaderStage stage,
+                              const Renderer::ShaderType type,
+                              const GraphicsDriverCbuf& const_buffer,
+                              const TextureImageControl* tex_header_pool);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

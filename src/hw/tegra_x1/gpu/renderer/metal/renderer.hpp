@@ -7,6 +7,7 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
 class Buffer;
+class Texture;
 class RenderPass;
 class Pipeline;
 
@@ -21,11 +22,13 @@ struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
+    const Texture* textures[usize(ShaderType::Count)][VERTEX_ARRAY_COUNT];
 };
 
 struct EncoderRenderState {
     MTL::RenderPipelineState* pipeline{nullptr};
     MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
+    MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
 
 struct EncoderState {
@@ -61,6 +64,10 @@ class Renderer : public RendererBase {
     CreateRenderPass(const RenderPassDescriptor& descriptor) override;
     void BindRenderPass(const RenderPassBase* render_pass) override;
 
+    // Clear
+    void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+                    const u32 color[4]) override;
+
     // Shader
     ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
 
@@ -68,9 +75,9 @@ class Renderer : public RendererBase {
     PipelineBase* CreatePipeline(const PipelineDescriptor& descriptor) override;
     void BindPipeline(const PipelineBase* pipeline) override;
 
-    // Clear
-    void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                    const u32 color[4]) override;
+    // Resource binding
+    void BindTexture(TextureBase* texture, ShaderType shader_type,
+                     u32 index) override;
 
     // Draw
     void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
@@ -128,6 +135,8 @@ class Renderer : public RendererBase {
     void SetRenderPipelineState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);
+    void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
+    void SetTexture(ShaderType shader_type, u32 index);
 
     // Debug
     void BeginCapture();
