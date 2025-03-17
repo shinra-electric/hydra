@@ -2,8 +2,8 @@
 
 #include "hw/tegra_x1/gpu/engines/const.hpp"
 
-#define METHOD_CASE(method, func, arg_type)                                    \
-    case method:                                                               \
+#define METHOD_CASE(method_begin, method_count, func, arg_type)                \
+    case method_begin ...(method_begin + method_count - 1):                    \
         func(bit_cast<arg_type>(arg));                                         \
         break;
 
@@ -14,7 +14,7 @@
             return;                                                            \
         }                                                                      \
         switch (method) {                                                      \
-            FOR_EACH_0_3(METHOD_CASE, __VA_ARGS__)                             \
+            FOR_EACH_0_4(METHOD_CASE, __VA_ARGS__)                             \
         default:                                                               \
             WriteReg(method, arg);                                             \
             break;                                                             \

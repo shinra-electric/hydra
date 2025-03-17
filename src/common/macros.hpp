@@ -55,6 +55,13 @@
     macro(a1, a2, a3) __VA_OPT__(FOR_EACH_AGAIN_0_3 PARENS(macro, __VA_ARGS__))
 #define FOR_EACH_AGAIN_0_3() FOR_EACH_HELPER_0_3
 
+#define FOR_EACH_0_4(macro, ...)                                               \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_0_4(macro, __VA_ARGS__)))
+#define FOR_EACH_HELPER_0_4(macro, a1, a2, a3, a4, ...)                        \
+    macro(a1, a2, a3, a4)                                                      \
+        __VA_OPT__(FOR_EACH_AGAIN_0_4 PARENS(macro, __VA_ARGS__))
+#define FOR_EACH_AGAIN_0_4() FOR_EACH_HELPER_0_4
+
 #define FOR_EACH_1_2(macro, e, ...)                                            \
     __VA_OPT__(EXPAND(FOR_EACH_HELPER_1_2(macro, e, __VA_ARGS__)))
 #define FOR_EACH_HELPER_1_2(macro, e, a1, a2, ...)                             \

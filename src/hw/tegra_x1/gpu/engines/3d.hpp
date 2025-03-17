@@ -17,6 +17,35 @@ class PipelineBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+// From Deko3D
+struct BufferDescriptor {
+    uptr gpu_addr;
+    u32 size;
+    u32 padding;
+};
+
+struct PerStageData {
+    u32 textures[TEXTURE_BINDING_COUNT];
+    u32 images[IMAGE_BINDING_COUNT];
+    BufferDescriptor storageBufs[STORAGE_BUFFER_BINDING_COUNT];
+};
+
+struct GraphicsDriverCbuf {
+    uint32_t baseVertex;
+    uint32_t baseInstance;
+    uint32_t drawId;
+    uint32_t fbTexHandle;
+    PerStageData data[u32(ShaderStage::Count) - 1];
+};
+
+struct ComputeDriverCbuf {
+    uint32_t ctaSize[3];
+    uint32_t gridSize[3];
+    uint32_t _padding[2];
+    uptr uniformBufs[UNIFORM_BUFFER_BINDING_COUNT];
+    PerStageData data;
+};
+
 struct RenderTarget {
     u32 addr_hi;
     u32 addr_lo;
@@ -141,9 +170,16 @@ union Regs3D {
         // 0x458 vertex attribute states
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
-        u32 padding7[0x8];
+        u32 padding_0x478[0x8];
 
-        u32 padding8[0x102];
+        u32 padding_0x480[0xdd];
+
+        // 0x55d
+        u32 tex_header_pool_hi;
+        u32 tex_header_pool_lo;
+        u32 tex_header_pool_max_index;
+
+        u32 padding_0x560[0x22];
 
         // 0x582
         u32 shader_program_region_hi;
@@ -167,7 +203,7 @@ union Regs3D {
             bool enable : 32;
         } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-        u32 padding11[0xd0];
+        u32 padding_0x630[0xd0];
 
         // 0x700 vertex arrays
         struct {
@@ -197,7 +233,19 @@ union Regs3D {
             u32 padding2[0xc];
         } shader_programs[u32(ShaderStage::Count)];
 
-        u32 padding14[0x4a0];
+        u32 padding_0x860[0x80];
+
+        // 0x8e0 constant buffers
+        u32 const_buffer_selector_size;
+        u32 const_buffer_selector_hi;
+        u32 const_buffer_selector_lo;
+
+        u32 load_const_buffer_offset;
+        u32 not_a_register_0x8e4[0x10];
+
+        u32 padding_0x8f4[0xc];
+
+        u32 padding_0x900[0x400];
 
         // 0xd00
         u32 mme_firmware_args[8];
@@ -257,6 +305,8 @@ class ThreeD : public EngineBase {
     void ClearBuffer(const ClearBufferData data);
 
     void FirmwareCall4(const u32 data);
+
+    void LoadConstBuffer(const u32 data);
 
     // Helpers
 

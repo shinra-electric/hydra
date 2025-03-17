@@ -7,12 +7,12 @@
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
-DEFINE_METHOD_TABLE(ThreeD, 0x45, LoadMmeInstructionRamPointer, u32, 0x46,
-                    LoadMmeInstructionRam, u32, 0x47,
-                    LoadMmeStartAddressRamPointer, u32, 0x48,
-                    LoadMmeStartAddressRam, u32, 0x35e, DrawVertexArray, u32,
-                    0x674, ClearBuffer, ClearBufferData, 0x8c4, FirmwareCall4,
-                    u32)
+DEFINE_METHOD_TABLE(ThreeD, 0x45, 1, LoadMmeInstructionRamPointer, u32, 0x46, 1,
+                    LoadMmeInstructionRam, u32, 0x47, 1,
+                    LoadMmeStartAddressRamPointer, u32, 0x48, 1,
+                    LoadMmeStartAddressRam, u32, 0x35e, 1, DrawVertexArray, u32,
+                    0x674, 1, ClearBuffer, ClearBufferData, 0x8c4, 1,
+                    FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32)
 
 SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
 
@@ -134,6 +134,15 @@ void ThreeD::FirmwareCall4(const u32 data) {
 
     // TODO: find out what this does
     regs.mme_firmware_args[0] = 0x1;
+}
+
+void ThreeD::LoadConstBuffer(const u32 data) {
+    const uptr const_buffer_gpu_addr =
+        make_addr(regs.const_buffer_selector_lo, regs.const_buffer_selector_hi);
+    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(
+        const_buffer_gpu_addr + regs.load_const_buffer_offset);
+
+    *reinterpret_cast<u32*>(ptr) = data;
 }
 
 Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index,
