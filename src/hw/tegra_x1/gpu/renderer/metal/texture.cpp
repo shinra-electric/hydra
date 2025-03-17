@@ -10,9 +10,7 @@ Texture::Texture(const TextureDescriptor& descriptor)
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
-
-    pixel_format = get_mtl_pixel_format(descriptor.surface_format);
-    desc->setPixelFormat(pixel_format);
+    desc->setPixelFormat(to_mtl_pixel_format(descriptor.surface_format));
 
     texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
 }

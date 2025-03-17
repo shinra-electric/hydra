@@ -47,7 +47,8 @@ class RendererBase {
                             const u32 color[4]) = 0;
 
     // Draw
-    virtual void Draw(const u32 start, const u32 count) = 0;
+    virtual void Draw(const Engines::PrimitiveType primitive_type,
+                      const u32 start, const u32 count) = 0;
 
   protected:
     // State getters

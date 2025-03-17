@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/pipeline.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/shader.hpp"
@@ -245,7 +246,8 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                             NS::UInteger(3));
 }
 
-void Renderer::Draw(const u32 start, const u32 count) {
+void Renderer::Draw(const Engines::PrimitiveType primitive_type,
+                    const u32 start, const u32 count) {
     auto encoder = GetRenderCommandEncoder();
 
     // State
@@ -257,9 +259,8 @@ void Renderer::Draw(const u32 start, const u32 count) {
     // TODO: textures
 
     // Draw
-    // TODO: use the actual primitive type
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(start),
-                            NS::UInteger(count));
+    encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
+                            NS::UInteger(start), NS::UInteger(count));
 }
 
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {

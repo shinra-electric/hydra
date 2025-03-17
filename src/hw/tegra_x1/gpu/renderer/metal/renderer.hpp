@@ -73,7 +73,8 @@ class Renderer : public RendererBase {
                     const u32 color[4]) override;
 
     // Draw
-    void Draw(const u32 start, const u32 count) override;
+    void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
+              const u32 count) override;
 
     // Getters
     MTL::Device* GetDevice() const { return device; }

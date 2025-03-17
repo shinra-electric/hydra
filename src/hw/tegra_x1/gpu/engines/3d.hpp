@@ -149,7 +149,16 @@ union Regs3D {
         u32 shader_program_region_hi;
         u32 shader_program_region_lo;
 
-        u32 padding9[0xc];
+        u32 attribute_default; // TODO: what is this?
+
+        u32 end;
+        struct {
+            PrimitiveType primitive_type : 26;
+            bool instance_next : 1;
+            bool instance_ctrl : 1; // TODO: is the name correct?
+        } begin;
+
+        u32 padding9[0x9];
 
         u32 padding10[0x90];
 

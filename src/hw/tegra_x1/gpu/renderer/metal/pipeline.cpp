@@ -46,7 +46,7 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
             GetVertexBufferIndex(vertex_attrib_state.buffer_id));
         // TODO: is fixed
         vertex_attrib_descriptor->setOffset(vertex_attrib_state.offset);
-        vertex_attrib_descriptor->setFormat(get_mtl_vertex_format(
+        vertex_attrib_descriptor->setFormat(to_mtl_vertex_format(
             vertex_attrib_state.type, vertex_attrib_state.size,
             vertex_attrib_state.bgra));
     }

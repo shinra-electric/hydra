@@ -4,6 +4,24 @@
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+enum class PrimitiveType {
+    Points,
+    Lines,
+    LineLoop,
+    LineStrip,
+    Triangles,
+    TriangleStrip,
+    TriangleFan,
+    Quads,
+    QuadStrip,
+    Polygon,
+    LinesAdjacency,
+    LineStripAdjacency,
+    TrianglesAdjacency,
+    TriangleStripAdjacency,
+    Patches,
+};
+
 enum class VertexAttribType : u32 {
     None,
     Snorm,
@@ -61,6 +79,17 @@ enum class ShaderStage {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
+                       "points", Lines, "lines", LineLoop, "line loop",
+                       LineStrip, "line strip", Triangles, "triangles",
+                       TriangleStrip, "triangle strip", TriangleFan,
+                       "triangle fan", Quads, "quads", QuadStrip, "quad strip",
+                       Polygon, "polygon", LinesAdjacency, "lines adjacency",
+                       LineStripAdjacency, "line strip adjacency",
+                       TrianglesAdjacency, "triangles adjacency",
+                       TriangleStripAdjacency, "triangle strip adjacency",
+                       Patches, "patches")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribType, None,
                        "none", Snorm, "snorm", Unorm, "unorm", Sint, "sint",

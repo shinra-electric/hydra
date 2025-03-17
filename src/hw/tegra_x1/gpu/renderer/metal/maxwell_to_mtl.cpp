@@ -1,5 +1,4 @@
 #include "hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
-#include "Metal/MTLVertexDescriptor.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
@@ -188,7 +187,7 @@ std::map<NvColorFormat, PixelFormatInfo> pixel_format_lut = {
 };
 */
 
-const PixelFormatInfo& get_mtl_pixel_format_info(SurfaceFormat surface_format) {
+const PixelFormatInfo& to_mtl_pixel_format_info(SurfaceFormat surface_format) {
     auto it = pixel_format_lut.find(surface_format);
     ASSERT_DEBUG(it != pixel_format_lut.end(), MetalRenderer,
                  "Unknown surface format {}", surface_format);
@@ -200,44 +199,28 @@ const PixelFormatInfo& get_mtl_pixel_format_info(SurfaceFormat surface_format) {
     return info;
 }
 
-enum class VertexAttribSize : u32 {
-    // One to four 32-bit components
-    _1x32 = 0x12,
-    _2x32 = 0x04,
-    _3x32 = 0x02,
-    _4x32 = 0x01,
+MTL::PrimitiveType
+to_mtl_primitive_type(const Engines::PrimitiveType primitive_type) {
+    switch (primitive_type) {
+    case Engines::PrimitiveType::Points:
+        return MTL::PrimitiveTypePoint;
+    case Engines::PrimitiveType::Lines:
+        return MTL::PrimitiveTypeLine;
+    case Engines::PrimitiveType::LineStrip:
+        return MTL::PrimitiveTypeLineStrip;
+    case Engines::PrimitiveType::Triangles:
+        return MTL::PrimitiveTypeTriangle;
+    case Engines::PrimitiveType::TriangleStrip:
+        return MTL::PrimitiveTypeTriangleStrip;
+    default:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Primitive type {}", primitive_type);
+        return MTL::PrimitiveTypeTriangle;
+    }
+}
 
-    // One to four 16-bit components
-    _1x16 = 0x1b,
-    _2x16 = 0x0f,
-    _3x16 = 0x05,
-    _4x16 = 0x03,
-
-    // One to four 8-bit components
-    _1x8 = 0x1d,
-    _2x8 = 0x18,
-    _3x8 = 0x13,
-    _4x8 = 0x0a,
-
-    // Misc arrangements
-    _10_10_10_2 = 0x30,
-    _11_11_10 = 0x31,
-};
-
-enum class VertexAttribType : u32 {
-    None,
-    Snorm,
-    Unorm,
-    Sint,
-    Uint,
-    Uscaled,
-    Sscaled,
-    Float,
-};
-
-const MTL::VertexFormat get_mtl_vertex_format(Engines::VertexAttribType type,
-                                              Engines::VertexAttribSize size,
-                                              bool bgra) {
+const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
+                                             Engines::VertexAttribSize size,
+                                             bool bgra) {
     ASSERT_DEBUG(!bgra || (type == Engines::VertexAttribType::Unorm &&
                            size == Engines::VertexAttribSize::_4x8),
                  MetalRenderer,

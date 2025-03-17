@@ -83,7 +83,7 @@ void ThreeD::DrawVertexArray(const u32 count) {
     // TODO: buffers
     // TODO: textures
 
-    RENDERER->Draw(regs.vertex_array_start, count);
+    RENDERER->Draw(regs.begin.primitive_type, regs.vertex_array_start, count);
 }
 
 void ThreeD::ClearBuffer(const ClearBufferData data) {
