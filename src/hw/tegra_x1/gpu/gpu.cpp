@@ -94,7 +94,7 @@ Renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
     Renderer::TextureDescriptor descriptor{
         .ptr = mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr +
                               buff.planes[0].offset),
-        .surface_format = to_surface_format(buff.planes[0].color_format),
+        .format = Renderer::to_texture_format(buff.planes[0].color_format),
         .kind = buff.planes[0].kind,
         .width = buff.planes[0].width,
         .height = buff.planes[0].height,

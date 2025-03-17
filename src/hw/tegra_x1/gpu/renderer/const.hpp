@@ -7,6 +7,19 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 class TextureBase;
 class ShaderBase;
 
+enum class TextureFormat {
+    Invalid,
+
+    RGBA8Unorm,
+    // TODO: more
+};
+
+TextureFormat to_texture_format(NvColorFormat color_format);
+TextureFormat
+to_texture_format(ImageFormat image_format); // TODO: also take image component
+TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
+TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
+
 struct BufferDescriptor {
     uptr ptr;
     usize size;
@@ -14,7 +27,7 @@ struct BufferDescriptor {
 
 struct TextureDescriptor {
     uptr ptr;
-    SurfaceFormat surface_format;
+    TextureFormat format;
     NvKind kind;
     usize width;
     usize height;
@@ -73,6 +86,9 @@ struct PipelineDescriptor {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Renderer::TextureFormat,
+                       Invalid, "invalid", RGBA8Unorm, "rgba8_unorm")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Renderer::ShaderType, Vertex,
                        "vertex", Fragment, "fragment", Count, "invalid")

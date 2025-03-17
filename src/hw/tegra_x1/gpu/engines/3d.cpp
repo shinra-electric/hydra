@@ -193,8 +193,8 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
 
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        .surface_format = SurfaceFormat::RGBA8Unorm, // HACK
-        .kind = NvKind::Generic_16BX2,               // TODO: correct?
+        .format = Renderer::to_texture_format(tic.format_word.image_format),
+        .kind = NvKind::Generic_16BX2, // TODO: correct?
         .width = static_cast<usize>(tic.width_minus_one + 1),
         .height = static_cast<usize>(tic.height_minus_one + 1),
         .block_height_log2 = tic.tile_height_gobs_log2, // TODO: correct?
@@ -215,7 +215,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        .surface_format = render_target.surface_format,
+        .format = Renderer::to_texture_format(render_target.format),
         .kind = NvKind::Generic_16BX2, // TODO: correct?
         .width = render_target.width,
         .height = render_target.height,
@@ -274,7 +274,7 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
             continue;
 
         descriptor.state.color_target_formats[i] =
-            regs.color_targets[i].surface_format;
+            Renderer::to_texture_format(regs.color_targets[i].format);
     }
 
     return GPU::GetInstance().GetShaderCache().Find(descriptor);

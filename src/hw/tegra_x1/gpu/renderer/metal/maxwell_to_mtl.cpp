@@ -2,17 +2,21 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
-#define PIXEL_FORMAT_ENTRY(surface_format, pixel_format, has_stencil)          \
+#define PIXEL_FORMAT_ENTRY(format, pixel_format, has_stencil)                  \
     {                                                                          \
-        SurfaceFormat::surface_format, {                                       \
-            MTL::PixelFormat##pixel_format, has_stencil                        \
-        }                                                                      \
+        TextureFormat::format, { MTL::PixelFormat##pixel_format, has_stencil } \
     }
 
-#define COLOR_PIXEL_FORMAT_ENTRY(surface_format, pixel_format)                 \
-    PIXEL_FORMAT_ENTRY(surface_format, pixel_format, false)
+#define COLOR_PIXEL_FORMAT_ENTRY(format, pixel_format)                         \
+    PIXEL_FORMAT_ENTRY(format, pixel_format, false)
 
-std::map<SurfaceFormat, PixelFormatInfo> pixel_format_lut = {
+std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
+    COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm, RGBA8Unorm),
+    // TODO: more
+};
+
+/*
+std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     // Color
     COLOR_PIXEL_FORMAT_ENTRY(Bitmap, Invalid),
     // COLOR_PIXEL_FORMAT_ENTRY(Unknown1D, Invalid),
@@ -92,6 +96,7 @@ std::map<SurfaceFormat, PixelFormatInfo> pixel_format_lut = {
     PIXEL_FORMAT_ENTRY(Z32X8C8X16Float, Invalid, false),
     PIXEL_FORMAT_ENTRY(Z32S8C8X16Float, Invalid, false),
 };
+*/
 
 /*
 std::map<NvColorFormat, PixelFormatInfo> pixel_format_lut = {
@@ -187,14 +192,14 @@ std::map<NvColorFormat, PixelFormatInfo> pixel_format_lut = {
 };
 */
 
-const PixelFormatInfo& to_mtl_pixel_format_info(SurfaceFormat surface_format) {
-    auto it = pixel_format_lut.find(surface_format);
+const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format) {
+    auto it = pixel_format_lut.find(format);
     ASSERT_DEBUG(it != pixel_format_lut.end(), MetalRenderer,
-                 "Unknown surface format {}", surface_format);
+                 "Unknown format {}", format);
 
     const auto& info = it->second;
     ASSERT_DEBUG(info.pixel_format != MTL::PixelFormatInvalid, MetalRenderer,
-                 "Unimplemented surface format {}", surface_format);
+                 "Unimplemented format {}", format);
 
     return info;
 }

@@ -486,12 +486,112 @@ enum class NvColorFormat : u64 {
     XYZ = 0x140A886640UL,
 };
 
-enum SurfaceFormat : u32 {
+enum class ImageFormat {
     Invalid = 0,
 
-    // Color
+    RGBA32 = 0x01,
+    RGB32 = 0x02,
+    RGBA16 = 0x03,
+    R32G32 = 0x04,
+    R32B24G8 = 0x05,
+    ETC2_RGB = 0x06,
+    XBGR8 = 0x07,
+    ARGB8 = 0x08,
+    A2BGR10 = 0x09,
+    ETC2_RGB_PTA = 0x0A,
+    ETC2_RGBA = 0x0B,
+    RG16 = 0x0C,
+    G8R24 = 0x0D,
+    G24R8 = 0x0E,
+    R32 = 0x0F,
+    BC6H_SF16 = 0x10,
+    BC6H_UF16 = 0x11,
+    ABGR4 = 0x12,
+    ABG5R1 = 0x13,
+    A1BGR5 = 0x14,
+    B5G6R5 = 0x15,
+    B6GR5 = 0x16,
+    BC7U = 0x17,
+    GR8 = 0x18,
+    EAC = 0x19,
+    EACX2 = 0x1A,
+    R16 = 0x1B,
+    Y8_VIDEO = 0x1C,
+    R8 = 0x1D,
+    GR4 = 0x1E,
+    R1 = 0x1F,
+    E5BGR9_SHAREDEXP = 0x20,
+    B10GR11Float = 0x21,
+    GBGR8 = 0x22,
+    BGRG8 = 0x23,
+    DXT1 = 0x24,
+    DXT23 = 0x25,
+    DXT45 = 0x26,
+    DXN1 = 0x27,
+    DXN2 = 0x28,
+    Z24S8 = 0x29,
+    X8Z24 = 0x2A,
+    S8Z24 = 0x2B,
+    X4V4Z24__COV4R4V = 0x2C,
+    X4V4Z24__COV8R8V = 0x2D,
+    V8Z24__COV4R12V = 0x2E,
+    ZF32 = 0x2F,
+    ZF32_X24S8 = 0x30,
+    X8Z24_X20V4S8__COV4R4V = 0x31,
+    X8Z24_X20V4S8__COV8R8V = 0x32,
+    ZF32_X20V4X8__COV4R4V = 0x33,
+    ZF32_X20V4X8__COV8R8V = 0x34,
+    ZF32_X20V4S8__COV4R4V = 0x35,
+    ZF32_X20V4S8__COV8R8V = 0x36,
+    X8Z24_X16V8S8__COV4R12V = 0x37,
+    ZF32_X16V8X8__COV4R12V = 0x38,
+    ZF32_X16V8S8__COV4R12V = 0x39,
+    Z16 = 0x3A,
+    V8Z24__COV8R24V = 0x3B,
+    X8Z24_X16V8S8__COV8R24V = 0x3C,
+    ZF32_X16V8X8__COV8R24V = 0x3D,
+    ZF32_X16V8S8__COV8R24V = 0x3E,
+    ASTC_2D_4X4 = 0x40,
+    ASTC_2D_5X5 = 0x41,
+    ASTC_2D_6X6 = 0x42,
+    ASTC_2D_8X8 = 0x44,
+    ASTC_2D_10X10 = 0x45,
+    ASTC_2D_12X12 = 0x46,
+    ASTC_2D_5X4 = 0x50,
+    ASTC_2D_6X5 = 0x51,
+    ASTC_2D_8X6 = 0x52,
+    ASTC_2D_10X8 = 0x53,
+    ASTC_2D_12X10 = 0x54,
+    ASTC_2D_8X5 = 0x55,
+    ASTC_2D_10X5 = 0x56,
+    ASTC_2D_10X6 = 0x57,
+};
+
+enum class ImageComponent {
+    Snorm = 1,
+    Unorm = 2,
+    Sint = 3,
+    Uint = 4,
+    SnormForceFp16 = 5,
+    UnormForceFp16 = 6,
+    Float = 7,
+};
+
+enum class ImageSwizzle {
+    Zero = 0,
+    R = 2,
+    G = 3,
+    B = 4,
+    A = 5,
+    OneInt = 6,
+    OneFloat = 7,
+};
+
+enum class ColorSurfaceFormat : u32 {
+    Invalid = 0,
+
     Bitmap = 0x1C,
-    // Unknown1D = 0x1D,
+    Unknown1D = 0x1D,
     RGBA32Float = 0xC0,
     RGBA32Sint = 0xC1,
     RGBA32Uint = 0xC2,
@@ -552,8 +652,11 @@ enum SurfaceFormat : u32 {
     BGRX8UnormUnknownFD = 0xFD,
     BGRX8UnormUnknownFE = 0xFE,
     Y32UintUnknownFF = 0xFF,
+};
 
-    // Depth stencil
+enum class DepthSurfaceFormat : u32 {
+    Invalid = 0,
+
     Z32Float = 0x0A,
     Z16Unorm = 0x13,
     S8Z24Unorm = 0x14,
@@ -566,8 +669,6 @@ enum SurfaceFormat : u32 {
     Z32X8C8X16Float = 0x1E,
     Z32S8C8X16Float = 0x1F,
 };
-
-SurfaceFormat to_surface_format(NvColorFormat color_format);
 
 struct NvSurface {
     u32 width;
@@ -876,7 +977,37 @@ ENABLE_ENUM_FORMATTING(
     X4Bayer12GBRG, "x4bayer12gbrg", X6Bayer10GBRG, "x6bayer10gbrg", XYZ, "xyz")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::SurfaceFormat, Invalid, "invalid", Bitmap,
+    Hydra::HW::TegraX1::GPU::ImageFormat, Invalid, "invalid", RGBA32, "rgba32",
+    RGB32, "rgb32", RGBA16, "rgba16", R32G32, "r32g32", R32B24G8, "r32b24g8",
+    ETC2_RGB, "etc2_rgb", XBGR8, "xbgr8", ARGB8, "argb8", A2BGR10, "a2bgr10",
+    ETC2_RGB_PTA, "etc2_rgb_pta", ETC2_RGBA, "etc2_rgba", RG16, "rg16", G8R24,
+    "g8r24", G24R8, "g24r8", R32, "r32", BC6H_SF16, "bc6h_sf16", BC6H_UF16,
+    "bc6h_uf16", ABGR4, "abgr4", ABG5R1, "abg5r1", A1BGR5, "a1bgr5", B5G6R5,
+    "b5g6r5", B6GR5, "b6gr5", BC7U, "bc7u", GR8, "gr8", EAC, "eac", EACX2,
+    "eacx2", R16, "r16", Y8_VIDEO, "y8_video", R8, "r8", GR4, "gr4", R1, "r1",
+    E5BGR9_SHAREDEXP, "e5bgr9_sharedexp", B10GR11Float, "b10gr11float", GBGR8,
+    "gbgr8", BGRG8, "bgrg8", DXT1, "dxt1", DXT23, "dxt23", DXT45, "dxt45", DXN1,
+    "dxn1", DXN2, "dxn2", Z24S8, "z24s8", X8Z24, "x8z24", S8Z24, "s8z24",
+    X4V4Z24__COV4R4V, "x4v4z24__cov4r4v", X4V4Z24__COV8R8V, "x4v4z24__cov8r8v",
+    V8Z24__COV4R12V, "v8z24__cov4r12v", ZF32, "zf32", ZF32_X24S8, "zf32_x24s8",
+    X8Z24_X20V4S8__COV4R4V, "x8z24_x20v4s8__cov4r4v", X8Z24_X20V4S8__COV8R8V,
+    "x8z24_x20v4s8__cov8r8v", ZF32_X20V4X8__COV4R4V, "zf32_x20v4x8__cov4r4v",
+    ZF32_X20V4X8__COV8R8V, "zf32_x20v4x8__cov8r8v", ZF32_X20V4S8__COV4R4V,
+    "zf32_x20v4s8__cov4r4v", ZF32_X20V4S8__COV8R8V, "zf32_x20v4s8__cov8r8v",
+    X8Z24_X16V8S8__COV4R12V, "x8z24_x16v8s8__cov4r12v", ZF32_X16V8X8__COV4R12V,
+    "zf32_x16v8x8__cov4r12v", ZF32_X16V8S8__COV4R12V, "zf32_x16v8s8__cov4r12v",
+    Z16, "z16", V8Z24__COV8R24V, "v8z24__cov8r24v", X8Z24_X16V8S8__COV8R24V,
+    "x8z24_x16v8s8__cov8r24v", ZF32_X16V8X8__COV8R24V, "zf32_x16v8x8__cov8r24v",
+    ZF32_X16V8S8__COV8R24V, "zf32_x16v8s8__cov8r24v", ASTC_2D_4X4,
+    "astc_2d_4x4", ASTC_2D_5X5, "astc_2d_5x5", ASTC_2D_6X6, "astc_2d_6x6",
+    ASTC_2D_8X8, "astc_2d_8x8", ASTC_2D_10X10, "astc_2d_10x10", ASTC_2D_12X12,
+    "astc_2d_12x12", ASTC_2D_5X4, "astc_2d_5x4", ASTC_2D_6X5, "astc_2d_6x5",
+    ASTC_2D_8X6, "astc_2d_8x6", ASTC_2D_10X8, "astc_2d_10x8", ASTC_2D_12X10,
+    "astc_2d_12x10", ASTC_2D_8X5, "astc_2d_8x5", ASTC_2D_10X5, "astc_2d_10x5",
+    ASTC_2D_10X6, "astc_2d_10x6")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::ColorSurfaceFormat, Invalid, "invalid", Bitmap,
     "bitmap", RGBA32Float, "rgba32float", RGBA32Sint, "rgba32sint", RGBA32Uint,
     "rgba32uint", RGBX32Float, "rgbx32float", RGBX32Sint, "rgbx32sint",
     RGBX32Uint, "rgbx32uint", RGBA16Unorm, "rgba16unorm", RGBA16Snorm,
@@ -899,11 +1030,15 @@ ENABLE_ENUM_FORMATTING(
     BGR5X1UnormUnknownFB, "bgr5x1unormunknownfb", BGR5X1UnormUnknownFC,
     "bgr5x1unormunknownfc", BGRX8UnormUnknownFD, "bgrx8unormunknownfd",
     BGRX8UnormUnknownFE, "bgrx8unormunknownfe", Y32UintUnknownFF,
-    "y32uintunknownff", Z32Float, "z32float", Z16Unorm, "z16unorm", S8Z24Unorm,
-    "s8z24unorm", Z24X8Unorm, "z24x8unorm", Z24S8Unorm, "z24s8unorm", S8Uint,
-    "s8uint", Z24C8Unorm, "z24c8unorm", Z32S8X24Float, "z32s8x24float",
-    Z24X8S8C8X16Unorm, "z24x8s8c8x16unorm", Z32X8C8X16Float, "z32x8c8x16float",
-    Z32S8C8X16Float, "z32s8c8x16float")
+    "y32uintunknownff")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::DepthSurfaceFormat, Invalid,
+                       "invalid", Z32Float, "z32float", Z16Unorm, "z16unorm",
+                       S8Z24Unorm, "s8z24unorm", Z24X8Unorm, "z24x8unorm",
+                       Z24S8Unorm, "z24s8unorm", S8Uint, "s8uint", Z24C8Unorm,
+                       "z24c8unorm", Z32S8X24Float, "z32s8x24float",
+                       Z24X8S8C8X16Unorm, "z24x8s8c8x16unorm", Z32X8C8X16Float,
+                       "z32x8c8x16float", Z32S8C8X16Float, "z32s8c8x16float")
 
 ENABLE_ENUM_FLAGS_FORMATTING(Hydra::HW::TegraX1::GPU::GpfifoFlags, FenceWait,
                              "fence wait", FenceGet, "fence get", HwFormat,

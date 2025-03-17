@@ -135,7 +135,7 @@ void LangBuilderBase::OpExit() {
     case Renderer::ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == SurfaceFormat::Invalid)
+            if (color_target_format == Renderer::TextureFormat::Invalid)
                 continue;
 
             for (u32 c = 0; c < 4; c++) {
@@ -285,7 +285,7 @@ void LangBuilderBase::EmitStageOutputs() {
     case Renderer::ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == SurfaceFormat::Invalid)
+            if (color_target_format == Renderer::TextureFormat::Invalid)
                 continue;
 
             const auto sv = SV(SVSemantic::UserInOut, i);

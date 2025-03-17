@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/const.hpp"
 
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
@@ -40,7 +41,7 @@ inline DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
     }
 }
 
-inline DataType to_data_type(SurfaceFormat surface_format) {
+inline DataType to_data_type(Renderer::TextureFormat format) {
     // TODO: implement
     return DataType::Float;
 }

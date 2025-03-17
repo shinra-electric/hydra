@@ -27,6 +27,8 @@ void TextureCache::Update(Renderer::TextureBase* texture) {
 u64 TextureCache::Hash(const Renderer::TextureDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
+    hash = rotl(hash, 7);
+    hash += static_cast<u64>(descriptor.format);
     hash = rotl(hash, 13);
     hash += descriptor.width;
     hash = rotl(hash, 11);

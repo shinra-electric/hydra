@@ -11,10 +11,10 @@ struct PixelFormatInfo {
     // TODO: format decoder
 };
 
-const PixelFormatInfo& to_mtl_pixel_format_info(SurfaceFormat surface_format);
+const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format);
 
-inline MTL::PixelFormat to_mtl_pixel_format(SurfaceFormat surface_format) {
-    return to_mtl_pixel_format_info(surface_format).pixel_format;
+inline MTL::PixelFormat to_mtl_pixel_format(TextureFormat format) {
+    return to_mtl_pixel_format_info(format).pixel_format;
 }
 
 MTL::PrimitiveType

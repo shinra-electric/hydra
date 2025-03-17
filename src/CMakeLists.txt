@@ -101,7 +101,6 @@ add_executable(hydra
     hw/tegra_x1/cpu/hypervisor/thread.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
-    hw/tegra_x1/gpu/const.cpp
     hw/tegra_x1/gpu/const.hpp
     hw/tegra_x1/gpu/gpu_mmu.cpp
     hw/tegra_x1/gpu/gpu_mmu.hpp
@@ -151,6 +150,7 @@ add_executable(hydra
     hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.hpp
     hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.cpp
     hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp
+    hw/tegra_x1/gpu/renderer/const.cpp
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp

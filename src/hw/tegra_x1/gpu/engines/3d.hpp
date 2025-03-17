@@ -47,16 +47,15 @@ struct ComputeDriverCbuf {
 };
 
 struct TicFormatWord {
-    // TODO: why is there yet another format enum...
-    u32 image_format : 7; // ImageFormat
-    u32 component_r : 3;  // ImageComponent
-    u32 component_g : 3;  // ImageComponent
-    u32 component_b : 3;  // ImageComponent
-    u32 component_a : 3;  // ImageComponent
-    u32 swizzle_x : 3;    // ImageSwizzle
-    u32 swizzle_y : 3;    // ImageSwizzle
-    u32 swizzle_z : 3;    // ImageSwizzle
-    u32 swizzle_w : 3;    // ImageSwizzle
+    ImageFormat image_format : 7;
+    ImageComponent component_r : 3;
+    ImageComponent component_g : 3;
+    ImageComponent component_b : 3;
+    ImageComponent component_a : 3;
+    ImageSwizzle swizzle_x : 3;
+    ImageSwizzle swizzle_y : 3;
+    ImageSwizzle swizzle_z : 3;
+    ImageSwizzle swizzle_w : 3;
     u32 pack : 1;
 };
 
@@ -141,7 +140,7 @@ struct RenderTarget {
     u32 addr_lo;
     u32 width;
     u32 height;
-    SurfaceFormat surface_format;
+    ColorSurfaceFormat format;
     struct {
         u32 width : 4;
         u32 height : 4;
