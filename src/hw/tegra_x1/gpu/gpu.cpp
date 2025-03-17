@@ -4,6 +4,8 @@
 #include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/2d.hpp"
 #include "hw/tegra_x1/gpu/engines/3d.hpp"
+#include "hw/tegra_x1/gpu/engines/compute.hpp"
+#include "hw/tegra_x1/gpu/engines/copy.hpp"
 #include "hw/tegra_x1/gpu/engines/inline.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
@@ -53,8 +55,7 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
             engine = new Engines::ThreeD();
             break;
         case 0xb1c0:
-            // TODO: implement
-            LOG_NOT_IMPLEMENTED(GPU, "Compute engine");
+            engine = new Engines::Compute();
             break;
         case 0xa140:
             engine = new Engines::Inline();
@@ -63,8 +64,7 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
             engine = new Engines::TwoD();
             break;
         case 0xb0b5:
-            // TODO: implement
-            LOG_NOT_IMPLEMENTED(GPU, "Copy engine");
+            engine = new Engines::Copy();
             break;
         case 0xb06f:
             // TODO: implement

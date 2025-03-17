@@ -125,10 +125,14 @@ add_executable(hydra
     hw/tegra_x1/gpu/engines/engine_base.hpp
     hw/tegra_x1/gpu/engines/3d.cpp
     hw/tegra_x1/gpu/engines/3d.hpp
+    hw/tegra_x1/gpu/engines/compute.cpp
+    hw/tegra_x1/gpu/engines/compute.hpp
     hw/tegra_x1/gpu/engines/inline.cpp
     hw/tegra_x1/gpu/engines/inline.hpp
     hw/tegra_x1/gpu/engines/2d.cpp
     hw/tegra_x1/gpu/engines/2d.hpp
+    hw/tegra_x1/gpu/engines/copy.cpp
+    hw/tegra_x1/gpu/engines/copy.hpp
     hw/tegra_x1/gpu/macro/const.hpp
     hw/tegra_x1/gpu/macro/driver_base.cpp
     hw/tegra_x1/gpu/macro/driver_base.hpp
