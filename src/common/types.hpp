@@ -38,6 +38,48 @@ template <typename T> struct range {
     usize size;
 };
 
+template <typename T, usize component_count> class vec {
+  public:
+    vec() {}
+    vec(const T& value) {
+        for (usize i = 0; i < component_count; i++) {
+            components[i] = value;
+        }
+    }
+    vec(const std::initializer_list<T>& values) {
+        std::copy(values.begin(), values.end(), components.begin());
+    }
+
+    T& operator[](int idx) { return components[index]; }
+
+    T operator[](int idx) const { return components[index]; }
+
+    T& x() { return components[0]; }
+    T& y() { return components[1]; }
+    T& z() { return components[2]; }
+    T& w() { return components[3]; }
+
+    T x() const { return components[0]; }
+    T y() const { return components[1]; }
+    T z() const { return components[2]; }
+    T w() const { return components[3]; }
+
+  private:
+    std::array<T, component_count> components = {0};
+};
+
+using uchar2 = vec<u8, 2>;
+using ushort2 = vec<u16, 2>;
+using uint2 = vec<u32, 2>;
+using ulong2 = vec<u64, 2>;
+using usize2 = vec<usize, 2>;
+
+using uchar3 = vec<u8, 3>;
+using ushort3 = vec<u16, 3>;
+using uint3 = vec<u32, 3>;
+using ulong3 = vec<u64, 3>;
+using usize3 = vec<usize, 3>;
+
 template <typename T> class readonly {
   public:
     readonly() {}

@@ -2,32 +2,38 @@
 
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 
+namespace Hydra::HW::TegraX1::GPU::Renderer {
+class BufferBase;
+class TextureBase;
+} // namespace Hydra::HW::TegraX1::GPU::Renderer
+
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
-enum class TransferType {
+enum class TransferType : u32 {
     None,
     Pipelined,
     NonPipelined,
 };
 
-enum class SemaphoreType {
+enum class SemaphoreType : u32 {
     None,
     ReleaseOneWord,
     ReleaseFourWords,
 };
 
-enum class InterruptType {
+enum class InterruptType : u32 {
     None,
     Blocking,
     NonBlocking,
 };
 
-enum class MemoryLayout {
+// Pitch - buffer, block linear - texture
+enum class MemoryLayout : u32 {
     BlockLinear,
     Pitch,
 };
 
-enum class SemaphoreReduction {
+enum class SemaphoreReduction : u32 {
     Imin,
     Imax,
     Ixor,
@@ -44,6 +50,41 @@ enum class BypassL2 {
     ForceVolatile,
 };
 
+enum class BlockDim : u32 {
+    OneGob,
+    TwoGobs,
+    FourGobs,
+    EightGobs,
+    SixteenGobs,
+    ThirtyTwoGobs,
+    QuarterGob = 14,
+};
+
+enum class GobHeight : u32 {
+    Tesla4,
+    Fermi8,
+};
+
+struct BlockSize {
+    BlockDim width : 4;
+    BlockDim height : 4;
+    BlockDim depth : 4;
+    GobHeight gob_height : 4;
+    // TODO: more
+};
+
+struct TextureCopyInfo {
+    BlockSize block_size;
+    u32 stride; // dst_width;
+    u32 height;
+    u32 depth;
+    u32 layer;
+    struct {
+        u32 x : 16;
+        u32 y : 16;
+    } origin;
+};
+
 union RegsCopy {
     struct {
         u32 padding_0x0[0xc0];
@@ -53,12 +94,12 @@ union RegsCopy {
         u32 padding_0xc1[0x3f];
 
         // 0x100
-        u32 offset_in_upper;
-        u32 offset_in_lower;
-        u32 offset_out_upper;
-        u32 offset_out_lower;
-        u32 pitch_in;
-        u32 pitch_out;
+        u32 offset_in_hi;
+        u32 offset_in_lo;
+        u32 offset_out_hi;
+        u32 offset_out_lo;
+        u32 stride_in;
+        u32 stride_out;
         u32 line_length_in;
         u32 line_count;
 
@@ -68,22 +109,12 @@ union RegsCopy {
         u32 remap_const_hi;
         u32 remap_const_lo;
         u32 remap_components;
-        u32 dst_block_size;
-        u32 dst_width;
-        u32 dst_height;
-        u32 dst_depth;
-        u32 dst_layer;
-        u32 dst_origin;
+        TextureCopyInfo dst;
 
         u32 padding_0x1c9;
 
         // 0x1ca
-        u32 src_block_size;
-        u32 src_width;
-        u32 src_height;
-        u32 src_depth;
-        u32 src_layer;
-        u32 src_origin;
+        TextureCopyInfo src;
 
         // TODO
     };
@@ -124,6 +155,13 @@ class Copy : public EngineBase {
     };
 
     void LaunchDMA(const u32 index, const LaunchDMAData data);
+
+    // Helpers
+    static Renderer::BufferBase*
+    GetBuffer(const u32 gpu_addr_lo, const u32 gpu_addr_hi, const usize size);
+    static Renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
+                                             const u32 gpu_addr_hi,
+                                             const TextureCopyInfo& info);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

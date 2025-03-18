@@ -53,7 +53,6 @@ class Renderer : public RendererBase {
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
-    void UploadTexture(TextureBase* texture, void* data) override;
 
     // Command buffer
     void BeginCommandBuffer() override;
@@ -82,6 +81,35 @@ class Renderer : public RendererBase {
     // Draw
     void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
               const u32 count) override;
+
+    // Helpers
+
+    // Command encoders
+    MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
+        ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
+                     "Render command encoder not active");
+        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
+    }
+    MTL::RenderCommandEncoder* GetRenderCommandEncoder();
+    MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
+        MTL::RenderPassDescriptor* render_pass_descriptor);
+
+    MTL::BlitCommandEncoder* GetBlitCommandEncoderUnchecked() {
+        ASSERT_DEBUG(encoder_type == EncoderType::Blit, MetalRenderer,
+                     "Blit command encoder not active");
+        return static_cast<MTL::BlitCommandEncoder*>(command_encoder);
+    }
+    MTL::BlitCommandEncoder* GetBlitCommandEncoder();
+
+    void EndEncoding();
+
+    // Encoder state setting
+    void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
+    void SetRenderPipelineState();
+    void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
+    void SetVertexBuffer(u32 index);
+    void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
+    void SetTexture(ShaderType shader_type, u32 index);
 
     // Getters
     MTL::Device* GetDevice() const { return device; }
@@ -114,29 +142,6 @@ class Renderer : public RendererBase {
 
     // Debug
     bool capturing = false;
-
-    // Helpers
-
-    // Command encoders
-    MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
-        ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
-                     "Invalid encoder type");
-        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
-    }
-
-    MTL::RenderCommandEncoder* GetRenderCommandEncoder();
-
-    MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
-        MTL::RenderPassDescriptor* render_pass_descriptor);
-    void EndEncoding();
-
-    // Encoder state setting
-    void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
-    void SetRenderPipelineState();
-    void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
-    void SetVertexBuffer(u32 index);
-    void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
-    void SetTexture(ShaderType shader_type, u32 index);
 
     // Debug
     void BeginCapture();

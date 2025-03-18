@@ -45,7 +45,7 @@ void TextureCache::DecodeTexture(Renderer::TextureBase* texture) {
     u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
     texture_decoder.Decode(texture->GetDescriptor(), scratch_buffer, out_data);
 
-    RENDERER->UploadTexture(texture, out_data);
+    texture->CopyFrom(out_data);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU

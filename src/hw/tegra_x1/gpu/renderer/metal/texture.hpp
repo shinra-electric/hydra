@@ -10,13 +10,19 @@ class Texture final : public TextureBase {
     Texture(const TextureDescriptor& descriptor);
     ~Texture() override;
 
+    // Copying
+    void CopyFrom(const void* data) override;
+    void CopyFrom(const BufferBase* src, const usize src_stride,
+                  const u32 dst_layer, const uint3 dst_origin,
+                  const usize3 size) override;
+
     // Getters
-    MTL::Texture* GetTexture() const { return texture; }
+    MTL::Texture* GetTexture() const { return mtl_texture; }
 
     MTL::PixelFormat GetPixelFormat() const { return pixel_format; }
 
   private:
-    MTL::Texture* texture;
+    MTL::Texture* mtl_texture;
 
     MTL::PixelFormat pixel_format;
 };

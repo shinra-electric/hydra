@@ -188,17 +188,6 @@ TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
-void Renderer::UploadTexture(TextureBase* texture, void* data) {
-    auto texture_impl = static_cast<Texture*>(texture);
-    auto mtl_texture = texture_impl->GetTexture();
-
-    // TODO: do a GPU copy?
-    // TODO: bytes per image
-    mtl_texture->replaceRegion(
-        MTL::Region{0, 0, 0, mtl_texture->width(), mtl_texture->height(), 1}, 0,
-        0, data, texture_impl->GetDescriptor().stride, 0);
-}
-
 void Renderer::BeginCommandBuffer() {
     ASSERT_DEBUG(!command_buffer, MetalRenderer,
                  "Command buffer already started");
@@ -282,7 +271,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
     auto mtl_render_pass = state.render_pass->GetRenderPassDescriptor();
     if (mtl_render_pass == encoder_state.render_pass)
-        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
+        return GetRenderCommandEncoderUnchecked();
 
     encoder_state.render_pass = mtl_render_pass;
     encoder_state.render = {};
@@ -308,7 +297,21 @@ MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
     encoder_type = EncoderType::Render;
     encoder_state.render_pass = render_pass_descriptor;
 
-    return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
+    return GetRenderCommandEncoderUnchecked();
+}
+
+MTL::BlitCommandEncoder* Renderer::GetBlitCommandEncoder() {
+    if (encoder_type == EncoderType::Blit)
+        return GetBlitCommandEncoderUnchecked();
+
+    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
+
+    EndEncoding();
+
+    command_encoder = command_buffer->blitCommandEncoder();
+    encoder_type = EncoderType::Blit;
+
+    return GetBlitCommandEncoderUnchecked();
 }
 
 void Renderer::EndEncoding() {
