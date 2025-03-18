@@ -23,7 +23,7 @@ struct State {
     const Pipeline* pipeline{nullptr};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
-                                 [32]; // TODO: what should the size be?
+                                 [UNIFORM_BUFFER_BINDING_COUNT];
     const Texture* textures[usize(ShaderType::Count)][VERTEX_ARRAY_COUNT];
 };
 

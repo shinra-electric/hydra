@@ -9,9 +9,10 @@ class ObserverBase {
     // Operations
     virtual void OpExit() = 0;
     virtual void OpMove(reg_t dst, Operand src) = 0;
-    virtual void OpLoad(reg_t dst, IndexedMem src) = 0;
-    virtual void OpStore(IndexedMem dst, reg_t src) = 0;
-    virtual void OpInterpolate(reg_t dst, IndexedMem src) = 0;
+    virtual void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) = 0;
+    virtual void OpLoad(reg_t dst, AMem src) = 0;
+    virtual void OpStore(AMem dst, reg_t src) = 0;
+    virtual void OpInterpolate(reg_t dst, AMem src) = 0;
     virtual void OpTextureSample(reg_t dst, u32 index, reg_t coords) = 0;
 
   private:

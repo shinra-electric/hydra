@@ -14,6 +14,13 @@ void LangBuilderBase::Start() {
     EmitTypeAliases();
     WriteNewline();
 
+    // Reg type
+    EnterScope("union Reg");
+    Write("int i;");
+    Write("uint u;");
+    Write("float f;");
+    ExitScopeEmpty(true);
+
     // Declarations
 
     // Stage inputs
@@ -22,6 +29,10 @@ void LangBuilderBase::Start() {
 
     // Stage outputs
     EmitStageOutputs();
+    WriteNewline();
+
+    // Uniform buffers
+    EmitUniformBuffers();
     WriteNewline();
 
     // Main declaration
@@ -33,11 +44,7 @@ void LangBuilderBase::Start() {
     WriteNewline();
 
     // Registers
-    EnterScope("union");
-    Write("int i;");
-    Write("uint u;");
-    Write("float f;");
-    ExitScope("r[256]");
+    Write("Reg r[256];");
     WriteNewline();
 
     // Temporary
@@ -48,8 +55,8 @@ void LangBuilderBase::Start() {
     ExitScope("temp");
     WriteNewline();
 
-    // A memory
-    Write("uint a[0x200];"); // TODO: what should the size be?
+    // Attribute memory
+    Write("Reg a[0x200];"); // TODO: what should the size be?
     WriteNewline();
 
     // Inputs
@@ -91,6 +98,20 @@ void LangBuilderBase::Start() {
         break;
     default:
         break;
+    }
+    WriteNewline();
+
+    // Constant memory
+    Write("Reg c[{}][0x40];",
+          UNIFORM_BUFFER_BINDING_COUNT); // TODO: what should the size be?
+    WriteNewline();
+
+    // Uniform buffers
+    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+        u32 u32_count = size / sizeof(u32);
+        for (u32 i = 0; i < u32_count; i++)
+            WriteStatement("{} = ubuff{}.data[{}]",
+                           GetC({index, i * sizeof(u32)}), index, i);
     }
     WriteNewline();
 }
@@ -160,15 +181,21 @@ void LangBuilderBase::OpMove(reg_t dst, Operand src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src, false));
 }
 
-void LangBuilderBase::OpLoad(reg_t dst, IndexedMem src) {
+void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
+    WriteStatement("{} = {} * {}", GetReg(dst, true, DataType::Float),
+                   GetReg(src1, false, DataType::Float),
+                   GetOperand(src2, false, DataType::Float));
+}
+
+void LangBuilderBase::OpLoad(reg_t dst, AMem src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
-void LangBuilderBase::OpStore(IndexedMem dst, reg_t src) {
+void LangBuilderBase::OpStore(AMem dst, reg_t src) {
     WriteStatement("{} = {}", GetA(dst), GetReg(src, false));
 }
 
-void LangBuilderBase::OpInterpolate(reg_t dst, IndexedMem src) {
+void LangBuilderBase::OpInterpolate(reg_t dst, AMem src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
@@ -179,25 +206,28 @@ void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
 }
 
 std::string LangBuilderBase::GetMainArgs() {
-#define ADD_ARG(fmt, ...)                                                      \
-    args += fmt::format(", {}", fmt::format(fmt, __VA_ARGS__))
+#define ADD_ARG(f, ...) args += fmt::format(", {}", fmt::format(f, __VA_ARGS__))
 
     std::string args;
-    // TODO: input SVs
+
+    // Input SVs
+    // TODO
 
     // Uniform buffers
-    // TODO
+    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+        ADD_ARG("constant UBuff{}& ubuff{} {}", index, index,
+                GetUniformBufferQualifierName(index));
+    }
 
     // Storage buffers
     // TODO
 
     // Textures
-    for (const u32 index : analyzer.GetTextureSlots()) {
+    for (const auto index : analyzer.GetTextures()) {
         // TODO: don't hardcode texture type
-        args += fmt::format(", texture2d<float> tex{} {}", index,
-                            GetTextureQualifierName(index));
-        args += fmt::format(", sampler samplr{} {}", index,
-                            GetSamplerQualifierName(index));
+        ADD_ARG("texture2d<float> tex{} {}", index,
+                GetTextureQualifierName(index));
+        ADD_ARG("sampler samplr{} {}", index, GetSamplerQualifierName(index));
     }
 
     // Images
@@ -292,6 +322,17 @@ void LangBuilderBase::EmitStageOutputs() {
     }
 
     ExitScopeEmpty(true);
+}
+
+void LangBuilderBase::EmitUniformBuffers() {
+    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+        EnterScope("struct UBuff{}", index);
+
+        // Data
+        Write("uint data[{}];", size / sizeof(u32));
+
+        ExitScopeEmpty(true);
+    }
 }
 
 void LangBuilderBase::EmitReadToTemp(reg_t src, u32 count) {

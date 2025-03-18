@@ -24,9 +24,10 @@ class LangBuilderBase : public BuilderBase {
     // Operations
     void OpExit() override;
     void OpMove(reg_t dst, Operand src) override;
-    void OpLoad(reg_t dst, IndexedMem src) override;
-    void OpStore(IndexedMem dst, reg_t src) override;
-    void OpInterpolate(reg_t dst, IndexedMem src) override;
+    void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
+    void OpLoad(reg_t dst, AMem src) override;
+    void OpStore(AMem dst, reg_t src) override;
+    void OpInterpolate(reg_t dst, AMem src) override;
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
   protected:
@@ -35,6 +36,7 @@ class LangBuilderBase : public BuilderBase {
 
     virtual std::string GetSVQualifierName(const SV sv, bool output) = 0;
     virtual std::string GetStageInQualifierName() = 0;
+    virtual std::string GetUniformBufferQualifierName(const u32 index) = 0;
     virtual std::string GetTextureQualifierName(const u32 index) = 0;
     virtual std::string GetSamplerQualifierName(const u32 index) = 0;
     virtual std::string GetStageQualifierName() = 0;
@@ -79,14 +81,19 @@ class LangBuilderBase : public BuilderBase {
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
-    std::string GetA(const IndexedMem amem) {
-        // TODO: support indexing with reg
-        return fmt::format("a[0x{:08x}]", amem.imm);
+    std::string GetImm(u32 imm, DataType data_type = DataType::UInt) {
+        return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
     }
 
-    std::string GetC(const IndexedMem cmem) {
+    std::string GetA(const AMem amem, DataType data_type = DataType::UInt) {
         // TODO: support indexing with reg
-        return fmt::format("c[0x{:08x}]", cmem.imm);
+        return fmt::format("a[0x{:08x}].{}", amem.imm / sizeof(u32),
+                           GetTypePrefix(data_type));
+    }
+
+    std::string GetC(const CMem cmem, DataType data_type = DataType::UInt) {
+        return fmt::format("c[{}][0x{:08x}].{}", cmem.idx,
+                           cmem.imm / sizeof(u32), GetTypePrefix(data_type));
     }
 
     std::string GetOperand(Operand operand, bool write = false,
@@ -95,11 +102,11 @@ class LangBuilderBase : public BuilderBase {
         case OperandType::Register:
             return GetReg(operand.reg, write, data_type);
         case OperandType::Immediate:
-            return fmt::format("0x{:08x}", operand.imm);
+            return GetImm(operand.imm, data_type);
         case OperandType::AttributeMemory:
-            return GetA(operand.amem);
+            return GetA(operand.amem, data_type);
         case OperandType::ConstMemory:
-            return GetC(operand.cmem);
+            return GetC(operand.cmem, data_type);
         }
     }
 
@@ -153,17 +160,17 @@ class LangBuilderBase : public BuilderBase {
         return (output ? "__out" : "__in");
     }
 
-    std::string GetMainArgs();
-
-    // Emit
-    void EmitStageInputs();
-    void EmitStageOutputs();
-
   private:
     std::string code_str;
 
     u32 indent = 0;
 
+    std::string GetMainArgs();
+
+    // Emit
+    void EmitStageInputs();
+    void EmitStageOutputs();
+    void EmitUniformBuffers();
     template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 
     template <typename... T> void EnterScopeImpl(WRITE_ARGS) {

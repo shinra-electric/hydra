@@ -13,8 +13,13 @@ typedef u8 reg_t;
 
 constexpr reg_t RZ = 255;
 
-struct IndexedMem {
+struct AMem {
     reg_t reg;
+    u64 imm;
+};
+
+struct CMem {
+    u32 idx;
     u64 imm;
 };
 
@@ -30,8 +35,8 @@ struct Operand {
     union {
         reg_t reg;
         u32 imm;
-        IndexedMem amem;
-        IndexedMem cmem;
+        AMem amem;
+        CMem cmem;
     };
 
     static Operand Register(reg_t reg_) {
@@ -42,11 +47,11 @@ struct Operand {
         return Operand{.type = OperandType::Immediate, .imm = imm_};
     }
 
-    static Operand AttributeMemory(const IndexedMem& amem) {
+    static Operand AttributeMemory(const AMem& amem) {
         return Operand{.type = OperandType::AttributeMemory, .amem = amem};
     }
 
-    static Operand ConstMemory(const IndexedMem& cmem) {
+    static Operand ConstMemory(const CMem& cmem) {
         return Operand{.type = OperandType::ConstMemory, .cmem = cmem};
     }
 };

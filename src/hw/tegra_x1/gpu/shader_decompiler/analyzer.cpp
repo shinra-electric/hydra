@@ -22,7 +22,15 @@ void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
-void Analyzer::OpLoad(reg_t dst, IndexedMem src) {
+void Analyzer::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
+    if (src2.type == OperandType::ConstMemory) {
+        const auto cmem = src2.cmem;
+        auto& size = uniform_buffers[cmem.idx];
+        size = std::max(size, static_cast<usize>(cmem.imm) + sizeof(u32));
+    }
+}
+
+void Analyzer::OpLoad(reg_t dst, AMem src) {
     // TODO: support indexing with src
     ASSERT_DEBUG(src.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: r{})", src.reg);
@@ -30,7 +38,7 @@ void Analyzer::OpLoad(reg_t dst, IndexedMem src) {
     push_sv(input_svs, stage_inputs, src.imm);
 }
 
-void Analyzer::OpStore(IndexedMem dst, reg_t src) {
+void Analyzer::OpStore(AMem dst, reg_t src) {
     // TODO: support indexing with src
     ASSERT_DEBUG(dst.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (dst: r{})", dst.reg);
@@ -38,7 +46,7 @@ void Analyzer::OpStore(IndexedMem dst, reg_t src) {
     push_sv(output_svs, stage_outputs, dst.imm);
 }
 
-void Analyzer::OpInterpolate(reg_t dst, IndexedMem src) {
+void Analyzer::OpInterpolate(reg_t dst, AMem src) {
     // TODO: support indexing with src
     ASSERT_DEBUG(src.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: r{})", src.reg);
@@ -47,7 +55,7 @@ void Analyzer::OpInterpolate(reg_t dst, IndexedMem src) {
 }
 
 void Analyzer::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
-    push_unique(texture_slots, index);
+    push_unique(textures, index);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler

@@ -9,9 +9,10 @@ class Analyzer : public ObserverBase {
     // Operations
     void OpExit() override {}
     void OpMove(reg_t dst, Operand src) override {}
-    void OpLoad(reg_t dst, IndexedMem src) override;
-    void OpStore(IndexedMem dst, reg_t src) override;
-    void OpInterpolate(reg_t dst, IndexedMem src) override;
+    void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
+    void OpLoad(reg_t dst, AMem src) override;
+    void OpStore(AMem dst, reg_t src) override;
+    void OpInterpolate(reg_t dst, AMem src) override;
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
     // Getters
@@ -19,14 +20,18 @@ class Analyzer : public ObserverBase {
     const std::vector<SVSemantic>& GetOutputSVs() const { return output_svs; }
     const std::vector<u8>& GetStageInputs() const { return stage_inputs; }
     const std::vector<u8>& GetStageOutputs() const { return stage_outputs; }
-    const std::vector<u32>& GetTextureSlots() const { return texture_slots; }
+    const std::map<u32, usize>& GetUniformBuffers() const {
+        return uniform_buffers;
+    }
+    const std::vector<u32>& GetTextures() const { return textures; }
 
   private:
     std::vector<SVSemantic> input_svs;
     std::vector<SVSemantic> output_svs;
     std::vector<u8> stage_inputs;
     std::vector<u8> stage_outputs;
-    std::vector<u32> texture_slots;
+    std::map<u32, usize> uniform_buffers;
+    std::vector<u32> textures;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler

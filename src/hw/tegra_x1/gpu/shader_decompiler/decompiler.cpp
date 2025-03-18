@@ -118,8 +118,11 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 // #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 // #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-#define GET_AMEM(b) IndexedMem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
-#define GET_AMEM_IDX() IndexedMem{GET_REG(8), 0}
+#define GET_AMEM(b) AMem{GET_REG(8), extract_bits<u32, b, 10>(inst)}
+#define GET_AMEM_IDX() AMem{GET_REG(8), 0}
+// HACK: why do I have to multiply by 4?
+#define GET_CMEM(b_idx, count_imm)                                             \
+    CMem{GET_VALUE_U32(b_idx, 5), extract_bits<u32, 20, count_imm>(inst) * 4}
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -581,8 +584,15 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmul");
     INST(0x4c70000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
-    INST(0x4c68000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul");
+    INST(0x4c68000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:08x}]", dst, src1,
+                  src2.idx, src2.imm);
+
+        observer->OpFloatMultiply(dst, src1, Operand::ConstMemory(src2));
+    }
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x4c58000000000000, 0xfff8000000000000)

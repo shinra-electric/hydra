@@ -16,6 +16,9 @@ class Builder final : public LangBuilderBase {
 
     std::string GetSVQualifierName(const SV sv, bool output) override;
     std::string GetStageInQualifierName() override { return "[[stage_in]]"; }
+    std::string GetUniformBufferQualifierName(const u32 index) override {
+        return fmt::format("[[buffer({})]]", index);
+    }
     std::string GetTextureQualifierName(const u32 index) override {
         return fmt::format("[[texture({})]]", index);
     }
