@@ -13,6 +13,44 @@ typedef u8 reg_t;
 
 constexpr reg_t RZ = 255;
 
+struct IndexedMem {
+    reg_t reg;
+    u64 imm;
+};
+
+enum class OperandType {
+    Register,
+    Immediate,
+    AttributeMemory,
+    ConstMemory,
+};
+
+struct Operand {
+    OperandType type;
+    union {
+        reg_t reg;
+        u32 imm;
+        IndexedMem amem;
+        IndexedMem cmem;
+    };
+
+    static Operand Register(reg_t reg_) {
+        return Operand{.type = OperandType::Register, .reg = reg_};
+    }
+
+    static Operand Immediate(u32 imm_) {
+        return Operand{.type = OperandType::Immediate, .imm = imm_};
+    }
+
+    static Operand AttributeMemory(const IndexedMem& amem) {
+        return Operand{.type = OperandType::AttributeMemory, .amem = amem};
+    }
+
+    static Operand ConstMemory(const IndexedMem& cmem) {
+        return Operand{.type = OperandType::ConstMemory, .cmem = cmem};
+    }
+};
+
 enum class DataType {
     None,
     Int,

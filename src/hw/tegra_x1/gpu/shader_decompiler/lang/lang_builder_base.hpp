@@ -23,11 +23,10 @@ class LangBuilderBase : public BuilderBase {
 
     // Operations
     void OpExit() override;
-    void OpMove(reg_t dst, reg_t src) override;
-    void OpMoveImmediate(reg_t dst, u32 value) override;
-    void OpLoad(reg_t dst, reg_t src, u64 imm) override;
-    void OpStore(reg_t src, reg_t dst, u64 imm) override;
-    void OpInterpolate(reg_t dst, reg_t src, u64 imm) override;
+    void OpMove(reg_t dst, Operand src) override;
+    void OpLoad(reg_t dst, IndexedMem src) override;
+    void OpStore(IndexedMem dst, reg_t src) override;
+    void OpInterpolate(reg_t dst, IndexedMem src) override;
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
   protected:
@@ -80,8 +79,28 @@ class LangBuilderBase : public BuilderBase {
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
-    template <typename... T> std::string GetA(WRITE_ARGS) {
-        return fmt::format("a[{}]", FMT);
+    std::string GetA(const IndexedMem amem) {
+        // TODO: support indexing with reg
+        return fmt::format("a[0x{:08x}]", amem.imm);
+    }
+
+    std::string GetC(const IndexedMem cmem) {
+        // TODO: support indexing with reg
+        return fmt::format("c[0x{:08x}]", cmem.imm);
+    }
+
+    std::string GetOperand(Operand operand, bool write = false,
+                           DataType data_type = DataType::UInt) {
+        switch (operand.type) {
+        case OperandType::Register:
+            return GetReg(operand.reg, write, data_type);
+        case OperandType::Immediate:
+            return fmt::format("0x{:08x}", operand.imm);
+        case OperandType::AttributeMemory:
+            return GetA(operand.amem);
+        case OperandType::ConstMemory:
+            return GetC(operand.cmem);
+        }
     }
 
     const char GetComponentFromIndex(u8 component_index) {

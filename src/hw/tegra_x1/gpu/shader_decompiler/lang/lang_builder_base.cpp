@@ -68,7 +68,7 @@ void LangBuilderBase::Start() {
             for (u32 c = 0; c < 4; c++) {
                 WriteStatement(
                     "{} = as_type<uint>({})",
-                    GetA("0x{:08x}", 0x80 + i * 0x10 + c * 0x4),
+                    GetA({RZ, 0x80 + i * 0x10 + c * 0x4}),
                     GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false));
             }
         }
@@ -78,7 +78,7 @@ void LangBuilderBase::Start() {
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
             WriteStatement(                                                    \
-                "{} = as_type<uint>({})", GetA("0x{:08x}", a_base + c * 0x4),  \
+                "{} = as_type<uint>({})", GetA({RZ, a_base + c * 0x4}),        \
                 GetSVNameQualified(SV(sv_semantic, index, c), false));         \
         }                                                                      \
     }
@@ -122,7 +122,7 @@ void LangBuilderBase::OpExit() {
             WriteStatement(                                                    \
                 "{} = as_type<float>({})",                                     \
                 GetSVNameQualified(SV(sv_semantic, index, c), true),           \
-                GetA("0x{:08x}", a_base + c * 0x4));                           \
+                GetA({RZ, a_base + c * 0x4}));                                 \
         }                                                                      \
     }
 
@@ -156,27 +156,20 @@ void LangBuilderBase::OpExit() {
     WriteStatement("return __out");
 }
 
-void LangBuilderBase::OpMove(reg_t dst, reg_t src) {
-    WriteStatement("{} = {}", GetReg(dst, true), GetReg(src, false));
+void LangBuilderBase::OpMove(reg_t dst, Operand src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src, false));
 }
 
-void LangBuilderBase::OpMoveImmediate(reg_t dst, u32 value) {
-    WriteStatement("{} = 0x{:08x}", GetReg(dst, true), value);
+void LangBuilderBase::OpLoad(reg_t dst, IndexedMem src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
-void LangBuilderBase::OpLoad(reg_t dst, reg_t src, u64 imm) {
-    // TODO: support indexing with src
-    WriteStatement("{} = {}", GetReg(dst, true), GetA("0x{:08x}", imm));
+void LangBuilderBase::OpStore(IndexedMem dst, reg_t src) {
+    WriteStatement("{} = {}", GetA(dst), GetReg(src, false));
 }
 
-void LangBuilderBase::OpStore(reg_t src, reg_t dst, u64 imm) {
-    // TODO: support indexing with src
-    WriteStatement("{} = {}", GetA("0x{:08x}", imm), GetReg(src, false));
-}
-
-void LangBuilderBase::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
-    // TODO: support indexing with src
-    WriteStatement("{} = {}", GetReg(dst, true), GetA("0x{:08x}", imm));
+void LangBuilderBase::OpInterpolate(reg_t dst, IndexedMem src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
 void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords) {

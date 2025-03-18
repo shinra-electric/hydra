@@ -8,11 +8,10 @@ class Analyzer : public ObserverBase {
   public:
     // Operations
     void OpExit() override {}
-    void OpMove(reg_t dst, reg_t src) override {}
-    void OpMoveImmediate(reg_t dst, u32 value) override {}
-    void OpLoad(reg_t dst, reg_t src, u64 imm) override;
-    void OpStore(reg_t src, reg_t dst, u64 imm) override;
-    void OpInterpolate(reg_t dst, reg_t src, u64 imm) override;
+    void OpMove(reg_t dst, Operand src) override {}
+    void OpLoad(reg_t dst, IndexedMem src) override;
+    void OpStore(IndexedMem dst, reg_t src) override;
+    void OpInterpolate(reg_t dst, IndexedMem src) override;
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
     // Getters

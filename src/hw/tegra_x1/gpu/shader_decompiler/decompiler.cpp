@@ -109,11 +109,6 @@ void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
 }
 
 void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
-    struct Amem {
-        reg_t reg;
-        u64 imm;
-    };
-
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_VALUE_U(type_bit_count, b, count)                                  \
     extract_bits<u##type_bit_count, b, count>(inst)
@@ -123,9 +118,8 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 // #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 // #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-#define GET_AMEM(b) Amem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
-// TODO: what is this?
-#define GET_AMEM_IDX() Amem{GET_REG(8), invalid<u64>()}
+#define GET_AMEM(b) IndexedMem{GET_REG(8), extract_bits<u64, b, 10>(inst)}
+#define GET_AMEM_IDX() IndexedMem{GET_REG(8), 0}
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -145,14 +139,15 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
     INST(0xeff0000000000000, 0xfff8000000000000) {
         const auto mode = GetOperand_eff0_0(inst);
-        const auto amem = GET_AMEM(20);
+        auto amem = GET_AMEM(20);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "st {} a[r{} + 0x{:08x}] r{} r{}", mode,
                   amem.reg, amem.imm, src, todo);
 
         for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
-            observer->OpStore(src + i, amem.reg, amem.imm + i * sizeof(u32));
+            observer->OpStore(amem, src + i);
+            amem.imm += sizeof(u32);
         }
     }
     INST(0xefe8000000000000, 0xfff8000000000000)
@@ -160,13 +155,14 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xefd8000000000000, 0xfff8000000000000) {
         const auto mode = GetOperand_eff0_0(inst);
         const auto dst = GET_REG(0);
-        const auto amem = GET_AMEM(20);
+        auto amem = GET_AMEM(20);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "ld {} r{} a[r{} + 0x{:08x}] r{}", mode,
                   dst, amem.reg, amem.imm, todo);
 
         for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
-            observer->OpLoad(dst + i, amem.reg, amem.imm + i * sizeof(u32));
+            observer->OpLoad(dst + i, amem);
+            amem.imm += sizeof(u32);
         }
     }
     INST(0xefd0000000000000, 0xfff8000000000000)
@@ -317,7 +313,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "ipa r{} a[r{} + 0x{:08x}] r{} r{}", dst,
                   amem.reg, amem.imm, interp_param, flag1);
 
-        observer->OpInterpolate(dst, amem.reg, amem.imm);
+        observer->OpInterpolate(dst, amem);
     }
     INST(0xe000004000000000, 0xff00004000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ipa");
@@ -354,9 +350,9 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto coords = GET_REG(20);
         const auto addr = GET_VALUE_U32(36, 13);
         // TODO: texture type
-        // TODO: component mask?
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}",
-                            todo1, dst, todo2, coords, addr);
+        // TODO: component swizzle?
+        LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", todo1, dst,
+                  todo2, coords, addr);
 
         observer->OpTextureSample(
             dst, addr - 0x1a4, coords); // TODO: how do texture addresses work?
@@ -427,7 +423,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "mov r{} r{} 0x{:x}", dst, src, todo);
 
-        observer->OpMove(dst, src);
+        observer->OpMove(dst, Operand::Register(src));
     }
     INST(0x5c90000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
@@ -777,7 +773,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "mov32i {} 0x{:08x} 0x{:08x}", dst, value,
                   todo);
 
-        observer->OpMoveImmediate(dst, value);
+        observer->OpMove(dst, Operand::Immediate(value));
     }
     // TODO: where should this be? Cause it sometimes gets confused with other
     // instructions

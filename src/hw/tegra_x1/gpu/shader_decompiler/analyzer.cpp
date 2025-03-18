@@ -22,28 +22,28 @@ void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
-void Analyzer::OpLoad(reg_t dst, reg_t src, u64 imm) {
+void Analyzer::OpLoad(reg_t dst, IndexedMem src) {
     // TODO: support indexing with src
-    ASSERT_DEBUG(src == RZ, ShaderDecompiler,
-                 "Indexing not implemented (src: r{})", src);
+    ASSERT_DEBUG(src.reg == RZ, ShaderDecompiler,
+                 "Indexing not implemented (src: r{})", src.reg);
 
-    push_sv(input_svs, stage_inputs, imm);
+    push_sv(input_svs, stage_inputs, src.imm);
 }
 
-void Analyzer::OpStore(reg_t src, reg_t dst, u64 imm) {
+void Analyzer::OpStore(IndexedMem dst, reg_t src) {
     // TODO: support indexing with src
-    ASSERT_DEBUG(dst == RZ, ShaderDecompiler,
-                 "Indexing not implemented (dst: r{})", dst);
+    ASSERT_DEBUG(dst.reg == RZ, ShaderDecompiler,
+                 "Indexing not implemented (dst: r{})", dst.reg);
 
-    push_sv(output_svs, stage_outputs, imm);
+    push_sv(output_svs, stage_outputs, dst.imm);
 }
 
-void Analyzer::OpInterpolate(reg_t dst, reg_t src, u64 imm) {
+void Analyzer::OpInterpolate(reg_t dst, IndexedMem src) {
     // TODO: support indexing with src
-    ASSERT_DEBUG(src == RZ, ShaderDecompiler,
-                 "Indexing not implemented (src: r{})", src);
+    ASSERT_DEBUG(src.reg == RZ, ShaderDecompiler,
+                 "Indexing not implemented (src: r{})", src.reg);
 
-    push_sv(input_svs, stage_inputs, imm);
+    push_sv(input_svs, stage_inputs, src.imm);
 }
 
 void Analyzer::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
