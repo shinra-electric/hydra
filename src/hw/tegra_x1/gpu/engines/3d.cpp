@@ -193,7 +193,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
 
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        .format = Renderer::to_texture_format(tic.format_word.image_format),
+        .format = Renderer::to_texture_format(tic.format_word),
         .kind = NvKind::Generic_16BX2, // TODO: correct?
         .width = static_cast<usize>(tic.width_minus_one + 1),
         .height = static_cast<usize>(tic.height_minus_one + 1),

@@ -486,7 +486,7 @@ enum class NvColorFormat : u64 {
     XYZ = 0x140A886640UL,
 };
 
-enum class ImageFormat {
+enum class ImageFormat : u32 {
     Invalid = 0,
 
     RGBA32 = 0x01,
@@ -567,7 +567,7 @@ enum class ImageFormat {
     ASTC_2D_10X6 = 0x57,
 };
 
-enum class ImageComponent {
+enum class ImageComponent : u32 {
     Snorm = 1,
     Unorm = 2,
     Sint = 3,
@@ -577,7 +577,7 @@ enum class ImageComponent {
     Float = 7,
 };
 
-enum class ImageSwizzle {
+enum class ImageSwizzle : u32 {
     Zero = 0,
     R = 2,
     G = 3,
@@ -585,6 +585,19 @@ enum class ImageSwizzle {
     A = 5,
     OneInt = 6,
     OneFloat = 7,
+};
+
+struct ImageFormatWord {
+    ImageFormat image_format : 7;
+    ImageComponent component_r : 3;
+    ImageComponent component_g : 3;
+    ImageComponent component_b : 3;
+    ImageComponent component_a : 3;
+    ImageSwizzle swizzle_x : 3;
+    ImageSwizzle swizzle_y : 3;
+    ImageSwizzle swizzle_z : 3;
+    ImageSwizzle swizzle_w : 3;
+    u32 pack : 1;
 };
 
 enum class ColorSurfaceFormat : u32 {
@@ -1005,6 +1018,15 @@ ENABLE_ENUM_FORMATTING(
     ASTC_2D_8X6, "astc_2d_8x6", ASTC_2D_10X8, "astc_2d_10x8", ASTC_2D_12X10,
     "astc_2d_12x10", ASTC_2D_8X5, "astc_2d_8x5", ASTC_2D_10X5, "astc_2d_10x5",
     ASTC_2D_10X6, "astc_2d_10x6")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ImageComponent, Snorm, "snorm",
+                       Unorm, "unorm", Sint, "sint", Uint, "uint",
+                       SnormForceFp16, "snorm force fp16", UnormForceFp16,
+                       "unorm force fp16", Float, "float")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ImageSwizzle, Zero, "zero", R,
+                       "r", G, "g", B, "b", A, "a", OneInt, "one int", OneFloat,
+                       "one float")
 
 ENABLE_ENUM_FORMATTING(
     Hydra::HW::TegraX1::GPU::ColorSurfaceFormat, Invalid, "invalid", Bitmap,

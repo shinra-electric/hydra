@@ -20,17 +20,34 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
 #undef NV_COLOR_FORMAT_CASE
 }
 
-TextureFormat to_texture_format(ImageFormat image_format) {
-#define IMAGE_FORMAT_CASE(image_format, texture_format)                        \
-    case ImageFormat::image_format:                                            \
-        return TextureFormat::texture_format;
+TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
+#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, s_x, s_y, s_z, s_w,  \
+                          texture_format)                                      \
+    else if (image_format_word.image_format == ImageFormat::img_format &&      \
+             image_format_word.component_r == ImageComponent::c_r &&           \
+             image_format_word.component_g == ImageComponent::c_g &&           \
+             image_format_word.component_b == ImageComponent::c_b &&           \
+             image_format_word.component_a == ImageComponent::c_a &&           \
+             image_format_word.swizzle_x == ImageSwizzle::s_x &&               \
+             image_format_word.swizzle_y == ImageSwizzle::s_y &&               \
+             image_format_word.swizzle_z == ImageSwizzle::s_z &&               \
+             image_format_word.swizzle_w ==                                    \
+                 ImageSwizzle::s_w) return TextureFormat::texture_format;
 
     // TODO: more formats
-    switch (image_format) {
-        IMAGE_FORMAT_CASE(Invalid, Invalid)
-        IMAGE_FORMAT_CASE(ARGB8, RGBA8Unorm) // TODO: why argb?
-    default:
-        LOG_NOT_IMPLEMENTED(GPU, "Image format {}", image_format);
+    if (image_format_word.image_format == ImageFormat::Invalid)
+        return TextureFormat::Invalid;
+    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, R, G, B, A,
+                      RGBA8Unorm) // TODO: why argb?
+    else {
+        LOG_NOT_IMPLEMENTED(
+            GPU,
+            "Image format {}, components: {}, {}, {}, {}, swizzle: {}{}{}{}",
+            image_format_word.image_format, image_format_word.component_r,
+            image_format_word.component_g, image_format_word.component_b,
+            image_format_word.component_a, image_format_word.swizzle_x,
+            image_format_word.swizzle_y, image_format_word.swizzle_z,
+            image_format_word.swizzle_w);
         // TODO: don't throw
         throw;
         return TextureFormat::Invalid;

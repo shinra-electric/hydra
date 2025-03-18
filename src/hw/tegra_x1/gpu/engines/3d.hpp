@@ -46,22 +46,9 @@ struct ComputeDriverCbuf {
     PerStageData data;
 };
 
-struct TicFormatWord {
-    ImageFormat image_format : 7;
-    ImageComponent component_r : 3;
-    ImageComponent component_g : 3;
-    ImageComponent component_b : 3;
-    ImageComponent component_a : 3;
-    ImageSwizzle swizzle_x : 3;
-    ImageSwizzle swizzle_y : 3;
-    ImageSwizzle swizzle_z : 3;
-    ImageSwizzle swizzle_w : 3;
-    u32 pack : 1;
-};
-
 struct TextureImageControl {
     // 0x00
-    TicFormatWord format_word;
+    ImageFormatWord format_word;
 
     // 0x04
     u32 address_lo;
