@@ -46,7 +46,8 @@ class RendererBase {
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Resource binding
-    // TODO: uniform buffers
+    virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
+                                   u32 index) = 0;
     // TODO: storage buffers
     virtual void BindTexture(TextureBase* texture, ShaderType shader_type,
                              u32 index) = 0;

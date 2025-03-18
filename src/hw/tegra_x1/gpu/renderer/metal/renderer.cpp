@@ -96,6 +96,8 @@ Renderer::Renderer() {
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
          shader_type++) {
+        for (u32 i = 0; i < 32; i++)
+            state.uniform_buffers[shader_type][i] = nullptr;
         for (u32 i = 0; i < BUFFER_COUNT; i++)
             state.textures[shader_type][i] = nullptr;
     }
@@ -242,6 +244,12 @@ void Renderer::BindPipeline(const PipelineBase* pipeline) {
     state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
+void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
+                                 u32 index) {
+    state.uniform_buffers[u32(shader_type)][index] =
+        static_cast<Buffer*>(buffer);
+}
+
 void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
                            u32 index) {
     state.textures[u32(shader_type)][index] = static_cast<Texture*>(texture);
@@ -256,7 +264,12 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     // TODO: viewport and scissor
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
         SetVertexBuffer(i);
-    // TODO: buffers
+    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
+         shader_type++) {
+        for (u32 i = 0; i < 32; i++)
+            SetUniformBuffer(ShaderType(shader_type), i);
+    }
+    // TODO: storage buffers
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
          shader_type++) {
         for (u32 i = 0; i < TEXTURE_COUNT; i++)
@@ -364,12 +377,27 @@ void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,
 }
 
 void Renderer::SetVertexBuffer(u32 index) {
+    ASSERT_DEBUG(index < VERTEX_ARRAY_COUNT, MetalRenderer,
+                 "Invalid vertex buffer index {}", index);
+
     const auto buffer = state.vertex_buffers[index];
     if (!buffer)
         return;
 
     SetBuffer(buffer->GetBuffer(), ShaderType::Vertex,
               GetVertexBufferIndex(index));
+}
+
+void Renderer::SetUniformBuffer(ShaderType shader_type, u32 index) {
+    ASSERT_DEBUG(index < 32, MetalRenderer, "Invalid uniform buffer index {}",
+                 index);
+
+    const auto buffer =
+        state.uniform_buffers[static_cast<u32>(shader_type)][index];
+    if (!buffer)
+        return;
+
+    SetBuffer(buffer->GetBuffer(), shader_type, index);
 }
 
 void Renderer::SetTexture(MTL::Texture* texture, ShaderType shader_type,

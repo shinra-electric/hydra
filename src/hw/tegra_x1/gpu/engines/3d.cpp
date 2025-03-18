@@ -19,7 +19,8 @@ DEFINE_METHOD_TABLE(ThreeD, 0x45, 1, LoadMmeInstructionRamPointer, u32, 0x46, 1,
                     LoadMmeStartAddressRamPointer, u32, 0x48, 1,
                     LoadMmeStartAddressRam, u32, 0x35e, 1, DrawVertexArray, u32,
                     0x674, 1, ClearBuffer, ClearBufferData, 0x8c4, 1,
-                    FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32)
+                    FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32, 0x900,
+                    5 * 8, BindGroup, u32)
 
 SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
 
@@ -170,6 +171,37 @@ void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
     *reinterpret_cast<u32*>(ptr) = data;
+}
+
+void ThreeD::BindGroup(const u32 index, const u32 data) {
+    const auto shader_stage = static_cast<ShaderStage>(index / 0x8 + 1);
+    const auto group = index % 0x8;
+
+    switch (group) {
+    case 0x0 ... 0x3:
+        LOG_WARNING(Engines, "Reserved");
+        break;
+    case 0x4: {
+        bool valid = data & 0x1;
+        if (valid) {
+            const auto index = extract_bits<u32, 4, 5>(data);
+            const uptr const_buffer_gpu_addr = make_addr(
+                regs.const_buffer_selector_lo, regs.const_buffer_selector_hi);
+            const uptr ptr =
+                GPU::GetInstance().GetGPUMMU().UnmapAddr(const_buffer_gpu_addr);
+
+            const auto buffer = GPU::GetInstance().GetBufferCache().Find(
+                {ptr, regs.const_buffer_selector_size});
+
+            RENDERER->BindUniformBuffer(
+                buffer, to_renderer_shader_type(shader_stage), index);
+        }
+        break;
+    }
+    default:
+        LOG_WARNING(Engines, "Unknown group {}", group);
+        break;
+    }
 }
 
 Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index,

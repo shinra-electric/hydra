@@ -22,6 +22,8 @@ struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
+    const Buffer* uniform_buffers[usize(ShaderType::Count)]
+                                 [32]; // TODO: what should the size be?
     const Texture* textures[usize(ShaderType::Count)][VERTEX_ARRAY_COUNT];
 };
 
@@ -75,6 +77,8 @@ class Renderer : public RendererBase {
     void BindPipeline(const PipelineBase* pipeline) override;
 
     // Resource binding
+    void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
+                           u32 index) override;
     void BindTexture(TextureBase* texture, ShaderType shader_type,
                      u32 index) override;
 
@@ -108,6 +112,7 @@ class Renderer : public RendererBase {
     void SetRenderPipelineState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);
+    void SetUniformBuffer(ShaderType shader_type, u32 index);
     void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
     void SetTexture(ShaderType shader_type, u32 index);
 

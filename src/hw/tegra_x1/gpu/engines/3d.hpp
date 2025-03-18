@@ -383,6 +383,7 @@ class ThreeD : public EngineBase {
     void FirmwareCall4(const u32 index, const u32 data);
 
     void LoadConstBuffer(const u32 index, const u32 data);
+    void BindGroup(const u32 index, const u32 data);
 
     // Helpers
     Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index,
