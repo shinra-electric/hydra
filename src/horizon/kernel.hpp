@@ -29,16 +29,13 @@ class SharedMemory {
   public:
     SharedMemory() = default;
 
-    void MapToRange(range<uptr> range) { ranges.Allocate() = range; }
+    void MapToRange(const range<uptr> range_) { range = range_; }
 
-    void UnmapFromRange(uptr base) {
-        // TODO: implement
-        LOG_WARNING(HorizonKernel, "Not implemented");
-    }
+    // Getters
+    const range<uptr> GetRange() const { return range; }
 
   private:
-    // TODO: use dynamic pool?
-    Allocators::StaticPool<range<uptr>, 8> ranges;
+    range<uptr> range;
 };
 
 class TransferMemory : public KernelHandle {
@@ -120,6 +117,10 @@ class Kernel {
     HandleId AddHandle(KernelHandle* handle);
 
     HandleId CreateSharedMemory();
+
+    const SharedMemory GetSharedMemory(HandleId handle_id) const {
+        return shared_memory_pool.GetObject(handle_id);
+    }
 
   private:
     HW::Bus& bus;

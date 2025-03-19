@@ -10,9 +10,10 @@ add_executable(hydra
     common/logging/log.hpp
     common/allocators/static_pool.hpp
     common/allocators/dynamic_pool.hpp
+    horizon/const.hpp
+    horizon/hid.hpp
     horizon/os.cpp
     horizon/os.hpp
-    horizon/const.hpp
     horizon/hipc.hpp
     horizon/cmif.hpp
     horizon/kernel.cpp

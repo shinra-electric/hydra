@@ -16,7 +16,9 @@
 
 #define SINGLETON_UNSET_INSTANCE() g_instance = nullptr
 
-#define BIT(n) (1 << (n))
+#define BIT(n) (1u << (n))
+#define BITL(n) (1ul << (n))
+
 #define ENABLE_ENUM_BITMASK_OPERATORS(e)                                       \
     inline e operator|(e a, e b) {                                             \
         return static_cast<e>(static_cast<u32>(a) | static_cast<u32>(b));      \

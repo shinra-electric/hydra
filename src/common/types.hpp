@@ -73,12 +73,14 @@ using ushort2 = vec<u16, 2>;
 using uint2 = vec<u32, 2>;
 using ulong2 = vec<u64, 2>;
 using usize2 = vec<usize, 2>;
+using float2 = vec<float, 2>;
 
 using uchar3 = vec<u8, 3>;
 using ushort3 = vec<u16, 3>;
 using uint3 = vec<u32, 3>;
 using ulong3 = vec<u64, 3>;
 using usize3 = vec<usize, 3>;
+using float3 = vec<float, 3>;
 
 template <typename T> class readonly {
   public:

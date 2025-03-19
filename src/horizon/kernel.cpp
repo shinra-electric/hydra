@@ -438,7 +438,7 @@ Result Kernel::svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
         HorizonKernel,
         "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x}, perm: {})",
-        handle_id, addr, size, (u32)permission);
+        handle_id, addr, size, permission);
 
     // Map
     auto shared_mem = shared_memory_pool.GetObjectRef(handle_id);

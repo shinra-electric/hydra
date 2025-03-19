@@ -13,6 +13,10 @@ namespace Services::Sm {
 class IUserInterface;
 }
 
+namespace HID {
+struct SharedMemory;
+}
+
 // TODO: move to a separate file
 struct ParcelData {
     u32 unknown0;
@@ -123,7 +127,7 @@ class OS {
   public:
     static OS& GetInstance();
 
-    OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu);
+    OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_);
     ~OS();
 
     void LoadROM(Rom* rom);
@@ -135,7 +139,12 @@ class OS {
         return display_binder_manager;
     }
 
+    // HID
+    const HandleId GetHidSharedMemoryId() const { return hid_shared_memory_id; }
+
   private:
+    HW::TegraX1::CPU::MMUBase* mmu;
+
     Kernel kernel;
 
     // Services
@@ -143,6 +152,11 @@ class OS {
 
     // Managers
     DisplayBinderManager display_binder_manager;
+
+    // Shared memories
+    HandleId hid_shared_memory_id;
+
+    HID::SharedMemory* GetHidSharedMemory() const;
 };
 
 } // namespace Hydra::Horizon
