@@ -4,7 +4,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
-Shader::Shader(const ShaderDescriptor& descriptor) {
+Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
     // TODO: doesn't this copy the contents?
     std::string source;
     source.assign(descriptor.code.begin(), descriptor.code.end());

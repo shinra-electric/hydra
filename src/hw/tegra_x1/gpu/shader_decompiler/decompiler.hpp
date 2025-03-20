@@ -19,7 +19,8 @@ class Decompiler final {
     ~Decompiler() = default;
 
     void Decompile(Reader& code_reader, const Renderer::ShaderType type,
-                   const GuestShaderState& state, std::vector<u8>& out_code);
+                   const GuestShaderState& state, std::vector<u8>& out_code,
+                   Renderer::ResourceMapping& out_resource_mapping);
 
   private:
     void ParseInstruction(ObserverBase* observer, u64 inst);

@@ -78,14 +78,16 @@ struct ShaderHeader {
 
 void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
                            const GuestShaderState& state,
-                           std::vector<u8>& out_code) {
+                           std::vector<u8>& out_code,
+                           Renderer::ResourceMapping& out_resource_mapping) {
     Analyzer analyzer;
 
     // Builder
     BuilderBase* builder;
     // TODO: choose based on the Shader Decompiler backend
     {
-        builder = new Lang::MSL::Builder(analyzer, type, state, out_code);
+        builder = new Lang::MSL::Builder(analyzer, type, state, out_code,
+                                         out_resource_mapping);
     }
 
     // Header
@@ -118,7 +120,8 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 // #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 // #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-#define GET_AMEM(b) AMem{GET_REG(8), extract_bits<u32, b, 10>(inst)}
+#define GET_AMEM(b)                                                            \
+    AMem { GET_REG(8), extract_bits<u32, b, 10>(inst) }
 #define GET_AMEM_IDX() AMem{GET_REG(8), 0}
 // HACK: why do I have to multiply by 4?
 #define GET_CMEM(b_idx, count_imm)                                             \

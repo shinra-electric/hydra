@@ -98,7 +98,7 @@ Renderer::Renderer() {
          shader_type++) {
         for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
             state.uniform_buffers[shader_type][i] = nullptr;
-        for (u32 i = 0; i < BUFFER_COUNT; i++)
+        for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++)
             state.textures[shader_type][i] = nullptr;
     }
 
@@ -389,6 +389,8 @@ void Renderer::SetVertexBuffer(u32 index) {
 }
 
 void Renderer::SetUniformBuffer(ShaderType shader_type, u32 index) {
+    // TODO: get the index from resource mapping
+
     ASSERT_DEBUG(index < UNIFORM_BUFFER_BINDING_COUNT, MetalRenderer,
                  "Invalid uniform buffer index {}", index);
 
@@ -425,6 +427,8 @@ void Renderer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
 }
 
 void Renderer::SetTexture(ShaderType shader_type, u32 index) {
+    // TODO: get the index from resource mapping
+
     const auto texture = state.textures[u32(shader_type)][index];
     if (!texture)
         return;

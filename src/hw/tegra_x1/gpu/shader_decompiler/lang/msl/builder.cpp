@@ -1,7 +1,20 @@
 #include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.hpp"
+
+#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL {
+
+void Builder::InitializeResourceMapping() {
+    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+        out_resource_mapping.uniform_buffers[index] = index;
+    }
+    // TODO: storage buffers
+    for (const auto index : analyzer.GetTextures()) {
+        out_resource_mapping.textures[index] = index;
+        out_resource_mapping.samplers[index] = index;
+    }
+    // TODO: images
+}
 
 void Builder::EmitHeader() {
     Write("#include <metal_stdlib>");

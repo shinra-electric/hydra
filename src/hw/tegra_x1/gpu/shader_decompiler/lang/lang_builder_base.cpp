@@ -6,6 +6,8 @@
 namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang {
 
 void LangBuilderBase::Start() {
+    InitializeResourceMapping();
+
     // Header
     EmitHeader();
     WriteNewline();
@@ -216,7 +218,8 @@ std::string LangBuilderBase::GetMainArgs() {
     // Uniform buffers
     for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
         ADD_ARG("constant UBuff{}& ubuff{} {}", index, index,
-                GetUniformBufferQualifierName(index));
+                GetUniformBufferQualifierName(
+                    out_resource_mapping.uniform_buffers[index]));
     }
 
     // Storage buffers
@@ -226,8 +229,9 @@ std::string LangBuilderBase::GetMainArgs() {
     for (const auto index : analyzer.GetTextures()) {
         // TODO: don't hardcode texture type
         ADD_ARG("texture2d<float> tex{} {}", index,
-                GetTextureQualifierName(index));
-        ADD_ARG("sampler samplr{} {}", index, GetSamplerQualifierName(index));
+                GetTextureQualifierName(out_resource_mapping.textures[index]));
+        ADD_ARG("sampler samplr{} {}", index,
+                GetSamplerQualifierName(out_resource_mapping.samplers[index]));
     }
 
     // Images

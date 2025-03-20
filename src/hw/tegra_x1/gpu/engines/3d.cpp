@@ -3,6 +3,7 @@
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include "hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 #include "hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
@@ -103,10 +104,9 @@ void ThreeD::DrawVertexArray(const u32 index, const u32 count) {
             GPU::GetInstance().GetGPUMMU().UnmapAddr(tex_header_pool_gpu_addr));
 
         // TODO: configure all stages
-        ConfigureShaderStage(ShaderStage::VertexB, Renderer::ShaderType::Vertex,
-                             const_buffer, tex_header_pool);
-        ConfigureShaderStage(ShaderStage::Fragment,
-                             Renderer::ShaderType::Fragment, const_buffer,
+        ConfigureShaderStage(ShaderStage::VertexB, const_buffer,
+                             tex_header_pool);
+        ConfigureShaderStage(ShaderStage::Fragment, const_buffer,
                              tex_header_pool);
     }
 
@@ -182,9 +182,9 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
         LOG_WARNING(Engines, "Reserved");
         break;
     case 0x4: {
+        const auto index = extract_bits<u32, 4, 5>(data);
         bool valid = data & 0x1;
         if (valid) {
-            const auto index = extract_bits<u32, 4, 5>(data);
             const uptr const_buffer_gpu_addr = make_addr(
                 regs.const_buffer_selector_lo, regs.const_buffer_selector_hi);
             const uptr ptr =
@@ -195,6 +195,9 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
 
             RENDERER->BindUniformBuffer(
                 buffer, to_renderer_shader_type(shader_stage), index);
+        } else {
+            RENDERER->BindUniformBuffer(
+                nullptr, to_renderer_shader_type(shader_stage), index);
         }
         break;
     }
@@ -277,7 +280,11 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
     return GPU::GetInstance().GetRenderPassCache().Find(descriptor);
 }
 
-Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
+Renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
+    return active_shaders[u32(to_renderer_shader_type(stage))];
+}
+
+Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     const auto& program = regs.shader_programs[usize(stage)];
     if (!program.config.enable)
         return nullptr;
@@ -309,24 +316,21 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) const {
             Renderer::to_texture_format(regs.color_targets[i].format);
     }
 
-    return GPU::GetInstance().GetShaderCache().Find(descriptor);
+    auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];
+    active_shader = GPU::GetInstance().GetShaderCache().Find(descriptor);
+
+    return active_shader;
 }
 
-Renderer::PipelineBase* ThreeD::GetPipeline() const {
+Renderer::PipelineBase* ThreeD::GetPipeline() {
     Renderer::PipelineDescriptor descriptor;
 
     // Shaders
-    for (u32 shader_stage = 0; shader_stage < usize(ShaderStage::Count);
-         shader_stage++) {
-        ShaderStage stage = ShaderStage(shader_stage);
-        auto renderer_shader_type = to_renderer_shader_type(stage);
-
-        // HACK
-        if (renderer_shader_type == Renderer::ShaderType::Count)
-            continue;
-
-        descriptor.shaders[u32(renderer_shader_type)] = GetShader(stage);
-    }
+    // TODO: add all shaders
+    descriptor.shaders[u32(Renderer::ShaderType::Vertex)] =
+        GetShader(ShaderStage::VertexB);
+    descriptor.shaders[u32(Renderer::ShaderType::Fragment)] =
+        GetShader(ShaderStage::Fragment);
 
     // Vertex state
 
@@ -351,18 +355,23 @@ Renderer::PipelineBase* ThreeD::GetPipeline() const {
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,
-                                  const Renderer::ShaderType type,
                                   const GraphicsDriverCbuf& const_buffer,
                                   const TextureImageControl* tex_header_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
+
+    const auto shader = GetShaderUnchecked(stage);
+    const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
 
     // TODO: how are uniform buffers handled?
     // TODO: storage buffers
 
     // Textures
     for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++) {
-        // TODO: check if the texture is needed by the shader
+        if (resource_mapping.textures[i] == invalid<u32>()) {
+            RENDERER->BindTexture(nullptr, to_renderer_shader_type(stage), i);
+            continue;
+        }
 
         const auto texture_handle = const_buffer.data[stage_index].textures[i];
 
@@ -371,7 +380,7 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
         if (texture)
-            RENDERER->BindTexture(texture, type, i);
+            RENDERER->BindTexture(texture, to_renderer_shader_type(stage), i);
     }
 
     // TODO: images

@@ -143,6 +143,8 @@ class Renderer : public RendererBase {
 
     // State
     State state;
+    u32 padding[0x100]; // HACK: for some reason, writing to some fields of the
+                        // encoder_state corrupts the state
     EncoderState encoder_state;
 
     // Debug

@@ -200,9 +200,30 @@ enum class ShaderType {
     Count,
 };
 
+struct ResourceMapping {
+    u32 uniform_buffers[UNIFORM_BUFFER_BINDING_COUNT];
+    // TODO: storage buffers
+    u32 textures[TEXTURE_BINDING_COUNT];
+    u32 samplers[TEXTURE_BINDING_COUNT];
+    // TODO: images
+
+    ResourceMapping() {
+        for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++) {
+            uniform_buffers[i] = invalid<u32>();
+        }
+        // TODO: storage buffers
+        for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++) {
+            textures[i] = invalid<u32>();
+            samplers[i] = invalid<u32>();
+        }
+        // TODO: images
+    }
+};
+
 struct ShaderDescriptor {
     ShaderType type;
     std::vector<u8> code;
+    ResourceMapping resource_mapping;
 };
 
 struct PipelineDescriptor {

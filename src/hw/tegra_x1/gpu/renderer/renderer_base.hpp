@@ -52,6 +52,7 @@ class RendererBase {
     virtual void BindTexture(TextureBase* texture, ShaderType shader_type,
                              u32 index) = 0;
     // TODO: sampers
+    // TODO: images
 
     // Draw
     virtual void Draw(const Engines::PrimitiveType primitive_type,

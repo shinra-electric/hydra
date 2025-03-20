@@ -362,6 +362,10 @@ class ThreeD : public EngineBase {
     // Macros
     Macro::DriverBase* macro_driver;
 
+    // Active state (for quick access)
+    Renderer::ShaderBase* active_shaders[u32(Renderer::ShaderType::Count)] = {
+        nullptr};
+
     // Commands
     void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
     void LoadMmeInstructionRam(const u32 index, const u32 data);
@@ -391,11 +395,11 @@ class ThreeD : public EngineBase {
     Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     Renderer::RenderPassBase* GetRenderPass() const;
-    Renderer::ShaderBase* GetShader(ShaderStage stage) const;
-    Renderer::PipelineBase* GetPipeline() const;
+    Renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
+    Renderer::ShaderBase* GetShader(ShaderStage stage);
+    Renderer::PipelineBase* GetPipeline();
 
     void ConfigureShaderStage(const ShaderStage stage,
-                              const Renderer::ShaderType type,
                               const GraphicsDriverCbuf& const_buffer,
                               const TextureImageControl* tex_header_pool);
 };

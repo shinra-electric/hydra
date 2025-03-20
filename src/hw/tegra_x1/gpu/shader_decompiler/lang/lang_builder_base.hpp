@@ -15,8 +15,9 @@ static const std::string INVALID_VALUE = "INVALID";
 class LangBuilderBase : public BuilderBase {
   public:
     LangBuilderBase(const Analyzer& analyzer, const Renderer::ShaderType type,
-                    const GuestShaderState& state, std::vector<u8>& out_code)
-        : BuilderBase(analyzer, type, state, out_code) {}
+                    const GuestShaderState& state, std::vector<u8>& out_code,
+                    Renderer::ResourceMapping& out_resource_mapping)
+        : BuilderBase(analyzer, type, state, out_code, out_resource_mapping) {}
 
     void Start() override;
     void Finish() override;
@@ -31,6 +32,8 @@ class LangBuilderBase : public BuilderBase {
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
 
   protected:
+    virtual void InitializeResourceMapping() = 0;
+
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
 
