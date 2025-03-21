@@ -32,8 +32,6 @@ void NvHostGpu::QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
 }
 
 void NvHostGpu::SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
-
     auto ptr = const_cast<HW::TegraX1::GPU::GpfifoEntry*>(
         &(data.entries[0].Get())); // HACK
     HW::TegraX1::GPU::GPU::GetInstance().GetPfifo().SubmitEntries(

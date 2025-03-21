@@ -19,9 +19,10 @@ DEFINE_METHOD_TABLE(ThreeD, 0x45, 1, LoadMmeInstructionRamPointer, u32, 0x46, 1,
                     LoadMmeInstructionRam, u32, 0x47, 1,
                     LoadMmeStartAddressRamPointer, u32, 0x48, 1,
                     LoadMmeStartAddressRam, u32, 0x35e, 1, DrawVertexArray, u32,
-                    0x674, 1, ClearBuffer, ClearBufferData, 0x8c4, 1,
-                    FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32, 0x900,
-                    5 * 8, BindGroup, u32)
+                    0x674, 1, ClearBuffer, ClearBufferData, 0x6c3, 1,
+                    SetReportSemaphore, u32, 0x8c4, 1, FirmwareCall4, u32,
+                    0x8e4, 16, LoadConstBuffer, u32, 0x900, 5 * 8, BindGroup,
+                    u32)
 
 SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
 
@@ -154,6 +155,16 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     RENDERER->UploadTexture(texture, d);
     delete[] d;
     */
+}
+
+void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
+    LOG_FUNC_NOT_IMPLEMENTED(Engines);
+
+    const uptr gpu_addr =
+        make_addr(regs.report_semaphore_addr_lo, regs.report_semaphore_addr_hi);
+    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
+
+    *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
 void ThreeD::FirmwareCall4(const u32 index, const u32 data) {

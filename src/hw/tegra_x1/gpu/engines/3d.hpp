@@ -279,7 +279,15 @@ union Regs3D {
             bool enable : 32;
         } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-        u32 padding_0x630[0xd0];
+        u32 padding_0x630[0x90];
+
+        // 0x6c0 report semaphore
+        u32 report_semaphore_addr_hi;
+        u32 report_semaphore_addr_lo;
+        u32 report_semaphore_payload;
+        u32 report_semaphore_todo; // TODO: should this be a reg?
+
+        u32 padding_0x6c4[0x3c];
 
         // 0x700 vertex arrays
         struct {
@@ -383,6 +391,9 @@ class ThreeD : public EngineBase {
     };
 
     void ClearBuffer(const u32 index, const ClearBufferData data);
+
+    // HACK
+    void SetReportSemaphore(const u32 index, const u32 data);
 
     void FirmwareCall4(const u32 index, const u32 data);
 

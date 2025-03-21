@@ -8,14 +8,14 @@ DEFINE_IOCTL_TABLE(NvHostAsGpu, DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x02, AllocSpace,
                                                          0x06, MapBufferEx))
 
 void NvHostAsGpu::AllocSpace(AllocSpaceData& data, NvResult& result) {
-
     uptr gpu_addr = invalid<uptr>();
     if (any(data.flags & AllocSpaceFlags::FixedOffset))
         gpu_addr = data.align_or_offset;
 
     data.offset =
         HW::TegraX1::GPU::GPU::GetInstance().AllocatePrivateAddressSpace(
-            data.pages * data.page_size, gpu_addr);
+            static_cast<usize>(data.pages) * static_cast<usize>(data.page_size),
+            gpu_addr);
 }
 
 void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {

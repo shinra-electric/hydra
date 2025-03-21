@@ -74,7 +74,7 @@ class GPU {
         if (gpu_addr == invalid<uptr>()) {
             gpu_addr =
                 address_space_base; // TODO: ask the MMU for a base address
-            address_space_base += align(size, PAGE_SIZE * 16); // HACK
+            address_space_base += align(size, PAGE_SIZE);
         }
         gpu_mmu.Map(gpu_addr, as);
 
