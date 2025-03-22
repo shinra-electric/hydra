@@ -1,14 +1,14 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
 
 class Builder final : public LangBuilderBase {
   public:
-    Builder(const Analyzer& analyzer, const Renderer::ShaderType type,
+    Builder(const Analyzer& analyzer, const ShaderType type,
             const GuestShaderState& state, std::vector<u8>& out_code,
-            Renderer::ResourceMapping& out_resource_mapping)
+            ResourceMapping& out_resource_mapping)
         : LangBuilderBase(analyzer, type, state, out_code,
                           out_resource_mapping) {}
 
@@ -37,4 +37,4 @@ class Builder final : public LangBuilderBase {
   private:
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

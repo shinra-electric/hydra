@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/shader_decompiler/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
 #define OPERAND_TABLE_ENTRY(e, value, operand)                                 \
     case value:                                                                \
@@ -18,10 +18,10 @@
         }                                                                      \
     }
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 DEFINE_OPERAND_TABLE(eff0_0, LoadStoreMode, 0x0001800000000000,
                      0x0000000000000000, B32, 0x0000800000000000, B64,
                      0x0001000000000000, B96, 0x0001800000000000, B128)
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

@@ -50,6 +50,13 @@ inline uptr make_addr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
+template <typename T> void push_unique(std::vector<T>& vec, T value) {
+    auto it = std::find_if(vec.begin(), vec.end(),
+                           [&](const T v) { return v == value; });
+    if (it == vec.end())
+        vec.push_back(value);
+}
+
 inline std::ifstream open_file(const std::string& path, usize& out_size) {
     const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
     auto ifs = std::ifstream{path, iflags};

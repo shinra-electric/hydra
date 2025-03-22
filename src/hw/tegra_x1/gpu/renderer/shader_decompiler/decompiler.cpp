@@ -1,11 +1,10 @@
-#include "hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-#include "hw/tegra_x1/gpu/shader_cache.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/tables.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 struct ShaderHeader {
     // CommonWord0
@@ -76,10 +75,10 @@ struct ShaderHeader {
     };
 };
 
-void Decompiler::Decompile(Reader& code_reader, const Renderer::ShaderType type,
+void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
                            const GuestShaderState& state,
                            std::vector<u8>& out_code,
-                           Renderer::ResourceMapping& out_resource_mapping) {
+                           ResourceMapping& out_resource_mapping) {
     Analyzer analyzer;
 
     // Builder
@@ -807,4 +806,4 @@ void Decompiler::Parse(ObserverBase* observer, Reader& code_reader) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

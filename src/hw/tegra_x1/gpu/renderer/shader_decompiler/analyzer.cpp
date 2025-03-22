@@ -1,15 +1,8 @@
-#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 namespace {
-
-template <typename T> void push_unique(std::vector<T>& vec, T value) {
-    auto it = std::find_if(vec.begin(), vec.end(),
-                           [&](const T v) { return v == value; });
-    if (it == vec.end())
-        vec.push_back(value);
-}
 
 void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
              u64 addr) {
@@ -58,4 +51,4 @@ void Analyzer::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
     push_unique(textures, index);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

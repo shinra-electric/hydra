@@ -1,13 +1,12 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/const.hpp"
 #include "hw/tegra_x1/gpu/engines/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 typedef u8 reg_t;
 
@@ -84,7 +83,7 @@ inline DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
     }
 }
 
-inline DataType to_data_type(Renderer::TextureFormat format) {
+inline DataType to_data_type(TextureFormat format) {
     // TODO: implement
     return DataType::Float;
 }
@@ -158,15 +157,16 @@ inline const SV GetSVFromAddr(u64 addr) {
     return SVSemantic::Invalid;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::DataType, Int,
-                       "int", UInt, "uint", Float, "float")
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::DataType, Int, "int",
+    UInt, "uint", Float, "float")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::SVSemantic,
-                       Invalid, "invalid", Position, "position", UserInOut,
-                       "user in out")
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::SVSemantic, Invalid,
+    "invalid", Position, "position", UserInOut, "user in out")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ShaderDecompiler::LoadStoreMode,
-                       Invalid, "invalid", B32, "b32", B64, "b64", B96, "b96",
-                       B128, "b128")
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::LoadStoreMode, Invalid,
+    "invalid", B32, "b32", B64, "b64", B96, "b96", B128, "b128")

@@ -107,18 +107,6 @@ add_executable(hydra
     hw/tegra_x1/gpu/gpu_mmu.hpp
     hw/tegra_x1/gpu/pfifo.cpp
     hw/tegra_x1/gpu/pfifo.hpp
-    hw/tegra_x1/gpu/buffer_cache.cpp
-    hw/tegra_x1/gpu/buffer_cache.hpp
-    hw/tegra_x1/gpu/texture_decoder.cpp
-    hw/tegra_x1/gpu/texture_decoder.hpp
-    hw/tegra_x1/gpu/texture_cache.cpp
-    hw/tegra_x1/gpu/texture_cache.hpp
-    hw/tegra_x1/gpu/render_pass_cache.cpp
-    hw/tegra_x1/gpu/render_pass_cache.hpp
-    hw/tegra_x1/gpu/shader_cache.cpp
-    hw/tegra_x1/gpu/shader_cache.hpp
-    hw/tegra_x1/gpu/pipeline_cache.cpp
-    hw/tegra_x1/gpu/pipeline_cache.hpp
     hw/tegra_x1/gpu/gpu.cpp
     hw/tegra_x1/gpu/gpu.hpp
     hw/tegra_x1/gpu/engines/const.hpp
@@ -138,19 +126,31 @@ add_executable(hydra
     hw/tegra_x1/gpu/macro/driver_base.hpp
     hw/tegra_x1/gpu/macro/interpreter/driver.cpp
     hw/tegra_x1/gpu/macro/interpreter/driver.hpp
-    hw/tegra_x1/gpu/shader_decompiler/const.hpp
-    hw/tegra_x1/gpu/shader_decompiler/tables.hpp
-    hw/tegra_x1/gpu/shader_decompiler/observer_base.hpp
-    hw/tegra_x1/gpu/shader_decompiler/analyzer.cpp
-    hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp
-    hw/tegra_x1/gpu/shader_decompiler/builder_base.hpp
-    hw/tegra_x1/gpu/shader_decompiler/decompiler.cpp
-    hw/tegra_x1/gpu/shader_decompiler/decompiler.hpp
-    hw/tegra_x1/gpu/shader_decompiler/builder_base.hpp
-    hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.cpp
-    hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.hpp
-    hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.cpp
-    hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp
+    hw/tegra_x1/gpu/renderer/buffer_cache.cpp
+    hw/tegra_x1/gpu/renderer/buffer_cache.hpp
+    hw/tegra_x1/gpu/renderer/texture_decoder.cpp
+    hw/tegra_x1/gpu/renderer/texture_decoder.hpp
+    hw/tegra_x1/gpu/renderer/texture_cache.cpp
+    hw/tegra_x1/gpu/renderer/texture_cache.hpp
+    hw/tegra_x1/gpu/renderer/render_pass_cache.cpp
+    hw/tegra_x1/gpu/renderer/render_pass_cache.hpp
+    hw/tegra_x1/gpu/renderer/shader_cache.cpp
+    hw/tegra_x1/gpu/renderer/shader_cache.hpp
+    hw/tegra_x1/gpu/renderer/pipeline_cache.cpp
+    hw/tegra_x1/gpu/renderer/pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/const.cpp
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp

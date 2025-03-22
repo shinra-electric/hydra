@@ -1,9 +1,9 @@
-#include "hw/tegra_x1/gpu/shader_decompiler/lang/lang_builder_base.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 
-#include "hw/tegra_x1/gpu/shader_cache.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
 void LangBuilderBase::Start() {
     InitializeResourceMapping();
@@ -63,7 +63,7 @@ void LangBuilderBase::Start() {
 
     // Inputs
     switch (type) {
-    case Renderer::ShaderType::Vertex:
+    case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
             if (vertex_attrib_state.type == Engines::VertexAttribType::None)
@@ -82,7 +82,7 @@ void LangBuilderBase::Start() {
             }
         }
         break;
-    case Renderer::ShaderType::Fragment:
+    case ShaderType::Fragment:
 #define ADD_INPUT(sv_semantic, index, a_base)                                  \
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
@@ -137,7 +137,7 @@ void LangBuilderBase::Finish() {
 void LangBuilderBase::OpExit() {
     // Outputs
     switch (type) {
-    case Renderer::ShaderType::Vertex:
+    case ShaderType::Vertex:
         // TODO: don't hardcode the bit cast type
 #define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
     {                                                                          \
@@ -155,10 +155,10 @@ void LangBuilderBase::OpExit() {
 
 #undef ADD_OUTPUT
         break;
-    case Renderer::ShaderType::Fragment:
+    case ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == Renderer::TextureFormat::Invalid)
+            if (color_target_format == TextureFormat::Invalid)
                 continue;
 
             for (u32 c = 0; c < 4; c++) {
@@ -250,7 +250,7 @@ void LangBuilderBase::EmitStageInputs() {
 
     // Stage inputs
     switch (type) {
-    case Renderer::ShaderType::Vertex:
+    case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
             if (vertex_attrib_state.type == Engines::VertexAttribType::None)
@@ -267,7 +267,7 @@ void LangBuilderBase::EmitStageInputs() {
                                      GetSVName(sv)));
         }
         break;
-    case Renderer::ShaderType::Fragment:
+    case ShaderType::Fragment:
         Write("{};", GetQualifiedSVName(SVSemantic::Position, false,
                                         "float4 position"));
         for (const auto input : analyzer.GetStageInputs()) {
@@ -299,7 +299,7 @@ void LangBuilderBase::EmitStageOutputs() {
 
     // Stage outputs
     switch (type) {
-    case Renderer::ShaderType::Vertex:
+    case ShaderType::Vertex:
         Write("{};", GetQualifiedSVName(SVSemantic::Position, true,
                                         "float4 position"));
         for (const auto output : analyzer.GetStageOutputs()) {
@@ -309,10 +309,10 @@ void LangBuilderBase::EmitStageOutputs() {
                   GetQualifiedSVName(sv, true, "float4 {}", GetSVName(sv)));
         }
         break;
-    case Renderer::ShaderType::Fragment:
+    case ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == Renderer::TextureFormat::Invalid)
+            if (color_target_format == TextureFormat::Invalid)
                 continue;
 
             const auto sv = SV(SVSemantic::UserInOut, i);
@@ -353,4 +353,4 @@ void LangBuilderBase::EmitWriteFromTemp(reg_t dst, u32 count) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang

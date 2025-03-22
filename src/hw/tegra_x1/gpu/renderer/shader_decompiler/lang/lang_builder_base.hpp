@@ -1,22 +1,21 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/shader_decompiler/builder_base.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp"
 
 #define WRITE_ARGS fmt::format_string<T...> fmt, T &&... args
 #define FMT fmt::format(fmt, std::forward<T>(args)...)
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
 static const std::string INVALID_VALUE = "INVALID";
 
 class LangBuilderBase : public BuilderBase {
   public:
-    LangBuilderBase(const Analyzer& analyzer, const Renderer::ShaderType type,
+    LangBuilderBase(const Analyzer& analyzer, const ShaderType type,
                     const GuestShaderState& state, std::vector<u8>& out_code,
-                    Renderer::ResourceMapping& out_resource_mapping)
+                    ResourceMapping& out_resource_mapping)
         : BuilderBase(analyzer, type, state, out_code, out_resource_mapping) {}
 
     void Start() override;
@@ -193,7 +192,7 @@ class LangBuilderBase : public BuilderBase {
     void EmitWriteFromTemp(reg_t dst, u32 count = 4);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang
 
 #undef FMT
 #undef WRITE_ARGS

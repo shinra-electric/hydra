@@ -201,7 +201,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
             const uptr ptr =
                 GPU::GetInstance().GetGPUMMU().UnmapAddr(const_buffer_gpu_addr);
 
-            const auto buffer = GPU::GetInstance().GetBufferCache().Find(
+            const auto buffer = RENDERER->GetBufferCache().Find(
                 {ptr, regs.const_buffer_selector_size});
 
             RENDERER->BindUniformBuffer(
@@ -228,7 +228,7 @@ Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index,
         .size = (max_vertex + 1) * vertex_array.config.stride,
     };
 
-    return GPU::GetInstance().GetBufferCache().Find(descriptor);
+    return RENDERER->GetBufferCache().Find(descriptor);
 }
 
 Renderer::TextureBase*
@@ -247,7 +247,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         .stride = static_cast<usize>((tic.width_minus_one + 1) * 4), // HACK
     };
 
-    return GPU::GetInstance().GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().Find(descriptor);
 }
 
 Renderer::TextureBase*
@@ -269,7 +269,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         .stride = render_target.width * 4,                   // HACK
     };
 
-    return GPU::GetInstance().GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().Find(descriptor);
 }
 
 Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
@@ -288,7 +288,7 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
         // TODO: stencil
     };
 
-    return GPU::GetInstance().GetRenderPassCache().Find(descriptor);
+    return RENDERER->GetRenderPassCache().Find(descriptor);
 }
 
 Renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
@@ -305,7 +305,7 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
                     program.offset;
     uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
-    GuestShaderDescriptor descriptor{
+    Renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
         .code_ptr = ptr,
     };
@@ -328,7 +328,7 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     }
 
     auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];
-    active_shader = GPU::GetInstance().GetShaderCache().Find(descriptor);
+    active_shader = RENDERER->GetShaderCache().Find(descriptor);
 
     return active_shader;
 }
@@ -362,7 +362,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
         };
     }
 
-    return GPU::GetInstance().GetPipelineCache().Find(descriptor);
+    return RENDERER->GetPipelineCache().Find(descriptor);
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,

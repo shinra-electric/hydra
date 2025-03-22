@@ -1,8 +1,8 @@
-#include "hw/tegra_x1/gpu/texture_decoder.hpp"
+#include "hw/tegra_x1/gpu/renderer/texture_decoder.hpp"
 
 #include "hw/tegra_x1/gpu/gpu.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 namespace {
 
@@ -48,7 +48,7 @@ static void DecodeGeneric16BX2(usize stride, usize height,
 TextureDecoder::TextureDecoder() {}
 TextureDecoder::~TextureDecoder() {}
 
-void TextureDecoder::Decode(const Renderer::TextureDescriptor& descriptor,
+void TextureDecoder::Decode(const TextureDescriptor& descriptor,
                             u8* scratch_buffer, u8*& out_data) {
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
 
@@ -68,4 +68,4 @@ void TextureDecoder::Decode(const Renderer::TextureDescriptor& descriptor,
     out_data = scratch_buffer;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace Hydra::HW::TegraX1::GPU::Renderer

@@ -1,21 +1,20 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/renderer/const.hpp"
-#include "hw/tegra_x1/gpu/shader_decompiler/observer_base.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace Hydra::HW::TegraX1::GPU::Renderer {
 class GuestShaderState;
 }
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 class Analyzer;
 
 class BuilderBase : public ObserverBase {
   public:
-    BuilderBase(const Analyzer& analyzer_, const Renderer::ShaderType type_,
+    BuilderBase(const Analyzer& analyzer_, const ShaderType type_,
                 const GuestShaderState& state_, std::vector<u8>& out_code_,
-                Renderer::ResourceMapping& out_resource_mapping_)
+                ResourceMapping& out_resource_mapping_)
         : analyzer{analyzer_}, type{type_}, state{state_}, out_code{out_code_},
           out_resource_mapping{out_resource_mapping_} {}
     virtual ~BuilderBase() {}
@@ -25,11 +24,11 @@ class BuilderBase : public ObserverBase {
 
   protected:
     const Analyzer& analyzer;
-    const Renderer::ShaderType type;
+    const ShaderType type;
     const GuestShaderState& state;
 
     std::vector<u8>& out_code;
-    Renderer::ResourceMapping& out_resource_mapping;
+    ResourceMapping& out_resource_mapping;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

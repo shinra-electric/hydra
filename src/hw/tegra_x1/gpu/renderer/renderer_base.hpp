@@ -1,6 +1,11 @@
 #pragma once
 
+#include "hw/tegra_x1/gpu/renderer/buffer_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
@@ -58,11 +63,24 @@ class RendererBase {
     virtual void Draw(const Engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count) = 0;
 
+    // Getters
+    BufferCache& GetBufferCache() { return buffer_cache; }
+    TextureCache& GetTextureCache() { return texture_cache; }
+    RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
+    ShaderCache& GetShaderCache() { return shader_cache; }
+    PipelineCache& GetPipelineCache() { return pipeline_cache; }
+
   protected:
     // State getters
     // TODO
 
   private:
+    // Caches
+    BufferCache buffer_cache;
+    TextureCache texture_cache;
+    RenderPassCache render_pass_cache;
+    ShaderCache shader_cache;
+    PipelineCache pipeline_cache;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

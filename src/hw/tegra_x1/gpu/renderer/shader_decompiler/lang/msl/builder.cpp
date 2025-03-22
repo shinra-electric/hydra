@@ -1,8 +1,8 @@
-#include "hw/tegra_x1/gpu/shader_decompiler/lang/msl/builder.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 
-#include "hw/tegra_x1/gpu/shader_decompiler/analyzer.hpp"
+#include "hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
 
 void Builder::InitializeResourceMapping() {
     for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
@@ -31,12 +31,12 @@ std::string Builder::GetSVQualifierName(const SV sv, bool output) {
         return "[[position]]";
     case SVSemantic::UserInOut:
         switch (type) {
-        case Renderer::ShaderType::Vertex:
+        case ShaderType::Vertex:
             if (output)
                 return fmt::format("[[user(locn{})]]", sv.index);
             else
                 return fmt::format("[[attribute({})]]", sv.index);
-        case Renderer::ShaderType::Fragment:
+        case ShaderType::Fragment:
             if (output)
                 return fmt::format("[[color({})]]", sv.index);
             else
@@ -52,9 +52,9 @@ std::string Builder::GetSVQualifierName(const SV sv, bool output) {
 
 std::string Builder::GetStageQualifierName() {
     switch (type) {
-    case Renderer::ShaderType::Vertex:
+    case ShaderType::Vertex:
         return "vertex";
-    case Renderer::ShaderType::Fragment:
+    case ShaderType::Fragment:
         return "fragment";
     default:
         return INVALID_VALUE;
@@ -65,4 +65,4 @@ std::string Builder::EmitTextureSample(u32 index, const std::string& coords) {
     return fmt::format("tex{}.sample(samplr{}, {})", index, index, coords);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::ShaderDecompiler::Lang::MSL
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

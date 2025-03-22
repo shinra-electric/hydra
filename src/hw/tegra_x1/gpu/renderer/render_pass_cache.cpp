@@ -1,4 +1,4 @@
-#include "hw/tegra_x1/gpu/render_pass_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
 
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include "hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
@@ -8,14 +8,14 @@ template <typename T> T rotl(T v, u64 shift) {
     return (v << shift) | (v >> (32 - shift));
 }
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace Hydra::HW::TegraX1::GPU::Renderer {
 
-Renderer::RenderPassBase*
-RenderPassCache::Create(const Renderer::RenderPassDescriptor& descriptor) {
+RenderPassBase*
+RenderPassCache::Create(const RenderPassDescriptor& descriptor) {
     return RENDERER->CreateRenderPass(descriptor);
 }
 
-u64 RenderPassCache::Hash(const Renderer::RenderPassDescriptor& descriptor) {
+u64 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
     // TODO: improve this
     // TODO: also hash metadata about clears
     u64 hash = 0;
@@ -26,8 +26,8 @@ u64 RenderPassCache::Hash(const Renderer::RenderPassDescriptor& descriptor) {
     return hash;
 }
 
-void RenderPassCache::DestroyElement(Renderer::RenderPassBase* render_pass) {
+void RenderPassCache::DestroyElement(RenderPassBase* render_pass) {
     delete render_pass;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace Hydra::HW::TegraX1::GPU::Renderer
