@@ -22,24 +22,13 @@ void LangBuilderBase::Start() {
     Write("uint u;");
     Write("float f;");
     ExitScopeEmpty(true);
+    WriteNewline();
 
     // Declarations
+    EmitDeclarations();
 
-    // Stage inputs
-    EmitStageInputs();
-    WriteNewline();
-
-    // Stage outputs
-    EmitStageOutputs();
-    WriteNewline();
-
-    // Uniform buffers
-    EmitUniformBuffers();
-    WriteNewline();
-
-    // Main declaration
-    EnterScope("{} StageOut main_(StageIn __in {}{})", GetStageQualifierName(),
-               GetStageInQualifierName(), GetMainArgs());
+    // Main prototype
+    EmitMainPrototype();
 
     // Output
     Write("StageOut __out;");
@@ -205,138 +194,6 @@ void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
     EmitReadToTemp(coords, 2);
     WriteStatement("temp.f = {}", EmitTextureSample(index, "temp.f.xy"));
     EmitWriteFromTemp(dst);
-}
-
-std::string LangBuilderBase::GetMainArgs() {
-#define ADD_ARG(f, ...) args += fmt::format(", {}", fmt::format(f, __VA_ARGS__))
-
-    std::string args;
-
-    // Input SVs
-    // TODO
-
-    // Uniform buffers
-    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
-        ADD_ARG("constant UBuff{}& ubuff{} {}", index, index,
-                GetUniformBufferQualifierName(
-                    out_resource_mapping.uniform_buffers[index]));
-    }
-
-    // Storage buffers
-    // TODO
-
-    // Textures
-    for (const auto index : analyzer.GetTextures()) {
-        // TODO: don't hardcode texture type
-        ADD_ARG("texture2d<float> tex{} {}", index,
-                GetTextureQualifierName(out_resource_mapping.textures[index]));
-        ADD_ARG("sampler samplr{} {}", index,
-                GetSamplerQualifierName(out_resource_mapping.samplers[index]));
-    }
-
-    // Images
-    // TODO
-
-#undef ADD_ARG
-
-    return args;
-}
-
-void LangBuilderBase::EmitStageInputs() {
-    EnterScope("struct StageIn");
-
-    // SVs
-    // Handled in GetMainArgs
-
-    // Stage inputs
-    switch (type) {
-    case ShaderType::Vertex:
-        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
-            const auto vertex_attrib_state = state.vertex_attrib_states[i];
-            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
-                continue;
-
-            // HACK: how are attributes disabled?
-            if (vertex_attrib_state.is_fixed)
-                continue;
-
-            const auto sv = SV(SVSemantic::UserInOut, i);
-            Write("{};",
-                  GetQualifiedSVName(sv, false, "{}4 {}",
-                                     to_data_type(vertex_attrib_state.type),
-                                     GetSVName(sv)));
-        }
-        break;
-    case ShaderType::Fragment:
-        Write("{};", GetQualifiedSVName(SVSemantic::Position, false,
-                                        "float4 position"));
-        for (const auto input : analyzer.GetStageInputs()) {
-            const auto sv = SV(SVSemantic::UserInOut, input);
-            // TODO: don't hardcode the type
-            Write("{};",
-                  GetQualifiedSVName(sv, false, "float4 {}", GetSVName(sv)));
-        }
-        break;
-    default:
-        break;
-    }
-
-    ExitScopeEmpty(true);
-}
-
-void LangBuilderBase::EmitStageOutputs() {
-    EnterScope("struct StageOut");
-
-    // SVs
-    for (const auto sv_semantic : analyzer.GetOutputSVs()) {
-        switch (sv_semantic) {
-        default:
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Output SV semantic {}",
-                                sv_semantic);
-            break;
-        }
-    }
-
-    // Stage outputs
-    switch (type) {
-    case ShaderType::Vertex:
-        Write("{};", GetQualifiedSVName(SVSemantic::Position, true,
-                                        "float4 position"));
-        for (const auto output : analyzer.GetStageOutputs()) {
-            const auto sv = SV(SVSemantic::UserInOut, output);
-            // TODO: don't hardcode the type
-            Write("{};",
-                  GetQualifiedSVName(sv, true, "float4 {}", GetSVName(sv)));
-        }
-        break;
-    case ShaderType::Fragment:
-        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-            const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == TextureFormat::Invalid)
-                continue;
-
-            const auto sv = SV(SVSemantic::UserInOut, i);
-            Write("{};", GetQualifiedSVName(sv, true, "{}4 {}",
-                                            to_data_type(color_target_format),
-                                            GetSVName(sv)));
-        }
-        break;
-    default:
-        break;
-    }
-
-    ExitScopeEmpty(true);
-}
-
-void LangBuilderBase::EmitUniformBuffers() {
-    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
-        EnterScope("struct UBuff{}", index);
-
-        // Data
-        Write("uint data[{}];", size / sizeof(u32));
-
-        ExitScopeEmpty(true);
-    }
 }
 
 void LangBuilderBase::EmitReadToTemp(reg_t src, u32 count) {

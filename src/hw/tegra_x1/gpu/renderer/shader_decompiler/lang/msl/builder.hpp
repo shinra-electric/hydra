@@ -17,24 +17,15 @@ class Builder final : public LangBuilderBase {
 
     void EmitHeader() override;
     void EmitTypeAliases() override;
-
-    std::string GetSVQualifierName(const SV sv, bool output) override;
-    std::string GetStageInQualifierName() override { return "[[stage_in]]"; }
-    std::string GetUniformBufferQualifierName(const u32 index) override {
-        return fmt::format("[[buffer({})]]", index);
-    }
-    std::string GetTextureQualifierName(const u32 index) override {
-        return fmt::format("[[texture({})]]", index);
-    }
-    std::string GetSamplerQualifierName(const u32 index) override {
-        return fmt::format("[[sampler({})]]", index);
-    }
-    std::string GetStageQualifierName() override;
+    void EmitDeclarations() override;
+    void EmitMainPrototype() override;
 
     std::string EmitTextureSample(u32 index,
                                   const std::string& coords) override;
 
   private:
+    // Helpers
+    std::string GetSVQualifierName(const SV sv, bool output);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

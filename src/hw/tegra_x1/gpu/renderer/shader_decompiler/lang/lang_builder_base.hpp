@@ -35,13 +35,8 @@ class LangBuilderBase : public BuilderBase {
 
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
-
-    virtual std::string GetSVQualifierName(const SV sv, bool output) = 0;
-    virtual std::string GetStageInQualifierName() = 0;
-    virtual std::string GetUniformBufferQualifierName(const u32 index) = 0;
-    virtual std::string GetTextureQualifierName(const u32 index) = 0;
-    virtual std::string GetSamplerQualifierName(const u32 index) = 0;
-    virtual std::string GetStageQualifierName() = 0;
+    virtual void EmitDeclarations() = 0;
+    virtual void EmitMainPrototype() = 0;
 
     virtual std::string EmitTextureSample(u32 index,
                                           const std::string& coords) = 0;
@@ -54,6 +49,8 @@ class LangBuilderBase : public BuilderBase {
         }
         WriteRaw("{}{}\n", indent_str, FMT);
     }
+
+    template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 
     void WriteNewline() { code_str += "\n"; }
     template <typename... T> void WriteStatement(WRITE_ARGS) {
@@ -133,11 +130,11 @@ class LangBuilderBase : public BuilderBase {
         }
     }
 
-    template <typename... T>
-    std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS) {
-        // TODO: support qualifiers before the name as well
-        return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
-    }
+    // template <typename... T>
+    // std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS) {
+    //     // TODO: support qualifiers before the name as well
+    //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
+    // }
 
     std::string GetSVName(const SV sv) {
         switch (sv.semantic) {
@@ -166,14 +163,6 @@ class LangBuilderBase : public BuilderBase {
     std::string code_str;
 
     u32 indent = 0;
-
-    std::string GetMainArgs();
-
-    // Emit
-    void EmitStageInputs();
-    void EmitStageOutputs();
-    void EmitUniformBuffers();
-    template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 
     template <typename... T> void EnterScopeImpl(WRITE_ARGS) {
         Write("{}{{", FMT);
