@@ -1,9 +1,14 @@
 #include "horizon/loader/nro_loader.hpp"
 
+#include "horizon/filesystem/file.hpp"
+#include "horizon/filesystem/filesystem.hpp"
 #include "horizon/kernel.hpp"
 #include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::Horizon::Loader {
+
+static const std::string ROM_VIRTUAL_PATH =
+    "/rom.nro"; // TODO: what should this be?
 
 namespace {
 
@@ -69,6 +74,10 @@ void NROLoader::LoadROM(const std::string& rom_filename) {
     Kernel::GetInstance().SetEntryPoint(
         base + sizeof(NROHeader) +
         header.GetSection(NROSectionType::Text).offset);
+
+    // Filesystem
+    Filesystem::Filesystem::GetInstance().AddEntry(
+        new Filesystem::File(rom_filename), ROM_VIRTUAL_PATH);
 
     ifs.close();
 }

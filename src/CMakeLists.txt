@@ -18,6 +18,13 @@ add_executable(hydra
     horizon/cmif.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/filesystem/entry_base.hpp
+    horizon/filesystem/file.cpp
+    horizon/filesystem/file.hpp
+    horizon/filesystem/directory.cpp
+    horizon/filesystem/directory.hpp
+    horizon/filesystem/filesystem.cpp
+    horizon/filesystem/filesystem.hpp
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp
     horizon/loader/nro_loader.hpp

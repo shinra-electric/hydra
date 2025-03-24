@@ -81,6 +81,7 @@ enum class Class {
     SDL3Window,
     Horizon,
     HorizonKernel,
+    HorizonFilesystem,
     HorizonLoader,
     HorizonServices,
     Hypervisor,
@@ -145,5 +146,6 @@ ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", HorizonKernel, "Horizon::Kernel",
-                       HorizonLoader, "Horizon::Loader", HorizonServices,
-                       "Horizon::Services", Hypervisor, "Hypervisor")
+                       HorizonFilesystem, "Horizon::Filesystem", HorizonLoader,
+                       "Horizon::Loader", HorizonServices, "Horizon::Services",
+                       Hypervisor, "Hypervisor")

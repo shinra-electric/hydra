@@ -61,23 +61,20 @@ void EmulationContext::Start(const std::string& rom_filename) {
     loader->LoadROM(rom_filename);
 
     // Main thread
-    std::thread* t = new std::thread(
-        [&](std::string rom_filename) {
-            // Main thread
-            Hydra::HW::TegraX1::CPU::ThreadBase* main_thread =
-                cpu->CreateThread();
-            os->GetKernel().ConfigureMainThread(main_thread, rom_filename);
+    std::thread* t = new std::thread([&]() {
+        // Main thread
+        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();
+        os->GetKernel().ConfigureMainThread(main_thread);
 
-            // Run
-            main_thread->Run();
+        // Run
+        main_thread->Run();
 
-            // Cleanup
-            delete main_thread;
+        // Cleanup
+        delete main_thread;
 
-            // Notify that emulation has ended
-            is_running = false;
-        },
-        rom_filename);
+        // Notify that emulation has ended
+        is_running = false;
+    });
 
     is_running = true;
 }

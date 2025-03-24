@@ -3,6 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/allocators/static_pool.hpp"
 #include "horizon/const.hpp"
+#include "horizon/filesystem/filesystem.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 class Memory;
@@ -57,8 +58,7 @@ class Kernel {
     ~Kernel();
 
     void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread);
-    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
-                             const std::string& rom_filename);
+    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
     HW::TegraX1::CPU::Memory* CreateExecutableMemory(usize size,
@@ -104,6 +104,8 @@ class Kernel {
     // Getters
     HW::Bus& GetBus() const { return bus; }
 
+    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
+
     HW::TegraX1::CPU::Memory* GetStackMemory() const { return stack_mem; }
     HW::TegraX1::CPU::Memory* GetKernelMemory() const { return kernel_mem; }
     HW::TegraX1::CPU::Memory* GetTlsMemory() const { return tls_mem; }
@@ -128,6 +130,8 @@ class Kernel {
     HW::TegraX1::CPU::MMUBase* mmu;
 
     uptr entry_point = 0x0;
+
+    Filesystem::Filesystem filesystem;
 
     // Memory
 

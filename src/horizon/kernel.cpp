@@ -123,8 +123,7 @@ void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
                       KERNEL_MEM_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
-void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
-                                 const std::string& rom_filename) {
+void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     ConfigureThread(thread);
 
     // Set initial PC
@@ -132,6 +131,7 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
     thread->SetRegPC(entry_point);
 
     // Set arguments
+    // TODO: handle this in the loader
 
     // From https://github.com/switchbrew/libnx
 
@@ -150,7 +150,7 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
         thread->SetRegX(1, UINT64_MAX);
 
         // Args
-        std::string args = fmt::format("\"{}\"", rom_filename);
+        std::string args = fmt::format("\"{}\"", "/rom.nro");
         char* argv = reinterpret_cast<char*>(mmu->UnmapAddr(ARGV_ADDR));
         memcpy(argv, args.c_str(), args.size());
         argv[args.size()] = '\0';
