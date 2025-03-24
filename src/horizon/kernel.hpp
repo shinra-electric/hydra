@@ -50,6 +50,8 @@ class TransferMemory : public KernelHandle {
     Permission permission;
 };
 
+constexpr usize ARG_COUNT = 2;
+
 class Kernel {
   public:
     static Kernel& GetInstance();
@@ -64,6 +66,11 @@ class Kernel {
     HW::TegraX1::CPU::Memory* CreateExecutableMemory(usize size,
                                                      uptr& out_base);
     void SetEntryPoint(uptr entry_point_) { entry_point = entry_point_; }
+    void SetArg(u32 index, u64 value) {
+        ASSERT_DEBUG(index < ARG_COUNT, HorizonKernel, "Invalid arg index {}",
+                     index);
+        args[index] = value;
+    }
 
     void ConnectServiceToPort(const std::string& port_name,
                               Services::ServiceBase* service) {
@@ -129,7 +136,8 @@ class Kernel {
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
 
-    uptr entry_point = 0x0;
+    uptr entry_point{0x0};
+    u64 args[ARG_COUNT] = {0x0};
 
     Filesystem::Filesystem filesystem;
 

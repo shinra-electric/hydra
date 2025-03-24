@@ -64,22 +64,67 @@ void NROLoader::LoadROM(const std::string& rom_filename) {
     }
 
     // Create executable memory
+    usize executable_size = size + header.bss_size;
     uptr base;
-    auto mem = Kernel::GetInstance().CreateExecutableMemory(
-        size + header.bss_size, base);
+    auto mem =
+        Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
     ifs.seekg(0, std::ios::beg);
     ifs.read(reinterpret_cast<char*>(mem->GetPtr()), size);
+
+    ifs.close();
 
     // Set entrypoint
     Kernel::GetInstance().SetEntryPoint(
         base + sizeof(NROHeader) +
         header.GetSection(NROSectionType::Text).offset);
 
+    // Args
+    const u64 argv_offset = executable_size;
+
+    std::string args = fmt::format("\"{}\"", "/rom.nro");
+    char* argv = reinterpret_cast<char*>(mem->GetPtr() + argv_offset);
+    memcpy(argv, args.c_str(), args.size());
+    argv[args.size()] = '\0';
+
+    // Config
+    const uptr config_offset = argv_offset + args.size() + 1;
+
+#define ADD_ENTRY(t, f, value0, value1)                                        \
+    {                                                                          \
+        entry->type = ConfigEntryType::t;                                      \
+        entry->flags = ConfigEntryFlag::f;                                     \
+        entry->values[0] = value0;                                             \
+        entry->values[1] = value1;                                             \
+        entry++;                                                               \
+    }
+#define ADD_ENTRY_MANDATORY(t, value0, value1)                                 \
+    ADD_ENTRY(t, None, value0, value1)
+#define ADD_ENTRY_NON_MANDATORY(t, value0, value1)                             \
+    ADD_ENTRY(t, IsMandatory, value0, value1)
+
+    // Entries
+    ConfigEntry* entry =
+        reinterpret_cast<ConfigEntry*>(mem->GetPtr() + config_offset);
+
+    ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
+                        0); // TODO: what thread handle should be used?
+    ADD_ENTRY_MANDATORY(Argv, 0,
+                        base + argv_offset); // TODO: what should value0 be?
+    // TODO: supply the actual availability
+    ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX, UINT64_MAX);
+    ADD_ENTRY_MANDATORY(SyscallAvailableHint2, UINT64_MAX, 0);
+    ADD_ENTRY_MANDATORY(EndOfList, 0, 0);
+
+#undef ADD_ENTRY_NON_MANDATORY
+#undef ADD_ENTRY_MANDATORY
+#undef ADD_ENTRY
+
+    Kernel::GetInstance().SetArg(0, base + config_offset);
+    Kernel::GetInstance().SetArg(1, UINT64_MAX);
+
     // Filesystem
     Filesystem::Filesystem::GetInstance().AddEntry(
         new Filesystem::File(rom_filename), ROM_VIRTUAL_PATH);
-
-    ifs.close();
 }
 
 } // namespace Hydra::Horizon::Loader

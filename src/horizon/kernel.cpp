@@ -31,9 +31,6 @@ constexpr usize ASLR_MEM_SIZE = 0x1000000;
 
 constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 
-constexpr uptr CONFIG_ENTRIES_ADDR = ASLR_MEM_BASE; // TODO: where to put this?
-constexpr uptr ARGV_ADDR = ASLR_MEM_BASE + 0x1000;  // TODO: where to put this?
-
 const u32 exception_handler[] = {
     0xd41fffe2u, // hvc #0xFFFF
     0xd69f03e0u, // eret
@@ -130,66 +127,18 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     ASSERT_DEBUG(entry_point != 0x0, HorizonKernel, "Invalid entry point");
     thread->SetRegPC(entry_point);
 
-    // Set arguments
-    // TODO: handle this in the loader
-
-    // From https://github.com/switchbrew/libnx
+    // Arguments
+    for (u32 i = 0; i < ARG_COUNT; i++)
+        thread->SetRegX(i, args[i]);
 
     // NSO
     // TODO: if NSO
-    if (false) {
-        thread->SetRegX(0, 0x0);
-        thread->SetRegX(1,
-                        0x0000000f); // TODO: what thread handle should be used?
-    }
-
-    // NRO
-    // TODO: if NRO
-    if (true) {
-        thread->SetRegX(0, CONFIG_ENTRIES_ADDR);
-        thread->SetRegX(1, UINT64_MAX);
-
-        // Args
-        std::string args = fmt::format("\"{}\"", "/rom.nro");
-        char* argv = reinterpret_cast<char*>(mmu->UnmapAddr(ARGV_ADDR));
-        memcpy(argv, args.c_str(), args.size());
-        argv[args.size()] = '\0';
-
-#define ADD_ENTRY(t, f, value0, value1)                                        \
-    {                                                                          \
-        entry->type = ConfigEntryType::t;                                      \
-        entry->flags = ConfigEntryFlag::f;                                     \
-        entry->values[0] = value0;                                             \
-        entry->values[1] = value1;                                             \
-        entry++;                                                               \
-    }
-#define ADD_ENTRY_MANDATORY(t, value0, value1)                                 \
-    ADD_ENTRY(t, None, value0, value1)
-#define ADD_ENTRY_NON_MANDATORY(t, value0, value1)                             \
-    ADD_ENTRY(t, IsMandatory, value0, value1)
-
-        // Entries
-        ConfigEntry* entry =
-            reinterpret_cast<ConfigEntry*>(mmu->UnmapAddr(CONFIG_ENTRIES_ADDR));
-
-        ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
-                            0); // TODO: what thread handle should be used?
-        ADD_ENTRY_MANDATORY(Argv, 0, ARGV_ADDR); // TODO: what should value0 be?
-        // TODO: supply the actual availability
-        ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX, UINT64_MAX);
-        ADD_ENTRY_MANDATORY(SyscallAvailableHint2, UINT64_MAX, 0);
-        ADD_ENTRY_MANDATORY(EndOfList, 0, 0);
-
-#undef ADD_ENTRY_NON_MANDATORY
-#undef ADD_ENTRY_MANDATORY
-#undef ADD_ENTRY
-    }
-
-    // User-mode exception entry
-    // TODO: if user-mode exception
-    if (false) {
-        // TODO: what is this?
-    }
+    // if (false) {
+    //    thread->SetRegX(0, 0x0);
+    //    thread->SetRegX(1,
+    //                    0x0000000f); // TODO: what thread handle should be
+    //                    used?
+    //}
 }
 
 HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
