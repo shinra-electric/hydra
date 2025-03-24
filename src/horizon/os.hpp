@@ -130,8 +130,6 @@ class OS {
     OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_);
     ~OS();
 
-    void LoadROM(Rom* rom);
-
     // Getters
     Kernel& GetKernel() { return kernel; }
 

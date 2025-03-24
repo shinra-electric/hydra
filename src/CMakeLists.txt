@@ -18,6 +18,9 @@ add_executable(hydra
     horizon/cmif.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/loader/loader_base.hpp
+    horizon/loader/nro_loader.cpp
+    horizon/loader/nro_loader.hpp
     horizon/services/service_base.cpp
     horizon/services/service_base.hpp
     horizon/services/domain_service.cpp

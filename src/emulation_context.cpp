@@ -1,4 +1,6 @@
 #include "emulation_context.hpp"
+#include "horizon/loader/loader_base.hpp"
+#include "horizon/loader/nro_loader.hpp"
 
 // HACK
 void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
@@ -39,19 +41,8 @@ EmulationContext::~EmulationContext() {
 }
 
 void EmulationContext::Start(const std::string& rom_filename) {
-    // Parse file
-    usize size;
-    auto ifs = Hydra::open_file(rom_filename, size);
-    // std::vector<u8> d(size);
-    // ifs.read((char*)d.data(), size);
-    // Logging::log(Logging::Level::Debug, "AAA: 0x%llx", *((u64*)(d.data() +
-    // 0x17498))); return 0;
-    BinaryReader reader(ifs, size);
-    Rom* rom = ParseNRO(reader);
-    ifs.close();
-
     // HACK
-    u32* data = (u32*)(rom->GetRom().data());
+    // u32* data = (u32*)(rom->GetRom().data());
     // SET_INSTRUCTION(data, 0x00000c28,
     //                MOV_X0_XZR); // appletInitialize, infinite sleep on exit
     // SET_INSTRUCTION(data, 0x0000161c,
@@ -62,7 +53,12 @@ void EmulationContext::Start(const std::string& rom_filename) {
     // SET_INSTRUCTION(data, 0xf1e8, BRK);
 
     // Load ROM
-    os->LoadROM(rom);
+    // TODO: choose the loader based on the file format
+    Horizon::Loader::LoaderBase* loader;
+    {
+        loader = new Horizon::Loader::NROLoader();
+    }
+    loader->LoadROM(rom_filename);
 
     // Main thread
     std::thread* t = new std::thread(

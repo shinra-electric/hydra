@@ -23,8 +23,6 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_)
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
-void OS::LoadROM(Rom* rom) { kernel.LoadROM(rom); }
-
 HID::SharedMemory* OS::GetHidSharedMemory() const {
     return reinterpret_cast<HID::SharedMemory*>(mmu->UnmapAddr(
         kernel.GetSharedMemory(hid_shared_memory_id).GetRange().GetBase()));

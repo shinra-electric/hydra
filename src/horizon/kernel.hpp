@@ -60,7 +60,10 @@ class Kernel {
     void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
                              const std::string& rom_filename);
 
-    void LoadROM(Rom* rom);
+    // Loading
+    HW::TegraX1::CPU::Memory* CreateExecutableMemory(usize size,
+                                                     uptr& out_base);
+    void SetEntryPoint(uptr entry_point_) { entry_point = entry_point_; }
 
     void ConnectServiceToPort(const std::string& port_name,
                               Services::ServiceBase* service) {
@@ -101,8 +104,6 @@ class Kernel {
     // Getters
     HW::Bus& GetBus() const { return bus; }
 
-    HW::TegraX1::CPU::Memory* GetRomMemory() const { return rom_mem; }
-    // HW::MMU::Memory* GetBssMemory() const { return bss_mem; }
     HW::TegraX1::CPU::Memory* GetStackMemory() const { return stack_mem; }
     HW::TegraX1::CPU::Memory* GetKernelMemory() const { return kernel_mem; }
     HW::TegraX1::CPU::Memory* GetTlsMemory() const { return tls_mem; }
@@ -126,7 +127,7 @@ class Kernel {
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
 
-    u32 rom_text_offset{0};
+    uptr entry_point = 0x0;
 
     // Memory
 
@@ -137,7 +138,8 @@ class Kernel {
     HW::TegraX1::CPU::Memory* aslr_mem;
 
     // Dynamic
-    HW::TegraX1::CPU::Memory* rom_mem = nullptr;
+    uptr executable_mem_base = 0x80000000;
+    std::vector<HW::TegraX1::CPU::Memory*> executable_memories;
     // HW::MMU::Memory* bss_mem;
     HW::TegraX1::CPU::Memory* heap_mem;
 

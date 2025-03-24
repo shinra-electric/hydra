@@ -21,8 +21,6 @@ constexpr usize KERNEL_MEM_SIZE = 0x10000;
 constexpr uptr TLS_MEM_BASE = 0x20000000;
 constexpr usize TLS_MEM_SIZE = 0x20000;
 
-constexpr uptr ROM_MEM_BASE = 0x80000000;
-
 constexpr uptr HEAP_MEM_BASE = 0x60000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
@@ -109,8 +107,8 @@ Kernel::~Kernel() {
     delete kernel_mem;
     delete tls_mem;
     delete aslr_mem;
-    if (rom_mem)
-        delete rom_mem;
+    for (auto executable_mem : executable_memories)
+        delete executable_mem;
     // delete bss_mem;
     delete heap_mem;
 
@@ -130,7 +128,8 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
     ConfigureThread(thread);
 
     // Set initial PC
-    thread->SetRegPC(ROM_MEM_BASE + rom_text_offset);
+    ASSERT_DEBUG(entry_point != 0x0, HorizonKernel, "Invalid entry point");
+    thread->SetRegPC(entry_point);
 
     // Set arguments
 
@@ -193,22 +192,17 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread,
     }
 }
 
-void Kernel::LoadROM(Rom* rom) {
-    if (rom_mem) {
-        mmu->Unmap(ROM_MEM_BASE);
-        delete rom_mem;
-    }
+HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
+                                                         uptr& out_base) {
+    auto mem = new HW::TegraX1::CPU::Memory(
+        size, Permission::ReadExecute |
+                  Permission::Write); // TODO: don't give write permissions
+    mem->Clear();
+    mmu->Map(executable_mem_base, mem);
+    out_base = executable_mem_base;
+    executable_mem_base += mem->GetSize();
 
-    // ROM memory
-    rom_mem = new HW::TegraX1::CPU::Memory(
-        rom->GetRom().size() + rom->GetBssSize(), // TODO: correct?
-        Permission::ReadExecute |
-            Permission::Write); // TODO: should write be possible?
-    rom_mem->Clear();
-    memcpy(rom_mem->GetPtrU8(), rom->GetRom().data(), rom->GetRom().size());
-    mmu->Map(ROM_MEM_BASE, rom_mem);
-
-    rom_text_offset = rom->GetTextOffset();
+    return mem;
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
@@ -398,6 +392,24 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
 
     // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
+
+    // HACK
+    if (addr == 0x0) {
+        LOG_WARNING(HorizonKernel, "Address is 0x0");
+
+        *out_mem_info = MemoryInfo{
+            .addr = 0x0, .size = 0x10000000,
+            //.type = 0x3,
+            // TODO: attr
+            //.perm = Permission::ReadExecute,
+            // TODO: ipc_ref_count
+            // TODO: device_ref_count
+        };
+
+        *out_page_info = 0;
+
+        return RESULT_SUCCESS;
+    }
 
     uptr base;
     HW::TegraX1::CPU::Memory* mem = mmu->FindAddrImpl(addr, base);
@@ -716,12 +728,16 @@ Result Kernel::svcGetInfo(u64* out, InfoType info_type, HandleId handle_id,
         // TODO: what should this be?
         *out = 4u * 1024u * 1024u * 1024u;
         return RESULT_SUCCESS;
-    case InfoType::UsedMemorySize:
+    case InfoType::UsedMemorySize: {
         // TODO: correct?
-        *out = stack_mem->GetSize() + kernel_mem->GetSize() +
-               tls_mem->GetSize() + aslr_mem->GetSize() + rom_mem->GetSize() +
-               heap_mem->GetSize();
+        usize size = stack_mem->GetSize() + kernel_mem->GetSize() +
+                     tls_mem->GetSize() + aslr_mem->GetSize() +
+                     heap_mem->GetSize();
+        for (auto executable_mem : executable_memories)
+            size += executable_mem->GetSize();
+        *out = size;
         return RESULT_SUCCESS;
+    }
     case InfoType::RandomEntropy:
         // TODO: correct?
         // TODO: subtype 0-3
