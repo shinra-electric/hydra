@@ -6,6 +6,8 @@ add_executable(hydra
     common/types.hpp
     common/macros.hpp
     common/functions.hpp
+    common/lz4.cpp
+    common/lz4.hpp
     common/logging/log.cpp
     common/logging/log.hpp
     common/allocators/static_pool.hpp
@@ -28,6 +30,8 @@ add_executable(hydra
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp
     horizon/loader/nro_loader.hpp
+    horizon/loader/nso_loader.cpp
+    horizon/loader/nso_loader.hpp
     horizon/services/service_base.cpp
     horizon/services/service_base.hpp
     horizon/services/domain_service.cpp

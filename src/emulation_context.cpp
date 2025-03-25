@@ -1,6 +1,7 @@
 #include "emulation_context.hpp"
-#include "horizon/loader/loader_base.hpp"
+
 #include "horizon/loader/nro_loader.hpp"
+#include "horizon/loader/nso_loader.hpp"
 
 // HACK
 void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
@@ -53,12 +54,24 @@ void EmulationContext::Start(const std::string& rom_filename) {
     // SET_INSTRUCTION(data, 0xf1e8, BRK);
 
     // Load ROM
-    // TODO: choose the loader based on the file format
-    Horizon::Loader::LoaderBase* loader;
-    {
+    usize size;
+    auto ifs = Hydra::open_file(rom_filename, size);
+
+    std::string extension =
+        rom_filename.substr(rom_filename.find_last_of(".") + 1);
+    Horizon::Loader::LoaderBase* loader{nullptr};
+    if (extension == "nro")
         loader = new Horizon::Loader::NROLoader();
-    }
-    loader->LoadROM(rom_filename);
+    else if (extension == "nso")
+        loader = new Horizon::Loader::NSOLoader(true);
+    else
+        LOG_ERROR(Other, "Unknown ROM extension \"{}\"", extension);
+
+    FileReader reader(ifs, 0, size);
+    loader->LoadROM(reader, rom_filename);
+    delete loader;
+
+    ifs.close();
 
     // Main thread
     std::thread* t = new std::thread([&]() {

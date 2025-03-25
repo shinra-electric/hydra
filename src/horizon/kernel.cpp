@@ -130,15 +130,6 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
     // Arguments
     for (u32 i = 0; i < ARG_COUNT; i++)
         thread->SetRegX(i, args[i]);
-
-    // NSO
-    // TODO: if NSO
-    // if (false) {
-    //    thread->SetRegX(0, 0x0);
-    //    thread->SetRegX(1,
-    //                    0x0000000f); // TODO: what thread handle should be
-    //                    used?
-    //}
 }
 
 HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,

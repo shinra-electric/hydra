@@ -49,13 +49,9 @@ struct NROHeader {
 
 } // namespace
 
-void NROLoader::LoadROM(const std::string& rom_filename) {
-    // Parse file
-    usize size;
-    auto ifs = Hydra::open_file(rom_filename, size);
-
-    NROHeader header;
-    ifs.read(reinterpret_cast<char*>(&header), sizeof(header));
+void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+    // Header
+    const auto header = reader.Read<NROHeader>();
 
     // Validate
     if (strcmp(header.magic, "NRO0") != 0) {
@@ -64,14 +60,12 @@ void NROLoader::LoadROM(const std::string& rom_filename) {
     }
 
     // Create executable memory
-    usize executable_size = size + header.bss_size;
+    usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
     auto mem =
         Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(reinterpret_cast<char*>(mem->GetPtr()), size);
-
-    ifs.close();
+    reader.Seek(0);
+    reader.Read(mem->GetPtrU8(), reader.GetSize());
 
     // Set entrypoint
     Kernel::GetInstance().SetEntryPoint(
@@ -81,7 +75,7 @@ void NROLoader::LoadROM(const std::string& rom_filename) {
     // Args
     const u64 argv_offset = executable_size;
 
-    std::string args = fmt::format("\"{}\"", "/rom.nro");
+    std::string args = fmt::format("\"{}\"", ROM_VIRTUAL_PATH);
     char* argv = reinterpret_cast<char*>(mem->GetPtr() + argv_offset);
     memcpy(argv, args.c_str(), args.size());
     argv[args.size()] = '\0';
