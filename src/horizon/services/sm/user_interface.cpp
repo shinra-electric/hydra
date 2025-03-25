@@ -6,6 +6,7 @@
 #include "horizon/services/am/application_proxy_service.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
+#include "horizon/services/lm/log_service.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "horizon/services/psm/psm_server.hpp"
@@ -14,17 +15,6 @@
 #include "horizon/services/visrv/manager_root_service.hpp"
 
 namespace Hydra::Horizon::Services::Sm {
-
-enum class Service : u64 {
-    Hid = 0x0000000000646968,
-    FspSrv = 0x007672732d707366,
-    TimeU = 0x0000753a656d6974,
-    Nvdrv = 0x000000767264766e,
-    SetSys = 0x007379733a746573,
-    Apm = 0x00000000006d7061,
-    AppletOE = 0x454f74656c707061,
-    ViM = 0x000000006d3a6976,
-};
 
 DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 1, GetServiceHandle)
 
@@ -55,6 +45,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Pl::SharedResource::IPlatformSharedResourceManager());
     } else if (name == "psm") {
         add_service(new Psm::IPsmServer());
+    } else if (name == "lm") {
+        add_service(new Lm::ILogService());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);
