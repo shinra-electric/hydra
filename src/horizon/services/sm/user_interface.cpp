@@ -1,6 +1,7 @@
 #include "horizon/services/sm/user_interface.hpp"
 
 #include "horizon/kernel.hpp"
+#include "horizon/services/account/account_service_for_application.hpp"
 #include "horizon/services/am/apm_manager.hpp"
 #include "horizon/services/am/application_proxy_service.hpp"
 #include "horizon/services/aocsrv/add_on_content_manager.hpp"
@@ -53,6 +54,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     } else if (name == "pctl:s" || name == "pctl:r" || name == "pctl:a" ||
                name == "pctl") {
         add_service(new Pctl::Ipc::IParentalControlServiceFactory());
+    } else if (name == "acc:u0") {
+        add_service(new Account::IAccountServiceForApplication());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);

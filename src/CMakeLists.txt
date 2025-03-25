@@ -128,6 +128,8 @@ add_executable(hydra
     horizon/services/aocsrv/add_on_content_manager.hpp
     horizon/services/pctl/ipc/parental_control_service_factory.cpp
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
+    horizon/services/account/account_service_for_application.cpp
+    horizon/services/account/account_service_for_application.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
