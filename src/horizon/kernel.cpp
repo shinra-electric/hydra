@@ -355,8 +355,10 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
     *out_mem_info = MemoryInfo{
         .addr = base, // TODO: check
         .size = mem->GetSize(),
-        // TODO: type
-        .attr = 0x3,                     // HACK: static
+        .type =
+            ((addr >= 0x80000000 && addr < 0xa0000000) ? 0x3u
+                                                       : 0x0u), // HACK: static
+        // TODO: attr
         .perm = Permission::ReadExecute, // HACK
         // TODO: ipc_ref_count
         // TODO: device_ref_count
