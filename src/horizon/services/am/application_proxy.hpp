@@ -14,6 +14,13 @@ class IApplicationProxy : public ServiceBase {
   private:
     // Commands
     void GetCommonStateGetter(REQUEST_COMMAND_PARAMS);
+    void GetSelfController(REQUEST_COMMAND_PARAMS);
+    void GetWindowController(REQUEST_COMMAND_PARAMS);
+    void GetAudioController(REQUEST_COMMAND_PARAMS);
+    void GetDisplayController(REQUEST_COMMAND_PARAMS);
+    void GetLibraryAppletCreator(REQUEST_COMMAND_PARAMS);
+    void GetApplicationFunctions(REQUEST_COMMAND_PARAMS);
+    void GetDebugFunctions(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Am

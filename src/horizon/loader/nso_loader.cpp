@@ -109,6 +109,16 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
         Kernel::GetInstance().SetArg(
             1, 0x0000000f); // TODO: what thread handle should be used?
     }
+
+    // Debug
+#define DUMP 0
+#if DUMP
+    std::ofstream out(
+        fmt::format("/Users/samuliak/Downloads/extracted/0x{:08x}.bin", base),
+        std::ios::binary);
+    out.write(reinterpret_cast<const char*>(mem->GetPtrU8()), executable_size);
+    out.close();
+#endif
 }
 
 } // namespace Hydra::Horizon::Loader

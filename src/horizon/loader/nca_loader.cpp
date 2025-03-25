@@ -47,7 +47,7 @@ void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     for (u32 i = 0; i < header.entry_count; i++) {
         const auto& entry = entries[i];
         const std::string entry_name(string_table + entry.string_offset);
-        LOG_DEBUG(HorizonLoader, "{} -> offset: 0x{:08x}, size: 0x{:08x}\n",
+        LOG_DEBUG(HorizonLoader, "{} -> offset: 0x{:08x}, size: 0x{:08x}",
                   entry_name, entry.offset, entry.size);
 
         // HACK: main.npdm has some weird ro section

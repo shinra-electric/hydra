@@ -82,10 +82,24 @@ add_executable(hydra
     horizon/services/settings/system_settings_server.hpp
     horizon/services/am/apm_manager.cpp
     horizon/services/am/apm_manager.hpp
-    horizon/services/am/common_state_getter.cpp
-    horizon/services/am/common_state_getter.hpp
     horizon/services/am/application_proxy_service.cpp
     horizon/services/am/application_proxy_service.hpp
+    horizon/services/am/common_state_getter.cpp
+    horizon/services/am/common_state_getter.hpp
+    horizon/services/am/self_controller.cpp
+    horizon/services/am/self_controller.hpp
+    horizon/services/am/window_controller.cpp
+    horizon/services/am/window_controller.hpp
+    horizon/services/am/audio_controller.cpp
+    horizon/services/am/audio_controller.hpp
+    horizon/services/am/display_controller.cpp
+    horizon/services/am/display_controller.hpp
+    horizon/services/am/library_applet_creator.cpp
+    horizon/services/am/library_applet_creator.hpp
+    horizon/services/am/application_functions.cpp
+    horizon/services/am/application_functions.hpp
+    horizon/services/am/debug_functions.cpp
+    horizon/services/am/debug_functions.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
     horizon/services/visrv/display_service_base.cpp

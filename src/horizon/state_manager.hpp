@@ -11,11 +11,29 @@ class StateManager {
     StateManager();
     ~StateManager();
 
+    // Send
     void SendMessage(AppletMessage msg) {
         std::unique_lock<std::mutex> lock(mutex);
         msg_queue.push(msg);
     }
 
+    void SetFocusState(AppletFocusState focus_state_) {
+        std::unique_lock<std::mutex> lock(mutex);
+        focus_state = focus_state_;
+        msg_queue.push(AppletMessage::FocusStateChanged);
+    }
+
+    void LockExit() {
+        std::unique_lock<std::mutex> lock(mutex);
+        exit_locked = true;
+    }
+
+    void UnlockExit() {
+        std::unique_lock<std::mutex> lock(mutex);
+        exit_locked = false;
+    }
+
+    // Receive
     AppletMessage ReceiveMessage() {
         std::unique_lock<std::mutex> lock(mutex);
         if (msg_queue.empty()) {
@@ -29,12 +47,6 @@ class StateManager {
         return msg;
     }
 
-    void SetFocusState(AppletFocusState focus_state_) {
-        std::unique_lock<std::mutex> lock(mutex);
-        focus_state = focus_state_;
-        msg_queue.push(AppletMessage::FocusStateChanged);
-    }
-
     AppletFocusState GetFocusState() {
         std::unique_lock<std::mutex> lock(mutex);
         const auto f_state = focus_state;
@@ -42,10 +54,16 @@ class StateManager {
         return f_state;
     }
 
+    bool IsExitLocked() {
+        std::unique_lock<std::mutex> lock(mutex);
+        return exit_locked;
+    }
+
   private:
     std::mutex mutex;
     std::queue<AppletMessage> msg_queue;
     AppletFocusState focus_state;
+    bool exit_locked{false};
 };
 
 } // namespace Hydra::Horizon
