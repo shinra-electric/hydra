@@ -1,13 +1,14 @@
 #include "horizon/services/sm/user_interface.hpp"
 
-#include "horizon/const.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/services/am/apm_manager.hpp"
 #include "horizon/services/am/application_proxy_service.hpp"
+#include "horizon/services/aocsrv/add_on_content_manager.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/lm/log_service.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
+#include "horizon/services/pctl/ipc/parental_control_service_factory.hpp"
 #include "horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "horizon/services/psm/psm_server.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
@@ -47,6 +48,11 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Psm::IPsmServer());
     } else if (name == "lm") {
         add_service(new Lm::ILogService());
+    } else if (name == "aoc:u") {
+        add_service(new AocSrv::IAddOnContentManager());
+    } else if (name == "pctl:s" || name == "pctl:r" || name == "pctl:a" ||
+               name == "pctl") {
+        add_service(new Pctl::Ipc::IParentalControlServiceFactory());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);

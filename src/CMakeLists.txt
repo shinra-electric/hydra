@@ -108,6 +108,10 @@ add_executable(hydra
     horizon/services/lm/log_service.hpp
     horizon/services/lm/logger.cpp
     horizon/services/lm/logger.hpp
+    horizon/services/aocsrv/add_on_content_manager.cpp
+    horizon/services/aocsrv/add_on_content_manager.hpp
+    horizon/services/pctl/ipc/parental_control_service_factory.cpp
+    horizon/services/pctl/ipc/parental_control_service_factory.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp

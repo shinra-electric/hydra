@@ -8,7 +8,6 @@
 namespace Hydra {
 
 EmulationContext::EmulationContext() {
-
     // Emulation
     // TODO: choose based on CPU backend
     {
