@@ -15,7 +15,6 @@ find_package(fmt CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
-add_subdirectory(/Users/samuliak/Documents/nx-parser build/nx-parser) # TODO: dependencies directory
 #add_subdirectory(externals/fmt)
 
 #include_directories(externals/fmt/include)

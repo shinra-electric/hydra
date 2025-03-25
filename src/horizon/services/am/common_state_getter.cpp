@@ -9,12 +9,10 @@ DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 1, ReceiveMessage, 9,
                              GetCurrentFocusState)
 
 void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {
-    LOG_DEBUG(HorizonServices, "ReceiveMessage");
     writers.writer.Write(StateManager::GetInstance().ReceiveMessage());
 }
 
 void ICommonStateGetter::GetCurrentFocusState(REQUEST_COMMAND_PARAMS) {
-    LOG_DEBUG(HorizonServices, "GetCurrentFocusState");
     writers.writer.Write(StateManager::GetInstance().GetFocusState());
 }
 

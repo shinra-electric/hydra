@@ -5,11 +5,6 @@
 #include "hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-// HACK
-template <typename T> T rotl(T v, u64 shift) {
-    return (v << shift) | (v >> (32 - shift));
-}
-
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
 ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {

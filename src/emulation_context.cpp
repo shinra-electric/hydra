@@ -5,17 +5,6 @@
 #include "horizon/loader/nso_loader.hpp"
 #include "horizon/state_manager.hpp"
 
-// HACK
-void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
-    data[addr / 4] = new_instruction;
-}
-
-// HACK
-#define NOP 0xd503201fu
-#define RET 0xd65f03c0u
-#define MOV_X0_XZR 0xaa1f03e0u
-#define BRK 0xd4200000u
-
 namespace Hydra {
 
 EmulationContext::EmulationContext() {

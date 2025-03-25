@@ -66,4 +66,9 @@ inline std::ifstream open_file(const std::string& path, usize& out_size) {
     return ifs;
 }
 
+// HACK
+template <typename T> T rotl(T v, u64 shift) {
+    return (v << shift) | (v >> (32 - shift));
+}
+
 } // namespace Hydra
