@@ -33,13 +33,15 @@ template <typename SubclassT, typename Impl> class GenericMMU {
             }
         }
 
-        LOG_ERROR(MMU, "Failed to find impl for addr 0x{:08x}", addr);
-
         return nullptr;
     }
 
     const Impl& FindAddrImpl(uptr addr, uptr& out_base) const {
-        return *const_cast<GenericMMU*>(this)->FindAddrImplRef(addr, out_base);
+        auto impl =
+            const_cast<GenericMMU*>(this)->FindAddrImplRef(addr, out_base);
+        ASSERT_DEBUG(impl, MMU, "Failed to find impl for addr 0x{:08x}", addr);
+
+        return *impl;
     }
 
     template <typename T> T Load(uptr addr) const {

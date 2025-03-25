@@ -96,14 +96,14 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
 
-    u32 code_offset = code_reader.GetCurrentOffset();
+    u32 code_offset = code_reader.Tell();
 
     // Analyze
     Parse(&analyzer, code_reader);
 
     // Decompile
     builder->Start();
-    code_reader.JumpToOffset(code_offset);
+    code_reader.Seek(code_offset);
     Parse(builder, code_reader);
     builder->Finish();
     delete builder;

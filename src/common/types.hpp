@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <map>
 #include <stdint.h>
 #include <string>
@@ -129,9 +130,9 @@ class Reader {
   public:
     Reader(u8* base_) : base{base_}, ptr{base_} {}
 
-    u32 GetCurrentOffset() { return static_cast<u32>(ptr - base); }
+    u64 Tell() { return static_cast<u64>(ptr - base); }
 
-    void JumpToOffset(u32 offset) { ptr = base + offset; }
+    void Seek(u64 pos) { ptr = base + pos; }
 
     template <typename T> T* ReadPtr() {
         T* result = reinterpret_cast<T*>(ptr);
@@ -142,7 +143,7 @@ class Reader {
 
     template <typename T> T Read() { return *ReadPtr<T>(); }
 
-    template <typename T> T* Read(T* read_ptr, usize count) {
+    template <typename T> T* Read(usize count) {
         T* result = reinterpret_cast<T*>(ptr);
         ptr += sizeof(T) * count;
 
@@ -192,6 +193,39 @@ class Writer {
   private:
     u8* base;
     u8* ptr;
+};
+
+class FileReader {
+  public:
+    FileReader(std::ifstream& stream_, u64 offset_, usize size_)
+        : stream{stream_}, offset{offset_}, size{size_} {}
+
+    FileReader CreateSubReader(usize new_size) {
+        return FileReader(stream, stream.tellg(), new_size);
+    }
+
+    u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
+
+    void Seek(u64 pos) { stream.seekg(offset + pos); }
+
+    template <typename T> T Read() {
+        T result;
+        stream.read(reinterpret_cast<char*>(&result), sizeof(T));
+
+        return result;
+    }
+
+    template <typename T> void Read(T* ptr, usize count) {
+        stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
+    }
+
+    // Getters
+    usize GetSize() const { return size; }
+
+  private:
+    std::ifstream& stream;
+    u64 offset;
+    usize size;
 };
 
 template <typename SubclassT, typename T, typename DescriptorT>

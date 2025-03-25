@@ -1,5 +1,8 @@
 #include "horizon/services/fssrv/file.hpp"
 
+#include "horizon/filesystem/file.hpp"
+#include "horizon/filesystem/filesystem.hpp"
+
 namespace Hydra::Horizon::Services::Fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFile, 0, Read)
@@ -18,18 +21,21 @@ void IFile::Read(REQUEST_COMMAND_PARAMS) {
 
     // TODO: option and pad
 
+    auto file = Filesystem::Filesystem::GetInstance().GetFile(path);
     usize size;
-    auto file = open_file(path, size);
+    file->Open(size);
     ASSERT_DEBUG(in.read_size <= size, HorizonServices,
                  "Reading {} bytes, but file has a size of only {} bytes",
                  in.read_size, size);
 
-    file.seekg(in.offset, std::ios::beg);
-    // TODO: should be handled differently
-    file.read(
+    auto& stream = file->GetStream();
+
+    stream.seekg(in.offset, std::ios::beg);
+    stream.read(
         reinterpret_cast<char*>(writers.recv_buffers_writers[0].GetBase()),
         in.read_size);
-    // writers.recv_buffers_writers[0].Write(file., in.read_size);
+
+    file->Close();
 
     writers.writer.Write(in.read_size);
 }

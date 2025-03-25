@@ -90,7 +90,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
     auto in = readers.reader.Read<TransactParcelIn>();
     auto parcel_in = reader.Read<Parcel>();
-    reader.JumpToOffset(parcel_in.data_offset);
+    reader.Seek(parcel_in.data_offset);
 
     auto parcel_out = writer.Write<Parcel>({.data_offset = sizeof(Parcel)});
     usize written_begin = writer.GetWrittenSize();
