@@ -1,6 +1,6 @@
 #pragma once
 
-#include "horizon/services/service_base.hpp"
+#include "horizon/services/fssrv/storage.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
@@ -13,22 +13,19 @@ enum class FileFlags {
 
 ENABLE_ENUM_BITMASK_OPERATORS(FileFlags)
 
-class IFile : public ServiceBase {
+class IFile : public IStorage {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFile)
 
     IFile(const std::string& path_, FileFlags flags_)
         : path{path_}, flags{flags_} {}
 
-  protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
-
   private:
     std::string path;
     FileFlags flags;
 
     // Commands
-    void Read(REQUEST_COMMAND_PARAMS);
+    void Read(REQUEST_COMMAND_PARAMS) override;
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

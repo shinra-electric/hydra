@@ -38,11 +38,8 @@ EntryBase* Directory::GetEntry(const std::string& rel_path) {
         const auto sub_dir_name = rel_path.substr(0, slash_pos);
         const auto sub_dir =
             dynamic_cast<Directory*>(GetEntryImpl(sub_dir_name));
-        if (!sub_dir) {
-            LOG_ERROR(HorizonFilesystem, "Entry \"{}\" is not a directory",
-                      sub_dir_name);
+        if (!sub_dir)
             return nullptr;
-        }
 
         return sub_dir->GetEntry(rel_path.substr(slash_pos + 1));
     }
@@ -50,10 +47,8 @@ EntryBase* Directory::GetEntry(const std::string& rel_path) {
 
 EntryBase* Directory::GetEntryImpl(const std::string& name) {
     auto it = entries.find(name);
-    if (it == entries.end()) {
-        LOG_ERROR(HorizonFilesystem, "Invalid entry \"{}\"", name);
+    if (it == entries.end())
         return nullptr;
-    }
 
     return it->second;
 }

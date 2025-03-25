@@ -5,8 +5,6 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFile, 0, Read)
-
 struct ReadIn {
     u32 option;
     u32 pad;

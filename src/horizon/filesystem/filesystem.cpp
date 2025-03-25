@@ -25,25 +25,22 @@ void Filesystem::AddEntry(EntryBase* entry, const std::string& path) {
 
 EntryBase* Filesystem::GetEntry(const std::string& path) {
     VERIFY_PATH(path);
-    return root.GetEntry(path.substr(1));
+    auto entry = root.GetEntry(path.substr(1));
+    ASSERT(entry, HorizonFilesystem, "Invalid path \"{}\"", path);
+
+    return entry;
 }
 
 File* Filesystem::GetFile(const std::string& path) {
     auto file = dynamic_cast<File*>(GetEntry(path));
-    if (!file) {
-        LOG_ERROR(HorizonFilesystem, "\"{}\" is not a file", path);
-        return nullptr;
-    }
+    ASSERT(file, HorizonFilesystem, "\"{}\" is not a file", path);
 
     return file;
 }
 
 Directory* Filesystem::GetDirectory(const std::string& path) {
     auto directory = dynamic_cast<Directory*>(GetEntry(path));
-    if (!directory) {
-        LOG_ERROR(HorizonFilesystem, "\"{}\" is not a directory", path);
-        return nullptr;
-    }
+    ASSERT(directory, HorizonFilesystem, "\"{}\" is not a directory", path);
 
     return directory;
 }
