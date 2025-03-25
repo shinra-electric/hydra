@@ -15,7 +15,7 @@ struct Segment {
 };
 
 struct NSOHeader {
-    char signature[4];
+    char magic[4];
     u32 version;
     u32 reserved1;
     u32 flags;
@@ -66,6 +66,8 @@ void read_segment(FileReader& reader, u8* executable_mem_ptr,
 void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NSOHeader>();
+    ASSERT(std::memcmp(header.magic, "NSO0", 4) == 0, HorizonLoader,
+           "Invalid NSO magic");
 
     // Determine executable memory size
     usize executable_size = 0;

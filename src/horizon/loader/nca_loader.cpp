@@ -8,6 +8,11 @@ namespace Hydra::Horizon::Loader {
 
 namespace {
 
+enum class PartitionType {
+    RomFS,
+    PartitionFS,
+};
+
 struct PFS0Header {
     char magic[4];
     u32 entry_count;
@@ -22,17 +27,11 @@ struct PartitionEntry {
     u32 reserved;
 };
 
-} // namespace
-
-// HACK: this whole function is one big hack
-void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
-    reader.Seek(0x00000af58000 + 0x00004000);
-
+void load_pfs0(FileReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<PFS0Header>();
-    LOG_DEBUG(HorizonLoader,
-              "Magic: {}, entry count: {}, string table size: 0x{:08x}",
-              header.magic, header.entry_count, header.string_table_size);
+    ASSERT(std::memcmp(header.magic, "PFS0", 4) == 0, HorizonLoader,
+           "Invalid PFS0 magic");
 
     // Entries
     PartitionEntry entries[header.entry_count];
@@ -50,6 +49,8 @@ void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
         LOG_DEBUG(HorizonLoader, "{} -> offset: 0x{:08x}, size: 0x{:08x}",
                   entry_name, entry.offset, entry.size);
 
+        // TODO: it doesn't always need to be ExeFS
+
         // HACK: main.npdm has some weird ro section
         if (entry_name == "main.npdm")
             continue;
@@ -58,6 +59,37 @@ void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
         NSOLoader loader(entry_name == "rtld");
         FileReader nso_reader = reader.CreateSubReader(entry.size);
         loader.LoadROM(nso_reader, rom_filename);
+    }
+}
+
+void load_partition(FileReader& reader, const std::string& rom_filename,
+                    PartitionType type) {
+    switch (type) {
+    case PartitionType::PartitionFS: {
+        load_pfs0(reader, rom_filename);
+        break;
+    }
+    case PartitionType::RomFS: {
+        LOG_NOT_IMPLEMENTED(HorizonLoader, "RomFS");
+        break;
+    }
+    }
+}
+
+} // namespace
+
+// TODO: don't hardcode stuff
+void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+    {
+        reader.Seek(0x00000af58000 + 0x00004000);
+        FileReader partition_reader = reader.CreateSubReader(0x008d0e92);
+        load_partition(partition_reader, rom_filename,
+                       PartitionType::PartitionFS);
+    }
+    {
+        reader.Seek(0x00000001c000 + 0x00004000);
+        FileReader partition_reader = reader.CreateSubReader(0x008d0e92);
+        load_partition(partition_reader, rom_filename, PartitionType::RomFS);
     }
 }
 

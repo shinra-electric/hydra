@@ -54,10 +54,8 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     const auto header = reader.Read<NROHeader>();
 
     // Validate
-    if (strcmp(header.magic, "NRO0") != 0) {
-        LOG_ERROR(HorizonLoader, "Invalid NRO magic \"{}\"", header.magic);
-        return;
-    }
+    ASSERT(std::memcmp(header.magic, "NRO0", 4) == 0, HorizonLoader,
+           "Invalid NRO magic \"{}\"", header.magic);
 
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
