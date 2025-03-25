@@ -27,6 +27,14 @@ enum class CommandType {
     ControlWithContext,
 };
 
+enum class ControlCommandType {
+    ConvertCurrentObjectToDomain,
+    CopyFromCurrentDomain,
+    CloneCurrentObject,
+    QueryPointerBufferSize,
+    CloneCurrentObjectEx,
+};
+
 struct DomainInHeader {
     DomainCommandType type;
     u8 num_in_objects;
@@ -85,3 +93,11 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Cmif::CommandType, Invalid, "invalid",
                        Control, "control", RequestWithContext,
                        "request with context", ControlWithContext,
                        "control with context")
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Cmif::ControlCommandType,
+                       ConvertCurrentObjectToDomain,
+                       "convert current object to domain",
+                       CopyFromCurrentDomain, "copy from current domain",
+                       CloneCurrentObject, "clone current object",
+                       QueryPointerBufferSize, "query pointer buffer size",
+                       CloneCurrentObjectEx, "clone current object ex")

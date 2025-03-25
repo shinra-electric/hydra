@@ -50,8 +50,10 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
     Result* result = Cmif::write_out_header(writers.writer);
     *result = RESULT_SUCCESS;
 
-    switch (cmif_in.command_id) {
-    case 0: { // convert to domain
+    const auto command =
+        static_cast<Cmif::ControlCommandType>(cmif_in.command_id);
+    switch (command) {
+    case Cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         auto domain_service = new DomainService();
         Kernel::GetInstance().SetHandle(handle_id, domain_service);
         domain_service->SetHandleId(handle_id);
@@ -62,10 +64,18 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
 
         break;
     }
-    case 3: // query pointer buffer size
+    case Cmif::ControlCommandType::CloneCurrentObject: { // clone current object
+        auto clone = Clone();
+        HandleId handle_id = Kernel::GetInstance().AddHandle(clone);
+        clone->SetHandleId(handle_id);
+        writers.move_handles_writer.Write(handle_id);
+        break;
+    }
+    case Cmif::ControlCommandType::QueryPointerBufferSize: // query pointer
+                                                           // buffer size
         writers.writer.Write(GetPointerBufferSize());
         break;
-    case 4: { // clone current ex
+    case Cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = Clone();
         HandleId handle_id = Kernel::GetInstance().AddHandle(clone);
@@ -74,8 +84,7 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
         break;
     }
     default:
-        LOG_WARNING(HorizonServices, "Unimplemented control request {}",
-                    cmif_in.command_id);
+        LOG_ERROR(HorizonServices, "Unimplemented control request {}", command);
         break;
     }
 }
