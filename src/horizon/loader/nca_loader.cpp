@@ -64,17 +64,21 @@ void load_pfs0(FileReader& reader, const std::string& rom_filename) {
     }
 }
 
-void load_partition(FileReader& reader, const std::string& rom_filename,
-                    PartitionType type) {
+void load_section(FileReader& reader, const std::string& rom_filename,
+                  PartitionType type) {
     switch (type) {
     case PartitionType::PartitionFS: {
-        load_pfs0(reader, rom_filename);
+        reader.Seek(0x00004000);
+        auto pfs0_reader = reader.CreateSubReader(0x0000008d0e92);
+        load_pfs0(pfs0_reader, rom_filename);
         break;
     }
     case PartitionType::RomFS: {
+        reader.Seek(0x00068000);
+        auto romfs_reader = reader.CreateSubReader(0x0aed12c8);
         Filesystem::Filesystem::GetInstance().AddEntry(
-            new Filesystem::File(rom_filename, reader.GetOffset(),
-                                 reader.GetSize()),
+            new Filesystem::File(rom_filename, romfs_reader.GetOffset(),
+                                 romfs_reader.GetSize()),
             "/rom/romFS");
         break;
     }
@@ -86,15 +90,15 @@ void load_partition(FileReader& reader, const std::string& rom_filename,
 // TODO: don't hardcode stuff
 void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     {
-        reader.Seek(0x00000af58000 + 0x00004000);
-        FileReader partition_reader = reader.CreateSubReader(0x008d0e92);
-        load_partition(partition_reader, rom_filename,
-                       PartitionType::PartitionFS);
+        reader.Seek(0x00000af58000);
+        auto partition_reader = reader.CreateSubReader(0x0000008d8000);
+        load_section(partition_reader, rom_filename,
+                     PartitionType::PartitionFS);
     }
     {
         reader.Seek(0x00000001c000);
-        FileReader partition_reader = reader.CreateSubReader(0x00000af3c000);
-        load_partition(partition_reader, rom_filename, PartitionType::RomFS);
+        auto partition_reader = reader.CreateSubReader(0x00000af3c000);
+        load_section(partition_reader, rom_filename, PartitionType::RomFS);
     }
 }
 

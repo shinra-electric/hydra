@@ -151,7 +151,7 @@ class Kernel {
     HW::TegraX1::CPU::Memory* aslr_mem;
 
     // Dynamic
-    uptr executable_mem_base = 0x80000000;
+    uptr executable_mem_base{0x80000000};
     std::vector<HW::TegraX1::CPU::Memory*> executable_memories;
     // HW::MMU::Memory* bss_mem;
     HW::TegraX1::CPU::Memory* heap_mem;
