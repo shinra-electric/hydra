@@ -185,6 +185,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0xc:
         res = svcGetThreadPriority(thread->GetRegX(1), tmpU32);
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmpU32);
+        break;
     case 0x13:
         res = svcMapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
                                  thread->GetRegX(2),
