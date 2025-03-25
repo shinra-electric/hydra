@@ -17,11 +17,10 @@ class IFile : public IStorage {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFile)
 
-    IFile(const std::string& path_, FileFlags flags_)
-        : path{path_}, flags{flags_} {}
+    IFile(const std::string& path, FileFlags flags_)
+        : IStorage(path), flags{flags_} {}
 
   private:
-    std::string path;
     FileFlags flags;
 
     // Commands

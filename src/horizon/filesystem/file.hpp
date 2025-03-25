@@ -10,7 +10,7 @@ class File : public EntryBase {
         : host_path{host_path_}, offset{offset_}, size{size_} {}
     ~File() override;
 
-    void Open(usize& out_size);
+    void Open();
     void Close();
 
     FileReader CreateReader() {

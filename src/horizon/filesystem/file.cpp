@@ -9,12 +9,9 @@ File::~File() {
     }
 }
 
-void File::Open(usize& out_size) {
+void File::Open() {
     ASSERT_DEBUG(!stream, HorizonFilesystem, "File is already open");
-    stream = new std::ifstream(host_path,
-                               std::ios::in | std::ios::binary | std::ios::ate);
-    out_size = stream->tellg();
-    stream->seekg(0, std::ios::beg);
+    stream = new std::ifstream(host_path, std::ios::in | std::ios::binary);
 }
 
 void File::Close() {

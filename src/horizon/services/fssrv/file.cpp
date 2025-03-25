@@ -14,24 +14,11 @@ struct ReadIn {
 
 void IFile::Read(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<ReadIn>();
-    ASSERT_DEBUG(in.offset >= 0, HorizonServices, "Offset ({}) must be >= 0",
-                 in.offset);
 
-    // TODO: option and pad
+    // TODO: option
 
-    auto file = Filesystem::Filesystem::GetInstance().GetFile(path);
-    usize size;
-    file->Open(size);
-    ASSERT_DEBUG(in.read_size <= size, HorizonServices,
-                 "Reading {} bytes, but file has a size of only {} bytes",
-                 in.read_size, size);
-
-    auto reader = file->CreateReader();
-
-    reader.Seek(in.offset);
-    reader.Read(writers.recv_buffers_writers[0].GetBase(), in.read_size);
-
-    file->Close();
+    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset,
+             in.read_size);
 
     writers.writer.Write(in.read_size);
 }

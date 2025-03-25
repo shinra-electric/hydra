@@ -19,8 +19,7 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 
     // TODO: what to do with program ID?
 
-    add_service(new IFile("/rom/romFS",
-                          FileFlags::Read)); // TODO: are the flags correct?
+    add_service(new IStorage("/rom/romFS"));
 }
 
 void IFileSystemProxy::GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS) {
