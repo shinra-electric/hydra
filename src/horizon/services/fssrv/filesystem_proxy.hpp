@@ -15,6 +15,7 @@ class IFileSystemProxy : public ServiceBase {
     // Commands
     void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS);
+    void GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

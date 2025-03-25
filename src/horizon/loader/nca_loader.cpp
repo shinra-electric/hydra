@@ -1,5 +1,7 @@
 #include "horizon/loader/nca_loader.hpp"
 
+#include "horizon/filesystem/file.hpp"
+#include "horizon/filesystem/filesystem.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/loader/nso_loader.hpp"
 #include "hw/tegra_x1/cpu/memory.hpp"
@@ -70,7 +72,10 @@ void load_partition(FileReader& reader, const std::string& rom_filename,
         break;
     }
     case PartitionType::RomFS: {
-        LOG_NOT_IMPLEMENTED(HorizonLoader, "RomFS");
+        Filesystem::Filesystem::GetInstance().AddEntry(
+            new Filesystem::File(rom_filename, reader.GetOffset(),
+                                 reader.GetSize()),
+            "/rom/romFS");
         break;
     }
     }
@@ -87,8 +92,8 @@ void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
                        PartitionType::PartitionFS);
     }
     {
-        reader.Seek(0x00000001c000 + 0x00004000);
-        FileReader partition_reader = reader.CreateSubReader(0x008d0e92);
+        reader.Seek(0x00000001c000);
+        FileReader partition_reader = reader.CreateSubReader(0x00000af3c000);
         load_partition(partition_reader, rom_filename, PartitionType::RomFS);
     }
 }

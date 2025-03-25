@@ -6,7 +6,8 @@
 namespace Hydra::Horizon::Services::Fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 18, OpenSdCardFileSystem, 200,
-                             OpenDataStorageByProgramId)
+                             OpenDataStorageByProgramId, 1005,
+                             GetGlobalAccessLogMode)
 
 void IFileSystemProxy::OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS) {
     add_service(new IFileSystem());
@@ -20,6 +21,13 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 
     add_service(new IFile("/rom/romFS",
                           FileFlags::Read)); // TODO: are the flags correct?
+}
+
+void IFileSystemProxy::GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+
+    // TODO: what should this be?
+    writers.writer.Write<u32>(0);
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv

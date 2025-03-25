@@ -116,7 +116,9 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Filesystem
     Filesystem::Filesystem::GetInstance().AddEntry(
-        new Filesystem::File(rom_filename), ROM_VIRTUAL_PATH);
+        new Filesystem::File(rom_filename, reader.GetOffset(),
+                             reader.GetSize()),
+        ROM_VIRTUAL_PATH);
 }
 
 } // namespace Hydra::Horizon::Loader

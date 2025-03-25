@@ -26,12 +26,10 @@ void IFile::Read(REQUEST_COMMAND_PARAMS) {
                  "Reading {} bytes, but file has a size of only {} bytes",
                  in.read_size, size);
 
-    auto& stream = file->GetStream();
+    auto reader = file->CreateReader();
 
-    stream.seekg(in.offset, std::ios::beg);
-    stream.read(
-        reinterpret_cast<char*>(writers.recv_buffers_writers[0].GetBase()),
-        in.read_size);
+    reader.Seek(in.offset);
+    reader.Read(writers.recv_buffers_writers[0].GetBase(), in.read_size);
 
     file->Close();
 

@@ -206,7 +206,7 @@ class FileReader {
 
     u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
 
-    void Seek(u64 pos) { stream.seekg(offset + pos); }
+    void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
 
     template <typename T> T Read() {
         T result;
@@ -220,6 +220,8 @@ class FileReader {
     }
 
     // Getters
+    u64 GetOffset() const { return offset; }
+
     usize GetSize() const { return size; }
 
   private:
