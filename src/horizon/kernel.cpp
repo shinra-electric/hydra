@@ -21,7 +21,7 @@ constexpr usize KERNEL_MEM_SIZE = 0x10000;
 constexpr uptr TLS_MEM_BASE = 0x20000000;
 constexpr usize TLS_MEM_SIZE = 0x20000;
 
-constexpr uptr HEAP_MEM_BASE = 0x60000000;
+constexpr uptr HEAP_MEM_BASE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
@@ -346,7 +346,9 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
         // TODO: how should this behave?
         out_mem_info = MemoryInfo{
             .addr = addr,
-            .size = (addr > 0xffffffff ? 0x0u : 0x4000u * 8u),
+            .size = (addr > HEAP_MEM_BASE + heap_mem->GetSize()
+                         ? 0x0u
+                         : 0x4000u * 8u), // HACK: awful hack
         };
 
         // TODO: out_page_info
