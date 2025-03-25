@@ -21,7 +21,12 @@ class GPUMMU : public GenericMMU<GPUMMU, AddressSpace> {
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
         usize base;
-        return *FindAddrImplRef(gpu_addr, base);
+        auto addr_space = FindAddrImplRef(gpu_addr, base);
+        ASSERT_DEBUG(addr_space, GPU,
+                     "Address space not found for GPU address 0x{:x}",
+                     gpu_addr);
+
+        return *addr_space;
     }
 
     uptr UnmapAddrToCpuAddr(uptr gpu_addr);

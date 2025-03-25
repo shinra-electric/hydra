@@ -138,7 +138,6 @@ HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
         size, Permission::ReadExecute |
                   Permission::Write); // TODO: don't give write permissions
     mem->Clear();
-    LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}", executable_mem_base);
     mmu->Map(executable_mem_base, mem);
     out_base = executable_mem_base;
     executable_mem_base += mem->GetSize();
@@ -332,40 +331,33 @@ Result Kernel::svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
                               uptr addr) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    // TODO: implement
     LOG_WARNING(HorizonKernel, "Not implemented");
 
     // HACK
-    if (addr == 0x0) {
-        LOG_WARNING(HorizonKernel, "Address is 0x0");
-
+    uptr base;
+    HW::TegraX1::CPU::Memory** mem_ptr = mmu->FindAddrImplRef(addr, base);
+    if (!mem_ptr) {
+        // TODO: how should this behave?
         *out_mem_info = MemoryInfo{
-            .addr = 0x0, .size = 0x10000000,
-            //.type = 0x3,
-            // TODO: attr
-            //.perm = Permission::ReadExecute,
-            // TODO: ipc_ref_count
-            // TODO: device_ref_count
+            .addr = addr,
+            .size = (addr > 0xffffffff ? 0x0u : 0x4000u * 8u),
         };
 
+        // TODO: out_page_info
         *out_page_info = 0;
 
         return RESULT_SUCCESS;
     }
 
-    uptr base;
-    HW::TegraX1::CPU::Memory* mem = mmu->FindAddrImpl(addr, base);
-    if (!mem) {
-        // TODO: check
-        return MAKE_KERNEL_RESULT(InvalidAddress);
-    }
+    HW::TegraX1::CPU::Memory* mem = *mem_ptr;
 
+    // HACK
     *out_mem_info = MemoryInfo{
         .addr = base, // TODO: check
         .size = mem->GetSize(),
         // TODO: type
-        // TODO: attr
-        .perm = mem->GetPermission(),
+        .attr = 0x3,                     // HACK: static
+        .perm = Permission::ReadExecute, // HACK
         // TODO: ipc_ref_count
         // TODO: device_ref_count
     };
