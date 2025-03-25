@@ -3,6 +3,7 @@
 #include "horizon/loader/nca_loader.hpp"
 #include "horizon/loader/nro_loader.hpp"
 #include "horizon/loader/nso_loader.hpp"
+#include "horizon/state_manager.hpp"
 
 // HACK
 void SET_INSTRUCTION(u32* data, i64 addr, u32 new_instruction) {
@@ -93,6 +94,13 @@ void EmulationContext::Start(const std::string& rom_filename) {
     });
 
     is_running = true;
+
+    // Enter focus
+    // HACK: games expect focus change to be the second message?
+    Horizon::StateManager::GetInstance().SendMessage(
+        Horizon::AppletMessage::None);
+    Horizon::StateManager::GetInstance().SetFocusState(
+        Horizon::AppletFocusState::InFocus);
 }
 
 } // namespace Hydra

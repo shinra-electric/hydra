@@ -1,6 +1,7 @@
 #pragma once
 
 #include "horizon/kernel.hpp"
+#include "horizon/state_manager.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
 
 namespace Hydra::HW::Display {
@@ -132,6 +133,7 @@ class OS {
 
     // Getters
     Kernel& GetKernel() { return kernel; }
+    StateManager& GetStateManager() { return state_manager; }
 
     DisplayBinderManager& GetDisplayBinderManager() {
         return display_binder_manager;
@@ -144,6 +146,7 @@ class OS {
     HW::TegraX1::CPU::MMUBase* mmu;
 
     Kernel kernel;
+    StateManager state_manager;
 
     // Services
     Services::Sm::IUserInterface* sm_user_interface;

@@ -16,6 +16,8 @@ add_executable(hydra
     horizon/hid.hpp
     horizon/os.cpp
     horizon/os.hpp
+    horizon/state_manager.cpp
+    horizon/state_manager.hpp
     horizon/hipc.hpp
     horizon/cmif.hpp
     horizon/kernel.cpp
@@ -78,7 +80,6 @@ add_executable(hydra
     horizon/services/nvdrv/nvdrv_services.hpp
     horizon/services/settings/system_settings_server.cpp
     horizon/services/settings/system_settings_server.hpp
-    horizon/services/am/const.hpp
     horizon/services/am/apm_manager.cpp
     horizon/services/am/apm_manager.hpp
     horizon/services/am/common_state_getter.cpp

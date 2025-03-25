@@ -197,6 +197,26 @@ struct ConfigEntry {
     u64 values[2];         ///< Entry arguments (type-specific)
 };
 
+enum class AppletMessage {
+    None = 0x680,
+    ExitRequest = 4,             ///< Exit request.
+    FocusStateChanged = 15,      ///< FocusState changed.
+    Resume = 16,                 ///< Current applet execution was resumed.
+    OperationModeChanged = 30,   ///< OperationMode changed.
+    PerformanceModeChanged = 31, ///< PerformanceMode changed.
+    RequestToDisplay =
+        51, ///< Display requested, see \ref appletApproveToDisplay.
+    CaptureButtonShortPressed = 90, ///< Capture button was short-pressed.
+    AlbumScreenShotTaken = 92,      ///< Screenshot was taken.
+    AlbumRecordingSaved = 93,       ///< AlbumRecordingSaved
+};
+
+enum class AppletFocusState {
+    InFocus = 1,    ///< Applet is focused.
+    OutOfFocus = 2, ///< Out of focus - LibraryApplet open.
+    Background = 3  ///< Out of focus - HOME menu open / console is sleeping.
+};
+
 // TODO: idle tick count -1, {current coreid} (probably the same logic as thread
 // tick count)
 // TODO: random entropy 0 - 3
