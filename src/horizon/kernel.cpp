@@ -138,9 +138,11 @@ HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
         size, Permission::ReadExecute |
                   Permission::Write); // TODO: don't give write permissions
     mem->Clear();
+    LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}", executable_mem_base);
     mmu->Map(executable_mem_base, mem);
     out_base = executable_mem_base;
     executable_mem_base += mem->GetSize();
+    executable_memories.push_back(mem);
 
     return mem;
 }

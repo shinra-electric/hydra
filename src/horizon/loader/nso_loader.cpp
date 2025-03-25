@@ -8,12 +8,6 @@ namespace Hydra::Horizon::Loader {
 
 namespace {
 
-enum class NROSectionType {
-    Text,
-    Ro,
-    Data,
-};
-
 struct Segment {
     u32 file_offset;
     u32 memory_offset;
@@ -85,6 +79,12 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
         std::max(executable_size, static_cast<usize>(header.data.memory_offset +
                                                      header.data.size));
     executable_size += header.bss_size;
+    LOG_DEBUG(HorizonLoader,
+              "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
+              "0x{:08x}, 0x{:08x}",
+              header.text.memory_offset, header.text.size,
+              header.ro.memory_offset, header.ro.size,
+              header.data.memory_offset, header.data.size, header.bss_size);
 
     // Create executable memory
     uptr base;

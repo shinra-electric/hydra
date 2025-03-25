@@ -1,5 +1,6 @@
 #include "emulation_context.hpp"
 
+#include "horizon/loader/nca_loader.hpp"
 #include "horizon/loader/nro_loader.hpp"
 #include "horizon/loader/nso_loader.hpp"
 
@@ -64,6 +65,8 @@ void EmulationContext::Start(const std::string& rom_filename) {
         loader = new Horizon::Loader::NROLoader();
     else if (extension == "nso")
         loader = new Horizon::Loader::NSOLoader(true);
+    else if (extension == "nca")
+        loader = new Horizon::Loader::NCALoader();
     else
         LOG_ERROR(Other, "Unknown ROM extension \"{}\"", extension);
 

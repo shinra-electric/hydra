@@ -32,6 +32,8 @@ add_executable(hydra
     horizon/loader/nro_loader.hpp
     horizon/loader/nso_loader.cpp
     horizon/loader/nso_loader.hpp
+    horizon/loader/nca_loader.cpp
+    horizon/loader/nca_loader.hpp
     horizon/services/service_base.cpp
     horizon/services/service_base.hpp
     horizon/services/domain_service.cpp
