@@ -80,33 +80,34 @@ class Kernel {
     bool SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id);
 
     // SVCs
-    Result svcSetHeapSize(uptr* out, usize size);
+    Result svcSetHeapSize(usize size, uptr& out_base);
     Result svcSetMemoryPermission(uptr addr, usize size, Permission permission);
     Result svcSetMemoryAttribute(uptr addr, usize size, u32 mask, u32 value);
-    Result svcQueryMemory(MemoryInfo* out_mem_info, u32* out_page_info,
-                          uptr addr);
+    Result svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
+                          u32& out_page_info);
     void svcExitProcess();
     void svcSleepThread(i64 nano);
-    Result svcMapSharedMemory(HandleId handle_id, uptr addr, usize size,
-                              Permission permission);
-    Result svcCreateTransferMemory(HandleId* out_handle_id, uptr addr, u64 size,
-                                   Permission permission);
+    Result svcGetThreadPriority(HandleId thread_handle_id, u32& out_priority);
+    Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+                              usize size, Permission permission);
+    Result svcCreateTransferMemory(uptr addr, u64 size, Permission permission,
+                                   HandleId& out_transfer_mem_handle_id);
     Result svcCloseHandle(HandleId handle_id);
     Result svcResetSignal(HandleId handle_id);
-    Result svcWaitSynchronization(u64& handle_index, HandleId* handle_ids,
-                                  i32 handles_count, i64 timeout);
+    Result svcWaitSynchronization(HandleId* handle_ids, i32 handles_count,
+                                  i64 timeout, u64& out_handle_index);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
     Result svcSignalProcessWideKey(uptr addr, i32 v);
-    Result svcConnectToNamedPort(HandleId* out_handle_id,
-                                 const std::string& name);
-    Result svcSendSyncRequest(HandleId handle_id);
+    Result svcConnectToNamedPort(const std::string& name,
+                                 HandleId& out_session_handle_id);
+    Result svcSendSyncRequest(HandleId session_handle_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(u64* out, InfoType info_type, HandleId handle_id,
-                      u64 info_sub_type);
+    Result svcGetInfo(InfoType info_type, HandleId handle_id, u64 info_sub_type,
+                      u64& out_info);
 
     // Getters
     HW::Bus& GetBus() const { return bus; }
