@@ -13,6 +13,7 @@ class IApplicationFunctions : public ServiceBase {
 
   private:
     // Commands
+    void PopLaunchParameter(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Am

@@ -104,6 +104,10 @@ add_executable(hydra
     horizon/services/am/debug_functions.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/am/storage.cpp
+    horizon/services/am/storage.hpp
+    horizon/services/am/storage_accessor.cpp
+    horizon/services/am/storage_accessor.hpp
     horizon/services/visrv/display_service_base.cpp
     horizon/services/visrv/display_service_base.hpp
     horizon/services/visrv/system_display_service.cpp

@@ -16,6 +16,7 @@
 
 #define SERVICE_COMMAND_CASE(id, func)                                         \
     case id:                                                                   \
+        LOG_DEBUG(HorizonServices, #func);                                     \
         func(PASS_REQUEST_COMMAND_PARAMS);                                     \
         break;
 

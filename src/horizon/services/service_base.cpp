@@ -52,6 +52,7 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
 
     const auto command =
         static_cast<Cmif::ControlCommandType>(cmif_in.command_id);
+    LOG_DEBUG(HorizonServices, "Control request {}", command);
     switch (command) {
     case Cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         auto domain_service = new DomainService();

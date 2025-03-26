@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <fstream>
 #include <map>
 #include <stdint.h>
@@ -36,6 +37,23 @@ template <typename T> struct range {
 
   private:
     T base;
+    usize size;
+};
+
+struct sized_ptr {
+  public:
+    sized_ptr() : ptr{0x0}, size{0} {}
+    sized_ptr(uptr ptr_, usize size_) : ptr{ptr_}, size{size_} {}
+    sized_ptr(void* ptr_, usize size_)
+        : sized_ptr(reinterpret_cast<uptr>(ptr_), size_) {}
+
+    // Getters
+    uptr GetPtr() const { return ptr; }
+    u8* GetPtrU8() const { return reinterpret_cast<u8*>(ptr); }
+    usize GetSize() const { return size; }
+
+  private:
+    uptr ptr;
     usize size;
 };
 

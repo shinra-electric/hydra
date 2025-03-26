@@ -25,6 +25,7 @@ void DomainService::Request(REQUEST_PARAMS) {
     case Cmif::DomainCommandType::Close:
         delete subservice;
         object_pool.FreeByIndex(cmif_in.object_id);
+        LOG_DEBUG(HorizonServices, "Closed subservice");
         break;
     default:
         LOG_WARNING(HorizonServices, "Unknown domain request type {}",

@@ -84,11 +84,14 @@ void EmulationContext::Start(const std::string& rom_filename) {
     is_running = true;
 
     // Enter focus
+    auto& state_manager = Horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    Horizon::StateManager::GetInstance().SendMessage(
-        Horizon::AppletMessage::None);
-    Horizon::StateManager::GetInstance().SetFocusState(
-        Horizon::AppletFocusState::InFocus);
+    state_manager.SendMessage(Horizon::AppletMessage::None);
+    state_manager.SetFocusState(Horizon::AppletFocusState::InFocus);
+
+    // Select user account
+    // HACK
+    state_manager.PushPreselectedUser(0);
 }
 
 } // namespace Hydra
