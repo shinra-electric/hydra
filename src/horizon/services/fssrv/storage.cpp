@@ -4,12 +4,16 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read)
+namespace {
 
 struct ReadIn {
     i64 offset;
     u64 read_size;
 };
+
+} // namespace
+
+DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read)
 
 void IStorage::Read(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<ReadIn>();
