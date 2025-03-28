@@ -83,6 +83,7 @@ class Kernel {
     Result svcSetHeapSize(usize size, uptr& out_base);
     Result svcSetMemoryPermission(uptr addr, usize size, Permission permission);
     Result svcSetMemoryAttribute(uptr addr, usize size, u32 mask, u32 value);
+    Result svcMapMemory(uptr dst_addr, uptr src_addr, usize size);
     Result svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                           u32& out_page_info);
     void svcExitProcess();
@@ -103,6 +104,7 @@ class Kernel {
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
     Result svcSignalProcessWideKey(uptr addr, i32 v);
+    void svcGetSystemTick(u64& out_tick);
     Result svcConnectToNamedPort(const std::string& name,
                                  HandleId& out_session_handle_id);
     Result svcSendSyncRequest(HandleId session_handle_id);

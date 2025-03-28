@@ -169,6 +169,11 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
                                     thread->GetRegX(2), thread->GetRegX(3));
         thread->SetRegX(0, res);
         break;
+    case 0x4:
+        res = svcMapMemory(thread->GetRegX(0), thread->GetRegX(1),
+                           thread->GetRegX(2));
+        thread->SetRegX(0, res);
+        break;
     case 0x6:
         res = svcQueryMemory(
             thread->GetRegX(2),
@@ -241,6 +246,10 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcSignalProcessWideKey(mmu->UnmapAddr(thread->GetRegX(0)),
                                       thread->GetRegX(1));
         thread->SetRegX(0, res);
+        break;
+    case 0x1e:
+        svcGetSystemTick(tmp_u64);
+        thread->SetRegX(0, tmp_u64);
         break;
     case 0x1f:
         res = svcConnectToNamedPort(
@@ -337,6 +346,19 @@ Result Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
         "svcSetMemoryAttribute called (addr: 0x{:08x}, size: 0x{:08x}, mask: "
         "0x{:08x}, value: 0x{:08x})",
         addr, size, mask, value);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
+    LOG_DEBUG(
+        HorizonKernel,
+        "svcMapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
+        "0x{:08x})",
+        dst_addr, src_addr, size);
 
     // TODO: implement
     LOG_FUNC_STUBBED(HorizonKernel);
@@ -541,6 +563,16 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
     LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
+}
+
+void Kernel::svcGetSystemTick(u64& out_tick) {
+    LOG_DEBUG(HorizonKernel, "svcGetSystemTick called");
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+
+    // HACK
+    out_tick = 0x0000000000000000;
 }
 
 Result Kernel::svcConnectToNamedPort(const std::string& name,
