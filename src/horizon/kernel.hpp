@@ -90,6 +90,8 @@ class Kernel {
     Result svcGetThreadPriority(HandleId thread_handle_id, u32& out_priority);
     Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
                               usize size, Permission permission);
+    Result svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+                                usize size);
     Result svcCreateTransferMemory(uptr addr, u64 size, Permission permission,
                                    HandleId& out_transfer_mem_handle_id);
     Result svcCloseHandle(HandleId handle_id);
@@ -104,6 +106,7 @@ class Kernel {
     Result svcConnectToNamedPort(const std::string& name,
                                  HandleId& out_session_handle_id);
     Result svcSendSyncRequest(HandleId session_handle_id);
+    Result svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
     Result svcGetInfo(InfoType info_type, HandleId handle_id, u64 info_sub_type,

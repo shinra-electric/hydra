@@ -148,15 +148,15 @@ HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     Result res;
-    u32 tmpU32;
-    u64 tmpU64;
-    uptr tmpUPTR;
-    HandleId tmpHandleId;
+    u32 tmp_u32;
+    u64 tmp_u64;
+    uptr tmp_uptr;
+    HandleId tmp_hanle_id;
     switch (id) {
     case 0x1:
-        res = svcSetHeapSize(thread->GetRegX(1), tmpUPTR);
+        res = svcSetHeapSize(thread->GetRegX(1), tmp_uptr);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpUPTR);
+        thread->SetRegX(1, tmp_uptr);
         break;
     case 0x2:
         res =
@@ -173,9 +173,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcQueryMemory(
             thread->GetRegX(2),
             *reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(thread->GetRegX(0))),
-            tmpU32);
+            tmp_u32);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpU32);
+        thread->SetRegX(1, tmp_u32);
         break;
     case 0x7:
         svcExitProcess();
@@ -184,9 +184,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
     case 0xc:
-        res = svcGetThreadPriority(thread->GetRegX(1), tmpU32);
+        res = svcGetThreadPriority(thread->GetRegX(1), tmp_u32);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpU32);
+        thread->SetRegX(1, tmp_u32);
         break;
     case 0x13:
         res = svcMapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
@@ -194,12 +194,17 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
                                  static_cast<Permission>(thread->GetRegX(3)));
         thread->SetRegX(0, res);
         break;
+    case 0x14:
+        res = svcUnmapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
+                                   thread->GetRegX(2));
+        thread->SetRegX(0, res);
+        break;
     case 0x15:
         res = svcCreateTransferMemory(
             thread->GetRegX(1), thread->GetRegX(2),
-            static_cast<Permission>(thread->GetRegX(3)), tmpHandleId);
+            static_cast<Permission>(thread->GetRegX(3)), tmp_hanle_id);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpHandleId);
+        thread->SetRegX(1, tmp_hanle_id);
         break;
     case 0x16:
         res = svcCloseHandle(thread->GetRegX(0));
@@ -213,9 +218,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcWaitSynchronization(
             reinterpret_cast<HandleId*>(thread->GetRegX(1)),
             bit_cast<i64>(thread->GetRegX(2)),
-            bit_cast<i64>(thread->GetRegX(3)), tmpU64);
+            bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpU64);
+        thread->SetRegX(1, tmp_u64);
         break;
     case 0x1a:
         res = svcArbitrateLock(thread->GetRegX(0), thread->GetRegX(1),
@@ -240,13 +245,19 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x1f:
         res = svcConnectToNamedPort(
             reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))),
-            tmpHandleId);
+            tmp_hanle_id);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpHandleId);
+        thread->SetRegX(1, tmp_hanle_id);
         break;
     case 0x21:
         res = svcSendSyncRequest(thread->GetRegX(0));
         thread->SetRegX(0, res);
+        break;
+    case 0x25:
+        res =
+            svcGetThreadId(static_cast<HandleId>(thread->GetRegX(1)), tmp_u64);
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmp_u64);
         break;
     case 0x26:
         // Debug
@@ -264,9 +275,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x29:
         res = svcGetInfo(static_cast<InfoType>(thread->GetRegX(1)),
-                         thread->GetRegX(2), thread->GetRegX(3), tmpU64);
+                         thread->GetRegX(2), thread->GetRegX(3), tmp_u64);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmpU64);
+        thread->SetRegX(1, tmp_u64);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented SVC 0x{:08x}", id);
@@ -314,7 +325,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
     // cpu->ReprotectMemory(mem);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -328,7 +339,7 @@ Result Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
         addr, size, mask, value);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -337,7 +348,7 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                               u32& out_page_info) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     // HACK
     uptr base;
@@ -417,6 +428,22 @@ Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
     return RESULT_SUCCESS;
 }
 
+Result Kernel::svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+                                    usize size) {
+    LOG_DEBUG(
+        HorizonKernel,
+        "svcUnmapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
+        "0x{:08x})",
+        shared_mem_handle_id, addr, size);
+
+    // Map
+    auto shared_mem = shared_memory_pool.GetObjectRef(shared_mem_handle_id);
+    // TODO: unmap
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+
+    return RESULT_SUCCESS;
+}
+
 Result Kernel::svcCreateTransferMemory(uptr addr, u64 size,
                                        Permission permission,
                                        HandleId& out_transfer_mem_handle_id) {
@@ -447,7 +474,7 @@ Result Kernel::svcResetSignal(HandleId handle_id) {
               handle_id);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -461,7 +488,7 @@ Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handles_count,
         (void*)handle_ids, handles_count, timeout);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     // HACK
     out_handle_index = 0;
@@ -476,7 +503,7 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
               wait_tag, mutex_addr, self_tag);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -486,7 +513,7 @@ Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
               mutex_addr);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -500,7 +527,7 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
         mutex_addr, var_addr, self_tag, timeout);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -511,7 +538,7 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
               addr, v);
 
     // TODO: implement
-    LOG_WARNING(HorizonKernel, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -622,6 +649,19 @@ Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
     return RESULT_SUCCESS;
 }
 
+Result Kernel::svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id) {
+    LOG_DEBUG(HorizonKernel, "svcGetThreadId called (thread: 0x{:08x})",
+              thread_handle_id);
+
+    // TODO: implement
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+
+    // HACK
+    out_thread_id = 0x0000000f;
+
+    return RESULT_SUCCESS;
+}
+
 Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
                         usize buffer_size) {
     LOG_DEBUG(HorizonKernel,
@@ -658,12 +698,12 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
 
     switch (info_type) {
     case InfoType::AliasRegionAddress:
-        LOG_WARNING(HorizonKernel, "Not implemented");
+        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
-        LOG_WARNING(HorizonKernel, "Not implemented");
+        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
@@ -705,7 +745,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = rand();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
-        LOG_WARNING(HorizonKernel, "Not implemented");
+        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;

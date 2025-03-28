@@ -5,7 +5,8 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 18, OpenSdCardFileSystem, 200,
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 1, SetCurrentProcess, 18,
+                             OpenSdCardFileSystem, 200,
                              OpenDataStorageByProgramId, 1005,
                              GetGlobalAccessLogMode)
 

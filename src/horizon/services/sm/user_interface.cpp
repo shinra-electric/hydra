@@ -37,7 +37,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Hid::IHidServer());
     } else if (name == "fsp-srv") {
         add_service(new Fssrv::IFileSystemProxy());
-    } else if (name == "time:u" || name == "time:a" || name == "time:r") {
+    } else if (name == "time:u" || name == "time:a" || name == "time:s") {
         add_service(new TimeSrv::IStaticService());
     } else if (name == "nvdrv") {
         add_service(new NvDrv::INvDrvServices());
