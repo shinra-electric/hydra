@@ -1,6 +1,5 @@
 #include "horizon/services/sm/user_interface.hpp"
 
-#include "horizon/kernel.hpp"
 #include "horizon/services/account/account_service_for_application.hpp"
 #include "horizon/services/am/apm_manager.hpp"
 #include "horizon/services/am/application_proxy_service.hpp"
@@ -14,6 +13,7 @@
 #include "horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "horizon/services/psm/psm_server.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
+#include "horizon/services/socket/client.hpp"
 #include "horizon/services/timesrv/static_service.hpp"
 #include "horizon/services/visrv/manager_root_service.hpp"
 
@@ -64,6 +64,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Account::IAccountServiceForApplication());
     } else if (name == "apm:p") {
         add_service(new Apm::IManagerPrivileged());
+    } else if (name == "bsd:u" || name == "bsd:s" || name == "bsd:a") {
+        add_service(new Socket::IClient());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);

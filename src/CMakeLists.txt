@@ -138,6 +138,8 @@ add_executable(hydra
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp
     horizon/services/apm/session.hpp
+    horizon/services/socket/client.cpp
+    horizon/services/socket/client.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
