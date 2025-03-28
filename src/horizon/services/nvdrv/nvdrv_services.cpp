@@ -10,9 +10,24 @@
 
 namespace Hydra::Horizon::Services::NvDrv {
 
+namespace {
+
+struct IoctlIn {
+    HandleId fd_id;
+    u32 code;
+};
+
+struct QueryEventIn {
+    HandleId fd_id;
+    u32 event_id;
+};
+
+} // namespace
+
 Allocators::StaticPool<Ioctl::FdBase*, 64> INvDrvServices::fd_pool;
 
-DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 4, QueryEvent)
+DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
+                             4, QueryEvent, 8, SetAruid)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
@@ -35,11 +50,6 @@ void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
 
     writers.writer.Write(handle_id);
 }
-
-struct IoctlIn {
-    HandleId fd_id;
-    u32 code;
-};
 
 void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<IoctlIn>();
@@ -68,10 +78,15 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
         result = MAKE_KERNEL_RESULT(NotFound); // TODO: what should this be?
 }
 
-struct QueryEventIn {
-    HandleId fd_id;
-    u32 event_id;
-};
+void INvDrvServices::Initialize(REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+
+    u32 transfer_mem_size = readers.reader.Read<u32>();
+
+    // TODO: read process and transfer mem handle IDs
+
+    writers.writer.Write(NvResult::Success);
+}
 
 void INvDrvServices::QueryEvent(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<QueryEventIn>();

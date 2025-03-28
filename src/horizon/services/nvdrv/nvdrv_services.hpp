@@ -21,7 +21,9 @@ class INvDrvServices : public ServiceBase {
     // Commands
     void Open(REQUEST_COMMAND_PARAMS);
     void Ioctl(REQUEST_COMMAND_PARAMS);
+    void Initialize(REQUEST_COMMAND_PARAMS);
     void QueryEvent(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SetAruid)
 
     // TODO: what should be the max number of fds?
     static Allocators::StaticPool<Ioctl::FdBase*, 64> fd_pool;

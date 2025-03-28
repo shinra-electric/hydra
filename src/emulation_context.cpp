@@ -4,6 +4,7 @@
 #include "horizon/loader/nro_loader.hpp"
 #include "horizon/loader/nso_loader.hpp"
 #include "horizon/state_manager.hpp"
+#include "hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace Hydra {
 
@@ -64,6 +65,11 @@ void EmulationContext::Start(const std::string& rom_filename) {
     delete loader;
 
     ifs.close();
+
+    // HACK
+#define BRK 0xd4200000
+
+    // cpu->GetMMU()->Store<u32>(0x80481cb4, BRK);
 
     // Main thread
     std::thread* t = new std::thread([&]() {

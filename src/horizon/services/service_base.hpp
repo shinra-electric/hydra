@@ -30,6 +30,9 @@
         }                                                                      \
     }
 
+#define STUB_REQUEST_COMMAND(name)                                             \
+    void name(REQUEST_COMMAND_PARAMS) { LOG_FUNC_STUBBED(HorizonServices); }
+
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
 }

@@ -18,6 +18,8 @@
 // TODO: only log on debug builds
 #define LOG_DEBUG(c, ...) LOG(Debug, c, __VA_ARGS__)
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
+#define LOG_STUBBED(c, fmt, ...)                                               \
+    LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...)                                                      \
     {                                                                          \
@@ -25,10 +27,10 @@
         throw; /* TODO: only throw in debug */                                 \
     }
 
+#define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
     LOG_WARNING(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
-// TODO: use the actual function name?
-#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "Function")
+#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "{}", __func__)
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
@@ -65,6 +67,7 @@ enum class Output {
 enum class Level {
     Debug,
     Info,
+    Stubbed,
     Warning,
     Error,
 };
@@ -110,6 +113,9 @@ void log(Level level, Class c, const std::string& file, u32 line,
         case Level::Info:
             color = fmt::terminal_color::white;
             break;
+        case Level::Stubbed:
+            color = fmt::terminal_color::magenta;
+            break;
         case Level::Warning:
             color = fmt::terminal_color::bright_yellow;
             break;
@@ -140,7 +146,7 @@ void log(Level level, Class c, const std::string& file, u32 line,
 } // namespace Hydra::Logging
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
-                       Warning, "warning", Error, "error")
+                       Stubbed, "stubbed", Warning, "warning", Error, "error")
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
