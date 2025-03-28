@@ -68,6 +68,9 @@ class NvHostCtrlGpu : public FdBase {
                   readonly<uptr> buf_addr;
                   writeonly<GpuCharacteristics> characteristics;
                   , buf_size, characteristics);
+    DECLARE_IOCTL(GetTPCMasks, readonly<u32> mask_buffer_size;
+                  readonly<u32> reserved[3]; writeonly<u64> mask_buffer;
+                  , mask_buffer);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

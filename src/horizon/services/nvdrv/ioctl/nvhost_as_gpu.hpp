@@ -40,6 +40,10 @@ class NvHostAsGpu : public FdBase {
                   readonly<u32> nvmap_id; u32 reserved;
                   readonly<u64> buffer_offset; readonly<u64> mapping_size;
                   readwrite<u64> offset;, kind, offset);
+    DECLARE_IOCTL(AllocASEx, readonly<u32> big_page_size; readonly<i32> as_fd;
+                  readonly<u32> flags; readonly<u32> reserved;
+                  readonly<u64> va_range_start; readonly<u64> va_range_end;
+                  readonly<u64> va_range_split;);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

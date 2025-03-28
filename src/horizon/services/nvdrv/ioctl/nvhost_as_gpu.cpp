@@ -4,8 +4,9 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostAsGpu, DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x02, AllocSpace,
-                                                         0x06, MapBufferEx))
+DEFINE_IOCTL_TABLE(NvHostAsGpu,
+                   DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x02, AllocSpace, 0x06,
+                                            MapBufferEx, 0x09, AllocASEx))
 
 void NvHostAsGpu::AllocSpace(AllocSpaceData& data, NvResult& result) {
     uptr gpu_addr = invalid<uptr>();
@@ -42,6 +43,19 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
     data.offset = gpu.MapBufferToAddressSpace(map.addr + data.buffer_offset,
                                               size, gpu_addr);
     // LOG_DEBUG(HorizonServices, "OFFSET: 0x{:08x}", data.offset.Get());
+}
+
+void NvHostAsGpu::AllocASEx(AllocASExData& data, NvResult& result) {
+    LOG_DEBUG(HorizonServices,
+              "Start: 0x{:08x}, end: 0x{:08x}, split: 0x{:08x}",
+              data.va_range_start.Get(), data.va_range_end.Get(),
+              data.va_range_split.Get());
+
+    // TODO: why does nouveau pass 0x0 for all of these?
+
+    // TODO: what is split for?
+    HW::TegraX1::GPU::GPU::GetInstance().AllocatePrivateAddressSpace(
+        data.va_range_end - data.va_range_start, data.va_range_start);
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

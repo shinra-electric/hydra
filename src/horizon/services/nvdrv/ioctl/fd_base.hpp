@@ -7,6 +7,7 @@
 
 #define IOCTL_CASE(nr, func)                                                   \
     case nr: {                                                                 \
+        LOG_DEBUG(HorizonServices, #func);                                     \
         /* HACK: for some reason, why need to do it this weird way, otherwise  \
          * the data will be corrupt */                                         \
         func##Data data_dummy;                                                 \

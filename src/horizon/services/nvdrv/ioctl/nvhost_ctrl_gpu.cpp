@@ -5,18 +5,19 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(0x47, 0x01, ZCullGetCtxSize, 0x02,
                                             ZCullGetInfo, 0x05,
-                                            GetCharacteristics))
+                                            GetCharacteristics, 0x06,
+                                            GetTPCMasks))
 
 void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
                                     NvResult& result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
 
     // TODO: what should this be?
     data.size = 0x0;
 }
 
 void NvHostCtrlGpu::ZCullGetInfo(ZCullGetInfoData& data, NvResult& result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
 
     // TODO: what should this be?
     data.info = ZCullInfo{};
@@ -70,6 +71,16 @@ void NvHostCtrlGpu::GetCharacteristics(GetCharacteristicsData& data,
         .chipname = 0x6230326D67,       // "gm20b"
         .gr_compbit_store_base_hw = 0x0 // not supported
     };
+}
+
+void NvHostCtrlGpu::GetTPCMasks(GetTPCMasksData& data, NvResult& result) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+
+    ASSERT_DEBUG(data.mask_buffer_size != 0x0, HorizonServices,
+                 "Mask buffer size cannot be 0x0");
+
+    // TODO: what should this be?
+    data.mask_buffer = 0x1;
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl
