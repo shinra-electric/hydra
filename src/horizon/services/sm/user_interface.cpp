@@ -5,6 +5,7 @@
 #include "horizon/services/am/apm_manager.hpp"
 #include "horizon/services/am/application_proxy_service.hpp"
 #include "horizon/services/aocsrv/add_on_content_manager.hpp"
+#include "horizon/services/apm/manager_privileged.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/lm/log_service.hpp"
@@ -26,6 +27,11 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     u64 name_u64 = readers.reader.Read<u64>();
     const char* name_c = (const char*)(&name_u64);
     std::string name(name_c, std::min(strlen(name_c), (usize)8));
+
+    if (name == "") {
+        result = MAKE_KERNEL_RESULT(NotFound);
+        return;
+    }
 
     if (name == "hid") {
         add_service(new Hid::IHidServer());
@@ -56,6 +62,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Pctl::Ipc::IParentalControlServiceFactory());
     } else if (name == "acc:u0") {
         add_service(new Account::IAccountServiceForApplication());
+    } else if (name == "apm:p") {
+        add_service(new Apm::IManagerPrivileged());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);

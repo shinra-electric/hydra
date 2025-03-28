@@ -134,6 +134,10 @@ add_executable(hydra
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
+    horizon/services/apm/manager_privileged.cpp
+    horizon/services/apm/manager_privileged.hpp
+    horizon/services/apm/session.cpp
+    horizon/services/apm/session.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/memory.cpp
     hw/tegra_x1/cpu/memory.hpp
