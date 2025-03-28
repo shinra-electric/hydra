@@ -174,6 +174,11 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
                            thread->GetRegX(2));
         thread->SetRegX(0, res);
         break;
+    case 0x5:
+        res = svcUnmapMemory(thread->GetRegX(0), thread->GetRegX(1),
+                             thread->GetRegX(2));
+        thread->SetRegX(0, res);
+        break;
     case 0x6:
         res = svcQueryMemory(
             thread->GetRegX(2),
@@ -356,6 +361,19 @@ Result Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
     LOG_DEBUG(
         HorizonKernel,
         "svcMapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
+        "0x{:08x})",
+        dst_addr, src_addr, size);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
+    LOG_DEBUG(
+        HorizonKernel,
+        "svcUnmapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
         "0x{:08x})",
         dst_addr, src_addr, size);
 

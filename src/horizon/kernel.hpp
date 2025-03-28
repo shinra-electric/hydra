@@ -84,6 +84,7 @@ class Kernel {
     Result svcSetMemoryPermission(uptr addr, usize size, Permission permission);
     Result svcSetMemoryAttribute(uptr addr, usize size, u32 mask, u32 value);
     Result svcMapMemory(uptr dst_addr, uptr src_addr, usize size);
+    Result svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size);
     Result svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                           u32& out_page_info);
     void svcExitProcess();
