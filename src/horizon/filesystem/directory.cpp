@@ -8,7 +8,7 @@ namespace Hydra::Horizon::Filesystem {
 
 Directory::Directory(const std::string& host_path) {
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonFilesystem);
+    LOG_FUNC_STUBBED(HorizonFilesystem);
 }
 
 Directory::~Directory() {

@@ -9,7 +9,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 0, GetEventHandle, 1,
                              ReceiveMessage, 9, GetCurrentFocusState)
 
 void ICommonStateGetter::GetEventHandle(REQUEST_COMMAND_PARAMS) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
     writers.writer.Write(invalid<HandleId>());

@@ -24,7 +24,7 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystemProxy::GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // TODO: what should this be?
     writers.writer.Write<u32>(0);

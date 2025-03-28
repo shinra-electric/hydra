@@ -325,7 +325,7 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
     // cpu->ReprotectMemory(mem);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -339,7 +339,7 @@ Result Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
         addr, size, mask, value);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -348,7 +348,7 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                               u32& out_page_info) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     // HACK
     uptr base;
@@ -405,7 +405,7 @@ Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
               thread_handle_id);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     // HACK
     out_priority = 0x20; // 0x0 - 0x3f, lower is higher priority
@@ -439,7 +439,7 @@ Result Kernel::svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
     // Map
     auto shared_mem = shared_memory_pool.GetObjectRef(shared_mem_handle_id);
     // TODO: unmap
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -474,7 +474,7 @@ Result Kernel::svcResetSignal(HandleId handle_id) {
               handle_id);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -488,7 +488,7 @@ Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handles_count,
         (void*)handle_ids, handles_count, timeout);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     // HACK
     out_handle_index = 0;
@@ -503,7 +503,7 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
               wait_tag, mutex_addr, self_tag);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -513,7 +513,7 @@ Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
               mutex_addr);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -527,7 +527,7 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
         mutex_addr, var_addr, self_tag, timeout);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -538,7 +538,7 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
               addr, v);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
@@ -654,7 +654,7 @@ Result Kernel::svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id) {
               thread_handle_id);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
     out_thread_id = 0x0000000f;
@@ -698,12 +698,12 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
 
     switch (info_type) {
     case InfoType::AliasRegionAddress:
-        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+        LOG_FUNC_STUBBED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
-        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+        LOG_FUNC_STUBBED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
@@ -745,7 +745,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = rand();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
-        LOG_FUNC_NOT_IMPLEMENTED(HorizonKernel);
+        LOG_FUNC_STUBBED(HorizonKernel);
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;

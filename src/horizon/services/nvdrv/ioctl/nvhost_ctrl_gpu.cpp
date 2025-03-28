@@ -10,14 +10,14 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
 
 void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
                                     NvResult& result) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // TODO: what should this be?
     data.size = 0x0;
 }
 
 void NvHostCtrlGpu::ZCullGetInfo(ZCullGetInfoData& data, NvResult& result) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // TODO: what should this be?
     data.info = ZCullInfo{};
@@ -74,7 +74,7 @@ void NvHostCtrlGpu::GetCharacteristics(GetCharacteristicsData& data,
 }
 
 void NvHostCtrlGpu::GetTPCMasks(GetTPCMasksData& data, NvResult& result) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     ASSERT_DEBUG(data.mask_buffer_size != 0x0, HorizonServices,
                  "Mask buffer size cannot be 0x0");

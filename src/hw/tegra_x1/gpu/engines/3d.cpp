@@ -158,7 +158,7 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
 }
 
 void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
-    LOG_FUNC_NOT_IMPLEMENTED(Engines);
+    LOG_FUNC_STUBBED(Engines);
 
     const uptr gpu_addr =
         make_addr(regs.report_semaphore_addr_lo, regs.report_semaphore_addr_hi);

@@ -78,7 +78,7 @@ u32 Driver::InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) {
 }
 
 u32 Driver::InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
+    LOG_FUNC_STUBBED(Macro);
     LOG_DEBUG(Macro, "b{}: {}, r{}: 0x{:08x}, r{}: 0x{:08x}, size: {}", rA, bA,
               rA, GetRegU32(rA), rB, GetRegU32(rB), size);
 
@@ -86,7 +86,7 @@ u32 Driver::InstExtractShiftLeftImmediate(u8 bA, u8 rA, u8 rB, u8 size) {
 }
 
 u32 Driver::InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) {
-    LOG_FUNC_NOT_IMPLEMENTED(Macro);
+    LOG_FUNC_STUBBED(Macro);
     LOG_DEBUG(Macro, "r{}: 0x{:08x}, b{}: {}, r{}: 0x{:08x}, size: {}", rA,
               GetRegU32(rA), rB, bB, rB, GetRegU32(rB), size);
 

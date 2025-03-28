@@ -79,7 +79,7 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
 }
 
 void INvDrvServices::Initialize(REQUEST_COMMAND_PARAMS) {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_STUBBED(HorizonServices);
 
     u32 transfer_mem_size = readers.reader.Read<u32>();
 
