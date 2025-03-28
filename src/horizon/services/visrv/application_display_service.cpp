@@ -14,7 +14,8 @@ namespace Hydra::Horizon::Services::ViSrv {
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
                              GetManagerDisplayService, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer)
+                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer,
+                             2101, SetLayerScalingMode)
 
 void IApplicationDisplayService::GetRelayService(REQUEST_COMMAND_PARAMS) {
     add_service(new HosBinder::IHOSBinderDriver());

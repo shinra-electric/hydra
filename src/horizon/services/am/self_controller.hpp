@@ -15,6 +15,7 @@ class ISelfController : public ServiceBase {
     // Commands
     void LockExit(REQUEST_COMMAND_PARAMS);
     void UnlockExit(REQUEST_COMMAND_PARAMS);
+    void CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Am

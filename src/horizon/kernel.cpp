@@ -744,13 +744,18 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
               info_type, handle_id, info_sub_type);
 
     switch (info_type) {
+    case InfoType::CoreMask:
+        LOG_NOT_IMPLEMENTED(HorizonKernel, "CoreMask");
+        // HACK
+        out_info = 0;
+        return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
-        LOG_FUNC_STUBBED(HorizonKernel);
+        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionAddress");
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
-        LOG_FUNC_STUBBED(HorizonKernel);
+        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionSize");
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
@@ -792,7 +797,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = rand();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
-        LOG_FUNC_STUBBED(HorizonKernel);
+        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionExtraSize");
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;

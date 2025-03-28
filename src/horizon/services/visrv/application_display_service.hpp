@@ -24,6 +24,7 @@ class IApplicationDisplayService : public DisplayServiceBase {
     void CloseDisplay(REQUEST_COMMAND_PARAMS);
     void OpenLayer(REQUEST_COMMAND_PARAMS);
     void CloseLayer(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SetLayerScalingMode);
 
   private:
 };
