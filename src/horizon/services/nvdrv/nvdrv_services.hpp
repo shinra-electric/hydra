@@ -10,6 +10,8 @@ namespace Ioctl {
 class FdBase;
 }
 
+constexpr usize MAX_FD_COUNT = 256;
+
 class INvDrvServices : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(INvDrvServices)
@@ -26,7 +28,7 @@ class INvDrvServices : public ServiceBase {
     STUB_REQUEST_COMMAND(SetAruid)
 
     // TODO: what should be the max number of fds?
-    static Allocators::StaticPool<Ioctl::FdBase*, 64> fd_pool;
+    static Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv

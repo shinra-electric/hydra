@@ -24,7 +24,7 @@ struct QueryEventIn {
 
 } // namespace
 
-Allocators::StaticPool<Ioctl::FdBase*, 64> INvDrvServices::fd_pool;
+Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
                              4, QueryEvent, 8, SetAruid)
