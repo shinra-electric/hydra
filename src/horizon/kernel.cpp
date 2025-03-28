@@ -310,8 +310,9 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
     if (size != heap_mem->GetSize()) {
+        mmu->Unmap(HEAP_MEM_BASE, heap_mem);
         heap_mem->Resize(size);
-        mmu->Remap(HEAP_MEM_BASE);
+        mmu->Map(HEAP_MEM_BASE, heap_mem);
     }
 
     out_base = HEAP_MEM_BASE;

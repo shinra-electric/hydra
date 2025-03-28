@@ -30,9 +30,7 @@ class MMUBase : public GenericMMU<MMUBase, MemoryMapping> {
         GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
     }
 
-    void Unmap(uptr base, Memory* mem) {
-        GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
-    }
+    void Unmap(uptr base, Memory* mem) { GenericMMU::Unmap(base); }
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

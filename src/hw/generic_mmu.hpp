@@ -19,11 +19,13 @@ template <typename SubclassT, typename Impl> class GenericMMU {
         mapped_ranges.erase(it);
     }
 
+    /*
     void Remap(uptr base) {
         auto impl = mapped_ranges.at(base);
         THIS->UnmapImpl(base, impl);
         THIS->MapImpl(base, impl);
     }
+    */
 
     Impl* FindAddrImplRef(uptr addr, uptr& out_base) {
         for (auto& [base, impl] : mapped_ranges) {
