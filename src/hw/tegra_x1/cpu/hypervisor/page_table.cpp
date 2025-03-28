@@ -111,13 +111,13 @@ PageTable::PageTable() {
 
 PageTable::~PageTable() { delete page_table_mem; }
 
+/*
 void PageTable::MapMemory(Memory* mem) {
     // Access permission flags
     // ApFlags ap = mem->IsKernel() ? ApFlags::UserNoneKernelReadWriteExecute
     //                             : PermisionToAP(mem->GetPermission());
 
     // Walk through the table
-    /*
     u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
     for (const auto& level : levels) {
         auto next = level.GetNext();
@@ -139,12 +139,12 @@ void PageTable::MapMemory(Memory* mem) {
             table[GetPaOffset(level, addr)] = value;
         }
     }
-    */
     LOG_WARNING(Hypervisor, "Not implemented");
 }
+*/
 
-void PageTable::UnmapMemory(Memory* mem) {
-    LOG_WARNING(Hypervisor, "Not implemented");
-}
+// void PageTable::UnmapMemory(Memory* mem) {
+//     LOG_WARNING(Hypervisor, "Not implemented");
+// }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

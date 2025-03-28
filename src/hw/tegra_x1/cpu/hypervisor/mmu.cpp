@@ -45,19 +45,21 @@ void MMU::Reprotect(Memory* mem, uptr base) {
 }
 */
 
-void MMU::MapImpl(uptr base, Memory* mem) {
-    HYP_ASSERT_SUCCESS(hv_vm_map(mem->GetPtrU8(), base, mem->GetSize(),
-                                 PermisionToHV(mem->GetPermission())));
+void MMU::MapImpl(uptr base, MemoryMapping mem) {
+    HYP_ASSERT_SUCCESS(
+        hv_vm_map(reinterpret_cast<void*>(mem.ptr), base, mem.size,
+                  /*PermisionToHV(mem->GetPermission())*/ HV_MEMORY_READ |
+                      HV_MEMORY_WRITE | HV_MEMORY_EXEC));
 
     // Page table
-    page_table.MapMemory(mem);
+    // page_table.MapMemory(mem);
 }
 
-void MMU::UnmapImpl(uptr base, Memory* mem) {
-    HYP_ASSERT_SUCCESS(hv_vm_unmap(base, mem->GetSize()));
+void MMU::UnmapImpl(uptr base, MemoryMapping mem) {
+    HYP_ASSERT_SUCCESS(hv_vm_unmap(base, mem.size));
 
     // Page table
-    page_table.UnmapMemory(mem);
+    // page_table.UnmapMemory(mem);
 }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

@@ -41,8 +41,8 @@ class PageTable {
     PageTable();
     ~PageTable();
 
-    void MapMemory(Memory* mem);
-    void UnmapMemory(Memory* mem);
+    // void MapMemory(Memory* mem);
+    // void UnmapMemory(Memory* mem);
 
     // Getters
     Memory* GetMemory() const { return page_table_mem; }

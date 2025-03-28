@@ -24,6 +24,10 @@ using usize = size_t;
 using uptr = uintptr_t;
 using f32 = float;
 using f64 = double;
+
+using paddr = uptr;
+using vaddr = uptr;
+using gpu_vaddr = uptr;
 using HandleId = u32;
 
 template <typename T> struct range {

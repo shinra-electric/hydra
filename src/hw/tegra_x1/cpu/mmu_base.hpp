@@ -5,24 +5,34 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
-class MMUBase : public GenericMMU<MMUBase, Memory*> {
+struct MemoryMapping {
+    uptr ptr;
+    usize size;
+};
+
+class MMUBase : public GenericMMU<MMUBase, MemoryMapping> {
   public:
     // virtual void ReprotectMemory(uptr base) = 0;
 
-    uptr UnmapAddr(uptr addr) const {
-        uptr base;
-        Memory* mem = FindAddrImpl(addr, base);
-        if (mem) {
-            return reinterpret_cast<uptr>(mem->GetPtrU8() + (addr - base));
-        }
+    uptr UnmapAddr(vaddr addr) const {
+        vaddr base;
+        MemoryMapping mem = FindAddrImpl(addr, base);
 
-        return 0x0;
+        return reinterpret_cast<uptr>(mem.ptr + (addr - base));
     }
 
-    usize ImplGetSize(Memory* mem) const { return mem->GetSize(); }
+    usize ImplGetSize(MemoryMapping mem) const { return mem.size; }
 
-    virtual void MapImpl(uptr base, Memory* mem) = 0;
-    virtual void UnmapImpl(uptr base, Memory* mem) = 0;
+    virtual void MapImpl(vaddr base, MemoryMapping mem) = 0;
+    virtual void UnmapImpl(vaddr base, MemoryMapping mem) = 0;
+
+    void Map(uptr base, Memory* mem) {
+        GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
+    }
+
+    void Unmap(uptr base, Memory* mem) {
+        GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
+    }
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

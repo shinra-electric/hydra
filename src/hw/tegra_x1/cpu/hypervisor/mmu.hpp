@@ -17,8 +17,8 @@ class MMU : public MMUBase {
     // Memory* GetKernelRangeMemory() const { return kernel_range.mem; }
 
   protected:
-    void MapImpl(uptr base, Memory* mem) override;
-    void UnmapImpl(uptr base, Memory* mem) override;
+    void MapImpl(uptr base, MemoryMapping mem) override;
+    void UnmapImpl(uptr base, MemoryMapping mem) override;
 
   private:
     // Page table

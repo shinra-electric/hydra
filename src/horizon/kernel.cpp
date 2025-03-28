@@ -323,14 +323,13 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         addr, size, permission);
 
     uptr base;
-    HW::TegraX1::CPU::Memory* mem = mmu->FindAddrImpl(addr, base);
+    const auto* mem = mmu->FindAddrImplRef(addr, base);
     if (!mem) {
         // TODO: check
         return MAKE_KERNEL_RESULT(InvalidAddress);
     }
 
-    mem->SetPermission(permission);
-    // TODO: uncomment
+    // mem->SetPermission(permission);
     // cpu->ReprotectMemory(mem);
 
     // TODO: implement
@@ -374,8 +373,8 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 
     // HACK
     uptr base;
-    HW::TegraX1::CPU::Memory** mem_ptr = mmu->FindAddrImplRef(addr, base);
-    if (!mem_ptr) {
+    const auto* mem = mmu->FindAddrImplRef(addr, base);
+    if (!mem) {
         // TODO: how should this behave?
         out_mem_info = MemoryInfo{
             .addr = addr,
@@ -390,12 +389,10 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
         return RESULT_SUCCESS;
     }
 
-    HW::TegraX1::CPU::Memory* mem = *mem_ptr;
-
     // HACK
     out_mem_info = MemoryInfo{
         .addr = base, // TODO: check
-        .size = mem->GetSize(),
+        .size = mem->size,
         .type =
             ((addr >= 0x80000000 && addr < 0xa0000000) ? 0x3u
                                                        : 0x0u), // HACK: static
