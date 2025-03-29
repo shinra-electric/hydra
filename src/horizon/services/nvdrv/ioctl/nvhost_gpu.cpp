@@ -13,7 +13,7 @@ enum class EventId {
 
 void NvHostGpu::QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
                            NvResult& out_result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
+    LOG_FUNC_STUBBED(HorizonServices);
 
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {

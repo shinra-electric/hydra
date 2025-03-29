@@ -14,6 +14,7 @@ class IHOSBinderDriver : public ServiceBase {
   private:
     void TransactParcel(REQUEST_COMMAND_PARAMS);
     void AdjustRefcount(REQUEST_COMMAND_PARAMS);
+    void GetNativeHandle(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::HosBinder

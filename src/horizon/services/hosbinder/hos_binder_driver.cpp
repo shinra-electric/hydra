@@ -6,7 +6,9 @@
 namespace Hydra::Horizon::Services::HosBinder {
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
-                             AdjustRefcount)
+                             AdjustRefcount, 2, GetNativeHandle)
+
+namespace {
 
 enum class BinderResult : i32 {
     Success = 0,
@@ -83,6 +85,19 @@ struct InputBuffer {
     u32 num_fds;
     u32 num_words;
 };
+
+enum class BinderType : i32 {
+    Weak = 0,
+    Strong = 1,
+};
+
+struct AdjustRefcountIn {
+    i32 binder_id;
+    i32 addval;
+    BinderType type;
+};
+
+} // namespace
 
 void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto& reader = readers.send_buffers_readers[0];
@@ -229,17 +244,6 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     parcel_out->data_size = writer.GetWrittenSize() - written_begin;
 }
 
-enum class BinderType : i32 {
-    Weak = 0,
-    Strong = 1,
-};
-
-struct AdjustRefcountIn {
-    i32 binder_id;
-    i32 addval;
-    BinderType type;
-};
-
 void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<AdjustRefcountIn>();
 
@@ -254,6 +258,17 @@ void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
         binder.strong_ref_count += in.addval;
         break;
     }
+}
+
+void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
+    const i32 id = readers.reader.Read<i32>();
+    const u32 code =
+        readers.reader.Read<u32>(); // TODO: should this be TransactCode?
+
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    // HACK
+    writers.move_handles_writer.Write(0xffffffff);
 }
 
 } // namespace Hydra::Horizon::Services::HosBinder

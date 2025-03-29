@@ -8,6 +8,11 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                                             GetCharacteristics, 0x06,
                                             GetTPCMasks))
 
+void NvHostCtrlGpu::QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
+                               NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
 void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
                                     NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);

@@ -776,7 +776,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
-        out_info = 0x0;
+        out_info = 4u * 1024u * 1024u * 1024u;
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
@@ -784,7 +784,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
                      tls_mem->GetSize() + heap_mem->GetSize();
         for (auto executable_mem : executable_memories)
             size += executable_mem->GetSize();
-        out_info = 0x0;
+        out_info = size;
         return RESULT_SUCCESS;
     }
     case InfoType::RandomEntropy:
@@ -799,7 +799,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         return RESULT_SUCCESS;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented info type {}", info_type);
-        return MAKE_KERNEL_RESULT(NotImplemented);
+        return MAKE_KERNEL_RESULT(InvalidEnumValue);
     }
 }
 
