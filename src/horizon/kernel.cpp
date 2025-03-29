@@ -362,8 +362,7 @@ Result Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    mmu->Map(dst_addr, {mmu->UnmapAddr(src_addr), size});
 
     return RESULT_SUCCESS;
 }
@@ -375,8 +374,7 @@ Result Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    mmu->Unmap(dst_addr);
 
     return RESULT_SUCCESS;
 }
