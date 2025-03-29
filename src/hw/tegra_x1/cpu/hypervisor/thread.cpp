@@ -1,7 +1,6 @@
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 #define MAX_STACK_TRACE_DEPTH 32
 
@@ -9,7 +8,7 @@ namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // Create
-    HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
+    HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
     // TODO: find out what this does
     SetReg(HV_REG_CPSR, 0x3c4);
@@ -22,7 +21,7 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
 
     // Trap debug access
-    HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
+    HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
     // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
 }
 
@@ -43,8 +42,7 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
     // HYP_ASSERT_SUCCESS(
     //    hv_vcpu_set_reg(vcpu, HV_REG_PC, KERNEL_MEM_ADDR + 0x800));
 
-    // TODO: what is this?
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, PAGE_TABLE_MEM_BASE);
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, PAGE_TABLE_MEM_BASE_PA);
     // SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelRangeMemory()->GetBase());
 
     // Initialize the stack pointer
@@ -60,7 +58,7 @@ void Thread::Run() {
     // Main run loop
     bool running = true;
     while (running) {
-        HYP_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
+        HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;

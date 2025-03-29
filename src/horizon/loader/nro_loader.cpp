@@ -3,7 +3,6 @@
 #include "horizon/filesystem/file.hpp"
 #include "horizon/filesystem/filesystem.hpp"
 #include "horizon/kernel.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -60,10 +59,10 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto mem =
+    auto ptr =
         Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
     reader.Seek(0);
-    reader.Read(mem->GetPtrU8(), reader.GetSize());
+    reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
     // Set entrypoint
     Kernel::GetInstance().SetEntryPoint(
@@ -74,7 +73,7 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     const u64 argv_offset = executable_size;
 
     std::string args = fmt::format("\"{}\"", ROM_VIRTUAL_PATH);
-    char* argv = reinterpret_cast<char*>(mem->GetPtr() + argv_offset);
+    char* argv = reinterpret_cast<char*>(ptr + argv_offset);
     memcpy(argv, args.c_str(), args.size());
     argv[args.size()] = '\0';
 
@@ -95,8 +94,7 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     ADD_ENTRY(t, IsMandatory, value0, value1)
 
     // Entries
-    ConfigEntry* entry =
-        reinterpret_cast<ConfigEntry*>(mem->GetPtr() + config_offset);
+    ConfigEntry* entry = reinterpret_cast<ConfigEntry*>(ptr + config_offset);
 
     ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
                         0); // TODO: what thread handle should be used?

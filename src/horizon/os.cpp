@@ -24,8 +24,8 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_)
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
 HID::SharedMemory* OS::GetHidSharedMemory() const {
-    return reinterpret_cast<HID::SharedMemory*>(
-        kernel.GetSharedMemory(hid_shared_memory_id).GetPtr());
+    vaddr addr = kernel.GetSharedMemory(hid_shared_memory_id).GetRange().base;
+    return reinterpret_cast<HID::SharedMemory*>(mmu->UnmapAddr(addr));
 }
 
 } // namespace Hydra::Horizon

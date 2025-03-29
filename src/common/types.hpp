@@ -32,8 +32,8 @@ using HandleId = u32;
 
 template <typename T> struct range {
   public:
-    const T base;
-    const usize size;
+    T base;
+    usize size;
 
     range() : base{0}, size{0} {}
     range(T base_, usize size_) : base{base_}, size{size_} {}

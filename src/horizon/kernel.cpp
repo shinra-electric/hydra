@@ -6,7 +6,6 @@
 #include "horizon/hipc.hpp"
 #include "horizon/services/service_base.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 #include "hw/tegra_x1/cpu/mmu_base.hpp"
 #include "hw/tegra_x1/cpu/thread_base.hpp"
 
@@ -66,48 +65,27 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     // Memory
 
     // Stack memory
-    stack_mem =
-        new HW::TegraX1::CPU::Memory(STACK_MEM_SIZE, Permission::ReadWrite);
-    stack_mem->Clear();
-    mmu->MapMemory(STACK_REGION_BASE, stack_mem);
+    mmu->AllocateAndMap(STACK_REGION_BASE, STACK_MEM_SIZE);
 
     // Kernel memory
-    kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_SIZE,
-                                              Permission::Execute, true);
-
-    kernel_mem->Clear();
+    uptr kernel_mem_ptr =
+        mmu->AllocateAndMap(KERNEL_REGION_BASE, KERNEL_MEM_SIZE);
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
-        memcpy(kernel_mem->GetPtrU8() + offset, exception_handler,
-               sizeof(exception_handler));
+        memcpy(reinterpret_cast<void*>(kernel_mem_ptr + offset),
+               exception_handler, sizeof(exception_handler));
     }
-    memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
-           exception_trampoline, sizeof(exception_trampoline));
-
-    mmu->MapMemory(KERNEL_REGION_BASE, kernel_mem);
+    memcpy(
+        reinterpret_cast<void*>(kernel_mem_ptr + EXCEPTION_TRAMPOLINE_OFFSET),
+        exception_trampoline, sizeof(exception_trampoline));
 
     // TLS memory
-    tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_SIZE, Permission::ReadWrite);
-    tls_mem->Clear();
-    mmu->MapMemory(TLS_REGION_BASE, tls_mem);
+    tls_ptr = mmu->AllocateAndMap(TLS_REGION_BASE, TLS_MEM_SIZE);
 
     // Heap memory
-    heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
-                                            Permission::ReadWrite);
-    heap_mem->Clear();
-    mmu->MapMemory(HEAP_REGION_BASE, heap_mem);
+    mmu->AllocateAndMap(HEAP_REGION_BASE, DEFAULT_HEAP_MEM_SIZE);
 }
 
-Kernel::~Kernel() {
-    delete stack_mem;
-    delete kernel_mem;
-    delete tls_mem;
-    for (auto executable_mem : executable_memories)
-        delete executable_mem;
-    // delete bss_mem;
-    delete heap_mem;
-
-    SINGLETON_UNSET_INSTANCE();
-}
+Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
@@ -129,18 +107,13 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
         thread->SetRegX(i, args[i]);
 }
 
-HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
-                                                         uptr& out_base) {
-    auto mem = new HW::TegraX1::CPU::Memory(
-        size, Permission::ReadExecute |
-                  Permission::Write); // TODO: don't give write permissions
-    mem->Clear();
-    mmu->MapMemory(executable_mem_base, mem);
+uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base) {
+    size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
+    uptr ptr = mmu->AllocateAndMap(executable_mem_base, size);
     out_base = executable_mem_base;
-    executable_mem_base += mem->GetSize();
-    executable_memories.push_back(mem);
+    executable_mem_base += size;
 
-    return mem;
+    return ptr;
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
@@ -306,11 +279,14 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
+    // TODO: implement
+    /*
     if (size != heap_mem->GetSize()) {
         mmu->UnmapMemory(HEAP_REGION_BASE, heap_mem);
         heap_mem->Resize(size);
         mmu->MapMemory(HEAP_REGION_BASE, heap_mem);
     }
+    */
 
     out_base = HEAP_REGION_BASE;
 
@@ -324,16 +300,6 @@ Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
         "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
         "{})",
         addr, size, permission);
-
-    uptr base;
-    const auto* mem = mmu->FindAddrImplRef(addr, base);
-    if (!mem) {
-        // TODO: check
-        return MAKE_KERNEL_RESULT(InvalidAddress);
-    }
-
-    // mem->SetPermission(permission);
-    // cpu->ReprotectMemory(mem);
 
     // TODO: implement
     LOG_FUNC_STUBBED(HorizonKernel);
@@ -362,7 +328,9 @@ Result Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    mmu->Map(dst_addr, {mmu->UnmapAddr(src_addr), size});
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+    // mmu->Map(dst_addr, {mmu->UnmapAddr(src_addr), size});
 
     return RESULT_SUCCESS;
 }
@@ -374,7 +342,9 @@ Result Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    mmu->Unmap(dst_addr);
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+    // mmu->Unmap(dst_addr);
 
     return RESULT_SUCCESS;
 }
@@ -386,6 +356,7 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     LOG_FUNC_STUBBED(HorizonKernel);
 
     // HACK
+    /*
     uptr base;
     const auto* mem = mmu->FindAddrImplRef(addr, base);
     if (!mem) {
@@ -402,12 +373,13 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 
         return RESULT_SUCCESS;
     }
+    */
 
     // HACK
     bool is_rom = (addr >= 0x80000000 && addr < 0xa0000000);
     out_mem_info = MemoryInfo{
-        .addr = base, // TODO: check
-        .size = mem->size,
+        .addr = addr,                         // base, // TODO: check
+        .size = 0x1000,                       // mem->size,
         .type = (is_rom ? 0x3u : 0x00402006), // HACK: static
         // TODO: attr
         .perm = Permission::ReadExecute, // HACK
@@ -606,12 +578,12 @@ Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
 
     auto service =
         static_cast<Services::ServiceBase*>(GetHandle(session_handle_id));
-    u8* tls_ptr = tls_mem->GetPtrU8();
 
     // Request
 
     // HIPC header
-    Hipc::ParsedRequest hipc_in = Hipc::parse_request(tls_ptr);
+    Hipc::ParsedRequest hipc_in =
+        Hipc::parse_request(reinterpret_cast<void*>(tls_ptr));
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
@@ -657,7 +629,7 @@ Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
                         .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
                         .num_move_handles =
                             GET_ARRAY_SIZE(move_handles_writer)};
-    auto response = Hipc::make_request(tls_ptr, meta);
+    auto response = Hipc::make_request(reinterpret_cast<void*>(tls_ptr), meta);
 
     u8* data_start =
         reinterpret_cast<u8*>(align_ptr(response.data_words, 0x10));
@@ -778,11 +750,14 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
+        /*
         usize size = stack_mem->GetSize() + kernel_mem->GetSize() +
                      tls_mem->GetSize() + heap_mem->GetSize();
         for (auto executable_mem : executable_memories)
             size += executable_mem->GetSize();
         out_info = size;
+        */
+        out_info = 0;
         return RESULT_SUCCESS;
     }
     case InfoType::RandomEntropy:

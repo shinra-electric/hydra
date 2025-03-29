@@ -4,7 +4,6 @@
 #include "horizon/filesystem/filesystem.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/loader/nso_loader.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::Horizon::Loader {
 

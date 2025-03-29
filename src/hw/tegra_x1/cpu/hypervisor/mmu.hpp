@@ -10,19 +10,18 @@ class MMU : public MMUBase {
     MMU();
     ~MMU();
 
-    // void ReprotectMemory(Memory* mem, uptr base) override;
+    uptr AllocateAndMap(vaddr va, usize size) override;
+    void UnmapAndFree(vaddr va, usize size) override;
 
-    // Getters
-    // uptr GetPageTablePa() const { return page_table.GetMemory()->GetBase(); }
-    // Memory* GetKernelRangeMemory() const { return kernel_range.mem; }
-
-  protected:
-    void MapImpl(uptr base, MemoryMapping mem) override;
-    void UnmapImpl(uptr base, MemoryMapping mem) override;
+    uptr UnmapAddr(vaddr va) const override;
 
   private:
     // Page table
     PageTable page_table;
+
+    // TODO: use a proper allocator
+    uptr physical_memory_ptr;
+    u64 physical_memory_cur{0};
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

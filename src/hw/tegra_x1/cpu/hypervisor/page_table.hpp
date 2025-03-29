@@ -1,39 +1,62 @@
 #pragma once
 
-#include "hw/tegra_x1/cpu/memory.hpp"
-
-// TODO: needs rework
+#include "hw/tegra_x1/cpu/hypervisor/page_allocator.hpp"
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-constexpr usize ADDRESS_SPACE_SIZE = (1ul << 39);
-constexpr uptr PAGE_TABLE_MEM_BASE = 0x00000000a0000000;
+constexpr usize BLOCK_SHIFT_DIFF = 9;
+constexpr usize ENTRY_COUNT = 1u << BLOCK_SHIFT_DIFF;
+
+#define GET_BLOCK_SHIFT(level) (3 + (BLOCK_SHIFT_DIFF * (3 - (level))))
+
+constexpr usize ADDRESS_SPACE_SIZE = (1ul << GET_BLOCK_SHIFT(0));
+constexpr uptr PAGE_TABLE_MEM_BASE_PA = 0x00000000a0000000;
 
 struct PageTableLevel {
-    PageTableLevel() = default;
-    PageTableLevel(u32 index_, u32 block_shift_,
-                   PageTableLevel* next_ = nullptr)
-        : index{index_}, block_shift{block_shift_}, next{next_} {}
+    PageTableLevel(u32 level_, const Page page_, const vaddr base_va_)
+        : level{level_}, page{page_}, base_va{base_va_} {
+        u64* table = reinterpret_cast<u64*>(page.ptr);
+        for (u32 i = 0; i < ENTRY_COUNT; i++) {
+            table[i] = 0x0;
+        }
+    }
 
-    uptr GetPaOffset(uptr pa) const { return pa >> block_shift; }
+    usize GetBlockSize() const { return 1ul << GET_BLOCK_SHIFT(level); }
 
-    usize GetBlockSize() const { return 1ul << block_shift; }
+    uptr PaToIndex(uptr pa) const {
+        return (pa - page.pa) >> GET_BLOCK_SHIFT(level);
+    }
 
-    u64 GetBlockMask() const { return GetBlockSize() - 1; }
+    u32 VaToIndex(vaddr va) const {
+        return (va - base_va) >> GET_BLOCK_SHIFT(level);
+    }
 
-    usize GetBlockCount() const { return ADDRESS_SPACE_SIZE >> block_shift; }
+    u64 ReadEntry(u32 index) const {
+        const u64* table = reinterpret_cast<const u64*>(page.ptr);
+        return table[index];
+    }
+
+    void WriteEntry(u32 index, u64 entry) {
+        u64* table = reinterpret_cast<u64*>(page.ptr);
+        table[index] = entry;
+    }
+
+    const PageTableLevel* GetNextNoNew(u32 index) const {
+        return next_levels[index];
+    }
+
+    PageTableLevel& GetNext(PageAllocator& allocator, u32 index);
 
     // Getters
-    u32 GetIndex() const { return index; }
+    u32 GetLevel() const { return level; }
 
-    u32 GetBlockShift() const { return block_shift; }
-
-    PageTableLevel* GetNext() const { return next; }
+    u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
   private:
-    u32 index;
-    u32 block_shift;
-    PageTableLevel* next;
+    u32 level;
+    const Page page;
+    const vaddr base_va;
+    PageTableLevel* next_levels[ENTRY_COUNT] = {nullptr};
 };
 
 class PageTable {
@@ -41,42 +64,17 @@ class PageTable {
     PageTable();
     ~PageTable();
 
-    // void MapMemory(Memory* mem);
-    // void UnmapMemory(Memory* mem);
+    void Map(vaddr va, paddr pa, usize size);
+    void Unmap(vaddr va, usize size);
 
-    // Getters
-    Memory* GetMemory() const { return page_table_mem; }
+    paddr UnmapAddr(vaddr va) const;
 
   private:
-    std::vector<PageTableLevel> levels;
+    PageAllocator allocator;
+    PageTableLevel top_level;
 
-    Memory* page_table_mem;
-
-    usize GetBlockCount() const {
-        usize count = 0;
-        for (const auto& level : levels) {
-            count += level.GetBlockCount();
-        }
-
-        return count;
-    }
-
-    u64 GetLevelOffset(u32 index) const {
-        u64 offset = 0;
-        for (u32 i = 0; i < index; i++) {
-            offset += levels[i].GetBlockCount();
-        }
-
-        return offset;
-    }
-
-    u64 GetLevelOffset(const PageTableLevel& level) const {
-        return GetLevelOffset(level.GetIndex());
-    }
-
-    u64 GetPaOffset(const PageTableLevel& level, uptr pa) const {
-        return GetLevelOffset(level) + level.GetPaOffset(pa);
-    }
+    void MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size);
+    void MapLevelNext(PageTableLevel& level, vaddr va, paddr pa, usize size);
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

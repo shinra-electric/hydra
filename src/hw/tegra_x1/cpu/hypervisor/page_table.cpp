@@ -1,4 +1,5 @@
 #include "hw/tegra_x1/cpu/hypervisor/page_table.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/const.hpp"
 
 #define PTE_BLOCK (1ull << 0)
 #define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
@@ -48,6 +49,7 @@ enum class ApFlags : u64 {
         (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (3UL << (int)ApShift),
 };
 
+/*
 inline ApFlags PermisionToAP(Horizon::Permission permission) {
     return ApFlags::UserNoneKernelReadWriteExecute; // HACK: wtf why does this
                                                     // work
@@ -82,34 +84,91 @@ inline ApFlags PermisionToAP(Horizon::Permission permission) {
         }
     }
 }
+*/
 
 } // namespace
 
-PageTable::PageTable() {
-    // For now, only 1 level is used, creating a 1 to 1 mapping
-    levels.resize(1);
-    levels[0] = PageTableLevel(0, 30); // 1gb
-    // levels[1] = PtLevel(1, 21, &levels[2]); // 2mb
-    // levels[2] = PtLevel(2, 12);             // 4kb
+PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
+    ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
 
-    // Memory
-    page_table_mem =
-        new Memory(GetBlockCount() * sizeof(u64), Horizon::Permission::Read);
-    page_table_mem->Clear();
-
-    // Walk through the table
-    u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
-    const auto& level = levels[0];
-    for (uptr addr = 0x0; addr < ADDRESS_SPACE_SIZE;
-         addr += level.GetBlockSize()) {
-        u64 value = addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
-                    (u64)ApFlags::UserNoneKernelReadWriteExecute;
-
-        table[GetPaOffset(level, addr)] = value;
+    auto& next = next_levels[index];
+    if (!next) {
+        next = new PageTableLevel(level + 1, allocator.GetNextPage(),
+                                  base_va + index * GetBlockSize());
+        WriteEntry(index, next->page.pa | PTE_TABLE);
     }
+
+    return *next;
 }
 
-PageTable::~PageTable() { delete page_table_mem; }
+PageTable::PageTable()
+    : allocator(0x100000000, 1024), top_level(0, allocator.GetNextPage(), 0x0) {
+}
+
+PageTable::~PageTable() = default;
+
+void PageTable::Map(vaddr va, paddr pa, usize size) {
+    ASSERT_ALIGNMENT(va, PAGE_SIZE, Hypervisor, "va");
+    ASSERT_ALIGNMENT(pa, PAGE_SIZE, Hypervisor, "pa");
+    ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
+
+    MapLevel(top_level, va, pa, size);
+
+    /*
+    addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
+        (u64)ApFlags::UserNoneKernelReadWriteExecute; // TODO: use proper
+                                                      // permissions
+    */
+}
+
+void PageTable::Unmap(vaddr va, usize size) {
+    LOG_NOT_IMPLEMENTED(Hypervisor, "Memory unmapping");
+}
+
+// TODO: find out if there is a cheaper way
+paddr PageTable::UnmapAddr(vaddr va) const {
+    auto* level = &top_level;
+    u64 entry = top_level.ReadEntry(top_level.VaToIndex(va));
+    while (!(entry & PTE_BLOCK)) {
+        if (!(entry & PTE_TABLE))
+            LOG_ERROR(Hypervisor, "Failed to unmap va 0x{:08x}", va);
+
+        paddr table_pa = entry & ~(PAGE_SIZE - 1);
+        u32 index = level->PaToIndex(table_pa);
+        level = level->GetNextNoNew(index);
+        entry = level->ReadEntry(index);
+    }
+
+    return entry & ~(PAGE_SIZE - 1);
+}
+
+void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,
+                         usize size) {
+    vaddr end_va = va + size;
+    do {
+        MapLevelNext(level, va, pa, align(va + 1, level.GetBlockSize()) - va);
+
+        vaddr old_va = va;
+        va = align_down(va + level.GetBlockSize(), level.GetBlockSize());
+        pa += va - old_va;
+    } while (va < end_va);
+}
+
+void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
+                             usize size) {
+    LOG_DEBUG(Hypervisor,
+              "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
+              level.GetLevel(), va, pa, size);
+
+    u32 index = level.VaToIndex(va);
+    if (size == level.GetBlockSize()) {
+        level.WriteEntry(index,
+                         pa | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
+                             (u64)ApFlags::UserNoneKernelReadWriteExecute);
+    } else {
+        MapLevel(level.GetNext(allocator, index), va, pa, size);
+    }
+}
 
 /*
 void PageTable::MapMemory(Memory* mem) {

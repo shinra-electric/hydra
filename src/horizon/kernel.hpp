@@ -6,7 +6,6 @@
 #include "horizon/shared_memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
-class Memory;
 class MMUBase;
 class ThreadBase;
 } // namespace Hydra::HW::TegraX1::CPU
@@ -50,8 +49,7 @@ class Kernel {
     void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
-    HW::TegraX1::CPU::Memory* CreateExecutableMemory(usize size,
-                                                     uptr& out_base);
+    uptr CreateExecutableMemory(usize size, vaddr& out_base);
     void SetEntryPoint(uptr entry_point_) { entry_point = entry_point_; }
     void SetArg(u32 index, u64 value) {
         ASSERT_DEBUG(index < ARG_COUNT, HorizonKernel, "Invalid arg index {}",
@@ -107,10 +105,6 @@ class Kernel {
 
     Filesystem::Filesystem& GetFilesystem() { return filesystem; }
 
-    HW::TegraX1::CPU::Memory* GetStackMemory() const { return stack_mem; }
-    HW::TegraX1::CPU::Memory* GetKernelMemory() const { return kernel_mem; }
-    HW::TegraX1::CPU::Memory* GetTlsMemory() const { return tls_mem; }
-
     // Helpers
     KernelHandle* GetHandle(HandleId handle_id) const {
         return handle_pool.GetObject(handle_id);
@@ -136,17 +130,8 @@ class Kernel {
     Filesystem::Filesystem filesystem;
 
     // Memory
-
-    // Static
-    HW::TegraX1::CPU::Memory* stack_mem;
-    HW::TegraX1::CPU::Memory* kernel_mem;
-    HW::TegraX1::CPU::Memory* tls_mem;
-
-    // Dynamic
-    uptr executable_mem_base{0x80000000};
-    std::vector<HW::TegraX1::CPU::Memory*> executable_memories;
-    // HW::MMU::Memory* bss_mem;
-    HW::TegraX1::CPU::Memory* heap_mem;
+    uptr tls_ptr;
+    vaddr executable_mem_base{0x80000000};
 
     // Handles
     Allocators::DynamicPool<KernelHandle*> handle_pool;
