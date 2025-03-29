@@ -54,11 +54,13 @@ class GPU {
 
     u32 GetMapId(HandleId handle_id) { return handle_id + 1; }
 
+    HandleId GetMapHandleId(u32 id) { return id - 1; }
+
     MemoryMap& GetMap(HandleId handle_id) {
         return memory_maps.GetObjectRef(handle_id);
     }
 
-    MemoryMap& GetMapById(u32 id) { return GetMap(id - 1); }
+    MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }
 
     // Address space
     uptr CreateAddressSpace(uptr addr, usize size, uptr gpu_addr) {

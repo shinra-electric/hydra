@@ -12,6 +12,8 @@ class NvMap : public FdBase {
     // Ioctls
     DECLARE_IOCTL(Create, readonly<u32> size; writeonly<HandleId> handle_id;
                   , handle_id);
+    DECLARE_IOCTL(FromId, readonly<u32> id; writeonly<HandleId> handle_id;
+                  , handle_id);
     DECLARE_IOCTL(Alloc, readonly<HandleId> handle_id; readonly<u32> heapmask;
                   readonly<u32> flags; readwrite<u32> alignment;
                   readonly<u8> kind; readonly<u8> pad[7]; readonly<uptr> addr;
