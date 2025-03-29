@@ -12,22 +12,26 @@
 
 namespace Hydra::Horizon {
 
-constexpr uptr STACK_MEM_BASE = 0x10000000;
+// TODO: how does this work?
+constexpr uptr ADDRESS_SPACE_BASE = 0x10000000;
+constexpr usize ADDRESS_SPACE_SIZE = 0x200000000 - ADDRESS_SPACE_BASE;
+
+constexpr uptr STACK_REGION_BASE = 0x10000000;
+constexpr uptr STACK_REGION_SIZE = 0x10000000;
 constexpr usize STACK_MEM_SIZE = 0x2000000;
 
-constexpr uptr KERNEL_MEM_BASE = 0xF0000000;
+constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
+constexpr uptr KERNEL_REGION_SIZE = 0x10000000;
 constexpr usize KERNEL_MEM_SIZE = 0x10000;
 
-constexpr uptr TLS_MEM_BASE = 0x20000000;
+constexpr uptr TLS_REGION_BASE = 0x20000000;
+constexpr uptr TLS_REGION_SIZE = 0x10000000;
 constexpr usize TLS_MEM_SIZE = 0x20000;
 
-constexpr uptr HEAP_MEM_BASE = 0x100000000;
+constexpr uptr HEAP_REGION_BASE = 0x100000000;
+constexpr uptr HEAP_REGION_SIZE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
-
-// TODO: how does this work?
-constexpr uptr ADDRESS_SPACE_BASE = 0x40000000;
-constexpr usize ADDRESS_SPACE_SIZE = 0x20000000;
 
 constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 
@@ -65,7 +69,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     stack_mem =
         new HW::TegraX1::CPU::Memory(STACK_MEM_SIZE, Permission::ReadWrite);
     stack_mem->Clear();
-    mmu->MapMemory(STACK_MEM_BASE, stack_mem);
+    mmu->MapMemory(STACK_REGION_BASE, stack_mem);
 
     // Kernel memory
     kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_SIZE,
@@ -79,18 +83,18 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
            exception_trampoline, sizeof(exception_trampoline));
 
-    mmu->MapMemory(KERNEL_MEM_BASE, kernel_mem);
+    mmu->MapMemory(KERNEL_REGION_BASE, kernel_mem);
 
     // TLS memory
     tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
-    mmu->MapMemory(TLS_MEM_BASE, tls_mem);
+    mmu->MapMemory(TLS_REGION_BASE, tls_mem);
 
     // Heap memory
     heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
                                             Permission::ReadWrite);
     heap_mem->Clear();
-    mmu->MapMemory(HEAP_MEM_BASE, heap_mem);
+    mmu->MapMemory(HEAP_REGION_BASE, heap_mem);
 }
 
 Kernel::~Kernel() {
@@ -108,9 +112,9 @@ Kernel::~Kernel() {
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
                           u64 id) { return SupervisorCall(thread, id); },
-                      KERNEL_MEM_BASE, TLS_MEM_BASE,
-                      STACK_MEM_BASE + STACK_MEM_SIZE,
-                      KERNEL_MEM_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
+                      KERNEL_REGION_BASE, TLS_REGION_BASE,
+                      STACK_REGION_BASE + STACK_MEM_SIZE,
+                      KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
 }
 
 void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
@@ -303,12 +307,12 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
     if (size != heap_mem->GetSize()) {
-        mmu->UnmapMemory(HEAP_MEM_BASE, heap_mem);
+        mmu->UnmapMemory(HEAP_REGION_BASE, heap_mem);
         heap_mem->Resize(size);
-        mmu->MapMemory(HEAP_MEM_BASE, heap_mem);
+        mmu->MapMemory(HEAP_REGION_BASE, heap_mem);
     }
 
-    out_base = HEAP_MEM_BASE;
+    out_base = HEAP_REGION_BASE;
 
     return RESULT_SUCCESS;
 }
@@ -390,13 +394,9 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
         // TODO: how should this behave?
         out_mem_info = MemoryInfo{
             .addr = addr,
-            .size =
-                (addr > HEAP_MEM_BASE + heap_mem->GetSize()
-                     ? 0x0u
-                     : (addr >= ADDRESS_SPACE_BASE &&
-                                addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
-                            ? 0x10000000
-                            : 0x4000u * 8u)), // HACK: awful hack
+            .size = (addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
+                         ? 0x10000000u
+                         : 0x0u), // HACK: awful hack
         };
 
         // TODO: out_page_info
@@ -749,18 +749,18 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
     case InfoType::AliasRegionAddress:
         LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionAddress");
         // HACK
-        out_info = STACK_MEM_BASE;
+        out_info = STACK_REGION_BASE;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
         LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionSize");
         // HACK
-        out_info = STACK_MEM_SIZE;
+        out_info = STACK_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
-        out_info = HEAP_MEM_BASE;
+        out_info = HEAP_REGION_BASE;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionSize:
-        out_info = heap_mem->GetSize();
+        out_info = HEAP_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
         out_info = ADDRESS_SPACE_BASE;
@@ -769,10 +769,10 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = ADDRESS_SPACE_SIZE;
         return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
-        out_info = STACK_MEM_BASE;
+        out_info = STACK_REGION_BASE;
         return RESULT_SUCCESS;
     case InfoType::StackRegionSize:
-        out_info = stack_mem->GetSize();
+        out_info = STACK_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
