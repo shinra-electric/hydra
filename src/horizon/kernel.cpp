@@ -65,7 +65,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     stack_mem =
         new HW::TegraX1::CPU::Memory(STACK_MEM_SIZE, Permission::ReadWrite);
     stack_mem->Clear();
-    mmu->Map(STACK_MEM_BASE, stack_mem);
+    mmu->MapMemory(STACK_MEM_BASE, stack_mem);
 
     // Kernel memory
     kernel_mem = new HW::TegraX1::CPU::Memory(KERNEL_MEM_SIZE,
@@ -79,18 +79,18 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     memcpy(kernel_mem->GetPtrU8() + EXCEPTION_TRAMPOLINE_OFFSET,
            exception_trampoline, sizeof(exception_trampoline));
 
-    mmu->Map(KERNEL_MEM_BASE, kernel_mem);
+    mmu->MapMemory(KERNEL_MEM_BASE, kernel_mem);
 
     // TLS memory
     tls_mem = new HW::TegraX1::CPU::Memory(TLS_MEM_SIZE, Permission::ReadWrite);
     tls_mem->Clear();
-    mmu->Map(TLS_MEM_BASE, tls_mem);
+    mmu->MapMemory(TLS_MEM_BASE, tls_mem);
 
     // Heap memory
     heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
                                             Permission::ReadWrite);
     heap_mem->Clear();
-    mmu->Map(HEAP_MEM_BASE, heap_mem);
+    mmu->MapMemory(HEAP_MEM_BASE, heap_mem);
 }
 
 Kernel::~Kernel() {
@@ -131,7 +131,7 @@ HW::TegraX1::CPU::Memory* Kernel::CreateExecutableMemory(usize size,
         size, Permission::ReadExecute |
                   Permission::Write); // TODO: don't give write permissions
     mem->Clear();
-    mmu->Map(executable_mem_base, mem);
+    mmu->MapMemory(executable_mem_base, mem);
     out_base = executable_mem_base;
     executable_mem_base += mem->GetSize();
     executable_memories.push_back(mem);
@@ -303,9 +303,9 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
     if (size != heap_mem->GetSize()) {
-        mmu->Unmap(HEAP_MEM_BASE, heap_mem);
+        mmu->UnmapMemory(HEAP_MEM_BASE, heap_mem);
         heap_mem->Resize(size);
-        mmu->Map(HEAP_MEM_BASE, heap_mem);
+        mmu->MapMemory(HEAP_MEM_BASE, heap_mem);
     }
 
     out_base = HEAP_MEM_BASE;
@@ -393,7 +393,7 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
             .size =
                 (addr > HEAP_MEM_BASE + heap_mem->GetSize()
                      ? 0x0u
-                     : (addr > ADDRESS_SPACE_BASE &&
+                     : (addr >= ADDRESS_SPACE_BASE &&
                                 addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
                             ? 0x10000000
                             : 0x4000u * 8u)), // HACK: awful hack
@@ -457,7 +457,7 @@ Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
 
     // Map
     auto shared_mem = shared_memory_pool.GetObjectRef(shared_mem_handle_id);
-    shared_mem.MapToRange(range(addr, size));
+    shared_mem->MapToRange(mmu, range(addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -814,8 +814,11 @@ HandleId Kernel::AddHandle(KernelHandle* handle) {
     return handle_id;
 }
 
-HandleId Kernel::CreateSharedMemory() {
-    return shared_memory_pool.AllocateForIndex();
+HandleId Kernel::CreateSharedMemory(usize size) {
+    auto handle_id = shared_memory_pool.AllocateForIndex();
+    shared_memory_pool.GetObjectRef(handle_id) = new SharedMemory(size);
+
+    return handle_id;
 }
 
 } // namespace Hydra::Horizon

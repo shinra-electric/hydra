@@ -26,11 +26,11 @@ class MMUBase : public GenericMMU<MMUBase, MemoryMapping> {
     virtual void MapImpl(vaddr base, MemoryMapping mem) = 0;
     virtual void UnmapImpl(vaddr base, MemoryMapping mem) = 0;
 
-    void Map(uptr base, Memory* mem) {
+    void MapMemory(uptr base, Memory* mem) {
         GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
     }
 
-    void Unmap(uptr base, Memory* mem) { GenericMMU::Unmap(base); }
+    void UnmapMemory(uptr base, Memory* mem) { GenericMMU::Unmap(base); }
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

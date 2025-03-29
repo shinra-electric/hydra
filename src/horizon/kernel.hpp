@@ -2,8 +2,8 @@
 
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/allocators/static_pool.hpp"
-#include "horizon/const.hpp"
 #include "horizon/filesystem/filesystem.hpp"
+#include "horizon/shared_memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 class Memory;
@@ -24,19 +24,6 @@ class ServiceBase;
 class KernelHandle {
   public:
     virtual ~KernelHandle() = default;
-};
-
-class SharedMemory {
-  public:
-    SharedMemory() = default;
-
-    void MapToRange(const range<uptr> range_) { range = range_; }
-
-    // Getters
-    const range<uptr> GetRange() const { return range; }
-
-  private:
-    range<uptr> range;
 };
 
 class TransferMemory : public KernelHandle {
@@ -133,10 +120,10 @@ class Kernel {
 
     HandleId AddHandle(KernelHandle* handle);
 
-    HandleId CreateSharedMemory();
+    HandleId CreateSharedMemory(usize size);
 
-    const SharedMemory GetSharedMemory(HandleId handle_id) const {
-        return shared_memory_pool.GetObject(handle_id);
+    const SharedMemory& GetSharedMemory(HandleId handle_id) const {
+        return *shared_memory_pool.GetObject(handle_id);
     }
 
   private:
@@ -163,7 +150,7 @@ class Kernel {
 
     // Handles
     Allocators::DynamicPool<KernelHandle*> handle_pool;
-    Allocators::DynamicPool<SharedMemory> shared_memory_pool;
+    Allocators::DynamicPool<SharedMemory*> shared_memory_pool;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;

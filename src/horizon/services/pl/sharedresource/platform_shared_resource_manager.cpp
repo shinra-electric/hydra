@@ -6,7 +6,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 4,
                              GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle_id = Kernel::GetInstance().CreateSharedMemory();
+    shared_memory_handle_id =
+        Kernel::GetInstance().CreateSharedMemory(0x01100000);
 }
 
 void IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(

@@ -18,14 +18,14 @@ OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_)
     kernel.ConnectServiceToPort("sm:", sm_user_interface);
 
     // Shared memories
-    hid_shared_memory_id = kernel.CreateSharedMemory();
+    hid_shared_memory_id = kernel.CreateSharedMemory(0x40000);
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
 HID::SharedMemory* OS::GetHidSharedMemory() const {
-    return reinterpret_cast<HID::SharedMemory*>(mmu->UnmapAddr(
-        kernel.GetSharedMemory(hid_shared_memory_id).GetRange().GetBase()));
+    return reinterpret_cast<HID::SharedMemory*>(
+        kernel.GetSharedMemory(hid_shared_memory_id).GetPtr());
 }
 
 } // namespace Hydra::Horizon

@@ -40,6 +40,10 @@ template <typename T> T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
 
+template <typename T> T align_down(T v, T alignment) {
+    return v & ~(alignment - 1);
+}
+
 template <typename PtrT, typename AlignmentT>
 PtrT* align_ptr(PtrT* ptr, AlignmentT alignment) {
     return reinterpret_cast<PtrT*>(

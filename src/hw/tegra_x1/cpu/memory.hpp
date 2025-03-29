@@ -5,6 +5,9 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
+constexpr usize ORIGINAL_PAGE_SIZE = 0x1000; // 4KB
+constexpr usize PAGE_SIZE = 0x4000;          // 16KB, cause Apple :)
+
 class Memory {
   public:
     Memory(usize size_, Horizon::Permission permission_,

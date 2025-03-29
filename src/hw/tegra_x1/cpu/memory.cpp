@@ -1,11 +1,9 @@
 #include "hw/tegra_x1/cpu/memory.hpp"
 
-#define MEMORY_ALIGNMENT 0x4000
-
 namespace Hydra::HW::TegraX1::CPU {
 
 Memory::Memory(usize size_, Horizon::Permission permission_, bool is_kernel_)
-    : size{align(size_, (usize)MEMORY_ALIGNMENT)}, permission{permission_},
+    : size{align(size_, PAGE_SIZE)}, permission{permission_},
       is_kernel{is_kernel_} {
     Allocate();
 }
@@ -16,7 +14,7 @@ void Memory::Resize(usize size_) {
     uptr old_ptr = ptr;
     usize old_size = size;
 
-    size = align(size_, (usize)MEMORY_ALIGNMENT);
+    size = align(size_, PAGE_SIZE);
     Allocate();
     // TODO: is this necessary?
     memcpy((void*)ptr, (void*)old_ptr, std::min(size, old_size));
@@ -28,7 +26,7 @@ void Memory::Resize(usize size_) {
 void Memory::Clear() { memset((void*)ptr, 0, size); }
 
 void Memory::Allocate() {
-    posix_memalign((void**)(&ptr), MEMORY_ALIGNMENT, size);
+    posix_memalign((void**)(&ptr), PAGE_SIZE, size);
     if (!ptr) {
         LOG_ERROR(MMU, "Failed to allocate memory");
         return;

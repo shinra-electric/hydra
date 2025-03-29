@@ -20,6 +20,8 @@ add_executable(hydra
     horizon/state_manager.hpp
     horizon/hipc.hpp
     horizon/cmif.hpp
+    horizon/shared_memory.cpp
+    horizon/shared_memory.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
     horizon/filesystem/entry_base.hpp
