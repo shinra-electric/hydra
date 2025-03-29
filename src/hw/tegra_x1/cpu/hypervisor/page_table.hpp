@@ -9,8 +9,7 @@ constexpr usize ENTRY_COUNT = 1u << BLOCK_SHIFT_DIFF;
 
 #define GET_BLOCK_SHIFT(level) (3 + (BLOCK_SHIFT_DIFF * (3 - (level))))
 
-constexpr usize ADDRESS_SPACE_SIZE = (1ul << GET_BLOCK_SHIFT(0));
-constexpr uptr PAGE_TABLE_MEM_BASE_PA = 0x00000000a0000000;
+constexpr uptr PAGE_TABLE_MEM_BASE_PA = 0x100000000;
 
 struct PageTableLevel {
     PageTableLevel(u32 level_, const Page page_, const vaddr base_va_)

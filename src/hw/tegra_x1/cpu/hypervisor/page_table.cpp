@@ -102,12 +102,15 @@ PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
 }
 
 PageTable::PageTable()
-    : allocator(0x100000000, 1024), top_level(0, allocator.GetNextPage(), 0x0) {
-}
+    : allocator(PAGE_TABLE_MEM_BASE_PA, 1024),
+      top_level(0, allocator.GetNextPage(), 0x0) {}
 
 PageTable::~PageTable() = default;
 
 void PageTable::Map(vaddr va, paddr pa, usize size) {
+    LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
+              size);
+
     ASSERT_ALIGNMENT(va, PAGE_SIZE, Hypervisor, "va");
     ASSERT_ALIGNMENT(pa, PAGE_SIZE, Hypervisor, "pa");
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
@@ -146,7 +149,9 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,
                          usize size) {
     vaddr end_va = va + size;
     do {
-        MapLevelNext(level, va, pa, align(va + 1, level.GetBlockSize()) - va);
+        MapLevelNext(
+            level, va, pa,
+            std::min(align(va + 1, level.GetBlockSize()) - va, end_va - va));
 
         vaddr old_va = va;
         va = align_down(va + level.GetBlockSize(), level.GetBlockSize());

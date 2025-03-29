@@ -16,6 +16,7 @@ PageAllocator::~PageAllocator() {
 Page PageAllocator::GetNextPage() {
     if (current_page_in_allocation >= allocations.back().page_count) {
         Allocate();
+        current_page_in_allocation = 0;
     }
 
     Page page;

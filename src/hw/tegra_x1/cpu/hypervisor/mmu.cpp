@@ -18,7 +18,12 @@ constexpr usize PHYSICAL_MEMORY_SIZE = 0x100000000; // 4GB
 
 } // namespace
 
-MMU::MMU() { physical_memory_ptr = allocate_vm_memory(PHYSICAL_MEMORY_SIZE); }
+MMU::MMU() {
+    physical_memory_ptr = allocate_vm_memory(PHYSICAL_MEMORY_SIZE);
+    HV_ASSERT_SUCCESS(hv_vm_map(
+        reinterpret_cast<void*>(physical_memory_ptr), 0x0, PHYSICAL_MEMORY_SIZE,
+        HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
+}
 
 MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 
