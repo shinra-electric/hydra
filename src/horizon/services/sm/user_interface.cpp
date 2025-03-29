@@ -6,6 +6,7 @@
 #include "horizon/services/am/application_proxy_service.hpp"
 #include "horizon/services/aocsrv/add_on_content_manager.hpp"
 #include "horizon/services/apm/manager_privileged.hpp"
+#include "horizon/services/audio/audio_out_manager.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/lm/log_service.hpp"
@@ -72,6 +73,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         add_service(new Settings::ISettingsServer());
     } else if (name == "acc:u1") {
         add_service(new Account::IAccountServiceForSystemService());
+    } else if (name == "audout:u") {
+        add_service(new Audio::IAudioOutManager());
     } else {
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"", name);
         result = MAKE_KERNEL_RESULT(NotFound);
