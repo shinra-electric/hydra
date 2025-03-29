@@ -1,5 +1,6 @@
 #include "hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 
+#define PTE_TYPE_MASK 0x3ull
 #define PTE_BLOCK(level) ((level == 2 ? 3ull : 1ull) << 0)
 #define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
 #define PTE_AF (1ull << 10)             // Access Flag
@@ -17,6 +18,8 @@
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 namespace {
+
+constexpr u64 ENTRY_ADDR_MASK = 0x0000fffffffff000; // TODO: correct?
 
 // From Ryujinx
 enum class ApFlags : u64 {
@@ -129,19 +132,20 @@ void PageTable::Unmap(vaddr va, usize size) {
 
 // TODO: find out if there is a cheaper way
 paddr PageTable::UnmapAddr(vaddr va) const {
+
+    u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
-    u64 entry = top_level.ReadEntry(top_level.VaToIndex(va));
-    while (!(entry & PTE_BLOCK(level->GetLevel()))) {
-        if (!(entry & PTE_TABLE))
+    u64 entry = top_level.ReadEntry(index);
+    while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
             LOG_ERROR(Hypervisor, "Failed to unmap va 0x{:08x}", va);
 
-        paddr table_pa = entry & ~(PAGE_SIZE - 1);
-        u32 index = level->PaToIndex(table_pa);
         level = level->GetNextNoNew(index);
+        index = level->VaToIndex(va);
         entry = level->ReadEntry(index);
     }
 
-    return entry & ~(PAGE_SIZE - 1);
+    return (entry & ENTRY_ADDR_MASK) + (va & (level->GetBlockSize() - 1));
 }
 
 void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,

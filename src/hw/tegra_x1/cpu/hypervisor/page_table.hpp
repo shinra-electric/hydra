@@ -41,6 +41,7 @@ struct PageTableLevel {
     }
 
     const PageTableLevel* GetNextNoNew(u32 index) const {
+        ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
         return next_levels[index];
     }
 
