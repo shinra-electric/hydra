@@ -1,7 +1,6 @@
 #include "hw/tegra_x1/cpu/hypervisor/page_table.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/const.hpp"
 
-#define PTE_BLOCK (1ull << 0)
+#define PTE_BLOCK(level) ((level == 2 ? 3ull : 1ull) << 0)
 #define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
 #define PTE_AF (1ull << 10)             // Access Flag
 #define PTE_RW (1ull << 6)              // Read write
@@ -132,7 +131,7 @@ void PageTable::Unmap(vaddr va, usize size) {
 paddr PageTable::UnmapAddr(vaddr va) const {
     auto* level = &top_level;
     u64 entry = top_level.ReadEntry(top_level.VaToIndex(va));
-    while (!(entry & PTE_BLOCK)) {
+    while (!(entry & PTE_BLOCK(level->GetLevel()))) {
         if (!(entry & PTE_TABLE))
             LOG_ERROR(Hypervisor, "Failed to unmap va 0x{:08x}", va);
 
@@ -161,14 +160,15 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
                              usize size) {
-    LOG_DEBUG(Hypervisor,
-              "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
-              level.GetLevel(), va, pa, size);
+    // LOG_DEBUG(Hypervisor,
+    //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
+    //           level.GetLevel(), va, pa, size);
 
     u32 index = level.VaToIndex(va);
     if (size == level.GetBlockSize()) {
         level.WriteEntry(index,
-                         pa | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
+                         pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
+                             PTE_INNER_SHEREABLE |
                              (u64)ApFlags::UserNoneKernelReadWriteExecute);
     } else {
         MapLevel(level.GetNext(allocator, index), va, pa, size);
