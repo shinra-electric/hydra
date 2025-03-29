@@ -80,6 +80,8 @@ add_executable(hydra
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
+    horizon/services/settings/settings_server.cpp
+    horizon/services/settings/settings_server.hpp
     horizon/services/settings/system_settings_server.cpp
     horizon/services/settings/system_settings_server.hpp
     horizon/services/am/apm_manager.cpp
@@ -108,6 +110,8 @@ add_executable(hydra
     horizon/services/am/storage.hpp
     horizon/services/am/storage_accessor.cpp
     horizon/services/am/storage_accessor.hpp
+    horizon/services/am/session.cpp
+    horizon/services/am/session.hpp
     horizon/services/visrv/display_service_base.cpp
     horizon/services/visrv/display_service_base.hpp
     horizon/services/visrv/system_display_service.cpp
@@ -134,6 +138,8 @@ add_executable(hydra
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
+    horizon/services/account/account_service_for_system_service.cpp
+    horizon/services/account/account_service_for_system_service.hpp
     horizon/services/apm/manager_privileged.cpp
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp

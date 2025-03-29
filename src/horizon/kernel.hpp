@@ -154,7 +154,6 @@ class Kernel {
     HW::TegraX1::CPU::Memory* stack_mem;
     HW::TegraX1::CPU::Memory* kernel_mem;
     HW::TegraX1::CPU::Memory* tls_mem;
-    HW::TegraX1::CPU::Memory* aslr_mem;
 
     // Dynamic
     uptr executable_mem_base{0x80000000};

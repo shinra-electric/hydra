@@ -25,9 +25,9 @@ constexpr uptr HEAP_MEM_BASE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
-// TODO: what is this?
-constexpr uptr ASLR_MEM_BASE = 0x40000000;
-constexpr usize ASLR_MEM_SIZE = 0x1000000;
+// TODO: how does this work?
+constexpr uptr ADDRESS_SPACE_BASE = 0x40000000;
+constexpr usize ADDRESS_SPACE_SIZE = 0x20000000;
 
 constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 
@@ -86,12 +86,6 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     tls_mem->Clear();
     mmu->Map(TLS_MEM_BASE, tls_mem);
 
-    // ASLR memory
-    aslr_mem =
-        new HW::TegraX1::CPU::Memory(ASLR_MEM_SIZE, Permission::ReadWrite);
-    aslr_mem->Clear();
-    mmu->Map(ASLR_MEM_BASE, aslr_mem);
-
     // Heap memory
     heap_mem = new HW::TegraX1::CPU::Memory(DEFAULT_HEAP_MEM_SIZE,
                                             Permission::ReadWrite);
@@ -103,7 +97,6 @@ Kernel::~Kernel() {
     delete stack_mem;
     delete kernel_mem;
     delete tls_mem;
-    delete aslr_mem;
     for (auto executable_mem : executable_memories)
         delete executable_mem;
     // delete bss_mem;
@@ -397,9 +390,13 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
         // TODO: how should this behave?
         out_mem_info = MemoryInfo{
             .addr = addr,
-            .size = (addr > HEAP_MEM_BASE + heap_mem->GetSize()
-                         ? 0x0u
-                         : 0x4000u * 8u), // HACK: awful hack
+            .size =
+                (addr > HEAP_MEM_BASE + heap_mem->GetSize()
+                     ? 0x0u
+                     : (addr > ADDRESS_SPACE_BASE &&
+                                addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
+                            ? 0x10000000
+                            : 0x4000u * 8u)), // HACK: awful hack
         };
 
         // TODO: out_page_info
@@ -409,12 +406,11 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     }
 
     // HACK
+    bool is_rom = (addr >= 0x80000000 && addr < 0xa0000000);
     out_mem_info = MemoryInfo{
         .addr = base, // TODO: check
         .size = mem->size,
-        .type =
-            ((addr >= 0x80000000 && addr < 0xa0000000) ? 0x3u
-                                                       : 0x0u), // HACK: static
+        .type = (is_rom ? 0x3u : 0x00402006), // HACK: static
         // TODO: attr
         .perm = Permission::ReadExecute, // HACK
         // TODO: ipc_ref_count
@@ -753,12 +749,12 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
     case InfoType::AliasRegionAddress:
         LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionAddress");
         // HACK
-        out_info = 0;
+        out_info = STACK_MEM_BASE;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
         LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionSize");
         // HACK
-        out_info = 0;
+        out_info = STACK_MEM_SIZE;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
         out_info = HEAP_MEM_BASE;
@@ -767,10 +763,10 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = heap_mem->GetSize();
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
-        out_info = ASLR_MEM_BASE;
+        out_info = ADDRESS_SPACE_BASE;
         return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
-        out_info = aslr_mem->GetSize();
+        out_info = ADDRESS_SPACE_SIZE;
         return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
         out_info = STACK_MEM_BASE;
@@ -780,16 +776,15 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
-        out_info = 4u * 1024u * 1024u * 1024u;
+        out_info = 0x0;
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
         usize size = stack_mem->GetSize() + kernel_mem->GetSize() +
-                     tls_mem->GetSize() + aslr_mem->GetSize() +
-                     heap_mem->GetSize();
+                     tls_mem->GetSize() + heap_mem->GetSize();
         for (auto executable_mem : executable_memories)
             size += executable_mem->GetSize();
-        out_info = size;
+        out_info = 0x0;
         return RESULT_SUCCESS;
     }
     case InfoType::RandomEntropy:
