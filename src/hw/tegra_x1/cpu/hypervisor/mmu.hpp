@@ -14,15 +14,18 @@ constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 class MMU : public MMUBase {
   public:
     MMU();
-    ~MMU();
+    ~MMU() override;
 
-    uptr AllocateAndMap(vaddr va, usize size,
-                        const Horizon::MemoryState state) override;
-    void UnmapAndFree(vaddr va, usize size) override;
-    void ResizeHeap(vaddr va, usize size) override;
+    MemoryBase* AllocateMemory(usize size) override;
+    void FreeMemory(MemoryBase* memory) override;
+    uptr GetMemoryPtr(MemoryBase* memory) const override;
 
+    void Map(vaddr va, usize size, MemoryBase* memory,
+             const Horizon::MemoryState state) override;
     void Map(vaddr dst_va, vaddr src_va, usize size) override;
     void Unmap(vaddr va, usize size) override;
+
+    void ResizeHeap(vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
     Horizon::MemoryInfo QueryMemory(vaddr va) const override;

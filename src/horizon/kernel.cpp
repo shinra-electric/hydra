@@ -37,23 +37,33 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     // Memory
 
     // Stack memory
-    mmu->AllocateAndMap(STACK_REGION_BASE, STACK_MEM_SIZE,
-                        {MemoryType::Stack, MemoryAttribute::None,
-                         MemoryPermission::ReadWrite});
+    stack_mem = mmu->AllocateMemory(STACK_MEM_SIZE);
+    mmu->Map(STACK_REGION_BASE, stack_mem,
+             {MemoryType::Stack, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
 
     // TLS memory
-    tls_ptr =
-        mmu->AllocateAndMap(TLS_REGION_BASE, TLS_MEM_SIZE,
-                            {MemoryType::ThreadLocal, MemoryAttribute::None,
-                             MemoryPermission::ReadWrite});
+    tls_mem = mmu->AllocateMemory(TLS_MEM_SIZE);
+    mmu->Map(TLS_REGION_BASE, tls_mem,
+             {MemoryType::ThreadLocal, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
 
     // Heap memory
-    mmu->AllocateAndMap(HEAP_REGION_BASE, DEFAULT_HEAP_MEM_SIZE,
-                        {MemoryType::Normal_1_0_0, MemoryAttribute::None,
-                         MemoryPermission::ReadWriteExecute});
+    heap_mem = mmu->AllocateMemory(DEFAULT_HEAP_MEM_SIZE);
+    mmu->Map(HEAP_REGION_BASE, heap_mem,
+             {MemoryType::Normal_1_0_0, MemoryAttribute::None,
+              MemoryPermission::ReadWriteExecute});
 }
 
-Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
+Kernel::~Kernel() {
+    mmu->FreeMemory(stack_mem);
+    mmu->FreeMemory(tls_mem);
+    mmu->FreeMemory(heap_mem);
+    for (auto mem : executable_mems)
+        mmu->FreeMemory(mem);
+
+    SINGLETON_UNSET_INSTANCE();
+}
 
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
@@ -77,13 +87,15 @@ uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base) {
     size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
     // TODO: is static type correct?
     // TODO: what permissions should be used?
-    uptr ptr = mmu->AllocateAndMap(executable_mem_base, size,
-                                   {MemoryType::Static, MemoryAttribute::None,
-                                    MemoryPermission::ReadWriteExecute});
+    auto mem = mmu->AllocateMemory(size);
+    mmu->Map(executable_mem_base, mem,
+             {MemoryType::Static, MemoryAttribute::None,
+              MemoryPermission::ReadWriteExecute});
     out_base = executable_mem_base;
     executable_mem_base += size;
+    executable_mems.push_back(mem);
 
-    return ptr;
+    return mmu->GetMemoryPtr(mem);
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
@@ -356,7 +368,7 @@ Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
 
     // Map
     auto shared_mem = shared_memory_pool.GetObjectRef(shared_mem_handle_id);
-    shared_mem->MapToRange(mmu, range(addr, size), perm);
+    shared_mem->MapToRange(range(addr, size), perm);
 
     return RESULT_SUCCESS;
 }
@@ -507,12 +519,12 @@ Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
 
     auto service =
         static_cast<Services::ServiceBase*>(GetHandle(session_handle_id));
+    auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
 
     // Request
 
     // HIPC header
-    Hipc::ParsedRequest hipc_in =
-        Hipc::parse_request(reinterpret_cast<void*>(tls_ptr));
+    Hipc::ParsedRequest hipc_in = Hipc::parse_request(tls_ptr);
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
@@ -558,7 +570,7 @@ Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
                         .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
                         .num_move_handles =
                             GET_ARRAY_SIZE(move_handles_writer)};
-    auto response = Hipc::make_request(reinterpret_cast<void*>(tls_ptr), meta);
+    auto response = Hipc::make_request(tls_ptr, meta);
 
     u8* data_start =
         reinterpret_cast<u8*>(align_ptr(response.data_words, 0x10));

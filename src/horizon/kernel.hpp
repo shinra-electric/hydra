@@ -130,7 +130,11 @@ class Kernel {
     Filesystem::Filesystem filesystem;
 
     // Memory
-    uptr tls_ptr;
+    HW::TegraX1::CPU::MemoryBase* stack_mem;
+    HW::TegraX1::CPU::MemoryBase* tls_mem;
+    HW::TegraX1::CPU::MemoryBase* heap_mem;
+    std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
+
     vaddr executable_mem_base{0x80000000};
 
     // Handles
