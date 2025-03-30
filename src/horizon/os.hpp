@@ -1,5 +1,6 @@
 #pragma once
 
+#include "horizon/input_manager.hpp"
 #include "horizon/kernel.hpp"
 #include "horizon/state_manager.hpp"
 #include "hw/tegra_x1/gpu/const.hpp"
@@ -12,10 +13,6 @@ namespace Hydra::Horizon {
 
 namespace Services::Sm {
 class IUserInterface;
-}
-
-namespace HID {
-struct SharedMemory;
 }
 
 // TODO: move to a separate file
@@ -134,30 +131,24 @@ class OS {
     // Getters
     Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
+    InputManager& GetInputManager() { return input_manager; }
 
     DisplayBinderManager& GetDisplayBinderManager() {
         return display_binder_manager;
     }
 
-    // HID
-    const HandleId GetHidSharedMemoryId() const { return hid_shared_memory_id; }
-
   private:
     HW::TegraX1::CPU::MMUBase* mmu;
 
     Kernel kernel;
-    StateManager state_manager;
 
     // Services
     Services::Sm::IUserInterface* sm_user_interface;
 
     // Managers
+    StateManager state_manager;
     DisplayBinderManager display_binder_manager;
-
-    // Shared memories
-    HandleId hid_shared_memory_id;
-
-    HID::SharedMemory* GetHidSharedMemory() const;
+    InputManager input_manager;
 };
 
 } // namespace Hydra::Horizon

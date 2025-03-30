@@ -5,26 +5,26 @@
 namespace Hydra::Horizon::HID {
 
 enum class DebugPadButton {
-    A = BIT(0),      ///< A button
-    B = BIT(1),      ///< B button
-    X = BIT(2),      ///< X button
-    Y = BIT(3),      ///< Y button
-    L = BIT(4),      ///< L button
-    R = BIT(5),      ///< R button
-    ZL = BIT(6),     ///< ZL button
-    ZR = BIT(7),     ///< ZR button
-    Start = BIT(8),  ///< Start button
-    Select = BIT(9), ///< Select button
-    Left = BIT(10),  ///< D-Pad Left button
-    Up = BIT(11),    ///< D-Pad Up button
-    Right = BIT(12), ///< D-Pad Right button
-    Down = BIT(13),  ///< D-Pad Down button
+    A = BIT(0),
+    B = BIT(1),
+    X = BIT(2),
+    Y = BIT(3),
+    L = BIT(4),
+    R = BIT(5),
+    ZL = BIT(6),
+    ZR = BIT(7),
+    Start = BIT(8),
+    Select = BIT(9),
+    Left = BIT(10),
+    Up = BIT(11),
+    Right = BIT(12),
+    Down = BIT(13),
 };
 
 enum class TouchScreenModeForNx {
-    UseSystemSetting = 0, ///< UseSystemSetting
-    Finger = 1,           ///< Finger
-    Heat2 = 2,            ///< Heat2
+    UseSystemSetting = 0,
+    Finger = 1,
+    Heat2 = 2,
 };
 
 enum class MouseButton {
@@ -184,28 +184,28 @@ enum class KeyboardModifier {
 };
 
 enum class KeyboardLockKeyEvent {
-    NumLockOn = BIT(0),        ///< NumLockOn
-    NumLockOff = BIT(1),       ///< NumLockOff
-    NumLockToggle = BIT(2),    ///< NumLockToggle
-    CapsLockOn = BIT(3),       ///< CapsLockOn
-    CapsLockOff = BIT(4),      ///< CapsLockOff
-    CapsLockToggle = BIT(5),   ///< CapsLockToggle
-    ScrollLockOn = BIT(6),     ///< ScrollLockOn
-    ScrollLockOff = BIT(7),    ///< ScrollLockOff
-    ScrollLockToggle = BIT(8), ///< ScrollLockToggle
+    NumLockOn = BIT(0),
+    NumLockOff = BIT(1),
+    NumLockToggle = BIT(2),
+    CapsLockOn = BIT(3),
+    CapsLockOff = BIT(4),
+    CapsLockToggle = BIT(5),
+    ScrollLockOn = BIT(6),
+    ScrollLockOff = BIT(7),
+    ScrollLockToggle = BIT(8),
 };
 
 enum class NpadIdType {
-    No1 = 0,         ///< Player 1 controller
-    No2 = 1,         ///< Player 2 controller
-    No3 = 2,         ///< Player 3 controller
-    No4 = 3,         ///< Player 4 controller
-    No5 = 4,         ///< Player 5 controller
-    No6 = 5,         ///< Player 6 controller
-    No7 = 6,         ///< Player 7 controller
-    No8 = 7,         ///< Player 8 controller
-    Other = 0x10,    ///< Other controller
-    Handheld = 0x20, ///< Handheld mode controls
+    No1 = 0,
+    No2 = 1,
+    No3 = 2,
+    No4 = 3,
+    No5 = 4,
+    No6 = 5,
+    No7 = 6,
+    No8 = 7,
+    Other = 0x10,
+    Handheld = 0x20,
 };
 
 /*
@@ -243,102 +243,101 @@ enum class NpadStyleTag {
 */
 
 enum class ColorAttribute {
-    Ok = 0,           ///< Ok
-    ReadError = 1,    ///< ReadError
-    NoController = 2, ///< NoController
+    Ok = 0,
+    ReadError = 1,
+    NoController = 2,
 };
 
 enum class NpadButton : u64 {
-    A = BITL(0),            ///< A button / Right face button
-    B = BITL(1),            ///< B button / Down face button
-    X = BITL(2),            ///< X button / Up face button
-    Y = BITL(3),            ///< Y button / Left face button
-    StickL = BITL(4),       ///< Left Stick button
-    StickR = BITL(5),       ///< Right Stick button
-    L = BITL(6),            ///< L button
-    R = BITL(7),            ///< R button
-    ZL = BITL(8),           ///< ZL button
-    ZR = BITL(9),           ///< ZR button
-    Plus = BITL(10),        ///< Plus button
-    Minus = BITL(11),       ///< Minus button
-    Left = BITL(12),        ///< D-Pad Left button
-    Up = BITL(13),          ///< D-Pad Up button
-    Right = BITL(14),       ///< D-Pad Right button
-    Down = BITL(15),        ///< D-Pad Down button
-    StickLLeft = BITL(16),  ///< Left Stick pseudo-button when moved Left
-    StickLUp = BITL(17),    ///< Left Stick pseudo-button when moved Up
-    StickLRight = BITL(18), ///< Left Stick pseudo-button when moved Right
-    StickLDown = BITL(19),  ///< Left Stick pseudo-button when moved Down
-    StickRLeft = BITL(20),  ///< Right Stick pseudo-button when moved Left
-    StickRUp = BITL(21),    ///< Right Stick pseudo-button when moved Up
-    StickRRight = BITL(22), ///< Right Stick pseudo-button when moved Right
-    StickRDown = BITL(23),  ///< Right Stick pseudo-button when moved Left
-    LeftSL = BITL(24),      ///< SL button on Left Joy-Con
-    LeftSR = BITL(25),      ///< SR button on Left Joy-Con
-    RightSL = BITL(26),     ///< SL button on Right Joy-Con
-    RightSR = BITL(27),     ///< SR button on Right Joy-Con
-    Palma = BITL(28),       ///< Top button on Poké Ball Plus (Palma) controller
-    Verification = BITL(29), ///< Verification
-    HandheldLeftB =
-        BITL(30), ///< B button on Left NES/HVC controller in Handheld mode
-    LagonCLeft = BITL(31),  ///< Left C button in N64 controller
-    LagonCUp = BITL(32),    ///< Up C button in N64 controller
-    LagonCRight = BITL(33), ///< Right C button in N64 controller
-    LagonCDown = BITL(34),  ///< Down C button in N64 controller
+    A = BITL(0),
+    B = BITL(1),
+    X = BITL(2),
+    Y = BITL(3),
+    StickL = BITL(4),
+    StickR = BITL(5),
+    L = BITL(6),
+    R = BITL(7),
+    ZL = BITL(8),
+    ZR = BITL(9),
+    Plus = BITL(10),
+    Minus = BITL(11),
+    Left = BITL(12),
+    Up = BITL(13),
+    Right = BITL(14),
+    Down = BITL(15),
+    StickLLeft = BITL(16),
+    StickLUp = BITL(17),
+    StickLRight = BITL(18),
+    StickLDown = BITL(19),
+    StickRLeft = BITL(20),
+    StickRUp = BITL(21),
+    StickRRight = BITL(22),
+    StickRDown = BITL(23),
+    LeftSL = BITL(24),
+    LeftSR = BITL(25),
+    RightSL = BITL(26),
+    RightSR = BITL(27),
+    Palma = BITL(28),
+    Verification = BITL(29),
+    HandheldLeftB = BITL(30),
+    LagonCLeft = BITL(31),
+    LagonCUp = BITL(32),
+    LagonCRight = BITL(33),
+    LagonCDown = BITL(34),
 };
 
 enum class DebugPadAttribute {
-    IsConnected = BIT(0), ///< IsConnected
+    IsConnected = BIT(0),
 };
 
 enum class HidTouchAttribute {
-    Start = BIT(0), ///< Start
-    End = BIT(1),   ///< End
+    Start = BIT(0),
+    End = BIT(1),
 };
 
 enum class MouseAttribute {
-    Transferable = BIT(0), ///< Transferable
-    IsConnected = BIT(1),  ///< IsConnected
+    Transferable = BIT(0),
+    IsConnected = BIT(1),
 };
 
 enum class NpadAttribute {
-    IsConnected = BIT(0),      ///< IsConnected
-    IsWired = BIT(1),          ///< IsWired
-    IsLeftConnected = BIT(2),  ///< IsLeftConnected
-    IsLeftWired = BIT(3),      ///< IsLeftWired
-    IsRightConnected = BIT(4), ///< IsRightConnected
-    IsRightWired = BIT(5),     ///< IsRightWired
+    IsConnected = BIT(0),
+    IsWired = BIT(1),
+    IsLeftConnected = BIT(2),
+    IsLeftWired = BIT(3),
+    IsRightConnected = BIT(4),
+    IsRightWired = BIT(5),
 };
 
 enum class SixAxisSensorAttribute {
-    IsConnected = BIT(0),    ///< IsConnected
-    IsInterpolated = BIT(1), ///< IsInterpolated
+    IsConnected = BIT(0),
+    IsInterpolated = BIT(1),
 };
 
 enum class GestureAttribute {
-    IsNewTouch = BIT(4),  ///< IsNewTouch
-    IsDoubleTap = BIT(8), ///< IsDoubleTap
+    IsNewTouch = BIT(4),
+    IsDoubleTap = BIT(8),
 };
 
 enum class GestureDirection {
-    None = 0,  ///< None
-    Left = 1,  ///< Left
-    Up = 2,    ///< Up
-    Right = 3, ///< Right
-    Down = 4,  ///< Down
+    None = 0,
+    Left = 1,
+    Up = 2,
+    Right = 3,
+    Down = 4,
 };
 
 enum class GestureType {
-    Idle = 0,     ///< Idle
-    Complete = 1, ///< Complete
-    Cancel = 2,   ///< Cancel
-    Touch = 3,    ///< Touch
-    Press = 4,    ///< Press
-    Tap = 5,      ///< Tap
-    Pan = 6,      ///< Pan
-    Swipe = 7,    ///< Swipe
-    Pinch = 8,    ///< Pinch
-    Rotate = 9,   ///< Rotate
+    Idle = 0,
+    Complete = 1,
+    Cancel = 2,
+    Touch = 3,
+    Press = 4,
+    Tap = 5,
+    Pan = 6,
+    Swipe = 7,
+    Pinch = 8,
+    Rotate = 9,
 };
 
 enum class GyroscopeZeroDriftMode {

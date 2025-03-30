@@ -14,10 +14,12 @@ add_executable(hydra
     common/allocators/dynamic_pool.hpp
     horizon/const.hpp
     horizon/hid.hpp
-    horizon/os.cpp
-    horizon/os.hpp
     horizon/state_manager.cpp
     horizon/state_manager.hpp
+    horizon/input_manager.cpp
+    horizon/input_manager.hpp
+    horizon/os.cpp
+    horizon/os.hpp
     horizon/hipc.hpp
     horizon/cmif.hpp
     horizon/shared_memory.cpp
