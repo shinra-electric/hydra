@@ -292,9 +292,9 @@ Result Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
-    // mmu->Unmap(dst_addr);
+    // TODO: check if src_addr is the same as the one used in svcMapMemory
+
+    mmu->Unmap(dst_addr, size);
 
     return RESULT_SUCCESS;
 }
