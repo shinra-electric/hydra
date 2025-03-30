@@ -131,10 +131,14 @@ class OS {
     // Getters
     Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
-    InputManager& GetInputManager() { return input_manager; }
-
     DisplayBinderManager& GetDisplayBinderManager() {
         return display_binder_manager;
+    }
+    InputManager& GetInputManager() { return input_manager; }
+
+    bool IsInHandheldMode() const {
+        // TODO: make this configurable
+        return true;
     }
 
   private:

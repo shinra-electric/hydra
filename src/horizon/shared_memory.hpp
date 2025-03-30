@@ -17,11 +17,10 @@ class SharedMemory {
     void MapToRange(const range<uptr> range_, MemoryPermission perm);
 
     // Getters
-    const range<uptr> GetRange() const { return range; }
+    uptr GetPtr() const;
 
   private:
     HW::TegraX1::CPU::MemoryBase* memory;
-    range<uptr> range;
 };
 
 } // namespace Hydra::Horizon

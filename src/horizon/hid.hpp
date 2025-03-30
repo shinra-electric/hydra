@@ -196,51 +196,39 @@ enum class KeyboardLockKeyEvent {
 };
 
 enum class NpadIdType {
-    No1 = 0,
-    No2 = 1,
-    No3 = 2,
-    No4 = 3,
-    No5 = 4,
-    No6 = 5,
-    No7 = 6,
-    No8 = 7,
-    Other = 0x10,
-    Handheld = 0x20,
+    No1,
+    No2,
+    No3,
+    No4,
+    No5,
+    No6,
+    No7,
+    No8,
+    Handheld,
+    Other,
 };
 
-/*
-enum class NpadStyleTag {
-    NpadFullKey = BIT(0), ///< Pro Controller
-    NpadHandheld =
-        BIT(1), ///< Joy-Con controller in handheld mode
-    NpadJoyDual = BIT(2), ///< Joy-Con controller in dual mode
-    NpadJoyLeft =
-        BIT(3), ///< Joy-Con left controller in single mode
-    NpadJoyRight =
-        BIT(4), ///< Joy-Con right controller in single mode
-    NpadGc = BIT(5),    ///< GameCube controller
-    NpadPalma = BIT(6), ///< Poké Ball Plus controller
-    NpadLark = BIT(7),  ///< NES/Famicom controller
-    NpadHandheldLark =
-        BIT(8), ///< NES/Famicom controller in handheld mode
-    NpadLucia = BIT(9),      ///< SNES controller
-    NpadLagon = BIT(10),     ///< N64 controller
-    NpadLager = BIT(11),     ///< Sega Genesis controller
-    NpadSystemExt = BIT(29), ///< Generic external controller
-    NpadSystem = BIT(30),    ///< Generic controller
+enum class NpadStyleSet : u32 {
+    None = 0,
+    FullKey = BIT(0),
+    Handheld = BIT(1),
+    JoyDual = BIT(2),
+    JoyLeft = BIT(3),
+    JoyRight = BIT(4),
+    Gc = BIT(5),
+    Palma = BIT(6),
+    Lark = BIT(7),
+    HandheldLark = BIT(8),
+    Lucia = BIT(9),
+    Lagon = BIT(10),
+    Lager = BIT(11),
+    SystemExt = BIT(29),
+    System = BIT(30),
 
-    NpadFullCtrl =
-        NpadFullKey | NpadHandheld |
-        NpadJoyDual, ///< Style set comprising Npad styles
-                                     ///< containing the full set of controls
-                                     ///< {FullKey, Handheld, JoyDual}
-    NpadStandard =
-        NpadFullCtrl | NpadJoyLeft |
-        NpadJoyRight, ///< Style set comprising all standard
-                                      ///< Npad styles {FullKey, Handheld,
-                                      ///< JoyDual, JoyLeft, JoyRight}
+    FullCtrl = FullKey | Handheld | JoyDual,
+    Standard = FullCtrl | JoyLeft | JoyRight,
 };
-*/
+ENABLE_ENUM_BITMASK_OPERATORS(NpadStyleSet)
 
 enum class ColorAttribute {
     Ok = 0,
@@ -248,7 +236,7 @@ enum class ColorAttribute {
     NoController = 2,
 };
 
-enum class NpadButton : u64 {
+enum class NpadButtons : u64 {
     A = BITL(0),
     B = BITL(1),
     X = BITL(2),
@@ -300,7 +288,7 @@ enum class MouseAttribute {
     IsConnected = BIT(1),
 };
 
-enum class NpadAttribute {
+enum class NpadAttributes : u32 {
     IsConnected = BIT(0),
     IsWired = BIT(1),
     IsLeftConnected = BIT(2),
@@ -913,18 +901,12 @@ struct NpadJoyColorState {
 
 struct NpadCommonState {
     u64 sampling_number;
-    u64 buttons;
+    NpadButtons buttons;
     AnalogStickState analog_stick_l;
     AnalogStickState analog_stick_r;
-    u32 attributes;
+    NpadAttributes attributes;
     u32 reserved;
 };
-
-using NpadFullKeyState = NpadCommonState;
-using NpadHandheldState = NpadCommonState;
-using NpadJoyDualState = NpadCommonState;
-using NpadJoyLeftState = NpadCommonState;
-using NpadJoyRightState = NpadCommonState;
 
 struct NpadGcState {
     u64 sampling_number;
@@ -936,8 +918,6 @@ struct NpadGcState {
     u32 trigger_r;
     u32 pad;
 };
-
-using NpadPalmaState = NpadCommonState;
 
 struct NpadLarkState {
     u64 sampling_number;
@@ -967,10 +947,6 @@ struct NpadLuciaState {
     u32 attributes;
     NpadLuciaType lucia_type;
 };
-
-using NpadLagerState = NpadCommonState;
-using NpadSystemExtState = NpadCommonState;
-using NpadSystemState = NpadCommonState;
 
 struct NpadCommonStateAtomicStorage {
     u64 sampling_number;
@@ -1069,7 +1045,7 @@ struct NfcXcdDeviceHandleState {
 };
 
 struct NpadInternalState {
-    u32 style_set;
+    NpadStyleSet style_set;
     u32 joy_assignment_mode;
     NpadFullKeyColorState full_key_color;
     NpadJoyColorState joy_color;

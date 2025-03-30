@@ -16,11 +16,15 @@ SharedMemory::~SharedMemory() {
 }
 
 void SharedMemory::MapToRange(
-    const ::Hydra::range<uptr> range_,
+    const ::Hydra::range<uptr> range,
     MemoryPermission perm) { // TODO: why ::Hydra::range?
-    range = range_;
     HW::TegraX1::CPU::Hypervisor::MMU::GetInstance().Map(
         range.base, memory, {MemoryType::Shared, MemoryAttribute::None, perm});
+}
+
+uptr SharedMemory::GetPtr() const {
+    return HW::TegraX1::CPU::Hypervisor::MMU::GetInstance().GetMemoryPtr(
+        memory);
 }
 
 } // namespace Hydra::Horizon
