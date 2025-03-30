@@ -16,7 +16,8 @@ class MMU : public MMUBase {
     MMU();
     ~MMU();
 
-    uptr AllocateAndMap(vaddr va, usize size) override;
+    uptr AllocateAndMap(vaddr va, usize size,
+                        const Horizon::MemoryState state) override;
     void UnmapAndFree(vaddr va, usize size) override;
     void ResizeHeap(vaddr va, usize size) override;
 
@@ -24,6 +25,7 @@ class MMU : public MMUBase {
     void Unmap(vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
+    Horizon::MemoryInfo QueryMemory(vaddr va) const override;
 
     // Getters
     const PageTable& GetUserPageTable() const { return user_page_table; }

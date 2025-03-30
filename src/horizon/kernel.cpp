@@ -37,13 +37,20 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     // Memory
 
     // Stack memory
-    mmu->AllocateAndMap(STACK_REGION_BASE, STACK_MEM_SIZE);
+    mmu->AllocateAndMap(STACK_REGION_BASE, STACK_MEM_SIZE,
+                        {MemoryType::Stack, MemoryAttribute::None,
+                         MemoryPermission::ReadWrite});
 
     // TLS memory
-    tls_ptr = mmu->AllocateAndMap(TLS_REGION_BASE, TLS_MEM_SIZE);
+    tls_ptr =
+        mmu->AllocateAndMap(TLS_REGION_BASE, TLS_MEM_SIZE,
+                            {MemoryType::ThreadLocal, MemoryAttribute::None,
+                             MemoryPermission::ReadWrite});
 
     // Heap memory
-    mmu->AllocateAndMap(HEAP_REGION_BASE, DEFAULT_HEAP_MEM_SIZE);
+    mmu->AllocateAndMap(HEAP_REGION_BASE, DEFAULT_HEAP_MEM_SIZE,
+                        {MemoryType::Normal_1_0_0, MemoryAttribute::None,
+                         MemoryPermission::ReadWriteExecute});
 }
 
 Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
@@ -68,7 +75,11 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
 
 uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base) {
     size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
-    uptr ptr = mmu->AllocateAndMap(executable_mem_base, size);
+    // TODO: is static type correct?
+    // TODO: what permissions should be used?
+    uptr ptr = mmu->AllocateAndMap(executable_mem_base, size,
+                                   {MemoryType::Static, MemoryAttribute::None,
+                                    MemoryPermission::ReadWriteExecute});
     out_base = executable_mem_base;
     executable_mem_base += size;
 
@@ -88,9 +99,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(1, tmp_uptr);
         break;
     case 0x2:
-        res =
-            svcSetMemoryPermission(thread->GetRegX(0), thread->GetRegX(1),
-                                   static_cast<Permission>(thread->GetRegX(2)));
+        res = svcSetMemoryPermission(
+            thread->GetRegX(0), thread->GetRegX(1),
+            static_cast<MemoryPermission>(thread->GetRegX(2)));
         thread->SetRegX(0, res);
         break;
     case 0x3:
@@ -128,9 +139,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(1, tmp_u32);
         break;
     case 0x13:
-        res = svcMapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
-                                 thread->GetRegX(2),
-                                 static_cast<Permission>(thread->GetRegX(3)));
+        res = svcMapSharedMemory(
+            thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
+            static_cast<MemoryPermission>(thread->GetRegX(3)));
         thread->SetRegX(0, res);
         break;
     case 0x14:
@@ -141,7 +152,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x15:
         res = svcCreateTransferMemory(
             thread->GetRegX(1), thread->GetRegX(2),
-            static_cast<Permission>(thread->GetRegX(3)), tmp_hanle_id);
+            static_cast<MemoryPermission>(thread->GetRegX(3)), tmp_hanle_id);
         thread->SetRegX(0, res);
         thread->SetRegX(1, tmp_hanle_id);
         break;
@@ -246,12 +257,12 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
 }
 
 Result Kernel::svcSetMemoryPermission(uptr addr, usize size,
-                                      Permission permission) {
+                                      MemoryPermission perm) {
     LOG_DEBUG(
         HorizonKernel,
         "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
         "{})",
-        addr, size, permission);
+        addr, size, perm);
 
     // TODO: implement
     LOG_FUNC_STUBBED(HorizonKernel);
@@ -303,36 +314,9 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                               u32& out_page_info) {
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
-    LOG_FUNC_STUBBED(HorizonKernel);
+    out_mem_info = mmu->QueryMemory(addr);
 
-    // HACK
-    if (false) {
-        bool is_rom = (addr >= 0x80000000 && addr < 0xa0000000);
-        out_mem_info = MemoryInfo{
-            .addr = addr,                         // base, // TODO: check
-            .size = 0x1000000,                    // mem->size,
-            .type = (is_rom ? 0x3u : 0x00402006), // HACK: static
-            // TODO: attr
-            .perm = Permission::ReadExecute, // HACK
-            // TODO: ipc_ref_count
-            // TODO: device_ref_count
-        };
-
-        // TODO: out_page_info
-        out_page_info = 0;
-
-        return RESULT_SUCCESS;
-    }
-
-    // HACK
-    out_mem_info = MemoryInfo{
-        .addr = addr,
-        .size = (addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
-                     ? 0x10000000u
-                     : 0x0u), // HACK: awful hack
-    };
-
-    // TODO: out_page_info
+    // TODO: what is this?
     out_page_info = 0;
 
     return RESULT_SUCCESS;
@@ -363,16 +347,16 @@ Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
 }
 
 Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
-                                  usize size, Permission permission) {
+                                  usize size, MemoryPermission perm) {
     LOG_DEBUG(
         HorizonKernel,
         "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x}, perm: {})",
-        shared_mem_handle_id, addr, size, permission);
+        shared_mem_handle_id, addr, size, perm);
 
     // Map
     auto shared_mem = shared_memory_pool.GetObjectRef(shared_mem_handle_id);
-    shared_mem->MapToRange(mmu, range(addr, size));
+    shared_mem->MapToRange(mmu, range(addr, size), perm);
 
     return RESULT_SUCCESS;
 }
@@ -394,16 +378,16 @@ Result Kernel::svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
 }
 
 Result Kernel::svcCreateTransferMemory(uptr addr, u64 size,
-                                       Permission permission,
+                                       MemoryPermission perm,
                                        HandleId& out_transfer_mem_handle_id) {
     LOG_DEBUG(
         HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
         "perm: {})",
-        addr, size, permission);
+        addr, size, perm);
 
     out_transfer_mem_handle_id =
-        AddHandle(new TransferMemory(addr, size, permission));
+        AddHandle(new TransferMemory(addr, size, perm));
 
     return RESULT_SUCCESS;
 }

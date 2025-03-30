@@ -1,5 +1,6 @@
 #pragma once
 
+#include "horizon/const.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/page_allocator.hpp"
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
@@ -46,11 +47,30 @@ struct PageTableLevel {
 
     u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
+    const Horizon::MemoryState GetLevelState(u32 index) const {
+        return level_states[index];
+    }
+
+    // Setters
+    void SetLevelState(u32 index, const Horizon::MemoryState state) {
+        level_states[index] = state;
+    }
+
   private:
     u32 level;
     const Page page;
     const vaddr base_va;
     PageTableLevel* next_levels[ENTRY_COUNT] = {nullptr};
+    Horizon::MemoryState level_states[ENTRY_COUNT] = {};
+};
+
+struct PageRegion {
+    vaddr va;
+    paddr pa;
+    usize size;
+    Horizon::MemoryState state;
+
+    paddr UnmapAddr(vaddr va_) const { return pa + (va_ - va); }
 };
 
 class PageTable {
@@ -58,9 +78,10 @@ class PageTable {
     PageTable(paddr base_pa);
     ~PageTable();
 
-    void Map(vaddr va, paddr pa, usize size);
+    void Map(vaddr va, paddr pa, usize size, const Horizon::MemoryState state);
     void Unmap(vaddr va, usize size);
 
+    PageRegion QueryRegion(vaddr va) const;
     paddr UnmapAddr(vaddr va) const;
 
     // Getters
@@ -70,8 +91,10 @@ class PageTable {
     PageAllocator allocator;
     PageTableLevel top_level;
 
-    void MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size);
-    void MapLevelNext(PageTableLevel& level, vaddr va, paddr pa, usize size);
+    void MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size,
+                  const Horizon::MemoryState state);
+    void MapLevelNext(PageTableLevel& level, vaddr va, paddr pa, usize size,
+                      const Horizon::MemoryState state);
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

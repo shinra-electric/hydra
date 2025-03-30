@@ -27,13 +27,13 @@ class KernelHandle {
 
 class TransferMemory : public KernelHandle {
   public:
-    TransferMemory(uptr addr_, u64 size_, Permission permission_)
-        : addr{addr_}, size{size_}, permission{permission_} {}
+    TransferMemory(uptr addr_, u64 size_, MemoryPermission perm_)
+        : addr{addr_}, size{size_}, perm{perm_} {}
 
   private:
     uptr addr;
     u64 size;
-    Permission permission;
+    MemoryPermission perm;
 };
 
 constexpr usize ARG_COUNT = 2;
@@ -66,7 +66,7 @@ class Kernel {
 
     // SVCs
     Result svcSetHeapSize(usize size, uptr& out_base);
-    Result svcSetMemoryPermission(uptr addr, usize size, Permission permission);
+    Result svcSetMemoryPermission(uptr addr, usize size, MemoryPermission perm);
     Result svcSetMemoryAttribute(uptr addr, usize size, u32 mask, u32 value);
     Result svcMapMemory(uptr dst_addr, uptr src_addr, usize size);
     Result svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size);
@@ -76,10 +76,10 @@ class Kernel {
     void svcSleepThread(i64 nano);
     Result svcGetThreadPriority(HandleId thread_handle_id, u32& out_priority);
     Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
-                              usize size, Permission permission);
+                              usize size, MemoryPermission perm);
     Result svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
                                 usize size);
-    Result svcCreateTransferMemory(uptr addr, u64 size, Permission permission,
+    Result svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                    HandleId& out_transfer_mem_handle_id);
     Result svcCloseHandle(HandleId handle_id);
     Result svcResetSignal(HandleId handle_id);

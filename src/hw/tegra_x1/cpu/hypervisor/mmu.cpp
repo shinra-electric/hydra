@@ -49,8 +49,10 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
     // Kernel memory
     uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
     // TODO: map to kernel page table instead
-    user_page_table.Map(KERNEL_REGION_BASE, physical_memory_cur,
-                        KERNEL_MEM_SIZE);
+    user_page_table.Map(
+        KERNEL_REGION_BASE, physical_memory_cur, KERNEL_MEM_SIZE,
+        {Horizon::MemoryType::Kernel, Horizon::MemoryAttribute::None,
+         Horizon::MemoryPermission::Execute});
     physical_memory_cur += KERNEL_MEM_SIZE;
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -64,11 +66,12 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
 
 MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 
-uptr MMU::AllocateAndMap(vaddr va, usize size) {
+uptr MMU::AllocateAndMap(vaddr va, usize size,
+                         const Horizon::MemoryState state) {
     size = align(size, PAGE_SIZE);
 
     uptr ptr = physical_memory_ptr + physical_memory_cur;
-    user_page_table.Map(va, physical_memory_cur, size);
+    user_page_table.Map(va, physical_memory_cur, size, state);
     physical_memory_cur += size;
 
     return ptr;
@@ -82,21 +85,47 @@ void MMU::UnmapAndFree(vaddr va, usize size) {
 
 // TODO: just improve this...
 void MMU::ResizeHeap(vaddr va, usize size) {
-    paddr pa = user_page_table.UnmapAddr(va);
-    user_page_table.Map(va, pa, size);
+    const auto region = user_page_table.QueryRegion(va);
+    paddr pa = region.UnmapAddr(va);
+    user_page_table.Map(va, pa, size, region.state);
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
 // physical memory
 void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
-    paddr pa = user_page_table.UnmapAddr(src_va);
-    user_page_table.Map(dst_va, pa, size);
+    const auto region = user_page_table.QueryRegion(src_va);
+    paddr pa = region.UnmapAddr(src_va);
+    user_page_table.Map(dst_va, pa, size, region.state);
 }
 
 void MMU::Unmap(vaddr va, usize size) { user_page_table.Unmap(va, size); }
 
 uptr MMU::UnmapAddr(vaddr va) const {
     return physical_memory_ptr + user_page_table.UnmapAddr(va);
+}
+
+Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
+    Horizon::MemoryInfo info;
+    info.size = 0x0;
+
+    auto region = user_page_table.QueryRegion(va);
+
+    // Resize to the left
+    do {
+        info.addr = region.va;
+        info.size = region.size;
+        info.state = region.state;
+
+        region = user_page_table.QueryRegion(info.addr - 1);
+    } while (region.state == info.state);
+
+    // Resize to the right
+    do {
+        region = user_page_table.QueryRegion(info.addr + info.size);
+        info.size += region.size;
+    } while (region.state == info.state);
+
+    return info;
 }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

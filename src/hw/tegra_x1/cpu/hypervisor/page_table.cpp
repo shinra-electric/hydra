@@ -117,7 +117,8 @@ PageTable::PageTable(paddr base_pa)
 
 PageTable::~PageTable() = default;
 
-void PageTable::Map(vaddr va, paddr pa, usize size) {
+void PageTable::Map(vaddr va, paddr pa, usize size,
+                    const Horizon::MemoryState state) {
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
 
@@ -125,7 +126,7 @@ void PageTable::Map(vaddr va, paddr pa, usize size) {
     ASSERT_ALIGNMENT(pa, PAGE_SIZE, Hypervisor, "pa");
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
 
-    MapLevel(top_level, va, pa, size);
+    MapLevel(top_level, va, pa, size, state);
 }
 
 void PageTable::Unmap(vaddr va, usize size) {
@@ -133,30 +134,53 @@ void PageTable::Unmap(vaddr va, usize size) {
 }
 
 // TODO: find out if there is a cheaper way
-paddr PageTable::UnmapAddr(vaddr va) const {
-
+PageRegion PageTable::QueryRegion(vaddr va) const {
     u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
     u64 entry = top_level.ReadEntry(index);
     while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
-        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
-            LOG_ERROR(Hypervisor, "Failed to unmap va 0x{:08x}", va);
+        if ((entry & PTE_TYPE_MASK) != PTE_TABLE) {
+            PageRegion region;
+            region.va = va & ~(level->GetBlockSize() - 1);
+            region.pa = 0x0;
+            region.size = level->GetBlockSize();
+            region.state = {Horizon::MemoryType::Free,
+                            Horizon::MemoryAttribute::None,
+                            Horizon::MemoryPermission::None};
+
+            return region;
+        }
 
         level = level->GetNextNoNew(index);
         index = level->VaToIndex(va);
         entry = level->ReadEntry(index);
     }
 
-    return (entry & ENTRY_ADDR_MASK) + (va & (level->GetBlockSize() - 1));
+    PageRegion region;
+    region.va = va & ~(level->GetBlockSize() - 1);
+    region.pa = (entry & ENTRY_ADDR_MASK);
+    region.size = level->GetBlockSize();
+    region.state = level->GetLevelState(index);
+
+    return region;
 }
 
-void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,
-                         usize size) {
+paddr PageTable::UnmapAddr(vaddr va) const {
+    const auto region = QueryRegion(va);
+    ASSERT(region.state.type != Horizon::MemoryType::Free, Hypervisor,
+           "Failed to unmap va 0x{:08x}", va);
+
+    return region.UnmapAddr(va);
+}
+
+void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size,
+                         const Horizon::MemoryState state) {
     vaddr end_va = va + size;
     do {
         MapLevelNext(
             level, va, pa,
-            std::min(align(va + 1, level.GetBlockSize()) - va, end_va - va));
+            std::min(align(va + 1, level.GetBlockSize()) - va, end_va - va),
+            state);
 
         vaddr old_va = va;
         va = align_down(va + level.GetBlockSize(), level.GetBlockSize());
@@ -165,7 +189,7 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa,
 }
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
-                             usize size) {
+                             usize size, const Horizon::MemoryState state) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
     //           level.GetLevel(), va, pa, size);
@@ -174,52 +198,17 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
     // TODO: uncomment
     if (/*size == level.GetBlockSize()*/ level.GetLevel() == 2) {
         // TODO: use proper permissions
-        ApFlags ap;
-        if (va >= 0x10000000 && va < 0x20000000)
-            ap = ApFlags::UserReadWriteKernelReadWrite;
-        else
-            ap = ApFlags::UserNoneKernelReadWriteExecute;
+        ApFlags ap = ApFlags::UserNoneKernelReadWriteExecute;
+        // if (va >= 0x10000000 && va < 0x20000000)
+        //     ap = ApFlags::UserReadWriteKernelReadWrite;
+        // else
+        //     ap = ApFlags::UserNoneKernelReadWriteExecute;
         level.WriteEntry(index, pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
                                     PTE_INNER_SHEREABLE | (u64)ap);
+        level.SetLevelState(index, state);
     } else {
-        MapLevel(level.GetNext(allocator, index), va, pa, size);
+        MapLevel(level.GetNext(allocator, index), va, pa, size, state);
     }
 }
-
-/*
-void PageTable::MapMemory(Memory* mem) {
-    // Access permission flags
-    // ApFlags ap = mem->IsKernel() ? ApFlags::UserNoneKernelReadWriteExecute
-    //                             : PermisionToAP(mem->GetPermission());
-
-    // Walk through the table
-    u64* table = reinterpret_cast<u64*>(page_table_mem->GetPtr());
-    for (const auto& level : levels) {
-        auto next = level.GetNext();
-
-        uptr start = mem->GetBase() & ~level.GetBlockMask(); // Round down
-        uptr end = align(mem->GetBase() + mem->GetSize(),
-                         level.GetBlockSize()); // Round up
-        for (uptr addr = start; addr < end; addr += level.GetBlockSize()) {
-            u64 value = 0;
-            if (next) // Table
-                value |= reinterpret_cast<u64>(
-                             reinterpret_cast<u64*>(page_table_mem->GetBase()) +
-                             GetPaOffset(*next, addr)) |
-                         PTE_TABLE;
-            else // Page
-                value |=
-                    addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE | (u64)ap;
-
-            table[GetPaOffset(level, addr)] = value;
-        }
-    }
-    LOG_WARNING(Hypervisor, "Not implemented");
-}
-*/
-
-// void PageTable::UnmapMemory(Memory* mem) {
-//     LOG_WARNING(Hypervisor, "Not implemented");
-// }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

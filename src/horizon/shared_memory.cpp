@@ -6,10 +6,11 @@
 namespace Hydra::Horizon {
 
 void SharedMemory::MapToRange(
-    HW::TegraX1::CPU::MMUBase* mmu,
-    const ::Hydra::range<uptr> range_) { // TODO: why ::Hydra::range?
+    HW::TegraX1::CPU::MMUBase* mmu, const ::Hydra::range<uptr> range_,
+    MemoryPermission perm) { // TODO: why ::Hydra::range?
     range = range_;
-    mmu->AllocateAndMap(range.base, range.size);
+    mmu->AllocateAndMap(range.base, range.size,
+                        {MemoryType::Shared, MemoryAttribute::None, perm});
 }
 
 } // namespace Hydra::Horizon

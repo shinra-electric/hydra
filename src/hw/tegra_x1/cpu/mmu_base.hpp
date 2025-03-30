@@ -1,5 +1,6 @@
 #pragma once
 
+#include "horizon/const.hpp"
 #include "hw/tegra_x1/cpu/const.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
@@ -7,7 +8,8 @@ namespace Hydra::HW::TegraX1::CPU {
 class MMUBase {
   public:
     // TODO: let the implementation choose and return the virtual base
-    virtual uptr AllocateAndMap(vaddr va, usize size) = 0;
+    virtual uptr AllocateAndMap(vaddr va, usize size,
+                                const Horizon::MemoryState state) = 0;
     virtual void UnmapAndFree(vaddr va, usize size) = 0;
     virtual void ResizeHeap(vaddr va, usize size) = 0;
 
@@ -15,6 +17,7 @@ class MMUBase {
     virtual void Unmap(vaddr va, usize size) = 0;
 
     virtual uptr UnmapAddr(vaddr va) const = 0;
+    virtual Horizon::MemoryInfo QueryMemory(vaddr va) const = 0;
 
     template <typename T> T Load(vaddr va) const {
         return *reinterpret_cast<T*>(UnmapAddr(va));

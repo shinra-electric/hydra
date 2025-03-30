@@ -13,7 +13,8 @@ class SharedMemory {
     SharedMemory(usize size_) : size(size_) {}
     ~SharedMemory() = default;
 
-    void MapToRange(HW::TegraX1::CPU::MMUBase* mmu, const range<uptr> range_);
+    void MapToRange(HW::TegraX1::CPU::MMUBase* mmu, const range<uptr> range_,
+                    MemoryPermission perm);
 
     // Getters
     const range<uptr> GetRange() const { return range; }
