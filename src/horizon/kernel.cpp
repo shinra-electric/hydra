@@ -25,7 +25,7 @@ constexpr usize TLS_MEM_SIZE = 0x20000;
 
 constexpr uptr HEAP_REGION_BASE = 0x100000000;
 constexpr usize HEAP_REGION_SIZE = 0x100000000;
-constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
+constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x10000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
@@ -315,16 +315,16 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     LOG_FUNC_STUBBED(HorizonKernel);
 
     // HACK
-    /*
-    uptr base;
-    const auto* mem = mmu->FindAddrImplRef(addr, base);
-    if (!mem) {
-        // TODO: how should this behave?
+    if (false) {
+        bool is_rom = (addr >= 0x80000000 && addr < 0xa0000000);
         out_mem_info = MemoryInfo{
-            .addr = addr,
-            .size = (addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
-                         ? 0x10000000u
-                         : 0x0u), // HACK: awful hack
+            .addr = addr,                         // base, // TODO: check
+            .size = 0x1000000,                    // mem->size,
+            .type = (is_rom ? 0x3u : 0x00402006), // HACK: static
+            // TODO: attr
+            .perm = Permission::ReadExecute, // HACK
+            // TODO: ipc_ref_count
+            // TODO: device_ref_count
         };
 
         // TODO: out_page_info
@@ -332,18 +332,13 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 
         return RESULT_SUCCESS;
     }
-    */
 
     // HACK
-    bool is_rom = (addr >= 0x80000000 && addr < 0xa0000000);
     out_mem_info = MemoryInfo{
-        .addr = addr,                         // base, // TODO: check
-        .size = 0x1000,                       // mem->size,
-        .type = (is_rom ? 0x3u : 0x00402006), // HACK: static
-        // TODO: attr
-        .perm = Permission::ReadExecute, // HACK
-        // TODO: ipc_ref_count
-        // TODO: device_ref_count
+        .addr = addr,
+        .size = (addr < ADDRESS_SPACE_BASE + ADDRESS_SPACE_SIZE
+                     ? 0x10000000u
+                     : 0x0u), // HACK: awful hack
     };
 
     // TODO: out_page_info

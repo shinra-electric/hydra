@@ -95,7 +95,7 @@ PageTableLevel::PageTableLevel(u32 level_, const Page page_,
     : level{level_}, page{page_}, base_va{base_va_} {
     u64* table = reinterpret_cast<u64*>(page.ptr);
     for (u32 i = 0; i < ENTRY_COUNT; i++) {
-        table[i] = 0x200000000 | PTE_BLOCK(level);
+        table[i] = 0x0; // 0x200000000 | PTE_BLOCK(level);
     }
 }
 
@@ -171,12 +171,14 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
     //           level.GetLevel(), va, pa, size);
 
     u32 index = level.VaToIndex(va);
-    if (size == level.GetBlockSize()) {
+    // TODO: uncomment
+    if (/*size == level.GetBlockSize()*/ level.GetLevel() == 2) {
+        // TODO: use proper permissions
         ApFlags ap;
-        if (va >= 0xf0000000 && va < 0x100000000)
-            ap = ApFlags::UserExecuteKernelReadWriteExecute;
+        if (va >= 0x10000000 && va < 0x20000000)
+            ap = ApFlags::UserReadWriteKernelReadWrite;
         else
-            ap = ApFlags::UserExecuteKernelReadWriteExecute;
+            ap = ApFlags::UserNoneKernelReadWriteExecute;
         level.WriteEntry(index, pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
                                     PTE_INNER_SHEREABLE | (u64)ap);
     } else {
