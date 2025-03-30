@@ -90,6 +90,15 @@ inline ApFlags PermisionToAP(Horizon::Permission permission) {
 
 } // namespace
 
+PageTableLevel::PageTableLevel(u32 level_, const Page page_,
+                               const vaddr base_va_)
+    : level{level_}, page{page_}, base_va{base_va_} {
+    u64* table = reinterpret_cast<u64*>(page.ptr);
+    for (u32 i = 0; i < ENTRY_COUNT; i++) {
+        table[i] = 0x200000000 | PTE_BLOCK(level);
+    }
+}
+
 PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
     ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
 
@@ -103,9 +112,8 @@ PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
     return *next;
 }
 
-PageTable::PageTable()
-    : allocator(PAGE_TABLE_MEM_BASE_PA, 1024),
-      top_level(0, allocator.GetNextPage(), 0x0) {}
+PageTable::PageTable(paddr base_pa)
+    : allocator(base_pa, 1024), top_level(0, allocator.GetNextPage(), 0x0) {}
 
 PageTable::~PageTable() = default;
 
@@ -118,12 +126,6 @@ void PageTable::Map(vaddr va, paddr pa, usize size) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
 
     MapLevel(top_level, va, pa, size);
-
-    /*
-    addr | PTE_BLOCK | PTE_AF | PTE_INNER_SHEREABLE |
-        (u64)ApFlags::UserNoneKernelReadWriteExecute; // TODO: use proper
-                                                      // permissions
-    */
 }
 
 void PageTable::Unmap(vaddr va, usize size) {
@@ -170,10 +172,13 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
 
     u32 index = level.VaToIndex(va);
     if (size == level.GetBlockSize()) {
-        level.WriteEntry(index,
-                         pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
-                             PTE_INNER_SHEREABLE |
-                             (u64)ApFlags::UserNoneKernelReadWriteExecute);
+        ApFlags ap;
+        if (va >= 0xf0000000 && va < 0x100000000)
+            ap = ApFlags::UserExecuteKernelReadWriteExecute;
+        else
+            ap = ApFlags::UserExecuteKernelReadWriteExecute;
+        level.WriteEntry(index, pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
+                                    PTE_INNER_SHEREABLE | (u64)ap);
     } else {
         MapLevel(level.GetNext(allocator, index), va, pa, size);
     }

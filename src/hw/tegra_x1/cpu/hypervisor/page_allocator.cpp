@@ -35,8 +35,7 @@ void PageAllocator::Allocate(usize page_count) {
 
     const paddr pa = base_pa + current_page * PAGE_SIZE;
     HV_ASSERT_SUCCESS(
-        hv_vm_map(reinterpret_cast<void*>(ptr), pa, size,
-                  HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
+        hv_vm_map(reinterpret_cast<void*>(ptr), pa, size, HV_MEMORY_READ));
 
     allocations.push_back({ptr, page_count});
 }

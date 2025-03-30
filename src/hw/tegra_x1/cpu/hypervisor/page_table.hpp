@@ -4,21 +4,15 @@
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
+class PageAllocator;
+
 constexpr usize BLOCK_SHIFT_DIFF = 9;
 constexpr usize ENTRY_COUNT = 1u << BLOCK_SHIFT_DIFF;
 
 #define GET_BLOCK_SHIFT(level) (3 + (BLOCK_SHIFT_DIFF * (3 - (level))))
 
-constexpr uptr PAGE_TABLE_MEM_BASE_PA = 0x100000000;
-
 struct PageTableLevel {
-    PageTableLevel(u32 level_, const Page page_, const vaddr base_va_)
-        : level{level_}, page{page_}, base_va{base_va_} {
-        u64* table = reinterpret_cast<u64*>(page.ptr);
-        for (u32 i = 0; i < ENTRY_COUNT; i++) {
-            table[i] = 0x0;
-        }
-    }
+    PageTableLevel(u32 level_, const Page page_, const vaddr base_va_);
 
     usize GetBlockSize() const { return 1ul << GET_BLOCK_SHIFT(level); }
 
@@ -61,13 +55,16 @@ struct PageTableLevel {
 
 class PageTable {
   public:
-    PageTable();
+    PageTable(paddr base_pa);
     ~PageTable();
 
     void Map(vaddr va, paddr pa, usize size);
     void Unmap(vaddr va, usize size);
 
     paddr UnmapAddr(vaddr va) const;
+
+    // Getters
+    paddr GetBase() const { return allocator.GetBase(); }
 
   private:
     PageAllocator allocator;

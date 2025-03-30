@@ -5,6 +5,12 @@
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
+constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
+constexpr usize KERNEL_REGION_SIZE = 0x10000000;
+constexpr usize KERNEL_MEM_SIZE = 0x1000;
+
+constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
+
 class MMU : public MMUBase {
   public:
     MMU();
@@ -15,9 +21,14 @@ class MMU : public MMUBase {
 
     uptr UnmapAddr(vaddr va) const override;
 
+    // Getters
+    const PageTable& GetUserPageTable() const { return user_page_table; }
+    const PageTable& GetKernelPageTable() const { return kernel_page_table; }
+
   private:
     // Page table
-    PageTable page_table;
+    PageTable user_page_table;
+    PageTable kernel_page_table;
 
     // TODO: use a proper allocator
     uptr physical_memory_ptr;

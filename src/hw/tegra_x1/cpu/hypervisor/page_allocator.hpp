@@ -23,6 +23,9 @@ class PageAllocator {
 
     Page GetNextPage();
 
+    // Getters
+    paddr GetBase() const { return base_pa; }
+
   private:
     paddr base_pa;
 

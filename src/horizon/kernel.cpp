@@ -16,45 +16,17 @@ constexpr uptr ADDRESS_SPACE_BASE = 0x10000000;
 constexpr usize ADDRESS_SPACE_SIZE = 0x200000000 - ADDRESS_SPACE_BASE;
 
 constexpr uptr STACK_REGION_BASE = 0x10000000;
-constexpr uptr STACK_REGION_SIZE = 0x10000000;
+constexpr usize STACK_REGION_SIZE = 0x10000000;
 constexpr usize STACK_MEM_SIZE = 0x2000000;
 
-constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
-constexpr uptr KERNEL_REGION_SIZE = 0x10000000;
-constexpr usize KERNEL_MEM_SIZE = 0x10000;
-
 constexpr uptr TLS_REGION_BASE = 0x20000000;
-constexpr uptr TLS_REGION_SIZE = 0x10000000;
+constexpr usize TLS_REGION_SIZE = 0x10000000;
 constexpr usize TLS_MEM_SIZE = 0x20000;
 
 constexpr uptr HEAP_REGION_BASE = 0x100000000;
-constexpr uptr HEAP_REGION_SIZE = 0x100000000;
+constexpr usize HEAP_REGION_SIZE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
-
-constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
-
-const u32 exception_handler[] = {
-    0xd41fffe2u, // hvc #0xFFFF
-    0xd69f03e0u, // eret
-    // 0xD2B00000, // mov x0, #0x80000000
-    // 0xD61F0000, // br  x0
-    // Shouldn't happen
-    0xd4200000u, // brk #0
-};
-
-const u32 exception_trampoline[] = {
-    0xd508831fu, // msr spsel, xzr
-
-    // 0x910003e0,  // mov x0, sp
-    // 0xd5384241,  // TODO
-    // 0xd5384202,  // mrs x2, spsel
-    // 0xD4200000u, // brk #0
-
-    0xd69f03e0u, // eret
-    // Shouldn't happen
-    0xd4200000u, // brk #0
-};
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
 
@@ -66,17 +38,6 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
 
     // Stack memory
     mmu->AllocateAndMap(STACK_REGION_BASE, STACK_MEM_SIZE);
-
-    // Kernel memory
-    uptr kernel_mem_ptr =
-        mmu->AllocateAndMap(KERNEL_REGION_BASE, KERNEL_MEM_SIZE);
-    for (u64 offset = 0; offset < 0x780; offset += 0x80) {
-        memcpy(reinterpret_cast<void*>(kernel_mem_ptr + offset),
-               exception_handler, sizeof(exception_handler));
-    }
-    memcpy(
-        reinterpret_cast<void*>(kernel_mem_ptr + EXCEPTION_TRAMPOLINE_OFFSET),
-        exception_trampoline, sizeof(exception_trampoline));
 
     // TLS memory
     tls_ptr = mmu->AllocateAndMap(TLS_REGION_BASE, TLS_MEM_SIZE);
@@ -90,9 +51,7 @@ Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
                           u64 id) { return SupervisorCall(thread, id); },
-                      KERNEL_REGION_BASE, TLS_REGION_BASE,
-                      STACK_REGION_BASE + STACK_MEM_SIZE,
-                      KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
+                      TLS_REGION_BASE, STACK_REGION_BASE + STACK_MEM_SIZE);
 }
 
 void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {

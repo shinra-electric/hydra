@@ -29,21 +29,15 @@ Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
 void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
                            svc_handler_,
-                       uptr kernel_mem_base,
                        uptr tls_mem_base /*,
-  uptr rom_mem_base*/, uptr stack_mem_end, uptr exception_trampoline_base_) {
+  uptr rom_mem_base*/, uptr stack_mem_end) {
     svc_handler = svc_handler_;
-    exception_trampoline_base = exception_trampoline_base_;
 
     // Trampoline
-    SetSysReg(HV_SYS_REG_VBAR_EL1, kernel_mem_base);
+    SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
-    // Set the CPU's PC to execute from the trampoline
-    // HYP_ASSERT_SUCCESS(
-    //    hv_vcpu_set_reg(vcpu, HV_REG_PC, KERNEL_MEM_ADDR + 0x800));
-
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, PAGE_TABLE_MEM_BASE_PA);
-    // SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelRangeMemory()->GetBase());
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, mmu->GetUserPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelPageTable().GetBase());
 
     // Initialize the stack pointer
     SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
@@ -126,7 +120,8 @@ void Thread::Run() {
 
                 // Set the PC to trampoline
                 // TODO: most of the time we can skip msr, find out when
-                SetReg(HV_REG_PC, exception_trampoline_base);
+                SetReg(HV_REG_PC,
+                       KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
             } else if (hvEc == 0x17) { // SMC
                 LOG_WARNING(Hypervisor, "SMC instruction");
 

@@ -68,7 +68,9 @@ void EmulationContext::Start(const std::string& rom_filename) {
 
     // HACK
 #define BRK 0xd4200000
+#define MOV_X0_XZR 0xd2800000
 
+    // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
     // cpu->GetMMU()->Store<u32>(0x800112e8, BRK);
 
     // Main thread

@@ -22,10 +22,8 @@ class Thread : public ThreadBase {
     ~Thread() override;
 
     void Configure(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-                   uptr kernel_mem_base,
                    uptr tls_mem_base /*, uptr rom_mem_base*/,
-                   uptr stack_mem_end,
-                   uptr exception_trampoline_base_) override;
+                   uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -92,7 +90,6 @@ class Thread : public ThreadBase {
     CPU* cpu;
 
     std::function<bool(ThreadBase*, u64)> svc_handler;
-    uptr exception_trampoline_base;
 
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;
