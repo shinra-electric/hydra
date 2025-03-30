@@ -80,6 +80,21 @@ void MMU::UnmapAndFree(vaddr va, usize size) {
     user_page_table.Unmap(va, size);
 }
 
+// TODO: just improve this...
+void MMU::ResizeHeap(vaddr va, usize size) {
+    paddr pa = user_page_table.UnmapAddr(va);
+    user_page_table.Map(va, pa, size);
+}
+
+// HACK: this assumes that the whole src range is stored contiguously in
+// physical memory
+void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
+    paddr pa = user_page_table.UnmapAddr(src_va);
+    user_page_table.Map(dst_va, pa, size);
+}
+
+void MMU::Unmap(vaddr va, usize size) { user_page_table.Unmap(va, size); }
+
 uptr MMU::UnmapAddr(vaddr va) const {
     return physical_memory_ptr + user_page_table.UnmapAddr(va);
 }

@@ -25,7 +25,7 @@ constexpr usize TLS_MEM_SIZE = 0x20000;
 
 constexpr uptr HEAP_REGION_BASE = 0x100000000;
 constexpr usize HEAP_REGION_SIZE = 0x100000000;
-constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x10000000;
+constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
@@ -238,14 +238,7 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
-    // TODO: implement
-    /*
-    if (size != heap_mem->GetSize()) {
-        mmu->UnmapMemory(HEAP_REGION_BASE, heap_mem);
-        heap_mem->Resize(size);
-        mmu->MapMemory(HEAP_REGION_BASE, heap_mem);
-    }
-    */
+    mmu->ResizeHeap(HEAP_REGION_BASE, size);
 
     out_base = HEAP_REGION_BASE;
 
@@ -287,9 +280,7 @@ Result Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
-    // mmu->Map(dst_addr, {mmu->UnmapAddr(src_addr), size});
+    mmu->Map(dst_addr, src_addr, size);
 
     return RESULT_SUCCESS;
 }

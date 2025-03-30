@@ -18,6 +18,10 @@ class MMU : public MMUBase {
 
     uptr AllocateAndMap(vaddr va, usize size) override;
     void UnmapAndFree(vaddr va, usize size) override;
+    void ResizeHeap(vaddr va, usize size) override;
+
+    void Map(vaddr dst_va, vaddr src_va, usize size) override;
+    void Unmap(vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
 

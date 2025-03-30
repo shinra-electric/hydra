@@ -9,6 +9,10 @@ class MMUBase {
     // TODO: let the implementation choose and return the virtual base
     virtual uptr AllocateAndMap(vaddr va, usize size) = 0;
     virtual void UnmapAndFree(vaddr va, usize size) = 0;
+    virtual void ResizeHeap(vaddr va, usize size) = 0;
+
+    virtual void Map(vaddr dst_va, vaddr src_va, usize size) = 0;
+    virtual void Unmap(vaddr va, usize size) = 0;
 
     virtual uptr UnmapAddr(vaddr va) const = 0;
 
