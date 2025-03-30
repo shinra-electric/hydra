@@ -111,9 +111,11 @@ void Thread::Run() {
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
-                        "0x{:08x})",
+                        "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x})",
                         ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
-                        GetSysReg(HV_SYS_REG_FAR_EL1));
+                        GetSysReg(HV_SYS_REG_FAR_EL1),
+                        exit->exception.virtual_address,
+                        exit->exception.physical_address);
 
                     break;
                 }
@@ -177,15 +179,15 @@ void Thread::Run() {
                 LOG_ERROR(
                     Hypervisor,
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
-                    "0x{:08x}, "
-                    "VirtAddr: "
-                    "0x{:08x}, IPA: 0x{:08x}, PC: 0x{:08x}, ELR: 0x{:08x}, "
+                    "0x{:08x}, PC: 0x{:08x}, "
+                    "VA: "
+                    "0x{:08x}, PA: 0x{:08x}, ELR: 0x{:08x}, "
                     "instruction: "
                     "0x{:08x})",
-                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1),
+                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
+                    GetSysReg(HV_SYS_REG_ELR_EL1),
                     exit->exception.virtual_address,
-                    exit->exception.physical_address, pc,
-                    GetSysReg(HV_SYS_REG_ELR_EL1), mmu->Load<u32>(pc));
+                    exit->exception.physical_address, mmu->Load<u32>(pc));
 
                 break;
             }
