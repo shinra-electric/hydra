@@ -246,12 +246,20 @@ void Renderer::BindPipeline(const PipelineBase* pipeline) {
 
 void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                  u32 index) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
     state.uniform_buffers[u32(shader_type)][index] =
         static_cast<Buffer*>(buffer);
 }
 
 void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
                            u32 index) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
     state.textures[u32(shader_type)][index] = static_cast<Texture*>(texture);
 }
 

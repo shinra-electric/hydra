@@ -24,7 +24,7 @@ struct State {
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [UNIFORM_BUFFER_BINDING_COUNT];
-    const Texture* textures[usize(ShaderType::Count)][VERTEX_ARRAY_COUNT];
+    const Texture* textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT];
 };
 
 struct EncoderRenderState {
