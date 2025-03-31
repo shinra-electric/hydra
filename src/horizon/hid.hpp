@@ -237,6 +237,7 @@ enum class ColorAttribute {
 };
 
 enum class NpadButtons : u64 {
+    None,
     A = BITL(0),
     B = BITL(1),
     X = BITL(2),
@@ -273,6 +274,7 @@ enum class NpadButtons : u64 {
     LagonCRight = BITL(33),
     LagonCDown = BITL(34),
 };
+ENABLE_ENUM_BITMASK_OPERATORS(NpadButtons)
 
 enum class DebugPadAttribute {
     IsConnected = BIT(0),
