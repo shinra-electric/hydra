@@ -5,6 +5,33 @@
 
 namespace Hydra::Horizon {
 
+struct FirmwareVersion {
+    u8 major;
+    u8 minor;
+    u8 micro;
+    u8 padding1;
+    u8 revision_major;
+    u8 revision_minor;
+    u8 padding2;
+    u8 padding3;
+    char platform[0x20];
+    char version_hash[0x40];
+    char display_version[0x18];
+    char display_title[0x80];
+};
+
+constexpr FirmwareVersion FIRMWARE_VERSION = {
+    .major = 1,
+    .minor = 0,
+    .micro = 0,
+    .revision_major = 0,
+    .revision_minor = 0,
+    .platform = "NX",
+    .version_hash = "voyp5gq7m551zuqgspcgobbmo74rg6yydpalt72l",
+    .display_version = "1.0.0",
+    .display_title = "Hydra firmware 1.0.0",
+};
+
 // From https://github.com/switchbrew/libnx
 enum class Error {
     OutOfSessions = 7,

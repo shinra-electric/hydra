@@ -49,6 +49,9 @@ u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
 u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
                    const Hipc::StaticDescriptor& descriptor);
 
+u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+                       const Hipc::RecvListEntry& descriptor);
+
 #define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
     type##_##buffer_or_static##s_##reader_or_writer##s.reserve(                \
         hipc_in.meta.num_##type##_##buffer_or_static##s);                      \
@@ -82,7 +85,7 @@ struct Readers {
 
 struct Writers {
     Writer writer;
-    std::vector<Writer> recv_statics_writers;
+    std::vector<Writer> recv_list_writers;
     std::vector<Writer> recv_buffers_writers;
     std::vector<Writer> exch_buffers_writers;
     Writer objects_writer;
@@ -95,8 +98,13 @@ struct Writers {
         : writer(scratch_buffer), objects_writer(scratch_buffer_objects),
           move_handles_writer(scratch_buffer_move_handles),
           copy_handles_writer(scratch_buffer_copy_handles) {
-        // TODO: uncomment
-        // CREATE_STATIC_READERS_OR_WRITERS(writer, recv);
+        recv_list_writers.reserve(hipc_in.meta.num_recv_statics);
+        for (u32 i = 0; i < hipc_in.meta.num_recv_statics; i++) {
+            u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i]);
+            if (!ptr)
+                continue;
+            recv_list_writers.emplace_back(ptr);
+        }
         CREATE_BUFFER_READERS_OR_WRITERS(writer, recv);
         CREATE_BUFFER_READERS_OR_WRITERS(writer, exch);
     }

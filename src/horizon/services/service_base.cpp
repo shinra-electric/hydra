@@ -35,6 +35,18 @@ u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
     return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
 }
 
+u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+                       const Hipc::RecvListEntry& descriptor) {
+    uptr addr = descriptor.address_low | (u64)descriptor.address_high << 32;
+    if (addr == 0x0)
+        return nullptr;
+
+    if (descriptor.size == 0x0)
+        return nullptr;
+
+    return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
+}
+
 void ServiceBase::Request(REQUEST_PARAMS) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 

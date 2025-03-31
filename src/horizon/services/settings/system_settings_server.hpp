@@ -13,7 +13,7 @@ class ISystemSettingsServer : public ServiceBase {
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(GetFirmwareVersion);
+    void GetFirmwareVersion(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Settings

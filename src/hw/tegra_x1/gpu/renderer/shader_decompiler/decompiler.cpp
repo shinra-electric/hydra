@@ -109,7 +109,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     delete builder;
 }
 
-void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
+bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_VALUE_U(type_bit_count, b, count)                                  \
     extract_bits<u##type_bit_count, b, count>(inst)
@@ -554,8 +554,9 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lepc");
     INST(0x50c8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "cs2r");
-    INST(0x50b0000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "nop");
+    INST(0x50b0000000000000, 0xfff8000000000000) {
+        LOG_DEBUG(ShaderDecompiler, "nop");
+    }
     INST(0x50a0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "csetp");
     INST(0x5098000000000000, 0xfff8000000000000)
@@ -804,22 +805,30 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 
         observer->OpMove(dst, Operand::Immediate(value));
     }
-    // TODO: where should this be? Cause it sometimes gets confused with other
-    // instructions
-    INST(0x0000000000000000, 0x8000000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
     else {
-        LOG_ERROR(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
+        LOG_WARNING(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
+        return false;
     }
+
+    return true;
 }
 
 void Decompiler::Parse(ObserverBase* observer, Reader& code_reader) {
-    // TODO: don't limit the instruction count
-    for (u32 i = 0; i < 64; i++) {
+    u32 index = 0;
+    while (true) {
         u64 inst = code_reader.Read<u64>();
         LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
-        ParseInstruction(observer, inst);
+        if (index % 4 == 0) {
+            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
+        } else {
+            if (!ParseInstruction(observer, inst))
+                break;
+        }
+
+        // TODO: when to end
+
+        index++;
     }
 }
 
