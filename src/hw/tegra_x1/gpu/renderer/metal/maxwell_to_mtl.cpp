@@ -12,6 +12,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
 std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm, RGBA8Unorm),
+    COLOR_PIXEL_FORMAT_ENTRY(B5G6R5Unorm, B5G6R5Unorm),
     // TODO: more
 };
 

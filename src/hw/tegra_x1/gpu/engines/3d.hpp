@@ -246,9 +246,22 @@ union Regs3D {
         // 0x458 vertex attribute states
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
-        u32 padding_0x478[0x8];
+        u32 padding_0x478[0xf];
 
-        u32 padding_0x480[0xdd];
+        // 0x487 color target control
+        struct {
+            u32 count : 4;
+            u32 map0 : 3;
+            u32 map1 : 3;
+            u32 map2 : 3;
+            u32 map3 : 3;
+            u32 map4 : 3;
+            u32 map5 : 3;
+            u32 map6 : 3;
+            u32 map7 : 3;
+        } color_target_control;
+
+        u32 padding_0x488[0xd5];
 
         // 0x55d
         u32 tex_header_pool_hi;
@@ -365,7 +378,7 @@ class ThreeD : public EngineBase {
     void Macro(u32 method, u32 arg) override;
 
   private:
-    Regs3D regs;
+    Regs3D regs{};
 
     // Macros
     Macro::DriverBase* macro_driver;

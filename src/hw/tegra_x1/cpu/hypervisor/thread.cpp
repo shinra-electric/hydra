@@ -252,6 +252,11 @@ void Thread::LogStackTrace(uptr pc) {
 
         // if (!stack_mem->AddrIsInRange(fp))
         //     break;
+        // HACK
+        if (fp < 0x10000000 || fp >= 0x20000000) {
+            LOG_WARNING(Hypervisor, "Currputed stack");
+            break;
+        }
 
         u64 new_fp = mmu->Load<u64>(fp);
         lr = mmu->Load<u64>(fp + 8);

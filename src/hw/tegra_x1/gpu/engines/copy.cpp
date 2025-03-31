@@ -56,7 +56,7 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
         .format =
             Renderer::TextureFormat::RGBA8Unorm, // TODO: choose based on bpp
-        .kind = NvKind::Generic_16BX2,           // TODO: correct?
+        .kind = NvKind::Pitch,                   // TODO: correct?
         .width = info.stride / 4,                // HACK
         .height = info.height,
         .block_height_log2 = 4, // HACK

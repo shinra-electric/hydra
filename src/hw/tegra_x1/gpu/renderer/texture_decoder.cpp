@@ -55,6 +55,10 @@ void TextureDecoder::Decode(const TextureDescriptor& descriptor,
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
 
     switch (descriptor.kind) {
+    case NvKind::Pitch:
+        // TODO: correct?
+        scratch_buffer = in_data;
+        break;
     case NvKind::Generic_16BX2:
         decode_generic_16bx2(descriptor.stride, descriptor.height,
                              descriptor.block_height_log2, in_data,

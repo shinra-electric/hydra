@@ -138,25 +138,6 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
 
     if (data.stencil)
         LOG_NOT_IMPLEMENTED(Engines, "Stencil clears");
-
-    // Texture
-    /*
-    const auto texture = GetColorTargetTexture(data.target_id);
-    const auto& texture_descriptor = texture->GetDescriptor();
-
-    // HACK
-    u32* d = new u32[texture_descriptor.width * texture_descriptor.height];
-    for (usize i = 0; i < texture_descriptor.width * texture_descriptor.height;
-         i++) {
-        u8* ptr = reinterpret_cast<u8*>(&d[i]);
-        ptr[0] = regs.clear_color[0] * 0xff;
-        ptr[1] = regs.clear_color[1] * 0xff;
-        ptr[2] = regs.clear_color[2] * 0xff;
-        ptr[3] = regs.clear_color[3] * 0xff;
-    }
-    RENDERER->UploadTexture(texture, d);
-    delete[] d;
-    */
 }
 
 void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
@@ -242,7 +223,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
         .format = Renderer::to_texture_format(tic.format_word),
-        .kind = NvKind::Generic_16BX2, // TODO: correct?
+        .kind = NvKind::Pitch, // TODO: correct?
         .width = static_cast<usize>(tic.width_minus_one + 1),
         .height = static_cast<usize>(tic.height_minus_one + 1),
         .block_height_log2 = tic.tile_height_gobs_log2, // TODO: correct?
@@ -258,13 +239,16 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     const auto gpu_addr =
         make_addr(render_target.addr_lo, render_target.addr_hi);
-    if (gpu_addr == 0x0)
+    if (gpu_addr == 0x0) {
+        LOG_ERROR(Engines, "Invalid color render target at index {}",
+                  render_target_index)
         return nullptr;
+    }
 
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
         .format = Renderer::to_texture_format(render_target.format),
-        .kind = NvKind::Generic_16BX2, // TODO: correct?
+        .kind = NvKind::Pitch, // TODO: correct?
         .width = render_target.width,
         .height = render_target.height,
         .block_height_log2 = render_target.tile_mode.height, // TODO: correct?
@@ -275,10 +259,11 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 }
 
 Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
-    Renderer::RenderPassDescriptor descriptor;
+    Renderer::RenderPassDescriptor descriptor{};
 
     // Color targets
-    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+    for (u32 i = 0; i < regs.color_target_control.count; i++) {
+        // TODO: use map0...7 for swizzling?
         descriptor.color_targets[i] = {
             .texture = GetColorTargetTexture(i),
         };
@@ -336,7 +321,7 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
 }
 
 Renderer::PipelineBase* ThreeD::GetPipeline() {
-    Renderer::PipelineDescriptor descriptor;
+    Renderer::PipelineDescriptor descriptor{};
 
     // Shaders
     // TODO: add all shaders

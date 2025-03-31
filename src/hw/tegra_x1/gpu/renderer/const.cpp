@@ -10,6 +10,7 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
     // TODO: more formats
     switch (color_format) {
         NV_COLOR_FORMAT_CASE(A8B8G8R8, RGBA8Unorm)
+        NV_COLOR_FORMAT_CASE(R5G6B5, B5G6R5Unorm)
     default:
         LOG_NOT_IMPLEMENTED(GPU, "NV color format {}", color_format);
         // TODO: don't throw

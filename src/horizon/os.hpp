@@ -43,6 +43,8 @@ struct DisplayBuffer {
     HW::TegraX1::GPU::NvGraphicsBuffer buff;
 };
 
+constexpr usize MAX_BINDER_BUFFER_COUNT = 32;
+
 struct DisplayBinder {
   public:
     // TODO: make private
@@ -62,14 +64,13 @@ struct DisplayBinder {
                       [&] { return queued_buffers.size() != buffer_count; });
 
         // Find an available slot
-        for (i32 i = 0; i < 8; i++) {
+        for (i32 i = 0; i < MAX_BINDER_BUFFER_COUNT; i++) {
             if (buffers[i].initialized && !buffers[i].queued) {
                 return i;
             }
         }
 
-        // Should be unreachable
-        throw std::runtime_error("No available slots");
+        LOG_ERROR(Horizon, "No available slots");
     }
 
     void QueueBuffer(i32 slot) {
@@ -99,7 +100,8 @@ struct DisplayBinder {
     }
 
   private:
-    DisplayBuffer buffers[8]; // TODO: what should be the max number of buffers?
+    DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
+                                                    // max number of buffers?
     u32 buffer_count = 0;
     std::queue<i32> queued_buffers;
     std::mutex queue_mutex;
