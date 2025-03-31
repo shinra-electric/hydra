@@ -1,36 +1,31 @@
 #pragma once
 
-#include "hw/generic_mmu.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
+#include "horizon/const.hpp"
+#include "hw/tegra_x1/cpu/const.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 
-struct MemoryMapping {
-    uptr ptr;
-    usize size;
-};
-
-class MMUBase : public GenericMMU<MMUBase, MemoryMapping> {
+class MMUBase {
   public:
-    // virtual void ReprotectMemory(uptr base) = 0;
+    // TODO: let the implementation choose and return the virtual base
+    virtual uptr AllocateAndMap(vaddr va, usize size,
+                                const Horizon::MemoryState state) = 0;
+    virtual void UnmapAndFree(vaddr va, usize size) = 0;
+    virtual void ResizeHeap(vaddr va, usize size) = 0;
 
-    uptr UnmapAddr(vaddr addr) const {
-        vaddr base;
-        MemoryMapping mem = FindAddrImpl(addr, base);
+    virtual void Map(vaddr dst_va, vaddr src_va, usize size) = 0;
+    virtual void Unmap(vaddr va, usize size) = 0;
 
-        return reinterpret_cast<uptr>(mem.ptr + (addr - base));
+    virtual uptr UnmapAddr(vaddr va) const = 0;
+    virtual Horizon::MemoryInfo QueryMemory(vaddr va) const = 0;
+
+    template <typename T> T Load(vaddr va) const {
+        return *reinterpret_cast<T*>(UnmapAddr(va));
     }
 
-    usize ImplGetSize(MemoryMapping mem) const { return mem.size; }
-
-    virtual void MapImpl(vaddr base, MemoryMapping mem) = 0;
-    virtual void UnmapImpl(vaddr base, MemoryMapping mem) = 0;
-
-    void MapMemory(uptr base, Memory* mem) {
-        GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
+    template <typename T> void Store(vaddr va, T value) const {
+        *reinterpret_cast<T*>(UnmapAddr(va)) = value;
     }
-
-    void UnmapMemory(uptr base, Memory* mem) { GenericMMU::Unmap(base); }
 };
 
 } // namespace Hydra::HW::TegraX1::CPU

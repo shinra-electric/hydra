@@ -14,7 +14,7 @@ TextureBase* TextureCache::Create(const TextureDescriptor& descriptor) {
 
 void TextureCache::Update(TextureBase* texture) {
     // TODO: if data changed
-    if (false)
+    if (true)
         DecodeTexture(texture);
 }
 

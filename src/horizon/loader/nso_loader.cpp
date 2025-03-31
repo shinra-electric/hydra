@@ -2,7 +2,6 @@
 
 #include "common/lz4.hpp"
 #include "horizon/kernel.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -41,7 +40,7 @@ struct NSOHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(FileReader& reader, u8* executable_mem_ptr,
+void read_segment(FileReader& reader, uptr executable_mem_ptr,
                   const Segment& segment, const usize segment_file_size,
                   bool is_compressed) {
     // Skip
@@ -53,11 +52,14 @@ void read_segment(FileReader& reader, u8* executable_mem_ptr,
         // Decompress
         u8 file[file_size];
         reader.Read(file, file_size);
-        decompress_lz4(file, file_size,
-                       executable_mem_ptr + segment.memory_offset,
-                       segment.size);
+        decompress_lz4(
+            file, file_size,
+            reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
+            segment.size);
     } else {
-        reader.Read(executable_mem_ptr + segment.memory_offset, file_size);
+        reader.Read(
+            reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
+            file_size);
     }
 }
 
@@ -90,16 +92,16 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Create executable memory
     uptr base;
-    auto mem =
+    auto ptr =
         Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
     LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}", base);
 
     // Segments
-    read_segment(reader, mem->GetPtrU8(), header.text, header.text_file_size,
+    read_segment(reader, ptr, header.text, header.text_file_size,
                  (header.flags & (1u << 0)));
-    read_segment(reader, mem->GetPtrU8(), header.ro, header.ro_file_size,
+    read_segment(reader, ptr, header.ro, header.ro_file_size,
                  (header.flags & (1u << 1)));
-    read_segment(reader, mem->GetPtrU8(), header.data, header.data_file_size,
+    read_segment(reader, ptr, header.data, header.data_file_size,
                  (header.flags & (1u << 2)));
 
     if (is_entry_point) {

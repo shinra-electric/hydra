@@ -153,12 +153,13 @@ add_executable(hydra
     horizon/services/audio/audio_out_manager.cpp
     horizon/services/audio/audio_out_manager.hpp
     hw/generic_mmu.hpp
-    hw/tegra_x1/cpu/memory.cpp
-    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/mmu_base.hpp
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
+    hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
+    hw/tegra_x1/cpu/hypervisor/page_allocator.hpp
     hw/tegra_x1/cpu/hypervisor/page_table.cpp
     hw/tegra_x1/cpu/hypervisor/page_table.hpp
     hw/tegra_x1/cpu/hypervisor/mmu.cpp

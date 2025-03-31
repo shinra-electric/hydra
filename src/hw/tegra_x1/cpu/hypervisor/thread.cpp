@@ -1,7 +1,6 @@
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 #define MAX_STACK_TRACE_DEPTH 32
 
@@ -9,7 +8,7 @@ namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // Create
-    HYP_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
+    HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
     // TODO: find out what this does
     SetReg(HV_REG_CPSR, 0x3c4);
@@ -22,7 +21,7 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
 
     // Trap debug access
-    HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
+    HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
     // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
 }
 
@@ -30,22 +29,15 @@ Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
 void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
                            svc_handler_,
-                       uptr kernel_mem_base,
                        uptr tls_mem_base /*,
-  uptr rom_mem_base*/, uptr stack_mem_end, uptr exception_trampoline_base_) {
+  uptr rom_mem_base*/, uptr stack_mem_end) {
     svc_handler = svc_handler_;
-    exception_trampoline_base = exception_trampoline_base_;
 
     // Trampoline
-    SetSysReg(HV_SYS_REG_VBAR_EL1, kernel_mem_base);
+    SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
-    // Set the CPU's PC to execute from the trampoline
-    // HYP_ASSERT_SUCCESS(
-    //    hv_vcpu_set_reg(vcpu, HV_REG_PC, KERNEL_MEM_ADDR + 0x800));
-
-    // TODO: what is this?
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, PAGE_TABLE_MEM_BASE);
-    // SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelRangeMemory()->GetBase());
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, mmu->GetUserPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelPageTable().GetBase());
 
     // Initialize the stack pointer
     SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
@@ -60,7 +52,7 @@ void Thread::Run() {
     // Main run loop
     bool running = true;
     while (running) {
-        HYP_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
+        HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;
@@ -119,16 +111,19 @@ void Thread::Run() {
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
-                        "0x{:08x})",
+                        "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x})",
                         ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
-                        GetSysReg(HV_SYS_REG_FAR_EL1));
+                        GetSysReg(HV_SYS_REG_FAR_EL1),
+                        exit->exception.virtual_address,
+                        exit->exception.physical_address);
 
                     break;
                 }
 
                 // Set the PC to trampoline
                 // TODO: most of the time we can skip msr, find out when
-                SetReg(HV_REG_PC, exception_trampoline_base);
+                SetReg(HV_REG_PC,
+                       KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
             } else if (hvEc == 0x17) { // SMC
                 LOG_WARNING(Hypervisor, "SMC instruction");
 
@@ -184,15 +179,15 @@ void Thread::Run() {
                 LOG_ERROR(
                     Hypervisor,
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
-                    "0x{:08x}, "
-                    "VirtAddr: "
-                    "0x{:08x}, IPA: 0x{:08x}, PC: 0x{:08x}, ELR: 0x{:08x}, "
+                    "0x{:08x}, PC: 0x{:08x}, "
+                    "VA: "
+                    "0x{:08x}, PA: 0x{:08x}, ELR: 0x{:08x}, "
                     "instruction: "
                     "0x{:08x})",
-                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1),
+                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
+                    GetSysReg(HV_SYS_REG_ELR_EL1),
                     exit->exception.virtual_address,
-                    exit->exception.physical_address, pc,
-                    GetSysReg(HV_SYS_REG_ELR_EL1), mmu->Load<u32>(pc));
+                    exit->exception.physical_address, mmu->Load<u32>(pc));
 
                 break;
             }
