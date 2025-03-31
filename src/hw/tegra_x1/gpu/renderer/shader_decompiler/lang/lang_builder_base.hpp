@@ -26,6 +26,7 @@ class LangBuilderBase : public BuilderBase {
     void OpMove(reg_t dst, Operand src) override;
     void OpFloatAdd(reg_t dst, reg_t src1, Operand src2) override;
     void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
+    void OpFloatFma(reg_t dst, reg_t src1, Operand src2, reg_t src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;

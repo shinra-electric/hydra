@@ -192,6 +192,14 @@ void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
                    GetOperand(src2, false, DataType::Float));
 }
 
+void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
+                                 reg_t src3) {
+    WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::Float),
+                   GetReg(src1, false, DataType::Float),
+                   GetOperand(src2, false, DataType::Float),
+                   GetReg(src3, false, DataType::Float));
+}
+
 void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
     WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
                    GetReg(src, false, DataType::UInt), shift);

@@ -671,9 +671,7 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, src1,
                   src2.idx, src2.imm, src3);
 
-        // TODO: have a dedicated op for this
-        observer->OpFloatMultiply(dst, src1, Operand::ConstMemory(src2));
-        observer->OpFloatAdd(dst, dst, Operand::Register(src3));
+        observer->OpFloatFma(dst, src1, Operand::ConstMemory(src2), src3);
     }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");

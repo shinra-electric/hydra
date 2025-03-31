@@ -25,6 +25,11 @@ void Analyzer::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
         HandleCMemLoad(src2.cmem);
 }
 
+void Analyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2, reg_t src3) {
+    if (src2.type == OperandType::ConstMemory)
+        HandleCMemLoad(src2.cmem);
+}
+
 void Analyzer::OpLoad(reg_t dst, Operand src) {
     switch (src.type) {
     case OperandType::AttributeMemory:
