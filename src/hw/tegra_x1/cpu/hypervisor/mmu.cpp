@@ -70,7 +70,7 @@ MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 MemoryBase* MMU::AllocateMemory(usize size) {
     size = align(size, PAGE_SIZE);
     auto memory = new Memory(physical_memory_cur, size);
-    physical_memory_cur += size;
+    physical_memory_cur += size * 16; // HACK: prevents memory corruption
 
     return memory;
 }

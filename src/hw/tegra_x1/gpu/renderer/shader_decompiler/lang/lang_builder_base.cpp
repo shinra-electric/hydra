@@ -62,10 +62,18 @@ void LangBuilderBase::Start() {
             if (vertex_attrib_state.is_fixed)
                 continue;
 
+            // TODO: only set if the Rendered backend doesn't support scaled
+            // attributes
+            bool needs_scaling = (vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Sscaled ||
+                                  vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Uscaled);
+
             const auto sv = SV(SVSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
                 WriteStatement(
-                    "{} = as_type<uint>({})",
+                    (needs_scaling ? "{} = as_type<uint>((float){})"
+                                   : "{} = as_type<uint>({})"),
                     GetA({RZ, 0x80 + i * 0x10 + c * 0x4}),
                     GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false));
             }

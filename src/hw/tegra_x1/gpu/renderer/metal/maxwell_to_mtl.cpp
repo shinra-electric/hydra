@@ -380,13 +380,73 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
             return MTL::VertexFormatInvalid;
         }
     case Engines::VertexAttribType::Sscaled:
-        LOG_NOT_IMPLEMENTED(MetalRenderer,
-                            "Signed scaled vertex formats (size: {})", size);
-        return MTL::VertexFormatInvalid;
+        switch (size) {
+        case Engines::VertexAttribSize::_1x32:
+            return MTL::VertexFormatInt;
+        case Engines::VertexAttribSize::_2x32:
+            return MTL::VertexFormatInt2;
+        case Engines::VertexAttribSize::_3x32:
+            return MTL::VertexFormatInt3;
+        case Engines::VertexAttribSize::_4x32:
+            return MTL::VertexFormatInt4;
+
+        case Engines::VertexAttribSize::_1x16:
+            return MTL::VertexFormatShort;
+        case Engines::VertexAttribSize::_2x16:
+            return MTL::VertexFormatShort2;
+        case Engines::VertexAttribSize::_3x16:
+            return MTL::VertexFormatShort3;
+        case Engines::VertexAttribSize::_4x16:
+            return MTL::VertexFormatShort4;
+
+        case Engines::VertexAttribSize::_1x8:
+            return MTL::VertexFormatChar;
+        case Engines::VertexAttribSize::_2x8:
+            return MTL::VertexFormatChar2;
+        case Engines::VertexAttribSize::_3x8:
+            return MTL::VertexFormatChar3;
+        case Engines::VertexAttribSize::_4x8:
+            return MTL::VertexFormatChar4;
+
+        default:
+            LOG_ERROR(MetalRenderer,
+                      "Invalid vertex attribute size {} for sint type", size);
+            return MTL::VertexFormatInvalid;
+        }
     case Engines::VertexAttribType::Uscaled:
-        LOG_NOT_IMPLEMENTED(MetalRenderer,
-                            "Unsigned scaled vertex formats (size: {})", size);
-        return MTL::VertexFormatInvalid;
+        switch (size) {
+        case Engines::VertexAttribSize::_1x32:
+            return MTL::VertexFormatUInt;
+        case Engines::VertexAttribSize::_2x32:
+            return MTL::VertexFormatUInt2;
+        case Engines::VertexAttribSize::_3x32:
+            return MTL::VertexFormatUInt3;
+        case Engines::VertexAttribSize::_4x32:
+            return MTL::VertexFormatUInt4;
+
+        case Engines::VertexAttribSize::_1x16:
+            return MTL::VertexFormatUShort;
+        case Engines::VertexAttribSize::_2x16:
+            return MTL::VertexFormatUShort2;
+        case Engines::VertexAttribSize::_3x16:
+            return MTL::VertexFormatUShort3;
+        case Engines::VertexAttribSize::_4x16:
+            return MTL::VertexFormatUShort4;
+
+        case Engines::VertexAttribSize::_1x8:
+            return MTL::VertexFormatUChar;
+        case Engines::VertexAttribSize::_2x8:
+            return MTL::VertexFormatUChar2;
+        case Engines::VertexAttribSize::_3x8:
+            return MTL::VertexFormatUChar3;
+        case Engines::VertexAttribSize::_4x8:
+            return MTL::VertexFormatUChar4;
+
+        default:
+            LOG_ERROR(MetalRenderer,
+                      "Invalid vertex attribute size {} for uint type", size);
+            return MTL::VertexFormatInvalid;
+        }
     case Engines::VertexAttribType::Float:
         switch (size) {
         case Engines::VertexAttribSize::_1x32:

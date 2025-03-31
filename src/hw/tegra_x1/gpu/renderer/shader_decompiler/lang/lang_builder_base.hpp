@@ -9,7 +9,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
-static const std::string INVALID_VALUE = "INVALID";
+#define INVALID_VALUE "INVALID"
 
 class LangBuilderBase : public BuilderBase {
   public:

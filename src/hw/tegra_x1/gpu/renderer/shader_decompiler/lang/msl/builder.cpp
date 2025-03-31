@@ -126,13 +126,13 @@ void Builder::EmitDeclarations() {
 void Builder::EmitMainPrototype() {
     switch (type) {
     case ShaderType::Vertex:
-        Write("vertex");
+        WriteRaw("vertex ");
         break;
     case ShaderType::Fragment:
-        Write("fragment");
+        WriteRaw("fragment ");
         break;
     default:
-        Write(INVALID_VALUE);
+        WriteRaw(INVALID_VALUE " ");
         break;
     }
     WriteRaw("StageOut main_(StageIn __in [[stage_in]]");
