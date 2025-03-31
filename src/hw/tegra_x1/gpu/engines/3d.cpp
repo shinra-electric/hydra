@@ -147,6 +147,7 @@ void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
         make_addr(regs.report_semaphore_addr_lo, regs.report_semaphore_addr_hi);
     uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
+    // HACK
     *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
@@ -160,8 +161,10 @@ void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
 void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr =
         make_addr(regs.const_buffer_selector_lo, regs.const_buffer_selector_hi);
-    const uptr gpu_addr =
-        const_buffer_gpu_addr + regs.load_const_buffer_offset + index;
+    const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
+    // TODO: should the offset get
+    // incremented?
+    regs.load_const_buffer_offset += sizeof(u32);
     uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
     *reinterpret_cast<u32*>(ptr) = data;
