@@ -25,7 +25,8 @@ class LangBuilderBase : public BuilderBase {
     void OpExit() override;
     void OpMove(reg_t dst, Operand src) override;
     void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
-    void OpLoad(reg_t dst, AMem src) override;
+    void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
+    void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
     void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
@@ -91,8 +92,9 @@ class LangBuilderBase : public BuilderBase {
     }
 
     std::string GetC(const CMem cmem, DataType data_type = DataType::UInt) {
-        return fmt::format("c[{}][0x{:08x}].{}", cmem.idx,
-                           cmem.imm / sizeof(u32), GetTypePrefix(data_type));
+        return fmt::format("c[{}][{} + 0x{:08x}].{}", cmem.idx,
+                           GetReg(cmem.reg), cmem.imm / sizeof(u32),
+                           GetTypePrefix(data_type));
     }
 
     std::string GetOperand(Operand operand, bool write = false,

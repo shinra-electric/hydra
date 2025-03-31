@@ -100,15 +100,17 @@ void ThreeD::DrawVertexArray(const u32 index, const u32 count) {
 
         const auto tex_header_pool_gpu_addr =
             make_addr(regs.tex_header_pool_lo, regs.tex_header_pool_hi);
-        // TODO: check if the address is valid
-        const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-            GPU::GetInstance().GetGPUMMU().UnmapAddr(tex_header_pool_gpu_addr));
+        if (tex_header_pool_gpu_addr != 0x0) {
+            const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
+                GPU::GetInstance().GetGPUMMU().UnmapAddr(
+                    tex_header_pool_gpu_addr));
 
-        // TODO: configure all stages
-        ConfigureShaderStage(ShaderStage::VertexB, const_buffer,
-                             tex_header_pool);
-        ConfigureShaderStage(ShaderStage::Fragment, const_buffer,
-                             tex_header_pool);
+            // TODO: configure all stages
+            ConfigureShaderStage(ShaderStage::VertexB, const_buffer,
+                                 tex_header_pool);
+            ConfigureShaderStage(ShaderStage::Fragment, const_buffer,
+                                 tex_header_pool);
+        }
     }
 
     RENDERER->Draw(regs.begin.primitive_type, regs.vertex_array_start, count);

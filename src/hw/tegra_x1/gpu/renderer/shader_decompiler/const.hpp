@@ -19,6 +19,7 @@ struct AMem {
 
 struct CMem {
     u32 idx;
+    reg_t reg;
     u64 imm;
 };
 
@@ -158,6 +159,11 @@ inline const SV GetSVFromAddr(u64 addr) {
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::OperandType, Register,
+    "register", Immediate, "immediate", AttributeMemory, "attribute memory",
+    ConstMemory, "const memory")
 
 ENABLE_ENUM_FORMATTING(
     Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::DataType, Int, "int",

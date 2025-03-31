@@ -102,7 +102,7 @@ void LangBuilderBase::Start() {
         u32 u32_count = size / sizeof(u32);
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
-                           GetC({index, i * sizeof(u32)}), index, i);
+                           GetC({index, RZ, i * sizeof(u32)}), index, i);
     }
     WriteNewline();
 }
@@ -178,8 +178,13 @@ void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
                    GetOperand(src2, false, DataType::Float));
 }
 
-void LangBuilderBase::OpLoad(reg_t dst, AMem src) {
-    WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
+void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
+    WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
+                   GetReg(src, false, DataType::UInt), shift);
+}
+
+void LangBuilderBase::OpLoad(reg_t dst, Operand src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src));
 }
 
 void LangBuilderBase::OpStore(AMem dst, reg_t src) {

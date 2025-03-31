@@ -117,14 +117,18 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     (GET_VALUE_U(type_bit_count, b, count) << (type_bit_count - count))
 #define GET_VALUE_U32(b, count) GET_VALUE_U(32, b, count)
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
-// #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
-// #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-#define GET_AMEM(b)                                                            \
+#define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
+#define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
+#define GET_AMEM() AMem{GET_REG(8), 0}
+#define GET_AMEM_IDX(b)                                                        \
     AMem { GET_REG(8), extract_bits<u32, b, 10>(inst) }
-#define GET_AMEM_IDX() AMem{GET_REG(8), 0}
 // HACK: why do I have to multiply by 4?
 #define GET_CMEM(b_idx, count_imm)                                             \
-    CMem{GET_VALUE_U32(b_idx, 5), extract_bits<u32, 20, count_imm>(inst) * 4}
+    CMem{GET_VALUE_U32(b_idx, 5), RZ,                                          \
+         extract_bits<u32, 20, count_imm>(inst) * 4}
+#define GET_CMEM_R(b_idx, b_reg, count_imm)                                    \
+    CMem{GET_VALUE_U32(b_idx, 5), GET_REG(b_reg),                              \
+         extract_bits<u32, 20, count_imm>(inst) * 4}
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -144,7 +148,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
     INST(0xeff0000000000000, 0xfff8000000000000) {
         const auto mode = GetOperand_eff0_0(inst);
-        auto amem = GET_AMEM(20);
+        auto amem = GET_AMEM_IDX(20);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "st {} a[r{} + 0x{:08x}] r{} r{}", mode,
@@ -160,13 +164,13 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xefd8000000000000, 0xfff8000000000000) {
         const auto mode = GetOperand_eff0_0(inst);
         const auto dst = GET_REG(0);
-        auto amem = GET_AMEM(20);
+        auto amem = GET_AMEM_IDX(20);
         const auto todo = GET_REG(39); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "ld {} r{} a[r{} + 0x{:08x}] r{}", mode,
                   dst, amem.reg, amem.imm, todo);
 
         for (u32 i = 0; i < GetLoadStoreCount(mode); i++) {
-            observer->OpLoad(dst + i, amem);
+            observer->OpLoad(dst + i, Operand::AttributeMemory(amem));
             amem.imm += sizeof(u32);
         }
     }
@@ -176,8 +180,14 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "al2p");
     INST(0xef98000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "membar");
-    INST(0xef90000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ld");
+    INST(0xef90000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src = GET_CMEM_R(36, 8, 16);
+        LOG_DEBUG(ShaderDecompiler, "ld r{} c{}[r{} + 0x{:08x}]", dst, src.idx,
+                  src.reg, src.imm);
+
+        observer->OpLoad(dst, Operand::ConstMemory(src));
+    }
     INST(0xef80000000000000, 0xffe0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "cctll");
     INST(0xef60000000000000, 0xffe0000000000000)
@@ -311,7 +321,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xe00000000000ff00, 0xff0000400000ff00) {
         // TODO: mode
         const auto dst = GET_REG(0);
-        const auto amem = GET_AMEM(28);
+        const auto amem = GET_AMEM_IDX(28);
         const auto interp_param = GET_REG(20);
         const auto flag1 = GET_REG(39);
         // TODO: another flag
@@ -693,8 +703,15 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd");
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
-    INST(0x3848000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "shl");
+    INST(0x3848000000000000, 0xfef8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(8);
+        const auto shift = GET_VALUE_U32(20, 19) |
+                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
+        LOG_DEBUG(ShaderDecompiler, "shl r{} r{} 0x{:x}", dst, src, shift);
+
+        observer->OpShiftLeft(dst, src, shift);
+    }
     INST(0x3840000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop");
     INST(0x3838000000000000, 0xfef8000000000000)
@@ -798,7 +815,7 @@ void Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 
 void Decompiler::Parse(ObserverBase* observer, Reader& code_reader) {
     // TODO: don't limit the instruction count
-    for (u32 i = 0; i < 16; i++) {
+    for (u32 i = 0; i < 64; i++) {
         u64 inst = code_reader.Read<u64>();
         LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
