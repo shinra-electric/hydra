@@ -180,6 +180,12 @@ void LangBuilderBase::OpMove(reg_t dst, Operand src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src, false));
 }
 
+void LangBuilderBase::OpFloatAdd(reg_t dst, reg_t src1, Operand src2) {
+    WriteStatement("{} = {} + {}", GetReg(dst, true, DataType::Float),
+                   GetReg(src1, false, DataType::Float),
+                   GetOperand(src2, false, DataType::Float));
+}
+
 void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
     WriteStatement("{} = {} * {}", GetReg(dst, true, DataType::Float),
                    GetReg(src1, false, DataType::Float),

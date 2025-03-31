@@ -15,6 +15,11 @@ void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
+void Analyzer::OpFloatAdd(reg_t dst, reg_t src1, Operand src2) {
+    if (src2.type == OperandType::ConstMemory)
+        HandleCMemLoad(src2.cmem);
+}
+
 void Analyzer::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
     if (src2.type == OperandType::ConstMemory)
         HandleCMemLoad(src2.cmem);

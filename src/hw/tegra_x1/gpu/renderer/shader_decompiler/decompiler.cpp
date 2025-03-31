@@ -183,7 +183,7 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xef90000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM_R(36, 8, 16);
-        LOG_DEBUG(ShaderDecompiler, "ld r{} c{}[r{} + 0x{:08x}]", dst, src.idx,
+        LOG_DEBUG(ShaderDecompiler, "ld r{} c{}[r{} + 0x{:x}]", dst, src.idx,
                   src.reg, src.imm);
 
         observer->OpLoad(dst, Operand::ConstMemory(src));
@@ -601,15 +601,22 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:08x}]", dst, src1,
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:x}]", dst, src1,
                   src2.idx, src2.imm);
 
         observer->OpFloatMultiply(dst, src1, Operand::ConstMemory(src2));
     }
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
-    INST(0x4c58000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd");
+    INST(0x4c58000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} c{}[0x{:x}]", dst, src1,
+                  src2.idx, src2.imm);
+
+        observer->OpFloatAdd(dst, src1, Operand::ConstMemory(src2));
+    }
     INST(0x4c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
     INST(0x4c48000000000000, 0xfff8000000000000)
@@ -656,8 +663,18 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imadsp");
     INST(0x4a00000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
-    INST(0x4980000000000000, 0xff80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma");
+    INST(0x4980000000000000, 0xff80000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_CMEM(34, 14);
+        const auto src3 = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, src1,
+                  src2.idx, src2.imm, src3);
+
+        // TODO: have a dedicated op for this
+        observer->OpFloatMultiply(dst, src1, Operand::ConstMemory(src2));
+        observer->OpFloatAdd(dst, dst, Operand::Register(src3));
+    }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
     INST(0x4800000000000000, 0xfe00000000000000)

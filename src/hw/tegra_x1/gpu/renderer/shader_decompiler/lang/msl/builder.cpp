@@ -116,7 +116,7 @@ void Builder::EmitDeclarations() {
         EnterScope("struct UBuff{}", index);
 
         // Data
-        Write("uint data[{}];", size / sizeof(u32));
+        Write("uint data[0x{:x}];", size / sizeof(u32));
 
         ExitScopeEmpty(true);
     }
