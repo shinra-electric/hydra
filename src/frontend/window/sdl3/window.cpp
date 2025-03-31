@@ -26,6 +26,12 @@ Window::Window(int argc, const char* argv[]) {
 
     // Begin emulation
     InitializeEmulationContext(rom_filename);
+
+    // Configure input
+    Horizon::OS::GetInstance().GetInputManager().ConnectNpad(
+        Horizon::HID::NpadIdType::Handheld,
+        Horizon::HID::NpadStyleSet::Handheld,
+        Horizon::HID::NpadAttributes::IsConnected);
 }
 
 Window::~Window() {
@@ -40,7 +46,52 @@ void Window::Run() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
+
+#define KEY_CASES                                                              \
+    KEY_CASE(RETURN, Plus);                                                    \
+    KEY_CASE(TAB, Minus);                                                      \
+    KEY_CASE(W, Up);                                                           \
+    KEY_CASE(A, Left);                                                         \
+    KEY_CASE(S, Down);                                                         \
+    KEY_CASE(D, Right);                                                        \
+    KEY_CASE(I, X);                                                            \
+    KEY_CASE(J, Y);                                                            \
+    KEY_CASE(K, B);                                                            \
+    KEY_CASE(L, A);
+
+#define KEY_CASE(sdl_key, button)                                              \
+    case SDLK_##sdl_key:                                                       \
+        buttons |= Horizon::HID::NpadButtons::button;                          \
+        break;
+
+            if (event.type == SDL_EVENT_KEY_DOWN) {
+                switch (event.key.key) {
+                    KEY_CASES;
+                default:
+                    break;
+                }
+            }
+
+#undef KEY_CASE
+
+#define KEY_CASE(sdl_key, button)                                              \
+    case SDLK_##sdl_key:                                                       \
+        buttons &= ~Horizon::HID::NpadButtons::button;                         \
+        break;
+
+            if (event.type == SDL_EVENT_KEY_UP) {
+                switch (event.key.key) {
+                    KEY_CASES;
+                default:
+                    break;
+                }
+            }
+
+#undef KEY_CASE
         }
+
+        Horizon::OS::GetInstance().GetInputManager().SetNpadButtons(
+            Horizon::HID::NpadIdType::Handheld, buttons);
 
         if (IsEmulating())
             Present();

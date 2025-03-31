@@ -1,6 +1,7 @@
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
 #include "hw/tegra_x1/cpu/hypervisor/const.hpp"
+#include "hw/tegra_x1/cpu/hypervisor/memory.hpp"
 
 /*
 #define USER_RANGE_MEM_BASE 0x01000000
@@ -66,28 +67,29 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
 
 MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 
-uptr MMU::AllocateAndMap(vaddr va, usize size,
-                         const Horizon::MemoryState state) {
+MemoryBase* MMU::AllocateMemory(usize size) {
     size = align(size, PAGE_SIZE);
-
-    uptr ptr = physical_memory_ptr + physical_memory_cur;
-    user_page_table.Map(va, physical_memory_cur, size, state);
+    auto memory = new Memory(physical_memory_cur, size);
     physical_memory_cur += size;
 
-    return ptr;
+    return memory;
 }
 
-void MMU::UnmapAndFree(vaddr va, usize size) {
-    LOG_NOT_IMPLEMENTED(Hypervisor, "Memory unmapping");
+void MMU::FreeMemory(MemoryBase* memory) {
+    LOG_NOT_IMPLEMENTED(Hypervisor, "Memory freeing");
 
-    user_page_table.Unmap(va, size);
+    delete memory;
 }
 
-// TODO: just improve this...
-void MMU::ResizeHeap(vaddr va, usize size) {
-    const auto region = user_page_table.QueryRegion(va);
-    paddr pa = region.UnmapAddr(va);
-    user_page_table.Map(va, pa, size, region.state);
+uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
+    return physical_memory_ptr + static_cast<Memory*>(memory)->GetBasePa();
+}
+
+void MMU::Map(vaddr va, usize size, MemoryBase* memory,
+              const Horizon::MemoryState state) {
+    ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
+    user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
+                        state);
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
@@ -99,6 +101,13 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
 }
 
 void MMU::Unmap(vaddr va, usize size) { user_page_table.Unmap(va, size); }
+
+// TODO: just improve this...
+void MMU::ResizeHeap(vaddr va, usize size) {
+    const auto region = user_page_table.QueryRegion(va);
+    paddr pa = region.UnmapAddr(va);
+    user_page_table.Map(va, pa, size, region.state);
+}
 
 uptr MMU::UnmapAddr(vaddr va) const {
     return physical_memory_ptr + user_page_table.UnmapAddr(va);
