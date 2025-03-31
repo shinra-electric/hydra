@@ -5,13 +5,22 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 1, SetCurrentProcess, 18,
-                             OpenSdCardFileSystem, 200,
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
+                             SetCurrentProcess, 18, OpenSdCardFileSystem, 200,
                              OpenDataStorageByProgramId, 1005,
                              GetGlobalAccessLogMode)
 
+void IFileSystemProxy::OpenFileSystem(REQUEST_COMMAND_PARAMS) {
+    // TODO: correct?
+    auto path = readers.send_buffers_readers[0].ReadString();
+    LOG_DEBUG(HorizonServices, "Path: {}", path);
+
+    add_service(new IFileSystem(/*path*/));
+}
+
 void IFileSystemProxy::OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS) {
-    add_service(new IFileSystem());
+    // TODO: correct?
+    add_service(new IFileSystem(/*"/sdmc"*/));
 }
 
 void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {

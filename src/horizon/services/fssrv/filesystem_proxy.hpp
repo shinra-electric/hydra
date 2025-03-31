@@ -13,6 +13,7 @@ class IFileSystemProxy : public ServiceBase {
 
   private:
     // Commands
+    void OpenFileSystem(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetCurrentProcess)
     void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS);

@@ -12,6 +12,8 @@ class ITimeZoneService : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    STUB_REQUEST_COMMAND(ToCalendarTimeWithMyRule);
 };
 
 } // namespace Hydra::Horizon::Services::TimeSrv

@@ -22,6 +22,9 @@ class ISystemClock : public ServiceBase {
 
   private:
     SystemClockType type;
+
+    // Commands
+    STUB_REQUEST_COMMAND(GetCurrentTime);
 };
 
 } // namespace Hydra::Horizon::Services::TimeSrv

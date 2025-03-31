@@ -2,6 +2,6 @@
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService)
+DEFINE_SERVICE_COMMAND_TABLE(ITimeZoneService, 101, ToCalendarTimeWithMyRule)
 
 } // namespace Hydra::Horizon::Services::TimeSrv

@@ -13,6 +13,7 @@ class IUserInterface : public ServiceBase {
 
   private:
     // Commands
+    STUB_REQUEST_COMMAND(RegisterProcess);
     void GetServiceHandle(REQUEST_COMMAND_PARAMS);
 };
 

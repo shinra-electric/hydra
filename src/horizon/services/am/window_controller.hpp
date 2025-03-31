@@ -13,6 +13,8 @@ class IWindowController : public ServiceBase {
 
   private:
     // Commands
+    STUB_REQUEST_COMMAND(GetAppletResourceUserId);
+    STUB_REQUEST_COMMAND(AcquireForegroundRights);
 };
 
 } // namespace Hydra::Horizon::Services::Am

@@ -5,7 +5,8 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter)
+DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 40,
+                             NotifyRunning)
 
 void IApplicationFunctions::PopLaunchParameter(REQUEST_COMMAND_PARAMS) {
     const auto kind = readers.reader.Read<LaunchParameterKind>();

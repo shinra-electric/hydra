@@ -15,6 +15,9 @@ class ICommonStateGetter : public ServiceBase {
     // Commands
     void GetEventHandle(REQUEST_COMMAND_PARAMS);
     void ReceiveMessage(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(DisallowToEnterSleep);
+    void GetOperationMode(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(GetPerformanceMode);
     void GetCurrentFocusState(REQUEST_COMMAND_PARAMS);
 };
 
