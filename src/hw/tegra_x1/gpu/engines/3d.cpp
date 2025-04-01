@@ -1,7 +1,9 @@
 #include "hw/tegra_x1/gpu/engines/3d.hpp"
 
+#include "common/types.hpp"
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include "hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
+#include "hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
@@ -18,7 +20,8 @@ u32 get_sampler_handle(u32 handle) { return extract_bits<u32, 20, 12>(handle); }
 DEFINE_METHOD_TABLE(ThreeD, 0x45, 1, LoadMmeInstructionRamPointer, u32, 0x46, 1,
                     LoadMmeInstructionRam, u32, 0x47, 1,
                     LoadMmeStartAddressRamPointer, u32, 0x48, 1,
-                    LoadMmeStartAddressRam, u32, 0x35e, 1, DrawVertexArray, u32,
+                    LoadMmeStartAddressRam, u32, 0x6c, 1, LaunchDMA, u32, 0x6d,
+                    1, LoadInlineData, u32, 0x35e, 1, DrawVertexArray, u32,
                     0x674, 1, ClearBuffer, ClearBufferData, 0x6c3, 1,
                     SetReportSemaphore, u32, 0x8c4, 1, FirmwareCall4, u32,
                     0x8e4, 16, LoadConstBuffer, u32, 0x900, 5 * 8, BindGroup,
@@ -70,6 +73,30 @@ void ThreeD::LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr) {
 
 void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
     macro_driver->LoadStartAddressRam(data);
+}
+
+void ThreeD::LaunchDMA(const u32 index, const u32 data) {
+    // TODO: args
+    LOG_FUNC_STUBBED(Engines);
+}
+
+void ThreeD::LoadInlineData(const u32 index, const u32 data) {
+    inline_data.push_back(data);
+    // TODO: correct?
+    if (inline_data.size() * sizeof(u32) ==
+        regs.inline_regs.line_length_in * regs.inline_regs.line_count) {
+        // Flush
+        // TODO: determine what type of copy this is based on launch DMA args
+
+        // Buffer to buffer
+        gpu_vaddr dst_addr = make_addr(regs.inline_regs.offset_out_lo,
+                                       regs.inline_regs.offset_out_hi);
+        uptr dst_ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(dst_addr);
+        auto dst = RENDERER->GetBufferCache().Find(
+            {dst_ptr, inline_data.size() * sizeof(u32)});
+
+        dst->CopyFrom(inline_data.data());
+    }
 }
 
 void ThreeD::DrawVertexArray(const u32 index, const u32 count) {

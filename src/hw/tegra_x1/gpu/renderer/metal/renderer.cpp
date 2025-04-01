@@ -160,22 +160,6 @@ void Renderer::Present(TextureBase* texture) {
     // Present
     command_buffer->presentDrawable(drawable);
     command_buffer->commit();
-
-    // Debug
-#if 0
-    static u32 frames = 0;
-    if (capturing) {
-        if (frames >= 3)
-            EndCapture();
-        frames++;
-    }
-
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
-    }
-#endif
 }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
@@ -287,6 +271,22 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     // Draw
     encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
                             NS::UInteger(start), NS::UInteger(count));
+
+    // Debug
+#if 0
+    static u32 frames = 0;
+    if (capturing) {
+        if (frames >= 3)
+            EndCapture();
+        frames++;
+    }
+
+    static bool did_capture = false;
+    if (!did_capture) {
+        BeginCapture();
+        did_capture = true;
+    }
+#endif
 }
 
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {

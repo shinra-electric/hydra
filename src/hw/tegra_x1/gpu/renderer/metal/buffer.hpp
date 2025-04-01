@@ -10,6 +10,9 @@ class Buffer final : public BufferBase {
     Buffer(const BufferDescriptor& descriptor);
     ~Buffer() override;
 
+    // Copying
+    void CopyFrom(const void* data) override;
+
     // Getters
     MTL::Buffer* GetBuffer() const { return buffer; }
 

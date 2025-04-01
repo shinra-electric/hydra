@@ -17,6 +17,24 @@ class PipelineBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+// TODO: move this to the inline engine
+struct RegsInline {
+    u32 line_length_in;
+    u32 line_count;
+    u32 offset_out_hi;
+    u32 offset_out_lo;
+    u32 pitch_out;
+    u32 dst_block_size;
+    u32 dst_width;
+    u32 dst_height;
+    u32 dst_depth;
+    u32 dst_layer;
+    u32 dst_origin_bytes_x;
+    u32 dst_origin_samples_y;
+    u32 not_a_reg_0xc;
+    u32 not_a_reg_0xd;
+};
+
 // From Deko3D
 struct BufferDescriptor {
     uptr gpu_addr;
@@ -166,7 +184,11 @@ inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
 
 union Regs3D {
     struct {
-        u32 padding1[0x200];
+        u32 padding_0x0[0x60];
+
+        RegsInline inline_regs;
+
+        u32 padding_0x6e[0x192];
 
         // 0x200 Render targets
         RenderTarget color_targets[COLOR_TARGET_COUNT];
@@ -380,6 +402,8 @@ class ThreeD : public EngineBase {
   private:
     Regs3D regs{};
 
+    std::vector<u32> inline_data;
+
     // Macros
     Macro::DriverBase* macro_driver;
 
@@ -392,6 +416,9 @@ class ThreeD : public EngineBase {
     void LoadMmeInstructionRam(const u32 index, const u32 data);
     void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
     void LoadMmeStartAddressRam(const u32 index, const u32 data);
+
+    void LaunchDMA(const u32 index, const u32 data);
+    void LoadInlineData(const u32 index, const u32 data);
 
     void DrawVertexArray(const u32 index, const u32 count);
 
