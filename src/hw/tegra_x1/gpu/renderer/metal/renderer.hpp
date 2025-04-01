@@ -21,6 +21,8 @@ enum class EncoderType {
 struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
+    const Buffer* index_buffer{nullptr};
+    Engines::IndexType index_type{Engines::IndexType::UInt16};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [UNIFORM_BUFFER_BINDING_COUNT];
@@ -51,7 +53,8 @@ class Renderer : public RendererBase {
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
-    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
+    BufferBase* AllocateTemporaryBuffer(const usize size) override;
+    void FreeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
@@ -77,6 +80,9 @@ class Renderer : public RendererBase {
     void BindPipeline(const PipelineBase* pipeline) override;
 
     // Resource binding
+    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
+    void BindIndexBuffer(BufferBase* index_buffer,
+                         Engines::IndexType index_type) override;
     void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                            u32 index) override;
     void BindTexture(TextureBase* texture, ShaderType shader_type,
@@ -84,7 +90,7 @@ class Renderer : public RendererBase {
 
     // Draw
     void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
-              const u32 count) override;
+              const u32 count, bool indexed) override;
 
     // Helpers
 

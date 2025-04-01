@@ -420,7 +420,7 @@ class ThreeD : public EngineBase {
     void LaunchDMA(const u32 index, const u32 data);
     void LoadInlineData(const u32 index, const u32 data);
 
-    void DrawVertexArray(const u32 index, const u32 count);
+    void DrawVertexArray(const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;

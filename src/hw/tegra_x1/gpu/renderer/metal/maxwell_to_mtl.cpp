@@ -225,6 +225,18 @@ to_mtl_primitive_type(const Engines::PrimitiveType primitive_type) {
     }
 }
 
+MTL::IndexType to_mtl_index_type(Engines::IndexType index_type) {
+    switch (index_type) {
+    case Engines::IndexType::UInt16:
+        return MTL::IndexTypeUInt16;
+    case Engines::IndexType::UInt32:
+        return MTL::IndexTypeUInt32;
+    default:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Index type {}", index_type);
+        return MTL::IndexTypeUInt16;
+    }
+}
+
 const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
                                              Engines::VertexAttribSize size,
                                              bool bgra) {

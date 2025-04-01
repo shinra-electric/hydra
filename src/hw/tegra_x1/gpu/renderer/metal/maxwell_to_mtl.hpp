@@ -20,6 +20,8 @@ inline MTL::PixelFormat to_mtl_pixel_format(TextureFormat format) {
 MTL::PrimitiveType
 to_mtl_primitive_type(const Engines::PrimitiveType primitive_type);
 
+MTL::IndexType to_mtl_index_type(Engines::IndexType index_type);
+
 const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
                                              Engines::VertexAttribSize size,
                                              bool bgra);

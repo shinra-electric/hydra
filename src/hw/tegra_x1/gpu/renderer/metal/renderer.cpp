@@ -105,6 +105,11 @@ Renderer::Renderer() {
     // Release
     vertex_fullscreen->release();
     fragment_texture->release();
+
+    // Info
+    info = {
+        .supports_quads_primitive = false,
+    };
 }
 
 Renderer::~Renderer() {
@@ -166,8 +171,18 @@ BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
 }
 
-void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
-    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+BufferBase* Renderer::AllocateTemporaryBuffer(const usize size) {
+    // TODO: use a buffer allocator instead
+    auto buffer = device->newBuffer(size, MTL::ResourceStorageModeShared);
+    return new Buffer(buffer, 0);
+}
+
+void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
+    auto buffer_impl = static_cast<Buffer*>(buffer);
+
+    // TODO: use a buffer allocator instead
+    buffer_impl->GetBuffer()->release();
+    delete buffer_impl;
 }
 
 TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
@@ -228,6 +243,16 @@ void Renderer::BindPipeline(const PipelineBase* pipeline) {
     state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
+void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
+    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+}
+
+void Renderer::BindIndexBuffer(BufferBase* index_buffer,
+                               Engines::IndexType index_type) {
+    state.index_buffer = static_cast<Buffer*>(index_buffer);
+    state.index_type = index_type;
+}
+
 void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                  u32 index) {
     // HACK
@@ -248,7 +273,7 @@ void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
 }
 
 void Renderer::Draw(const Engines::PrimitiveType primitive_type,
-                    const u32 start, const u32 count) {
+                    const u32 start, const u32 count, bool indexed) {
     auto encoder = GetRenderCommandEncoder();
 
     // State
@@ -269,8 +294,18 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     }
 
     // Draw
-    encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
-                            NS::UInteger(start), NS::UInteger(count));
+    if (indexed) {
+        auto index_buffer_mtl = state.index_buffer->GetBuffer();
+
+        // TODO: is start used correctly?
+        encoder->drawIndexedPrimitives(
+            to_mtl_primitive_type(primitive_type), NS::UInteger(count),
+            to_mtl_index_type(state.index_type), index_buffer_mtl,
+            NS::UInteger(start), 1);
+    } else {
+        encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
+                                NS::UInteger(start), NS::UInteger(count));
+    }
 
     // Debug
 #if 0
