@@ -52,14 +52,15 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
                                         const TextureCopyInfo& info) {
     const auto gpu_addr = make_addr(gpu_addr_lo, gpu_addr_hi);
 
+    // i32 block_size_log2 = get_block_size_log2(info.block_size.height);
+
     const Renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        .format =
-            Renderer::TextureFormat::RGBA8Unorm, // TODO: choose based on bpp
-        .kind = NvKind::Pitch,                   // TODO: correct?
-        .width = info.stride / 4,                // HACK
-        .height = info.height,
-        .block_height_log2 = 4, // HACK
+        .format = Renderer::TextureFormat::BC1_RGB, // TODO: choose based on bpp
+        .kind = NvKind::Pitch,                      // TODO: correct?
+        .width = info.stride * 4 / 8,               // HACK
+        .height = info.height * 4,                  // HACK
+        .block_height_log2 = 0,                     // TODO
         .stride = info.stride,
     };
 

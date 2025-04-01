@@ -40,6 +40,8 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
         return TextureFormat::Invalid;
     IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, R, G, B, A,
                       RGBA8Unorm) // TODO: why argb?
+    IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, R, G, B, OneFloat,
+                      BC1_RGB)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU,

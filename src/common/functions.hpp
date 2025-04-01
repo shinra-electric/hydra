@@ -54,6 +54,10 @@ inline uptr make_addr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
+template <typename T> inline T ceil_divide(T dividend, T divisor) {
+    return (dividend + divisor - 1) / divisor;
+}
+
 template <typename T> void push_unique(std::vector<T>& vec, T value) {
     auto it = std::find_if(vec.begin(), vec.end(),
                            [&](const T v) { return v == value; });
