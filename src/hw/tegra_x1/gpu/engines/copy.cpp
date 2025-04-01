@@ -19,12 +19,12 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             auto texture =
                 GetTexture(regs.offset_out_lo, regs.offset_out_hi, regs.dst);
 
-            // TODO: proper width
+            const auto& descriptor = texture->GetDescriptor();
             // TODO: use layer as origin Z in case of 3D textures
             texture->CopyFrom(
                 buffer, regs.stride_in, regs.dst.layer,
                 uint3({regs.dst.origin.x, regs.dst.origin.y, 0}),
-                usize3({regs.dst.stride / 4, regs.dst.height, regs.dst.depth}));
+                usize3({descriptor.width, descriptor.height, regs.dst.depth}));
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
