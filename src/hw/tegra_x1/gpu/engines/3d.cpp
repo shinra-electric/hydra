@@ -354,8 +354,29 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         .kind = NvKind::Pitch, // TODO: correct?
         .width = render_target.width,
         .height = render_target.height,
-        .block_height_log2 = render_target.tile_mode.height, // TODO: correct?
-        .stride = render_target.width * 4,                   // HACK
+        .block_height_log2 = 0,            // TODO
+        .stride = render_target.width * 4, // HACK
+    };
+
+    return RENDERER->GetTextureCache().Find(descriptor);
+}
+
+Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
+    const auto gpu_addr =
+        make_addr(regs.depth_target_addr_lo, regs.depth_target_addr_hi);
+    if (gpu_addr == 0x0) {
+        LOG_ERROR(Engines, "Invalid depth render target")
+        return nullptr;
+    }
+
+    const Renderer::TextureDescriptor descriptor{
+        .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
+        .format = Renderer::to_texture_format(regs.depth_target_format),
+        .kind = NvKind::Pitch, // TODO: correct?
+        .width = regs.depth_target_width,
+        .height = regs.depth_target_height,
+        .block_height_log2 = 0,                // TODO
+        .stride = regs.depth_target_width * 4, // HACK
     };
 
     return RENDERER->GetTextureCache().Find(descriptor);
@@ -374,8 +395,7 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
-        .texture = nullptr, // TODO
-        // TODO: stencil
+        .texture = GetDepthStencilTargetTexture(),
     };
 
     return RENDERER->GetRenderPassCache().Find(descriptor);

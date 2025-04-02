@@ -14,6 +14,7 @@ std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm, RGBA8Unorm),
     COLOR_PIXEL_FORMAT_ENTRY(B5G6R5Unorm, B5G6R5Unorm),
     COLOR_PIXEL_FORMAT_ENTRY(BC1_RGB, BC1_RGBA), // TODO: correct?
+    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true), // HACK
     // TODO: more
 };
 

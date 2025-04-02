@@ -256,14 +256,30 @@ union Regs3D {
         u32 clear_color[4];
         float clear_depth;
 
-        u32 padding3[0x2];
+        u32 padding_0x365[0x2];
 
+        // 0x367
         bool color_reduction_enable : 32;
         u32 clear_stencil;
 
-        u32 padding4[0x7];
-        u32 padding5[0xe0];
-        u32 padding6[0x8];
+        u32 padding_0x369[0x7];
+        u32 padding_0x370[0x80];
+        u32 padding_0x3f0[0x8];
+
+        // 0x3f8 depth target
+        u32 depth_target_addr_hi;
+        u32 depth_target_addr_lo;
+        DepthSurfaceFormat depth_target_format;
+        struct {
+            u32 width : 4;
+            u32 height : 4;
+            u32 depth : 4;
+            u32 padding : 20;
+        } depth_target_tile_mode;
+        u32 depth_target_layer_stride;
+
+        u32 padding_0x3fd[0x53];
+        u32 padding_0x450[0x8];
 
         // 0x458 vertex attribute states
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
@@ -283,7 +299,17 @@ union Regs3D {
             u32 map7 : 3;
         } color_target_control;
 
-        u32 padding_0x488[0xd5];
+        u32 padding_0x488[0x2];
+
+        // 0x48a depth target dimensions
+        u32 depth_target_width;
+        u32 depth_target_height;
+        struct {
+            u16 layers;
+            bool volume;
+        } depth_target_array_mode;
+
+        u32 padding_0x48d[0xd0];
 
         // 0x55d
         u32 tex_header_pool_hi;
@@ -445,6 +471,7 @@ class ThreeD : public EngineBase {
                                           u32 max_vertex) const;
     Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
+    Renderer::TextureBase* GetDepthStencilTargetTexture() const;
     Renderer::RenderPassBase* GetRenderPass() const;
     Renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
     Renderer::ShaderBase* GetShader(ShaderStage stage);

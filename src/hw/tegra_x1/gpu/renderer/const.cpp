@@ -64,7 +64,6 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format) {
     case ColorSurfaceFormat::color_surface_format:                             \
         return TextureFormat::texture_format;
 
-    // TODO: more formats
     switch (color_surface_format) {
         COLOR_SURFACE_FORMAT_CASE(Invalid, Invalid)
         COLOR_SURFACE_FORMAT_CASE(Bitmap, Invalid)
@@ -145,12 +144,11 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
     case DepthSurfaceFormat::depth_surface_format:                             \
         return TextureFormat::texture_format;
 
-    // TODO: more formats
     switch (depth_surface_format) {
         DEPTH_SURFACE_FORMAT_CASE(Invalid, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32Float, Z32Float)
         DEPTH_SURFACE_FORMAT_CASE(Z16Unorm, Z16Unorm)
-        DEPTH_SURFACE_FORMAT_CASE(S8Z24Unorm, Invalid) // TODO
+        DEPTH_SURFACE_FORMAT_CASE(S8Z24Unorm, Z24Unorm_S8Uint) // TODO
         DEPTH_SURFACE_FORMAT_CASE(Z24S8Unorm, Z24Unorm_S8Uint)
         DEPTH_SURFACE_FORMAT_CASE(S8Uint, S8Uint)
         DEPTH_SURFACE_FORMAT_CASE(Z24C8Unorm, Invalid)
