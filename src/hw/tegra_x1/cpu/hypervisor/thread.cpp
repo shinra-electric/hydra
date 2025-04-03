@@ -2,6 +2,7 @@
 
 #include <mach/mach_time.h>
 
+#include "common/functions.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
@@ -150,26 +151,28 @@ void Thread::Run() {
                 // Manually execute the instruction
                 u32 instruction = mmu->Load<u32>(pc);
 
-                u8 opcode =
-                    (instruction >> 24) & 0xFF; // Extract opcode (bits 31-24)
-                u8 rt = instruction & 0x1F;     // Extract Rt (bits 4-0)
+                u8 opcode = extract_bits<u8, 24, 8>(instruction);
+                u8 rt = extract_bits<u8, 0, 5>(instruction);
 
-                u8 op0 = (instruction >> 19) & 0x3; // Extract op0 (bits 21-20)
-                u8 op1 = (instruction >> 16) & 0x7; // Extract op1 (bits 18-16)
-                u8 crn = (instruction >> 12) & 0xF; // Extract CRn (bits 15-12)
-                u8 crm = (instruction >> 8) & 0xF;  // Extract CRm (bits 11-8)
-                u8 op2 = (instruction >> 5) & 0x7;  // Extract op2 (bits 7-5)
+                u8 op0 = extract_bits<u8, 20, 2>(instruction);
+                u8 op1 = extract_bits<u8, 16, 3>(instruction);
+                u8 crn = extract_bits<u8, 12, 4>(instruction);
+                u8 crm = extract_bits<u8, 8, 4>(instruction);
+                u8 op2 = extract_bits<u8, 5, 3>(instruction);
 
-                // std::cout << "Opcode: 0x" << std::hex << (int)opcode
-                //           << std::endl;
-                // std::cout << "First Operand (Rt): X" << std::dec << (int)rt
-                //           << std::endl;
-                // std::cout << "Second Operand (System Register): "
-                //           << "op0=" << (int)op0 << ", op1=" << (int)op1
-                //           << ", CRn=" << (int)crn << ", CRm=" << (int)crm
-                //           << ", op2=" << (int)op2 << std::endl;
+                u64 value = 0;
+                if (op0 == 3 && op1 == 3 && crn == 14 && crm == 0 &&
+                    op2 == 1) { // cntpct_el0
+                    value = mach_absolute_time();
+                } else {
+                    LOG_ERROR(Hypervisor,
+                              "Unknown MSR instruction (opcode: 0x{:08x}, "
+                              "rt: {}, op0: {}, op1: {}, crn: {}, crm: {}, "
+                              "op2: {})",
+                              opcode, rt, op0, op1, crn, crm, op2);
+                }
 
-                SetReg((hv_reg_t)(HV_REG_X0 + rt), 0);
+                SetReg((hv_reg_t)(HV_REG_X0 + rt), value);
 
                 // Set the return address
                 // TODO: correct?
