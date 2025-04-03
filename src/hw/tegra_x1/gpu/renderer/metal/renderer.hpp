@@ -2,6 +2,7 @@
 
 #include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
@@ -31,6 +32,7 @@ struct State {
 
 struct EncoderRenderState {
     MTL::RenderPipelineState* pipeline{nullptr};
+    MTL::DepthStencilState* depth_stencil_state{nullptr};
     MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
     MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
@@ -116,6 +118,8 @@ class Renderer : public RendererBase {
     // Encoder state setting
     void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
     void SetRenderPipelineState();
+    void SetDepthStencilState(MTL::DepthStencilState* mtl_depth_stencil_state);
+    void SetDepthStencilState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);
     void SetUniformBuffer(ShaderType shader_type, u32 index);
@@ -140,6 +144,7 @@ class Renderer : public RendererBase {
     MTL::SamplerState* linear_sampler;
 
     // Caches
+    DepthStencilStateCache* depth_stencil_state_cache;
     ClearColorPipelineCache* clear_color_pipeline_cache;
 
     // Command buffer

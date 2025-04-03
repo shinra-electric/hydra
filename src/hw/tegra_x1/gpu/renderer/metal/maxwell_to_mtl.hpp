@@ -26,4 +26,7 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
                                              Engines::VertexAttribSize size,
                                              bool bgra);
 
+MTL::CompareFunction
+to_mtl_compare_func(Engines::DepthTestFunc depth_test_func);
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

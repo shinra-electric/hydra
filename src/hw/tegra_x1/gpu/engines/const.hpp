@@ -84,6 +84,17 @@ enum class ShaderStage {
     Count,
 };
 
+enum class DepthTestFunc : u32 {
+    Never,
+    Less,
+    Equal,
+    LessEqual,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Always,
+};
+
 } // namespace Hydra::HW::TegraX1::GPU::Engines
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
@@ -117,3 +128,8 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::ShaderStage, VertexA,
                        "tessellation control", TessEval,
                        "tessellation evaluation", Geometry, "geometry",
                        Fragment, "fragment")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::DepthTestFunc, Never,
+                       "never", Less, "less", Equal, "equal", LessEqual,
+                       "less equal", Greater, "greater", NotEqual, "not equal",
+                       GreaterEqual, "greater equal", Always, "always")

@@ -1,5 +1,6 @@
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
+#include "hw/tegra_x1/gpu/engines/3d.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
@@ -91,7 +92,8 @@ Renderer::Renderer() {
     sampler_state_descriptor->release();
 
     // Caches
-    clear_color_pipeline_cache = new ClearColorPipelineCache(device);
+    depth_stencil_state_cache = new DepthStencilStateCache();
+    clear_color_pipeline_cache = new ClearColorPipelineCache();
 
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
@@ -113,6 +115,7 @@ Renderer::Renderer() {
 }
 
 Renderer::~Renderer() {
+    delete depth_stencil_state_cache;
     delete clear_color_pipeline_cache;
 
     linear_sampler->release();
@@ -278,6 +281,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
 
     // State
     SetRenderPipelineState();
+    SetDepthStencilState();
     // TODO: viewport and scissor
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
         SetVertexBuffer(i);
@@ -384,15 +388,37 @@ void Renderer::EndEncoding() {
 }
 
 void Renderer::SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline) {
-    if (mtl_pipeline == encoder_state.render.pipeline)
+    auto& bound_pipeline = encoder_state.render.pipeline;
+    if (mtl_pipeline == bound_pipeline)
         return;
 
     GetRenderCommandEncoderUnchecked()->setRenderPipelineState(mtl_pipeline);
-    encoder_state.render.pipeline = mtl_pipeline;
+    bound_pipeline = mtl_pipeline;
 }
 
 void Renderer::SetRenderPipelineState() {
     SetRenderPipelineState(state.pipeline->GetPipeline());
+}
+
+void Renderer::SetDepthStencilState(
+    MTL::DepthStencilState* mtl_depth_stencil_state) {
+    auto& bound_depth_stencil_state = encoder_state.render.depth_stencil_state;
+    if (mtl_depth_stencil_state == bound_depth_stencil_state)
+        return;
+
+    GetRenderCommandEncoderUnchecked()->setDepthStencilState(
+        mtl_depth_stencil_state);
+    bound_depth_stencil_state = mtl_depth_stencil_state;
+}
+
+void Renderer::SetDepthStencilState() {
+    DepthStencilStateDescriptor descriptor{
+        .depth_test_enabled = REGS_3D.depth_test_enabled,
+        .depth_write_enabled = REGS_3D.depth_write_enabled,
+        .depth_test_func = REGS_3D.depth_test_func,
+    };
+
+    SetDepthStencilState(depth_stencil_state_cache->Find(descriptor));
 }
 
 void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,

@@ -4,6 +4,8 @@
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 
+#define REGS_3D Engines::ThreeD::GetInstance().GetRegs()
+
 namespace Hydra::HW::TegraX1::GPU::Macro {
 class DriverBase;
 }
@@ -309,7 +311,22 @@ union Regs3D {
             bool volume;
         } depth_target_array_mode;
 
-        u32 padding_0x48d[0xd0];
+        u32 padding_0x48d[0x26];
+
+        // 0x4b3
+        bool depth_test_enabled : 32;
+
+        u32 padding_0x4b4[0x6];
+
+        // 0x4ba
+        bool depth_write_enabled : 32;
+
+        u32 padding_0x4bb[0x8];
+
+        // 0x4c3
+        DepthTestFunc depth_test_func;
+
+        u32 padding_0x4c4[0x99];
 
         // 0x55d
         u32 tex_header_pool_hi;
@@ -409,6 +426,9 @@ class ThreeD : public EngineBase {
     void Method(u32 method, u32 arg) override;
 
     void FlushMacro() override;
+
+    // Getters
+    const Regs3D& GetRegs() const { return regs; }
 
     u32 GetReg(u32 reg) const {
         ASSERT_DEBUG(reg < MACRO_METHODS_REGION, Macro, "Invalid register {}",

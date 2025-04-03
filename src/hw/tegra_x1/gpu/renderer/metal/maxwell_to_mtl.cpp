@@ -505,4 +505,30 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
     }
 }
 
+MTL::CompareFunction
+to_mtl_compare_func(Engines::DepthTestFunc depth_test_func) {
+    switch (depth_test_func) {
+    case Engines::DepthTestFunc::Never:
+        return MTL::CompareFunctionNever;
+    case Engines::DepthTestFunc::Less:
+        return MTL::CompareFunctionLess;
+    case Engines::DepthTestFunc::Equal:
+        return MTL::CompareFunctionEqual;
+    case Engines::DepthTestFunc::LessEqual:
+        return MTL::CompareFunctionLessEqual;
+    case Engines::DepthTestFunc::Greater:
+        return MTL::CompareFunctionGreater;
+    case Engines::DepthTestFunc::NotEqual:
+        return MTL::CompareFunctionNotEqual;
+    case Engines::DepthTestFunc::GreaterEqual:
+        return MTL::CompareFunctionGreaterEqual;
+    case Engines::DepthTestFunc::Always:
+        return MTL::CompareFunctionAlways;
+    default:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Depth test func {}",
+                            depth_test_func);
+        return MTL::CompareFunctionAlways;
+    }
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
