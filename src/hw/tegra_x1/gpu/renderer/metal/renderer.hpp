@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
@@ -137,9 +138,13 @@ class Renderer : public RendererBase {
 
     CA::MetalLayer* layer;
 
+    // Objects
+
     // Pipelines
     MTL::RenderPipelineState* present_pipeline;
-    MTL::RenderPipelineState* clear_color_pipeline;
+
+    // Depth stencil states
+    MTL::DepthStencilState* depth_stencil_state_always_and_write;
 
     // Samplers
     MTL::SamplerState* nearest_sampler;
@@ -148,6 +153,7 @@ class Renderer : public RendererBase {
     // Caches
     DepthStencilStateCache* depth_stencil_state_cache;
     ClearColorPipelineCache* clear_color_pipeline_cache;
+    ClearDepthPipelineCache* clear_depth_pipeline_cache;
 
     // Command buffer
     MTL::CommandBuffer* command_buffer{nullptr};

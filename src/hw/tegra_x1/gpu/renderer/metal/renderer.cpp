@@ -60,6 +60,8 @@ Renderer::Renderer() {
     auto fragment_texture =
         library->newFunction(ToNSString("fragment_texture"));
 
+    // Objects
+
     // Pipeline states
 
     // Present pipeline
@@ -79,6 +81,16 @@ Renderer::Renderer() {
         error->release(); // TODO: release?
     }
 
+    // Depth stencil states
+
+    // Always + write
+    auto depth_stencil_descriptor =
+        MTL::DepthStencilDescriptor::alloc()->init();
+    depth_stencil_descriptor->setDepthWriteEnabled(true);
+    depth_stencil_state_always_and_write =
+        device->newDepthStencilState(depth_stencil_descriptor);
+    depth_stencil_descriptor->release();
+
     // Sampler states
 
     // Nearest
@@ -94,6 +106,7 @@ Renderer::Renderer() {
     // Caches
     depth_stencil_state_cache = new DepthStencilStateCache();
     clear_color_pipeline_cache = new ClearColorPipelineCache();
+    clear_depth_pipeline_cache = new ClearDepthPipelineCache();
 
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
@@ -117,12 +130,14 @@ Renderer::Renderer() {
 Renderer::~Renderer() {
     delete depth_stencil_state_cache;
     delete clear_color_pipeline_cache;
+    delete clear_depth_pipeline_cache;
 
     linear_sampler->release();
     nearest_sampler->release();
 
+    depth_stencil_state_always_and_write->release();
+
     present_pipeline->release();
-    clear_color_pipeline->release();
 
     command_queue->release();
     device->release();
@@ -235,7 +250,22 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
 }
 
 void Renderer::ClearDepth(u32 layer, const float value) {
-    LOG_NOT_IMPLEMENTED(MetalRenderer, "Depth clears");
+    auto encoder = GetRenderCommandEncoder();
+
+    auto texture = static_cast<Texture*>(
+        state.render_pass->GetDescriptor().depth_stencil_target.texture);
+
+    SetRenderPipelineState(
+        clear_depth_pipeline_cache->Find(texture->GetPixelFormat()));
+    SetDepthStencilState(depth_stencil_state_always_and_write);
+    // TODO: set viewport and scissor
+    struct {
+        u32 layer_id;
+        float value;
+    } params = {layer, value};
+    encoder->setVertexBytes(&params, sizeof(params), 0);
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
 }
 
 void Renderer::ClearStencil(u32 layer, const u32 value) {
