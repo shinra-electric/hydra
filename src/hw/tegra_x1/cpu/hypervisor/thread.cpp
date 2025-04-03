@@ -1,10 +1,14 @@
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
+#include <mach/mach_time.h>
+
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
-#define MAX_STACK_TRACE_DEPTH 32
-
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+
+constexpr u32 MAX_STACK_TRACE_DEPTH = 32;
+
+constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
 Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // Create
@@ -23,6 +27,13 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
     // Trap debug access
     HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
     // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
+
+    // VTimer
+    struct mach_timebase_info info;
+    auto time = mach_timebase_info(&info);
+
+    interrupt_time_delta_ticks =
+        ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
 }
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
@@ -193,7 +204,6 @@ void Thread::Run() {
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
             UpdateVTimer();
-            LOG_DEBUG(Hypervisor, "VTimer");
         } else {
             // TODO: don't cast to u32
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
@@ -211,7 +221,7 @@ void Thread::AdvancePC() {
 void Thread::SetupVTimer() {
     SetSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
     SetSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
-              1000000000000000000); // TODO: set to current time
+              mach_absolute_time() + interrupt_time_delta_ticks);
 }
 
 void Thread::UpdateVTimer() {

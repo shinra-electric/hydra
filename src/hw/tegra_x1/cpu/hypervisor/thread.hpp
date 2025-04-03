@@ -94,6 +94,8 @@ class Thread : public ThreadBase {
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;
 
+    u64 interrupt_time_delta_ticks;
+
     void DataAbort(u32 instruction, u64 far, u64 elr);
 };
 
