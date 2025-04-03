@@ -234,10 +234,10 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
                              regs.clear_color);
 
     if (data.depth)
-        LOG_NOT_IMPLEMENTED(Engines, "Depth clears");
+        RENDERER->ClearDepth(data.layer_id, regs.clear_depth);
 
     if (data.stencil)
-        LOG_NOT_IMPLEMENTED(Engines, "Stencil clears");
+        RENDERER->ClearStencil(data.layer_id, regs.clear_stencil);
 }
 
 void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {

@@ -54,7 +54,9 @@ class RendererBase {
 
     // Clear
     virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                            const u32 color[4]) = 0;
+                            const uint4 color) = 0;
+    virtual void ClearDepth(u32 layer, const float value) = 0;
+    virtual void ClearStencil(u32 layer, const u32 value) = 0;
 
     // Shader
     virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;

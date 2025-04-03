@@ -218,7 +218,7 @@ void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
 }
 
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                          const u32 color[4]) {
+                          const uint4 color) {
     auto encoder = GetRenderCommandEncoder();
 
     auto texture = static_cast<Texture*>(state.render_pass->GetDescriptor()
@@ -229,9 +229,17 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
         {texture->GetPixelFormat(), render_target_id, mask}));
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
-    encoder->setFragmentBytes(color, sizeof(u32) * 4, 0);
+    encoder->setFragmentBytes(&color, sizeof(color), 0);
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
+}
+
+void Renderer::ClearDepth(u32 layer, const float value) {
+    LOG_NOT_IMPLEMENTED(MetalRenderer, "Depth clears");
+}
+
+void Renderer::ClearStencil(u32 layer, const u32 value) {
+    LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears");
 }
 
 ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {

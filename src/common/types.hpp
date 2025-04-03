@@ -100,6 +100,13 @@ using ulong3 = vec<u64, 3>;
 using usize3 = vec<usize, 3>;
 using float3 = vec<float, 3>;
 
+using uchar4 = vec<u8, 4>;
+using ushort4 = vec<u16, 4>;
+using uint4 = vec<u32, 4>;
+using ulong4 = vec<u64, 4>;
+using usize4 = vec<usize, 4>;
+using float4 = vec<float, 4>;
+
 template <typename T> class readonly {
   public:
     readonly() {}

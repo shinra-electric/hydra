@@ -72,7 +72,9 @@ class Renderer : public RendererBase {
 
     // Clear
     void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                    const u32 color[4]) override;
+                    const uint4 color) override;
+    void ClearDepth(u32 layer, const float value) override;
+    void ClearStencil(u32 layer, const u32 value) override;
 
     // Shader
     ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;

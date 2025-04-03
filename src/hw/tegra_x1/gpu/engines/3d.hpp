@@ -255,7 +255,7 @@ union Regs3D {
         ViewportZClip viewport_z_clip;
 
         // 0x360 Clear data
-        u32 clear_color[4];
+        uint4 clear_color;
         float clear_depth;
 
         u32 padding_0x365[0x2];
