@@ -22,7 +22,8 @@
 
 namespace Hydra::Horizon::Services::Sm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 1, GetServiceHandle)
+DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
+                             GetServiceHandle)
 
 void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     // auto in = *reinterpret_cast<GetServiceHandleIn*>(in_ptr);

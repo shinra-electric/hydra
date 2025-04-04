@@ -1,9 +1,9 @@
 #pragma once
 
 #include "horizon/const.hpp"
+#include "hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
-class Memory;
 class MMUBase;
 } // namespace Hydra::HW::TegraX1::CPU
 
@@ -14,13 +14,13 @@ class SharedMemory {
     SharedMemory(usize size);
     ~SharedMemory();
 
-    void MapToRange(HW::TegraX1::CPU::MMUBase* mmu, const range<uptr> range);
+    void MapToRange(const range<uptr> range_, MemoryPermission perm);
 
     // Getters
     uptr GetPtr() const;
 
   private:
-    HW::TegraX1::CPU::Memory* mem;
+    HW::TegraX1::CPU::MemoryBase* memory;
 };
 
 } // namespace Hydra::Horizon

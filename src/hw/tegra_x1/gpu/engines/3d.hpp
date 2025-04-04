@@ -4,6 +4,8 @@
 #include "hw/tegra_x1/gpu/engines/engine_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 
+#define REGS_3D Engines::ThreeD::GetInstance().GetRegs()
+
 namespace Hydra::HW::TegraX1::GPU::Macro {
 class DriverBase;
 }
@@ -16,6 +18,24 @@ class PipelineBase;
 } // namespace Hydra::HW::TegraX1::GPU::Renderer
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
+
+// TODO: move this to the inline engine
+struct RegsInline {
+    u32 line_length_in;
+    u32 line_count;
+    u32 offset_out_hi;
+    u32 offset_out_lo;
+    u32 pitch_out;
+    u32 dst_block_size;
+    u32 dst_width;
+    u32 dst_height;
+    u32 dst_depth;
+    u32 dst_layer;
+    u32 dst_origin_bytes_x;
+    u32 dst_origin_samples_y;
+    u32 not_a_reg_0xc;
+    u32 not_a_reg_0xd;
+};
 
 // From Deko3D
 struct BufferDescriptor {
@@ -166,7 +186,11 @@ inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
 
 union Regs3D {
     struct {
-        u32 padding1[0x200];
+        u32 padding_0x0[0x60];
+
+        RegsInline inline_regs;
+
+        u32 padding_0x6e[0x192];
 
         // 0x200 Render targets
         RenderTarget color_targets[COLOR_TARGET_COUNT];
@@ -231,24 +255,78 @@ union Regs3D {
         ViewportZClip viewport_z_clip;
 
         // 0x360 Clear data
-        u32 clear_color[4];
+        uint4 clear_color;
         float clear_depth;
 
-        u32 padding3[0x2];
+        u32 padding_0x365[0x2];
 
+        // 0x367
         bool color_reduction_enable : 32;
         u32 clear_stencil;
 
-        u32 padding4[0x7];
-        u32 padding5[0xe0];
-        u32 padding6[0x8];
+        u32 padding_0x369[0x7];
+        u32 padding_0x370[0x80];
+        u32 padding_0x3f0[0x8];
+
+        // 0x3f8 depth target
+        u32 depth_target_addr_hi;
+        u32 depth_target_addr_lo;
+        DepthSurfaceFormat depth_target_format;
+        struct {
+            u32 width : 4;
+            u32 height : 4;
+            u32 depth : 4;
+            u32 padding : 20;
+        } depth_target_tile_mode;
+        u32 depth_target_layer_stride;
+
+        u32 padding_0x3fd[0x53];
+        u32 padding_0x450[0x8];
 
         // 0x458 vertex attribute states
         VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
-        u32 padding_0x478[0x8];
+        u32 padding_0x478[0xf];
 
-        u32 padding_0x480[0xdd];
+        // 0x487 color target control
+        struct {
+            u32 count : 4;
+            u32 map0 : 3;
+            u32 map1 : 3;
+            u32 map2 : 3;
+            u32 map3 : 3;
+            u32 map4 : 3;
+            u32 map5 : 3;
+            u32 map6 : 3;
+            u32 map7 : 3;
+        } color_target_control;
+
+        u32 padding_0x488[0x2];
+
+        // 0x48a depth target dimensions
+        u32 depth_target_width;
+        u32 depth_target_height;
+        struct {
+            u16 layers;
+            bool volume;
+        } depth_target_array_mode;
+
+        u32 padding_0x48d[0x26];
+
+        // 0x4b3
+        bool depth_test_enabled : 32;
+
+        u32 padding_0x4b4[0x6];
+
+        // 0x4ba
+        bool depth_write_enabled : 32;
+
+        u32 padding_0x4bb[0x8];
+
+        // 0x4c3
+        DepthTestFunc depth_test_func;
+
+        u32 padding_0x4c4[0x99];
 
         // 0x55d
         u32 tex_header_pool_hi;
@@ -349,6 +427,9 @@ class ThreeD : public EngineBase {
 
     void FlushMacro() override;
 
+    // Getters
+    const Regs3D& GetRegs() const { return regs; }
+
     u32 GetReg(u32 reg) const {
         ASSERT_DEBUG(reg < MACRO_METHODS_REGION, Macro, "Invalid register {}",
                      reg);
@@ -365,7 +446,9 @@ class ThreeD : public EngineBase {
     void Macro(u32 method, u32 arg) override;
 
   private:
-    Regs3D regs;
+    Regs3D regs{};
+
+    std::vector<u32> inline_data;
 
     // Macros
     Macro::DriverBase* macro_driver;
@@ -380,7 +463,10 @@ class ThreeD : public EngineBase {
     void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
     void LoadMmeStartAddressRam(const u32 index, const u32 data);
 
-    void DrawVertexArray(const u32 index, const u32 count);
+    void LaunchDMA(const u32 index, const u32 data);
+    void LoadInlineData(const u32 index, const u32 data);
+
+    void DrawVertexArray(const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -405,6 +491,7 @@ class ThreeD : public EngineBase {
                                           u32 max_vertex) const;
     Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
     Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
+    Renderer::TextureBase* GetDepthStencilTargetTexture() const;
     Renderer::RenderPassBase* GetRenderPass() const;
     Renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
     Renderer::ShaderBase* GetShader(ShaderStage stage);

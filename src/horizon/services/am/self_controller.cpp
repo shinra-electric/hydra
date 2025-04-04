@@ -6,7 +6,10 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 40,
+DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 11,
+                             SetOperationModeChangedNotification, 12,
+                             SetPerformanceModeChangedNotification, 13,
+                             SetFocusHandlingMode, 40,
                              CreateManagedDisplayLayer)
 
 void ISelfController::LockExit(REQUEST_COMMAND_PARAMS) {

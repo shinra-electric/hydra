@@ -116,7 +116,7 @@ void Builder::EmitDeclarations() {
         EnterScope("struct UBuff{}", index);
 
         // Data
-        Write("uint data[{}];", size / sizeof(u32));
+        Write("uint data[0x{:x}];", size / sizeof(u32));
 
         ExitScopeEmpty(true);
     }
@@ -126,13 +126,13 @@ void Builder::EmitDeclarations() {
 void Builder::EmitMainPrototype() {
     switch (type) {
     case ShaderType::Vertex:
-        Write("vertex");
+        WriteRaw("vertex ");
         break;
     case ShaderType::Fragment:
-        Write("fragment");
+        WriteRaw("fragment ");
         break;
     default:
-        Write(INVALID_VALUE);
+        WriteRaw(INVALID_VALUE " ");
         break;
     }
     WriteRaw("StageOut main_(StageIn __in [[stage_in]]");

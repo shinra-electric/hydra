@@ -1,5 +1,6 @@
 #include "hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
+#include "hw/tegra_x1/gpu/engines/3d.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
@@ -59,6 +60,8 @@ Renderer::Renderer() {
     auto fragment_texture =
         library->newFunction(ToNSString("fragment_texture"));
 
+    // Objects
+
     // Pipeline states
 
     // Present pipeline
@@ -78,6 +81,16 @@ Renderer::Renderer() {
         error->release(); // TODO: release?
     }
 
+    // Depth stencil states
+
+    // Always + write
+    auto depth_stencil_descriptor =
+        MTL::DepthStencilDescriptor::alloc()->init();
+    depth_stencil_descriptor->setDepthWriteEnabled(true);
+    depth_stencil_state_always_and_write =
+        device->newDepthStencilState(depth_stencil_descriptor);
+    depth_stencil_descriptor->release();
+
     // Sampler states
 
     // Nearest
@@ -91,7 +104,9 @@ Renderer::Renderer() {
     sampler_state_descriptor->release();
 
     // Caches
-    clear_color_pipeline_cache = new ClearColorPipelineCache(device);
+    depth_stencil_state_cache = new DepthStencilStateCache();
+    clear_color_pipeline_cache = new ClearColorPipelineCache();
+    clear_depth_pipeline_cache = new ClearDepthPipelineCache();
 
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
@@ -105,16 +120,24 @@ Renderer::Renderer() {
     // Release
     vertex_fullscreen->release();
     fragment_texture->release();
+
+    // Info
+    info = {
+        .supports_quads_primitive = false,
+    };
 }
 
 Renderer::~Renderer() {
+    delete depth_stencil_state_cache;
     delete clear_color_pipeline_cache;
+    delete clear_depth_pipeline_cache;
 
     linear_sampler->release();
     nearest_sampler->release();
 
+    depth_stencil_state_always_and_write->release();
+
     present_pipeline->release();
-    clear_color_pipeline->release();
 
     command_queue->release();
     device->release();
@@ -160,30 +183,24 @@ void Renderer::Present(TextureBase* texture) {
     // Present
     command_buffer->presentDrawable(drawable);
     command_buffer->commit();
-
-    // Debug
-#if 0
-    static u32 frames = 0;
-    if (capturing) {
-        if (frames >= 3)
-            EndCapture();
-        frames++;
-    }
-
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
-    }
-#endif
 }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
 }
 
-void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
-    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+BufferBase* Renderer::AllocateTemporaryBuffer(const usize size) {
+    // TODO: use a buffer allocator instead
+    auto buffer = device->newBuffer(size, MTL::ResourceStorageModeShared);
+    return new Buffer(buffer, 0);
+}
+
+void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
+    auto buffer_impl = static_cast<Buffer*>(buffer);
+
+    // TODO: use a buffer allocator instead
+    buffer_impl->GetBuffer()->release();
+    delete buffer_impl;
 }
 
 TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
@@ -216,7 +233,7 @@ void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
 }
 
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                          const u32 color[4]) {
+                          const uint4 color) {
     auto encoder = GetRenderCommandEncoder();
 
     auto texture = static_cast<Texture*>(state.render_pass->GetDescriptor()
@@ -227,9 +244,32 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
         {texture->GetPixelFormat(), render_target_id, mask}));
     // TODO: set viewport and scissor
     encoder->setVertexBytes(&render_target_id, sizeof(render_target_id), 0);
-    encoder->setFragmentBytes(color, sizeof(u32) * 4, 0);
+    encoder->setFragmentBytes(&color, sizeof(color), 0);
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
+}
+
+void Renderer::ClearDepth(u32 layer, const float value) {
+    auto encoder = GetRenderCommandEncoder();
+
+    auto texture = static_cast<Texture*>(
+        state.render_pass->GetDescriptor().depth_stencil_target.texture);
+
+    SetRenderPipelineState(
+        clear_depth_pipeline_cache->Find(texture->GetPixelFormat()));
+    SetDepthStencilState(depth_stencil_state_always_and_write);
+    // TODO: set viewport and scissor
+    struct {
+        u32 layer_id;
+        float value;
+    } params = {layer, value};
+    encoder->setVertexBytes(&params, sizeof(params), 0);
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
+}
+
+void Renderer::ClearStencil(u32 layer, const u32 value) {
+    LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears");
 }
 
 ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
@@ -244,23 +284,42 @@ void Renderer::BindPipeline(const PipelineBase* pipeline) {
     state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
+void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
+    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+}
+
+void Renderer::BindIndexBuffer(BufferBase* index_buffer,
+                               Engines::IndexType index_type) {
+    state.index_buffer = static_cast<Buffer*>(index_buffer);
+    state.index_type = index_type;
+}
+
 void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                  u32 index) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
     state.uniform_buffers[u32(shader_type)][index] =
         static_cast<Buffer*>(buffer);
 }
 
 void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
                            u32 index) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
     state.textures[u32(shader_type)][index] = static_cast<Texture*>(texture);
 }
 
 void Renderer::Draw(const Engines::PrimitiveType primitive_type,
-                    const u32 start, const u32 count) {
+                    const u32 start, const u32 count, bool indexed) {
     auto encoder = GetRenderCommandEncoder();
 
     // State
     SetRenderPipelineState();
+    SetDepthStencilState();
     // TODO: viewport and scissor
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
         SetVertexBuffer(i);
@@ -277,8 +336,34 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     }
 
     // Draw
-    encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
-                            NS::UInteger(start), NS::UInteger(count));
+    if (indexed) {
+        auto index_buffer_mtl = state.index_buffer->GetBuffer();
+
+        // TODO: is start used correctly?
+        encoder->drawIndexedPrimitives(
+            to_mtl_primitive_type(primitive_type), NS::UInteger(count),
+            to_mtl_index_type(state.index_type), index_buffer_mtl,
+            NS::UInteger(start), 1);
+    } else {
+        encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
+                                NS::UInteger(start), NS::UInteger(count));
+    }
+
+    // Debug
+#if 0
+    static u32 frames = 0;
+    if (capturing) {
+        if (frames >= 3)
+            EndCapture();
+        frames++;
+    }
+
+    static bool did_capture = false;
+    if (!did_capture) {
+        BeginCapture();
+        did_capture = true;
+    }
+#endif
 }
 
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
@@ -341,15 +426,37 @@ void Renderer::EndEncoding() {
 }
 
 void Renderer::SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline) {
-    if (mtl_pipeline == encoder_state.render.pipeline)
+    auto& bound_pipeline = encoder_state.render.pipeline;
+    if (mtl_pipeline == bound_pipeline)
         return;
 
     GetRenderCommandEncoderUnchecked()->setRenderPipelineState(mtl_pipeline);
-    encoder_state.render.pipeline = mtl_pipeline;
+    bound_pipeline = mtl_pipeline;
 }
 
 void Renderer::SetRenderPipelineState() {
     SetRenderPipelineState(state.pipeline->GetPipeline());
+}
+
+void Renderer::SetDepthStencilState(
+    MTL::DepthStencilState* mtl_depth_stencil_state) {
+    auto& bound_depth_stencil_state = encoder_state.render.depth_stencil_state;
+    if (mtl_depth_stencil_state == bound_depth_stencil_state)
+        return;
+
+    GetRenderCommandEncoderUnchecked()->setDepthStencilState(
+        mtl_depth_stencil_state);
+    bound_depth_stencil_state = mtl_depth_stencil_state;
+}
+
+void Renderer::SetDepthStencilState() {
+    DepthStencilStateDescriptor descriptor{
+        .depth_test_enabled = REGS_3D.depth_test_enabled,
+        .depth_write_enabled = REGS_3D.depth_write_enabled,
+        .depth_test_func = REGS_3D.depth_test_func,
+    };
+
+    SetDepthStencilState(depth_stencil_state_cache->Find(descriptor));
 }
 
 void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,

@@ -14,10 +14,12 @@ add_executable(hydra
     common/allocators/dynamic_pool.hpp
     horizon/const.hpp
     horizon/hid.hpp
-    horizon/os.cpp
-    horizon/os.hpp
     horizon/state_manager.cpp
     horizon/state_manager.hpp
+    horizon/input_manager.cpp
+    horizon/input_manager.hpp
+    horizon/os.cpp
+    horizon/os.hpp
     horizon/hipc.hpp
     horizon/cmif.hpp
     horizon/shared_memory.cpp
@@ -153,14 +155,18 @@ add_executable(hydra
     horizon/services/audio/audio_out_manager.cpp
     horizon/services/audio/audio_out_manager.hpp
     hw/generic_mmu.hpp
-    hw/tegra_x1/cpu/memory.cpp
-    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/const.hpp
+    hw/tegra_x1/cpu/memory_base.hpp
+    hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
+    hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
+    hw/tegra_x1/cpu/hypervisor/page_allocator.hpp
     hw/tegra_x1/cpu/hypervisor/page_table.cpp
     hw/tegra_x1/cpu/hypervisor/page_table.hpp
+    hw/tegra_x1/cpu/hypervisor/memory.hpp
     hw/tegra_x1/cpu/hypervisor/mmu.cpp
     hw/tegra_x1/cpu/hypervisor/mmu.hpp
     hw/tegra_x1/cpu/hypervisor/thread.cpp
@@ -238,8 +244,12 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/shader.hpp
     hw/tegra_x1/gpu/renderer/metal/pipeline.cpp
     hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
+    hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.cpp
+    hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
+    hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.cpp
+    hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     hw/display/layer.hpp

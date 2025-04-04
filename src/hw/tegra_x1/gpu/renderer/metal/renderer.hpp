@@ -1,7 +1,9 @@
 #pragma once
 
 #include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
+#include "hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
@@ -21,14 +23,17 @@ enum class EncoderType {
 struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
+    const Buffer* index_buffer{nullptr};
+    Engines::IndexType index_type{Engines::IndexType::UInt16};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [UNIFORM_BUFFER_BINDING_COUNT];
-    const Texture* textures[usize(ShaderType::Count)][VERTEX_ARRAY_COUNT];
+    const Texture* textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT];
 };
 
 struct EncoderRenderState {
     MTL::RenderPipelineState* pipeline{nullptr};
+    MTL::DepthStencilState* depth_stencil_state{nullptr};
     MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
     MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
@@ -51,7 +56,8 @@ class Renderer : public RendererBase {
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
-    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
+    BufferBase* AllocateTemporaryBuffer(const usize size) override;
+    void FreeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
@@ -67,7 +73,9 @@ class Renderer : public RendererBase {
 
     // Clear
     void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                    const u32 color[4]) override;
+                    const uint4 color) override;
+    void ClearDepth(u32 layer, const float value) override;
+    void ClearStencil(u32 layer, const u32 value) override;
 
     // Shader
     ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
@@ -77,6 +85,9 @@ class Renderer : public RendererBase {
     void BindPipeline(const PipelineBase* pipeline) override;
 
     // Resource binding
+    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
+    void BindIndexBuffer(BufferBase* index_buffer,
+                         Engines::IndexType index_type) override;
     void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                            u32 index) override;
     void BindTexture(TextureBase* texture, ShaderType shader_type,
@@ -84,7 +95,7 @@ class Renderer : public RendererBase {
 
     // Draw
     void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
-              const u32 count) override;
+              const u32 count, bool indexed) override;
 
     // Helpers
 
@@ -110,6 +121,8 @@ class Renderer : public RendererBase {
     // Encoder state setting
     void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
     void SetRenderPipelineState();
+    void SetDepthStencilState(MTL::DepthStencilState* mtl_depth_stencil_state);
+    void SetDepthStencilState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);
     void SetUniformBuffer(ShaderType shader_type, u32 index);
@@ -125,16 +138,22 @@ class Renderer : public RendererBase {
 
     CA::MetalLayer* layer;
 
+    // Objects
+
     // Pipelines
     MTL::RenderPipelineState* present_pipeline;
-    MTL::RenderPipelineState* clear_color_pipeline;
+
+    // Depth stencil states
+    MTL::DepthStencilState* depth_stencil_state_always_and_write;
 
     // Samplers
     MTL::SamplerState* nearest_sampler;
     MTL::SamplerState* linear_sampler;
 
     // Caches
+    DepthStencilStateCache* depth_stencil_state_cache;
     ClearColorPipelineCache* clear_color_pipeline_cache;
+    ClearDepthPipelineCache* clear_depth_pipeline_cache;
 
     // Command buffer
     MTL::CommandBuffer* command_buffer{nullptr};

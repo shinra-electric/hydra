@@ -4,7 +4,6 @@
 #include "horizon/os.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
@@ -12,7 +11,7 @@ CPU::CPU() {
     // Create VM
     hv_vm_config_t vm_config = hv_vm_config_create();
     // hv_vm_config_set_el2_enabled(config, true);
-    HYP_ASSERT_SUCCESS(hv_vm_create(vm_config));
+    HV_ASSERT_SUCCESS(hv_vm_create(vm_config));
 
     // Create GIC
     // hv_gic_config_t gic_config = hv_gic_config_create();

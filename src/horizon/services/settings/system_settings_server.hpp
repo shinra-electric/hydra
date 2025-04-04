@@ -12,6 +12,8 @@ class ISystemSettingsServer : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void GetFirmwareVersion(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Settings

@@ -14,6 +14,19 @@ class TextureBase;
 class RenderPassBase;
 class PipelineBase;
 
+struct Info {
+    bool supports_quads_primitive;
+
+    bool IsPrimitiveSupported(Engines::PrimitiveType primitive_type) const {
+        switch (primitive_type) {
+        case Engines::PrimitiveType::Quads:
+            return supports_quads_primitive;
+        default:
+            return true;
+        }
+    }
+};
+
 class RendererBase {
   public:
     virtual ~RendererBase() {}
@@ -24,7 +37,8 @@ class RendererBase {
 
     // Buffer
     virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
-    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
+    virtual BufferBase* AllocateTemporaryBuffer(const usize size) = 0;
+    virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
@@ -40,7 +54,9 @@ class RendererBase {
 
     // Clear
     virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                            const u32 color[4]) = 0;
+                            const uint4 color) = 0;
+    virtual void ClearDepth(u32 layer, const float value) = 0;
+    virtual void ClearStencil(u32 layer, const u32 value) = 0;
 
     // Shader
     virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
@@ -51,6 +67,9 @@ class RendererBase {
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Resource binding
+    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
+    virtual void BindIndexBuffer(BufferBase* index_buffer,
+                                 Engines::IndexType index_type) = 0;
     virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                    u32 index) = 0;
     // TODO: storage buffers
@@ -61,9 +80,12 @@ class RendererBase {
 
     // Draw
     virtual void Draw(const Engines::PrimitiveType primitive_type,
-                      const u32 start, const u32 count) = 0;
+                      const u32 start, const u32 count,
+                      bool indexed = false) = 0;
 
     // Getters
+    const Info& GetInfo() const { return info; }
+
     BufferCache& GetBufferCache() { return buffer_cache; }
     TextureCache& GetTextureCache() { return texture_cache; }
     RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
@@ -71,6 +93,8 @@ class RendererBase {
     PipelineCache& GetPipelineCache() { return pipeline_cache; }
 
   protected:
+    Info info{};
+
     // State getters
     // TODO
 

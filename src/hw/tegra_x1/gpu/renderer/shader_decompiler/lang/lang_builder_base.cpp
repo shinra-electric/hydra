@@ -62,10 +62,18 @@ void LangBuilderBase::Start() {
             if (vertex_attrib_state.is_fixed)
                 continue;
 
+            // TODO: only set if the Rendered backend doesn't support scaled
+            // attributes
+            bool needs_scaling = (vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Sscaled ||
+                                  vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Uscaled);
+
             const auto sv = SV(SVSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
                 WriteStatement(
-                    "{} = as_type<uint>({})",
+                    (needs_scaling ? "{} = as_type<uint>((float){})"
+                                   : "{} = as_type<uint>({})"),
                     GetA({RZ, 0x80 + i * 0x10 + c * 0x4}),
                     GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false));
             }
@@ -102,7 +110,7 @@ void LangBuilderBase::Start() {
         u32 u32_count = size / sizeof(u32);
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
-                           GetC({index, i * sizeof(u32)}), index, i);
+                           GetC({index, RZ, i * sizeof(u32)}), index, i);
     }
     WriteNewline();
 }
@@ -172,14 +180,33 @@ void LangBuilderBase::OpMove(reg_t dst, Operand src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src, false));
 }
 
+void LangBuilderBase::OpFloatAdd(reg_t dst, reg_t src1, Operand src2) {
+    WriteStatement("{} = {} + {}", GetReg(dst, true, DataType::Float),
+                   GetReg(src1, false, DataType::Float),
+                   GetOperand(src2, false, DataType::Float));
+}
+
 void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
     WriteStatement("{} = {} * {}", GetReg(dst, true, DataType::Float),
                    GetReg(src1, false, DataType::Float),
                    GetOperand(src2, false, DataType::Float));
 }
 
-void LangBuilderBase::OpLoad(reg_t dst, AMem src) {
-    WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
+void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
+                                 reg_t src3) {
+    WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::Float),
+                   GetReg(src1, false, DataType::Float),
+                   GetOperand(src2, false, DataType::Float),
+                   GetReg(src3, false, DataType::Float));
+}
+
+void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
+    WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
+                   GetReg(src, false, DataType::UInt), shift);
+}
+
+void LangBuilderBase::OpLoad(reg_t dst, Operand src) {
+    WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src));
 }
 
 void LangBuilderBase::OpStore(AMem dst, reg_t src) {

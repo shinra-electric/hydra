@@ -5,6 +5,33 @@
 
 namespace Hydra::Horizon {
 
+struct FirmwareVersion {
+    u8 major;
+    u8 minor;
+    u8 micro;
+    u8 padding1;
+    u8 revision_major;
+    u8 revision_minor;
+    u8 padding2;
+    u8 padding3;
+    char platform[0x20];
+    char version_hash[0x40];
+    char display_version[0x18];
+    char display_title[0x80];
+};
+
+constexpr FirmwareVersion FIRMWARE_VERSION = {
+    .major = 1,
+    .minor = 0,
+    .micro = 0,
+    .revision_major = 0,
+    .revision_minor = 0,
+    .platform = "NX",
+    .version_hash = "voyp5gq7m551zuqgspcgobbmo74rg6yydpalt72l",
+    .display_version = "1.0.0",
+    .display_title = "Hydra firmware 1.0.0",
+};
+
 // From https://github.com/switchbrew/libnx
 enum class Error {
     OutOfSessions = 7,
@@ -57,23 +84,71 @@ typedef u32 Result;
 #define MAKE_KERNEL_RESULT(description)                                        \
     MAKE_RESULT(MODULE_KERNEL, Error::description)
 
-enum class Permission : u32 {
+enum class MemoryType : u32 {
+    Free = 0x00000000,
+    Io = 0x00002001,
+    Static = 0x00042002,
+    Code = 0x00dc7e03,
+    CodeData_1_0_0 = 0x01febd04,
+    CodeData_4_0_0 = 0x03febd04,
+    Normal_1_0_0 = 0x017ebd05,
+    Normal_4_0_0 = 0x037ebd05,
+    Shared = 0x00402006,
+    Alias = 0x00482907,
+    AliasCode = 0x00dd7e08,
+    AliasCodeData_1_0_0 = 0x01ffbd09,
+    AliasCodeData_4_0_0 = 0x03ffbd09,
+    Ipc = 0x005c3c0a,
+    Stack = 0x005c3c0b,
+    ThreadLocal = 0x0040200c,
+    Transfered = 0x015c3c0d,
+    SharedTransfered = 0x005c380e,
+    SharedCode = 0x0040380f,
+    Inaccessible = 0x00000010,
+    NonSecureIpc = 0x005c3811,
+    NonDeviceIpc = 0x004c2812,
+    Kernel = 0x00002013,
+    GeneratedCode = 0x00402214,
+    CodeOut = 0x00402015,
+    Coverage = 0x00002016,
+    Insecure = 0x05583817,
+};
+
+enum class MemoryAttribute : u32 {
+    None = 0,
+    Locked = BIT(0),
+    IpcLocked = BIT(1),
+    DeviceShared = BIT(2),
+    Uncached = BIT(3),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(MemoryAttribute)
+
+enum class MemoryPermission : u32 {
     None = 0x0,
     Read = BIT(0),
     Write = BIT(1),
     Execute = BIT(2),
     ReadWrite = Read | Write,
     ReadExecute = Read | Execute,
+    ReadWriteExecute = Read | Write | Execute,
     DontCare = BIT(28),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(Permission)
+ENABLE_ENUM_BITMASK_OPERATORS(MemoryPermission)
+
+struct MemoryState {
+    MemoryType type;
+    MemoryAttribute attr;
+    MemoryPermission perm;
+
+    bool operator==(const MemoryState other) const {
+        return type == other.type && attr == other.attr && perm == other.perm;
+    }
+};
 
 struct MemoryInfo {
     u64 addr;
     u64 size;
-    u32 type; // TODO: memory state
-    u32 attr; // TODO: memory attributes
-    Permission perm;
+    MemoryState state;
     u32 ipc_ref_count;    // TODO: what
     u32 device_ref_count; // TODO: what
     u32 padding = 0;
@@ -230,8 +305,8 @@ constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL = 0xFFFFFFFF;
 
 } // namespace Hydra::Horizon
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Permission, Read, "read", Write,
-                             "write", Execute, "execute", DontCare,
+ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::MemoryPermission, Read, "read",
+                             Write, "write", Execute, "execute", DontCare,
                              "don't care")
 
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::BreakReasonType, Panic, "panic", Assert,

@@ -8,13 +8,19 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 class Buffer final : public BufferBase {
   public:
     Buffer(const BufferDescriptor& descriptor);
+    Buffer(MTL::Buffer* buffer_, u32 offset_);
     ~Buffer() override;
+
+    // Copying
+    void CopyFrom(const void* data) override;
 
     // Getters
     MTL::Buffer* GetBuffer() const { return buffer; }
 
   private:
     MTL::Buffer* buffer;
+    u32 offset{0};
+    bool owns_buffer{true};
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

@@ -19,6 +19,7 @@ struct AMem {
 
 struct CMem {
     u32 idx;
+    reg_t reg;
     u64 imm;
 };
 
@@ -72,13 +73,17 @@ inline DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
         return DataType::Int;
     case Engines::VertexAttribType::Uint:
         return DataType::UInt;
-    case Engines::VertexAttribType::Uscaled:
-        return DataType::None;
     case Engines::VertexAttribType::Sscaled:
-        return DataType::None;
+        return DataType::Int; // TODO: use float if the Rendered backend
+                              // supports scaled attributes
+    case Engines::VertexAttribType::Uscaled:
+        return DataType::UInt; // TODO: use float if the Rendered backend
+                               // supports scaled attributes
     case Engines::VertexAttribType::Float:
         return DataType::Float;
     default:
+        LOG_WARNING(ShaderDecompiler, "Unknown vertex attrib type {}",
+                    vertex_attrib_type);
         return DataType::None;
     }
 }
@@ -158,6 +163,11 @@ inline const SV GetSVFromAddr(u64 addr) {
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::OperandType, Register,
+    "register", Immediate, "immediate", AttributeMemory, "attribute memory",
+    ConstMemory, "const memory")
 
 ENABLE_ENUM_FORMATTING(
     Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::DataType, Int, "int",

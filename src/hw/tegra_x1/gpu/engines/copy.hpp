@@ -165,3 +165,8 @@ class Copy : public EngineBase {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::BlockDim, OneGob,
+                       "1 gob", TwoGobs, "2 gobs", FourGobs, "4 gobs",
+                       EightGobs, "8 gobs", SixteenGobs, "16 gobs",
+                       ThirtyTwoGobs, "32 gobs", QuarterGob, "quarter gob")

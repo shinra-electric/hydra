@@ -15,6 +15,9 @@ class ISelfController : public ServiceBase {
     // Commands
     void LockExit(REQUEST_COMMAND_PARAMS);
     void UnlockExit(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SetOperationModeChangedNotification);
+    STUB_REQUEST_COMMAND(SetPerformanceModeChangedNotification);
+    STUB_REQUEST_COMMAND(SetFocusHandlingMode);
     void CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS);
 };
 

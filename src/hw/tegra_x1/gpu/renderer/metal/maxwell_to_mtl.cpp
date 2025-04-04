@@ -12,6 +12,9 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 
 std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm, RGBA8Unorm),
+    COLOR_PIXEL_FORMAT_ENTRY(B5G6R5Unorm, B5G6R5Unorm),
+    COLOR_PIXEL_FORMAT_ENTRY(BC1_RGB, BC1_RGBA), // TODO: correct?
+    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true), // HACK
     // TODO: more
 };
 
@@ -223,6 +226,18 @@ to_mtl_primitive_type(const Engines::PrimitiveType primitive_type) {
     }
 }
 
+MTL::IndexType to_mtl_index_type(Engines::IndexType index_type) {
+    switch (index_type) {
+    case Engines::IndexType::UInt16:
+        return MTL::IndexTypeUInt16;
+    case Engines::IndexType::UInt32:
+        return MTL::IndexTypeUInt32;
+    default:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Index type {}", index_type);
+        return MTL::IndexTypeUInt16;
+    }
+}
+
 const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
                                              Engines::VertexAttribSize size,
                                              bool bgra) {
@@ -380,13 +395,73 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
             return MTL::VertexFormatInvalid;
         }
     case Engines::VertexAttribType::Sscaled:
-        LOG_NOT_IMPLEMENTED(MetalRenderer,
-                            "Signed scaled vertex formats (size: {})", size);
-        return MTL::VertexFormatInvalid;
+        switch (size) {
+        case Engines::VertexAttribSize::_1x32:
+            return MTL::VertexFormatInt;
+        case Engines::VertexAttribSize::_2x32:
+            return MTL::VertexFormatInt2;
+        case Engines::VertexAttribSize::_3x32:
+            return MTL::VertexFormatInt3;
+        case Engines::VertexAttribSize::_4x32:
+            return MTL::VertexFormatInt4;
+
+        case Engines::VertexAttribSize::_1x16:
+            return MTL::VertexFormatShort;
+        case Engines::VertexAttribSize::_2x16:
+            return MTL::VertexFormatShort2;
+        case Engines::VertexAttribSize::_3x16:
+            return MTL::VertexFormatShort3;
+        case Engines::VertexAttribSize::_4x16:
+            return MTL::VertexFormatShort4;
+
+        case Engines::VertexAttribSize::_1x8:
+            return MTL::VertexFormatChar;
+        case Engines::VertexAttribSize::_2x8:
+            return MTL::VertexFormatChar2;
+        case Engines::VertexAttribSize::_3x8:
+            return MTL::VertexFormatChar3;
+        case Engines::VertexAttribSize::_4x8:
+            return MTL::VertexFormatChar4;
+
+        default:
+            LOG_ERROR(MetalRenderer,
+                      "Invalid vertex attribute size {} for sint type", size);
+            return MTL::VertexFormatInvalid;
+        }
     case Engines::VertexAttribType::Uscaled:
-        LOG_NOT_IMPLEMENTED(MetalRenderer,
-                            "Unsigned scaled vertex formats (size: {})", size);
-        return MTL::VertexFormatInvalid;
+        switch (size) {
+        case Engines::VertexAttribSize::_1x32:
+            return MTL::VertexFormatUInt;
+        case Engines::VertexAttribSize::_2x32:
+            return MTL::VertexFormatUInt2;
+        case Engines::VertexAttribSize::_3x32:
+            return MTL::VertexFormatUInt3;
+        case Engines::VertexAttribSize::_4x32:
+            return MTL::VertexFormatUInt4;
+
+        case Engines::VertexAttribSize::_1x16:
+            return MTL::VertexFormatUShort;
+        case Engines::VertexAttribSize::_2x16:
+            return MTL::VertexFormatUShort2;
+        case Engines::VertexAttribSize::_3x16:
+            return MTL::VertexFormatUShort3;
+        case Engines::VertexAttribSize::_4x16:
+            return MTL::VertexFormatUShort4;
+
+        case Engines::VertexAttribSize::_1x8:
+            return MTL::VertexFormatUChar;
+        case Engines::VertexAttribSize::_2x8:
+            return MTL::VertexFormatUChar2;
+        case Engines::VertexAttribSize::_3x8:
+            return MTL::VertexFormatUChar3;
+        case Engines::VertexAttribSize::_4x8:
+            return MTL::VertexFormatUChar4;
+
+        default:
+            LOG_ERROR(MetalRenderer,
+                      "Invalid vertex attribute size {} for uint type", size);
+            return MTL::VertexFormatInvalid;
+        }
     case Engines::VertexAttribType::Float:
         switch (size) {
         case Engines::VertexAttribSize::_1x32:
@@ -427,6 +502,32 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
         LOG_ERROR(MetalRenderer, "Unimplemented vertex attribute type {}",
                   type);
         return MTL::VertexFormatInvalid;
+    }
+}
+
+MTL::CompareFunction
+to_mtl_compare_func(Engines::DepthTestFunc depth_test_func) {
+    switch (depth_test_func) {
+    case Engines::DepthTestFunc::Never:
+        return MTL::CompareFunctionNever;
+    case Engines::DepthTestFunc::Less:
+        return MTL::CompareFunctionLess;
+    case Engines::DepthTestFunc::Equal:
+        return MTL::CompareFunctionEqual;
+    case Engines::DepthTestFunc::LessEqual:
+        return MTL::CompareFunctionLessEqual;
+    case Engines::DepthTestFunc::Greater:
+        return MTL::CompareFunctionGreater;
+    case Engines::DepthTestFunc::NotEqual:
+        return MTL::CompareFunctionNotEqual;
+    case Engines::DepthTestFunc::GreaterEqual:
+        return MTL::CompareFunctionGreaterEqual;
+    case Engines::DepthTestFunc::Always:
+        return MTL::CompareFunctionAlways;
+    default:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Depth test func {}",
+                            depth_test_func);
+        return MTL::CompareFunctionAlways;
     }
 }
 

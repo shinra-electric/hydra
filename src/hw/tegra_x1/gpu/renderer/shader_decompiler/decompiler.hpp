@@ -21,7 +21,7 @@ class Decompiler final {
                    ResourceMapping& out_resource_mapping);
 
   private:
-    void ParseInstruction(ObserverBase* observer, u64 inst);
+    bool ParseInstruction(ObserverBase* observer, u64 inst);
     void Parse(ObserverBase* observer, Reader& code_reader);
 };
 

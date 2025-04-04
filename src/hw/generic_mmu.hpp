@@ -58,6 +58,4 @@ template <typename SubclassT, typename Impl> class GenericMMU {
     std::map<uptr, Impl> mapped_ranges;
 };
 
-#undef THIS
-
 } // namespace Hydra::HW

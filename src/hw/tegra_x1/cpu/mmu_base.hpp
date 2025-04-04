@@ -1,36 +1,40 @@
 #pragma once
 
-#include "hw/generic_mmu.hpp"
-#include "hw/tegra_x1/cpu/memory.hpp"
+#include "horizon/const.hpp"
+#include "hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 
-struct MemoryMapping {
-    uptr ptr;
-    usize size;
-};
-
-class MMUBase : public GenericMMU<MMUBase, MemoryMapping> {
+class MMUBase {
   public:
-    // virtual void ReprotectMemory(uptr base) = 0;
+    static MMUBase& GetInstance();
 
-    uptr UnmapAddr(vaddr addr) const {
-        vaddr base;
-        MemoryMapping mem = FindAddrImpl(addr, base);
+    MMUBase();
+    virtual ~MMUBase();
 
-        return reinterpret_cast<uptr>(mem.ptr + (addr - base));
+    virtual MemoryBase* AllocateMemory(usize size) = 0;
+    virtual void FreeMemory(MemoryBase* memory) = 0;
+    virtual uptr GetMemoryPtr(MemoryBase* memory) const = 0;
+
+    virtual void Map(vaddr va, usize size, MemoryBase* memory,
+                     const Horizon::MemoryState state) = 0;
+    void Map(vaddr va, MemoryBase* memory, const Horizon::MemoryState state) {
+        Map(va, memory->GetSize(), memory, state);
+    }
+    virtual void Map(vaddr dst_va, vaddr src_va, usize size) = 0;
+    virtual void Unmap(vaddr va, usize size) = 0;
+    virtual void ResizeHeap(vaddr va, usize size) = 0;
+
+    virtual uptr UnmapAddr(vaddr va) const = 0;
+    virtual Horizon::MemoryInfo QueryMemory(vaddr va) const = 0;
+
+    template <typename T> T Load(vaddr va) const {
+        return *reinterpret_cast<T*>(UnmapAddr(va));
     }
 
-    usize ImplGetSize(MemoryMapping mem) const { return mem.size; }
-
-    virtual void MapImpl(vaddr base, MemoryMapping mem) = 0;
-    virtual void UnmapImpl(vaddr base, MemoryMapping mem) = 0;
-
-    void MapMemory(uptr base, Memory* mem) {
-        GenericMMU::Map(base, MemoryMapping{mem->GetPtr(), mem->GetSize()});
+    template <typename T> void Store(vaddr va, T value) const {
+        *reinterpret_cast<T*>(UnmapAddr(va)) = value;
     }
-
-    void UnmapMemory(uptr base, Memory* mem) { GenericMMU::Unmap(base); }
 };
 
 } // namespace Hydra::HW::TegraX1::CPU
