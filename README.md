@@ -17,6 +17,6 @@ Now configure CMake and build with Make.
 ```sh
 mkdir build
 cd build
-cmake .. -DCODESIGN_IDENTITY="Apple Development: SOMETHING@icloud.com (XXXXXXXXXX)"
+cmake .. -DCODESIGN_IDENTITY="Apple Development: SOMETHING (XXXXXXXXXX)"
 make -j4
 ```
