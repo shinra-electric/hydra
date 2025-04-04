@@ -266,7 +266,6 @@ target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/s
 target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" fmt::fmt SDL3::SDL3 glfw)
 
 # Signing
-set(CODESIGN_IDENTITY "Apple Development: samuliak@icloud.com (RMHRRGUDTQ)") # TODO: don't hardcode
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
 
 add_custom_command(TARGET hydra POST_BUILD VERBATIM
