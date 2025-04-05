@@ -246,6 +246,8 @@ add_executable(hydra
     hw/tegra_x1/gpu/renderer/metal/pipeline.hpp
     hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp
+    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.cpp
+    hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.cpp

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/clear_color_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp"
 #include "hw/tegra_x1/gpu/renderer/metal/const.hpp"
@@ -140,9 +141,6 @@ class Renderer : public RendererBase {
 
     // Objects
 
-    // Pipelines
-    MTL::RenderPipelineState* present_pipeline;
-
     // Depth stencil states
     MTL::DepthStencilState* depth_stencil_state_always_and_write;
 
@@ -152,6 +150,7 @@ class Renderer : public RendererBase {
 
     // Caches
     DepthStencilStateCache* depth_stencil_state_cache;
+    BlitPipelineCache* blit_pipeline_cache;
     ClearColorPipelineCache* clear_color_pipeline_cache;
     ClearDepthPipelineCache* clear_depth_pipeline_cache;
 
