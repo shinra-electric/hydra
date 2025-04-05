@@ -323,7 +323,12 @@ union Regs3D {
         // 0x4c3
         DepthTestFunc depth_test_func;
 
-        u32 padding_0x4c4[0x99];
+        u32 padding_0x4c4[0x8a];
+
+        // 0x54e
+        bool depth_target_enabled : 32;
+
+        u32 padding_0x54f[0xe];
 
         // 0x55d
         Iova tex_header_pool;

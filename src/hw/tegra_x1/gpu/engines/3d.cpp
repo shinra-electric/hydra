@@ -364,7 +364,8 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
-        .texture = GetDepthStencilTargetTexture(),
+        .texture = (regs.depth_target_enabled ? GetDepthStencilTargetTexture()
+                                              : nullptr),
     };
 
     return RENDERER->GetRenderPassCache().Find(descriptor);
