@@ -117,6 +117,22 @@ enum class DepthTestFunc : u32 {
     Always,
 };
 
+// Pitch - buffer, block linear - texture
+enum class MemoryLayout : u32 {
+    BlockLinear,
+    Pitch,
+};
+
+enum class BlockDim : u32 {
+    OneGob,
+    TwoGobs,
+    FourGobs,
+    EightGobs,
+    SixteenGobs,
+    ThirtyTwoGobs,
+    QuarterGob = 14,
+};
+
 } // namespace Hydra::HW::TegraX1::GPU::Engines
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
