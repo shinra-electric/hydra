@@ -328,7 +328,8 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 
     out_mem_info = mmu->QueryMemory(addr);
     // HACK
-    out_mem_info.state.type = static_cast<MemoryType>(3);
+    if (out_mem_info.state.type == MemoryType::Static)
+        out_mem_info.state.type = static_cast<MemoryType>(3);
 
     // TODO: what is this?
     out_page_info = 0;
