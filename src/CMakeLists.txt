@@ -138,6 +138,8 @@ add_executable(hydra
     horizon/services/lm/logger.hpp
     horizon/services/aocsrv/add_on_content_manager.cpp
     horizon/services/aocsrv/add_on_content_manager.hpp
+    horizon/services/pctl/ipc/parental_control_service.cpp
+    horizon/services/pctl/ipc/parental_control_service.hpp
     horizon/services/pctl/ipc/parental_control_service_factory.cpp
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
     horizon/services/account/account_service_for_application.cpp
