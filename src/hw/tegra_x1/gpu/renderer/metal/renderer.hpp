@@ -130,6 +130,12 @@ class Renderer : public RendererBase {
     void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
     void SetTexture(ShaderType shader_type, u32 index);
 
+    // Other
+    void BlitTexture(MTL::Texture* src, const float3 src_origin,
+                     const usize3 src_size, MTL::Texture* dst,
+                     const u32 dst_layer, const float3 dst_origin,
+                     const usize3 dst_size);
+
     // Getters
     MTL::Device* GetDevice() const { return device; }
 

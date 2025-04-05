@@ -118,6 +118,7 @@ void Renderer::Present(TextureBase* texture) {
 
     // TODO: acquire drawable earlier?
     auto drawable = layer->nextDrawable();
+    auto dst = drawable->texture();
 
     // Command buffer
     MTL::CommandBuffer* command_buffer = command_queue->commandBuffer();
@@ -126,8 +127,10 @@ void Renderer::Present(TextureBase* texture) {
     auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
         render_pass_descriptor->colorAttachments()->object(0);
-    color_attachment->setTexture(drawable->texture());
-    color_attachment->setLoadAction(MTL::LoadActionDontCare);
+    color_attachment->setTexture(dst);
+    color_attachment->setLoadAction(
+        MTL::LoadActionDontCare); // TODO: use load if not blitting to the whole
+                                  // texture
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
     auto encoder = command_buffer->renderCommandEncoder(render_pass_descriptor);
@@ -135,7 +138,9 @@ void Renderer::Present(TextureBase* texture) {
 
     // Draw
     encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({texture_impl->GetPixelFormat()}));
+        blit_pipeline_cache->Find({dst->pixelFormat()}));
+    u32 zero = 0;
+    encoder->setVertexBytes(&zero, sizeof(zero), 0);
     BlitParams params = {
         .src_offset = {0.0f, 0.0f},
         .src_scale = {1.0f, 1.0f},
@@ -318,7 +323,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     }
 
     // Debug
-#if 0
+#if 1
     static u32 frames = 0;
     if (capturing) {
         if (frames >= 3)
@@ -509,6 +514,50 @@ void Renderer::SetTexture(ShaderType shader_type, u32 index) {
         return;
 
     SetTexture(texture->GetTexture(), shader_type, index);
+}
+
+void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
+                           const usize3 src_size, MTL::Texture* dst,
+                           const u32 dst_layer, const float3 dst_origin,
+                           const usize3 dst_size) {
+    // Render pass
+    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
+    auto color_attachment =
+        render_pass_descriptor->colorAttachments()->object(0);
+    color_attachment->setTexture(dst);
+    color_attachment->setLoadAction(
+        MTL::LoadActionLoad); // TODO: use don't care if blitting to the whole
+                              // texture
+    color_attachment->setStoreAction(MTL::StoreActionStore);
+
+    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+    render_pass_descriptor->release();
+
+    // Draw
+    encoder->setRenderPipelineState(
+        blit_pipeline_cache->Find({src->pixelFormat()}));
+    // TODO: viewport
+    encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
+    // TODO: correct?
+    float2 scale = (float2(src_size) / float2(dst_size)) *
+                   (float2({static_cast<f32>(dst->width()),
+                            static_cast<f32>(dst->height())}) /
+                    float2({static_cast<f32>(src->width()),
+                            static_cast<f32>(src->height())}));
+    BlitParams params = {
+        .src_offset = {static_cast<f32>(src_origin.x()) /
+                           static_cast<f32>(src_size.x()),
+                       static_cast<f32>(src_origin.y()) /
+                           static_cast<f32>(src_size.y())},
+        .src_scale = scale,
+    };
+    encoder->setFragmentBytes(&params, sizeof(params), 0);
+    encoder->setFragmentTexture(src, NS::UInteger(0));
+    encoder->setFragmentSamplerState(
+        linear_sampler, NS::UInteger(0)); // TODO: use the correct sampler
+
+    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
+                            NS::UInteger(3));
 }
 
 void Renderer::BeginCapture() {

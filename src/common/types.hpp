@@ -67,10 +67,16 @@ template <typename T, usize component_count> class vec {
     vec(const std::initializer_list<T>& values) {
         std::copy(values.begin(), values.end(), components.begin());
     }
+    template <typename OtherT, usize other_component_count>
+    vec(const vec<OtherT, other_component_count>& other) {
+        for (usize i = 0; i < component_count; i++) {
+            components[i] = other[i];
+        }
+    }
 
-    T& operator[](int idx) { return components[index]; }
+    T& operator[](i32 index) { return components[index]; }
 
-    T operator[](int idx) const { return components[index]; }
+    const T& operator[](i32 index) const { return components[index]; }
 
     T& x() { return components[0]; }
     T& y() { return components[1]; }
@@ -85,6 +91,26 @@ template <typename T, usize component_count> class vec {
   private:
     std::array<T, component_count> components = {0};
 };
+
+template <typename T, usize component_count>
+vec<T, component_count> operator*(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (usize i = 0; i < component_count; i++)
+        result[i] *= r[i];
+
+    return result;
+}
+
+template <typename T, usize component_count>
+vec<T, component_count> operator/(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (usize i = 0; i < component_count; i++)
+        result[i] /= r[i];
+
+    return result;
+}
 
 using uchar2 = vec<u8, 2>;
 using ushort2 = vec<u16, 2>;
