@@ -92,8 +92,8 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Create executable memory
     uptr base;
-    auto ptr =
-        Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
+    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, base, MemoryPermission::ReadExecute);
     LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}", base);
 
     // Segments

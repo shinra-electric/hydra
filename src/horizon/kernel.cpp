@@ -83,16 +83,16 @@ void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
         thread->SetRegX(i, args[i]);
 }
 
-uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base) {
+uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base,
+                                    MemoryPermission perm) {
     size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
     // TODO: is static type correct?
     // TODO: what permissions should be used?
     auto mem = mmu->AllocateMemory(size);
     mmu->Map(executable_mem_base, mem,
-             {MemoryType::Static, MemoryAttribute::None,
-              MemoryPermission::ReadWriteExecute});
+             {MemoryType::Static, MemoryAttribute::None, perm});
     out_base = executable_mem_base;
-    executable_mem_base += size;
+    executable_mem_base += size + HW::TegraX1::CPU::PAGE_SIZE; // One guard page
     executable_mems.push_back(mem);
 
     return mmu->GetMemoryPtr(mem);
@@ -327,6 +327,8 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
     out_mem_info = mmu->QueryMemory(addr);
+    // HACK
+    out_mem_info.state.type = static_cast<MemoryType>(3);
 
     // TODO: what is this?
     out_page_info = 0;

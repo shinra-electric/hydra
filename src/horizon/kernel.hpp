@@ -49,7 +49,9 @@ class Kernel {
     void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
-    uptr CreateExecutableMemory(usize size, vaddr& out_base);
+    // TODO: should the caller be able to specify permissions?
+    uptr CreateExecutableMemory(usize size, vaddr& out_base,
+                                MemoryPermission perm);
     void SetEntryPoint(uptr entry_point_) { entry_point = entry_point_; }
     void SetArg(u32 index, u64 value) {
         ASSERT_DEBUG(index < ARG_COUNT, HorizonKernel, "Invalid arg index {}",

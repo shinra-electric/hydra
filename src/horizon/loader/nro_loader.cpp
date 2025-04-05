@@ -59,8 +59,9 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto ptr =
-        Kernel::GetInstance().CreateExecutableMemory(executable_size, base);
+    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, base,
+        MemoryPermission::ReadWriteExecute); // TODO: is the permission correct?
     reader.Seek(0);
     reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
