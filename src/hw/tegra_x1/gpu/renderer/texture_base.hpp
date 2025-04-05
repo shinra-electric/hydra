@@ -17,7 +17,9 @@ class TextureBase {
     virtual void CopyFrom(const BufferBase* src, const usize src_stride,
                           const u32 dst_layer, const uint3 dst_origin,
                           const usize3 size) = 0;
-    // virtual void CopyFrom(const TextureBase* texture) = 0;
+    virtual void CopyFrom(const TextureBase* src, const u32 src_layer,
+                          const uint3 src_origin, const u32 dst_layer,
+                          const uint3 dst_origin, const usize3 size) = 0;
 
     // Getters
     const TextureDescriptor& GetDescriptor() const { return descriptor; }

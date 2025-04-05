@@ -31,15 +31,29 @@ void Texture::CopyFrom(const void* data) {
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
                        const u32 dst_layer, const uint3 dst_origin,
                        const usize3 size) {
-    const auto buffer_impl = static_cast<const Buffer*>(src);
-    const auto mtl_buffer = buffer_impl->GetBuffer();
+    const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
     auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
 
     // TODO: bytes per image
     encoder->copyFromBuffer(
-        mtl_buffer, 0, src_stride, 0, MTL::Size(size.x(), size.y(), size.z()),
+        mtl_src, 0, src_stride, 0, MTL::Size(size.x(), size.y(), size.z()),
         mtl_texture, dst_layer, 0,
+        MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+}
+
+void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
+                       const uint3 src_origin, const u32 dst_layer,
+                       const uint3 dst_origin, const usize3 size) {
+    const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
+
+    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+
+    // TODO: bytes per image
+    encoder->copyFromTexture(
+        mtl_src, src_layer, 0,
+        MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
+        MTL::Size(size.x(), size.y(), size.z()), mtl_texture, dst_layer, 0,
         MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
 }
 

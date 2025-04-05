@@ -7,9 +7,6 @@
 #include "hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-#define UNMAP_ADDR(addr)                                                       \
-    GPU::GetInstance().GetGPUMMU().UnmapAddr(MAKE_ADDR(addr))
-
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
 namespace {
