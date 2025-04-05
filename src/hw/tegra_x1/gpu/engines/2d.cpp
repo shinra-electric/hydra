@@ -32,7 +32,7 @@ Renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
         .stride = static_cast<usize>(info.stride),
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

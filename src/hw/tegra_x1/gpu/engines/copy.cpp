@@ -64,7 +64,7 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
         .stride = info.stride,
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

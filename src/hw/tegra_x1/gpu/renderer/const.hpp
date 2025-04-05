@@ -162,6 +162,13 @@ struct TextureDescriptor {
     // TODO: more
 };
 
+struct TextureViewDescriptor {
+    Renderer::TextureFormat format;
+    // TODO: swizzle
+
+    u32 GetHash() const { return (u32)format; }
+};
+
 struct RenderTargetDescriptor {
     TextureBase* texture;
     bool load_action_clear = false;

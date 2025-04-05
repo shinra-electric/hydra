@@ -304,7 +304,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         .stride = static_cast<usize>((tic.width_minus_one + 1) * 4), // HACK
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 Renderer::TextureBase*
@@ -328,7 +328,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         .stride = render_target.width * 4, // HACK
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
@@ -348,7 +348,7 @@ Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
         .stride = regs.depth_target_width * 4, // HACK
     };
 
-    return RENDERER->GetTextureCache().Find(descriptor);
+    return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
 
 Renderer::RenderPassBase* ThreeD::GetRenderPass() const {

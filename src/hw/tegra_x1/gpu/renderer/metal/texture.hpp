@@ -8,7 +8,10 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 class Texture final : public TextureBase {
   public:
     Texture(const TextureDescriptor& descriptor);
+    Texture(const TextureDescriptor& descriptor, MTL::Texture* mtl_texture_);
     ~Texture() override;
+
+    TextureBase* CreateView(const TextureViewDescriptor& descriptor) override;
 
     // Copying
     void CopyFrom(const void* data) override;

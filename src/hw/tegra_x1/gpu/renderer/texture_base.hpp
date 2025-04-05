@@ -12,6 +12,9 @@ class TextureBase {
         : descriptor{descriptor_} {}
     virtual ~TextureBase() = default;
 
+    virtual TextureBase*
+    CreateView(const TextureViewDescriptor& descriptor) = 0;
+
     // Copying
     virtual void CopyFrom(const void* data) = 0;
     virtual void CopyFrom(const BufferBase* src, const usize src_stride,

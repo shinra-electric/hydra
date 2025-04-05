@@ -18,7 +18,19 @@ Texture::Texture(const TextureDescriptor& descriptor)
     mtl_texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
 }
 
+Texture::Texture(const TextureDescriptor& descriptor,
+                 MTL::Texture* mtl_texture_)
+    : TextureBase(descriptor), mtl_texture{mtl_texture_} {}
+
 Texture::~Texture() { mtl_texture->release(); }
+
+TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
+    auto mtl_view =
+        mtl_texture->newTextureView(to_mtl_pixel_format(descriptor.format));
+
+    // TODO: don't pass this descriptor
+    return new Texture(GetDescriptor(), mtl_view);
+}
 
 void Texture::CopyFrom(const void* data) {
     // TODO: do a GPU copy
