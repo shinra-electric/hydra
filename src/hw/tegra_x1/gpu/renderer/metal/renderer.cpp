@@ -323,7 +323,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     }
 
     // Debug
-#if 1
+#if 0
     static u32 frames = 0;
     if (capturing) {
         if (frames >= 3)
