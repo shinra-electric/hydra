@@ -20,19 +20,20 @@ struct Texture2DInfo {
     Iova addr;
 };
 
+struct SplitFloat {
+    u32 fractional;
+    u32 integer;
+};
+
 struct PixelsFromMemory {
     u32 dst_x0;
     u32 dst_y0;
     u32 dst_width;
     u32 dst_height;
-    u32 du_dx_frac;
-    u32 du_dx_int;
-    u32 du_dy_frac;
-    u32 du_dy_int;
-    u32 src_x0_frac;
-    u32 src_x0_int;
-    u32 src_y0_frac;
-    u32 not_a_register;
+    SplitFloat dudx;
+    SplitFloat dvdy;
+    SplitFloat src_x0;
+    SplitFloat src_y0;
 };
 
 union Regs2D {

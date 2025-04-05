@@ -24,6 +24,11 @@ class TextureBase {
                           const uint3 src_origin, const u32 dst_layer,
                           const uint3 dst_origin, const usize3 size) = 0;
 
+    // Blitting
+    virtual void BlitFrom(const TextureBase* src, const u32 src_layer,
+    const float3 src_origin, const usize3 src_size, const u32 dst_layer,
+    const float3 dst_origin, const usize3 dst_size) = 0;
+
     // Getters
     const TextureDescriptor& GetDescriptor() const { return descriptor; }
 

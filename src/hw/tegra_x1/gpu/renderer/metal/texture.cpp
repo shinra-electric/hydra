@@ -69,4 +69,12 @@ void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
         MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
 }
 
+void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
+const float3 src_origin, const usize3 src_size, const u32 dst_layer,
+const float3 dst_origin, const usize3 dst_size) {
+    LOG_NOT_IMPLEMENTED(Other, "Blitting (src size: {}x{}x{}, dst size: {}x{}x{})",
+                        src_size.x(), src_size.y(), src_size.z(), dst_size.x(),
+                        dst_size.y(), dst_size.z());
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
