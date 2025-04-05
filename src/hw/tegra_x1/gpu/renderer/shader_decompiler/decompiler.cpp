@@ -458,8 +458,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     }
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
-    INST(0x5c58000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd");
+    INST(0x5c58000000000000, 0xfff8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} r{}", dst, src1, src2);
+
+        observer->OpFloatAdd(dst, src1, Operand::Register(src2));
+    }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
     INST(0x5c48000000000000, 0xfff8000000000000)
