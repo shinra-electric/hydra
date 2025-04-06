@@ -113,6 +113,7 @@ uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base,
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     Result res;
+    i32 tmp_i32;
     u32 tmp_u32;
     u64 tmp_u64;
     uptr tmp_uptr;
@@ -120,36 +121,36 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     switch (id) {
     case 0x1:
         res = svcSetHeapSize(thread->GetRegX(1), tmp_uptr);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_uptr);
         break;
     case 0x2:
         res = svcSetMemoryPermission(
             thread->GetRegX(0), thread->GetRegX(1),
             static_cast<MemoryPermission>(thread->GetRegX(2)));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x3:
         res = svcSetMemoryAttribute(thread->GetRegX(0), thread->GetRegX(1),
                                     thread->GetRegX(2), thread->GetRegX(3));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x4:
         res = svcMapMemory(thread->GetRegX(0), thread->GetRegX(1),
                            thread->GetRegX(2));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x5:
         res = svcUnmapMemory(thread->GetRegX(0), thread->GetRegX(1),
                              thread->GetRegX(2));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x6:
         res = svcQueryMemory(
             thread->GetRegX(2),
             *reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(thread->GetRegX(0))),
             tmp_u32);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u32);
         break;
     case 0x7:
@@ -160,7 +161,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
                               thread->GetRegX(3),
                               bit_cast<i32>(thread->GetRegW(4)),
                               bit_cast<i32>(thread->GetRegW(5)), tmp_handle_id);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x9:
@@ -169,63 +170,67 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
     case 0xc:
-        res = svcGetThreadPriority(thread->GetRegX(1), tmp_u32);
-        thread->SetRegX(0, res);
-        thread->SetRegX(1, tmp_u32);
+        res = svcGetThreadPriority(thread->GetRegX(1), tmp_i32);
+        thread->SetRegW(0, res);
+        thread->SetRegW(1, bit_cast<u32>(tmp_i32));
+        break;
+    case 0xd:
+        res = svcSetThreadPriority(thread->GetRegX(0), thread->GetRegX(1));
+        thread->SetRegW(0, res);
         break;
     case 0x13:
         res = svcMapSharedMemory(
             thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
             static_cast<MemoryPermission>(thread->GetRegX(3)));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x14:
         res = svcUnmapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
                                    thread->GetRegX(2));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x15:
         res = svcCreateTransferMemory(
             thread->GetRegX(1), thread->GetRegX(2),
             static_cast<MemoryPermission>(thread->GetRegX(3)), tmp_handle_id);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x16:
         res = svcCloseHandle(thread->GetRegX(0));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x17:
         res = svcResetSignal(thread->GetRegX(0));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x18:
         res = svcWaitSynchronization(
             reinterpret_cast<HandleId*>(thread->GetRegX(1)),
             bit_cast<i64>(thread->GetRegX(2)),
             bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
         break;
     case 0x1a:
         res = svcArbitrateLock(thread->GetRegX(0), thread->GetRegX(1),
                                thread->GetRegX(2));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x1b:
         res = svcArbitrateUnlock(thread->GetRegX(0));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x1c:
         res = svcWaitProcessWideKeyAtomic(
             thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
             bit_cast<i64>(thread->GetRegX(3)));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x1d:
         res = svcSignalProcessWideKey(mmu->UnmapAddr(thread->GetRegX(0)),
                                       thread->GetRegX(1));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x1e:
         svcGetSystemTick(tmp_u64);
@@ -235,17 +240,17 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcConnectToNamedPort(
             reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))),
             tmp_handle_id);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x21:
         res = svcSendSyncRequest(thread->GetTlsMemory(), thread->GetRegX(0));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x25:
         res =
             svcGetThreadId(static_cast<HandleId>(thread->GetRegX(1)), tmp_u64);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
         break;
     case 0x26:
@@ -254,24 +259,24 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
 
         res = svcBreak(BreakReason(thread->GetRegX(0)),
                        mmu->UnmapAddr(thread->GetRegX(1)), thread->GetRegX(2));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x27:
         res = svcOutputDebugString(
             reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(0))),
             thread->GetRegX(1));
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     case 0x29:
         res = svcGetInfo(static_cast<InfoType>(thread->GetRegX(1)),
                          thread->GetRegX(2), thread->GetRegX(3), tmp_u64);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented SVC 0x{:08x}", id);
         res = MAKE_KERNEL_RESULT(NotImplemented);
-        thread->SetRegX(0, res);
+        thread->SetRegW(0, res);
         break;
     }
 
@@ -403,7 +408,7 @@ void Kernel::svcSleepThread(i64 nano) {
 }
 
 Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
-                                    u32& out_priority) {
+                                    i32& out_priority) {
     LOG_DEBUG(HorizonKernel, "svcGetThreadPriority called (thread: 0x{:08x})",
               thread_handle_id);
 
@@ -412,6 +417,18 @@ Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
 
     // HACK
     out_priority = 0x20; // 0x0 - 0x3f, lower is higher priority
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcSetThreadPriority(HandleId thread_handle_id, i32 priority) {
+    LOG_DEBUG(
+        HorizonKernel,
+        "svcSetThreadPriority called (thread: 0x{:08x}, priority: 0x{:x})",
+        thread_handle_id, priority);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
 
     return RESULT_SUCCESS;
 }
