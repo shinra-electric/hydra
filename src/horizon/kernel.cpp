@@ -166,6 +166,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x9:
         svcStartThread(thread->GetRegW(0));
+        break;
     case 0xb:
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
