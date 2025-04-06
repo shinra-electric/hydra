@@ -19,6 +19,9 @@ constexpr uptr STACK_REGION_BASE = 0x10000000;
 constexpr usize STACK_REGION_SIZE = 0x10000000;
 constexpr usize STACK_MEM_SIZE = 0x2000000;
 
+constexpr uptr ALIAS_REGION_BASE = 0x30000000;
+constexpr usize ALIAS_REGION_SIZE = STACK_REGION_SIZE;
+
 constexpr uptr TLS_REGION_BASE = 0x20000000;
 constexpr usize TLS_REGION_SIZE = 0x10000000;
 constexpr usize TLS_MEM_SIZE = 0x20000;
@@ -40,6 +43,10 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     stack_mem = mmu->AllocateMemory(STACK_MEM_SIZE);
     mmu->Map(STACK_REGION_BASE, stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
+    // TODO: correct?
+    mmu->Map(ALIAS_REGION_BASE, stack_mem,
+             {MemoryType::Alias, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
 
     // TLS memory
@@ -662,14 +669,10 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = 0;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
-        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionAddress");
-        // HACK
-        out_info = STACK_REGION_BASE;
+        out_info = ALIAS_REGION_BASE;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
-        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionSize");
-        // HACK
-        out_info = STACK_REGION_SIZE;
+        out_info = ALIAS_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
         out_info = HEAP_REGION_BASE;
