@@ -790,7 +790,8 @@ HandleId Kernel::CreateSharedMemory(usize size) {
 
 HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr& base) {
     auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
-    mmu->Map(tls_mem_base, mem,
+    base = tls_mem_base;
+    mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
     tls_mem_base += TLS_MEM_SIZE;
