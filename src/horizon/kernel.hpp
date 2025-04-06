@@ -4,6 +4,7 @@
 #include "common/allocators/static_pool.hpp"
 #include "horizon/filesystem/filesystem.hpp"
 #include "horizon/shared_memory.hpp"
+#include <condition_variable>
 
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
@@ -23,6 +24,30 @@ class ServiceBase;
 class KernelHandle {
   public:
     virtual ~KernelHandle() = default;
+};
+
+class SynchronizationHandle : public KernelHandle {
+  public:
+    void Signal() {
+        std::unique_lock<std::mutex> lock(mutex);
+        signaled = true;
+        cv.notify_all();
+    }
+
+    void Wait(i64 timeout) {
+        std::unique_lock<std::mutex> lock(mutex);
+        if (timeout == INFINITE_TIMEOUT) {
+            cv.wait(lock, [this] { return signaled; });
+        } else {
+            cv.wait_for(lock, std::chrono::nanoseconds(timeout),
+                        [this] { return signaled; });
+        }
+    }
+
+  private:
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool signaled = false;
 };
 
 class Thread : public KernelHandle {
@@ -117,7 +142,7 @@ class Kernel {
                                    HandleId& out_transfer_mem_handle_id);
     Result svcCloseHandle(HandleId handle_id);
     Result svcResetSignal(HandleId handle_id);
-    Result svcWaitSynchronization(HandleId* handle_ids, i32 handles_count,
+    Result svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
                                   i64 timeout, u64& out_handle_index);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     Result svcArbitrateUnlock(uptr mutex_addr);

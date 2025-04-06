@@ -25,6 +25,8 @@ constexpr usize HEAP_REGION_SIZE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
+constexpr i64 INFINITE_TIMEOUT = -1; // TODO: correct?
+
 struct FirmwareVersion {
     u8 major;
     u8 minor;

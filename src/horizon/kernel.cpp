@@ -206,7 +206,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            reinterpret_cast<HandleId*>(thread->GetRegX(1)),
+            reinterpret_cast<HandleId*>(mmu->UnmapAddr(thread->GetRegX(1))),
             bit_cast<i64>(thread->GetRegX(2)),
             bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
         thread->SetRegW(0, res);
@@ -499,20 +499,34 @@ Result Kernel::svcResetSignal(HandleId handle_id) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handles_count,
+Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
                                       i64 timeout, u64& out_handle_index) {
     LOG_DEBUG(
         HorizonKernel,
         "svcWaitSynchronization called (handles: 0x{}, count: {}, timeout: "
         "{})",
-        (void*)handle_ids, handles_count, timeout);
+        (void*)handle_ids, handle_count, timeout);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    // TODO: implement multiple handles
+    ASSERT_DEBUG(handle_count <= 1, HorizonKernel,
+                 "Multiple handles not "
+                 "implemented");
 
-    // HACK
-    out_handle_index = 0;
-    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    if (handle_count == 0) {
+        // TODO: allow waiting forever
+        ASSERT(timeout != INFINITE_TIMEOUT, HorizonKernel,
+               "Infinite timeout not implemented");
+        std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
+        out_handle_index = 0;
+    } else {
+        HandleId handle_id = handle_ids[0];
+        auto handle =
+            dynamic_cast<SynchronizationHandle*>(GetHandle(handle_id));
+        ASSERT_DEBUG(handle, HorizonKernel,
+                     "Handle {} is not a synchronization handle", handle_id);
+
+        handle->Wait(timeout);
+    }
 
     return RESULT_SUCCESS;
 }
