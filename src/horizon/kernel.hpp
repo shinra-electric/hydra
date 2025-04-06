@@ -35,17 +35,17 @@ class Thread : public KernelHandle {
           priority{priority_} {}
     ~Thread() override;
 
-    // Must be called from the thread itself
     void Start();
 
   private:
-    HW::TegraX1::CPU::ThreadBase* thread = nullptr;
     HW::TegraX1::CPU::MemoryBase* tls_mem;
     vaddr tls_addr;
     vaddr entry_point;
     vaddr args_addr;
     vaddr stack_top_addr;
     i32 priority;
+
+    std::thread* t = nullptr;
 };
 
 class TransferMemory : public KernelHandle {
@@ -105,6 +105,7 @@ class Kernel {
     Result svcCreateThread(vaddr entry_point, vaddr args_addr,
                            vaddr stack_top_addr, i32 priority, i32 processor_id,
                            HandleId& out_thread_handle_id);
+    void svcStartThread(HandleId thread_handle_id);
     void svcSleepThread(i64 nano);
     Result svcGetThreadPriority(HandleId thread_handle_id, u32& out_priority);
     Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,

@@ -11,20 +11,27 @@
 
 namespace Hydra::Horizon {
 
-void Thread::Start() {
-    thread = HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread();
-    Kernel::GetInstance().ConfigureThread(thread, entry_point, tls_addr,
-                                          stack_top_addr);
-    thread->SetRegX(0, args_addr);
-
-    thread->Run();
-}
-
 Thread::~Thread() {
+    if (t) {
+        t->join();
+        delete t;
+    }
+
     HW::TegraX1::CPU::MMUBase::GetInstance().Unmap(tls_addr,
                                                    tls_mem->GetSize());
     HW::TegraX1::CPU::MMUBase::GetInstance().FreeMemory(tls_mem);
-    delete thread;
+}
+
+void Thread::Start() {
+    t = new std::thread([&]() {
+        HW::TegraX1::CPU::ThreadBase* thread =
+            HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread();
+        Kernel::GetInstance().ConfigureThread(thread, entry_point, tls_addr,
+                                              stack_top_addr);
+        thread->SetRegX(0, args_addr);
+
+        thread->Run();
+    });
 }
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
@@ -154,6 +161,8 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(0, res);
         thread->SetRegX(1, tmp_handle_id);
         break;
+    case 0x9:
+        svcStartThread(thread->GetRegW(0));
     case 0xb:
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
@@ -357,6 +366,12 @@ Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
                                vaddr stack_top_addr, i32 priority,
                                i32 processor_id,
                                HandleId& out_thread_handle_id) {
+    LOG_DEBUG(HorizonKernel,
+              "svcCreateThread called (entry_point: 0x{:08x}, args_addr: "
+              "0x{:08x}, stack_top_addr: 0x{:08x}, priority: {}, "
+              "processor_id: {})",
+              entry_point, args_addr, stack_top_addr, priority, processor_id);
+
     // TLS memory
     vaddr new_tls_mem_base;
     auto new_tls_mem = CreateTlsMemory(new_tls_mem_base);
@@ -368,6 +383,15 @@ Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
                              args_addr, stack_top_addr, priority));
 
     return RESULT_SUCCESS;
+}
+
+void Kernel::svcStartThread(HandleId thread_handle_id) {
+    LOG_DEBUG(HorizonKernel, "svcStartThread called (thread: 0x{:08x})",
+              thread_handle_id);
+
+    // Start thread
+    auto thread = static_cast<Thread*>(GetHandle(thread_handle_id));
+    thread->Start();
 }
 
 void Kernel::svcSleepThread(i64 nano) {
