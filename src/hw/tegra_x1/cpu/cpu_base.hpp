@@ -9,6 +9,11 @@ class ThreadBase;
 
 class CPUBase {
   public:
+    static CPUBase& GetInstance();
+
+    CPUBase();
+    virtual ~CPUBase();
+
     virtual ThreadBase* CreateThread() = 0;
 
     virtual MMUBase* GetMMU() const = 0;

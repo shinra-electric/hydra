@@ -11,25 +11,21 @@
 
 namespace Hydra::Horizon {
 
-// TODO: how does this work?
-constexpr uptr ADDRESS_SPACE_BASE = 0x10000000;
-constexpr usize ADDRESS_SPACE_SIZE = 0x200000000 - ADDRESS_SPACE_BASE;
+void Thread::Start() {
+    thread = HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread();
+    Kernel::GetInstance().ConfigureThread(thread, entry_point, tls_addr,
+                                          stack_top_addr);
+    thread->SetRegX(0, args_addr);
 
-constexpr uptr STACK_REGION_BASE = 0x10000000;
-constexpr usize STACK_REGION_SIZE = 0x10000000;
-constexpr usize STACK_MEM_SIZE = 0x2000000;
+    thread->Run();
+}
 
-constexpr uptr ALIAS_REGION_BASE = 0x30000000;
-constexpr usize ALIAS_REGION_SIZE = STACK_REGION_SIZE;
-
-constexpr uptr TLS_REGION_BASE = 0x20000000;
-constexpr usize TLS_REGION_SIZE = 0x10000000;
-constexpr usize TLS_MEM_SIZE = 0x20000;
-
-constexpr uptr HEAP_REGION_BASE = 0x100000000;
-constexpr usize HEAP_REGION_SIZE = 0x100000000;
-constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
-constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
+Thread::~Thread() {
+    HW::TegraX1::CPU::MMUBase::GetInstance().Unmap(tls_addr,
+                                                   tls_mem->GetSize());
+    HW::TegraX1::CPU::MMUBase::GetInstance().FreeMemory(tls_mem);
+    delete thread;
+}
 
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
 
@@ -50,10 +46,8 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
               MemoryPermission::ReadWrite});
 
     // TLS memory
-    tls_mem = mmu->AllocateMemory(TLS_MEM_SIZE);
-    mmu->Map(TLS_REGION_BASE, tls_mem,
-             {MemoryType::ThreadLocal, MemoryAttribute::None,
-              MemoryPermission::ReadWrite});
+    vaddr tls_addr;
+    tls_mem = CreateTlsMemory(tls_addr);
 
     // Heap memory
     heap_mem = mmu->AllocateMemory(DEFAULT_HEAP_MEM_SIZE);
@@ -72,22 +66,25 @@ Kernel::~Kernel() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread) {
+void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread,
+                             vaddr entry_point, vaddr tls_addr,
+                             vaddr stack_top_addr) {
     thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
                           u64 id) { return SupervisorCall(thread, id); },
-                      TLS_REGION_BASE, STACK_REGION_BASE + STACK_MEM_SIZE);
-}
-
-void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
-    ConfigureThread(thread);
+                      tls_addr, stack_top_addr);
 
     // Set initial PC
     ASSERT_DEBUG(entry_point != 0x0, HorizonKernel, "Invalid entry point");
     thread->SetRegPC(entry_point);
+}
+
+void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
+    ConfigureThread(thread, main_thread_entry_point, TLS_REGION_BASE,
+                    STACK_REGION_BASE + STACK_MEM_SIZE);
 
     // Arguments
     for (u32 i = 0; i < ARG_COUNT; i++)
-        thread->SetRegX(i, args[i]);
+        thread->SetRegX(i, main_thread_args[i]);
 }
 
 uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base,
@@ -110,7 +107,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     u32 tmp_u32;
     u64 tmp_u64;
     uptr tmp_uptr;
-    HandleId tmp_hanle_id;
+    HandleId tmp_handle_id;
     switch (id) {
     case 0x1:
         res = svcSetHeapSize(thread->GetRegX(1), tmp_uptr);
@@ -149,6 +146,14 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x7:
         svcExitProcess();
         return false;
+    case 0x8:
+        res = svcCreateThread(thread->GetRegX(1), thread->GetRegX(2),
+                              thread->GetRegX(3),
+                              bit_cast<i32>(thread->GetRegW(4)),
+                              bit_cast<i32>(thread->GetRegW(5)), tmp_handle_id);
+        thread->SetRegX(0, res);
+        thread->SetRegX(1, tmp_handle_id);
+        break;
     case 0xb:
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
         break;
@@ -171,9 +176,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x15:
         res = svcCreateTransferMemory(
             thread->GetRegX(1), thread->GetRegX(2),
-            static_cast<MemoryPermission>(thread->GetRegX(3)), tmp_hanle_id);
+            static_cast<MemoryPermission>(thread->GetRegX(3)), tmp_handle_id);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmp_hanle_id);
+        thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x16:
         res = svcCloseHandle(thread->GetRegX(0));
@@ -218,9 +223,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x1f:
         res = svcConnectToNamedPort(
             reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))),
-            tmp_hanle_id);
+            tmp_handle_id);
         thread->SetRegX(0, res);
-        thread->SetRegX(1, tmp_hanle_id);
+        thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x21:
         res = svcSendSyncRequest(thread->GetRegX(0));
@@ -346,6 +351,23 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 
 void Kernel::svcExitProcess() {
     LOG_DEBUG(HorizonKernel, "svcExitProcess called");
+}
+
+Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
+                               vaddr stack_top_addr, i32 priority,
+                               i32 processor_id,
+                               HandleId& out_thread_handle_id) {
+    // TLS memory
+    vaddr new_tls_mem_base;
+    auto new_tls_mem = CreateTlsMemory(new_tls_mem_base);
+
+    // Thread
+    // TODO: processor ID
+    out_thread_handle_id =
+        AddHandle(new Thread(new_tls_mem, new_tls_mem_base, entry_point,
+                             args_addr, stack_top_addr, priority));
+
+    return RESULT_SUCCESS;
 }
 
 void Kernel::svcSleepThread(i64 nano) {
@@ -740,6 +762,16 @@ HandleId Kernel::CreateSharedMemory(usize size) {
     shared_memory_pool.GetObjectRef(handle_id) = new SharedMemory(size);
 
     return handle_id;
+}
+
+HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr& base) {
+    auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
+    mmu->Map(tls_mem_base, mem,
+             {MemoryType::ThreadLocal, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
+    tls_mem_base += TLS_MEM_SIZE;
+
+    return mem;
 }
 
 } // namespace Hydra::Horizon
