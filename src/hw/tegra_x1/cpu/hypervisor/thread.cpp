@@ -11,11 +11,10 @@ constexpr u32 MAX_STACK_TRACE_DEPTH = 32;
 
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
-Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
-    LOG_DEBUG(Hypervisor, "New thread 1");
+Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)
+    : ThreadBase(tls_mem), mmu{mmu_} {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
-    LOG_DEBUG(Hypervisor, "New thread 2");
 
     // TODO: find out what this does
     SetReg(HV_REG_CPSR, 0x3c4);
@@ -26,17 +25,14 @@ Thread::Thread(MMU* mmu_, CPU* cpu_) : mmu{mmu_}, cpu{cpu_} {
 
     // Enable FP and SIMD instructions.
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
-    LOG_DEBUG(Hypervisor, "New thread 3");
 
     // Trap debug access
     HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
     // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
-    LOG_DEBUG(Hypervisor, "New thread 4");
 
     // VTimer
     struct mach_timebase_info info;
     auto time = mach_timebase_info(&info);
-    LOG_DEBUG(Hypervisor, "New thread 5");
 
     interrupt_time_delta_ticks =
         ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;

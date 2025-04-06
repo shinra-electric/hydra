@@ -4,6 +4,7 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
+class MemoryBase;
 class MMUBase;
 class ThreadBase;
 
@@ -14,7 +15,7 @@ class CPUBase {
     CPUBase();
     virtual ~CPUBase();
 
-    virtual ThreadBase* CreateThread() = 0;
+    virtual ThreadBase* CreateThread(MemoryBase* tls_mem) = 0;
 
     virtual MMUBase* GetMMU() const = 0;
 };

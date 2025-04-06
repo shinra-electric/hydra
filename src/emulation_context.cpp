@@ -78,7 +78,8 @@ void EmulationContext::Start(const std::string& rom_filename) {
     // Main thread
     std::thread* t = new std::thread([&]() {
         // Main thread
-        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread = cpu->CreateThread();
+        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread =
+            cpu->CreateThread(os->GetKernel().GetTlsMemory());
         os->GetKernel().ConfigureMainThread(main_thread);
 
         // Run

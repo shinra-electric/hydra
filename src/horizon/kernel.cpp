@@ -25,12 +25,14 @@ Thread::~Thread() {
 void Thread::Start() {
     t = new std::thread([&]() {
         HW::TegraX1::CPU::ThreadBase* thread =
-            HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread();
+            HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread(tls_mem);
         Kernel::GetInstance().ConfigureThread(thread, entry_point, tls_addr,
                                               stack_top_addr);
         thread->SetRegX(0, args_addr);
 
         thread->Run();
+
+        delete thread;
     });
 }
 
@@ -237,7 +239,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x21:
-        res = svcSendSyncRequest(thread->GetRegX(0));
+        res = svcSendSyncRequest(thread->GetTlsMemory(), thread->GetRegX(0));
         thread->SetRegX(0, res);
         break;
     case 0x25:
@@ -570,7 +572,8 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcSendSyncRequest(HandleId session_handle_id) {
+Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
+                                  HandleId session_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:08x})",
               session_handle_id);
 

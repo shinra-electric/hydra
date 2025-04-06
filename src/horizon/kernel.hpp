@@ -126,7 +126,8 @@ class Kernel {
     void svcGetSystemTick(u64& out_tick);
     Result svcConnectToNamedPort(const std::string& name,
                                  HandleId& out_session_handle_id);
-    Result svcSendSyncRequest(HandleId session_handle_id);
+    Result svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
+                              HandleId session_handle_id);
     Result svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
@@ -137,6 +138,8 @@ class Kernel {
     HW::Bus& GetBus() const { return bus; }
 
     Filesystem::Filesystem& GetFilesystem() { return filesystem; }
+
+    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
     KernelHandle* GetHandle(HandleId handle_id) const {
@@ -166,7 +169,7 @@ class Kernel {
 
     // Memory
     HW::TegraX1::CPU::MemoryBase* stack_mem;
-    HW::TegraX1::CPU::MemoryBase* tls_mem;
+    HW::TegraX1::CPU::MemoryBase* tls_mem; // TODO: remove this
     HW::TegraX1::CPU::MemoryBase* heap_mem;
     std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
 
