@@ -30,6 +30,8 @@ void WindowBase::Present() {
         emulation_context->GetOS()->GetDisplayBinderManager().GetBinder(
             binder_id);
     i32 slot = binder.ConsumeBuffer();
+    if (slot == -1)
+        return;
     const auto& buffer = binder.GetBuffer(slot);
 
     auto gpu = emulation_context->GetGPU();

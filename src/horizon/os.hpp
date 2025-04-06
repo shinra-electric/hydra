@@ -90,7 +90,12 @@ struct DisplayBinder {
     i32 ConsumeBuffer() {
         // Wait for a buffer to become available
         std::unique_lock<std::mutex> lock(queue_mutex);
-        queue_cv.wait(lock, [&] { return !queued_buffers.empty(); });
+        // TODO: should there be a timeout?
+        queue_cv.wait_for(lock, std::chrono::nanoseconds(67 * 1000 * 1000),
+                          [&] { return !queued_buffers.empty(); });
+
+        if (queued_buffers.empty())
+            return -1;
 
         // Get the first queued buffer
         i32 slot = queued_buffers.front();
