@@ -71,7 +71,9 @@ void EmulationContext::Start(const std::string& rom_filename) {
 #define MOV_X0_XZR 0xd2800000
 
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
-    // cpu->GetMMU()->Store<u32>(0x800112e8, BRK);
+    // cpu->GetMMU()->Store<u32>(0x803cf6b8, BRK);
+    // cpu->GetMMU()->Store<u32>(0x803cf0c8, BRK);
+    // cpu->GetMMU()->Store<u32>(0x803d569c, BRK);
 
     // Main thread
     std::thread* t = new std::thread([&]() {
