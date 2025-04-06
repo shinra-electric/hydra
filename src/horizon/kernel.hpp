@@ -5,6 +5,7 @@
 #include "horizon/filesystem/filesystem.hpp"
 #include "horizon/shared_memory.hpp"
 #include <condition_variable>
+#include <type_traits>
 
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
@@ -28,6 +29,8 @@ class KernelHandle {
 
 class SynchronizationHandle : public KernelHandle {
   public:
+    SynchronizationHandle(bool signaled_ = false) : signaled{signaled_} {}
+
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
         signaled = true;
@@ -36,12 +39,15 @@ class SynchronizationHandle : public KernelHandle {
 
     void Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
-        if (timeout == INFINITE_TIMEOUT) {
+        if (IS_TIMEOUT_INFINITE(timeout)) {
             cv.wait(lock, [this] { return signaled; });
         } else {
             cv.wait_for(lock, std::chrono::nanoseconds(timeout),
                         [this] { return signaled; });
         }
+
+        // TODO: correct?
+        signaled = false;
     }
 
   private:
@@ -50,15 +56,15 @@ class SynchronizationHandle : public KernelHandle {
     bool signaled = false;
 };
 
-class Thread : public KernelHandle {
+class ThreadHandle : public KernelHandle {
   public:
-    Thread(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr tls_addr_,
-           vaddr entry_point_, vaddr args_addr_, vaddr stack_top_addr_,
-           i32 priority_)
+    ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr tls_addr_,
+                 vaddr entry_point_, vaddr args_addr_, vaddr stack_top_addr_,
+                 i32 priority_)
         : tls_mem{tls_mem_}, tls_addr{tls_addr_}, entry_point{entry_point_},
           args_addr{args_addr_}, stack_top_addr{stack_top_addr_},
           priority{priority_} {}
-    ~Thread() override;
+    ~ThreadHandle() override;
 
     void Start();
 
@@ -171,10 +177,12 @@ class Kernel {
     KernelHandle* GetHandle(HandleId handle_id) const {
         return handle_pool.GetObject(handle_id);
     }
-
     void SetHandle(HandleId handle_id, KernelHandle* handle);
-
     HandleId AddHandle(KernelHandle* handle);
+    void FreeHandle(HandleId handle_id) {
+        delete GetHandle(handle_id);
+        handle_pool.FreeByIndex(handle_id);
+    }
 
     HandleId CreateSharedMemory(usize size);
 
@@ -212,6 +220,20 @@ class Kernel {
     u8 service_scratch_buffer_objects[0x100];
     u8 service_scratch_buffer_move_handles[0x100];
     u8 service_scratch_buffer_copy_handles[0x100];
+};
+
+template <typename T> struct KernelHandleWithId {
+    static_assert(std::is_convertible_v<T*, KernelHandle*>,
+                  "Type does not inherit from KernelHandle");
+
+    T* handle;
+    HandleId id;
+
+    KernelHandleWithId(T* handle_) : handle{handle_} {
+        id = Kernel::GetInstance().AddHandle(handle);
+    }
+
+    ~KernelHandleWithId() { Kernel::GetInstance().FreeHandle(id); }
 };
 
 } // namespace Hydra::Horizon

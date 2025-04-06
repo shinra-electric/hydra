@@ -11,7 +11,7 @@
 
 namespace Hydra::Horizon {
 
-Thread::~Thread() {
+ThreadHandle::~ThreadHandle() {
     if (t) {
         t->join();
         delete t;
@@ -22,7 +22,7 @@ Thread::~Thread() {
     HW::TegraX1::CPU::MMUBase::GetInstance().FreeMemory(tls_mem);
 }
 
-void Thread::Start() {
+void ThreadHandle::Start() {
     t = new std::thread([&]() {
         HW::TegraX1::CPU::ThreadBase* thread =
             HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread(tls_mem);
@@ -386,8 +386,8 @@ Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
     // Thread
     // TODO: processor ID
     out_thread_handle_id =
-        AddHandle(new Thread(new_tls_mem, new_tls_mem_base, entry_point,
-                             args_addr, stack_top_addr, priority));
+        AddHandle(new ThreadHandle(new_tls_mem, new_tls_mem_base, entry_point,
+                                   args_addr, stack_top_addr, priority));
 
     return RESULT_SUCCESS;
 }
@@ -397,7 +397,7 @@ void Kernel::svcStartThread(HandleId thread_handle_id) {
               thread_handle_id);
 
     // Start thread
-    auto thread = static_cast<Thread*>(GetHandle(thread_handle_id));
+    auto thread = static_cast<ThreadHandle*>(GetHandle(thread_handle_id));
     thread->Start();
 }
 
@@ -483,8 +483,7 @@ Result Kernel::svcCloseHandle(HandleId handle_id) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
               handle_id);
 
-    delete GetHandle(handle_id);
-    handle_pool.FreeByIndex(handle_id);
+    FreeHandle(handle_id);
 
     return RESULT_SUCCESS;
 }
@@ -514,7 +513,7 @@ Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
 
     if (handle_count == 0) {
         // TODO: allow waiting forever
-        ASSERT(timeout != INFINITE_TIMEOUT, HorizonKernel,
+        ASSERT(!IS_TIMEOUT_INFINITE(timeout), HorizonKernel,
                "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0;
@@ -524,6 +523,8 @@ Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
             dynamic_cast<SynchronizationHandle*>(GetHandle(handle_id));
         ASSERT_DEBUG(handle, HorizonKernel,
                      "Handle {} is not a synchronization handle", handle_id);
+
+        LOG_DEBUG(HorizonKernel, "Synchronizing with handle {}", handle_id);
 
         handle->Wait(timeout);
     }
