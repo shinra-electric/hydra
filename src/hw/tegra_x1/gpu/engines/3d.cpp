@@ -208,7 +208,7 @@ void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
     LOG_NOT_IMPLEMENTED(Engines, "Firmware call 4");
 
     // TODO: find out what this does
-    regs.mme_firmware_args[0] = 0x1;
+    regs.mme_scratch[0] = 0x1;
 }
 
 void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {

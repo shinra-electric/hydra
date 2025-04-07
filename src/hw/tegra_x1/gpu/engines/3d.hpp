@@ -401,7 +401,7 @@ struct Regs3D {
     u32 padding_0x900[0x400];
 
     // 0xd00
-    u32 mme_firmware_args[8];
+    u32 mme_scratch[0x80];
 };
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {

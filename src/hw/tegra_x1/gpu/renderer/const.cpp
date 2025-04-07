@@ -42,10 +42,12 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
                       RGBA8Unorm) // TODO: why argb?
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, R, G, B, OneFloat,
                       BC1_RGB)
+    IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R, Zero, Zero, OneFloat,
+                      R8Unorm)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU,
-            "Image format {}, components: {}, {}, {}, {}, swizzle: {}{}{}{}",
+            "Image format {}, components: {}, {}, {}, {}, swizzle: {}-{}-{}-{}",
             image_format_word.image_format, image_format_word.component_r,
             image_format_word.component_g, image_format_word.component_b,
             image_format_word.component_a, image_format_word.swizzle_x,
