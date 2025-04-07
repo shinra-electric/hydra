@@ -17,7 +17,7 @@ Window::Window(int argc, const char* argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 
-    if (!SDL_CreateWindowAndRenderer("Hydra", 1280, 720, 0, &window,
+    if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, 0, &window,
                                      &renderer)) {
         LOG_ERROR(SDL3Window, "Failed to create SDL3 window/renderer: {}",
                   SDL_GetError());

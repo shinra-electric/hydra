@@ -6,6 +6,8 @@ add_executable(hydra
     common/types.hpp
     common/macros.hpp
     common/functions.hpp
+    common/config.cpp
+    common/config.hpp
     common/lz4.cpp
     common/lz4.hpp
     common/logging/log.cpp

@@ -1,6 +1,9 @@
 #include "frontend/window/sdl3/window.hpp"
 
 int main(int argc, const char* argv[]) {
+    // Config
+    Hydra::Config config;
+
     // Window
     // TODO: choose based on frontend
     Hydra::Frontend::Window::WindowBase* window;

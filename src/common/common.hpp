@@ -9,5 +9,6 @@
 #include <string_view>
 #include <thread>
 
+#include "common/config.hpp"
 #include "common/functions.hpp"
 #include "common/logging/log.hpp"

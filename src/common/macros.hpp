@@ -1,5 +1,7 @@
 #pragma once
 
+#define APP_NAME "Hydra"
+
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 
 #define THIS ((SubclassT*)this)
