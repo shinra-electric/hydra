@@ -181,6 +181,7 @@ void Thread::Run() {
                 // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                 AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
+                LogStackTrace(pc);
                 LogRegisters(true);
 
                 LOG_ERROR(Hypervisor, "BRK instruction");

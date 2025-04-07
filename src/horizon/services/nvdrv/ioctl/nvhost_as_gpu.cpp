@@ -5,8 +5,13 @@
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostAsGpu,
-                   DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x02, AllocSpace, 0x06,
-                                            MapBufferEx, 0x09, AllocASEx))
+                   DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x01, BindChannel, 0x02,
+                                            AllocSpace, 0x06, MapBufferEx, 0x09,
+                                            AllocASEx))
+
+void NvHostAsGpu::BindChannel(BindChannelData& data, NvResult& result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
 
 void NvHostAsGpu::AllocSpace(AllocSpaceData& data, NvResult& result) {
     uptr gpu_addr = invalid<uptr>();

@@ -42,14 +42,35 @@ void NvHostGpu::SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) {
     data.out_fence = HW::TegraX1::GPU::Fence{};
 }
 
+void NvHostGpu::AllocObjCtx(AllocObjCtxData& data, NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
+void NvHostGpu::ZCullBind(ZCullBindData& data, NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
+void NvHostGpu::SetErrorNotifier(SetErrorNotifierData& data,
+                                 NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
+void NvHostGpu::SetPriority(SetPriorityData& data, NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
 void NvHostGpu::GetErrorNotification(GetErrorNotificationData& data,
                                      NvResult& out_result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
+    LOG_FUNC_STUBBED(HorizonServices);
 
     data.timestamp = 0;           // TODO
     data.info32 = 0;              // TODO
     data.info16 = 0;              // TODO
     data.status = /*0xffff*/ 0x0; // TODO: correct?
+}
+
+void NvHostGpu::AllocGpfifoEx(AllocGpfifoExData& data, NvResult& out_result) {
+    LOG_FUNC_STUBBED(HorizonServices);
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

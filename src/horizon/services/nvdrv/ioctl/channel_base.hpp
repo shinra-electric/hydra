@@ -20,10 +20,22 @@ class ChannelBase : public FdBase {
         readwrite<HW::TegraX1::GPU::Fence> out_fence;
         readonly<HW::TegraX1::GPU::GpfifoEntry> entries[];
         , detailed_error, out_fence);
+    DECLARE_VIRTUAL_IOCTL(AllocObjCtx, readonly<u32> class_num;
+                          readonly<u32> flags; writeonly<u64> obj_id;, obj_id);
+    DECLARE_VIRTUAL_IOCTL(ZCullBind, readonly<gpu_vaddr> addr;
+                          readonly<u32> mode; readonly<u32> reserved;, );
+    DECLARE_VIRTUAL_IOCTL(SetErrorNotifier, readonly<u64> offset;
+                          readonly<u64> size; readonly<u32> mem;
+                          readonly<u32> reserved;, );
+    DECLARE_VIRTUAL_IOCTL(SetPriority, readonly<u32> priority;, );
     DECLARE_VIRTUAL_IOCTL(GetErrorNotification, writeonly<u64> timestamp;
                           writeonly<u32> info32; writeonly<u16> info16;
                           writeonly<u16> status;
                           , timestamp, info32, info16, status);
+    DECLARE_VIRTUAL_IOCTL(AllocGpfifoEx, readonly<u32> num_entries;
+                          readonly<u32> num_jobs; readonly<u32> flags;
+                          writeonly<HW::TegraX1::GPU::Fence> fence;
+                          readonly<u32> reserved[3];, fence);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

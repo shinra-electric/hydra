@@ -28,6 +28,7 @@ class NvHostAsGpu : public FdBase {
 
   private:
     // Ioctls
+    DECLARE_IOCTL(BindChannel, readonly<u32> channel_fd;, );
     DECLARE_IOCTL(
         AllocSpace, readonly<u32> pages; readonly<u32> page_size;
         readonly<AllocSpaceFlags> flags; readonly<u32> pad; union {

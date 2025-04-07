@@ -11,8 +11,14 @@ class NvHostGpu : public ChannelBase {
 
   private:
     void SubmitGpfifo(SubmitGpfifoData& data, NvResult& out_result) override;
+    void AllocObjCtx(AllocObjCtxData& data, NvResult& out_result) override;
+    void ZCullBind(ZCullBindData& data, NvResult& out_result) override;
+    void SetErrorNotifier(SetErrorNotifierData& data,
+                          NvResult& out_result) override;
+    void SetPriority(SetPriorityData& data, NvResult& out_result) override;
     void GetErrorNotification(GetErrorNotificationData& data,
                               NvResult& out_result) override;
+    void AllocGpfifoEx(AllocGpfifoExData& data, NvResult& out_result) override;
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

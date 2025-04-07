@@ -17,8 +17,8 @@ void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
                                     NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
 
-    // TODO: what should this be?
-    data.size = 0x0;
+    // HACK
+    data.size = 0x20000;
 }
 
 void NvHostCtrlGpu::ZCullGetInfo(ZCullGetInfoData& data, NvResult& result) {
