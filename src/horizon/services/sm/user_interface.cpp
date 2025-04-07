@@ -7,6 +7,7 @@
 #include "horizon/services/aocsrv/add_on_content_manager.hpp"
 #include "horizon/services/apm/manager_privileged.hpp"
 #include "horizon/services/audio/audio_out_manager.hpp"
+#include "horizon/services/audio/audio_renderer_manager.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
 #include "horizon/services/hid/hid_server.hpp"
 #include "horizon/services/lm/log_service.hpp"
@@ -17,6 +18,8 @@
 #include "horizon/services/settings/settings_server.hpp"
 #include "horizon/services/settings/system_settings_server.hpp"
 #include "horizon/services/socket/client.hpp"
+#include "horizon/services/spl/random_interface.hpp"
+#include "horizon/services/ssl/sf/ssl_service.hpp"
 #include "horizon/services/timesrv/static_service.hpp"
 #include "horizon/services/visrv/manager_root_service.hpp"
 
@@ -60,6 +63,9 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Settings::ISettingsServer, "set")
         SERVICE_CASE(Account::IAccountServiceForSystemService, "acc:u1")
         SERVICE_CASE(Audio::IAudioOutManager, "audout:u")
+        SERVICE_CASE(Audio::IAudioRendererManager, "audren:u")
+        SERVICE_CASE(Ssl::Sf::ISslService, "ssl")
+        SERVICE_CASE(Spl::IRandomInterface, "csrng")
     default:
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
                     u64_to_str(name));

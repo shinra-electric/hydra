@@ -158,6 +158,12 @@ add_executable(hydra
     horizon/services/audio/audio_out.hpp
     horizon/services/audio/audio_out_manager.cpp
     horizon/services/audio/audio_out_manager.hpp
+    horizon/services/audio/audio_renderer_manager.cpp
+    horizon/services/audio/audio_renderer_manager.hpp
+    horizon/services/ssl/sf/ssl_service.cpp
+    horizon/services/ssl/sf/ssl_service.hpp
+    horizon/services/spl/random_interface.cpp
+    horizon/services/spl/random_interface.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp
