@@ -9,7 +9,9 @@
 #include "horizon/services/audio/audio_out_manager.hpp"
 #include "horizon/services/audio/audio_renderer_manager.hpp"
 #include "horizon/services/fssrv/filesystem_proxy.hpp"
+#include "horizon/services/hid/hid_debug_server.hpp"
 #include "horizon/services/hid/hid_server.hpp"
+#include "horizon/services/hid/hid_system_server.hpp"
 #include "horizon/services/lm/log_service.hpp"
 #include "horizon/services/nvdrv/nvdrv_services.hpp"
 #include "horizon/services/pctl/ipc/parental_control_service_factory.hpp"
@@ -44,6 +46,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
 
     switch (name) {
         SERVICE_CASE(Hid::IHidServer, "hid")
+        SERVICE_CASE(Hid::IHidDebugServer, "hid:dbg")
+        SERVICE_CASE(Hid::IHidSystemServer, "hid:sys")
         SERVICE_CASE(Fssrv::IFileSystemProxy, "fsp-srv")
         SERVICE_CASE(TimeSrv::IStaticService, "time:u", "time:a", "time:s")
         SERVICE_CASE(NvDrv::INvDrvServices, "nvdrv")
