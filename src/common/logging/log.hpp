@@ -12,20 +12,29 @@
 
 #define LOG(level, c, ...)                                                     \
     Logging::log(Logging::Level::level, Logging::Class::c,                     \
-                 Logging::TrimSourcePath(__FILE__), __LINE__, __func__,        \
+                 Logging::trim_source_path(__FILE__), __LINE__, __func__,      \
                  __VA_ARGS__)
 
-// TODO: only log on debug builds
+#ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...) LOG(Debug, c, __VA_ARGS__)
+#else
+#define LOG_DEBUG(c, ...)
+#endif
+
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, fmt, ...)                                               \
     LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
+
+#ifdef HYDRA_DEBUG
 #define LOG_ERROR(c, ...)                                                      \
     {                                                                          \
         LOG(Error, c, __VA_ARGS__);                                            \
-        throw; /* TODO: only throw in debug */                                 \
+        throw;                                                                 \
     }
+#else
+#define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
+#endif
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
@@ -39,15 +48,21 @@
     ASSERT((value & (alignment - 1)) == 0x0, c,                                \
            name " must be {}-byte aligned", alignment)
 
-// TODO: only log on debug builds
+#ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
+#else
+// TODO: should we evaluate the condition anyway?
+#define ASSERT_DEBUG(condition, c, ...)                                        \
+    if (condition) {                                                           \
+    }
+#endif
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
 
 namespace Hydra::Logging {
 
 // From yuzu
-constexpr const char* TrimSourcePath(std::string_view source) {
+constexpr const char* trim_source_path(std::string_view source) {
     const auto rfind = [source](const std::string_view match) {
         return source.rfind(match) == source.npos
                    ? 0

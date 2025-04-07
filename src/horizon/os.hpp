@@ -74,6 +74,8 @@ struct DisplayBinder {
         }
 
         LOG_ERROR(Horizon, "No available slots");
+
+        return -1;
     }
 
     void QueueBuffer(i32 slot) {

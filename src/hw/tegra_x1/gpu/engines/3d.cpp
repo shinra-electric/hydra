@@ -314,7 +314,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto gpu_addr = MAKE_ADDR(render_target.addr);
     if (gpu_addr == 0x0) {
         LOG_ERROR(Engines, "Invalid color render target at index {}",
-                  render_target_index)
+                  render_target_index);
         return nullptr;
     }
 
@@ -334,7 +334,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
     const auto gpu_addr = MAKE_ADDR(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
-        LOG_ERROR(Engines, "Invalid depth render target")
+        LOG_ERROR(Engines, "Invalid depth render target");
         return nullptr;
     }
 
