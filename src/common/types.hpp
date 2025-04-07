@@ -58,7 +58,7 @@ struct sized_ptr {
 
 template <typename T, usize component_count> class vec {
   public:
-    vec() {}
+    vec() = default;
     vec(const T& value) {
         for (usize i = 0; i < component_count; i++) {
             components[i] = value;

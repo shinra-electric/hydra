@@ -69,57 +69,44 @@ struct TextureCopyInfo {
     } origin;
 };
 
-union RegsCopy {
-    struct {
-        u32 padding_0x0[0xc0];
+struct RegsCopy {
+    u32 padding_0x0[0xc0];
 
-        u32 not_a_register_0xc0;
+    u32 not_a_register_0xc0;
 
-        u32 padding_0xc1[0x3f];
+    u32 padding_0xc1[0x3f];
 
-        // 0x100
-        u32 offset_in_hi;
-        u32 offset_in_lo;
-        u32 offset_out_hi;
-        u32 offset_out_lo;
-        u32 stride_in;
-        u32 stride_out;
-        u32 line_length_in;
-        u32 line_count;
+    // 0x100
+    u32 offset_in_hi;
+    u32 offset_in_lo;
+    u32 offset_out_hi;
+    u32 offset_out_lo;
+    u32 stride_in;
+    u32 stride_out;
+    u32 line_length_in;
+    u32 line_count;
 
-        u32 padding_0x108[0xb8];
+    u32 padding_0x108[0xb8];
 
-        // 0x1c0
-        u32 remap_const_hi;
-        u32 remap_const_lo;
-        u32 remap_components;
-        TextureCopyInfo dst;
+    // 0x1c0
+    u32 remap_const_hi;
+    u32 remap_const_lo;
+    u32 remap_components;
+    TextureCopyInfo dst;
 
-        u32 padding_0x1c9;
+    u32 padding_0x1c9;
 
-        // 0x1ca
-        TextureCopyInfo src;
+    // 0x1ca
+    TextureCopyInfo src;
 
-        // TODO
-    };
-
-    u32 raw[0x446];
+    // TODO
 };
 
-class Copy : public EngineBase {
+class Copy : public EngineWithRegsBase<RegsCopy> {
   public:
     void Method(u32 method, u32 arg) override;
 
-  protected:
-    void WriteReg(u32 reg, u32 value) override {
-        LOG_DEBUG(Engines, "Writing to copy reg 0x{:08x} (value: 0x{:08x})",
-                  reg, value);
-        regs.raw[reg] = value;
-    }
-
   private:
-    RegsCopy regs;
-
     // Commands
     struct LaunchDMAData {
         TransferType type : 2;

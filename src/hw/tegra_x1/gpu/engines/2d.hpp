@@ -36,40 +36,28 @@ struct PixelsFromMemory {
     SplitFloat src_y0;
 };
 
-union Regs2D {
-    struct {
-        u32 padding_0x0[0x80];
+struct Regs2D {
+    u32 padding_0x0[0x80];
 
-        // 0x80
-        Texture2DInfo dst;
+    // 0x80
+    Texture2DInfo dst;
 
-        u32 padding_0x8a[0x2];
+    u32 padding_0x8a[0x2];
 
-        // 0x8c
-        Texture2DInfo src;
+    // 0x8c
+    Texture2DInfo src;
 
-        u32 padding_0x96[0x196];
+    u32 padding_0x96[0x196];
 
-        // 0x22c
-        PixelsFromMemory pixels_from_memory;
-    };
-    u32 raw[0xe00];
+    // 0x22c
+    PixelsFromMemory pixels_from_memory;
 };
 
-class TwoD : public EngineBase {
+class TwoD : public EngineWithRegsBase<Regs2D> {
   public:
     void Method(u32 method, u32 arg) override;
 
-  protected:
-    void WriteReg(u32 reg, u32 value) override {
-        LOG_DEBUG(Engines, "Writing to 2d reg 0x{:08x} (value: 0x{:08x})", reg,
-                  value);
-        regs.raw[reg] = value;
-    }
-
   private:
-    Regs2D regs{};
-
     // Commands
     void Copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
 

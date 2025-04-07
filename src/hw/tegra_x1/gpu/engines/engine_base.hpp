@@ -34,16 +34,36 @@ class EngineBase {
     }
 
   protected:
-    virtual void WriteReg(u32 reg, u32 value) {
-        LOG_NOT_IMPLEMENTED(
-            Engines, "Writing to registers (0x{:08x}) in this engine", reg);
-    }
-
     virtual void Macro(u32 method, u32 arg) {
         LOG_ERROR(Engines,
                   "This engine does not support macros (method: 0x{:08x})",
                   method);
     }
+};
+
+template <typename RegsT> class EngineWithRegsBase : public EngineBase {
+  public:
+#define REG_COUNT (sizeof(RegsT) / sizeof(u32))
+
+    u32 GetReg(u32 reg) const {
+        ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register 0x{:08x}", reg);
+        return regs_raw[reg];
+    }
+
+  protected:
+    union {
+        RegsT regs{};
+        u32 regs_raw[REG_COUNT];
+    };
+
+    void WriteReg(u32 reg, u32 value) {
+        ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
+        LOG_DEBUG(Engines, "Writing to reg 0x{:08x} (value: 0x{:08x})", reg,
+                  value);
+        regs_raw[reg] = value;
+    }
+
+#undef REG_COUNT
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

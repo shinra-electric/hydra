@@ -2,6 +2,6 @@
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
-DEFINE_METHOD_TABLE(Inline)
+DEFINE_METHOD_TABLE(Inline, INLINE_ENGINE_TABLE)
 
-}
+} // namespace Hydra::HW::TegraX1::GPU::Engines

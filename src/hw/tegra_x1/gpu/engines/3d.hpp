@@ -1,7 +1,6 @@
 #pragma once
 
-#include "hw/tegra_x1/gpu/engines/const.hpp"
-#include "hw/tegra_x1/gpu/engines/engine_base.hpp"
+#include "hw/tegra_x1/gpu/engines/inline_base.hpp"
 #include "hw/tegra_x1/gpu/renderer/const.hpp"
 
 #define REGS_3D Engines::ThreeD::GetInstance().GetRegs()
@@ -18,23 +17,6 @@ class PipelineBase;
 } // namespace Hydra::HW::TegraX1::GPU::Renderer
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
-
-// TODO: move this to the inline engine
-struct RegsInline {
-    u32 line_length_in;
-    u32 line_count;
-    Iova offset_out;
-    u32 pitch_out;
-    u32 dst_block_size;
-    u32 dst_width;
-    u32 dst_height;
-    u32 dst_depth;
-    u32 dst_layer;
-    u32 dst_origin_bytes_x;
-    u32 dst_origin_samples_y;
-    u32 not_a_reg_0xc;
-    u32 not_a_reg_0xd;
-};
 
 // From Deko3D
 struct BufferDescriptor {
@@ -182,253 +164,247 @@ inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
     }
 }
 
-union Regs3D {
+struct Regs3D {
+    RegsInline regs_inline;
+
+    u32 padding_0x6e[0x192];
+
+    // 0x200 Render targets
+    RenderTarget color_targets[COLOR_TARGET_COUNT];
+
+    // 0x280 Viewport transforms
     struct {
-        u32 padding_0x0[0x60];
-
-        RegsInline inline_regs;
-
-        u32 padding_0x6e[0x192];
-
-        // 0x200 Render targets
-        RenderTarget color_targets[COLOR_TARGET_COUNT];
-
-        // 0x280 Viewport transforms
+        float scale_x;
+        float scale_y;
+        float scale_z;
+        float offset_x;
+        float offset_y;
+        float offset_z;
         struct {
-            float scale_x;
-            float scale_y;
-            float scale_z;
-            float offset_x;
-            float offset_y;
-            float offset_z;
-            struct {
-                u32 x : 3;
-                u32 y : 3;
-                u32 z : 3;
-                u32 w : 3;
-                u32 unused : 20;
-            } coord_swizzle;
-            struct {
-                u32 x : 5;
-                u32 unused1 : 3;
-                u32 y : 5;
-                u32 unused2 : 19;
-            } subpixel_precision_bias;
-        } viewport_transforms[VIEWPORT_COUNT];
-
-        // 0x300 Viewports
+            u32 x : 3;
+            u32 y : 3;
+            u32 z : 3;
+            u32 w : 3;
+            u32 unused : 20;
+        } coord_swizzle;
         struct {
-            struct {
-                u16 x;
-                u16 width;
-            } horizontal;
-            struct {
-                u16 y;
-                u16 height;
-            } vertical;
-            float near;
-            float far;
-        } viewports[VIEWPORT_COUNT];
+            u32 x : 5;
+            u32 unused1 : 3;
+            u32 y : 5;
+            u32 unused2 : 19;
+        } subpixel_precision_bias;
+    } viewport_transforms[VIEWPORT_COUNT];
 
-        // 0x340 Window rectangle
+    // 0x300 Viewports
+    struct {
         struct {
-            struct {
-                u16 min;
-                u16 max;
-            } horizontal;
-            struct {
-                u16 min;
-                u16 max;
-            } vertical;
-        } window_rects[8];
-
-        u32 padding2[0xd];
-
-        // 0x35d
-        u32 vertex_array_start;
-
-        u32 not_a_register_0x35e;
-
-        // 0x35f
-        ViewportZClip viewport_z_clip;
-
-        // 0x360 Clear data
-        uint4 clear_color;
-        float clear_depth;
-
-        u32 padding_0x365[0x2];
-
-        // 0x367
-        bool color_reduction_enable : 32;
-        u32 clear_stencil;
-
-        u32 padding_0x369[0x7];
-        u32 padding_0x370[0x80];
-        u32 padding_0x3f0[0x8];
-
-        // 0x3f8 depth target
-        Iova depth_target_addr;
-        DepthSurfaceFormat depth_target_format;
+            u16 x;
+            u16 width;
+        } horizontal;
         struct {
-            u32 width : 4;
-            u32 height : 4;
-            u32 depth : 4;
-            u32 padding : 20;
-        } depth_target_tile_mode;
-        u32 depth_target_layer_stride;
+            u16 y;
+            u16 height;
+        } vertical;
+        float near;
+        float far;
+    } viewports[VIEWPORT_COUNT];
 
-        u32 padding_0x3fd[0x53];
-        u32 padding_0x450[0x8];
-
-        // 0x458 vertex attribute states
-        VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
-
-        u32 padding_0x478[0xf];
-
-        // 0x487 color target control
+    // 0x340 Window rectangle
+    struct {
         struct {
-            u32 count : 4;
-            u32 map0 : 3;
-            u32 map1 : 3;
-            u32 map2 : 3;
-            u32 map3 : 3;
-            u32 map4 : 3;
-            u32 map5 : 3;
-            u32 map6 : 3;
-            u32 map7 : 3;
-        } color_target_control;
-
-        u32 padding_0x488[0x2];
-
-        // 0x48a depth target dimensions
-        u32 depth_target_width;
-        u32 depth_target_height;
+            u16 min;
+            u16 max;
+        } horizontal;
         struct {
-            u16 layers;
-            bool volume;
-        } depth_target_array_mode;
+            u16 min;
+            u16 max;
+        } vertical;
+    } window_rects[8];
 
-        u32 padding_0x48d[0x26];
+    u32 padding2[0xd];
 
-        // 0x4b3
-        bool depth_test_enabled : 32;
+    // 0x35d
+    u32 vertex_array_start;
 
-        u32 padding_0x4b4[0x6];
+    u32 not_a_register_0x35e;
 
-        // 0x4ba
-        bool depth_write_enabled : 32;
+    // 0x35f
+    ViewportZClip viewport_z_clip;
 
-        u32 padding_0x4bb[0x8];
+    // 0x360 Clear data
+    uint4 clear_color;
+    float clear_depth;
 
-        // 0x4c3
-        DepthTestFunc depth_test_func;
+    u32 padding_0x365[0x2];
 
-        u32 padding_0x4c4[0x8a];
+    // 0x367
+    bool color_reduction_enable : 32;
+    u32 clear_stencil;
 
-        // 0x54e
-        bool depth_target_enabled : 32;
+    u32 padding_0x369[0x7];
+    u32 padding_0x370[0x80];
+    u32 padding_0x3f0[0x8];
 
-        u32 padding_0x54f[0xe];
+    // 0x3f8 depth target
+    Iova depth_target_addr;
+    DepthSurfaceFormat depth_target_format;
+    struct {
+        u32 width : 4;
+        u32 height : 4;
+        u32 depth : 4;
+        u32 padding : 20;
+    } depth_target_tile_mode;
+    u32 depth_target_layer_stride;
 
-        // 0x55d
-        Iova tex_header_pool;
-        u32 tex_header_pool_max_index;
+    u32 padding_0x3fd[0x53];
+    u32 padding_0x450[0x8];
 
-        u32 padding_0x560[0x22];
+    // 0x458 vertex attribute states
+    VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
 
-        // 0x582
-        Iova shader_program_region;
-        u32 attribute_default; // TODO: what is this?
+    u32 padding_0x478[0xf];
 
-        u32 end;
+    // 0x487 color target control
+    struct {
+        u32 count : 4;
+        u32 map0 : 3;
+        u32 map1 : 3;
+        u32 map2 : 3;
+        u32 map3 : 3;
+        u32 map4 : 3;
+        u32 map5 : 3;
+        u32 map6 : 3;
+        u32 map7 : 3;
+    } color_target_control;
+
+    u32 padding_0x488[0x2];
+
+    // 0x48a depth target dimensions
+    u32 depth_target_width;
+    u32 depth_target_height;
+    struct {
+        u16 layers;
+        bool volume;
+    } depth_target_array_mode;
+
+    u32 padding_0x48d[0x26];
+
+    // 0x4b3
+    bool depth_test_enabled : 32;
+
+    u32 padding_0x4b4[0x6];
+
+    // 0x4ba
+    bool depth_write_enabled : 32;
+
+    u32 padding_0x4bb[0x8];
+
+    // 0x4c3
+    DepthTestFunc depth_test_func;
+
+    u32 padding_0x4c4[0x8a];
+
+    // 0x54e
+    bool depth_target_enabled : 32;
+
+    u32 padding_0x54f[0xe];
+
+    // 0x55d
+    Iova tex_header_pool;
+    u32 tex_header_pool_max_index;
+
+    u32 padding_0x560[0x22];
+
+    // 0x582
+    Iova shader_program_region;
+    u32 attribute_default; // TODO: what is this?
+
+    u32 end;
+    struct {
+        PrimitiveType primitive_type : 26;
+        bool instance_next : 1;
+        bool instance_ctrl : 1; // TODO: is the name correct?
+    } begin;
+
+    u32 padding_0x587[0x9];
+
+    u32 padding_0x590[0x62];
+
+    // 0x5f2 indexed draws
+    Iova index_buffer_addr;
+    Iova index_buffer_limit_addr;
+
+    IndexType index_type;
+
+    u32 vertex_elements_start;
+    u32 not_a_register_0x5f8;
+
+    u32 padding_0x5f9[0x27];
+
+    // 0x620
+    struct {
+        bool enable : 32;
+    } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
+
+    u32 padding_0x630[0x90];
+
+    // 0x6c0 report semaphore
+    Iova report_semaphore_addr;
+    u32 report_semaphore_payload;
+    u32 report_semaphore_todo; // TODO: should this be a reg?
+
+    u32 padding_0x6c4[0x3c];
+
+    // 0x700 vertex arrays
+    struct {
         struct {
-            PrimitiveType primitive_type : 26;
-            bool instance_next : 1;
-            bool instance_ctrl : 1; // TODO: is the name correct?
-        } begin;
+            u32 stride : 12;
+            bool enable : 1;
+            u32 padding : 19;
+        } config;
+        Iova addr;
+        u32 divisor;
+    } vertex_arrays[VERTEX_ARRAY_COUNT];
 
-        u32 padding_0x587[0x9];
+    u32 padding_0x740[0x80];
 
-        u32 padding_0x590[0x62];
+    // 0x7c0 vertex array limits
+    Iova vertex_array_limits[VERTEX_ARRAY_COUNT];
 
-        // 0x5f2 indexed draws
-        Iova index_buffer_addr;
-        Iova index_buffer_limit_addr;
+    u32 padding_0x7e0[0x20];
 
-        IndexType index_type;
-
-        u32 vertex_elements_start;
-        u32 not_a_register_0x5f8;
-
-        u32 padding_0x5f9[0x27];
-
-        // 0x620
+    // 0x800 shader programs
+    struct {
         struct {
-            bool enable : 32;
-        } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
+            bool enable : 1;
+            u32 padding1 : 3;
+            ShaderStage stage : 4;
+            u32 padding2 : 24;
+        } config;
+        u32 offset;
+        u32 padding1;
+        u32 num_registers;
+        u32 padding2[0xc];
+    } shader_programs[u32(ShaderStage::Count)];
 
-        u32 padding_0x630[0x90];
+    u32 padding_0x860[0x80];
 
-        // 0x6c0 report semaphore
-        Iova report_semaphore_addr;
-        u32 report_semaphore_payload;
-        u32 report_semaphore_todo; // TODO: should this be a reg?
+    // 0x8e0 constant buffers
+    u32 const_buffer_selector_size;
+    Iova const_buffer_selector;
 
-        u32 padding_0x6c4[0x3c];
+    u32 load_const_buffer_offset;
+    u32 not_a_register_0x8e4[0x10];
 
-        // 0x700 vertex arrays
-        struct {
-            struct {
-                u32 stride : 12;
-                bool enable : 1;
-                u32 padding : 19;
-            } config;
-            Iova addr;
-            u32 divisor;
-        } vertex_arrays[VERTEX_ARRAY_COUNT];
+    u32 padding_0x8f4[0xc];
 
-        u32 padding_0x740[0x80];
+    u32 padding_0x900[0x400];
 
-        // 0x7c0 vertex array limits
-        Iova vertex_array_limits[VERTEX_ARRAY_COUNT];
-
-        u32 padding_0x7e0[0x20];
-
-        // 0x800 shader programs
-        struct {
-            struct {
-                bool enable : 1;
-                u32 padding1 : 3;
-                ShaderStage stage : 4;
-                u32 padding2 : 24;
-            } config;
-            u32 offset;
-            u32 padding1;
-            u32 num_registers;
-            u32 padding2[0xc];
-        } shader_programs[u32(ShaderStage::Count)];
-
-        u32 padding_0x860[0x80];
-
-        // 0x8e0 constant buffers
-        u32 const_buffer_selector_size;
-        Iova const_buffer_selector;
-
-        u32 load_const_buffer_offset;
-        u32 not_a_register_0x8e4[0x10];
-
-        u32 padding_0x8f4[0xc];
-
-        u32 padding_0x900[0x400];
-
-        // 0xd00
-        u32 mme_firmware_args[8];
-    };
-
-    u32 raw[MACRO_METHODS_REGION];
+    // 0xd00
+    u32 mme_firmware_args[8];
 };
 
-class ThreeD : public EngineBase {
+class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
     static ThreeD& GetInstance();
 
@@ -442,26 +418,10 @@ class ThreeD : public EngineBase {
     // Getters
     const Regs3D& GetRegs() const { return regs; }
 
-    u32 GetReg(u32 reg) const {
-        ASSERT_DEBUG(reg < MACRO_METHODS_REGION, Macro, "Invalid register {}",
-                     reg);
-        return regs.raw[reg];
-    }
-
   protected:
-    void WriteReg(u32 reg, u32 value) override {
-        LOG_DEBUG(Engines, "Writing to 3d reg 0x{:08x} (value: 0x{:08x})", reg,
-                  value);
-        regs.raw[reg] = value;
-    }
-
     void Macro(u32 method, u32 arg) override;
 
   private:
-    Regs3D regs{};
-
-    std::vector<u32> inline_data;
-
     // Macros
     Macro::DriverBase* macro_driver;
 
@@ -469,14 +429,13 @@ class ThreeD : public EngineBase {
     Renderer::ShaderBase* active_shaders[u32(Renderer::ShaderType::Count)] = {
         nullptr};
 
-    // Commands
+    // Methods
+    DEFINE_INLINE_ENGINE_METHODS;
+
     void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
     void LoadMmeInstructionRam(const u32 index, const u32 data);
     void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
     void LoadMmeStartAddressRam(const u32 index, const u32 data);
-
-    void LaunchDMA(const u32 index, const u32 data);
-    void LoadInlineData(const u32 index, const u32 data);
 
     void DrawVertexArray(const u32 index, u32 count);
     void DrawVertexElements(const u32 index, u32 count);
