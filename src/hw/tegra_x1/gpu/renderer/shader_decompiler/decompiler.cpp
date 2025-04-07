@@ -370,7 +370,7 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
                   todo2, coords, addr);
 
         observer->OpTextureSample(
-            dst, addr - 0x1a4, coords); // TODO: how do texture addresses work?
+            dst, addr & 0x3, coords); // TODO: how do texture addresses work?
     }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");

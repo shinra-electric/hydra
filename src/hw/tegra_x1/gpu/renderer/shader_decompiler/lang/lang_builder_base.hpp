@@ -147,13 +147,13 @@ class LangBuilderBase : public BuilderBase {
         case MathFunc::Lg2:
             return "log2";
         case MathFunc::Rcp:
-            return "1.0 / ";
+            return "1.0f / ";
         case MathFunc::Rsq:
-            return "1.0 / sqrt"; // TODO: isn's there a better way?
+            return "1.0f / sqrt"; // TODO: isn's there a better way?
         case MathFunc::Rcp64h:
-            return "TODO"; // TODO
+            return "1.0 / "; // TODO: correct?
         case MathFunc::Rsq64h:
-            return "TODO"; // TODO
+            return "1.0 / sqrt"; // TODO: correct?
         case MathFunc::Sqrt:
             return "sqrt";
         default:
