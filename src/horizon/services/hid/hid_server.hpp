@@ -14,6 +14,10 @@ class IHidServer : public ServiceBase {
   private:
     // Commands
     void CreateAppletResource(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
+    STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
+    STUB_REQUEST_COMMAND(ActivateNpad);
+    STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
 };
 
 } // namespace Hydra::Horizon::Services::Hid
