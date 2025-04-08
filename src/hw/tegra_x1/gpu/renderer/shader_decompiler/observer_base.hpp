@@ -18,7 +18,8 @@ class ObserverBase {
     virtual void OpLoad(reg_t dst, Operand src) = 0;
     virtual void OpStore(AMem dst, reg_t src) = 0;
     virtual void OpInterpolate(reg_t dst, AMem src) = 0;
-    virtual void OpTextureSample(reg_t dst, u32 index, reg_t coords) = 0;
+    virtual void OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
+                                 reg_t coords_y) = 0;
 
   private:
 };

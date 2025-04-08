@@ -77,10 +77,8 @@ struct RegsCopy {
     u32 padding_0xc1[0x3f];
 
     // 0x100
-    u32 offset_in_hi;
-    u32 offset_in_lo;
-    u32 offset_out_hi;
-    u32 offset_out_lo;
+    Iova offset_in;
+    Iova offset_out;
     u32 stride_in;
     u32 stride_out;
     u32 line_length_in;
@@ -128,11 +126,10 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
     void LaunchDMA(const u32 index, const LaunchDMAData data);
 
     // Helpers
-    static Renderer::BufferBase*
-    GetBuffer(const u32 gpu_addr_lo, const u32 gpu_addr_hi, const usize size);
-    static Renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
-                                             const u32 gpu_addr_hi,
-                                             const TextureCopyInfo& info);
+    static Renderer::BufferBase* GetBuffer(const Iova addr, const usize size);
+    // static Renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
+    //                                          const u32 gpu_addr_hi,
+    //                                          const TextureCopyInfo& info);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

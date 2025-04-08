@@ -32,7 +32,8 @@ class LangBuilderBase : public BuilderBase {
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst, u32 index, reg_t coords) override;
+    void OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
+                         reg_t coords_y) override;
 
   protected:
     virtual void InitializeResourceMapping() = 0;
@@ -240,8 +241,8 @@ class LangBuilderBase : public BuilderBase {
     }
 
     // Helpers
-    void EmitReadToTemp(reg_t src, u32 count = 4);
-    void EmitWriteFromTemp(reg_t dst, u32 count = 4);
+    void EmitReadToTemp(reg_t src, u32 offset = 0, u32 count = 4);
+    void EmitWriteFromTemp(reg_t dst, u32 offset = 0, u32 count = 4);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang

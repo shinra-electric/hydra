@@ -12,7 +12,8 @@ class Buffer final : public BufferBase {
     ~Buffer() override;
 
     // Copying
-    void CopyFrom(const void* data) override;
+    void CopyFrom(const uptr data) override;
+    void CopyFrom(BufferBase* src) override;
 
     // Getters
     MTL::Buffer* GetBuffer() const { return buffer; }

@@ -361,16 +361,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xd000000000000000, 0xf600000000000000) {
         const auto todo1 = GET_REG(28);
         const auto dst = GET_REG(0);
-        const auto todo2 = GET_REG(8);
-        const auto coords = GET_REG(20);
+        // TODO: are the coords correct?
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
         const auto addr = GET_VALUE_U32(36, 13);
         // TODO: texture type
         // TODO: component swizzle?
         LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", todo1, dst,
-                  todo2, coords, addr);
+                  coords_x, coords_y, addr);
 
-        observer->OpTextureSample(
-            dst, addr & 0x3, coords); // TODO: how do texture addresses work?
+        observer->OpTextureSample(dst, addr & 0x3, coords_x, coords_y);
     }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");

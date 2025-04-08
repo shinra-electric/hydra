@@ -222,23 +222,25 @@ void LangBuilderBase::OpInterpolate(reg_t dst, AMem src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
-void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords) {
-    EmitReadToTemp(coords, 2);
+void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
+                                      reg_t coords_y) {
+    EmitReadToTemp(coords_x, 0, 1);
+    EmitReadToTemp(coords_y, 1, 1);
     WriteStatement("temp.f = {}", EmitTextureSample(index, "temp.f.xy"));
     EmitWriteFromTemp(dst);
 }
 
-void LangBuilderBase::EmitReadToTemp(reg_t src, u32 count) {
+void LangBuilderBase::EmitReadToTemp(reg_t src, u32 offset, u32 count) {
     for (u32 i = 0; i < count; i++) {
-        WriteStatement("temp.u.{} = {}", GetComponentFromIndex(i),
+        WriteStatement("temp.u.{} = {}", GetComponentFromIndex(offset + i),
                        GetReg(src + i, false));
     }
 }
 
-void LangBuilderBase::EmitWriteFromTemp(reg_t dst, u32 count) {
+void LangBuilderBase::EmitWriteFromTemp(reg_t dst, u32 offset, u32 count) {
     for (u32 i = 0; i < count; i++) {
         WriteStatement("{} = temp.u.{}", GetReg(dst + i, true),
-                       GetComponentFromIndex(i));
+                       GetComponentFromIndex(offset + i));
     }
 }
 

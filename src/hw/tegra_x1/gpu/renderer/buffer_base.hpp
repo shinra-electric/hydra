@@ -10,7 +10,8 @@ class BufferBase {
     virtual ~BufferBase() = default;
 
     // Copying
-    virtual void CopyFrom(const void* data) = 0;
+    virtual void CopyFrom(const uptr data) = 0;
+    virtual void CopyFrom(BufferBase* src) = 0;
 
     // Getters
     const BufferDescriptor& GetDescriptor() const { return descriptor; }

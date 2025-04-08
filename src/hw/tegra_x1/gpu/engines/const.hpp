@@ -135,6 +135,10 @@ enum class BlockDim : u32 {
     QuarterGob = 14,
 };
 
+inline i32 get_block_size_log2(const BlockDim dim) {
+    return sign_extend<i32, 4>(static_cast<i32>(dim));
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Engines
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
