@@ -298,6 +298,8 @@ class FileReader {
         return FileReader(stream, stream.tellg(), new_size);
     }
 
+    FileReader CreateSubReader() { return CreateSubReader(size - Tell()); }
+
     u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
 
     void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
