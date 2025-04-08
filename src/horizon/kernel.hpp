@@ -140,6 +140,8 @@ class Kernel {
     void svcSleepThread(i64 nano);
     Result svcGetThreadPriority(HandleId thread_handle_id, i32& out_priority);
     Result svcSetThreadPriority(HandleId thread_handle_id, i32 priority);
+    Result svcSetThreadCoreMask(HandleId thread_handle_id, i32 core_mask0,
+                                u64 core_mask1);
     Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
                               usize size, MemoryPermission perm);
     Result svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,

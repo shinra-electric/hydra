@@ -179,6 +179,12 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcSetThreadPriority(thread->GetRegX(0), thread->GetRegX(1));
         thread->SetRegW(0, res);
         break;
+    case 0xf:
+        res = svcSetThreadCoreMask(thread->GetRegW(0),
+                                   bit_cast<i32>(thread->GetRegW(1)),
+                                   thread->GetRegX(2));
+        thread->SetRegW(0, res);
+        break;
     case 0x13:
         res = svcMapSharedMemory(
             thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
@@ -427,6 +433,19 @@ Result Kernel::svcSetThreadPriority(HandleId thread_handle_id, i32 priority) {
         HorizonKernel,
         "svcSetThreadPriority called (thread: 0x{:08x}, priority: 0x{:x})",
         thread_handle_id, priority);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(HorizonKernel);
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcSetThreadCoreMask(HandleId thread_handle_id, i32 core_mask0,
+                                    u64 core_mask1) {
+    LOG_DEBUG(HorizonKernel,
+              "svcSetThreadCoreMask called (thread: 0x{:08x}, core_mask0: "
+              "0x{:08x}, core_mask1: 0x{:08x})",
+              thread_handle_id, core_mask0, core_mask1);
 
     // TODO: implement
     LOG_FUNC_STUBBED(HorizonKernel);

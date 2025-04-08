@@ -164,6 +164,8 @@ add_executable(hydra
     horizon/services/audio/audio_out.hpp
     horizon/services/audio/audio_out_manager.cpp
     horizon/services/audio/audio_out_manager.hpp
+    horizon/services/audio/audio_renderer.cpp
+    horizon/services/audio/audio_renderer.hpp
     horizon/services/audio/audio_renderer_manager.cpp
     horizon/services/audio/audio_renderer_manager.hpp
     horizon/services/ssl/sf/ssl_service.cpp
