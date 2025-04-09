@@ -286,7 +286,7 @@ add_executable(hydra
 )
 
 target_include_directories(hydra PRIVATE . /Users/samuliak/Documents/nx-parser/src) # TODO: dependencies directory
-target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" fmt::fmt SDL3::SDL3 glfw)
+target_link_libraries(hydra PUBLIC "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" fmt::fmt SDL3::SDL3 glfw dynarmic)
 
 # Signing
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")

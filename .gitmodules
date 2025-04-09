@@ -1,3 +1,6 @@
 [submodule "externals/metal-cpp"]
 	path = externals/metal-cpp
 	url = https://github.com/bkaradzic/metal-cpp.git
+[submodule "externals/dynarmic"]
+	path = externals/dynarmic
+	url = https://github.com/SamoZ256/dynarmic.git
