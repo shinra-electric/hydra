@@ -102,6 +102,7 @@ enum class Class {
     HorizonLoader,
     HorizonServices,
     Hypervisor,
+    Dynarmic,
     Other,
 };
 
@@ -169,4 +170,5 @@ ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "Horizon", HorizonKernel, "Horizon::Kernel",
                        HorizonFilesystem, "Horizon::Filesystem", HorizonLoader,
                        "Horizon::Loader", HorizonServices, "Horizon::Services",
-                       Hypervisor, "Hypervisor", Other, "")
+                       Hypervisor, "Hypervisor", Dynarmic, "Dynarmic", Other,
+                       "")
