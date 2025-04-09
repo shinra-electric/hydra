@@ -153,7 +153,10 @@ void load_section(FileReader& reader, const std::string& rom_filename,
     }
     case PartitionType::RomFS: {
         // TODO: don't hardcode
-        reader.Seek(0x00068000);
+        // Sonic Mania: 0x00068000
+        // Shovel Knight: 0x00054000
+        // Puyo Puyo Tetris: 0x00208000
+        reader.Seek(0x00208000);
         auto romfs_reader = reader.CreateSubReader();
         Filesystem::Filesystem::GetInstance().AddEntry(
             new Filesystem::File(rom_filename, romfs_reader.GetOffset(),

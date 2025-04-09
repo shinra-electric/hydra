@@ -12,6 +12,8 @@ class ILogger : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void Log(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Lm
