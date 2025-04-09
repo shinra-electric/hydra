@@ -795,7 +795,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
-        out_info = 4u * 1024u * 1024u * 1024u;
+        out_info = 16u * 1024u * 1024u;
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
@@ -806,7 +806,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
             size += executable_mem->GetSize();
         out_info = size;
         */
-        out_info = 0;
+        out_info = 4u * 1024u;
         return RESULT_SUCCESS;
     }
     case InfoType::RandomEntropy:

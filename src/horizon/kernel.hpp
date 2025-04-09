@@ -209,7 +209,7 @@ class Kernel {
     HW::TegraX1::CPU::MemoryBase* heap_mem;
     std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
 
-    vaddr executable_mem_base{0x80000000};
+    vaddr executable_mem_base{0x40000000};
     vaddr tls_mem_base{TLS_REGION_BASE};
 
     // Handles

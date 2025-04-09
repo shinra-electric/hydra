@@ -14,6 +14,7 @@ class IApplicationFunctions : public ServiceBase {
   private:
     // Commands
     void PopLaunchParameter(REQUEST_COMMAND_PARAMS);
+    void SetTerminateResult(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(NotifyRunning);
 };
 

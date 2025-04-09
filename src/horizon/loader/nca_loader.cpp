@@ -189,8 +189,8 @@ void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
         if (i == 0)
             load_section(entry_reader, rom_filename,
                          PartitionType::PartitionFS);
-        // else if (i == 1)
-        //     load_section(entry_reader, rom_filename, PartitionType::RomFS);
+        else if (i == 1)
+            load_section(entry_reader, rom_filename, PartitionType::RomFS);
     }
 }
 

@@ -327,6 +327,19 @@ constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL = 0xFFFFFFFF;
 
 } // namespace Hydra::Horizon
 
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::MemoryType, Free, "free", Io, "io", Static, "static", Code,
+    "code", CodeData_1_0_0, "code data 1.0.0", CodeData_4_0_0,
+    "code data 4.0.0", Normal_1_0_0, "normal 1.0.0", Normal_4_0_0,
+    "normal 4.0.0", Shared, "shared", Alias, "alias", AliasCode, "alias code",
+    AliasCodeData_1_0_0, "alias code data 1.0.0", AliasCodeData_4_0_0,
+    "alias code data 4.0.0", Ipc, "ipc", Stack, "stack", ThreadLocal,
+    "thread local", Transfered, "transfered", SharedTransfered,
+    "shared transfered", SharedCode, "shared code", Inaccessible,
+    "inaccessible", NonSecureIpc, "non secure ipc", NonDeviceIpc,
+    "non device ipc", Kernel, "kernel", GeneratedCode, "generated code",
+    CodeOut, "code out", Coverage, "coverage", Insecure, "insecure")
+
 ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::MemoryPermission, Read, "read",
                              Write, "write", Execute, "execute", DontCare,
                              "don't care")
