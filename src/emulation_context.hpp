@@ -4,8 +4,6 @@
 #include "hw/bus.hpp"
 #include "hw/display/display.hpp"
 #include "hw/tegra_x1/cpu/cpu_base.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "hw/tegra_x1/cpu/hypervisor/thread.hpp"
 #include "hw/tegra_x1/gpu/gpu.hpp"
 #include <atomic>
 
