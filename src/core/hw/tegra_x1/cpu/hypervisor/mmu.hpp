@@ -25,7 +25,7 @@ class MMU : public MMUBase {
     void Map(vaddr dst_va, vaddr src_va, usize size) override;
     void Unmap(vaddr va, usize size) override;
 
-    void ResizeHeap(vaddr va, usize size) override;
+    void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
     Horizon::MemoryInfo QueryMemory(vaddr va) const override;

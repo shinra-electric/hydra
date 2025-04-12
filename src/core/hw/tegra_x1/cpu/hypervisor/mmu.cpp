@@ -104,7 +104,7 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
 void MMU::Unmap(vaddr va, usize size) { user_page_table.Unmap(va, size); }
 
 // TODO: just improve this...
-void MMU::ResizeHeap(vaddr va, usize size) {
+void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
     const auto region = user_page_table.QueryRegion(va);
     paddr pa = region.UnmapAddr(va);
     user_page_table.Map(va, pa, size, region.state);

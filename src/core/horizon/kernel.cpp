@@ -296,7 +296,7 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
 
-    mmu->ResizeHeap(HEAP_REGION_BASE, size);
+    mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
 
     out_base = HEAP_REGION_BASE;
 

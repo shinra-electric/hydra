@@ -11,6 +11,11 @@ class Memory : public MemoryBase {
     }
     ~Memory() { free(reinterpret_cast<void*>(ptr)); }
 
+    void Resize(usize new_size) {
+        free(reinterpret_cast<void*>(ptr));
+        ptr = reinterpret_cast<uptr>(malloc(new_size));
+    }
+
     // Getters
     uptr GetPtr() const { return ptr; }
 

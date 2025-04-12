@@ -59,9 +59,20 @@ void MMU::Unmap(vaddr va, usize size) {
     }
 }
 
-void MMU::ResizeHeap(vaddr va, usize size) {
-    // TODO: implement
-    LOG_NOT_IMPLEMENTED(Dynarmic, "Resizing heap");
+void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
+    auto mem_impl = static_cast<Memory*>(heap_mem);
+
+    mem_impl->Resize(size);
+
+    auto memory_ptr = mem_impl->GetPtr();
+
+    u64 va_page = va / PAGE_SIZE;
+    u64 size_page = size / PAGE_SIZE;
+    u64 va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        auto page_ptr = memory_ptr + ((page - va_page) * PAGE_SIZE);
+        pages[page] = page_ptr;
+    }
 }
 
 uptr MMU::UnmapAddr(vaddr va) const {

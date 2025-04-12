@@ -23,7 +23,7 @@ class MMUBase {
     }
     virtual void Map(vaddr dst_va, vaddr src_va, usize size) = 0;
     virtual void Unmap(vaddr va, usize size) = 0;
-    virtual void ResizeHeap(vaddr va, usize size) = 0;
+    virtual void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) = 0;
 
     virtual uptr UnmapAddr(vaddr va) const = 0;
     virtual Horizon::MemoryInfo QueryMemory(vaddr va) const = 0;
