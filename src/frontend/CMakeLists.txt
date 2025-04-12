@@ -1,6 +1,7 @@
 if (ENABLE_SWIFTUI)
     set(SOURCE_FILES
-        swiftui/main.swift
+        swiftui/HydraApp.swift
+        swiftui/ContentView.swift
     )
 else ()
     set(SOURCE_FILES
