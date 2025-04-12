@@ -10,8 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 project(hydra VERSION 1.0 LANGUAGES CXX)
 
 if (NOT CMAKE_BUILD_TYPE)
-    message("Build Type not set, defaulting to Release...")
-    set(CMAKE_BUILD_TYPE Release)
+    message("Build Type not set, defaulting to Debug...")
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 if (APPLE)
@@ -19,8 +19,6 @@ if (APPLE)
 endif()
 
 find_package(fmt CONFIG REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
 
 #add_subdirectory(externals/fmt)
 
