@@ -8,8 +8,9 @@
 namespace Hydra::Horizon {
 
 // TODO: how does this work?
-constexpr uptr ADDRESS_SPACE_BASE = 0x10000000;
-constexpr usize ADDRESS_SPACE_SIZE = 0x200000000 - ADDRESS_SPACE_BASE;
+constexpr uptr ADDRESS_SPACE_START = 0x10000000;
+constexpr uptr ADDRESS_SPACE_END = 0x200000000;
+constexpr usize ADDRESS_SPACE_SIZE = ADDRESS_SPACE_END - ADDRESS_SPACE_START;
 
 constexpr uptr STACK_REGION_BASE = 0x10000000;
 constexpr usize STACK_REGION_SIZE = 0x10000000;

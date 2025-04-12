@@ -33,6 +33,7 @@ void MMU::Map(vaddr va, usize size, MemoryBase* memory,
     for (u64 page = va_page; page < va_page_end; ++page) {
         auto page_ptr = memory_ptr + ((page - va_page) * PAGE_SIZE);
         pages[page] = page_ptr;
+        states[page] = state;
     }
 }
 
@@ -44,6 +45,7 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
     auto size_page = size / PAGE_SIZE;
     for (u64 i = 0; i < size_page; i++) {
         pages[dst_page + i] = pages[src_page + i];
+        states[dst_page + i] = states[src_page + i];
     }
 }
 
@@ -55,6 +57,7 @@ void MMU::Unmap(vaddr va, usize size) {
     auto va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
         pages[page] = 0x0;
+        states[page] = {.type = Horizon::MemoryType::Free};
     }
 }
 
@@ -71,6 +74,7 @@ void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
     for (u64 page = va_page; page < va_page_end; ++page) {
         auto page_ptr = memory_ptr + ((page - va_page) * PAGE_SIZE);
         pages[page] = page_ptr;
+        states[page] = states[va_page];
     }
 }
 
@@ -79,7 +83,7 @@ uptr MMU::UnmapAddr(vaddr va) const {
     auto page_offset = va % PAGE_SIZE;
 
     if (pages[page] == 0x0) {
-        //LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        // LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
         static u64 zero = 0;
         return reinterpret_cast<uptr>(&zero);
     }
@@ -87,16 +91,11 @@ uptr MMU::UnmapAddr(vaddr va) const {
     return pages[page] + page_offset;
 }
 
-Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
-    LOG_NOT_IMPLEMENTED(Dynarmic, "Memory querying");
-
-    // HACK
-    return Horizon::MemoryInfo{
-        .addr = va,
-        .size = PAGE_SIZE * 256,
-        .state = {
-            .type = Horizon::MemoryType::Free,
-        },
+MemoryRegion MMU::QueryRegion(vaddr va) const {
+    return {
+        .va = align_down(va, PAGE_SIZE),
+        .size = PAGE_SIZE,
+        .state = states[va / PAGE_SIZE],
     };
 }
 

@@ -28,7 +28,7 @@ class MMU : public MMUBase {
     void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
-    Horizon::MemoryInfo QueryMemory(vaddr va) const override;
+    MemoryRegion QueryRegion(vaddr va) const override;
 
     // Getters
     const PageTable& GetUserPageTable() const { return user_page_table; }

@@ -21,10 +21,12 @@ class MMU : public MMUBase {
     void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) override;
 
     uptr UnmapAddr(vaddr va) const override;
-    Horizon::MemoryInfo QueryMemory(vaddr va) const override;
+    MemoryRegion QueryRegion(vaddr va) const override;
 
   private:
     uptr pages[128u * 1024u * 1024u] = {0x0};
+    Horizon::MemoryState states[128u * 1024u * 1024u] = {
+        {.type = Horizon::MemoryType::Free}}; // TODO: handle this differently
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic

@@ -5,6 +5,12 @@
 
 namespace Hydra::HW::TegraX1::CPU {
 
+struct MemoryRegion {
+    vaddr va;
+    uptr size;
+    Horizon::MemoryState state;
+};
+
 class MMUBase {
   public:
     static MMUBase& GetInstance();
@@ -26,7 +32,9 @@ class MMUBase {
     virtual void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) = 0;
 
     virtual uptr UnmapAddr(vaddr va) const = 0;
-    virtual Horizon::MemoryInfo QueryMemory(vaddr va) const = 0;
+    virtual MemoryRegion QueryRegion(vaddr va) const = 0;
+
+    Horizon::MemoryInfo QueryMemory(vaddr va) const;
 
     template <typename T> T Load(vaddr va) const {
         return *reinterpret_cast<T*>(UnmapAddr(va));

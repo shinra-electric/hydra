@@ -782,7 +782,7 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
         out_info = HEAP_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
-        out_info = ADDRESS_SPACE_BASE;
+        out_info = ADDRESS_SPACE_START;
         return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
         out_info = ADDRESS_SPACE_SIZE;
