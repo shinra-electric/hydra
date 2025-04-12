@@ -155,7 +155,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     DrawInternal();
 
     // Index buffer
-    gpu_vaddr index_buffer_ptr = UNMAP_ADDR(regs.index_buffer_addr);
+    gpu_vaddr_t index_buffer_ptr = UNMAP_ADDR(regs.index_buffer_addr);
     // TODO: uncomment?
     usize index_buffer_size =
         count * get_index_type_size(

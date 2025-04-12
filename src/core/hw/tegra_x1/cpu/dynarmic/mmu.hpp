@@ -13,15 +13,15 @@ class MMU : public MMUBase {
     void FreeMemory(MemoryBase* memory) override;
     uptr GetMemoryPtr(MemoryBase* memory) const override;
 
-    void Map(vaddr va, usize size, MemoryBase* memory,
+    void Map(vaddr_t va, usize size, MemoryBase* memory,
              const Horizon::MemoryState state) override;
-    void Map(vaddr dst_va, vaddr src_va, usize size) override;
-    void Unmap(vaddr va, usize size) override;
+    void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
+    void Unmap(vaddr_t va, usize size) override;
 
-    void ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) override;
+    void ResizeHeap(MemoryBase* heap_mem, vaddr_t va, usize size) override;
 
-    uptr UnmapAddr(vaddr va) const override;
-    MemoryRegion QueryRegion(vaddr va) const override;
+    uptr UnmapAddr(vaddr_t va) const override;
+    MemoryRegion QueryRegion(vaddr_t va) const override;
 
   private:
     uptr pages[128u * 1024u * 1024u] = {0x0};

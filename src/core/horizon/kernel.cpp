@@ -55,7 +55,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
               MemoryPermission::ReadWrite});
 
     // TLS memory
-    vaddr tls_addr;
+    vaddr_t tls_addr;
     tls_mem = CreateTlsMemory(tls_addr);
 
     // Heap memory
@@ -76,8 +76,8 @@ Kernel::~Kernel() {
 }
 
 void Kernel::InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
-                              vaddr entry_point, vaddr tls_addr,
-                              vaddr stack_top_addr) {
+                              vaddr_t entry_point, vaddr_t tls_addr,
+                              vaddr_t stack_top_addr) {
     thread->Initialize([&](HW::TegraX1::CPU::ThreadBase* thread,
                            u64 id) { return SupervisorCall(thread, id); },
                        tls_addr, stack_top_addr);
@@ -96,7 +96,7 @@ void Kernel::InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
         thread->SetRegX(i, main_thread_args[i]);
 }
 
-uptr Kernel::CreateExecutableMemory(usize size, vaddr& out_base,
+uptr Kernel::CreateExecutableMemory(usize size, vaddr_t& out_base,
                                     MemoryPermission perm) {
     size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
     // TODO: is static type correct?
@@ -117,7 +117,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     u32 tmp_u32;
     u64 tmp_u64;
     uptr tmp_uptr;
-    HandleId tmp_handle_id;
+    handle_id_t tmp_handle_id;
     switch (id) {
     case 0x1:
         res = svcSetHeapSize(thread->GetRegX(1), tmp_uptr);
@@ -213,7 +213,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            reinterpret_cast<HandleId*>(mmu->UnmapAddr(thread->GetRegX(1))),
+            reinterpret_cast<handle_id_t*>(mmu->UnmapAddr(thread->GetRegX(1))),
             bit_cast<i64>(thread->GetRegX(2)),
             bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
         thread->SetRegW(0, res);
@@ -255,8 +255,8 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegW(0, res);
         break;
     case 0x25:
-        res =
-            svcGetThreadId(static_cast<HandleId>(thread->GetRegX(1)), tmp_u64);
+        res = svcGetThreadId(static_cast<handle_id_t>(thread->GetRegX(1)),
+                             tmp_u64);
         thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
         break;
@@ -376,10 +376,10 @@ void Kernel::svcExitProcess() {
     LOG_DEBUG(HorizonKernel, "svcExitProcess called");
 }
 
-Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
-                               vaddr stack_top_addr, i32 priority,
+Result Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
+                               vaddr_t stack_top_addr, i32 priority,
                                i32 processor_id,
-                               HandleId& out_thread_handle_id) {
+                               handle_id_t& out_thread_handle_id) {
     LOG_DEBUG(HorizonKernel,
               "svcCreateThread called (entry_point: 0x{:08x}, args_addr: "
               "0x{:08x}, stack_top_addr: 0x{:08x}, priority: {}, "
@@ -387,7 +387,7 @@ Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
               entry_point, args_addr, stack_top_addr, priority, processor_id);
 
     // TLS memory
-    vaddr new_tls_mem_base;
+    vaddr_t new_tls_mem_base;
     auto new_tls_mem = CreateTlsMemory(new_tls_mem_base);
 
     // Thread
@@ -399,7 +399,7 @@ Result Kernel::svcCreateThread(vaddr entry_point, vaddr args_addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcStartThread(HandleId thread_handle_id) {
+void Kernel::svcStartThread(handle_id_t thread_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcStartThread called (thread: 0x{:08x})",
               thread_handle_id);
 
@@ -414,7 +414,7 @@ void Kernel::svcSleepThread(i64 nano) {
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
-Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
+Result Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
                                     i32& out_priority) {
     LOG_DEBUG(HorizonKernel, "svcGetThreadPriority called (thread: 0x{:08x})",
               thread_handle_id);
@@ -428,7 +428,8 @@ Result Kernel::svcGetThreadPriority(HandleId thread_handle_id,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcSetThreadPriority(HandleId thread_handle_id, i32 priority) {
+Result Kernel::svcSetThreadPriority(handle_id_t thread_handle_id,
+                                    i32 priority) {
     LOG_DEBUG(
         HorizonKernel,
         "svcSetThreadPriority called (thread: 0x{:08x}, priority: 0x{:x})",
@@ -440,8 +441,8 @@ Result Kernel::svcSetThreadPriority(HandleId thread_handle_id, i32 priority) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcSetThreadCoreMask(HandleId thread_handle_id, i32 core_mask0,
-                                    u64 core_mask1) {
+Result Kernel::svcSetThreadCoreMask(handle_id_t thread_handle_id,
+                                    i32 core_mask0, u64 core_mask1) {
     LOG_DEBUG(HorizonKernel,
               "svcSetThreadCoreMask called (thread: 0x{:08x}, core_mask0: "
               "0x{:08x}, core_mask1: 0x{:08x})",
@@ -453,7 +454,7 @@ Result Kernel::svcSetThreadCoreMask(HandleId thread_handle_id, i32 core_mask0,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+Result Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                                   usize size, MemoryPermission perm) {
     LOG_DEBUG(
         HorizonKernel,
@@ -468,7 +469,7 @@ Result Kernel::svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+Result Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                                     usize size) {
     LOG_DEBUG(
         HorizonKernel,
@@ -484,9 +485,9 @@ Result Kernel::svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcCreateTransferMemory(uptr addr, u64 size,
-                                       MemoryPermission perm,
-                                       HandleId& out_transfer_mem_handle_id) {
+Result
+Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
+                                handle_id_t& out_transfer_mem_handle_id) {
     LOG_DEBUG(
         HorizonKernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
@@ -499,7 +500,7 @@ Result Kernel::svcCreateTransferMemory(uptr addr, u64 size,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcCloseHandle(HandleId handle_id) {
+Result Kernel::svcCloseHandle(handle_id_t handle_id) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
               handle_id);
 
@@ -508,7 +509,7 @@ Result Kernel::svcCloseHandle(HandleId handle_id) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcResetSignal(HandleId handle_id) {
+Result Kernel::svcResetSignal(handle_id_t handle_id) {
     LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:08x})",
               handle_id);
 
@@ -518,7 +519,7 @@ Result Kernel::svcResetSignal(HandleId handle_id) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
+Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
                                       i64 timeout, u64& out_handle_index) {
     LOG_DEBUG(
         HorizonKernel,
@@ -538,7 +539,7 @@ Result Kernel::svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0;
     } else {
-        HandleId handle_id = handle_ids[0];
+        handle_id_t handle_id = handle_ids[0];
         auto handle =
             dynamic_cast<SynchronizationHandle*>(GetHandle(handle_id));
         ASSERT_DEBUG(handle, HorizonKernel,
@@ -610,7 +611,7 @@ void Kernel::svcGetSystemTick(u64& out_tick) {
 }
 
 Result Kernel::svcConnectToNamedPort(const std::string& name,
-                                     HandleId& out_session_handle_id) {
+                                     handle_id_t& out_session_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcConnectToNamedPort called (name: {})", name);
 
     auto it = service_ports.find(name);
@@ -625,7 +626,7 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
 }
 
 Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
-                                  HandleId session_handle_id) {
+                                  handle_id_t session_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:08x})",
               session_handle_id);
 
@@ -650,7 +651,7 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
         service->Request(readers, writers, [&](Services::ServiceBase* service) {
-            HandleId handle_id = AddHandle(service);
+            handle_id_t handle_id = AddHandle(service);
             service->SetHandleId(handle_id);
             writers.move_handles_writer.Write(handle_id);
         });
@@ -716,7 +717,8 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id) {
+Result Kernel::svcGetThreadId(handle_id_t thread_handle_id,
+                              u64& out_thread_id) {
     LOG_DEBUG(HorizonKernel, "svcGetThreadId called (thread: 0x{:08x})",
               thread_handle_id);
 
@@ -757,7 +759,7 @@ Result Kernel::svcOutputDebugString(const char* str, usize len) {
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
+Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
                           u64 info_sub_type, u64& out_info) {
     LOG_DEBUG(HorizonKernel,
               "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
@@ -825,25 +827,25 @@ Result Kernel::svcGetInfo(InfoType info_type, HandleId handle_id,
     }
 }
 
-void Kernel::SetHandle(HandleId handle_id, KernelHandle* handle) {
+void Kernel::SetHandle(handle_id_t handle_id, KernelHandle* handle) {
     handle_pool.GetObjectRef(handle_id) = handle;
 }
 
-HandleId Kernel::AddHandle(KernelHandle* handle) {
-    HandleId handle_id = handle_pool.AllocateForIndex();
+handle_id_t Kernel::AddHandle(KernelHandle* handle) {
+    handle_id_t handle_id = handle_pool.AllocateForIndex();
     handle_pool.GetObjectRef(handle_id) = handle;
 
     return handle_id;
 }
 
-HandleId Kernel::CreateSharedMemory(usize size) {
+handle_id_t Kernel::CreateSharedMemory(usize size) {
     auto handle_id = shared_memory_pool.AllocateForIndex();
     shared_memory_pool.GetObjectRef(handle_id) = new SharedMemory(size);
 
     return handle_id;
 }
 
-HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr& base) {
+HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
     auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,

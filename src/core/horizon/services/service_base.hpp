@@ -126,7 +126,7 @@ class ServiceBase : public KernelHandle {
     // Handle GetHandle() const { return handle; }
 
     // Setters
-    void SetHandleId(HandleId handle_id_) { handle_id = handle_id_; }
+    void SetHandleId(handle_id_t handle_id_) { handle_id = handle_id_; }
 
   protected:
     virtual void RequestImpl(REQUEST_IMPL_PARAMS) {}
@@ -134,7 +134,7 @@ class ServiceBase : public KernelHandle {
     virtual usize GetPointerBufferSize() { return 0; }
 
   private:
-    HandleId handle_id;
+    handle_id_t handle_id;
 };
 
 } // namespace Hydra::Horizon::Services

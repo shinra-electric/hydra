@@ -2,7 +2,7 @@
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-PageAllocator::PageAllocator(paddr base_pa_, usize page_count)
+PageAllocator::PageAllocator(paddr_t base_pa_, usize page_count)
     : base_pa{base_pa_} {
     Allocate(page_count);
 }
@@ -33,7 +33,7 @@ void PageAllocator::Allocate(usize page_count) {
     const usize size = page_count * PAGE_SIZE;
     uptr ptr = allocate_vm_memory(size);
 
-    const paddr pa = base_pa + current_page * PAGE_SIZE;
+    const paddr_t pa = base_pa + current_page * PAGE_SIZE;
     HV_ASSERT_SUCCESS(
         hv_vm_map(reinterpret_cast<void*>(ptr), pa, size, HV_MEMORY_READ));
 

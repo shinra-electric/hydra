@@ -13,12 +13,12 @@ namespace Hydra::Horizon::Services::NvDrv {
 namespace {
 
 struct IoctlIn {
-    HandleId fd_id;
+    handle_id_t fd_id;
     u32 code;
 };
 
 struct QueryEventIn {
-    HandleId fd_id;
+    handle_id_t fd_id;
     u32 event_id;
 };
 
@@ -31,7 +31,7 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();
-    HandleId handle_id = fd_pool.AllocateForIndex();
+    handle_id_t handle_id = fd_pool.AllocateForIndex();
     if (path == "/dev/nvhost-ctrl") {
         fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
@@ -94,7 +94,7 @@ void INvDrvServices::QueryEvent(REQUEST_COMMAND_PARAMS) {
 
     // Dispatch
     NvResult r = NvResult::Success;
-    HandleId handle_id = 0x0;
+    handle_id_t handle_id = 0x0;
     fd->QueryEvent(in.event_id, handle_id, r);
 
     // Write result

@@ -25,10 +25,10 @@ class InputManager {
                                   HID::AnalogStickState analog_stick);
 
     // Getters
-    const HandleId GetSharedMemoryId() const { return shared_memory_id; }
+    const handle_id_t GetSharedMemoryId() const { return shared_memory_id; }
 
   private:
-    HandleId shared_memory_id;
+    handle_id_t shared_memory_id;
 
     // Helpers
     HID::SharedMemory* GetHidSharedMemory() const;

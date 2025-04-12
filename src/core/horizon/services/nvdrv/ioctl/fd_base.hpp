@@ -67,7 +67,7 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 class FdBase {
   public:
     virtual void Ioctl(IOCTL_PARAMS) = 0;
-    virtual void QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
+    virtual void QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                             NvResult& out_result) {
         LOG_WARNING(HorizonServices, "Unknown event id {}", event_id_u32);
 

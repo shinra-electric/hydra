@@ -11,7 +11,7 @@ enum class EventId {
     ErrorNotifierEvent,
 };
 
-void NvHostGpu::QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
+void NvHostGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                            NvResult& out_result) {
     LOG_FUNC_STUBBED(HorizonServices);
 

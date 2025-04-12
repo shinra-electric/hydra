@@ -14,7 +14,7 @@ class IPlatformSharedResourceManager : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
-    HandleId shared_memory_handle_id;
+    handle_id_t shared_memory_handle_id;
 
     // Commands
     void GetSharedMemoryNativeHandle(REQUEST_COMMAND_PARAMS);

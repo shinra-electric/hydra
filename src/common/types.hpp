@@ -25,10 +25,10 @@ using uptr = uintptr_t;
 using f32 = float;
 using f64 = double;
 
-using paddr = uptr;
-using vaddr = uptr;
-using gpu_vaddr = uptr;
-using HandleId = u32;
+using paddr_t = uptr;
+using vaddr_t = uptr;
+using gpu_vaddr_t = uptr;
+using handle_id_t = u32;
 
 template <typename T> struct range {
   public:

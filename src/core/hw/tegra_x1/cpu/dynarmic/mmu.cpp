@@ -21,7 +21,7 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
     return static_cast<Memory*>(memory)->GetPtr();
 }
 
-void MMU::Map(vaddr va, usize size, MemoryBase* memory,
+void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
               const Horizon::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
 
@@ -37,7 +37,7 @@ void MMU::Map(vaddr va, usize size, MemoryBase* memory,
     }
 }
 
-void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
+void MMU::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
 
     auto src_page = src_va / PAGE_SIZE;
@@ -49,7 +49,7 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
     }
 }
 
-void MMU::Unmap(vaddr va, usize size) {
+void MMU::Unmap(vaddr_t va, usize size) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
 
     auto va_page = va / PAGE_SIZE;
@@ -61,7 +61,7 @@ void MMU::Unmap(vaddr va, usize size) {
     }
 }
 
-void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
+void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr_t va, usize size) {
     auto mem_impl = static_cast<Memory*>(heap_mem);
 
     mem_impl->Resize(size);
@@ -78,7 +78,7 @@ void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
     }
 }
 
-uptr MMU::UnmapAddr(vaddr va) const {
+uptr MMU::UnmapAddr(vaddr_t va) const {
     auto page = va / PAGE_SIZE;
     auto page_offset = va % PAGE_SIZE;
 
@@ -91,7 +91,7 @@ uptr MMU::UnmapAddr(vaddr va) const {
     return pages[page] + page_offset;
 }
 
-MemoryRegion MMU::QueryRegion(vaddr va) const {
+MemoryRegion MMU::QueryRegion(vaddr_t va) const {
     return {
         .va = align_down(va, PAGE_SIZE),
         .size = PAGE_SIZE,
