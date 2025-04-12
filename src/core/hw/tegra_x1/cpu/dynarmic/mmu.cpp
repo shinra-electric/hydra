@@ -24,24 +24,56 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
 void MMU::Map(vaddr va, usize size, MemoryBase* memory,
               const Horizon::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
-    // TODO
+
+    auto memory_ptr = static_cast<Memory*>(memory)->GetPtr();
+
+    u64 va_page = va / PAGE_SIZE;
+    u64 size_page = size / PAGE_SIZE;
+    u64 va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        auto page_ptr = memory_ptr + ((page - va_page) * PAGE_SIZE);
+        pages[page] = page_ptr;
+    }
 }
 
 void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
-    // TODO
+    ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
+
+    auto src_page = src_va / PAGE_SIZE;
+    auto dst_page = dst_va / PAGE_SIZE;
+    auto size_page = size / PAGE_SIZE;
+    auto src_page_end = src_page + size_page;
+    for (u64 page = 0; page < size_page; ++page) {
+        pages[dst_page + page] = pages[src_page + page];
+    }
 }
 
 void MMU::Unmap(vaddr va, usize size) {
-    // TODO
+    ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
+
+    auto va_page = va / PAGE_SIZE;
+    auto size_page = size / PAGE_SIZE;
+    auto va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        pages[page] = 0x0;
+    }
 }
 
 void MMU::ResizeHeap(vaddr va, usize size) {
-    // TODO
+    // TODO: implement
+    LOG_NOT_IMPLEMENTED(Dynarmic, "Resizing heap");
 }
 
 uptr MMU::UnmapAddr(vaddr va) const {
-    // TODO
-    return invalid<uptr>();
+    auto page = va / PAGE_SIZE;
+    auto page_offset = va % PAGE_SIZE;
+
+    if (pages[page] == 0x0) {
+        LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        return 0x0;
+    }
+
+    return pages[page] + page_offset;
 }
 
 Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {

@@ -58,20 +58,34 @@ void Thread::LogRegisters(bool simd, u32 count) {
     // TODO
 }
 
-u8 Thread::MemoryRead8(u64 addr) { return mmu->Load<u8>(addr); }
+u8 Thread::MemoryRead8(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read U8 0x{:08x}", addr);
+    return mmu->Load<u8>(addr);
+}
 
-u16 Thread::MemoryRead16(u64 addr) { return mmu->Load<u16>(addr); }
+u16 Thread::MemoryRead16(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read U16 0x{:08x}", addr);
+    return mmu->Load<u16>(addr);
+}
 
-u32 Thread::MemoryRead32(u64 addr) { return mmu->Load<u32>(addr); }
+u32 Thread::MemoryRead32(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read U32 0x{:08x}", addr);
+    return mmu->Load<u32>(addr);
+}
 
-u64 Thread::MemoryRead64(u64 addr) { return mmu->Load<u64>(addr); }
+u64 Thread::MemoryRead64(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read U64 0x{:08x}", addr);
+    return mmu->Load<u64>(addr);
+}
 
 DynA64::Vector Thread::MemoryRead128(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read U128 0x{:08x}", addr);
     return mmu->Load<DynA64::Vector>(addr);
 }
 
-std::optional<u32> Thread::MemoryReadCode(u64 vaddr) {
-    return mmu->Load<u32>(vaddr);
+std::optional<u32> Thread::MemoryReadCode(u64 addr) {
+    LOG_DEBUG(Dynarmic, "Read code 0x{:08x}", addr);
+    return mmu->Load<u32>(addr);
 }
 
 void Thread::MemoryWrite8(u64 addr, u8 value) { mmu->Store(addr, value); }

@@ -51,7 +51,7 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
     u32 MemoryRead32(u64 addr) override;
     u64 MemoryRead64(u64 addr) override;
     DynA64::Vector MemoryRead128(u64 addr) override;
-    std::optional<u32> MemoryReadCode(u64 vaddr) override;
+    std::optional<u32> MemoryReadCode(u64 addr) override;
 
     void MemoryWrite8(u64 addr, u8 value) override;
     void MemoryWrite16(u64 addr, u16 value) override;

@@ -24,6 +24,7 @@ class MMU : public MMUBase {
     Horizon::MemoryInfo QueryMemory(vaddr va) const override;
 
   private:
+    uptr pages[128u * 1024u * 1024u] = {0x0};
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic
