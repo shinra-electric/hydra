@@ -10,11 +10,7 @@ if (true)
     find_package(SDL3 CONFIG REQUIRED)
 endif ()
 
-add_executable(hydra
-    ${SOURCE_FILES}
-    window_base.cpp
-    window_base.hpp
-)
+add_executable(hydra ${SOURCE_FILES})
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 

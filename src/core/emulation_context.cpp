@@ -39,18 +39,7 @@ EmulationContext::~EmulationContext() {
     }
 }
 
-void EmulationContext::Start(const std::string& rom_filename) {
-    // HACK
-    // u32* data = (u32*)(rom->GetRom().data());
-    // SET_INSTRUCTION(data, 0x00000c28,
-    //                MOV_X0_XZR); // appletInitialize, infinite sleep on exit
-    // SET_INSTRUCTION(data, 0x0000161c,
-    //                NOP); // _fsdevUnmountDeviceStruct, crashes due to "str
-    //                x5,
-
-    // HACK: for testing
-    // SET_INSTRUCTION(data, 0xf1e8, BRK);
-
+void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Load ROM
     usize size;
     auto ifs = Hydra::open_file(rom_filename, size);
@@ -81,7 +70,9 @@ void EmulationContext::Start(const std::string& rom_filename) {
     // cpu->GetMMU()->Store<u32>(0x803cf6b8, BRK);
     // cpu->GetMMU()->Store<u32>(0x803cf0c8, BRK);
     // cpu->GetMMU()->Store<u32>(0x803d569c, BRK);
+}
 
+void EmulationContext::Start() {
     // Main thread
     std::thread* t = new std::thread([&]() {
         // Main thread
@@ -110,6 +101,29 @@ void EmulationContext::Start(const std::string& rom_filename) {
     // Select user account
     // HACK
     state_manager.PushPreselectedUser(0);
+}
+
+void EmulationContext::Present() {
+    // TODO: correct?
+    // Inform the app that we want to display the window
+    Horizon::StateManager::GetInstance().SendMessage(
+        Horizon::AppletMessage::RequestToDisplay);
+
+    // TODO: don't hardcode the display id
+    auto display = bus->GetDisplay(0);
+    auto layer = display->GetPresentableLayer();
+    if (!layer)
+        return;
+
+    u32 binder_id = layer->GetBinderId();
+    auto& binder = os->GetDisplayBinderManager().GetBinder(binder_id);
+    i32 slot = binder.ConsumeBuffer();
+    if (slot == -1)
+        return;
+    const auto& buffer = binder.GetBuffer(slot);
+
+    auto texture = gpu->GetTexture(buffer);
+    gpu->GetRenderer()->Present(texture);
 }
 
 } // namespace Hydra

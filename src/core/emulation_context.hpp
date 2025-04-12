@@ -13,7 +13,11 @@ class EmulationContext {
     EmulationContext();
     ~EmulationContext();
 
-    void Start(const std::string& rom_filename);
+    void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
+    void LoadRom(const std::string& rom_filename);
+    void Start();
+
+    void Present();
 
     // Getters
     Hydra::HW::TegraX1::CPU::CPUBase* GetCPU() const { return cpu; }
