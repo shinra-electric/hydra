@@ -1,4 +1,4 @@
-#include "emulation_context.hpp"
+#include "core/api.hpp"
 
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
@@ -6,7 +6,6 @@
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra {
@@ -72,7 +71,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // cpu->GetMMU()->Store<u32>(0x803d569c, BRK);
 }
 
-void EmulationContext::Start() {
+void EmulationContext::Run() {
     // Main thread
     std::thread* t = new std::thread([&]() {
         // Main thread

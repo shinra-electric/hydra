@@ -271,8 +271,10 @@ add_library(hydra-core
     hw/display/layer.hpp
     hw/display/display.hpp
     hw/bus.hpp
-    emulation_context.cpp
-    emulation_context.hpp
+    api.cpp
+    api.hpp
+    c_api.cpp
+    c_api.h
 )
 
 target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic hydra-common)

@@ -27,7 +27,7 @@ Window::Window(int argc, const char* argv[]) {
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
     emulation_context.LoadRom(rom_filename);
-    emulation_context.Start();
+    emulation_context.Run();
 
     // Configure input
     Horizon::OS::GetInstance().GetInputManager().ConnectNpad(

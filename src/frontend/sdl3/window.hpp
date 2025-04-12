@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/emulation_context.hpp"
+#include "core/api.hpp"
 #include "frontend/sdl3/const.hpp"
 
 namespace Hydra::Frontend::SDL3 {

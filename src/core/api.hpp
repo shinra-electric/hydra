@@ -15,7 +15,7 @@ class EmulationContext {
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
     void LoadRom(const std::string& rom_filename);
-    void Start();
+    void Run();
 
     void Present();
 
