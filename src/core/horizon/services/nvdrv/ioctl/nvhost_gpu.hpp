@@ -6,7 +6,7 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 class NvHostGpu : public ChannelBase {
   public:
-    void QueryEvent(u32 event_id_u32, HandleId& out_handle_id,
+    void QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                     NvResult& out_result) override;
 
   private:

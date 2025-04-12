@@ -177,6 +177,14 @@ add_library(hydra-core
     hw/tegra_x1/cpu/hypervisor/thread.hpp
     hw/tegra_x1/cpu/hypervisor/cpu.cpp
     hw/tegra_x1/cpu/hypervisor/cpu.hpp
+    hw/tegra_x1/cpu/dynarmic/const.hpp
+    hw/tegra_x1/cpu/dynarmic/memory.hpp
+    hw/tegra_x1/cpu/dynarmic/mmu.cpp
+    hw/tegra_x1/cpu/dynarmic/mmu.hpp
+    hw/tegra_x1/cpu/dynarmic/thread.cpp
+    hw/tegra_x1/cpu/dynarmic/thread.hpp
+    hw/tegra_x1/cpu/dynarmic/cpu.cpp
+    hw/tegra_x1/cpu/dynarmic/cpu.hpp
     hw/tegra_x1/gpu/const.hpp
     hw/tegra_x1/gpu/gpu_mmu.cpp
     hw/tegra_x1/gpu/gpu_mmu.hpp
@@ -265,6 +273,8 @@ add_library(hydra-core
     hw/bus.hpp
     emulation_context.cpp
     emulation_context.hpp
+    c_api.cpp
+    c_api.h
 )
 
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic hydra-common)

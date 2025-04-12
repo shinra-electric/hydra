@@ -12,8 +12,8 @@ class DomainService : public ServiceBase {
 
     void Request(REQUEST_PARAMS) override;
 
-    HandleId AddObject(ServiceBase* object) {
-        HandleId handle_id = object_pool.AllocateForIndex();
+    handle_id_t AddObject(ServiceBase* object) {
+        handle_id_t handle_id = object_pool.AllocateForIndex();
         object_pool.GetObjectRef(handle_id) = object;
         object->SetHandleId(handle_id);
 

@@ -16,7 +16,7 @@ constexpr usize ENTRY_COUNT = 1ull << BLOCK_SHIFT_DIFF;
 constexpr usize ADDRESS_SPACE_SIZE = 1ull << GET_BLOCK_SHIFT(-1);
 
 struct PageTableLevel {
-    PageTableLevel(u32 level_, const Page page_, const vaddr base_va_);
+    PageTableLevel(u32 level_, const Page page_, const vaddr_t base_va_);
 
     usize GetBlockSize() const { return 1ul << GET_BLOCK_SHIFT(level); }
 
@@ -24,7 +24,7 @@ struct PageTableLevel {
         return (pa - page.pa) >> GET_BLOCK_SHIFT(level);
     }
 
-    u32 VaToIndex(vaddr va) const {
+    u32 VaToIndex(vaddr_t va) const {
         return (va - base_va) >> GET_BLOCK_SHIFT(level);
     }
 
@@ -62,41 +62,41 @@ struct PageTableLevel {
   private:
     u32 level;
     const Page page;
-    const vaddr base_va;
+    const vaddr_t base_va;
     PageTableLevel* next_levels[ENTRY_COUNT] = {nullptr};
     Horizon::MemoryState level_states[ENTRY_COUNT] = {};
 };
 
 struct PageRegion {
-    vaddr va;
-    paddr pa;
+    vaddr_t va;
+    paddr_t pa;
     usize size;
     Horizon::MemoryState state;
 
-    paddr UnmapAddr(vaddr va_) const { return pa + (va_ - va); }
+    paddr_t UnmapAddr(vaddr_t va_) const { return pa + (va_ - va); }
 };
 
 class PageTable {
   public:
-    PageTable(paddr base_pa);
+    PageTable(paddr_t base_pa);
     ~PageTable();
 
-    void Map(vaddr va, paddr pa, usize size, const Horizon::MemoryState state);
-    void Unmap(vaddr va, usize size);
+    void Map(vaddr_t va, paddr_t pa, usize size, const Horizon::MemoryState state);
+    void Unmap(vaddr_t va, usize size);
 
-    PageRegion QueryRegion(vaddr va) const;
-    paddr UnmapAddr(vaddr va) const;
+    PageRegion QueryRegion(vaddr_t va) const;
+    paddr_t UnmapAddr(vaddr_t va) const;
 
     // Getters
-    paddr GetBase() const { return allocator.GetBase(); }
+    paddr_t GetBase() const { return allocator.GetBase(); }
 
   private:
     PageAllocator allocator;
     PageTableLevel top_level;
 
-    void MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size,
+    void MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
                   const Horizon::MemoryState state);
-    void MapLevelNext(PageTableLevel& level, vaddr va, paddr pa, usize size,
+    void MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
                       const Horizon::MemoryState state);
 };
 

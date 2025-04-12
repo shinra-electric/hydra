@@ -79,7 +79,7 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
     }
     case Cmif::ControlCommandType::CloneCurrentObject: { // clone current object
         auto clone = Clone();
-        HandleId handle_id = Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
@@ -91,7 +91,7 @@ void ServiceBase::Control(Readers& readers, Writers& writers) {
     case Cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = Clone();
-        HandleId handle_id = Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;

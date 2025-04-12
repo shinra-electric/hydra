@@ -22,7 +22,7 @@ class ChannelBase : public FdBase {
         , detailed_error, out_fence);
     DECLARE_VIRTUAL_IOCTL(AllocObjCtx, readonly<u32> class_num;
                           readonly<u32> flags; writeonly<u64> obj_id;, obj_id);
-    DECLARE_VIRTUAL_IOCTL(ZCullBind, readonly<gpu_vaddr> addr;
+    DECLARE_VIRTUAL_IOCTL(ZCullBind, readonly<gpu_vaddr_t> addr;
                           readonly<u32> mode; readonly<u32> reserved;, );
     DECLARE_VIRTUAL_IOCTL(SetErrorNotifier, readonly<u64> offset;
                           readonly<u64> size; readonly<u32> mem;

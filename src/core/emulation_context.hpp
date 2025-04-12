@@ -4,8 +4,6 @@
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace Hydra {
@@ -15,7 +13,11 @@ class EmulationContext {
     EmulationContext();
     ~EmulationContext();
 
-    void Start(const std::string& rom_filename);
+    void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
+    void LoadRom(const std::string& rom_filename);
+    void Run();
+
+    void Present();
 
     // Getters
     Hydra::HW::TegraX1::CPU::CPUBase* GetCPU() const { return cpu; }

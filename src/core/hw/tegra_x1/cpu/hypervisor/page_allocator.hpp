@@ -6,7 +6,7 @@ namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
 struct Page {
     uptr ptr;
-    paddr pa;
+    paddr_t pa;
 };
 
 struct Allocation {
@@ -18,16 +18,16 @@ constexpr usize PAGE_COUNT_ALIGNMENT = 4;
 
 class PageAllocator {
   public:
-    PageAllocator(paddr base_pa_, usize page_count);
+    PageAllocator(paddr_t base_pa_, usize page_count);
     ~PageAllocator();
 
     Page GetNextPage();
 
     // Getters
-    paddr GetBase() const { return base_pa; }
+    paddr_t GetBase() const { return base_pa; }
 
   private:
-    paddr base_pa;
+    paddr_t base_pa;
 
     std::vector<Allocation> allocations;
     u32 current_page_in_allocation = 0;

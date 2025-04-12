@@ -23,9 +23,10 @@ endif()
 find_package(fmt CONFIG REQUIRED)
 
 #add_subdirectory(externals/fmt)
+add_subdirectory(externals/dynarmic)
 
 #include_directories(externals/fmt/include)
-include_directories(externals/metal-cpp)
+include_directories(externals/metal-cpp dynarmic)
 
 # TODO: find out why release builds are broken
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

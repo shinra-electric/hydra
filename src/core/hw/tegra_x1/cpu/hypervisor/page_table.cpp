@@ -91,7 +91,7 @@ inline ApFlags PermisionToAP(Horizon::Permission permission) {
 } // namespace
 
 PageTableLevel::PageTableLevel(u32 level_, const Page page_,
-                               const vaddr base_va_)
+                               const vaddr_t base_va_)
     : level{level_}, page{page_}, base_va{base_va_} {
     u64* table = reinterpret_cast<u64*>(page.ptr);
     for (u32 i = 0; i < ENTRY_COUNT; i++) {
@@ -112,12 +112,12 @@ PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
     return *next;
 }
 
-PageTable::PageTable(paddr base_pa)
+PageTable::PageTable(paddr_t base_pa)
     : allocator(base_pa, 1024), top_level(0, allocator.GetNextPage(), 0x0) {}
 
 PageTable::~PageTable() = default;
 
-void PageTable::Map(vaddr va, paddr pa, usize size,
+void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
                     const Horizon::MemoryState state) {
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
@@ -129,12 +129,12 @@ void PageTable::Map(vaddr va, paddr pa, usize size,
     MapLevel(top_level, va, pa, size, state);
 }
 
-void PageTable::Unmap(vaddr va, usize size) {
+void PageTable::Unmap(vaddr_t va, usize size) {
     LOG_NOT_IMPLEMENTED(Hypervisor, "Memory unmapping");
 }
 
 // TODO: find out if there is a cheaper way
-PageRegion PageTable::QueryRegion(vaddr va) const {
+PageRegion PageTable::QueryRegion(vaddr_t va) const {
     u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
     u64 entry = top_level.ReadEntry(index);
@@ -165,7 +165,7 @@ PageRegion PageTable::QueryRegion(vaddr va) const {
     return region;
 }
 
-paddr PageTable::UnmapAddr(vaddr va) const {
+paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
     ASSERT(region.state.type != Horizon::MemoryType::Free, Hypervisor,
            "Failed to unmap va 0x{:08x}", va);
@@ -173,22 +173,22 @@ paddr PageTable::UnmapAddr(vaddr va) const {
     return region.UnmapAddr(va);
 }
 
-void PageTable::MapLevel(PageTableLevel& level, vaddr va, paddr pa, usize size,
+void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
                          const Horizon::MemoryState state) {
-    vaddr end_va = va + size;
+    vaddr_t end_va = va + size;
     do {
         MapLevelNext(
             level, va, pa,
             std::min(align(va + 1, level.GetBlockSize()) - va, end_va - va),
             state);
 
-        vaddr old_va = va;
+        vaddr_t old_va = va;
         va = align_down(va + level.GetBlockSize(), level.GetBlockSize());
         pa += va - old_va;
     } while (va < end_va);
 }
 
-void PageTable::MapLevelNext(PageTableLevel& level, vaddr va, paddr pa,
+void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
                              usize size, const Horizon::MemoryState state) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",

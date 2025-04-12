@@ -18,7 +18,7 @@ void DomainService::Request(REQUEST_PARAMS) {
     switch (cmif_in.type) {
     case Cmif::DomainCommandType::SendMessage:
         subservice->Request(readers, writers, [&](ServiceBase* service) {
-            HandleId handle_id = AddObject(service);
+            handle_id_t handle_id = AddObject(service);
             writers.objects_writer.Write(handle_id);
         });
         break;

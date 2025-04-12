@@ -68,8 +68,8 @@ struct Response {
     u32 num_move_handles;
     StaticDescriptor* statics;
     u32* data_words;
-    HandleId* copy_handles;
-    HandleId* move_handles;
+    handle_id_t* copy_handles;
+    handle_id_t* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -80,8 +80,8 @@ struct Request {
     BufferDescriptor* exch_buffers;
     u32* data_words;
     RecvListEntry* recv_list;
-    HandleId* copy_handles;
-    HandleId* move_handles;
+    handle_id_t* copy_handles;
+    handle_id_t* move_handles;
 };
 
 // From https://github.com/switchbrew/libnx
@@ -102,16 +102,16 @@ struct SpecialHeader {
 // From https://github.com/switchbrew/libnx
 inline Request calc_request_layout(Metadata meta, void* base) {
     // Copy handles
-    HandleId* copy_handles = NULL;
+    handle_id_t* copy_handles = NULL;
     if (meta.num_copy_handles) {
-        copy_handles = (HandleId*)base;
+        copy_handles = (handle_id_t*)base;
         base = copy_handles + meta.num_copy_handles;
     }
 
     // Move handles
-    HandleId* move_handles = NULL;
+    handle_id_t* move_handles = NULL;
     if (meta.num_move_handles) {
-        move_handles = (HandleId*)base;
+        move_handles = (handle_id_t*)base;
         base = move_handles + meta.num_move_handles;
     }
 

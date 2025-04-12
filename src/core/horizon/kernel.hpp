@@ -58,8 +58,8 @@ class SynchronizationHandle : public KernelHandle {
 
 class ThreadHandle : public KernelHandle {
   public:
-    ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr tls_addr_,
-                 vaddr entry_point_, vaddr args_addr_, vaddr stack_top_addr_,
+    ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr_t tls_addr_,
+                 vaddr_t entry_point_, vaddr_t args_addr_, vaddr_t stack_top_addr_,
                  i32 priority_)
         : tls_mem{tls_mem_}, tls_addr{tls_addr_}, entry_point{entry_point_},
           args_addr{args_addr_}, stack_top_addr{stack_top_addr_},
@@ -70,10 +70,10 @@ class ThreadHandle : public KernelHandle {
 
   private:
     HW::TegraX1::CPU::MemoryBase* tls_mem;
-    vaddr tls_addr;
-    vaddr entry_point;
-    vaddr args_addr;
-    vaddr stack_top_addr;
+    vaddr_t tls_addr;
+    vaddr_t entry_point;
+    vaddr_t args_addr;
+    vaddr_t stack_top_addr;
     i32 priority;
 
     std::thread* t = nullptr;
@@ -99,14 +99,14 @@ class Kernel {
     Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_);
     ~Kernel();
 
-    void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread,
-                         vaddr entry_point, vaddr tls_addr,
-                         vaddr stack_top_addr);
-    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
+    void InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
+                          vaddr_t entry_point, vaddr_t tls_addr,
+                          vaddr_t stack_top_addr);
+    void InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
     // TODO: should the caller be able to specify permissions?
-    uptr CreateExecutableMemory(usize size, vaddr& out_base,
+    uptr CreateExecutableMemory(usize size, vaddr_t& out_base,
                                 MemoryPermission perm);
     void SetMainThreadEntryPoint(uptr main_thread_entry_point_) {
         main_thread_entry_point = main_thread_entry_point_;
@@ -133,24 +133,24 @@ class Kernel {
     Result svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                           u32& out_page_info);
     void svcExitProcess();
-    Result svcCreateThread(vaddr entry_point, vaddr args_addr,
-                           vaddr stack_top_addr, i32 priority, i32 processor_id,
-                           HandleId& out_thread_handle_id);
-    void svcStartThread(HandleId thread_handle_id);
+    Result svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
+                           vaddr_t stack_top_addr, i32 priority, i32 processor_id,
+                           handle_id_t& out_thread_handle_id);
+    void svcStartThread(handle_id_t thread_handle_id);
     void svcSleepThread(i64 nano);
-    Result svcGetThreadPriority(HandleId thread_handle_id, i32& out_priority);
-    Result svcSetThreadPriority(HandleId thread_handle_id, i32 priority);
-    Result svcSetThreadCoreMask(HandleId thread_handle_id, i32 core_mask0,
+    Result svcGetThreadPriority(handle_id_t thread_handle_id, i32& out_priority);
+    Result svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
+    Result svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                 u64 core_mask1);
-    Result svcMapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+    Result svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                               usize size, MemoryPermission perm);
-    Result svcUnmapSharedMemory(HandleId shared_mem_handle_id, uptr addr,
+    Result svcUnmapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                                 usize size);
     Result svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
-                                   HandleId& out_transfer_mem_handle_id);
-    Result svcCloseHandle(HandleId handle_id);
-    Result svcResetSignal(HandleId handle_id);
-    Result svcWaitSynchronization(HandleId* handle_ids, i32 handle_count,
+                                   handle_id_t& out_transfer_mem_handle_id);
+    Result svcCloseHandle(handle_id_t handle_id);
+    Result svcResetSignal(handle_id_t handle_id);
+    Result svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
                                   i64 timeout, u64& out_handle_index);
     Result svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     Result svcArbitrateUnlock(uptr mutex_addr);
@@ -159,13 +159,13 @@ class Kernel {
     Result svcSignalProcessWideKey(uptr addr, i32 v);
     void svcGetSystemTick(u64& out_tick);
     Result svcConnectToNamedPort(const std::string& name,
-                                 HandleId& out_session_handle_id);
+                                 handle_id_t& out_session_handle_id);
     Result svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
-                              HandleId session_handle_id);
-    Result svcGetThreadId(HandleId thread_handle_id, u64& out_thread_id);
+                              handle_id_t session_handle_id);
+    Result svcGetThreadId(handle_id_t thread_handle_id, u64& out_thread_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(InfoType info_type, HandleId handle_id, u64 info_sub_type,
+    Result svcGetInfo(InfoType info_type, handle_id_t handle_id, u64 info_sub_type,
                       u64& out_info);
 
     // Getters
@@ -176,23 +176,23 @@ class Kernel {
     HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
 
     // Helpers
-    KernelHandle* GetHandle(HandleId handle_id) const {
+    KernelHandle* GetHandle(handle_id_t handle_id) const {
         return handle_pool.GetObject(handle_id);
     }
-    void SetHandle(HandleId handle_id, KernelHandle* handle);
-    HandleId AddHandle(KernelHandle* handle);
-    void FreeHandle(HandleId handle_id) {
+    void SetHandle(handle_id_t handle_id, KernelHandle* handle);
+    handle_id_t AddHandle(KernelHandle* handle);
+    void FreeHandle(handle_id_t handle_id) {
         delete GetHandle(handle_id);
         handle_pool.FreeByIndex(handle_id);
     }
 
-    HandleId CreateSharedMemory(usize size);
+    handle_id_t CreateSharedMemory(usize size);
 
-    const SharedMemory& GetSharedMemory(HandleId handle_id) const {
+    const SharedMemory& GetSharedMemory(handle_id_t handle_id) const {
         return *shared_memory_pool.GetObject(handle_id);
     }
 
-    HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr& base);
+    HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
   private:
     HW::Bus& bus;
@@ -209,8 +209,8 @@ class Kernel {
     HW::TegraX1::CPU::MemoryBase* heap_mem;
     std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
 
-    vaddr executable_mem_base{0x40000000};
-    vaddr tls_mem_base{TLS_REGION_BASE};
+    vaddr_t executable_mem_base{0x40000000};
+    vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Handles
     Allocators::DynamicPool<KernelHandle*> handle_pool;
@@ -229,7 +229,7 @@ template <typename T> struct KernelHandleWithId {
                   "Type does not inherit from KernelHandle");
 
     T* handle;
-    HandleId id;
+    handle_id_t id;
 
     KernelHandleWithId(T* handle_) : handle{handle_} {
         id = Kernel::GetInstance().AddHandle(handle);

@@ -40,7 +40,7 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
     if (size == 0x0)
         size = map.size; // TODO: correct?
 
-    gpu_vaddr addr = invalid<uptr>();
+    gpu_vaddr_t addr = invalid<uptr>();
     if (any(data.flags & MapBufferFlags::FixedOffset))
         addr = data.offset;
 

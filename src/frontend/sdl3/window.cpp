@@ -25,7 +25,9 @@ Window::Window(int argc, const char* argv[]) {
     }
 
     // Begin emulation
-    InitializeEmulationContext(rom_filename, SDL_GetRenderMetalLayer(renderer));
+    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
+    emulation_context.LoadRom(rom_filename);
+    emulation_context.Run();
 
     // Configure input
     Horizon::OS::GetInstance().GetInputManager().ConnectNpad(
@@ -93,8 +95,8 @@ void Window::Run() {
         Horizon::OS::GetInstance().GetInputManager().SetNpadButtons(
             Horizon::HID::NpadIdType::Handheld, buttons);
 
-        if (IsEmulating())
-            Present();
+        if (emulation_context.IsRunning())
+            emulation_context.Present();
     }
 }
 

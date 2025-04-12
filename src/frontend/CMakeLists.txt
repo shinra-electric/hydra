@@ -21,11 +21,7 @@ else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
 
-add_executable(hydra
-    ${SOURCE_FILES}
-    window_base.cpp
-    window_base.hpp
-)
+add_executable(hydra ${SOURCE_FILES})
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 
