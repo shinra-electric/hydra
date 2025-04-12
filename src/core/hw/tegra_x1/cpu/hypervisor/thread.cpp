@@ -7,8 +7,6 @@
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-constexpr u32 MAX_STACK_TRACE_DEPTH = 32;
-
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
 Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)

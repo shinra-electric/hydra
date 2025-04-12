@@ -42,9 +42,8 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
     auto src_page = src_va / PAGE_SIZE;
     auto dst_page = dst_va / PAGE_SIZE;
     auto size_page = size / PAGE_SIZE;
-    auto src_page_end = src_page + size_page;
-    for (u64 page = 0; page < size_page; ++page) {
-        pages[dst_page + page] = pages[src_page + page];
+    for (u64 i = 0; i < size_page; i++) {
+        pages[dst_page + i] = pages[src_page + i];
     }
 }
 
@@ -80,8 +79,9 @@ uptr MMU::UnmapAddr(vaddr va) const {
     auto page_offset = va % PAGE_SIZE;
 
     if (pages[page] == 0x0) {
-        LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
-        return 0x0;
+        //LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        static u64 zero = 0;
+        return reinterpret_cast<uptr>(&zero);
     }
 
     return pages[page] + page_offset;
@@ -93,7 +93,10 @@ Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
     // HACK
     return Horizon::MemoryInfo{
         .addr = va,
-        .size = PAGE_SIZE,
+        .size = PAGE_SIZE * 256,
+        .state = {
+            .type = Horizon::MemoryType::Free,
+        },
     };
 }
 
