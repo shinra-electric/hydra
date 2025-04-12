@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 option(CODESIGN_IDENTITY "The identity to use for macOS code signing.")
+option(ENABLE_SWIFTUI "Enable the SwiftUI frontend." OFF)
 
 # TODO: use c++20
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(hydra VERSION 1.0 LANGUAGES CXX)
+# TODO: only enable Swift if SwiftUI is enabled
+project(hydra VERSION 1.0 LANGUAGES CXX Swift)
 
 if (NOT CMAKE_BUILD_TYPE)
     message("Build Type not set, defaulting to Debug...")

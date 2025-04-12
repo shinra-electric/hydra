@@ -1,5 +1,8 @@
-# TODO: if SDL3 frontend enabled
-if (true)
+if (ENABLE_SWIFTUI)
+    set(SOURCE_FILES
+        swiftui/main.swift
+    )
+else ()
     set(SOURCE_FILES
         sdl3/main.cpp
         sdl3/const.hpp
@@ -8,6 +11,7 @@ if (true)
     )
 
     find_package(SDL3 CONFIG REQUIRED)
+    set(LINK_LIBS SDL3::SDL3)
 endif ()
 
 add_executable(hydra
@@ -16,14 +20,13 @@ add_executable(hydra
     window_base.hpp
 )
 
-target_link_libraries(hydra PRIVATE hydra-common hydra-core)
-
-# TODO: if SDL3 frontend enabled
-if (true)
-    target_link_libraries(hydra PRIVATE SDL3::SDL3)
-endif ()
+target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 
 # Signing
+if (NOT CODESIGN_IDENTITY)
+    message(FATAL_ERROR "CODESIGN_IDENTITY not set. Please set it to the identity you want to use for code signing.")
+endif ()
+
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
 
 add_custom_command(TARGET hydra POST_BUILD VERBATIM
