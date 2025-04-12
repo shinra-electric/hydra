@@ -26,8 +26,8 @@ void ThreadHandle::Start() {
     t = new std::thread([&]() {
         HW::TegraX1::CPU::ThreadBase* thread =
             HW::TegraX1::CPU::CPUBase::GetInstance().CreateThread(tls_mem);
-        Kernel::GetInstance().ConfigureThread(thread, entry_point, tls_addr,
-                                              stack_top_addr);
+        Kernel::GetInstance().InitializeThread(thread, entry_point, tls_addr,
+                                               stack_top_addr);
         thread->SetRegX(0, args_addr);
 
         thread->Run();
@@ -75,21 +75,21 @@ Kernel::~Kernel() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void Kernel::ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread,
-                             vaddr entry_point, vaddr tls_addr,
-                             vaddr stack_top_addr) {
-    thread->Configure([&](HW::TegraX1::CPU::ThreadBase* thread,
-                          u64 id) { return SupervisorCall(thread, id); },
-                      tls_addr, stack_top_addr);
+void Kernel::InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
+                              vaddr entry_point, vaddr tls_addr,
+                              vaddr stack_top_addr) {
+    thread->Initialize([&](HW::TegraX1::CPU::ThreadBase* thread,
+                           u64 id) { return SupervisorCall(thread, id); },
+                       tls_addr, stack_top_addr);
 
     // Set initial PC
     ASSERT_DEBUG(entry_point != 0x0, HorizonKernel, "Invalid entry point");
     thread->SetRegPC(entry_point);
 }
 
-void Kernel::ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
-    ConfigureThread(thread, main_thread_entry_point, TLS_REGION_BASE,
-                    STACK_REGION_BASE + STACK_MEM_SIZE);
+void Kernel::InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
+    InitializeThread(thread, main_thread_entry_point, TLS_REGION_BASE,
+                     STACK_REGION_BASE + STACK_MEM_SIZE);
 
     // Arguments
     for (u32 i = 0; i < ARG_COUNT; i++)

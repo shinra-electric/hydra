@@ -18,12 +18,11 @@ class CPU;
 
 class Thread : public ThreadBase {
   public:
-    Thread(MMU* mmu_, MemoryBase* tls_mem);
+    Thread(MMU* mmu_, MemoryBase* tls_mem) : ThreadBase(tls_mem), mmu{mmu_} {}
     ~Thread() override;
 
-    void Configure(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-                   uptr tls_mem_base /*, uptr rom_mem_base*/,
-                   uptr stack_mem_end) override;
+    void Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
+                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 

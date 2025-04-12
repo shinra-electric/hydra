@@ -18,12 +18,11 @@ class CPU;
 
 class Thread final : public ThreadBase, private DynA64::UserCallbacks {
   public:
-    Thread(MMU* mmu_, MemoryBase* tls_mem);
+    Thread(MMU* mmu_, MemoryBase* tls_mem) : ThreadBase(tls_mem), mmu{mmu_} {}
     ~Thread() override;
 
-    void Configure(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
-                   uptr tls_mem_base /*, uptr rom_mem_base*/,
-                   uptr stack_mem_end) override;
+    void Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler_,
+                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -43,7 +42,6 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
     std::function<bool(ThreadBase*, u64)> svc_handler;
     u64 tpidrro_el0;
 
-    Dyn::ExclusiveMonitor* exclusive_monitor;
     DynA64::Jit* jit;
     u64 ticks_left = 1000;
 
