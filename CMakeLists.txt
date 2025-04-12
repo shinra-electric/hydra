@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 
 option(CODESIGN_IDENTITY "The identity to use for macOS code signing.")
-option(ENABLE_SWIFTUI "Enable the SwiftUI frontend." OFF)
+set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
 
 # TODO: use c++20
 set(CMAKE_CXX_STANDARD 17)

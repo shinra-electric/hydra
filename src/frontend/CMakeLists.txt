@@ -1,9 +1,6 @@
-if (ENABLE_SWIFTUI)
-    set(SOURCE_FILES
-        swiftui/HydraApp.swift
-        swiftui/ContentView.swift
-    )
-else ()
+if (FRONTEND STREQUAL "SDL3")
+    message(STATUS "Using SDL3 frontend")
+
     set(SOURCE_FILES
         sdl3/main.cpp
         sdl3/const.hpp
@@ -13,6 +10,15 @@ else ()
 
     find_package(SDL3 CONFIG REQUIRED)
     set(LINK_LIBS SDL3::SDL3)
+elseif (FRONTEND STREQUAL "SwiftUI")
+    message(STATUS "Using SwiftUI frontend")
+
+    set(SOURCE_FILES
+        swiftui/HydraApp.swift
+        swiftui/ContentView.swift
+    )
+else ()
+    message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
 
 add_executable(hydra
