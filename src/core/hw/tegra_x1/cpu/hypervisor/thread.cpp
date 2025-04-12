@@ -7,12 +7,16 @@
 
 namespace Hydra::HW::TegraX1::CPU::Hypervisor {
 
-constexpr u32 MAX_STACK_TRACE_DEPTH = 32;
-
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
-Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)
-    : ThreadBase(tls_mem), mmu{mmu_} {
+Thread::~Thread() { hv_vcpu_destroy(vcpu); }
+
+void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
+                            svc_handler_,
+                        uptr tls_mem_base /*,
+   uptr rom_mem_base*/, uptr stack_mem_end) {
+    svc_handler = svc_handler_;
+
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
@@ -25,26 +29,6 @@ Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)
 
     // Enable FP and SIMD instructions.
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
-
-    // Trap debug access
-    HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
-    // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
-
-    // VTimer
-    struct mach_timebase_info info;
-    auto time = mach_timebase_info(&info);
-
-    interrupt_time_delta_ticks =
-        ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
-}
-
-Thread::~Thread() { hv_vcpu_destroy(vcpu); }
-
-void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
-                           svc_handler_,
-                       uptr tls_mem_base /*,
-  uptr rom_mem_base*/, uptr stack_mem_end) {
-    svc_handler = svc_handler_;
 
     // Trampoline
     SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
@@ -59,6 +43,17 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
     // Setup TLS pointer
     // TODO: offset by thread id * some alignment?
     SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
+
+    // Trap debug access
+    HV_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_exceptions(vcpu, true));
+    // HYP_ASSERT_SUCCESS(hv_vcpu_set_trap_debug_reg_accesses(vcpu, true));
+
+    // VTimer
+    struct mach_timebase_info info;
+    auto time = mach_timebase_info(&info);
+
+    interrupt_time_delta_ticks =
+        ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
 }
 
 void Thread::Run() {

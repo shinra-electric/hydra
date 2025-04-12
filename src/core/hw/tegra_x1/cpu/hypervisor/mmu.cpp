@@ -104,7 +104,7 @@ void MMU::Map(vaddr dst_va, vaddr src_va, usize size) {
 void MMU::Unmap(vaddr va, usize size) { user_page_table.Unmap(va, size); }
 
 // TODO: just improve this...
-void MMU::ResizeHeap(vaddr va, usize size) {
+void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr va, usize size) {
     const auto region = user_page_table.QueryRegion(va);
     paddr pa = region.UnmapAddr(va);
     user_page_table.Map(va, pa, size, region.state);
@@ -114,34 +114,14 @@ uptr MMU::UnmapAddr(vaddr va) const {
     return physical_memory_ptr + user_page_table.UnmapAddr(va);
 }
 
-Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
-    Horizon::MemoryInfo info;
-    info.size = 0x0;
-
+MemoryRegion MMU::QueryRegion(vaddr va) const {
     auto region = user_page_table.QueryRegion(va);
 
-    // Resize to the left
-    do {
-        info.addr = region.va;
-        info.size = region.size;
-        info.state = region.state;
-        if (info.addr == 0x0)
-            break;
-
-        region = user_page_table.QueryRegion(info.addr - 1);
-    } while (region.state == info.state);
-
-    // Resize to the right
-    do {
-        vaddr addr = info.addr + info.size;
-        if (addr >= ADDRESS_SPACE_SIZE)
-            break;
-
-        region = user_page_table.QueryRegion(addr);
-        info.size += region.size;
-    } while (region.state == info.state);
-
-    return info;
+    return {
+        .va = region.va,
+        .size = region.size,
+        .state = region.state,
+    };
 }
 
 } // namespace Hydra::HW::TegraX1::CPU::Hypervisor

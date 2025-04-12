@@ -99,10 +99,10 @@ class Kernel {
     Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_);
     ~Kernel();
 
-    void ConfigureThread(HW::TegraX1::CPU::ThreadBase* thread,
-                         vaddr entry_point, vaddr tls_addr,
-                         vaddr stack_top_addr);
-    void ConfigureMainThread(HW::TegraX1::CPU::ThreadBase* thread);
+    void InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
+                          vaddr entry_point, vaddr tls_addr,
+                          vaddr stack_top_addr);
+    void InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
     // TODO: should the caller be able to specify permissions?

@@ -4,8 +4,6 @@
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace Hydra {

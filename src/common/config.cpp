@@ -45,12 +45,17 @@ Config::Config() {
                          std::istreambuf_iterator<char>());
         LOG_DEBUG(Other, "Config: {}", data);
 
+        // HACK
+        LoadDefaults();
+
         config_file.close();
     } else {
         // Write default config values
         std::ofstream config_file(config_path);
         if (config_file.is_open()) {
-            // TODO: write default config values
+            LoadDefaults();
+
+            // TODO: save config
             config_file << "TODO";
 
             config_file.close();
@@ -61,5 +66,7 @@ Config::Config() {
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
+
+void Config::LoadDefaults() { cpu_backend = CpuBackend::Dynarmic; }
 
 } // namespace Hydra

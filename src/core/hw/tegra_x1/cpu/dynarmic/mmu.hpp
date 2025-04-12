@@ -1,15 +1,8 @@
 #pragma once
 
-#include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
-
-constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
-constexpr usize KERNEL_REGION_SIZE = 0x10000000;
-constexpr usize KERNEL_MEM_SIZE = 0x1000;
-
-constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
+namespace Hydra::HW::TegraX1::CPU::Dynarmic {
 
 class MMU : public MMUBase {
   public:
@@ -30,18 +23,10 @@ class MMU : public MMUBase {
     uptr UnmapAddr(vaddr va) const override;
     MemoryRegion QueryRegion(vaddr va) const override;
 
-    // Getters
-    const PageTable& GetUserPageTable() const { return user_page_table; }
-    const PageTable& GetKernelPageTable() const { return kernel_page_table; }
-
   private:
-    // Page table
-    PageTable user_page_table;
-    PageTable kernel_page_table;
-
-    // TODO: use a proper allocator
-    uptr physical_memory_ptr;
-    u64 physical_memory_cur{0};
+    uptr pages[128u * 1024u * 1024u] = {0x0};
+    Horizon::MemoryState states[128u * 1024u * 1024u] = {
+        {.type = Horizon::MemoryType::Free}}; // TODO: handle this differently
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace Hydra::HW::TegraX1::CPU::Dynarmic

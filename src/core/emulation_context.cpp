@@ -4,15 +4,22 @@
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/state_manager.hpp"
+#include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra {
 
 EmulationContext::EmulationContext() {
     // Emulation
-    // TODO: choose based on CPU backend
-    {
+    switch (Config::GetInstance().GetCpuBackend()) {
+    case CpuBackend::AppleHypervisor:
         cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
+        break;
+    case CpuBackend::Dynarmic:
+        cpu = new Hydra::HW::TegraX1::CPU::Dynarmic::CPU();
+        break;
     }
 
     gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
@@ -80,7 +87,7 @@ void EmulationContext::Start(const std::string& rom_filename) {
         // Main thread
         Hydra::HW::TegraX1::CPU::ThreadBase* main_thread =
             cpu->CreateThread(os->GetKernel().GetTlsMemory());
-        os->GetKernel().ConfigureMainThread(main_thread);
+        os->GetKernel().InitializeMainThread(main_thread);
 
         // Run
         main_thread->Run();

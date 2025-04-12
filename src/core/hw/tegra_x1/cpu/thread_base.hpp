@@ -11,10 +11,9 @@ class ThreadBase {
     ThreadBase(MemoryBase* tls_mem_) : tls_mem{tls_mem_} {}
     virtual ~ThreadBase() {}
 
-    virtual void Configure(const std::function<bool(ThreadBase*, u64)>&
-                               svc_handler,
-                           uptr tls_mem_base /*,
-      uptr rom_mem_base*/, uptr stack_mem_end) = 0;
+    virtual void
+    Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler,
+               uptr tls_mem_base, uptr stack_mem_end) = 0;
 
     virtual void Run() = 0;
 
