@@ -1,4 +1,5 @@
 #include "common/config.hpp"
+
 #include "common/logging/log.hpp"
 
 namespace Hydra {
@@ -35,7 +36,7 @@ Config::Config() {
     std::filesystem::create_directories(app_data_path);
 
     // Open the config file
-    std::string config_path = fmt::format("{}/config.toml", app_data_path);
+    std::string config_path = GetConfigPath();
     bool config_exists = std::filesystem::exists(config_path);
     if (config_exists) {
         std::ifstream config_file(config_path);
@@ -50,23 +51,35 @@ Config::Config() {
 
         config_file.close();
     } else {
-        // Write default config values
-        std::ofstream config_file(config_path);
-        if (config_file.is_open()) {
-            LoadDefaults();
-
-            // TODO: save config
-            config_file << "TODO";
-
-            config_file.close();
-        } else {
-            LOG_ERROR(Other, "Failed to create config file");
-        }
+        // Load defaults
+        LoadDefaults();
+        Serialize();
     }
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
-void Config::LoadDefaults() { cpu_backend = CpuBackend::Dynarmic; }
+void Config::LoadDefaults() {
+    game_directories = {};
+    cpu_backend = CpuBackend::Dynarmic;
+
+    changed = true;
+}
+
+void Config::Serialize() {
+    if (!changed)
+        return;
+
+    std::ofstream config_file(GetConfigPath());
+    if (config_file.is_open()) {
+        // TODO: save config
+        LOG_NOT_IMPLEMENTED(Other, "Config serializing");
+        config_file << "TODO";
+
+        config_file.close();
+    } else {
+        LOG_ERROR(Other, "Failed to create config file");
+    }
+}
 
 } // namespace Hydra

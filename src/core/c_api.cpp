@@ -1,7 +1,30 @@
 #include "core/c_api.h"
 
-#include "core/api.hpp"
+#include "core/emulation_context.hpp"
 
+// Config
+uint32_t hydra_config_get_game_directories_count() {
+    return Hydra::Config::GetInstance().GetGameDirectories().size();
+}
+
+const char* hydra_config_get_game_directory(uint32_t index) {
+    return Hydra::Config::GetInstance().GetGameDirectories()[index].c_str();
+}
+
+void hydra_config_add_game_directory(const char* path) {
+    Hydra::Config::GetInstance().AddGameDirectory(path);
+}
+
+int hydra_config_get_cpu_backend() {
+    return static_cast<int>(Hydra::Config::GetInstance().GetCpuBackend());
+}
+
+void hydra_config_set_cpu_backend(int backend) {
+    Hydra::Config::GetInstance().SetCpuBackend(
+        static_cast<Hydra::CpuBackend>(backend));
+}
+
+// Emulation context
 void* hydra_emulation_context_create() { return new Hydra::EmulationContext(); }
 
 void hydra_emulation_context_destroy(void* ctx) {

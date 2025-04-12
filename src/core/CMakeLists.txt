@@ -271,8 +271,8 @@ add_library(hydra-core
     hw/display/layer.hpp
     hw/display/display.hpp
     hw/bus.hpp
-    api.cpp
-    api.hpp
+    emulation_context.cpp
+    emulation_context.hpp
     c_api.cpp
     c_api.h
 )

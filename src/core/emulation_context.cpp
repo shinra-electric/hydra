@@ -1,4 +1,4 @@
-#include "core/api.hpp"
+#include "core/emulation_context.hpp"
 
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
