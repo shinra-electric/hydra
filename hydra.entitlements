@@ -3,6 +3,8 @@
 <dict>
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
+    <key>com.apple.security.get-task-allow</key>
+    <true/>
     <key>com.apple.security.hypervisor</key>
     <true/>
     <key>com.apple.security.cs.allow-jit</key>

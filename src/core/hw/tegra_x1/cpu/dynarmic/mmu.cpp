@@ -78,7 +78,12 @@ uptr MMU::UnmapAddr(vaddr va) const {
 
 Horizon::MemoryInfo MMU::QueryMemory(vaddr va) const {
     LOG_NOT_IMPLEMENTED(Dynarmic, "Memory querying");
-    return Horizon::MemoryInfo{};
+
+    // HACK
+    return Horizon::MemoryInfo{
+        .addr = va,
+        .size = PAGE_SIZE,
+    };
 }
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic

@@ -42,6 +42,7 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
     std::function<bool(ThreadBase*, u64)> svc_handler;
     u64 tpidrro_el0;
 
+    Dyn::ExclusiveMonitor* exclusive_monitor;
     DynA64::Jit* jit;
     u64 ticks_left = 1000;
 

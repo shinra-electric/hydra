@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/thread.hpp"
 
 #include <mach/mach_time.h>
+#include <dynarmic/interface/exclusive_monitor.h>
 
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 
@@ -8,6 +9,8 @@ namespace Hydra::HW::TegraX1::CPU::Dynarmic {
 
 Thread::Thread(MMU* mmu_, MemoryBase* tls_mem)
     : ThreadBase(tls_mem), mmu{mmu_} {
+    exclusive_monitor = new Dyn::ExclusiveMonitor(4); // TODO: don't hardcode core count
+
     // TODO
 }
 
@@ -29,7 +32,7 @@ void Thread::Configure(const std::function<bool(ThreadBase*, u64)>&
 
     // Multi-process state
     config.processor_id = 0;         // TODO: don't hardcode this
-    config.global_monitor = nullptr; // TODO: what should this be?
+    config.global_monitor = exclusive_monitor;
 
     // System registers
     config.tpidrro_el0 = &tpidrro_el0;
