@@ -13,8 +13,10 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/ipc/parental_control_service_factory.hpp"
+#include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
@@ -70,6 +72,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Audio::IAudioRendererManager, "audren:u")
         SERVICE_CASE(Ssl::Sf::ISslService, "ssl")
         SERVICE_CASE(Spl::IRandomInterface, "csrng")
+        SERVICE_CASE(Nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
+        SERVICE_CASE(Pcv::IPcvService, "pcv")
     default:
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
                     u64_to_str(name));

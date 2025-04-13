@@ -157,6 +157,12 @@ add_library(hydra-core
     horizon/services/ssl/sf/ssl_service.hpp
     horizon/services/spl/random_interface.cpp
     horizon/services/spl/random_interface.hpp
+    horizon/services/nifm/static_service.cpp
+    horizon/services/nifm/static_service.hpp
+    horizon/services/nifm/general_service.cpp
+    horizon/services/nifm/general_service.hpp
+    horizon/services/pcv/pcv_service.cpp
+    horizon/services/pcv/pcv_service.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp
