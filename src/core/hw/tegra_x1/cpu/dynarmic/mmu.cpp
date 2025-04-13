@@ -82,8 +82,19 @@ uptr MMU::UnmapAddr(vaddr_t va) const {
     auto page = va / PAGE_SIZE;
     auto page_offset = va % PAGE_SIZE;
 
+    // HACK
+    if (page >= sizeof_array(pages)) {
+        LOG_WARNING(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        static u64 zero = 0;
+        return reinterpret_cast<uptr>(&zero);
+    }
+    // ASSERT_DEBUG(page < sizeof_array(pages), Dynarmic,
+    //              "Addres out of range: 0x{:08x}", va);
+
     if (pages[page] == 0x0) {
-        // LOG_ERROR(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        // TODO: error
+        LOG_WARNING(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        // HACK
         static u64 zero = 0;
         return reinterpret_cast<uptr>(&zero);
     }
