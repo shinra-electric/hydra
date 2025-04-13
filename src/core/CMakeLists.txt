@@ -217,6 +217,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/macro/driver_base.hpp
     hw/tegra_x1/gpu/macro/interpreter/driver.cpp
     hw/tegra_x1/gpu/macro/interpreter/driver.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/const.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp

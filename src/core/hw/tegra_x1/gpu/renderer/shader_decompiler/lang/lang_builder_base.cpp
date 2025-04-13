@@ -71,11 +71,15 @@ void LangBuilderBase::Start() {
 
             const auto sv = SV(SVSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
-                WriteStatement(
-                    (needs_scaling ? "{} = as_type<uint>((float){})"
-                                   : "{} = as_type<uint>({})"),
-                    GetA({RZ, 0x80 + i * 0x10 + c * 0x4}),
-                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false));
+                const auto attr = GetA({RZ, 0x80 + i * 0x10 + c * 0x4});
+                const auto qualified_name =
+                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false);
+                if (needs_scaling)
+                    WriteStatement("{} = as_type<uint>((float){})", attr,
+                                   qualified_name);
+                else
+                    WriteStatement("{} = as_type<uint>({})", attr,
+                                   qualified_name);
             }
         }
         break;

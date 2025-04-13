@@ -315,6 +315,12 @@ enum class AppletFocusState {
     Background = 3  ///< Out of focus - HOME menu open / console is sleeping.
 };
 
+enum class LaunchParameterKind : u32 {
+    UserChannel = 1,
+    PreselectedUser,
+    Unknown0,
+};
+
 // TODO: idle tick count -1, {current coreid} (probably the same logic as thread
 // tick count)
 // TODO: random entropy 0 - 3
@@ -377,3 +383,9 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::SystemInfoType, TotalPhysicalMemorySize,
                        "total physical memory size", UsedPhysicalMemorySize,
                        "used physical memory size", InitialProcessIdRange,
                        "initial process id range")
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::LaunchParameterKind, UserChannel,
+                       "user channel", PreselectedUser, "preselected user",
+                       Unknown0, "unknown0")
+
+#include "common/logging/log.hpp"

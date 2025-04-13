@@ -106,6 +106,23 @@ enum class Class {
     Other,
 };
 
+} // namespace Hydra::Logging
+
+ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
+                       Stubbed, "stubbed", Warning, "warning", Error, "error")
+
+ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
+                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
+                       ShaderDecompiler, "Shader Decompiler", MetalRenderer,
+                       "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
+                       "Horizon", HorizonKernel, "Horizon::Kernel",
+                       HorizonFilesystem, "Horizon::Filesystem", HorizonLoader,
+                       "Horizon::Loader", HorizonServices, "Horizon::Services",
+                       Hypervisor, "Hypervisor", Dynarmic, "Dynarmic", Other,
+                       "")
+
+namespace Hydra::Logging {
+
 extern Output g_output;
 extern std::mutex g_log_mutex;
 
@@ -139,7 +156,7 @@ void log(Level level, Class c, const std::string& file, u32 line,
             break;
         }
 
-        fmt::print(fg(color), "[{:<7}]", level);
+        fmt::print(fg(color), "[{:<7}", level);
 
         // Class + debug info
         fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", c, function,
@@ -159,16 +176,3 @@ void log(Level level, Class c, const std::string& file, u32 line,
 }
 
 } // namespace Hydra::Logging
-
-ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
-                       Stubbed, "stubbed", Warning, "warning", Error, "error")
-
-ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
-                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
-                       ShaderDecompiler, "Shader Decompiler", MetalRenderer,
-                       "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
-                       "Horizon", HorizonKernel, "Horizon::Kernel",
-                       HorizonFilesystem, "Horizon::Filesystem", HorizonLoader,
-                       "Horizon::Loader", HorizonServices, "Horizon::Services",
-                       Hypervisor, "Hypervisor", Dynarmic, "Dynarmic", Other,
-                       "")

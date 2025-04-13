@@ -4,12 +4,6 @@
 
 namespace Hydra::Horizon {
 
-enum class LaunchParameterKind : u32 {
-    UserChannel = 1,
-    PreselectedUser,
-    Unknown0,
-};
-
 struct Account {
     u32 magic;
     u8 unk_x4;
@@ -124,7 +118,3 @@ class StateManager {
 };
 
 } // namespace Hydra::Horizon
-
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::LaunchParameterKind, UserChannel,
-                       "user channel", PreselectedUser, "preselected user",
-                       Unknown0, "unknown0")

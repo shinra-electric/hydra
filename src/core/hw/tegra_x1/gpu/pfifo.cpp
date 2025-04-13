@@ -18,6 +18,24 @@ enum class SecondaryOpcode {
     EndPbSegment,
 };
 
+} // namespace
+
+} // namespace Hydra::HW::TegraX1::GPU
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
+                       "GRP0 use tertiary opcode", IncMethod,
+                       "incrementing method", Grp2UseTert,
+                       "GRP2 use tertiary opcode", NonIncMethod,
+                       "non-incremental method", ImmDataMethod,
+                       "immediate data method", OneInc, "one increment",
+                       Reserved, "reserved", EndPbSegment, "End PB segment")
+
+#include "common/logging/log.hpp"
+
+namespace Hydra::HW::TegraX1::GPU {
+
+namespace {
+
 struct CommandHeader {
     u32 method : 12;
     u32 reserved : 1;
@@ -109,11 +127,3 @@ void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
 }
 
 } // namespace Hydra::HW::TegraX1::GPU
-
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
-                       "GRP0 use tertiary opcode", IncMethod,
-                       "incrementing method", Grp2UseTert,
-                       "GRP2 use tertiary opcode", NonIncMethod,
-                       "non-incremental method", ImmDataMethod,
-                       "immediate data method", OneInc, "one increment",
-                       Reserved, "reserved", EndPbSegment, "End PB segment")

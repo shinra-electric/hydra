@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/gpu/engines/const.hpp"
 
 #define METHOD_CASE(method_begin, method_count, func, arg_type)                \

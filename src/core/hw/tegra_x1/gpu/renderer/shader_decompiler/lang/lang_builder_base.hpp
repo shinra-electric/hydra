@@ -69,7 +69,10 @@ class LangBuilderBase : public BuilderBase {
     }
 
     void ExitScopeEmpty(bool semicolon = false) {
-        ExitScopeImpl(semicolon ? ";" : "");
+        if (semicolon)
+            ExitScopeImpl(";");
+        else
+            ExitScopeImpl("");
     }
 
     template <typename... T> void ExitScope(WRITE_ARGS) {
