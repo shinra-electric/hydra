@@ -411,7 +411,7 @@ Result Kernel::svcStartThread(handle_id_t thread_handle_id) {
 }
 
 void Kernel::svcSleepThread(i64 nano) {
-    LOG_DEBUG(HorizonKernel, "svcSleepThread called (nano: 0x{:08x})", nano);
+    LOG_DEBUG(HorizonKernel, "svcSleepThread called (nano: {})", nano);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }

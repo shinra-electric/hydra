@@ -83,10 +83,6 @@ struct DisplayBinder {
         queued_buffers.push(slot);
         buffers[slot].queued = true;
         queue_cv.notify_all();
-
-        // TODO: correct?
-        // Signal event
-        event_handle.handle->Signal();
     }
 
     i32 ConsumeBuffer() {
@@ -96,14 +92,22 @@ struct DisplayBinder {
         queue_cv.wait_for(lock, std::chrono::nanoseconds(67 * 1000 * 1000),
                           [&] { return !queued_buffers.empty(); });
 
-        if (queued_buffers.empty())
+        if (queued_buffers.empty()) {
+            // TODO: correct?
+            // Signal event
+            event_handle.handle->Signal();
             return -1;
+        }
 
         // Get the first queued buffer
         i32 slot = queued_buffers.front();
         queued_buffers.pop();
         buffers[slot].queued = false;
         queue_cv.notify_all();
+
+        // TODO: correct?
+        // Signal event
+        event_handle.handle->Signal();
 
         return slot;
     }
@@ -126,7 +130,7 @@ struct DisplayBinder {
 
 class DisplayBinderManager {
   public:
-    DisplayBinderManager() : event_handle(new SynchronizationHandle(true)) {}
+    DisplayBinderManager() : event_handle(new SynchronizationHandle()) {}
 
     u32 AddBinder() {
         u32 id = binders.size();

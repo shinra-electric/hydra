@@ -29,8 +29,8 @@ class Mutex {
   public:
     void Lock(u32& value, u32 self_tag) {
         std::unique_lock<std::mutex> lock(mutex);
-        // TODO: uncomment?
-        // value = value | HANDLE_WAIT_MASK;
+        // TODO: why is this necessary?
+        value = value | HANDLE_WAIT_MASK;
         cv.wait(lock, [&] { return (value & ~HANDLE_WAIT_MASK) == 0; });
         value = self_tag | (value & HANDLE_WAIT_MASK);
     }
@@ -56,31 +56,22 @@ class KernelHandle {
 
 class SynchronizationHandle : public KernelHandle {
   public:
-    SynchronizationHandle(bool signaled_ = false) : signaled{signaled_} {}
-
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
-        signaled = true;
         cv.notify_all();
     }
 
     void Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
-        if (IS_TIMEOUT_INFINITE(timeout)) {
-            cv.wait(lock, [this] { return signaled; });
-        } else {
-            cv.wait_for(lock, std::chrono::nanoseconds(timeout),
-                        [this] { return signaled; });
-        }
-
-        // TODO: correct?
-        signaled = false;
+        if (IS_TIMEOUT_INFINITE(timeout))
+            cv.wait(lock);
+        else
+            cv.wait_for(lock, std::chrono::nanoseconds(timeout));
     }
 
   private:
     std::mutex mutex;
     std::condition_variable cv;
-    bool signaled = false;
 };
 
 class ThreadHandle : public KernelHandle {
