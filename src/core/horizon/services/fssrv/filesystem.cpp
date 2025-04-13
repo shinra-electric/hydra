@@ -5,7 +5,28 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 8, OpenFile, 9, OpenDirectory)
+namespace {
+
+enum class EntryType : u32 {
+    Directory,
+    File,
+};
+
+}
+
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 7, GetEntryType, 8, OpenFile, 9,
+                             OpenDirectory)
+
+void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
+    const auto path = readers.send_statics_readers[0].ReadString();
+    LOG_DEBUG(HorizonServices, "Path: {}", path);
+
+    const auto entry = Filesystem::Filesystem::GetInstance().GetEntry(path);
+
+    const auto entry_type =
+        entry->IsDirectory() ? EntryType::Directory : EntryType::File;
+    writers.writer.Write(entry_type);
+}
 
 void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     const auto path = readers.send_statics_readers[0].ReadString();

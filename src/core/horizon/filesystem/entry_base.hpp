@@ -8,6 +8,8 @@ class EntryBase {
   public:
     virtual ~EntryBase() = default;
 
+    virtual bool IsDirectory() const = 0;
+
   private:
 };
 

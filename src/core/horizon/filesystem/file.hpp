@@ -11,6 +11,8 @@ class File : public EntryBase {
         : host_path{host_path_}, offset{offset_}, size{size_} {}
     ~File() override;
 
+    bool IsDirectory() const override { return false; }
+
     void Open();
     void Close();
 

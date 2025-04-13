@@ -11,6 +11,8 @@ class Directory : public EntryBase {
     Directory(const std::string& host_path);
     ~Directory() override;
 
+    bool IsDirectory() const override { return true; }
+
     void AddEntry(EntryBase* entry, const std::string& rel_path);
     EntryBase* GetEntry(const std::string& rel_path);
 
