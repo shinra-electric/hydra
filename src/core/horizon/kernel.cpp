@@ -165,7 +165,8 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x9:
-        svcStartThread(thread->GetRegW(0));
+        res = svcStartThread(thread->GetRegW(0));
+        thread->SetRegW(0, res);
         break;
     case 0xb:
         svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
@@ -399,13 +400,15 @@ Result Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcStartThread(handle_id_t thread_handle_id) {
+Result Kernel::svcStartThread(handle_id_t thread_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcStartThread called (thread: 0x{:08x})",
               thread_handle_id);
 
     // Start thread
     auto thread = static_cast<ThreadHandle*>(GetHandle(thread_handle_id));
     thread->Start();
+
+    return RESULT_SUCCESS;
 }
 
 void Kernel::svcSleepThread(i64 nano) {

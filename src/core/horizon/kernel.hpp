@@ -59,8 +59,8 @@ class SynchronizationHandle : public KernelHandle {
 class ThreadHandle : public KernelHandle {
   public:
     ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr_t tls_addr_,
-                 vaddr_t entry_point_, vaddr_t args_addr_, vaddr_t stack_top_addr_,
-                 i32 priority_)
+                 vaddr_t entry_point_, vaddr_t args_addr_,
+                 vaddr_t stack_top_addr_, i32 priority_)
         : tls_mem{tls_mem_}, tls_addr{tls_addr_}, entry_point{entry_point_},
           args_addr{args_addr_}, stack_top_addr{stack_top_addr_},
           priority{priority_} {}
@@ -134,11 +134,12 @@ class Kernel {
                           u32& out_page_info);
     void svcExitProcess();
     Result svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
-                           vaddr_t stack_top_addr, i32 priority, i32 processor_id,
-                           handle_id_t& out_thread_handle_id);
-    void svcStartThread(handle_id_t thread_handle_id);
+                           vaddr_t stack_top_addr, i32 priority,
+                           i32 processor_id, handle_id_t& out_thread_handle_id);
+    Result svcStartThread(handle_id_t thread_handle_id);
     void svcSleepThread(i64 nano);
-    Result svcGetThreadPriority(handle_id_t thread_handle_id, i32& out_priority);
+    Result svcGetThreadPriority(handle_id_t thread_handle_id,
+                                i32& out_priority);
     Result svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
     Result svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                 u64 core_mask1);
@@ -165,8 +166,8 @@ class Kernel {
     Result svcGetThreadId(handle_id_t thread_handle_id, u64& out_thread_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(InfoType info_type, handle_id_t handle_id, u64 info_sub_type,
-                      u64& out_info);
+    Result svcGetInfo(InfoType info_type, handle_id_t handle_id,
+                      u64 info_sub_type, u64& out_info);
 
     // Getters
     HW::Bus& GetBus() const { return bus; }
