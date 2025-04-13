@@ -7,7 +7,7 @@ namespace Hydra::HW::TegraX1::GPU {
 
 namespace {
 
-enum class SecondaryOpcode {
+enum class SecondaryOpcode : u32 {
     Grp0UseTert,
     IncMethod,
     Grp2UseTert,
@@ -16,6 +16,15 @@ enum class SecondaryOpcode {
     OneInc,
     Reserved,
     EndPbSegment,
+};
+
+// TODO: do both GRP0 and GRP2 use the same tertiary opcodes?
+enum class TertiaryOpcode : u32 {
+    Grp0IncMethod = 0,
+    Grp2NonIncMethod = 0,
+    Grp0SetSubDevMask = 1,
+    Grp0StoreSubDevMask = 2,
+    Grp0UseSubDevMask = 3,
 };
 
 } // namespace
@@ -30,6 +39,12 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
                        "immediate data method", OneInc, "one increment",
                        Reserved, "reserved", EndPbSegment, "End PB segment")
 
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::TertiaryOpcode, Grp0IncMethod,
+                       "GRP0 increment method / GRP2 non-increment method",
+                       Grp0SetSubDevMask, "GRP0 set subdevice mask",
+                       Grp0StoreSubDevMask, "GRP0 store subdevice mask",
+                       Grp0UseSubDevMask, "GRP0 use subdevice mask")
+
 #include "common/logging/log.hpp"
 
 namespace Hydra::HW::TegraX1::GPU {
@@ -41,7 +56,7 @@ struct CommandHeader {
     u32 reserved : 1;
     u32 subchannel : 3;
     u32 arg : 13;
-    u32 secondary_opcode : 3; // TODO: use SecondaryOpcode as the type
+    SecondaryOpcode secondary_opcode : 3;
 };
 
 } // namespace
@@ -78,9 +93,7 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
 
 bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gpu_addr);
-
-    SecondaryOpcode secondary_opcode = (SecondaryOpcode)header.secondary_opcode;
-    LOG_DEBUG(GPU, "Secondary opcode: {}", secondary_opcode);
+    LOG_DEBUG(GPU, "Secondary opcode: {}", header.secondary_opcode);
 
     // HACK
     if (header.subchannel >= SUBCHANNEL_COUNT) {
@@ -88,12 +101,42 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
         return false;
     }
 
+#define TERTIARY_OPCODE                                                        \
+    static_cast<TertiaryOpcode>(                                               \
+        extract_bits<u32, 16, 17>(bit_cast<u32>(header)))
+
     u32 offset = header.method;
-    switch (secondary_opcode) {
+    switch (header.secondary_opcode) {
+    case SecondaryOpcode::Grp0UseTert: {
+        switch (TERTIARY_OPCODE) {
+        case TertiaryOpcode::Grp0IncMethod:
+            // TODO: correct?
+            for (u32 i = 0; i < header.arg; i++)
+                ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            break;
+        }
+        break;
+    }
     case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
+    case SecondaryOpcode::Grp2UseTert: {
+        switch (TERTIARY_OPCODE) {
+        case TertiaryOpcode::Grp2NonIncMethod:
+            // TODO: correct?
+            for (u32 i = 0; i < header.arg; i++)
+                ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            break;
+        }
+        break;
+    }
     case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
@@ -107,11 +150,13 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
             ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "{}", secondary_opcode);
+        LOG_NOT_IMPLEMENTED(GPU, "Secondary opcode {}",
+                            header.secondary_opcode);
         break;
     }
 
-    // TODO: is it okay to prefetch the parameters and then execute the macro?
+    // TODO: is it okay to prefetch the parameters and then execute the
+    // macro?
     if (header.method >= MACRO_METHODS_REGION)
         GPU::GetInstance().SubchannelFlushMacro(header.subchannel);
 
