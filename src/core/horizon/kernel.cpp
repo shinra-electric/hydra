@@ -236,8 +236,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegW(0, res);
         break;
     case 0x1d:
-        res = svcSignalProcessWideKey(mmu->UnmapAddr(thread->GetRegX(0)),
-                                      thread->GetRegX(1));
+        res = svcSignalProcessWideKey(thread->GetRegX(0), thread->GetRegX(1));
         thread->SetRegW(0, res);
         break;
     case 0x1e:
@@ -563,9 +562,7 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
               wait_tag, mutex_addr, self_tag);
 
     auto& mutex = mutex_map[mutex_addr];
-    // TODO: how do the tags work?
-    mutex.lock();
-    mmu->Store<u32>(mutex_addr, self_tag);
+    mutex.Lock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)), self_tag);
 
     return RESULT_SUCCESS;
 }
@@ -575,7 +572,7 @@ Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
               mutex_addr);
 
     auto& mutex = mutex_map[mutex_addr];
-    mutex.unlock();
+    mutex.Unlock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)));
 
     return RESULT_SUCCESS;
 }
@@ -592,11 +589,18 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
     auto& cond_var = cond_var_map[var_addr];
 
     // TODO: correct?
-    std::unique_lock lock(mutex);
-    if (IS_TIMEOUT_INFINITE(timeout))
-        cond_var.wait(lock);
-    else
-        cond_var.wait_for(lock, std::chrono::nanoseconds(timeout));
+    auto& value = *reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr));
+    mutex.Unlock(value);
+
+    {
+        std::unique_lock lock(mutex.GetNativeHandle());
+        if (IS_TIMEOUT_INFINITE(timeout))
+            cond_var.wait(lock);
+        else
+            cond_var.wait_for(lock, std::chrono::nanoseconds(timeout));
+    }
+
+    mutex.Lock(value, self_tag);
 
     return RESULT_SUCCESS;
 }
@@ -614,7 +618,7 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
                      count);
 
         // TODO: correct?
-        for (i32 i = 0; i < count; i++)
+        for (u32 i = 0; i < count; i++)
             cond_var.notify_one();
     }
 

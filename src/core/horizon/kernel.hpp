@@ -22,6 +22,33 @@ namespace Services {
 class ServiceBase;
 }
 
+// TODO: should this be used?
+constexpr u32 HANDLE_WAIT_MASK = 0x40000000;
+
+class Mutex {
+  public:
+    void Lock(u32& value, u32 self_tag) {
+        std::unique_lock<std::mutex> lock(mutex);
+        // TODO: uncomment?
+        // value = value | HANDLE_WAIT_MASK;
+        cv.wait(lock, [&] { return (value & ~HANDLE_WAIT_MASK) == 0; });
+        value = self_tag | (value & HANDLE_WAIT_MASK);
+    }
+
+    void Unlock(u32& value) {
+        std::unique_lock<std::mutex> lock(mutex);
+        value = (value & HANDLE_WAIT_MASK);
+        cv.notify_one();
+    }
+
+    // Getters
+    std::mutex& GetNativeHandle() { return mutex; }
+
+  private:
+    std::mutex mutex;
+    std::condition_variable cv;
+};
+
 class KernelHandle {
   public:
     virtual ~KernelHandle() = default;
@@ -218,7 +245,7 @@ class Kernel {
     Allocators::DynamicPool<SharedMemory*> shared_memory_pool;
 
     // TODO: use a different container?
-    std::map<vaddr_t, std::mutex> mutex_map;
+    std::map<vaddr_t, Mutex> mutex_map;
     std::map<vaddr_t, std::condition_variable> cond_var_map;
 
     // Services
