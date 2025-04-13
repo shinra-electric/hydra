@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "core/horizon/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
@@ -42,6 +44,12 @@ class MMUBase {
 
     template <typename T> void Store(vaddr_t va, T value) const {
         *reinterpret_cast<T*>(UnmapAddr(va)) = value;
+    }
+
+    template <typename T> void StoreExclusive(vaddr_t va, T value) const {
+        auto ptr = reinterpret_cast<T*>(UnmapAddr(va));
+        std::atomic<T>* ref = new (ptr) std::atomic<T>(*ptr);
+        ref->store(value, std::memory_order_release); // TODO: correct?
     }
 };
 
