@@ -13,6 +13,11 @@ uint32_t hydra_config_get_game_directories_count();
 const char* hydra_config_get_game_directory(uint32_t index);
 void hydra_config_add_game_directory(const char* path);
 
+uint32_t hydra_config_get_root_directories_count();
+const char* hydra_config_get_root_directory_path(uint32_t index);
+bool hydra_config_get_root_directory_write_access(uint32_t index);
+void hydra_config_add_root_directory(const char* path, bool write_access);
+
 int hydra_config_get_cpu_backend();
 void hydra_config_set_cpu_backend(int backend);
 

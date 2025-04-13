@@ -61,6 +61,7 @@ Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
 void Config::LoadDefaults() {
     game_directories = {};
+    root_directories = {};
     cpu_backend = CpuBackend::Dynarmic;
 
     changed = true;

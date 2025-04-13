@@ -11,6 +11,11 @@ enum class CpuBackend {
     Dynarmic,
 };
 
+struct RootDirectory {
+    std::string path;
+    bool write_access;
+};
+
 class Config {
   public:
     static Config& GetInstance();
@@ -31,6 +36,11 @@ class Config {
     const std::vector<std::string>& GetGameDirectories() const {
         return game_directories;
     }
+
+    const std::vector<RootDirectory>& GetRootDirectories() const {
+        return root_directories;
+    }
+
     CpuBackend GetCpuBackend() const { return cpu_backend; }
 
     // Setters
@@ -44,6 +54,12 @@ class Config {
         game_directories.push_back(directory);
         changed = true;
     }
+
+    void AddRootDirectory(const std::string& path, bool write_access) {
+        root_directories.push_back({path, write_access});
+        changed = true;
+    }
+
     void SetCpuBackend(CpuBackend cpu_backend_) {
         SET_CONFIG_VALUE(cpu_backend);
     }
@@ -57,6 +73,7 @@ class Config {
 
     // Config
     std::vector<std::string> game_directories;
+    std::vector<RootDirectory> root_directories;
     CpuBackend cpu_backend;
 };
 
