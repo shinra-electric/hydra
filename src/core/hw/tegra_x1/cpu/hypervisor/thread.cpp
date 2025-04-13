@@ -54,6 +54,8 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
 
     interrupt_time_delta_ticks =
         ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
+
+    SetupVTimer();
 }
 
 void Thread::Run() {
