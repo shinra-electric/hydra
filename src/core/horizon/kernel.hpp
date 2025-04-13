@@ -157,7 +157,7 @@ class Kernel {
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
-    Result svcSignalProcessWideKey(uptr addr, i32 v);
+    Result svcSignalProcessWideKey(uptr addr, i32 count);
     void svcGetSystemTick(u64& out_tick);
     Result svcConnectToNamedPort(const std::string& name,
                                  handle_id_t& out_session_handle_id);
@@ -216,6 +216,10 @@ class Kernel {
     // Handles
     Allocators::DynamicPool<KernelHandle*> handle_pool;
     Allocators::DynamicPool<SharedMemory*> shared_memory_pool;
+
+    // TODO: use a different container?
+    std::map<vaddr_t, std::mutex> mutex_map;
+    std::map<vaddr_t, std::condition_variable> cond_var_map;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;

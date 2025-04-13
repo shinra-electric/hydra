@@ -562,8 +562,10 @@ Result Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
               "0x{:08x})",
               wait_tag, mutex_addr, self_tag);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    auto& mutex = mutex_map[mutex_addr];
+    // TODO: how do the tags work?
+    mutex.lock();
+    mmu->Store<u32>(mutex_addr, self_tag);
 
     return RESULT_SUCCESS;
 }
@@ -572,8 +574,8 @@ Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
     LOG_DEBUG(HorizonKernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
               mutex_addr);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    auto& mutex = mutex_map[mutex_addr];
+    mutex.unlock();
 
     return RESULT_SUCCESS;
 }
@@ -586,19 +588,35 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
         "self: 0x{:08x}, timeout: {})",
         mutex_addr, var_addr, self_tag, timeout);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    auto& mutex = mutex_map[mutex_addr];
+    auto& cond_var = cond_var_map[var_addr];
+
+    // TODO: correct?
+    std::unique_lock lock(mutex);
+    if (IS_TIMEOUT_INFINITE(timeout))
+        cond_var.wait(lock);
+    else
+        cond_var.wait_for(lock, std::chrono::nanoseconds(timeout));
 
     return RESULT_SUCCESS;
 }
 
-Result Kernel::svcSignalProcessWideKey(uptr addr, i32 v) {
+Result Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
     LOG_DEBUG(HorizonKernel,
-              "svcSignalProcessWideKey called (addr: 0x{:08x}, value: {})",
-              addr, v);
+              "svcSignalProcessWideKey called (addr: 0x{:08x}, count: {})",
+              addr, count);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    auto& cond_var = cond_var_map[addr];
+    if (count == -1) {
+        cond_var.notify_all();
+    } else {
+        ASSERT_DEBUG(count > 0, HorizonKernel, "Invalid signal count {}",
+                     count);
+
+        // TODO: correct?
+        for (i32 i = 0; i < count; i++)
+            cond_var.notify_one();
+    }
 
     return RESULT_SUCCESS;
 }
