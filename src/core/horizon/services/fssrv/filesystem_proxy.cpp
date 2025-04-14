@@ -29,7 +29,17 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 
     // TODO: what to do with program ID?
 
-    add_service(new IStorage("/rom/romFS"));
+    Filesystem::File* file = nullptr;
+    const auto res =
+        Filesystem::Filesystem::GetInstance().GetFile("/rom/romFS", file);
+    if (res != Filesystem::FsResult::Success) {
+        LOG_WARNING(HorizonServices, "Data storage does not exist");
+        // HACK
+        result = static_cast<u32>(res);
+        return;
+    }
+
+    add_service(new IStorage(file));
 }
 
 void IFileSystemProxy::GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS) {

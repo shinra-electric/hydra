@@ -17,8 +17,8 @@ class IFile : public IStorage {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFile)
 
-    IFile(const std::string& path, FileFlags flags_)
-        : IStorage(path), flags{flags_} {}
+    IFile(Filesystem::File* file, FileFlags flags_)
+        : IStorage(file), flags{flags_} {}
 
   private:
     FileFlags flags;

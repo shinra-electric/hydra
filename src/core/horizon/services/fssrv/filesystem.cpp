@@ -40,6 +40,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     const auto res =
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
     if (res != Filesystem::FsResult::Success) {
+        LOG_WARNING(HorizonServices, "Entry does not exist");
         // HACK
         result = static_cast<u32>(res);
         return;
@@ -55,7 +56,16 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     const auto flags = readers.reader.Read<FileFlags>();
     LOG_DEBUG(HorizonServices, "Path: {}, flags: {}", path, flags);
 
-    add_service(new IFile(path, flags));
+    Filesystem::File* file = nullptr;
+    const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
+    if (res != Filesystem::FsResult::Success) {
+        LOG_WARNING(HorizonServices, "File does not exist");
+        // HACK
+        result = static_cast<u32>(res);
+        return;
+    }
+
+    add_service(new IFile(file, flags));
 }
 
 void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {

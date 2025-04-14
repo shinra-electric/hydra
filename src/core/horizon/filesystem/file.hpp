@@ -21,6 +21,9 @@ class File : public EntryBase {
         return FileReader(*stream, offset, size);
     }
 
+    // Getters
+    usize GetSize() const { return size; }
+
   private:
     std::string host_path;
     u64 offset;
