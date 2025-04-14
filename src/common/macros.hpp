@@ -82,7 +82,7 @@
         __VA_OPT__(FOR_EACH_AGAIN_1_3 PARENS(macro, e, __VA_ARGS__))
 #define FOR_EACH_AGAIN_1_3() FOR_EACH_HELPER_1_3
 
-#define ENUM_CASE(e, value, n)                                                 \
+#define ENUM_FORMAT_CASE(e, value, n)                                          \
     case e::value:                                                             \
         name = n;                                                              \
         break;
@@ -93,7 +93,7 @@
         auto format(e c, FormatContext& ctx) const {                           \
             string_view name;                                                  \
             switch (c) {                                                       \
-                FOR_EACH_1_2(ENUM_CASE, e, __VA_ARGS__)                        \
+                FOR_EACH_1_2(ENUM_FORMAT_CASE, e, __VA_ARGS__)                 \
             default:                                                           \
                 name = "unknown";                                              \
                 break;                                                         \
@@ -101,6 +101,25 @@
             return formatter<string_view>::format(name, ctx);                  \
         }                                                                      \
     };
+
+#define ENABLE_ENUM_FORMATTING_WITH_INVALID(e, ...)                            \
+    ENABLE_ENUM_FORMATTING(e, Invalid, "invalid", __VA_ARGS__)
+
+#define ENUM_CAST_CASE(e, value, n)                                            \
+    if (value_str == n)                                                        \
+        return e::value;
+
+#define ENABLE_ENUM_CASTING(namespc, e, e_lower_case, ...)                     \
+    namespace namespc {                                                        \
+    inline e to_##e_lower_case(std::string_view value_str) {                   \
+        FOR_EACH_1_2(ENUM_CAST_CASE, e, __VA_ARGS__)                           \
+        return e::Invalid;                                                     \
+    }                                                                          \
+    }
+
+#define ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, e, e_lower_case, ...)      \
+    ENABLE_ENUM_FORMATTING_WITH_INVALID(namespc::e, __VA_ARGS__)               \
+    ENABLE_ENUM_CASTING(namespc, e, e_lower_case, __VA_ARGS__)
 
 #define ENUM_BIT_TEST(e, value, n)                                             \
     if (any(c & e::value)) {                                                   \
@@ -121,5 +140,20 @@
             if (!added)                                                        \
                 name = "none";                                                 \
             return formatter<string_view>::format(name, ctx);                  \
+        }                                                                      \
+    };
+
+// TODO: don't add comma on the last member
+#define STRUCT_FORMAT_CASE(member)                                             \
+    str += fmt::format("{}: {}, ", #member, c.member);
+
+#define ENABLE_STRUCT_FORMATTING(s, ...)                                       \
+    template <> struct fmt::formatter<s> : formatter<string_view> {            \
+        template <typename FormatContext>                                      \
+        auto format(const s& c, FormatContext& ctx) const {                    \
+            std::string str;                                                   \
+            FOR_EACH_0_1(STRUCT_FORMAT_CASE, __VA_ARGS__)                      \
+            return fmt::format("{{{}}}",                                       \
+                               formatter<string_view>::format(str, ctx));      \
         }                                                                      \
     };

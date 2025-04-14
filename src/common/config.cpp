@@ -1,6 +1,53 @@
 #include "common/config.hpp"
 
+#include <fmt/ranges.h>
+#include <toml.hpp>
+
 #include "common/logging/log.hpp"
+
+#define TOML11_CONVERSION_TOML_TO_ENUM_CASE(e, val, n)                         \
+    if (v.as_string() == n)                                                    \
+        return e::val;
+
+#define TOML11_CONVERSION_ENUM_TO_TOML_CASE(e, val, n)                         \
+    case e::val:                                                               \
+        return toml::value(n);
+
+#define TOML11_DEFINE_CONVERSION_ENUM(e, ...)                                  \
+    namespace toml {                                                           \
+    template <> struct from<e> {                                               \
+        template <typename TC> static e from_toml(const basic_value<TC>& v) {  \
+            FOR_EACH_1_2(TOML11_CONVERSION_TOML_TO_ENUM_CASE, e, __VA_ARGS__)  \
+            return e::Invalid;                                                 \
+        }                                                                      \
+    };                                                                         \
+    template <> struct into<e> {                                               \
+        template <typename TC>                                                 \
+        static basic_value<TC> into_toml(const e& obj) {                       \
+            switch (obj) {                                                     \
+                FOR_EACH_1_2(TOML11_CONVERSION_ENUM_TO_TOML_CASE, e,           \
+                             __VA_ARGS__)                                      \
+            default:                                                           \
+                return toml::value("invalid");                                 \
+            }                                                                  \
+        }                                                                      \
+    };                                                                         \
+    } /* toml */
+
+#define ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(namespc, e, e_lower_case,    \
+                                                  ...)                         \
+    ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, e, e_lower_case, __VA_ARGS__)  \
+    TOML11_DEFINE_CONVERSION_ENUM(namespc::e, __VA_ARGS__)
+
+#define ENABLE_STRUCT_FORMATTING_AND_TOML11(s, ...)                            \
+    ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
+    TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
+
+ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootDirectory, path, write_access)
+
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
+                                          AppleHypervisor, "Apple Hypervisor",
+                                          Dynarmic, "dynarmic")
 
 namespace Hydra {
 
@@ -39,22 +86,20 @@ Config::Config() {
     std::string config_path = GetConfigPath();
     bool config_exists = std::filesystem::exists(config_path);
     if (config_exists) {
-        std::ifstream config_file(config_path);
-
-        // TODO: load config values
-        std::string data((std::istreambuf_iterator<char>(config_file)),
-                         std::istreambuf_iterator<char>());
-        LOG_DEBUG(Other, "Config: {}", data);
-
-        // HACK
-        LoadDefaults();
-
-        config_file.close();
+        Deserialize();
     } else {
         // Load defaults
         LoadDefaults();
         Serialize();
     }
+
+    // Log
+    LOG_INFO(Other, "Game directories: [{}]",
+             fmt::join(game_directories, ", "));
+    // TODO: uncomment
+    // LOG_INFO(Other, "Root directories: [{}]", fmt::join(root_directories, ",
+    // "));
+    LOG_INFO(Other, "CPU backend: {}", cpu_backend);
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
@@ -73,13 +118,57 @@ void Config::Serialize() {
 
     std::ofstream config_file(GetConfigPath());
     if (config_file.is_open()) {
-        // TODO: save config
-        LOG_NOT_IMPLEMENTED(Other, "Config serializing");
-        config_file << "TODO";
+        toml::value data(toml::table{
+            {"General", toml::table{}},
+            {"CPU", toml::table{}},
+        });
 
+        {
+            auto& general = data.at("General");
+
+            auto& game_directories_arr = general["game_directories"];
+            game_directories_arr = toml::array{};
+            game_directories_arr.as_array().assign(game_directories.begin(),
+                                                   game_directories.end());
+
+            auto& root_directories_arr = general["root_directories"];
+            root_directories_arr = toml::array{};
+            root_directories_arr.as_array().assign(root_directories.begin(),
+                                                   root_directories.end());
+        }
+
+        {
+            auto& cpu = data.at("CPU");
+            cpu["backend"] = cpu_backend;
+        }
+
+        config_file << toml::format(data);
         config_file.close();
     } else {
         LOG_ERROR(Other, "Failed to create config file");
+    }
+}
+
+void Config::Deserialize() {
+    auto data = toml::parse(GetConfigPath());
+
+    if (data.contains("General")) {
+        const auto& general = data.at("General");
+        game_directories = toml::find_or<std::vector<std::string>>(
+            general, "game_directories", {});
+        root_directories = toml::find_or<std::vector<RootDirectory>>(
+            general, "root_directories", {});
+    }
+    if (data.contains("CPU")) {
+        const auto& cpu = data.at("CPU");
+        cpu_backend =
+            toml::find_or<CpuBackend>(cpu, "backend", CpuBackend::Dynarmic);
+    }
+
+    // Validate
+    if (cpu_backend == CpuBackend::Invalid) {
+        LOG_WARNING(Other, "Invalid CPU backend, using Dynarmic");
+        cpu_backend = CpuBackend::Dynarmic;
     }
 }
 

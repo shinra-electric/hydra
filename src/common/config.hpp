@@ -7,6 +7,8 @@
 namespace Hydra {
 
 enum class CpuBackend {
+    Invalid,
+
     AppleHypervisor,
     Dynarmic,
 };
@@ -26,6 +28,7 @@ class Config {
     void LoadDefaults();
 
     void Serialize();
+    void Deserialize();
 
     // Paths
     std::string GetConfigPath() const {

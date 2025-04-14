@@ -20,6 +20,7 @@ endif()
 find_package(fmt CONFIG REQUIRED)
 
 #add_subdirectory(externals/fmt)
+add_subdirectory(externals/toml11)
 add_subdirectory(externals/dynarmic)
 
 #include_directories(externals/fmt/include)

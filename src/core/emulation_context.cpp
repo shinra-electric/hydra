@@ -19,6 +19,9 @@ EmulationContext::EmulationContext() {
     case CpuBackend::Dynarmic:
         cpu = new Hydra::HW::TegraX1::CPU::Dynarmic::CPU();
         break;
+    default:
+        LOG_ERROR(Other, "Unknown CPU backend");
+        break;
     }
 
     gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
