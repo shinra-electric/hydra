@@ -7,8 +7,8 @@ namespace Hydra::Horizon::Filesystem {
 
 class Directory : public EntryBase {
   public:
-    Directory() = default;
-    Directory(const std::string& host_path);
+    Directory(Directory* parent_) : parent{parent_} {}
+    Directory(Directory* parent_, const std::string& host_path);
     ~Directory() override;
 
     bool IsDirectory() const override { return true; }
@@ -22,6 +22,8 @@ class Directory : public EntryBase {
     }
 
   private:
+    Directory* parent;
+
     std::map<std::string, EntryBase*> entries;
 
     // Helpers

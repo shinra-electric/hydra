@@ -12,7 +12,7 @@ namespace Hydra::Horizon::Filesystem {
 
 SINGLETON_DEFINE_GET_INSTANCE(Filesystem, HorizonFilesystem, "Filesystem")
 
-Filesystem::Filesystem() {
+Filesystem::Filesystem() : root(nullptr) {
     SINGLETON_SET_INSTANCE(HorizonFilesystem, "Filesystem");
 }
 
