@@ -15,6 +15,7 @@ class Filesystem {
     ~Filesystem();
 
     void AddEntry(EntryBase* entry, const std::string& path);
+    void AddEntry(const std::string& host_path, const std::string& path);
     EntryBase* GetEntry(const std::string& path);
 
     File* GetFile(const std::string& path);

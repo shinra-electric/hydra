@@ -2,6 +2,15 @@
 
 namespace Hydra::Horizon::Filesystem {
 
+File::File(const std::string& host_path_, u64 offset_, usize size_)
+    : host_path{host_path_}, offset{offset_}, size{size_} {
+    if (size == invalid<usize>()) {
+        std::ifstream file(host_path, std::ios::ate | std::ios::binary);
+        size = file.tellg();
+        file.close();
+    }
+}
+
 File::~File() {
     if (stream) {
         LOG_WARNING(HorizonFilesystem, "File not closed properly");

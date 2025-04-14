@@ -2,6 +2,7 @@
 
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file.hpp"
+#include <filesystem>
 
 #define VERIFY_PATH(path)                                                      \
     ASSERT(path.size() != 0, HorizonFilesystem, "Path cannot be empty");       \
@@ -21,6 +22,12 @@ Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 void Filesystem::AddEntry(EntryBase* entry, const std::string& path) {
     VERIFY_PATH(path);
     root.AddEntry(entry, path.substr(1));
+}
+
+void Filesystem::AddEntry(const std::string& host_path,
+                          const std::string& path) {
+    VERIFY_PATH(path);
+    root.AddEntry(host_path, path.substr(1));
 }
 
 EntryBase* Filesystem::GetEntry(const std::string& path) {

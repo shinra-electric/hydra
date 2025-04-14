@@ -7,8 +7,8 @@ namespace Hydra::Horizon::Filesystem {
 
 class File : public EntryBase {
   public:
-    File(const std::string& host_path_, u64 offset_, usize size_)
-        : host_path{host_path_}, offset{offset_}, size{size_} {}
+    File(const std::string& host_path_, u64 offset_ = 0,
+         usize size_ = invalid<usize>());
     ~File() override;
 
     bool IsDirectory() const override { return false; }

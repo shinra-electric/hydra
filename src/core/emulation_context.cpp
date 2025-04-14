@@ -32,6 +32,16 @@ EmulationContext::EmulationContext() {
     bus->ConnectDisplay(builtin_display, 0);
 
     os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
+
+    // Filesystem
+    for (const auto& root_dir : Config::GetInstance().GetRootDirectories()) {
+        const auto entry_name =
+            root_dir.path.substr(root_dir.path.find_last_of("/") + 1);
+        const auto entry_path = fmt::format("/{}", entry_name);
+        Horizon::Filesystem::Filesystem::GetInstance().AddEntry(root_dir.path,
+                                                                entry_path);
+        LOG_INFO(Other, "Mapped {} to {}", entry_path, root_dir.path);
+    }
 }
 
 EmulationContext::~EmulationContext() {
