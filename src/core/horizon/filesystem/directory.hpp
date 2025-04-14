@@ -7,24 +7,18 @@ namespace Hydra::Horizon::Filesystem {
 
 class Directory : public EntryBase {
   public:
-    Directory(Directory* parent_) : parent{parent_} {}
-    Directory(Directory* parent_, const std::string& host_path);
+    Directory() = default;
+    Directory(const std::string& host_path);
     ~Directory() override;
 
     bool IsDirectory() const override { return true; }
 
-    void AddEntry(EntryBase* entry, const std::string& rel_path);
-    void AddEntry(const std::string& host_path, const std::string& rel_path);
-    EntryBase* GetEntry(const std::string& rel_path);
-
-    // Getters
-    EntryBase* GetEntry(const std::string& name) const {
-        return entries.at(name);
-    }
+    FsResult AddEntry(EntryBase* entry, const std::string& rel_path);
+    FsResult AddEntry(const std::string& host_path,
+                      const std::string& rel_path);
+    FsResult GetEntry(const std::string& rel_path, EntryBase*& out_entry);
 
   private:
-    Directory* parent;
-
     std::map<std::string, EntryBase*> entries;
 
     // Helpers

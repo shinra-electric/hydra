@@ -114,10 +114,12 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
 
     // Filesystem
-    Filesystem::Filesystem::GetInstance().AddEntry(
+    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
         new Filesystem::File(rom_filename, reader.GetOffset(),
                              reader.GetSize()),
         ROM_VIRTUAL_PATH);
+    ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
+           "Failed to add romFS entry: ", res);
 }
 
 } // namespace Hydra::Horizon::Loader

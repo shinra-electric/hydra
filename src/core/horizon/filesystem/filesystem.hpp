@@ -14,12 +14,15 @@ class Filesystem {
     Filesystem();
     ~Filesystem();
 
-    void AddEntry(EntryBase* entry, const std::string& path);
-    void AddEntry(const std::string& host_path, const std::string& path);
-    EntryBase* GetEntry(const std::string& path);
+    [[nodiscard]] FsResult AddEntry(EntryBase* entry, const std::string& path);
+    [[nodiscard]] FsResult AddEntry(const std::string& host_path,
+                                    const std::string& path);
+    [[nodiscard]] FsResult GetEntry(const std::string& path,
+                                    EntryBase*& out_entry);
 
-    File* GetFile(const std::string& path);
-    Directory* GetDirectory(const std::string& path);
+    [[nodiscard]] FsResult GetFile(const std::string& path, File*& out_file);
+    [[nodiscard]] FsResult GetDirectory(const std::string& path,
+                                        Directory*& out_directory);
 
     // Getters
     Directory& GetRoot() { return root; }

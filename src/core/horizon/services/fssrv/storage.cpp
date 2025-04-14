@@ -29,7 +29,10 @@ void IStorage::ReadImpl(u8* ptr, u64 offset, u64 size) {
     ASSERT_DEBUG(offset >= 0, HorizonServices, "Offset ({}) must be >= 0",
                  offset);
 
-    auto file = Filesystem::Filesystem::GetInstance().GetFile(path);
+    Filesystem::File* file;
+    const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
+    ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+           "Failed to get file: {}", res);
     file->Open();
 
     auto reader = file->CreateReader();

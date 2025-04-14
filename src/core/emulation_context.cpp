@@ -38,8 +38,11 @@ EmulationContext::EmulationContext() {
         const auto entry_name =
             root_dir.path.substr(root_dir.path.find_last_of("/") + 1);
         const auto entry_path = fmt::format("/{}", entry_name);
-        Horizon::Filesystem::Filesystem::GetInstance().AddEntry(root_dir.path,
-                                                                entry_path);
+        const auto res =
+            Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
+                root_dir.path, entry_path);
+        ASSERT(res == Horizon::Filesystem::FsResult::Success, HorizonServices,
+               "Failed to get root path: {}", res);
         LOG_INFO(Other, "Mapped {} to {}", entry_path, root_dir.path);
     }
 }

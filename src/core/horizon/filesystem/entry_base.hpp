@@ -1,8 +1,10 @@
 #pragma once
 
-#include "common/common.hpp"
+#include "core/horizon/filesystem/const.hpp"
 
 namespace Hydra::Horizon::Filesystem {
+
+class Directory;
 
 class EntryBase {
   public:
@@ -10,7 +12,11 @@ class EntryBase {
 
     virtual bool IsDirectory() const = 0;
 
-  private:
+    // Setters
+    void SetParent(Directory* parent_) { parent = parent_; }
+
+  protected:
+    Directory* parent;
 };
 
 } // namespace Hydra::Horizon::Filesystem

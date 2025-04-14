@@ -1,5 +1,6 @@
 #include "core/horizon/services/fssrv/filesystem.hpp"
 
+#include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
@@ -14,14 +15,32 @@ enum class EntryType : u32 {
 
 }
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 7, GetEntryType, 8, OpenFile, 9,
-                             OpenDirectory)
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 2, CreateDirectory, 7, GetEntryType,
+                             8, OpenFile, 9, OpenDirectory)
+
+void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
+    const auto path = readers.send_statics_readers[0].ReadString();
+    LOG_DEBUG(HorizonServices, "Path: {}", path);
+
+    // TODO: this won't create the directory on the host
+    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+        new Filesystem::Directory(), path);
+    if (res == Filesystem::FsResult::AlreadyExists)
+        LOG_WARNING(HorizonServices, "Directory \"{}\" already exists", path);
+    else
+        ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+               "Failed to create directory: {}", res);
+}
 
 void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     const auto path = readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
-    const auto entry = Filesystem::Filesystem::GetInstance().GetEntry(path);
+    Filesystem::EntryBase* entry;
+    const auto res =
+        Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
+    ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+           "Failed to get entry: {}", res);
 
     const auto entry_type =
         entry->IsDirectory() ? EntryType::Directory : EntryType::File;

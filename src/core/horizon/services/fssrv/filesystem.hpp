@@ -18,6 +18,7 @@ class IFileSystem : public ServiceBase {
 
   private:
     // Commands
+    void CreateDirectory(REQUEST_COMMAND_PARAMS);
     void GetEntryType(REQUEST_COMMAND_PARAMS);
     void OpenFile(REQUEST_COMMAND_PARAMS);
     void OpenDirectory(REQUEST_COMMAND_PARAMS);

@@ -13,6 +13,7 @@ add_library(hydra-core
     horizon/shared_memory.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/filesystem/const.hpp
     horizon/filesystem/entry_base.hpp
     horizon/filesystem/file.cpp
     horizon/filesystem/file.hpp
