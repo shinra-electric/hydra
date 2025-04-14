@@ -119,7 +119,7 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
                              reader.GetSize()),
         ROM_VIRTUAL_PATH);
     ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
-           "Failed to add romFS entry: ", res);
+           "Failed to add romFS entry: {}", res);
 }
 
 } // namespace Hydra::Horizon::Loader

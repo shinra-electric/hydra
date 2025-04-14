@@ -25,15 +25,16 @@ Filesystem::Filesystem() {
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
-FsResult Filesystem::AddEntry(EntryBase* entry, const std::string& path) {
+FsResult Filesystem::AddEntry(EntryBase* entry, const std::string& path,
+                              bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(entry, path.substr(1));
+    return root.AddEntry(entry, path.substr(1), add_intermediate);
 }
 
 FsResult Filesystem::AddEntry(const std::string& host_path,
-                              const std::string& path) {
+                              const std::string& path, bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(host_path, path.substr(1));
+    return root.AddEntry(host_path, path.substr(1), add_intermediate);
 }
 
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {

@@ -21,7 +21,8 @@ Directory::~Directory() {
         delete entry;
 }
 
-FsResult Directory::AddEntry(EntryBase* entry, const std::string& rel_path) {
+FsResult Directory::AddEntry(EntryBase* entry, const std::string& rel_path,
+                             bool add_intermediate) {
     ASSERT(rel_path.size() != 0, HorizonFilesystem,
            "Relative path cannot be empty");
 
@@ -45,16 +46,20 @@ FsResult Directory::AddEntry(EntryBase* entry, const std::string& rel_path) {
             e = entry;
             entry->SetParent(this);
         } else {
-            if (e) {
-                auto sub_dir = dynamic_cast<Directory*>(e);
-                if (!sub_dir)
-                    return FsResult::PathIsNotDirectory;
-
-                return sub_dir->AddEntry(entry, next_entry_name);
-            } else {
-                // TODO: add an option to create intermediate directories
-                return FsResult::PathDoesNotExist;
+            if (!e) {
+                if (add_intermediate) {
+                    e = new Directory();
+                    e->SetParent(this);
+                } else {
+                    return FsResult::PathDoesNotExist;
+                }
             }
+
+            auto sub_dir = dynamic_cast<Directory*>(e);
+            if (!sub_dir)
+                return FsResult::PathIsNotDirectory;
+
+            return sub_dir->AddEntry(entry, next_entry_name);
         }
     }
 
@@ -62,7 +67,8 @@ FsResult Directory::AddEntry(EntryBase* entry, const std::string& rel_path) {
 }
 
 FsResult Directory::AddEntry(const std::string& host_path,
-                             const std::string& rel_path) {
+                             const std::string& rel_path,
+                             bool add_intermediate) {
     ASSERT(std::filesystem::exists(host_path), HorizonFilesystem,
            "Host path \"{}\" does not exist", host_path);
 
@@ -75,7 +81,7 @@ FsResult Directory::AddEntry(const std::string& host_path,
         LOG_ERROR(HorizonFilesystem, "Invalid host path \"{}\"", host_path);
     }
 
-    return AddEntry(entry, rel_path);
+    return AddEntry(entry, rel_path, add_intermediate);
 }
 
 FsResult Directory::GetEntry(const std::string& rel_path,

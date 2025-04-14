@@ -14,9 +14,11 @@ class Filesystem {
     Filesystem();
     ~Filesystem();
 
-    [[nodiscard]] FsResult AddEntry(EntryBase* entry, const std::string& path);
+    [[nodiscard]] FsResult AddEntry(EntryBase* entry, const std::string& path,
+                                    bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string& host_path,
-                                    const std::string& path);
+                                    const std::string& path,
+                                    bool add_intermediate = false);
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
 

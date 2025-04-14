@@ -161,9 +161,9 @@ void load_section(FileReader& reader, const std::string& rom_filename,
         const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
             new Filesystem::File(rom_filename, romfs_reader.GetOffset(),
                                  romfs_reader.GetSize()),
-            "/rom/romFS");
+            "/rom/romFS", true);
         ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
-               "Failed to add romFS entry: ", res);
+               "Failed to add romFS entry: {}", res);
         break;
     }
     }
