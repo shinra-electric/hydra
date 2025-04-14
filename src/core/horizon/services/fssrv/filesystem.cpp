@@ -39,8 +39,11 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     Filesystem::EntryBase* entry;
     const auto res =
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
-    ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
-           "Failed to get entry: {}", res);
+    if (res != Filesystem::FsResult::Success) {
+        // HACK
+        result = static_cast<u32>(res);
+        return;
+    }
 
     const auto entry_type =
         entry->IsDirectory() ? EntryType::Directory : EntryType::File;
