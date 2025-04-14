@@ -542,8 +542,7 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
         out_handle_index = 0;
     } else {
         handle_id_t handle_id = handle_ids[0];
-        auto handle =
-            dynamic_cast<SynchronizationHandle*>(GetHandle(handle_id));
+        auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
         ASSERT_DEBUG(handle, HorizonKernel,
                      "Handle {} is not a synchronization handle", handle_id);
 

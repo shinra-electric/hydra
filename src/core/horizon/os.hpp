@@ -51,7 +51,7 @@ struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    DisplayBinder(KernelHandleWithId<SynchronizationHandle>& event_handle_)
+    DisplayBinder(KernelHandleWithId<Event>& event_handle_)
         : event_handle{event_handle_} {}
 
     void AddBuffer(i32 slot, HW::TegraX1::GPU::NvGraphicsBuffer buff) {
@@ -118,7 +118,7 @@ struct DisplayBinder {
     }
 
   private:
-    KernelHandleWithId<SynchronizationHandle>& event_handle;
+    KernelHandleWithId<Event>& event_handle;
 
     DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                                     // max number of buffers?
@@ -130,7 +130,7 @@ struct DisplayBinder {
 
 class DisplayBinderManager {
   public:
-    DisplayBinderManager() : event_handle(new SynchronizationHandle()) {}
+    DisplayBinderManager() : event_handle(new Event()) {}
 
     u32 AddBinder() {
         u32 id = binders.size();
@@ -142,13 +142,13 @@ class DisplayBinderManager {
     // Getters
     DisplayBinder& GetBinder(u32 id) { return *binders[id]; }
 
-    const KernelHandleWithId<SynchronizationHandle>& GetEventHandle() const {
+    const KernelHandleWithId<Event>& GetEventHandle() const {
         return event_handle;
     }
 
   private:
     std::vector<DisplayBinder*> binders;
-    KernelHandleWithId<SynchronizationHandle> event_handle;
+    KernelHandleWithId<Event> event_handle;
 };
 
 class OS {

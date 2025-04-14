@@ -100,7 +100,7 @@ class StateManager {
     }
 
     // Getters
-    const KernelHandleWithId<SynchronizationHandle>& GetMsgEvent() {
+    const KernelHandleWithId<Event>& GetMsgEvent() {
         return msg_event;
     }
 
@@ -114,7 +114,7 @@ class StateManager {
     std::stack<u128> account_uids;
 
     // Events
-    KernelHandleWithId<SynchronizationHandle> msg_event;
+    KernelHandleWithId<Event> msg_event;
 };
 
 } // namespace Hydra::Horizon

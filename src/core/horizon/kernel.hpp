@@ -54,7 +54,7 @@ class KernelHandle {
     virtual ~KernelHandle() = default;
 };
 
-class SynchronizationHandle : public KernelHandle {
+class Event : public KernelHandle {
   public:
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
