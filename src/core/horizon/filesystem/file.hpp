@@ -29,7 +29,8 @@ class File : public EntryBase {
     u64 offset;
     usize size;
 
-    std::ifstream* stream = nullptr;
+    std::ifstream* stream{nullptr};
+    u32 refs{0};
 };
 
 } // namespace Hydra::Horizon::Filesystem

@@ -19,15 +19,21 @@ File::~File() {
 }
 
 void File::Open() {
-    ASSERT_DEBUG(!stream, HorizonFilesystem, "File is already open");
-    stream = new std::ifstream(host_path, std::ios::in | std::ios::binary);
+    if (!stream)
+        stream = new std::ifstream(host_path, std::ios::in | std::ios::binary);
+
+    refs++;
 }
 
 void File::Close() {
-    ASSERT_DEBUG(stream, HorizonFilesystem, "File not open");
-    stream->close();
-    delete stream;
-    stream = nullptr;
+    ASSERT(refs != 0, HorizonFilesystem, "Cannot close file that is not open");
+    refs--;
+
+    if (refs == 0) {
+        stream->close();
+        delete stream;
+        stream = nullptr;
+    }
 }
 
 } // namespace Hydra::Horizon::Filesystem
