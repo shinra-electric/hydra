@@ -15,6 +15,8 @@ class IHidServer : public ServiceBase {
     // Commands
     void CreateAppletResource(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
+    STUB_REQUEST_COMMAND(ActivateMouse);
+    STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);

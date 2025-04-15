@@ -12,6 +12,9 @@ class IClient : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void RegisterClient(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(StartMonitoring);
 };
 
 } // namespace Hydra::Horizon::Services::Socket
