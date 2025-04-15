@@ -2,6 +2,8 @@
 
 #include "core/horizon/services/service_base.hpp"
 
+#include "core/horizon/services/fssrv/const.hpp"
+
 namespace Hydra::Horizon::Services::Fssrv {
 
 enum class DirectoryFilterFlags {
@@ -16,17 +18,19 @@ class IDirectory : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IDirectory)
 
-    IDirectory(const std::string& path_, DirectoryFilterFlags filter_flags_)
-        : path{path_}, filter_flags{filter_flags_} {}
+    IDirectory(Filesystem::Directory* directory_,
+               DirectoryFilterFlags filter_flags_)
+        : directory{directory_}, filter_flags{filter_flags_} {}
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
-    std::string path;
+    Filesystem::Directory* directory;
     DirectoryFilterFlags filter_flags;
 
     // Commands
+    void Read(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

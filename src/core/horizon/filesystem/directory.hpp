@@ -19,6 +19,11 @@ class Directory : public EntryBase {
                       bool add_intermediate = false);
     FsResult GetEntry(const std::string& rel_path, EntryBase*& out_entry);
 
+    // Getters
+    const std::map<std::string, EntryBase*>& GetEntries() const {
+        return entries;
+    }
+
   private:
     std::map<std::string, EntryBase*> entries;
 
