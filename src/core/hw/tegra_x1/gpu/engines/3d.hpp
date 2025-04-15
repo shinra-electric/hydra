@@ -18,35 +18,6 @@ class PipelineBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
-// From Deko3D
-struct BufferDescriptor {
-    uptr gpu_addr;
-    u32 size;
-    u32 padding;
-};
-
-struct PerStageData {
-    u32 textures[TEXTURE_BINDING_COUNT];
-    u32 images[IMAGE_BINDING_COUNT];
-    BufferDescriptor storageBufs[STORAGE_BUFFER_BINDING_COUNT];
-};
-
-struct GraphicsDriverCbuf {
-    uint32_t baseVertex;
-    uint32_t baseInstance;
-    uint32_t drawId;
-    uint32_t fbTexHandle;
-    PerStageData data[u32(ShaderStage::Count) - 1];
-};
-
-struct ComputeDriverCbuf {
-    uint32_t ctaSize[3];
-    uint32_t gridSize[3];
-    uint32_t _padding[2];
-    uptr uniformBufs[UNIFORM_BUFFER_BINDING_COUNT];
-    PerStageData data;
-};
-
 struct TextureImageControl {
     // 0x00
     ImageFormatWord format_word;
@@ -468,8 +439,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     Renderer::ShaderBase* GetShader(ShaderStage stage);
     Renderer::PipelineBase* GetPipeline();
 
-    void ConfigureShaderStage(const ShaderStage stage,
-                              const GraphicsDriverCbuf& const_buffer,
+    void ConfigureShaderStage(const ShaderStage stage, const u32* const_buffer,
                               const TextureImageControl* tex_header_pool);
 
     void DrawInternal();

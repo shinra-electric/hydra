@@ -59,7 +59,7 @@ template <typename RegsT> class EngineWithRegsBase : public EngineBase {
 
     void WriteReg(u32 reg, u32 value) {
         ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
-        LOG_DEBUG(Engines, "Writing to reg 0x{:08x} (value: 0x{:08x})", reg,
+        LOG_DEBUG(Engines, "Writing to reg 0x{:03x} (value: 0x{:08x})", reg,
                   value);
         regs_raw[reg] = value;
     }

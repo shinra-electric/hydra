@@ -214,12 +214,10 @@ void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
 void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
-    // TODO: should the offset get
-    // incremented?
-    regs.load_const_buffer_offset += sizeof(u32);
-    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
-    *reinterpret_cast<u32*>(ptr) = data;
+    GPU::GetInstance().GetGPUMMU().Store(gpu_addr, data);
+
+    regs.load_const_buffer_offset += sizeof(u32);
 }
 
 void ThreeD::BindGroup(const u32 index, const u32 data) {
@@ -421,7 +419,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,
-                                  const GraphicsDriverCbuf& const_buffer,
+                                  const u32* const_buffer,
                                   const TextureImageControl* tex_header_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
@@ -439,7 +437,8 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
             continue;
         }
 
-        const auto texture_handle = const_buffer.data[stage_index].textures[i];
+        // HACK
+        const auto texture_handle = const_buffer[(0x20 + i * 8) / sizeof(u32)];
 
         // Image
         const auto image_handle = get_image_handle(texture_handle);
@@ -473,9 +472,8 @@ void ThreeD::DrawInternal() {
     // Constant buffer
     const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
     if (const_buffer_gpu_addr != 0x0) {
-        const auto const_buffer =
-            GPU::GetInstance().GetGPUMMU().Load<GraphicsDriverCbuf>(
-                const_buffer_gpu_addr);
+        const auto const_buffer = reinterpret_cast<const u32*>(
+            GPU::GetInstance().GetGPUMMU().UnmapAddr(const_buffer_gpu_addr));
 
         const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
         if (tex_header_pool_gpu_addr != 0x0) {
