@@ -32,8 +32,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Entry does not exist");
-        // HACK
-        result = static_cast<u32>(res);
+        result = MAKE_KERNEL_RESULT(0x202);
         return;
     }
 
@@ -51,8 +50,7 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "File does not exist");
-        // HACK
-        result = static_cast<u32>(res);
+        result = MAKE_KERNEL_RESULT(0x202);
         return;
     }
 

@@ -104,8 +104,7 @@ typedef u32 Result;
 
 #define RESULT_SUCCESS 0
 
-#define MAKE_KERNEL_RESULT(description)                                        \
-    MAKE_RESULT(MODULE_KERNEL, Error::description)
+#define MAKE_KERNEL_RESULT(description) MAKE_RESULT(MODULE_KERNEL, description)
 
 enum class MemoryType : u32 {
     Free = 0x00000000,

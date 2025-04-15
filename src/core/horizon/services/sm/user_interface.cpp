@@ -36,7 +36,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     u64 name = readers.reader.Read<u64>();
 
     if (name == 0) {
-        result = MAKE_KERNEL_RESULT(NotFound);
+        result = MAKE_KERNEL_RESULT(Error::NotFound);
         return;
     }
 
@@ -77,7 +77,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     default:
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
                     u64_to_str(name));
-        result = MAKE_KERNEL_RESULT(NotFound);
+        result = MAKE_KERNEL_RESULT(Error::NotFound);
         // TODO: don't throw
         throw;
     }

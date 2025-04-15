@@ -69,7 +69,7 @@ inline Result* write_out_header(Writer& writer) {
     auto hdr = writer.Write(OutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0,
-        .result = MAKE_KERNEL_RESULT(NotImplemented),
+        .result = MAKE_KERNEL_RESULT(Error::NotImplemented),
         .token = 0,
     });
 

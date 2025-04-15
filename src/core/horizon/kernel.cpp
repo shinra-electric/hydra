@@ -282,7 +282,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented SVC 0x{:08x}", id);
-        res = MAKE_KERNEL_RESULT(NotImplemented);
+        res = MAKE_KERNEL_RESULT(Error::NotImplemented);
         thread->SetRegW(0, res);
         break;
     }
@@ -294,7 +294,7 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     LOG_DEBUG(HorizonKernel, "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
-        return MAKE_KERNEL_RESULT(InvalidSize); // TODO: correct?
+        return MAKE_KERNEL_RESULT(Error::InvalidSize); // TODO: correct?
 
     mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
 
@@ -641,7 +641,7 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
     auto it = service_ports.find(name);
     if (it == service_ports.end()) {
         LOG_ERROR(HorizonKernel, "Unknown service name \"{}\"", name);
-        return MAKE_KERNEL_RESULT(NotFound);
+        return MAKE_KERNEL_RESULT(Error::NotFound);
     }
 
     out_session_handle_id = AddHandle(it->second);
@@ -849,7 +849,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         return RESULT_SUCCESS;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented info type {}", info_type);
-        return MAKE_KERNEL_RESULT(InvalidEnumValue);
+        return MAKE_KERNEL_RESULT(Error::InvalidEnumValue);
     }
 }
 
