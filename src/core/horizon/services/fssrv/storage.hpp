@@ -16,7 +16,7 @@ class IStorage : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
     // Helpers
-    void ReadImpl(u8* ptr, u64 offset, u64 size);
+    void ReadImpl(u8* ptr, u64 offset, usize& size);
 
   private:
     Filesystem::File* file;

@@ -18,6 +18,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
+    void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Hid

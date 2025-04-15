@@ -36,6 +36,8 @@ add_library(hydra-core
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp
     horizon/services/hid/applet_resource.hpp
+    horizon/services/hid/active_vibration_device_list.cpp
+    horizon/services/hid/active_vibration_device_list.hpp
     horizon/services/hid/hid_server.cpp
     horizon/services/hid/hid_server.hpp
     horizon/services/hid/hid_debug_server.cpp

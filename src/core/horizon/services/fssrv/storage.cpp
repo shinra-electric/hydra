@@ -19,7 +19,7 @@ IStorage::IStorage(Filesystem::File* file_) : file{file_} { file->Open(); }
 
 IStorage::~IStorage() { file->Close(); }
 
-void IStorage::ReadImpl(u8* ptr, u64 offset, u64 size) {
+void IStorage::ReadImpl(u8* ptr, u64 offset, usize& size) {
     LOG_DEBUG(HorizonServices, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
               size);
 
@@ -27,9 +27,12 @@ void IStorage::ReadImpl(u8* ptr, u64 offset, u64 size) {
                  offset);
 
     auto reader = file->CreateReader();
-    ASSERT_DEBUG(size <= reader.GetSize(), HorizonServices,
-                 "Reading {} bytes, but file has a size of only {} bytes", size,
-                 reader.GetSize());
+    if (size > reader.GetSize()) {
+        LOG_WARNING(HorizonServices,
+                    "Reading {} bytes, but file has a size of only {} bytes",
+                    size, reader.GetSize());
+        size = reader.GetSize();
+    }
 
     reader.Seek(offset);
     reader.Read(ptr, size);
@@ -38,8 +41,8 @@ void IStorage::ReadImpl(u8* ptr, u64 offset, u64 size) {
 void IStorage::Read(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<ReadIn>();
 
-    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset,
-             in.read_size);
+    usize size = in.read_size;
+    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset, size);
 }
 
 void IStorage::GetSize(REQUEST_COMMAND_PARAMS) {

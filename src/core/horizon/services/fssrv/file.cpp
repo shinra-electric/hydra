@@ -21,10 +21,10 @@ void IFile::Read(REQUEST_COMMAND_PARAMS) {
 
     // TODO: option
 
-    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset,
-             in.read_size);
+    usize size = in.read_size;
+    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset, size);
 
-    writers.writer.Write(in.read_size);
+    writers.writer.Write(size);
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv
