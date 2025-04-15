@@ -11,7 +11,7 @@ DEFINE_IOCTL_TABLE(ChannelBase,
                                             AllocGpfifoEx, 0x1a, AllocGpfifoEx))
 
 void ChannelBase::SetNvMapFd(SetNvMapFdData& data, NvResult& result) {
-    LOG_WARNING(HorizonServices, "Not implemented");
+    LOG_FUNC_STUBBED(HorizonServices);
 
     // TODO: what's the purpose of knowing the nvmap fd?
 }

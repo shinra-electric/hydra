@@ -14,10 +14,12 @@ class IHidServer : public ServiceBase {
   private:
     // Commands
     void CreateAppletResource(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
+    STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
 };
 

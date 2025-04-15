@@ -503,7 +503,7 @@ Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
 }
 
 Result Kernel::svcCloseHandle(handle_id_t handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:08x})",
+    LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:x})",
               handle_id);
 
     FreeHandle(handle_id);
@@ -512,7 +512,7 @@ Result Kernel::svcCloseHandle(handle_id_t handle_id) {
 }
 
 Result Kernel::svcResetSignal(handle_id_t handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:08x})",
+    LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:x})",
               handle_id);
 
     // TODO: implement
@@ -651,11 +651,13 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
 
 Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
                                   handle_id_t session_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:08x})",
+    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:x})",
               session_handle_id);
 
     auto service =
-        static_cast<Services::ServiceBase*>(GetHandle(session_handle_id));
+        dynamic_cast<Services::ServiceBase*>(GetHandle(session_handle_id));
+    ASSERT_DEBUG(service, HorizonKernel,
+                 "Handle 0x{:x} is not a service handle", session_handle_id);
     auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
 
     // Request

@@ -81,10 +81,6 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     uptr gpu_addr = entry.gpu_addr;
     uptr end = entry.gpu_addr + entry.size * sizeof(u32);
 
-    // HACK: the last 4 words seem to always be the same, subchannel: 6, method:
-    // 0x00b
-    // end -= 4 * sizeof(u32);
-
     while (gpu_addr < end) {
         if (!SubmitCommand(gpu_addr))
             break;
