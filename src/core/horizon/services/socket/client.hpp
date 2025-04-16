@@ -15,6 +15,9 @@ class IClient : public ServiceBase {
     // Commands
     void RegisterClient(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(StartMonitoring);
+    STUB_REQUEST_COMMAND(Socket);
+    STUB_REQUEST_COMMAND(Connect);
+    STUB_REQUEST_COMMAND(Close);
 };
 
 } // namespace Hydra::Horizon::Services::Socket

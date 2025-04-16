@@ -4,7 +4,7 @@
 #include "core/horizon/cmif.hpp"
 #include "core/horizon/const.hpp"
 #include "core/horizon/hipc.hpp"
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/services/session.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
@@ -644,7 +644,7 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
         return MAKE_KERNEL_RESULT(Error::NotFound);
     }
 
-    out_session_handle_id = AddHandle(it->second);
+    out_session_handle_id = AddHandle(new Services::Session(it->second));
 
     return RESULT_SUCCESS;
 }
@@ -654,10 +654,10 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
     LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:x})",
               session_handle_id);
 
-    auto service =
-        dynamic_cast<Services::ServiceBase*>(GetHandle(session_handle_id));
-    ASSERT_DEBUG(service, HorizonKernel,
-                 "Handle 0x{:x} is not a service handle", session_handle_id);
+    auto session =
+        dynamic_cast<Services::Session*>(GetHandle(session_handle_id));
+    ASSERT_DEBUG(session, HorizonKernel,
+                 "Handle 0x{:x} is not a session handle", session_handle_id);
     auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
 
     // Request
@@ -676,15 +676,16 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
     switch (command_type) {
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
-        service->Request(readers, writers, [&](Services::ServiceBase* service) {
-            handle_id_t handle_id = AddHandle(service);
-            service->SetHandleId(handle_id);
+        session->Request(readers, writers, [&](Services::ServiceBase* service) {
+            auto session = new Services::Session(service);
+            handle_id_t handle_id = AddHandle(session);
+            session->SetHandleId(handle_id);
             writers.move_handles_writer.Write(handle_id);
         });
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
-        service->Control(readers, writers);
+        session->Control(readers, writers);
         break;
     default:
         LOG_WARNING(HorizonKernel, "Unknown command {}", command_type);

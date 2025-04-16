@@ -28,6 +28,10 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/services/const.cpp
+    horizon/services/const.hpp
+    horizon/services/session.cpp
+    horizon/services/session.hpp
     horizon/services/service_base.cpp
     horizon/services/service_base.hpp
     horizon/services/domain_service.cpp

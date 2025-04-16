@@ -41,6 +41,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     }
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
+// TODO: don't instantiate the services?
 #define SERVICE_CASE(name, ...)                                                \
     FOR_EACH_0_1(SERVICE_CASE_CASE, __VA_ARGS__)                               \
     add_service(new name());                                                   \

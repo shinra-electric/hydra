@@ -9,7 +9,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IHidServer, 0, CreateAppletResource, 11,
                              ActivateTouchScreen, 21, ActivateMouse, 31,
                              ActivateKeyboard, 100, SetSupportedNpadStyleSet,
                              102, SetSupportedNpadIdType, 103, ActivateNpad,
-                             124, SetNpadJoyAssignmentModeDual, 128,
+                             120, SetNpadJoyHoldType, 124,
+                             SetNpadJoyAssignmentModeDual, 128,
                              SetNpadHandheldActivationMode, 203,
                              CreateActiveVibrationDeviceList)
 

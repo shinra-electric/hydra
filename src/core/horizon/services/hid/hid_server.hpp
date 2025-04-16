@@ -20,6 +20,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
+    STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
