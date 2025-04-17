@@ -78,6 +78,9 @@ class RendererBase {
     // TODO: sampers
     // TODO: images
 
+    // Resource unbinding
+    virtual void UnbindTextures(ShaderType shader_type) = 0;
+
     // Draw
     virtual void Draw(const Engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count,

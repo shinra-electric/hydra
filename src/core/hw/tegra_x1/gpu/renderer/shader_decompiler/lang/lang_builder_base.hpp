@@ -32,7 +32,7 @@ class LangBuilderBase : public BuilderBase {
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
+    void OpTextureSample(reg_t dst, u32 const_buffer_index, reg_t coords_x,
                          reg_t coords_y) override;
 
   protected:
@@ -44,7 +44,7 @@ class LangBuilderBase : public BuilderBase {
     virtual void EmitMainPrototype() = 0;
     virtual void EmitExit() = 0;
 
-    virtual std::string EmitTextureSample(u32 index,
+    virtual std::string EmitTextureSample(u32 const_buffer_index,
                                           const std::string& coords) = 0;
 
     template <typename... T> void Write(WRITE_ARGS) {

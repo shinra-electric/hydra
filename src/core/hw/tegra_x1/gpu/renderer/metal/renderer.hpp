@@ -29,7 +29,7 @@ struct State {
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [UNIFORM_BUFFER_BINDING_COUNT];
-    const Texture* textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT];
+    const Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
 
 struct EncoderRenderState {
@@ -93,6 +93,9 @@ class Renderer : public RendererBase {
                            u32 index) override;
     void BindTexture(TextureBase* texture, ShaderType shader_type,
                      u32 index) override;
+
+    // Resource unbinding
+    void UnbindTextures(ShaderType shader_type) override;
 
     // Draw
     void Draw(const Engines::PrimitiveType primitive_type, const u32 start,

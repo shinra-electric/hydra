@@ -431,21 +431,21 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
     // TODO: storage buffers
 
     // Textures
-    for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++) {
-        if (resource_mapping.textures[i] == invalid<u32>()) {
-            RENDERER->BindTexture(nullptr, to_renderer_shader_type(stage), i);
-            continue;
-        }
-
-        // HACK
-        const auto texture_handle = const_buffer[(0x20 + i * 8) / sizeof(u32)];
+    RENDERER->UnbindTextures(to_renderer_shader_type(stage));
+    for (const auto [const_buffer_index, renderer_index] :
+         resource_mapping.textures) {
+        const auto texture_handle = const_buffer[const_buffer_index];
 
         // Image
         const auto image_handle = get_image_handle(texture_handle);
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
         if (texture)
-            RENDERER->BindTexture(texture, to_renderer_shader_type(stage), i);
+            RENDERER->BindTexture(texture, to_renderer_shader_type(stage),
+                                  renderer_index);
+
+        // Sampler
+        // TODO
     }
 
     // TODO: images

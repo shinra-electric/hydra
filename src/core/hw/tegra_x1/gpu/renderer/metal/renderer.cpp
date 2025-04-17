@@ -80,7 +80,7 @@ Renderer::Renderer() {
          shader_type++) {
         for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
             state.uniform_buffers[shader_type][i] = nullptr;
-        for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++)
+        for (u32 i = 0; i < TEXTURE_COUNT; i++)
             state.textures[shader_type][i] = nullptr;
     }
 
@@ -284,6 +284,15 @@ void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
         return;
 
     state.textures[u32(shader_type)][index] = static_cast<Texture*>(texture);
+}
+
+void Renderer::UnbindTextures(ShaderType shader_type) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
+    for (u32 i = 0; i < TEXTURE_COUNT; i++)
+        state.textures[u32(shader_type)][i] = nullptr;
 }
 
 void Renderer::Draw(const Engines::PrimitiveType primitive_type,
@@ -512,8 +521,6 @@ void Renderer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
 }
 
 void Renderer::SetTexture(ShaderType shader_type, u32 index) {
-    // TODO: get the index from resource mapping
-
     const auto texture = state.textures[u32(shader_type)][index];
     if (!texture)
         return;
