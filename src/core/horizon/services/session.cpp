@@ -33,7 +33,7 @@ void Session::Control(Readers& readers, Writers& writers) {
         break;
     }
     case Cmif::ControlCommandType::CloneCurrentObject: { // clone current object
-        auto clone = this;
+        auto clone = new Session(service);
         handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
@@ -45,7 +45,7 @@ void Session::Control(Readers& readers, Writers& writers) {
         break;
     case Cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
-        auto clone = this;
+        auto clone = new Session(service);
         handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
