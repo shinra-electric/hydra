@@ -30,10 +30,6 @@ void LangBuilderBase::Start() {
     // Main prototype
     EmitMainPrototype();
 
-    // Output
-    Write("StageOut __out;");
-    WriteNewline();
-
     // Registers
     Write("Reg r[256];");
     WriteNewline();
@@ -176,8 +172,7 @@ void LangBuilderBase::OpExit() {
     }
     WriteNewline();
 
-    // Return
-    WriteStatement("return __out");
+    EmitExit();
 }
 
 void LangBuilderBase::OpMove(reg_t dst, Operand src) {

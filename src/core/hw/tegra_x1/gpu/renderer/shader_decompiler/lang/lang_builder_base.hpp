@@ -42,6 +42,7 @@ class LangBuilderBase : public BuilderBase {
     virtual void EmitTypeAliases() = 0;
     virtual void EmitDeclarations() = 0;
     virtual void EmitMainPrototype() = 0;
+    virtual void EmitExit() = 0;
 
     virtual std::string EmitTextureSample(u32 index,
                                           const std::string& coords) = 0;

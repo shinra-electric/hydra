@@ -656,6 +656,14 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
 
     auto session =
         dynamic_cast<Services::Session*>(GetHandle(session_handle_id));
+
+    // HACK
+    if (!session) {
+        LOG_WARNING(HorizonKernel, "Handle 0x{:x} is not a session handle",
+                    session_handle_id);
+        return RESULT_SUCCESS;
+    }
+
     ASSERT_DEBUG(session, HorizonKernel,
                  "Handle 0x{:x} is not a session handle", session_handle_id);
     auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));

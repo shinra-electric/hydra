@@ -19,6 +19,7 @@ class Builder final : public LangBuilderBase {
     void EmitTypeAliases() override;
     void EmitDeclarations() override;
     void EmitMainPrototype() override;
+    void EmitExit() override;
 
     std::string EmitTextureSample(u32 index,
                                   const std::string& coords) override;

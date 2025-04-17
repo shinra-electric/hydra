@@ -166,6 +166,20 @@ void Builder::EmitMainPrototype() {
 #undef ADD_ARG
 
     EnterScope(")");
+
+    // Output
+    Write("StageOut __out;");
+    WriteNewline();
+}
+
+void Builder::EmitExit() {
+    // HACK
+    if (type == ShaderType::Vertex)
+        WriteStatement(
+            "__out.position.z = (__out.position.z + __out.position.w) / 2.0");
+
+    // Return
+    WriteStatement("return __out");
 }
 
 std::string Builder::GetSVQualifierName(const SV sv, bool output) {

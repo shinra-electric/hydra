@@ -288,6 +288,17 @@ void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
 
 void Renderer::Draw(const Engines::PrimitiveType primitive_type,
                     const u32 start, const u32 count, bool indexed) {
+#define CAPTURE 0
+
+    // Debug
+#if CAPTURE
+    static bool did_capture = false;
+    if (!did_capture) {
+        BeginCapture();
+        did_capture = true;
+    }
+#endif
+
     auto encoder = GetRenderCommandEncoder();
 
     // State
@@ -323,18 +334,12 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     }
 
     // Debug
-#if 0
+#if CAPTURE
     static u32 frames = 0;
     if (capturing) {
-        if (frames >= 3)
+        if (frames >= 10)
             EndCapture();
         frames++;
-    }
-
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
     }
 #endif
 }
