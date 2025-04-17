@@ -99,7 +99,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
 
 #define TERTIARY_OPCODE                                                        \
     static_cast<TertiaryOpcode>(                                               \
-        extract_bits<u32, 16, 17>(bit_cast<u32>(header)))
+        extract_bits<u32, 16, 17>(std::bit_cast<u32>(header)))
 
     u32 offset = header.method;
     switch (header.secondary_opcode) {

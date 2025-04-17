@@ -232,18 +232,18 @@ void Thread::UpdateVTimer() {
 }
 
 void Thread::LogRegisters(bool simd, u32 count) {
-    LOG_DEBUG(CPU, "Reg dump:");
+    LOG_DEBUG(Hypervisor, "Reg dump:");
     for (u32 i = 0; i < count; i++) {
-        LOG_DEBUG(CPU, "X{}: 0x{:08x}", i, GetRegX(i));
+        LOG_DEBUG(Hypervisor, "X{}: 0x{:08x}", i, GetRegX(i));
     }
     if (simd) {
         for (u32 i = 0; i < count; i++) {
             auto reg = GetRegQ(i);
-            LOG_DEBUG(CPU, "Q{}: 0x{:08x}{:08x}", i, *(u64*)&reg,
+            LOG_DEBUG(Hypervisor, "Q{}: 0x{:08x}{:08x}", i, *(u64*)&reg,
                       *((u64*)&reg + 1)); // TODO: correct?
         }
     }
-    LOG_DEBUG(CPU, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
+    LOG_DEBUG(Hypervisor, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
 
 void Thread::LogStackTrace(uptr pc) {
@@ -251,24 +251,23 @@ void Thread::LogStackTrace(uptr pc) {
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
 
-    LOG_DEBUG(CPU, "Stack trace:");
-    // LOG_DEBUG(CPU, "SP: 0x{:08x}", sp);
-    LOG_DEBUG(CPU, "0x{:08x}", pc);
+    LOG_DEBUG(Hypervisor, "Stack trace:");
+    LOG_DEBUG(Hypervisor, "0x{:08x}", pc);
 
     for (uint64_t frame = 0; fp != 0; frame++) {
-        LOG_DEBUG(CPU, "0x{:08x}", lr - 0x4);
+        LOG_DEBUG(Hypervisor, "0x{:08x}", lr - 0x4);
         if (frame == MAX_STACK_TRACE_DEPTH - 1) {
-            LOG_DEBUG(CPU, "... (more frames)");
+            LOG_DEBUG(Hypervisor, "... (more frames)");
             break;
         }
 
         // if (!stack_mem->AddrIsInRange(fp))
         //     break;
         // HACK
-        if (fp < 0x10000000 || fp >= 0x20000000) {
-            LOG_WARNING(Hypervisor, "Currputed stack");
-            break;
-        }
+        // if (fp < 0x10000000 || fp >= 0x20000000) {
+        //    LOG_WARNING(Hypervisor, "Currputed stack");
+        //    break;
+        //}
 
         u64 new_fp = mmu->Load<u64>(fp);
         lr = mmu->Load<u64>(fp + 8);

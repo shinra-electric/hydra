@@ -39,7 +39,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     ((inst >> shift) & ((1 << bit_count) - 1))
 #define GET_DATA_U32(shift, mask) GET_DATA_IMPL(instruction, shift, mask)
 #define GET_DATA_I32(shift, mask)                                              \
-    GET_DATA_IMPL(bit_cast<i32>(instruction), shift, mask)
+    GET_DATA_IMPL(std::bit_cast<i32>(instruction), shift, mask)
 #define GET_REG(shift) GET_DATA_U32(shift, 3)
 // TODO: rename
 #define GET_B(shift) GET_DATA_U32(shift, 5)

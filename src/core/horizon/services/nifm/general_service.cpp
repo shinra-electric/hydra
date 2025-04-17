@@ -11,6 +11,8 @@ void IGeneralService::CreateRequest(REQUEST_COMMAND_PARAMS) {
     LOG_DEBUG(HorizonServices, "Requirement preset: {}", requirement_preset);
 
     add_service(new IRequest());
+
+    std::this_thread::sleep_for(std::chrono::seconds(20));
 }
 
 } // namespace Hydra::Horizon::Services::Nifm

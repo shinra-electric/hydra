@@ -52,7 +52,7 @@ class Driver : public DriverBase {
 
     i32 GetRegI32(u8 reg) {
         ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register {}", reg);
-        return bit_cast<i32>(GetRegRaw(reg));
+        return std::bit_cast<i32>(GetRegRaw(reg));
     }
 
     void SetRegI32(u8 reg, i32 value) {
@@ -61,7 +61,7 @@ class Driver : public DriverBase {
         if (reg == 0)
             return;
 
-        regs[reg] = bit_cast<u32>(value);
+        regs[reg] = std::bit_cast<u32>(value);
     }
 };
 

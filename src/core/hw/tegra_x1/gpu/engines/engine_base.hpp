@@ -5,7 +5,7 @@
 
 #define METHOD_CASE(method_begin, method_count, func, arg_type)                \
     case method_begin ...(method_begin + method_count - 1):                    \
-        func(method - method_begin, bit_cast<arg_type>(arg));                  \
+        func(method - method_begin, std::bit_cast<arg_type>(arg));             \
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \

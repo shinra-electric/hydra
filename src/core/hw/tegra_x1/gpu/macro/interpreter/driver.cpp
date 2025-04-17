@@ -25,7 +25,7 @@ u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
 
     i32 valueA = GetRegI32(rA);
     i32 valueB = GetRegI32(rB);
-#define RET(v) return bit_cast<u32>(v)
+#define RET(v) return std::bit_cast<u32>(v)
     // TODO: simplify the carry stuff
     switch (op) {
     case AluOperation::Add: {
@@ -63,7 +63,7 @@ u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
 
 u32 Driver::InstAddImmediate(u8 rA, i32 imm) {
     LOG_DEBUG(Macro, "r{}: 0x{:08x}, imm: 0x{:08x}", rA, GetRegU32(rA), imm);
-    return bit_cast<u32>(GetRegI32(rA) + imm);
+    return std::bit_cast<u32>(GetRegI32(rA) + imm);
 }
 
 u32 Driver::InstExtractInsert(u8 bA, u8 rA, u8 bB, u8 rB, u8 size) {
@@ -123,7 +123,7 @@ void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm, bool& branched) {
 
     if (branch) {
         branch_after = pc + (execute_one_more ? 1 : 0);
-        branch_addr = bit_cast<u32>(bit_cast<i32>(pc) + imm);
+        branch_addr = std::bit_cast<u32>(std::bit_cast<i32>(pc) + imm);
         branched = true;
     } else {
         branched = false;

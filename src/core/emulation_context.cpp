@@ -86,6 +86,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
     cpu->GetMMU()->Store<u32>(0x4127f50c, NOP);
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
+    cpu->GetMMU()->Store<u32>(0x40081730, NOP);
 }
 
 void EmulationContext::Run() {

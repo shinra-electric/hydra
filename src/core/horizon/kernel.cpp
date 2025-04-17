@@ -165,10 +165,10 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         svcExitProcess();
         return false;
     case 0x8:
-        res = svcCreateThread(thread->GetRegX(1), thread->GetRegX(2),
-                              thread->GetRegX(3),
-                              bit_cast<i32>(thread->GetRegW(4)),
-                              bit_cast<i32>(thread->GetRegW(5)), tmp_handle_id);
+        res = svcCreateThread(
+            thread->GetRegX(1), thread->GetRegX(2), thread->GetRegX(3),
+            std::bit_cast<i32>(thread->GetRegW(4)),
+            std::bit_cast<i32>(thread->GetRegW(5)), tmp_handle_id);
         thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_handle_id);
         break;
@@ -177,12 +177,12 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegW(0, res);
         break;
     case 0xb:
-        svcSleepThread(bit_cast<i64>(thread->GetRegX(0)));
+        svcSleepThread(std::bit_cast<i64>(thread->GetRegX(0)));
         break;
     case 0xc:
         res = svcGetThreadPriority(thread->GetRegX(1), tmp_i32);
         thread->SetRegW(0, res);
-        thread->SetRegW(1, bit_cast<u32>(tmp_i32));
+        thread->SetRegW(1, std::bit_cast<u32>(tmp_i32));
         break;
     case 0xd:
         res = svcSetThreadPriority(thread->GetRegX(0), thread->GetRegX(1));
@@ -190,7 +190,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0xf:
         res = svcSetThreadCoreMask(thread->GetRegW(0),
-                                   bit_cast<i32>(thread->GetRegW(1)),
+                                   std::bit_cast<i32>(thread->GetRegW(1)),
                                    thread->GetRegX(2));
         thread->SetRegW(0, res);
         break;
@@ -231,8 +231,8 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x18:
         res = svcWaitSynchronization(
             reinterpret_cast<handle_id_t*>(mmu->UnmapAddr(thread->GetRegX(1))),
-            bit_cast<i64>(thread->GetRegX(2)),
-            bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
+            std::bit_cast<i64>(thread->GetRegX(2)),
+            std::bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
         thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
         break;
@@ -248,7 +248,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
     case 0x1c:
         res = svcWaitProcessWideKeyAtomic(
             thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
-            bit_cast<i64>(thread->GetRegX(3)));
+            std::bit_cast<i64>(thread->GetRegX(3)));
         thread->SetRegW(0, res);
         break;
     case 0x1d:
@@ -612,6 +612,17 @@ Result Kernel::svcArbitrateUnlock(uptr mutex_addr) {
     auto& mutex = mutex_map[mutex_addr];
     mutex.Unlock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)));
 
+    // HACK
+    /*
+    if (mutex_addr == 0x40bae248) {
+        static bool hack = false;
+        if (!hack) {
+            hack = true;
+            std::this_thread::sleep_for(std::chrono::seconds(20));
+        }
+    }
+    */
+
     return RESULT_SUCCESS;
 }
 
@@ -901,7 +912,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         return RESULT_SUCCESS;
     default:
         LOG_WARNING(HorizonKernel, "Unimplemented info type {}", info_type);
-        return MAKE_KERNEL_RESULT(Error::InvalidEnumValue);
+        return RESULT_SUCCESS;
     }
 }
 

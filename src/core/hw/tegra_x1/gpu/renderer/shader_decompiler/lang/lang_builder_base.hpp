@@ -187,11 +187,11 @@ class LangBuilderBase : public BuilderBase {
     std::string GetImmediate(const u32 imm, DataType data_type) {
         switch (data_type) {
         case DataType::Int:
-            return GetImmediate(bit_cast<i32>(imm));
+            return GetImmediate(std::bit_cast<i32>(imm));
         case DataType::UInt:
             return GetImmediate(imm);
         case DataType::Float:
-            return GetImmediate(bit_cast<f32>(imm));
+            return GetImmediate(std::bit_cast<f32>(imm));
         default:
             return INVALID_VALUE;
         }

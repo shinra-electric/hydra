@@ -13,6 +13,9 @@ class IRequest : public ServiceBase {
 
   private:
     // Commands
+    void GetRequestState(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(GetResult);
+    void GetSystemEventReadableHandles(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Nifm

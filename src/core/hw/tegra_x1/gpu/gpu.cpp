@@ -47,7 +47,7 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,
                      "Invalid subchannel {}", subchannel);
 
-        const auto set_object_arg = bit_cast<SetObjectArg>(arg);
+        const auto set_object_arg = std::bit_cast<SetObjectArg>(arg);
         // TODO: what is engine ID?
         Engines::EngineBase* engine = nullptr;
         switch (set_object_arg.class_id) {

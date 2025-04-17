@@ -156,7 +156,9 @@ void log(Level level, Class c, const std::string& file, u32 line,
             break;
         }
 
-        fmt::print(fg(color), "[{:<7}", level);
+        fmt::print(fg(color), "[0x{:016x}]",
+                   std::bit_cast<u64>(std::this_thread::get_id()));
+        fmt::print(fg(color), "[{:<7}]", level);
 
         // Class + debug info
         fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", c, function,
