@@ -63,6 +63,16 @@ void read_segment(FileReader& reader, uptr executable_mem_ptr,
     }
 }
 
+struct ArgData {
+    u32 allocated_size;
+    u32 string_size;
+    u8 unused[0x18];
+    char str[];
+};
+
+// TODO: what should this be?
+constexpr usize ARG_DATA_SIZE = 0x9000;
+
 } // namespace
 
 void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
@@ -91,9 +101,9 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
               header.data.memory_offset, header.data.size, header.bss_size);
 
     // Create executable memory
-    uptr base;
+    vaddr_t base;
     auto ptr = Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, base, MemoryPermission::ReadExecute);
+        executable_size, MemoryPermission::ReadExecute, false, base);
     LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}, size: 0x{:08x}", base,
               executable_size);
 
@@ -104,6 +114,20 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
                  (header.flags & (1u << 1)));
     read_segment(reader, ptr, header.data, header.data_file_size,
                  (header.flags & (1u << 2)));
+
+    // Arg data
+    // TODO: don't hardcode
+    std::string arg_data_str = "";
+
+    vaddr_t arg_data_base;
+    // TODO: memory type
+    auto arg_data_ptr =
+        reinterpret_cast<ArgData*>(Kernel::GetInstance().CreateRomMemory(
+            ARG_DATA_SIZE, static_cast<MemoryType>(4),
+            MemoryPermission::ReadWrite, true, arg_data_base));
+    arg_data_ptr->allocated_size = ARG_DATA_SIZE;
+    arg_data_ptr->string_size = arg_data_str.size();
+    std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
 
     if (is_entry_point) {
         // Set entrypoint
@@ -122,7 +146,7 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     std::ofstream out(
         fmt::format("/Users/samuliak/Downloads/extracted/0x{:08x}.bin", base),
         std::ios::binary);
-    out.write(reinterpret_cast<const char*>(mem->GetPtrU8()), executable_size);
+    out.write(reinterpret_cast<const char*>(ptr), executable_size);
     out.close();
 #endif
 }

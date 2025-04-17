@@ -123,9 +123,11 @@ class Kernel {
     void InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
+    uptr CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
+                         bool add_guard_page, vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
-    uptr CreateExecutableMemory(usize size, vaddr_t& out_base,
-                                MemoryPermission perm);
+    uptr CreateExecutableMemory(usize size, MemoryPermission perm,
+                                bool add_guard_page, vaddr_t& out_base);
     void SetMainThreadEntryPoint(uptr main_thread_entry_point_) {
         main_thread_entry_point = main_thread_entry_point_;
     }

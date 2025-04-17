@@ -86,28 +86,24 @@ struct DisplayBinder {
     }
 
     i32 ConsumeBuffer() {
+        // TODO: correct?
+        // Signal event
+        event_handle.handle->Signal();
+
         // Wait for a buffer to become available
         std::unique_lock<std::mutex> lock(queue_mutex);
         // TODO: should there be a timeout?
         queue_cv.wait_for(lock, std::chrono::nanoseconds(67 * 1000 * 1000),
                           [&] { return !queued_buffers.empty(); });
 
-        if (queued_buffers.empty()) {
-            // TODO: correct?
-            // Signal event
-            event_handle.handle->Signal();
+        if (queued_buffers.empty())
             return -1;
-        }
 
         // Get the first queued buffer
         i32 slot = queued_buffers.front();
         queued_buffers.pop();
         buffers[slot].queued = false;
         queue_cv.notify_all();
-
-        // TODO: correct?
-        // Signal event
-        event_handle.handle->Signal();
 
         return slot;
     }

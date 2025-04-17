@@ -8,6 +8,7 @@
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include <chrono>
 
 namespace Hydra::Horizon {
 
@@ -96,19 +97,26 @@ void Kernel::InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
         thread->SetRegX(i, main_thread_args[i]);
 }
 
-uptr Kernel::CreateExecutableMemory(usize size, vaddr_t& out_base,
-                                    MemoryPermission perm) {
+uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
+                             bool add_guard_page, vaddr_t& out_base) {
     size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
-    // TODO: is static type correct?
-    // TODO: what permissions should be used?
     auto mem = mmu->AllocateMemory(size);
-    mmu->Map(executable_mem_base, mem,
-             {MemoryType::Static, MemoryAttribute::None, perm});
-    out_base = executable_mem_base;
-    executable_mem_base += size + HW::TegraX1::CPU::PAGE_SIZE; // One guard page
+    mmu->Map(executable_mem_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
+    out_base = executable_mem_base;
+    if (add_guard_page)
+        size += HW::TegraX1::CPU::PAGE_SIZE; // One guard page
+    executable_mem_base += size;
+
     return mmu->GetMemoryPtr(mem);
+}
+
+uptr Kernel::CreateExecutableMemory(usize size, MemoryPermission perm,
+                                    bool add_guard_page, vaddr_t& out_base) {
+    // TODO: use MemoryType::Static
+    return CreateRomMemory(size, static_cast<MemoryType>(3), perm,
+                           add_guard_page, out_base);
 }
 
 bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
@@ -362,9 +370,6 @@ Result Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
     out_mem_info = mmu->QueryMemory(addr);
-    // HACK
-    if (out_mem_info.state.type == MemoryType::Static)
-        out_mem_info.state.type = static_cast<MemoryType>(3);
 
     // TODO: what is this?
     out_page_info = 0;

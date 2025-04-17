@@ -6,6 +6,7 @@
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra {
@@ -84,7 +85,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
     // cpu->GetMMU()->Store<u32>(0x803cf6b8, BRK);
     // cpu->GetMMU()->Store<u32>(0x803cf0c8, BRK);
-    // cpu->GetMMU()->Store<u32>(0x803d569c, BRK);
+    // cpu->GetMMU()->Store<u32>(0x4142a2a0, BRK);
 }
 
 void EmulationContext::Run() {
