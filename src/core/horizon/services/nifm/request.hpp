@@ -4,16 +4,15 @@
 
 namespace Hydra::Horizon::Services::Nifm {
 
-class IGeneralService : public ServiceBase {
+class IRequest : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IGeneralService)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IRequest)
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
     // Commands
-    void CreateRequest(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Nifm

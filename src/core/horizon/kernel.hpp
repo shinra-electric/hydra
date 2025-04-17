@@ -58,20 +58,28 @@ class Event : public KernelHandle {
   public:
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
+        signaled = true;
         cv.notify_all();
+    }
+
+    void Clear() {
+        std::unique_lock<std::mutex> lock(mutex);
+        signaled = true;
     }
 
     void Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
         if (IS_TIMEOUT_INFINITE(timeout))
-            cv.wait(lock);
+            cv.wait(lock, [&] { return signaled; });
         else
-            cv.wait_for(lock, std::chrono::nanoseconds(timeout));
+            cv.wait_for(lock, std::chrono::nanoseconds(timeout),
+                        [&] { return signaled; });
     }
 
   private:
     std::mutex mutex;
     std::condition_variable cv;
+    bool signaled{false};
 };
 
 class ThreadHandle : public KernelHandle {
@@ -163,6 +171,8 @@ class Kernel {
     Result svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
     Result svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                 u64 core_mask1);
+    Result svcSignalEvent(handle_id_t event_handle_id);
+    Result svcClearEvent(handle_id_t event_handle_id);
     Result svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                               usize size, MemoryPermission perm);
     Result svcUnmapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,

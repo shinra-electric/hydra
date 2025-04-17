@@ -81,11 +81,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // HACK
 #define BRK 0xd4200000
 #define MOV_X0_XZR 0xd2800000
+#define NOP 0xd503201f
 
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
-    // cpu->GetMMU()->Store<u32>(0x803cf6b8, BRK);
-    // cpu->GetMMU()->Store<u32>(0x803cf0c8, BRK);
-    // cpu->GetMMU()->Store<u32>(0x4142a2a0, BRK);
+    cpu->GetMMU()->Store<u32>(0x4127f50c, NOP);
+    cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
 }
 
 void EmulationContext::Run() {

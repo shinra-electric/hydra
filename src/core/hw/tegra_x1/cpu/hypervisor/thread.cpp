@@ -98,8 +98,7 @@ void Thread::Run() {
                     break;
                 case 0x25: {
                     // Debug
-                    // cpu->LogStackTrace(horizon.GetKernel().GetStackMemory(),
-                    //                   elr);
+                    LogStackTrace(elr);
 
                     // LOG_DEBUG(Hypervisor,
                     //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
@@ -121,11 +120,12 @@ void Thread::Run() {
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
-                        "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x})",
+                        "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x}, instruction: "
+                        "0x{:08x})",
                         ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
                         GetSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
-                        exit->exception.physical_address);
+                        exit->exception.physical_address, instruction);
 
                     break;
                 }
@@ -278,8 +278,7 @@ void Thread::LogStackTrace(uptr pc) {
 }
 
 void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
-    LOG_WARNING(Hypervisor,
-                "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x} ", elr,
+    LOG_WARNING(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ", elr,
                 instruction, far);
 
     // Set the return address

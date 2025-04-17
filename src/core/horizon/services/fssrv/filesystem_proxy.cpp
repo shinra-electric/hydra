@@ -7,7 +7,8 @@ namespace Hydra::Horizon::Services::Fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
                              SetCurrentProcess, 18, OpenSdCardFileSystem, 200,
-                             OpenDataStorageByProgramId, 1005,
+                             OpenDataStorageByProgramId, 203,
+                             OpenPatchDataStorageByCurrentProcess, 1005,
                              GetGlobalAccessLogMode)
 
 void IFileSystemProxy::OpenFileSystem(REQUEST_COMMAND_PARAMS) {
@@ -29,6 +30,25 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 
     // TODO: what to do with program ID?
 
+    Filesystem::File* file = nullptr;
+    const auto res =
+        Filesystem::Filesystem::GetInstance().GetFile("/rom/romFS", file);
+    if (res != Filesystem::FsResult::Success) {
+        LOG_WARNING(HorizonServices, "Data storage does not exist");
+        // HACK
+        result = static_cast<u32>(res);
+        return;
+    }
+
+    add_service(new IStorage(file));
+}
+
+void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
+    REQUEST_COMMAND_PARAMS) {
+    LOG_NOT_IMPLEMENTED(HorizonServices,
+                        "OpenPatchDataStorageByCurrentProcess");
+
+    // HACK
     Filesystem::File* file = nullptr;
     const auto res =
         Filesystem::Filesystem::GetInstance().GetFile("/rom/romFS", file);

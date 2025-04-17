@@ -17,6 +17,7 @@ class IFileSystemProxy : public ServiceBase {
     STUB_REQUEST_COMMAND(SetCurrentProcess)
     void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS);
+    void OpenPatchDataStorageByCurrentProcess(REQUEST_COMMAND_PARAMS);
     void GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS);
 };
 

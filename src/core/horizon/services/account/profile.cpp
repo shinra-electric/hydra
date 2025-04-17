@@ -23,7 +23,7 @@ struct AccountProfileBase {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IProfile, 0, Get)
+DEFINE_SERVICE_COMMAND_TABLE(IProfile, 0, Get, 1, GetBase)
 
 void IProfile::Get(REQUEST_COMMAND_PARAMS) {
     // TODO: get this from state manager
@@ -37,6 +37,16 @@ void IProfile::Get(REQUEST_COMMAND_PARAMS) {
     };
     writers.recv_list_writers[0].Write(user_data);
 
+    // TODO: get this from state manager
+    AccountProfileBase profile_base{
+        .uid = account_uid,
+        .last_edit_timestamp = 0,
+        .nickname = "Hydra user",
+    };
+    writers.writer.Write(profile_base);
+}
+
+void IProfile::GetBase(REQUEST_COMMAND_PARAMS) {
     // TODO: get this from state manager
     AccountProfileBase profile_base{
         .uid = account_uid,

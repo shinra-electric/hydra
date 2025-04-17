@@ -194,6 +194,14 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
                                    thread->GetRegX(2));
         thread->SetRegW(0, res);
         break;
+    case 0x11:
+        res = svcSignalEvent(thread->GetRegW(0));
+        thread->SetRegW(0, res);
+        break;
+    case 0x12:
+        res = svcClearEvent(thread->GetRegW(0));
+        thread->SetRegW(0, res);
+        break;
     case 0x13:
         res = svcMapSharedMemory(
             thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
@@ -461,6 +469,32 @@ Result Kernel::svcSetThreadCoreMask(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
+Result Kernel::svcSignalEvent(handle_id_t event_handle_id) {
+    LOG_DEBUG(HorizonKernel, "svcSignalEvent called (event: 0x{:08x})",
+              event_handle_id);
+
+    auto handle = dynamic_cast<Event*>(GetHandle(event_handle_id));
+    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+                 event_handle_id);
+
+    handle->Signal();
+
+    return RESULT_SUCCESS;
+}
+
+Result Kernel::svcClearEvent(handle_id_t event_handle_id) {
+    LOG_DEBUG(HorizonKernel, "svcClearEvent called (event: 0x{:08x})",
+              event_handle_id);
+
+    auto handle = dynamic_cast<Event*>(GetHandle(event_handle_id));
+    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+                 event_handle_id);
+
+    handle->Clear();
+
+    return RESULT_SUCCESS;
+}
+
 Result Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                                   usize size, MemoryPermission perm) {
     LOG_DEBUG(
@@ -547,13 +581,13 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
         out_handle_index = 0;
     } else {
         handle_id_t handle_id = handle_ids[0];
-        auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
-        ASSERT_DEBUG(handle, HorizonKernel,
-                     "Handle {} is not a synchronization handle", handle_id);
+        auto event = dynamic_cast<Event*>(GetHandle(handle_id));
+        ASSERT_DEBUG(event, HorizonKernel, "Handle {} is not an event handle",
+                     handle_id);
 
         LOG_DEBUG(HorizonKernel, "Synchronizing with handle {}", handle_id);
 
-        handle->Wait(timeout);
+        event->Wait(timeout);
     }
 
     return RESULT_SUCCESS;

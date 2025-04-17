@@ -100,9 +100,7 @@ class StateManager {
     }
 
     // Getters
-    const KernelHandleWithId<Event>& GetMsgEvent() {
-        return msg_event;
-    }
+    const KernelHandleWithId<Event>& GetMsgEvent() { return msg_event; }
 
   private:
     std::mutex mutex;

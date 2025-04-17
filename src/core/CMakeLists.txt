@@ -172,6 +172,8 @@ add_library(hydra-core
     horizon/services/nifm/static_service.hpp
     horizon/services/nifm/general_service.cpp
     horizon/services/nifm/general_service.hpp
+    horizon/services/nifm/request.cpp
+    horizon/services/nifm/request.hpp
     horizon/services/pcv/pcv_service.cpp
     horizon/services/pcv/pcv_service.hpp
     hw/generic_mmu.hpp
