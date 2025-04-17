@@ -222,11 +222,13 @@ class small_cache {
 
 class Reader {
   public:
-    Reader(u8* base_) : base{base_}, ptr{base_} {}
+    Reader(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
 
     u64 Tell() { return static_cast<u64>(ptr - base); }
 
     void Seek(u64 pos) { ptr = base + pos; }
+
+    void Skip(usize size) { ptr += size; }
 
     template <typename T> T* ReadPtr() {
         T* result = reinterpret_cast<T*>(ptr);
@@ -253,15 +255,18 @@ class Reader {
 
     // Getters
     u8* GetBase() const { return base; }
+    usize GetSize() const { return size; }
+    usize GetReadSize() const { return ptr - base; }
 
   private:
     u8* base;
     u8* ptr;
+    usize size;
 };
 
 class Writer {
   public:
-    Writer(u8* base_) : base{base_}, ptr{base_} {}
+    Writer(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
 
     template <typename T> T* Write(const T& value) {
         T* result = reinterpret_cast<T*>(ptr);
@@ -281,12 +286,13 @@ class Writer {
 
     // Getters
     u8* GetBase() const { return base; }
-
+    usize GetSize() const { return size; }
     usize GetWrittenSize() const { return ptr - base; }
 
   private:
     u8* base;
     u8* ptr;
+    usize size;
 };
 
 class FileReader {

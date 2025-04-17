@@ -126,7 +126,7 @@ void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
             ARG_DATA_SIZE, static_cast<MemoryType>(4),
             MemoryPermission::ReadWrite, true, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
-    arg_data_ptr->string_size = arg_data_str.size();
+    arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
 
     if (is_entry_point) {

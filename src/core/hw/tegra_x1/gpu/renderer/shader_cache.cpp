@@ -12,7 +12,8 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     host_descriptor.type = Engines::to_renderer_shader_type(descriptor.stage);
 
     // Decompile
-    Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr));
+    Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr),
+                       0x1000); // TODO: size
     ShaderDecompiler::Decompiler decompiler;
     decompiler.Decompile(code_reader, host_descriptor.type, descriptor.state,
                          host_descriptor.code,
