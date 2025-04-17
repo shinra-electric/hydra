@@ -687,6 +687,10 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
                               service_scratch_buffer_copy_handles);
     auto command_type = static_cast<Cmif::CommandType>(hipc_in.meta.type);
     switch (command_type) {
+    case Cmif::CommandType::Close:
+        LOG_DEBUG(HorizonKernel, "COMMAND: Close");
+        session->Close();
+        break;
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
         session->Request(readers, writers, [&](Services::ServiceBase* service) {
@@ -837,7 +841,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
-        out_info = 4u * 1024u * 1024u * 1024u;
+        out_info = 3u * 1024u * 1024u * 1024u;
         return RESULT_SUCCESS;
     case InfoType::UsedMemorySize: {
         // TODO: correct?
@@ -848,7 +852,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
             size += executable_mem->GetSize();
         out_info = size;
         */
-        out_info = 4u * 1024u;
+        out_info = 4u * 1024u * 1024u;
         return RESULT_SUCCESS;
     }
     case InfoType::RandomEntropy:

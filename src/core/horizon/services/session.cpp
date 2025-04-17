@@ -8,6 +8,12 @@
 
 namespace Hydra::Horizon::Services {
 
+void Session::Close() {
+    // TODO: correct?
+    delete service;
+    service = nullptr;
+}
+
 void Session::Request(REQUEST_PARAMS) {
     service->Request(readers, writers, add_service);
 }

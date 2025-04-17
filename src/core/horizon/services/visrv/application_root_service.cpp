@@ -1,20 +1,20 @@
-#include "core/horizon/services/visrv/manager_root_service.hpp"
+#include "core/horizon/services/visrv/application_root_service.hpp"
 
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-// TODO: is this really correct?
-DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
+DEFINE_SERVICE_COMMAND_TABLE(IApplicationRootService, 0, GetDisplayService, 1,
                              GetDisplayServiceWithProxyNameExchange)
 
-void IManagerRootService::GetDisplayService(REQUEST_COMMAND_PARAMS) {
+void IApplicationRootService::GetDisplayService(REQUEST_COMMAND_PARAMS) {
+    // TODO: should take input u32
     add_service(new IApplicationDisplayService());
 }
 
-void IManagerRootService::GetDisplayServiceWithProxyNameExchange(
+void IApplicationRootService::GetDisplayServiceWithProxyNameExchange(
     REQUEST_COMMAND_PARAMS) {
-    // TODO: should take input u64 and u32
+    // TODO: should take input u32
     add_service(new IApplicationDisplayService());
 }
 

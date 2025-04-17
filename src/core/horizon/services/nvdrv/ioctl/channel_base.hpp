@@ -10,7 +10,11 @@ class ChannelBase : public FdBase {
     void Ioctl(IOCTL_PARAMS) override;
 
   protected:
+    u64 user_data;
+
     // Ioctls
+    DECLARE_IOCTL(SetUserData, readonly<u64> data;);
+    DECLARE_IOCTL(GetUserData, writeonly<u64> data;, data);
     DECLARE_IOCTL(SetNvMapFd, readonly<u32> fd_id;);
     DECLARE_VIRTUAL_IOCTL(
         SubmitGpfifo, readonly<u64> gpfifo; readonly<u32> num_entries; union {

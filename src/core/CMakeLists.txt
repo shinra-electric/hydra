@@ -124,6 +124,10 @@ add_library(hydra-core
     horizon/services/visrv/application_display_service.hpp
     horizon/services/visrv/manager_root_service.cpp
     horizon/services/visrv/manager_root_service.hpp
+    horizon/services/visrv/system_root_service.cpp
+    horizon/services/visrv/system_root_service.hpp
+    horizon/services/visrv/application_root_service.cpp
+    horizon/services/visrv/application_root_service.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.cpp

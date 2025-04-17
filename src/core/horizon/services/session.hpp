@@ -8,6 +8,7 @@ class Session : public KernelHandle {
   public:
     Session(ServiceBase* service_) : service{service_} {}
 
+    void Close();
     void Request(REQUEST_PARAMS);
     void Control(Readers& readers, Writers& writers);
 

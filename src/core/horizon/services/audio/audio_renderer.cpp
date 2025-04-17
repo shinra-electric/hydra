@@ -2,8 +2,8 @@
 
 namespace Hydra::Horizon::Services::Audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 7,
-                             QuerySystemEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
+                             Stop, 7, QuerySystemEvent)
 
 IAudioRenderer::IAudioRenderer() : event(new Event()) {}
 

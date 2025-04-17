@@ -11,6 +11,16 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
+namespace {
+
+struct OpenLayerIn {
+    u64 display_name;
+    u64 layer_id;
+    u64 applet_resource_user_id;
+};
+
+} // namespace
+
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
                              GetManagerDisplayService, 1010, OpenDisplay, 1020,
@@ -42,12 +52,6 @@ void IApplicationDisplayService::CloseDisplay(REQUEST_COMMAND_PARAMS) {
     Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
 }
 
-struct OpenLayerIn {
-    u64 display_name;
-    u64 layer_id;
-    u64 applet_resource_user_id;
-};
-
 void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<OpenLayerIn>();
 
@@ -58,9 +62,11 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
                      .GetDisplay(display_id)
                      ->GetLayer(in.layer_id);
     layer->Open();
+    LOG_DEBUG(HorizonServices, "OPENED LAYER {}", in.layer_id);
 
     // Out
-    // TODO: output window size
+    // TODO: correct?
+    writers.writer.Write(sizeof(Parcel) + sizeof(ParcelData));
 
     // Parcel
     Parcel parcel{
@@ -73,7 +79,12 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
 
     // Parcel data
     ParcelData data{
+        .unknown0 = 0x2,
+        .unknown1 = 0x0, // TODO
         .binder_id = layer->GetBinderId(),
+        .unknown2 = {0x0},
+        .str = str_to_u64("dispdrv"),
+        .unknown3 = 0x0,
     };
     writers.recv_buffers_writers[0].Write(data);
 }

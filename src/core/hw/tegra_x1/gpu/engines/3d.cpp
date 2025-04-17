@@ -205,7 +205,7 @@ void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
 }
 
 void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
-    LOG_NOT_IMPLEMENTED(Engines, "Firmware call 4");
+    LOG_FUNC_STUBBED(Engines);
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;

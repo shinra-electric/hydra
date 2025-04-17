@@ -37,7 +37,9 @@
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
-            LOG_WARNING(HorizonServices, "Unknown ioctl type 0x{:02x}", type); \
+            LOG_WARNING(HorizonServices,                                       \
+                        "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr,     \
+                        type);                                                 \
             break;                                                             \
         }                                                                      \
     }

@@ -73,6 +73,8 @@ class NvHostCtrlGpu : public FdBase {
     DECLARE_IOCTL(GetTPCMasks, readonly<u32> mask_buffer_size;
                   readonly<u32> reserved[3]; writeonly<u64> mask_buffer;
                   , mask_buffer);
+    DECLARE_IOCTL(ZbcGetActiveSlotMask, writeonly<u32> slot;
+                  writeonly<u32> mask;, slot, mask);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

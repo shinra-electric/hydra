@@ -25,7 +25,9 @@
 #include "core/horizon/services/spl/random_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
+#include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
+#include "core/horizon/services/visrv/system_root_service.hpp"
 
 namespace Hydra::Horizon::Services::Sm {
 
@@ -57,6 +59,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Settings::ISystemSettingsServer, "set:sys")
         SERVICE_CASE(Am::IApmManager, "apm", "apm:am")
         SERVICE_CASE(Am::IApplicationProxyService, "appletOE")
+        SERVICE_CASE(ViSrv::IApplicationRootService, "vi:u")
+        SERVICE_CASE(ViSrv::ISystemRootService, "vi:s")
         SERVICE_CASE(ViSrv::IManagerRootService, "vi:m")
         SERVICE_CASE(Pl::SharedResource::IPlatformSharedResourceManager, "pl:u")
         SERVICE_CASE(Psm::IPsmServer, "psm")

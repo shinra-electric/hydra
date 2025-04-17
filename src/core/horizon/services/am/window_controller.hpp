@@ -13,7 +13,7 @@ class IWindowController : public ServiceBase {
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(GetAppletResourceUserId);
+    void GetAppletResourceUserId(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(AcquireForegroundRights);
 };
 

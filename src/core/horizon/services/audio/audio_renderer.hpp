@@ -19,6 +19,7 @@ class IAudioRenderer : public ServiceBase {
     // Commands
     STUB_REQUEST_COMMAND(RequestUpdate);
     STUB_REQUEST_COMMAND(Start);
+    STUB_REQUEST_COMMAND(Stop);
     void QuerySystemEvent(REQUEST_COMMAND_PARAMS);
 };
 

@@ -10,6 +10,10 @@ class NvHostCtrl : public FdBase {
 
   private:
     // Ioctls
+    // TODO: array
+    DECLARE_IOCTL(GetConfig, readonly<char> name[0x41];
+                  readonly<char> key[0x41]; writeonly<char /*[0x101]*/> value;
+                  , value);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

@@ -8,6 +8,8 @@ class IHidServer : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IHidServer)
 
+    usize GetPointerBufferSize() override { return 0x1000; }
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
