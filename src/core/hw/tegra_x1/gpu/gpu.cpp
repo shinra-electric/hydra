@@ -91,17 +91,11 @@ Renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
 
     // TODO: why are there more planes?
-    Renderer::TextureDescriptor descriptor{
-        .ptr = mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr +
-                              buff.planes[0].offset),
-        .format = Renderer::to_texture_format(buff.planes[0].color_format),
-        .kind = buff.planes[0].kind,
-        .width = buff.planes[0].width,
-        .height = buff.planes[0].height,
-        //.stride = buff.stride,
-        .block_height_log2 = buff.planes[0].block_height_log2,
-        .stride = buff.planes[0].pitch,
-    };
+    Renderer::TextureDescriptor descriptor(
+        mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset),
+        Renderer::to_texture_format(buff.planes[0].color_format),
+        buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height,
+        buff.planes[0].block_height_log2, buff.planes[0].pitch);
 
     return renderer->GetTextureCache().GetTextureView(descriptor);
 }

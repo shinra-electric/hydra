@@ -29,4 +29,6 @@ const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
 MTL::CompareFunction
 to_mtl_compare_func(Engines::DepthTestFunc depth_test_func);
 
+MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle);
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

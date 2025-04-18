@@ -108,7 +108,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     builder->Finish();
     delete builder;
 
-#define DUMP_SHADERS 1
+#define DUMP_SHADERS 0
 #if DUMP_SHADERS
     std::ofstream out(
         fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",

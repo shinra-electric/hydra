@@ -8,16 +8,17 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     auto& tex = Find(descriptor);
 
-    // If the formats match, return base
-    // TODO: also check for swizzle
-    if (tex.base->GetDescriptor().format == descriptor.format) {
+    // If the formats match and swizzle is the default swizzle, return base
+    if (descriptor.format == tex.base->GetDescriptor().format &&
+        descriptor.swizzle_channels ==
+            get_texture_format_default_swizzle_channels(descriptor.format)) {
         return tex.base;
     }
 
     // Otherwise, get a texture view
     auto view_desc = TextureViewDescriptor{
         .format = descriptor.format,
-        // TODO: swizzle
+        .swizzle_channels = descriptor.swizzle_channels,
     };
     auto& view = tex.view_cache.Find(view_desc.GetHash());
     if (view)

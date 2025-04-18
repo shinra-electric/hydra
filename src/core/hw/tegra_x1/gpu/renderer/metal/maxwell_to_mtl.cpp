@@ -654,4 +654,22 @@ to_mtl_compare_func(Engines::DepthTestFunc depth_test_func) {
     }
 }
 
+MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle) {
+    switch (swizzle) {
+    case ImageSwizzle::Zero:
+        return MTL::TextureSwizzleZero;
+    case ImageSwizzle::R:
+        return MTL::TextureSwizzleRed;
+    case ImageSwizzle::G:
+        return MTL::TextureSwizzleGreen;
+    case ImageSwizzle::B:
+        return MTL::TextureSwizzleBlue;
+    case ImageSwizzle::A:
+        return MTL::TextureSwizzleAlpha;
+    case ImageSwizzle::OneInt:
+    case ImageSwizzle::OneFloat:
+        return MTL::TextureSwizzleOne;
+    }
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

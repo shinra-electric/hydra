@@ -9,6 +9,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 Texture::Texture(const TextureDescriptor& descriptor)
     : TextureBase(descriptor) {
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
+    // TODO: type
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
 
@@ -25,11 +26,22 @@ Texture::Texture(const TextureDescriptor& descriptor,
 Texture::~Texture() { mtl_texture->release(); }
 
 TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
-    auto mtl_view =
-        mtl_texture->newTextureView(to_mtl_pixel_format(descriptor.format));
+    MTL::TextureSwizzleChannels swizzle_channels(
+        to_mtl_swizzle(descriptor.swizzle_channels.r),
+        to_mtl_swizzle(descriptor.swizzle_channels.g),
+        to_mtl_swizzle(descriptor.swizzle_channels.b),
+        to_mtl_swizzle(descriptor.swizzle_channels.a));
 
-    // TODO: don't pass this descriptor
-    return new Texture(GetDescriptor(), mtl_view);
+    // TODO: don't hardcode type, ranges and levels
+    auto mtl_view = mtl_texture->newTextureView(
+        to_mtl_pixel_format(descriptor.format), MTL::TextureType2D,
+        NS::Range(0, 1), NS::Range(0, 1), swizzle_channels);
+
+    auto desc = GetDescriptor();
+    desc.format = descriptor.format;
+    desc.swizzle_channels = descriptor.swizzle_channels;
+
+    return new Texture(desc, mtl_view);
 }
 
 void Texture::CopyFrom(const void* data) {

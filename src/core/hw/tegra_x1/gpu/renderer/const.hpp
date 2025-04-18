@@ -141,6 +141,17 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+struct SwizzleChannels {
+    ImageSwizzle r, g, b, a;
+
+    bool operator==(const SwizzleChannels& other) const {
+        return r == other.r && g == other.g && b == other.b && a == other.a;
+    }
+};
+
+SwizzleChannels
+get_texture_format_default_swizzle_channels(const TextureFormat format);
+
 TextureFormat to_texture_format(NvColorFormat color_format);
 TextureFormat to_texture_format(const ImageFormatWord image_format_word);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
@@ -159,14 +170,37 @@ struct TextureDescriptor {
     usize height;
     usize block_height_log2;
     usize stride;
+    SwizzleChannels swizzle_channels;
     // TODO: more
+
+    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
+                      const NvKind kind_, const usize width_,
+                      const usize height_, const usize block_height_log2_,
+                      const usize stride_,
+                      const SwizzleChannels& swizzle_channels_)
+        : ptr{ptr_}, format{format_}, kind{kind_}, width{width_},
+          height{height_}, block_height_log2{block_height_log2_},
+          stride{stride_}, swizzle_channels{swizzle_channels_} {}
+
+    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
+                      const NvKind kind_, const usize width_,
+                      const usize height_, const usize block_height_log2_,
+                      const usize stride_)
+        : TextureDescriptor(
+              ptr_, format_, kind_, width_, height_, block_height_log2_,
+              stride_, get_texture_format_default_swizzle_channels(format_)) {}
 };
 
 struct TextureViewDescriptor {
     Renderer::TextureFormat format;
-    // TODO: swizzle
+    SwizzleChannels swizzle_channels;
 
-    u32 GetHash() const { return (u32)format; }
+    u32 GetHash() const {
+        return (u32)format | ((u32)swizzle_channels.r << 8) |
+               ((u32)swizzle_channels.g << 11) |
+               ((u32)swizzle_channels.b << 14) |
+               ((u32)swizzle_channels.a << 17);
+    }
 };
 
 struct RenderTargetDescriptor {

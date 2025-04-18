@@ -2,6 +2,25 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
+SwizzleChannels
+get_texture_format_default_swizzle_channels(const TextureFormat format) {
+#define SWIZZLE(r, g, b, a)                                                    \
+    {ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a}
+
+    // TODO: implement all formats
+    switch (format) {
+    case TextureFormat::RGBA8Unorm:
+        return SWIZZLE(R, G, B, A);
+    case TextureFormat::R8Unorm:
+        return SWIZZLE(R, Zero, Zero, OneFloat);
+    default:
+        LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
+        return SWIZZLE(Zero, Zero, Zero, Zero);
+    }
+
+#undef SWIZZLE
+}
+
 TextureFormat to_texture_format(NvColorFormat color_format) {
 #define NV_COLOR_FORMAT_CASE(color_format, texture_format)                     \
     case NvColorFormat::color_format:                                          \
@@ -39,16 +58,11 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     else {
         LOG_NOT_IMPLEMENTED(
-            GPU,
-            "Image format {}, components: {}, {}, {}, {}, swizzle: {}-{}-{}-{}",
+            GPU, "Image format {}, components: {}, {}, {}, {}",
             image_format_word.image_format, image_format_word.component_r,
             image_format_word.component_g, image_format_word.component_b,
-            image_format_word.component_a, image_format_word.swizzle_x,
-            image_format_word.swizzle_y, image_format_word.swizzle_z,
-            image_format_word.swizzle_w);
-        // TODO: don't throw
+            image_format_word.component_a);
         throw;
-        return TextureFormat::Invalid;
     }
 
 #undef IMAGE_FORMAT_CASE
