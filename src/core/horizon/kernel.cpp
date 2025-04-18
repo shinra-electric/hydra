@@ -578,7 +578,7 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
 
     if (handle_count == 0) {
         // TODO: allow waiting forever
-        ASSERT(!IS_TIMEOUT_INFINITE(timeout), HorizonKernel,
+        ASSERT(timeout != INFINITE_TIMEOUT, HorizonKernel,
                "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0;
@@ -646,7 +646,7 @@ Result Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
 
     {
         std::unique_lock lock(mutex.GetNativeHandle());
-        if (IS_TIMEOUT_INFINITE(timeout))
+        if (timeout == INFINITE_TIMEOUT)
             cond_var.wait(lock);
         else
             cond_var.wait_for(lock, std::chrono::nanoseconds(timeout));

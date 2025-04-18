@@ -277,7 +277,7 @@ void Thread::LogStackTrace(uptr pc) {
 }
 
 void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
-    LOG_WARNING(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ", elr,
+    LOG_WARNING(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ",
                 instruction, far);
 
     // Set the return address

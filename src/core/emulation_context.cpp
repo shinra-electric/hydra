@@ -81,7 +81,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define MOV_X0_XZR 0xd2800000
 #define NOP 0xd503201f
 
-    // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
+    /*
     cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
 
@@ -93,6 +93,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     cpu->GetMMU()->Store<u32>(0x40093478, NOP); // HID (probably shared memory?)
 
     // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
+    */
 }
 
 void EmulationContext::Run() {
@@ -127,11 +128,6 @@ void EmulationContext::Run() {
 }
 
 void EmulationContext::Present() {
-    // TODO: correct?
-    // Inform the app that we want to display the window
-    // Horizon::StateManager::GetInstance().SendMessage(
-    //    Horizon::AppletMessage::RequestToDisplay);
-
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     auto layer = display->GetPresentableLayer();

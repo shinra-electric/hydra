@@ -69,7 +69,7 @@ class Event : public KernelHandle {
 
     void Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
-        if (IS_TIMEOUT_INFINITE(timeout))
+        if (timeout == INFINITE_TIMEOUT)
             cv.wait(lock, [&] { return signaled; });
         else
             cv.wait_for(lock, std::chrono::nanoseconds(timeout),
