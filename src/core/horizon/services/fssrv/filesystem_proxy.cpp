@@ -113,12 +113,14 @@ void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     std::string mount = "INVALID";
+    std::string root_path = "INVALID";
     switch (attr.type) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = Kernel::GetInstance().GetTitleId();
         mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
+        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
         break;
     }
     default:
@@ -126,13 +128,11 @@ void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
         break;
     }
 
-    Filesystem::Filesystem::GetInstance().Mount(mount);
+    Filesystem::Filesystem::GetInstance().Mount(mount, root_path);
 }
 
 void IFileSystemProxy::OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<OpenSaveDataFileSystemIn>();
-
-    LOG_FUNC_STUBBED(HorizonServices);
 
     std::string mount = "INVALID";
     switch (in.attr.type) {

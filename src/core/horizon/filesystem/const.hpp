@@ -4,6 +4,9 @@
 
 #define FS_SD_MOUNT "sdmc:"
 #define FS_SAVE_DATA_MOUNT(title_id, account_uid)                              \
+    fmt::format("save-{:08x}-{:08x}:", title_id, account_uid)
+
+#define FS_SAVE_DATA_PATH(title_id, account_uid)                               \
     fmt::format(FS_SD_MOUNT "/Nintendo/save/{:08x}/{:08x}", title_id,          \
                 account_uid)
 

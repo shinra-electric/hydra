@@ -12,6 +12,7 @@ class Filesystem {
     ~Filesystem();
 
     void Mount(const std::string& mount);
+    void Mount(const std::string& mount, const std::string& root_path);
 
     [[nodiscard]] FsResult AddEntry(const std::string& path, EntryBase* entry,
                                     bool add_intermediate = false);
@@ -27,6 +28,8 @@ class Filesystem {
 
   private:
     std::map<std::string, Device> devices;
+
+    void MountImpl(const std::string& mount, Directory* root);
 };
 
 } // namespace Hydra::Horizon::Filesystem

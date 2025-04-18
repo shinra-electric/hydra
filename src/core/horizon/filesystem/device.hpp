@@ -9,6 +9,9 @@ class Directory;
 
 class Device {
   public:
+    Device(Directory* root_) : root{root_} {}
+    ~Device();
+
     [[nodiscard]] FsResult AddEntry(const std::string& path, EntryBase* entry,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string& path,
@@ -17,11 +20,8 @@ class Device {
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
 
-    // Getters
-    Directory& GetRoot() { return root; }
-
   private:
-    Directory root;
+    Directory* root;
 };
 
 } // namespace Hydra::Horizon::Filesystem
