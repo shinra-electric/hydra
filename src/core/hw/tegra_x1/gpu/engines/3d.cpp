@@ -205,7 +205,7 @@ void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
 }
 
 void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
-    LOG_NOT_IMPLEMENTED(Engines, "Firmware call 4");
+    LOG_FUNC_STUBBED(Engines);
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;
@@ -214,12 +214,10 @@ void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
 void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
-    // TODO: should the offset get
-    // incremented?
-    regs.load_const_buffer_offset += sizeof(u32);
-    uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
-    *reinterpret_cast<u32*>(ptr) = data;
+    GPU::GetInstance().GetGPUMMU().Store(gpu_addr, data);
+
+    regs.load_const_buffer_offset += sizeof(u32);
 }
 
 void ThreeD::BindGroup(const u32 index, const u32 data) {
@@ -421,7 +419,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,
-                                  const GraphicsDriverCbuf& const_buffer,
+                                  const u32* const_buffer,
                                   const TextureImageControl* tex_header_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
@@ -433,20 +431,21 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
     // TODO: storage buffers
 
     // Textures
-    for (u32 i = 0; i < TEXTURE_BINDING_COUNT; i++) {
-        if (resource_mapping.textures[i] == invalid<u32>()) {
-            RENDERER->BindTexture(nullptr, to_renderer_shader_type(stage), i);
-            continue;
-        }
-
-        const auto texture_handle = const_buffer.data[stage_index].textures[i];
+    RENDERER->UnbindTextures(to_renderer_shader_type(stage));
+    for (const auto [const_buffer_index, renderer_index] :
+         resource_mapping.textures) {
+        const auto texture_handle = const_buffer[const_buffer_index];
 
         // Image
         const auto image_handle = get_image_handle(texture_handle);
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
         if (texture)
-            RENDERER->BindTexture(texture, to_renderer_shader_type(stage), i);
+            RENDERER->BindTexture(texture, to_renderer_shader_type(stage),
+                                  renderer_index);
+
+        // Sampler
+        // TODO
     }
 
     // TODO: images
@@ -473,9 +472,8 @@ void ThreeD::DrawInternal() {
     // Constant buffer
     const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
     if (const_buffer_gpu_addr != 0x0) {
-        const auto const_buffer =
-            GPU::GetInstance().GetGPUMMU().Load<GraphicsDriverCbuf>(
-                const_buffer_gpu_addr);
+        const auto const_buffer = reinterpret_cast<const u32*>(
+            GPU::GetInstance().GetGPUMMU().UnmapAddr(const_buffer_gpu_addr));
 
         const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
         if (tex_header_pool_gpu_addr != 0x0) {

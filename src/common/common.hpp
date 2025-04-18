@@ -11,4 +11,3 @@
 
 #include "common/config.hpp"
 #include "common/functions.hpp"
-#include "common/logging/log.hpp"

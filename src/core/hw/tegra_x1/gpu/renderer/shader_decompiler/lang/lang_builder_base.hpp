@@ -32,7 +32,7 @@ class LangBuilderBase : public BuilderBase {
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
+    void OpTextureSample(reg_t dst, u32 const_buffer_index, reg_t coords_x,
                          reg_t coords_y) override;
 
   protected:
@@ -42,8 +42,9 @@ class LangBuilderBase : public BuilderBase {
     virtual void EmitTypeAliases() = 0;
     virtual void EmitDeclarations() = 0;
     virtual void EmitMainPrototype() = 0;
+    virtual void EmitExit() = 0;
 
-    virtual std::string EmitTextureSample(u32 index,
+    virtual std::string EmitTextureSample(u32 const_buffer_index,
                                           const std::string& coords) = 0;
 
     template <typename... T> void Write(WRITE_ARGS) {
@@ -69,7 +70,10 @@ class LangBuilderBase : public BuilderBase {
     }
 
     void ExitScopeEmpty(bool semicolon = false) {
-        ExitScopeImpl(semicolon ? ";" : "");
+        if (semicolon)
+            ExitScopeImpl(";");
+        else
+            ExitScopeImpl("");
     }
 
     template <typename... T> void ExitScope(WRITE_ARGS) {
@@ -183,11 +187,11 @@ class LangBuilderBase : public BuilderBase {
     std::string GetImmediate(const u32 imm, DataType data_type) {
         switch (data_type) {
         case DataType::Int:
-            return GetImmediate(bit_cast<i32>(imm));
+            return GetImmediate(std::bit_cast<i32>(imm));
         case DataType::UInt:
             return GetImmediate(imm);
         case DataType::Float:
-            return GetImmediate(bit_cast<f32>(imm));
+            return GetImmediate(std::bit_cast<f32>(imm));
         default:
             return INVALID_VALUE;
         }

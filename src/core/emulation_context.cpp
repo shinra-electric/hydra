@@ -6,6 +6,7 @@
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace Hydra {
@@ -19,6 +20,9 @@ EmulationContext::EmulationContext() {
     case CpuBackend::Dynarmic:
         cpu = new Hydra::HW::TegraX1::CPU::Dynarmic::CPU();
         break;
+    default:
+        LOG_ERROR(Other, "Unknown CPU backend");
+        break;
     }
 
     gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
@@ -29,6 +33,17 @@ EmulationContext::EmulationContext() {
     bus->ConnectDisplay(builtin_display, 0);
 
     os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
+
+    // Filesystem
+    for (const auto& root_path : Config::GetInstance().GetRootPaths()) {
+        const auto res =
+            Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
+                root_path.guest_path, root_path.host_path, true);
+        ASSERT(res == Horizon::Filesystem::FsResult::Success, HorizonServices,
+               "Failed to get root path: {}", res);
+        LOG_INFO(Other, "Mapped {} to {}", root_path.guest_path,
+                 root_path.host_path);
+    }
 }
 
 EmulationContext::~EmulationContext() {
@@ -64,11 +79,21 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // HACK
 #define BRK 0xd4200000
 #define MOV_X0_XZR 0xd2800000
+#define NOP 0xd503201f
 
-    // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
-    // cpu->GetMMU()->Store<u32>(0x803cf6b8, BRK);
-    // cpu->GetMMU()->Store<u32>(0x803cf0c8, BRK);
-    // cpu->GetMMU()->Store<u32>(0x803d569c, BRK);
+    /*
+    cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
+    cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
+
+    cpu->GetMMU()->Store<u32>(0x40082bbc, NOP); // CoreMask?
+    cpu->GetMMU()->Store<u32>(0x40082d8c, NOP); // svcQueryMemory
+
+    cpu->GetMMU()->Store<u32>(0x40081764, NOP); // Reading save screen.cfg
+
+    cpu->GetMMU()->Store<u32>(0x40093478, NOP); // HID (probably shared memory?)
+
+    // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
+    */
 }
 
 void EmulationContext::Run() {
@@ -94,20 +119,15 @@ void EmulationContext::Run() {
     // Enter focus
     auto& state_manager = Horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(Horizon::AppletMessage::None);
+    state_manager.SendMessage(Horizon::AppletMessage::Resume);
     state_manager.SetFocusState(Horizon::AppletFocusState::InFocus);
 
     // Select user account
     // HACK
-    state_manager.PushPreselectedUser(0);
+    state_manager.PushPreselectedUser(0x01234567);
 }
 
 void EmulationContext::Present() {
-    // TODO: correct?
-    // Inform the app that we want to display the window
-    Horizon::StateManager::GetInstance().SendMessage(
-        Horizon::AppletMessage::RequestToDisplay);
-
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     auto layer = display->GetPresentableLayer();

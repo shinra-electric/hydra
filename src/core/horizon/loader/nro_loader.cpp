@@ -7,7 +7,7 @@
 namespace Hydra::Horizon::Loader {
 
 static const std::string ROM_VIRTUAL_PATH =
-    "/rom.nro"; // TODO: what should this be?
+    FS_SD_MOUNT "/rom.nro"; // TODO: what should this be?
 
 namespace {
 
@@ -60,8 +60,8 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
     auto ptr = Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, base,
-        MemoryPermission::ReadWriteExecute); // TODO: is the permission correct?
+        executable_size, MemoryPermission::ReadWriteExecute, true,
+        base); // TODO: is the permission correct?
     reader.Seek(0);
     reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
@@ -114,10 +114,11 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
 
     // Filesystem
-    Filesystem::Filesystem::GetInstance().AddEntry(
-        new Filesystem::File(rom_filename, reader.GetOffset(),
-                             reader.GetSize()),
-        ROM_VIRTUAL_PATH);
+    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+        ROM_VIRTUAL_PATH, new Filesystem::File(rom_filename, reader.GetOffset(),
+                                               reader.GetSize()));
+    ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
+           "Failed to add romFS entry: {}", res);
 }
 
 } // namespace Hydra::Horizon::Loader

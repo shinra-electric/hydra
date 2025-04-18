@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/logging/log.hpp"
 #include "core/horizon/filesystem/entry_base.hpp"
 
 namespace Hydra::Horizon::Filesystem {
@@ -10,12 +11,17 @@ class Directory : public EntryBase {
     Directory(const std::string& host_path);
     ~Directory() override;
 
-    void AddEntry(EntryBase* entry, const std::string& rel_path);
-    EntryBase* GetEntry(const std::string& rel_path);
+    bool IsDirectory() const override { return true; }
+
+    FsResult AddEntry(const std::string& rel_path, EntryBase* entry,
+                      bool add_intermediate = false);
+    FsResult AddEntry(const std::string& rel_path, const std::string& host_path,
+                      bool add_intermediate = false);
+    FsResult GetEntry(const std::string& rel_path, EntryBase*& out_entry);
 
     // Getters
-    EntryBase* GetEntry(const std::string& name) const {
-        return entries.at(name);
+    const std::map<std::string, EntryBase*>& GetEntries() const {
+        return entries;
     }
 
   private:

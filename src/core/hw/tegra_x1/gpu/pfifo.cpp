@@ -7,7 +7,7 @@ namespace Hydra::HW::TegraX1::GPU {
 
 namespace {
 
-enum class SecondaryOpcode {
+enum class SecondaryOpcode : u32 {
     Grp0UseTert,
     IncMethod,
     Grp2UseTert,
@@ -18,12 +18,45 @@ enum class SecondaryOpcode {
     EndPbSegment,
 };
 
+// TODO: do both GRP0 and GRP2 use the same tertiary opcodes?
+enum class TertiaryOpcode : u32 {
+    Grp0IncMethod = 0,
+    Grp2NonIncMethod = 0,
+    Grp0SetSubDevMask = 1,
+    Grp0StoreSubDevMask = 2,
+    Grp0UseSubDevMask = 3,
+};
+
+} // namespace
+
+} // namespace Hydra::HW::TegraX1::GPU
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
+                       "GRP0 use tertiary opcode", IncMethod,
+                       "incrementing method", Grp2UseTert,
+                       "GRP2 use tertiary opcode", NonIncMethod,
+                       "non-incremental method", ImmDataMethod,
+                       "immediate data method", OneInc, "one increment",
+                       Reserved, "reserved", EndPbSegment, "End PB segment")
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::TertiaryOpcode, Grp0IncMethod,
+                       "GRP0 increment method / GRP2 non-increment method",
+                       Grp0SetSubDevMask, "GRP0 set subdevice mask",
+                       Grp0StoreSubDevMask, "GRP0 store subdevice mask",
+                       Grp0UseSubDevMask, "GRP0 use subdevice mask")
+
+#include "common/logging/log.hpp"
+
+namespace Hydra::HW::TegraX1::GPU {
+
+namespace {
+
 struct CommandHeader {
     u32 method : 12;
     u32 reserved : 1;
     u32 subchannel : 3;
     u32 arg : 13;
-    u32 secondary_opcode : 3; // TODO: use SecondaryOpcode as the type
+    SecondaryOpcode secondary_opcode : 3;
 };
 
 } // namespace
@@ -48,10 +81,6 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     uptr gpu_addr = entry.gpu_addr;
     uptr end = entry.gpu_addr + entry.size * sizeof(u32);
 
-    // HACK: the last 4 words seem to always be the same, subchannel: 6, method:
-    // 0x00b
-    // end -= 4 * sizeof(u32);
-
     while (gpu_addr < end) {
         if (!SubmitCommand(gpu_addr))
             break;
@@ -60,9 +89,7 @@ void Pfifo::SubmitEntry(const GpfifoEntry entry) {
 
 bool Pfifo::SubmitCommand(uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gpu_addr);
-
-    SecondaryOpcode secondary_opcode = (SecondaryOpcode)header.secondary_opcode;
-    LOG_DEBUG(GPU, "Secondary opcode: {}", secondary_opcode);
+    LOG_DEBUG(GPU, "Secondary opcode: {}", header.secondary_opcode);
 
     // HACK
     if (header.subchannel >= SUBCHANNEL_COUNT) {
@@ -70,12 +97,42 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
         return false;
     }
 
+#define TERTIARY_OPCODE                                                        \
+    static_cast<TertiaryOpcode>(                                               \
+        extract_bits<u32, 16, 17>(std::bit_cast<u32>(header)))
+
     u32 offset = header.method;
-    switch (secondary_opcode) {
+    switch (header.secondary_opcode) {
+    case SecondaryOpcode::Grp0UseTert: {
+        switch (TERTIARY_OPCODE) {
+        case TertiaryOpcode::Grp0IncMethod:
+            // TODO: correct?
+            for (u32 i = 0; i < header.arg; i++)
+                ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            break;
+        }
+        break;
+    }
     case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
+    case SecondaryOpcode::Grp2UseTert: {
+        switch (TERTIARY_OPCODE) {
+        case TertiaryOpcode::Grp2NonIncMethod:
+            // TODO: correct?
+            for (u32 i = 0; i < header.arg; i++)
+                ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(GPU, "Tertiary opcode {}", TERTIARY_OPCODE);
+            break;
+        }
+        break;
+    }
     case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
             ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
@@ -89,11 +146,13 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
             ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "{}", secondary_opcode);
+        LOG_NOT_IMPLEMENTED(GPU, "Secondary opcode {}",
+                            header.secondary_opcode);
         break;
     }
 
-    // TODO: is it okay to prefetch the parameters and then execute the macro?
+    // TODO: is it okay to prefetch the parameters and then execute the
+    // macro?
     if (header.method >= MACRO_METHODS_REGION)
         GPU::GetInstance().SubchannelFlushMacro(header.subchannel);
 
@@ -109,11 +168,3 @@ void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
 }
 
 } // namespace Hydra::HW::TegraX1::GPU
-
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
-                       "GRP0 use tertiary opcode", IncMethod,
-                       "incrementing method", Grp2UseTert,
-                       "GRP2 use tertiary opcode", NonIncMethod,
-                       "non-incremental method", ImmDataMethod,
-                       "immediate data method", OneInc, "one increment",
-                       Reserved, "reserved", EndPbSegment, "End PB segment")

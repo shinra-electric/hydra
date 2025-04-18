@@ -9,11 +9,14 @@ void Builder::InitializeResourceMapping() {
     for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
         out_resource_mapping.uniform_buffers[index] = index;
     }
+
     // TODO: storage buffers
-    for (const auto index : analyzer.GetTextures()) {
-        out_resource_mapping.textures[index] = index;
-        out_resource_mapping.samplers[index] = index;
+
+    u32 texture_index = 0;
+    for (const auto const_buffer_index : analyzer.GetTextures()) {
+        out_resource_mapping.textures[const_buffer_index] = texture_index++;
     }
+
     // TODO: images
 }
 
@@ -152,12 +155,12 @@ void Builder::EmitMainPrototype() {
     // TODO
 
     // Textures
-    for (const auto index : analyzer.GetTextures()) {
+    for (const auto const_buffer_index : analyzer.GetTextures()) {
+        const auto index = out_resource_mapping.textures[const_buffer_index];
         // TODO: don't hardcode texture type
-        ADD_ARG("texture2d<float> tex{} [[texture({})]]", index,
-                out_resource_mapping.textures[index]);
-        ADD_ARG("sampler samplr{} [[sampler({})]]", index,
-                out_resource_mapping.samplers[index]);
+        ADD_ARG("texture2d<float> tex{} [[texture({})]]", const_buffer_index,
+                index);
+        ADD_ARG("sampler samplr{} [[sampler({})]]", const_buffer_index, index);
     }
 
     // Images
@@ -166,6 +169,20 @@ void Builder::EmitMainPrototype() {
 #undef ADD_ARG
 
     EnterScope(")");
+
+    // Output
+    Write("StageOut __out;");
+    WriteNewline();
+}
+
+void Builder::EmitExit() {
+    // HACK
+    if (type == ShaderType::Vertex)
+        WriteStatement(
+            "__out.position.z = (__out.position.z + __out.position.w) / 2.0");
+
+    // Return
+    WriteStatement("return __out");
 }
 
 std::string Builder::GetSVQualifierName(const SV sv, bool output) {
@@ -193,8 +210,10 @@ std::string Builder::GetSVQualifierName(const SV sv, bool output) {
     }
 }
 
-std::string Builder::EmitTextureSample(u32 index, const std::string& coords) {
-    return fmt::format("tex{}.sample(samplr{}, {})", index, index, coords);
+std::string Builder::EmitTextureSample(u32 const_buffer_index,
+                                       const std::string& coords) {
+    return fmt::format("tex{}.sample(samplr{}, {})", const_buffer_index,
+                       const_buffer_index, coords);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

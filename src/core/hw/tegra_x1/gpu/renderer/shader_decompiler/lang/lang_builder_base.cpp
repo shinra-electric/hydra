@@ -30,10 +30,6 @@ void LangBuilderBase::Start() {
     // Main prototype
     EmitMainPrototype();
 
-    // Output
-    Write("StageOut __out;");
-    WriteNewline();
-
     // Registers
     Write("Reg r[256];");
     WriteNewline();
@@ -71,11 +67,15 @@ void LangBuilderBase::Start() {
 
             const auto sv = SV(SVSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
-                WriteStatement(
-                    (needs_scaling ? "{} = as_type<uint>((float){})"
-                                   : "{} = as_type<uint>({})"),
-                    GetA({RZ, 0x80 + i * 0x10 + c * 0x4}),
-                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false));
+                const auto attr = GetA({RZ, 0x80 + i * 0x10 + c * 0x4});
+                const auto qualified_name =
+                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false);
+                if (needs_scaling)
+                    WriteStatement("{} = as_type<uint>((float){})", attr,
+                                   qualified_name);
+                else
+                    WriteStatement("{} = as_type<uint>({})", attr,
+                                   qualified_name);
             }
         }
         break;
@@ -172,8 +172,7 @@ void LangBuilderBase::OpExit() {
     }
     WriteNewline();
 
-    // Return
-    WriteStatement("return __out");
+    EmitExit();
 }
 
 void LangBuilderBase::OpMove(reg_t dst, Operand src) {
@@ -222,11 +221,12 @@ void LangBuilderBase::OpInterpolate(reg_t dst, AMem src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 
-void LangBuilderBase::OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
-                                      reg_t coords_y) {
+void LangBuilderBase::OpTextureSample(reg_t dst, u32 const_buffer_index,
+                                      reg_t coords_x, reg_t coords_y) {
     EmitReadToTemp(coords_x, 0, 1);
     EmitReadToTemp(coords_y, 1, 1);
-    WriteStatement("temp.f = {}", EmitTextureSample(index, "temp.f.xy"));
+    WriteStatement("temp.f = {}",
+                   EmitTextureSample(const_buffer_index, "temp.f.xy"));
     EmitWriteFromTemp(dst);
 }
 

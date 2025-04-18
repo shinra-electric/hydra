@@ -7,8 +7,16 @@
 namespace Hydra {
 
 enum class CpuBackend {
+    Invalid,
+
     AppleHypervisor,
     Dynarmic,
+};
+
+struct RootPath {
+    std::string guest_path;
+    std::string host_path;
+    bool write_access;
 };
 
 class Config {
@@ -21,6 +29,7 @@ class Config {
     void LoadDefaults();
 
     void Serialize();
+    void Deserialize();
 
     // Paths
     std::string GetConfigPath() const {
@@ -31,6 +40,9 @@ class Config {
     const std::vector<std::string>& GetGameDirectories() const {
         return game_directories;
     }
+
+    const std::vector<RootPath>& GetRootPaths() const { return root_paths; }
+
     CpuBackend GetCpuBackend() const { return cpu_backend; }
 
     // Setters
@@ -44,6 +56,13 @@ class Config {
         game_directories.push_back(directory);
         changed = true;
     }
+
+    void AddRootPath(const std::string& guest_path,
+                     const std::string& host_path, bool write_access) {
+        root_paths.push_back({guest_path, host_path, write_access});
+        changed = true;
+    }
+
     void SetCpuBackend(CpuBackend cpu_backend_) {
         SET_CONFIG_VALUE(cpu_backend);
     }
@@ -57,6 +76,7 @@ class Config {
 
     // Config
     std::vector<std::string> game_directories;
+    std::vector<RootPath> root_paths;
     CpuBackend cpu_backend;
 };
 

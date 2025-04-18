@@ -18,6 +18,7 @@ class IProfile : public ServiceBase {
 
     // Commands
     void Get(REQUEST_COMMAND_PARAMS);
+    void GetBase(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Account

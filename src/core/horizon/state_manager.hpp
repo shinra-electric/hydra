@@ -4,12 +4,6 @@
 
 namespace Hydra::Horizon {
 
-enum class LaunchParameterKind : u32 {
-    UserChannel = 1,
-    PreselectedUser,
-    Unknown0,
-};
-
 struct Account {
     u32 magic;
     u8 unk_x4;
@@ -36,6 +30,8 @@ class StateManager {
 
     void SetFocusState(AppletFocusState focus_state_) {
         SendMessage(AppletMessage::FocusStateChanged);
+        if (focus_state_ == AppletFocusState::InFocus)
+            SendMessage(AppletMessage::ChangeIntoForeground);
         // TODO: lock
         focus_state = focus_state_;
     }
@@ -64,6 +60,10 @@ class StateManager {
 
         AppletMessage msg = msg_queue.front();
         msg_queue.pop();
+
+        // Clear event
+        if (msg_queue.empty())
+            msg_event.handle->Clear();
 
         return msg;
     }
@@ -106,9 +106,7 @@ class StateManager {
     }
 
     // Getters
-    const KernelHandleWithId<SynchronizationHandle>& GetMsgEvent() {
-        return msg_event;
-    }
+    const KernelHandleWithId<Event>& GetMsgEvent() { return msg_event; }
 
   private:
     std::mutex mutex;
@@ -120,11 +118,7 @@ class StateManager {
     std::stack<u128> account_uids;
 
     // Events
-    KernelHandleWithId<SynchronizationHandle> msg_event;
+    KernelHandleWithId<Event> msg_event;
 };
 
 } // namespace Hydra::Horizon
-
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::LaunchParameterKind, UserChannel,
-                       "user channel", PreselectedUser, "preselected user",
-                       Unknown0, "unknown0")

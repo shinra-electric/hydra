@@ -4,6 +4,22 @@
 
 namespace Hydra::Horizon::Services::Lm {
 
+namespace {
+
+struct Packet {
+    std::string message;
+    u32 line{0};
+    std::string filename;
+    std::string function;
+    std::string module;
+    std::string thread;
+    u64 drop_count{0};
+    u64 time{0};
+    std::string program_name;
+};
+
+} // namespace
+
 class ILogger : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ILogger)
@@ -12,6 +28,8 @@ class ILogger : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    Packet packet{};
+
     // Commands
     void Log(REQUEST_COMMAND_PARAMS);
 };

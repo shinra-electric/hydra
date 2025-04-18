@@ -120,33 +120,28 @@ void Thread::MemoryWrite128(u64 addr, DynA64::Vector value) {
 }
 
 bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8) {
-    // TODO: exclusive
-    mmu->Store(addr, value);
+    mmu->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16) {
-    // TODO: exclusive
-    mmu->Store(addr, value);
+    mmu->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
-    // TODO: exclusive
-    mmu->Store(addr, value);
+    mmu->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
-    // TODO: exclusive
-    mmu->Store(addr, value);
+    mmu->StoreExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive128(u64 addr, DynA64::Vector value,
                                      DynA64::Vector expected) {
-    // TODO: exclusive
-    mmu->Store(addr, value);
+    mmu->StoreExclusive(addr, value);
     return true;
 }
 

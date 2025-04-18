@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.15...3.31)
 option(CODESIGN_IDENTITY "The identity to use for macOS code signing.")
 set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
 
-# TODO: use c++20
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -23,6 +22,7 @@ endif()
 find_package(fmt CONFIG REQUIRED)
 
 #add_subdirectory(externals/fmt)
+add_subdirectory(externals/toml11)
 add_subdirectory(externals/dynarmic)
 
 #include_directories(externals/fmt/include)

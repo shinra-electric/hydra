@@ -48,9 +48,9 @@ void Analyzer::OpStore(AMem dst, reg_t src) { HandleAMemStore(dst); }
 
 void Analyzer::OpInterpolate(reg_t dst, AMem src) { HandleAMemLoad(src); }
 
-void Analyzer::OpTextureSample(reg_t dst, u32 index, reg_t coords_x,
-                               reg_t coords_y) {
-    push_unique(textures, index);
+void Analyzer::OpTextureSample(reg_t dst, u32 const_buffer_index,
+                               reg_t coords_x, reg_t coords_y) {
+    push_unique(textures, const_buffer_index);
 }
 
 void Analyzer::HandleAMemLoad(const AMem amem) {

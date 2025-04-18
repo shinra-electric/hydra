@@ -14,6 +14,7 @@ class ISystemSettingsServer : public ServiceBase {
   private:
     // Commands
     void GetFirmwareVersion(REQUEST_COMMAND_PARAMS);
+    void GetColorSetId(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Settings

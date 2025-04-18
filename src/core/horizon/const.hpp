@@ -2,9 +2,6 @@
 
 #include "common/common.hpp"
 
-// TODO: correct?
-#define IS_TIMEOUT_INFINITE(timeout) (timeout == -1 || timeout == 0)
-
 namespace Hydra::Horizon {
 
 // TODO: how does this work?
@@ -27,6 +24,9 @@ constexpr uptr HEAP_REGION_BASE = 0x100000000;
 constexpr usize HEAP_REGION_SIZE = 0x100000000;
 constexpr usize DEFAULT_HEAP_MEM_SIZE = 0x1000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
+
+// TODO: correct?
+constexpr i64 INFINITE_TIMEOUT = -1;
 
 struct FirmwareVersion {
     u8 major;
@@ -104,8 +104,7 @@ typedef u32 Result;
 
 #define RESULT_SUCCESS 0
 
-#define MAKE_KERNEL_RESULT(description)                                        \
-    MAKE_RESULT(MODULE_KERNEL, Error::description)
+#define MAKE_KERNEL_RESULT(description) MAKE_RESULT(MODULE_KERNEL, description)
 
 enum class MemoryType : u32 {
     Free = 0x00000000,
@@ -296,23 +295,50 @@ struct ConfigEntry {
 };
 
 enum class AppletMessage {
-    None = 0x680,
-    ExitRequest = 4,             ///< Exit request.
-    FocusStateChanged = 15,      ///< FocusState changed.
-    Resume = 16,                 ///< Current applet execution was resumed.
-    OperationModeChanged = 30,   ///< OperationMode changed.
-    PerformanceModeChanged = 31, ///< PerformanceMode changed.
-    RequestToDisplay =
-        51, ///< Display requested, see \ref appletApproveToDisplay.
-    CaptureButtonShortPressed = 90, ///< Capture button was short-pressed.
-    AlbumScreenShotTaken = 92,      ///< Screenshot was taken.
-    AlbumRecordingSaved = 93,       ///< AlbumRecordingSaved
+    None = 0,
+    ChangeIntoForeground = 1,
+    ChangeIntoBackground = 2,
+    Exit = 4,
+    ApplicationExited = 6,
+    FocusStateChanged = 15,
+    Resume = 16,
+    DetectShortPressingHomeButton = 20,
+    DetectLongPressingHomeButton = 21,
+    DetectShortPressingPowerButton = 22,
+    DetectMiddlePressingPowerButton = 23,
+    DetectLongPressingPowerButton = 24,
+    RequestToPrepareSleep = 25,
+    FinishedSleepSequence = 26,
+    SleepRequiredByHighTemperature = 27,
+    SleepRequiredByLowBattery = 28,
+    AutoPowerDown = 29,
+    OperationModeChanged = 30,
+    PerformanceModeChanged = 31,
+    DetectReceivingCecSystemStandby = 32,
+    SdCardRemoved = 33,
+    LaunchApplicationRequested = 50,
+    RequestToDisplay = 51,
+    ShowApplicationLogo = 55,
+    HideApplicationLogo = 56,
+    ForceHideApplicationLogo = 57,
+    FloatingApplicationDetected = 60,
+    DetectShortPressingCaptureButton = 90,
+    AlbumScreenShotTaken = 92,
+    AlbumRecordingSaved = 93,
+    DetectShortPressingCaptureButtonForApplet = 110,
+    DetectLongPressingCaptureButtonForApplet = 111,
 };
 
 enum class AppletFocusState {
     InFocus = 1,    ///< Applet is focused.
     OutOfFocus = 2, ///< Out of focus - LibraryApplet open.
     Background = 3  ///< Out of focus - HOME menu open / console is sleeping.
+};
+
+enum class LaunchParameterKind : u32 {
+    UserChannel = 1,
+    PreselectedUser,
+    Unknown0,
 };
 
 // TODO: idle tick count -1, {current coreid} (probably the same logic as thread
@@ -377,3 +403,38 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::SystemInfoType, TotalPhysicalMemorySize,
                        "total physical memory size", UsedPhysicalMemorySize,
                        "used physical memory size", InitialProcessIdRange,
                        "initial process id range")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::AppletMessage, None, "none", ChangeIntoForeground,
+    "change into foreground", ChangeIntoBackground, "change into background",
+    Exit, "exit", ApplicationExited, "application exited", FocusStateChanged,
+    "focus state changed", Resume, "resume", DetectShortPressingHomeButton,
+    "detect short pressing home button", DetectLongPressingHomeButton,
+    "detect long pressing home button", DetectShortPressingPowerButton,
+    "detect short pressing power button", DetectMiddlePressingPowerButton,
+    "detect middle pressing power button", DetectLongPressingPowerButton,
+    "detect long pressing power button", RequestToPrepareSleep,
+    "request to prepare sleep", FinishedSleepSequence,
+    "finished sleep sequence", SleepRequiredByHighTemperature,
+    "sleep required by high temperature", SleepRequiredByLowBattery,
+    "sleep required by low battery", AutoPowerDown, "auto power down",
+    OperationModeChanged, "operation mode changed", PerformanceModeChanged,
+    "performance mode changed", DetectReceivingCecSystemStandby,
+    "detect receiving cec system standby", SdCardRemoved, "sd card removed",
+    LaunchApplicationRequested, "launch application requested",
+    RequestToDisplay, "request to display", ShowApplicationLogo,
+    "show application logo", HideApplicationLogo, "hide application logo",
+    ForceHideApplicationLogo, "force hide application logo",
+    FloatingApplicationDetected, "floating application detected",
+    DetectShortPressingCaptureButton, "detect short pressing capture button",
+    AlbumScreenShotTaken, "album screenshot taken", AlbumRecordingSaved,
+    "album recording saved", DetectShortPressingCaptureButtonForApplet,
+    "detect short pressing capture button for applet",
+    DetectLongPressingCaptureButtonForApplet,
+    "detect long pressing capture button for applet")
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::LaunchParameterKind, UserChannel,
+                       "user channel", PreselectedUser, "preselected user",
+                       Unknown0, "unknown0")
+
+#include "common/logging/log.hpp"

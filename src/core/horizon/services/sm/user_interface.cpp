@@ -13,8 +13,10 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/ipc/parental_control_service_factory.hpp"
+#include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
@@ -23,7 +25,9 @@
 #include "core/horizon/services/spl/random_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
+#include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
+#include "core/horizon/services/visrv/system_root_service.hpp"
 
 namespace Hydra::Horizon::Services::Sm {
 
@@ -34,11 +38,12 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     u64 name = readers.reader.Read<u64>();
 
     if (name == 0) {
-        result = MAKE_KERNEL_RESULT(NotFound);
+        result = MAKE_KERNEL_RESULT(Error::NotFound);
         return;
     }
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
+// TODO: don't instantiate the services?
 #define SERVICE_CASE(name, ...)                                                \
     FOR_EACH_0_1(SERVICE_CASE_CASE, __VA_ARGS__)                               \
     add_service(new name());                                                   \
@@ -54,6 +59,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Settings::ISystemSettingsServer, "set:sys")
         SERVICE_CASE(Am::IApmManager, "apm", "apm:am")
         SERVICE_CASE(Am::IApplicationProxyService, "appletOE")
+        SERVICE_CASE(ViSrv::IApplicationRootService, "vi:u")
+        SERVICE_CASE(ViSrv::ISystemRootService, "vi:s")
         SERVICE_CASE(ViSrv::IManagerRootService, "vi:m")
         SERVICE_CASE(Pl::SharedResource::IPlatformSharedResourceManager, "pl:u")
         SERVICE_CASE(Psm::IPsmServer, "psm")
@@ -70,10 +77,12 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Audio::IAudioRendererManager, "audren:u")
         SERVICE_CASE(Ssl::Sf::ISslService, "ssl")
         SERVICE_CASE(Spl::IRandomInterface, "csrng")
+        SERVICE_CASE(Nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
+        SERVICE_CASE(Pcv::IPcvService, "pcv")
     default:
         LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
                     u64_to_str(name));
-        result = MAKE_KERNEL_RESULT(NotFound);
+        result = MAKE_KERNEL_RESULT(Error::NotFound);
         // TODO: don't throw
         throw;
     }

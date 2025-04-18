@@ -4,6 +4,7 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
+// TODO: is this really correct?
 DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
                              GetDisplayServiceWithProxyNameExchange)
 

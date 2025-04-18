@@ -6,7 +6,8 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(0x47, 0x01, ZCullGetCtxSize, 0x02,
                                             ZCullGetInfo, 0x05,
                                             GetCharacteristics, 0x06,
-                                            GetTPCMasks))
+                                            GetTPCMasks, 0x14,
+                                            ZbcGetActiveSlotMask))
 
 void NvHostCtrlGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                                NvResult& out_result) {
@@ -86,6 +87,14 @@ void NvHostCtrlGpu::GetTPCMasks(GetTPCMasksData& data, NvResult& result) {
 
     // TODO: what should this be?
     data.mask_buffer = 0x1;
+}
+
+void NvHostCtrlGpu::ZbcGetActiveSlotMask(ZbcGetActiveSlotMaskData& data,
+                                         NvResult& result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    data.slot = 0x07;
+    data.mask = 0x0; // TODO
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

@@ -6,8 +6,8 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostAsGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x01, BindChannel, 0x02,
-                                            AllocSpace, 0x06, MapBufferEx, 0x09,
-                                            AllocASEx))
+                                            AllocSpace, 0x06, MapBufferEx, 0x08,
+                                            GetVaRegions, 0x09, AllocASEx))
 
 void NvHostAsGpu::BindChannel(BindChannelData& data, NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
@@ -47,6 +47,16 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
     data.offset =
         gpu.MapBufferToAddressSpace(map.addr + data.buffer_offset, size, addr);
     // LOG_DEBUG(HorizonServices, "OFFSET: 0x{:08x}", data.offset.Get());
+}
+
+void NvHostAsGpu::GetVaRegions(GetVaRegionsData& data, NvResult& result) {
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    data.buffer_size = 2 * sizeof(VaRegion);
+    // HACK
+    data.va_region0 =
+        VaRegion{.addr = 0x0, .page_size = HW::TegraX1::GPU::PAGE_SIZE};
+    data.va_region1 = data.va_region0.Get();
 }
 
 void NvHostAsGpu::AllocASEx(AllocASExData& data, NvResult& result) {

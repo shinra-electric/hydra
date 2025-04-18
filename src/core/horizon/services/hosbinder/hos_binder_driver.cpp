@@ -8,6 +8,45 @@ namespace Hydra::Horizon::Services::HosBinder {
 
 namespace {
 
+enum class TransactCode : u32 {
+    RequestBuffer = 1,
+    SetBufferCount,
+    DequeueBuffer,
+    DetachBuffer,
+    DetachNextBuffer,
+    AttachBuffer,
+    QueueBuffer,
+    CancelBuffer,
+    Query,
+    Connect,
+    Disconnect,
+    SetSidebandStream,
+    AllocateBuffers,
+    SetPreallocatedBuffer,
+};
+
+} // namespace
+
+} // namespace Hydra::Horizon::Services::HosBinder
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::HosBinder::TransactCode,
+                       RequestBuffer, "request buffer", SetBufferCount,
+                       "set buffer count", DequeueBuffer, "dequeue buffer",
+                       DetachBuffer, "detach buffer", DetachNextBuffer,
+                       "detach next buffer", AttachBuffer, "attach buffer",
+                       QueueBuffer, "queue buffer", CancelBuffer,
+                       "cancel buffer", Query, "query", Connect, "connect",
+                       Disconnect, "disconnect", SetSidebandStream,
+                       "set sideband stream", AllocateBuffers,
+                       "allocate buffers", SetPreallocatedBuffer,
+                       "set preallocated buffer")
+
+#include "common/logging/log.hpp"
+
+namespace Hydra::Horizon::Services::HosBinder {
+
+namespace {
+
 enum class BinderResult : i32 {
     Success = 0,
     PermissionDenied = -1,
@@ -44,23 +83,6 @@ struct BqBufferOutput {
     u32 height;
     u32 transformHint;
     u32 numPendingBuffers;
-};
-
-enum class TransactCode : u32 {
-    RequestBuffer = 1,
-    SetBufferCount,
-    DequeueBuffer,
-    DetachBuffer,
-    DetachNextBuffer,
-    AttachBuffer,
-    QueueBuffer,
-    CancelBuffer,
-    Query,
-    Connect,
-    Disconnect,
-    SetSidebandStream,
-    AllocateBuffers,
-    SetPreallocatedBuffer,
 };
 
 struct TransactParcelIn {
@@ -271,15 +293,3 @@ void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
 }
 
 } // namespace Hydra::Horizon::Services::HosBinder
-
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::HosBinder::TransactCode,
-                       RequestBuffer, "request buffer", SetBufferCount,
-                       "set buffer count", DequeueBuffer, "dequeue buffer",
-                       DetachBuffer, "detach buffer", DetachNextBuffer,
-                       "detach next buffer", AttachBuffer, "attach buffer",
-                       QueueBuffer, "queue buffer", CancelBuffer,
-                       "cancel buffer", Query, "query", Connect, "connect",
-                       Disconnect, "disconnect", SetSidebandStream,
-                       "set sideband stream", AllocateBuffers,
-                       "allocate buffers", SetPreallocatedBuffer,
-                       "set preallocated buffer")

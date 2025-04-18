@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/const.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 

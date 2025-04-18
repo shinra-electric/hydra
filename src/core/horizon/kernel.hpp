@@ -22,45 +22,71 @@ namespace Services {
 class ServiceBase;
 }
 
+// TODO: should this be used?
+constexpr u32 HANDLE_WAIT_MASK = 0x40000000;
+
+class Mutex {
+  public:
+    void Lock(u32& value, u32 self_tag) {
+        std::unique_lock<std::mutex> lock(mutex);
+        // TODO: why is this necessary?
+        value = value | HANDLE_WAIT_MASK;
+        cv.wait(lock, [&] { return (value & ~HANDLE_WAIT_MASK) == 0; });
+        value = self_tag | (value & HANDLE_WAIT_MASK);
+    }
+
+    void Unlock(u32& value) {
+        std::unique_lock<std::mutex> lock(mutex);
+        value = (value & HANDLE_WAIT_MASK);
+        cv.notify_one();
+    }
+
+    // Getters
+    std::mutex& GetNativeHandle() { return mutex; }
+
+  private:
+    std::mutex mutex;
+    std::condition_variable cv;
+};
+
 class KernelHandle {
   public:
     virtual ~KernelHandle() = default;
 };
 
-class SynchronizationHandle : public KernelHandle {
+class Event : public KernelHandle {
   public:
-    SynchronizationHandle(bool signaled_ = false) : signaled{signaled_} {}
-
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
         signaled = true;
         cv.notify_all();
     }
 
+    void Clear() {
+        std::unique_lock<std::mutex> lock(mutex);
+        signaled = false;
+    }
+
     void Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
-        if (IS_TIMEOUT_INFINITE(timeout)) {
-            cv.wait(lock, [this] { return signaled; });
-        } else {
+        if (timeout == INFINITE_TIMEOUT)
+            cv.wait(lock, [&] { return signaled; });
+        else
             cv.wait_for(lock, std::chrono::nanoseconds(timeout),
-                        [this] { return signaled; });
-        }
-
-        // TODO: correct?
-        signaled = false;
+                        [&] { return signaled; });
     }
 
   private:
     std::mutex mutex;
     std::condition_variable cv;
-    bool signaled = false;
+    bool signaled{false};
 };
 
 class ThreadHandle : public KernelHandle {
   public:
     ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr_t tls_addr_,
-                 vaddr_t entry_point_, vaddr_t args_addr_, vaddr_t stack_top_addr_,
-                 i32 priority_)
+                 vaddr_t entry_point_, vaddr_t args_addr_,
+                 vaddr_t stack_top_addr_, i32 priority_)
         : tls_mem{tls_mem_}, tls_addr{tls_addr_}, entry_point{entry_point_},
           args_addr{args_addr_}, stack_top_addr{stack_top_addr_},
           priority{priority_} {}
@@ -105,9 +131,11 @@ class Kernel {
     void InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread);
 
     // Loading
+    uptr CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
+                         bool add_guard_page, vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
-    uptr CreateExecutableMemory(usize size, vaddr_t& out_base,
-                                MemoryPermission perm);
+    uptr CreateExecutableMemory(usize size, MemoryPermission perm,
+                                bool add_guard_page, vaddr_t& out_base);
     void SetMainThreadEntryPoint(uptr main_thread_entry_point_) {
         main_thread_entry_point = main_thread_entry_point_;
     }
@@ -134,14 +162,17 @@ class Kernel {
                           u32& out_page_info);
     void svcExitProcess();
     Result svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
-                           vaddr_t stack_top_addr, i32 priority, i32 processor_id,
-                           handle_id_t& out_thread_handle_id);
-    void svcStartThread(handle_id_t thread_handle_id);
+                           vaddr_t stack_top_addr, i32 priority,
+                           i32 processor_id, handle_id_t& out_thread_handle_id);
+    Result svcStartThread(handle_id_t thread_handle_id);
     void svcSleepThread(i64 nano);
-    Result svcGetThreadPriority(handle_id_t thread_handle_id, i32& out_priority);
+    Result svcGetThreadPriority(handle_id_t thread_handle_id,
+                                i32& out_priority);
     Result svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
     Result svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                 u64 core_mask1);
+    Result svcSignalEvent(handle_id_t event_handle_id);
+    Result svcClearEvent(handle_id_t event_handle_id);
     Result svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                               usize size, MemoryPermission perm);
     Result svcUnmapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
@@ -156,7 +187,7 @@ class Kernel {
     Result svcArbitrateUnlock(uptr mutex_addr);
     Result svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                        u32 self_tag, i64 timeout);
-    Result svcSignalProcessWideKey(uptr addr, i32 v);
+    Result svcSignalProcessWideKey(uptr addr, i32 count);
     void svcGetSystemTick(u64& out_tick);
     Result svcConnectToNamedPort(const std::string& name,
                                  handle_id_t& out_session_handle_id);
@@ -165,15 +196,8 @@ class Kernel {
     Result svcGetThreadId(handle_id_t thread_handle_id, u64& out_thread_id);
     Result svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     Result svcOutputDebugString(const char* str, usize len);
-    Result svcGetInfo(InfoType info_type, handle_id_t handle_id, u64 info_sub_type,
-                      u64& out_info);
-
-    // Getters
-    HW::Bus& GetBus() const { return bus; }
-
-    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
-
-    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
+    Result svcGetInfo(InfoType info_type, handle_id_t handle_id,
+                      u64 info_sub_type, u64& out_info);
 
     // Helpers
     KernelHandle* GetHandle(handle_id_t handle_id) const {
@@ -194,14 +218,24 @@ class Kernel {
 
     HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
+    // Getters
+    HW::Bus& GetBus() const { return bus; }
+
+    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
+
+    u64 GetTitleId() const { return title_id; }
+
+    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
+
   private:
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
 
+    Filesystem::Filesystem filesystem;
+
     uptr main_thread_entry_point{0x0};
     u64 main_thread_args[ARG_COUNT] = {0x0};
-
-    Filesystem::Filesystem filesystem;
+    u64 title_id{0x89abcdef}; // TODO: don't hardcode
 
     // Memory
     HW::TegraX1::CPU::MemoryBase* stack_mem;
@@ -215,6 +249,10 @@ class Kernel {
     // Handles
     Allocators::DynamicPool<KernelHandle*> handle_pool;
     Allocators::DynamicPool<SharedMemory*> shared_memory_pool;
+
+    // TODO: use a different container?
+    std::map<vaddr_t, Mutex> mutex_map;
+    std::map<vaddr_t, std::condition_variable> cond_var_map;
 
     // Services
     std::map<std::string, Services::ServiceBase*> service_ports;

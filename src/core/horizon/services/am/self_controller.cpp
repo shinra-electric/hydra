@@ -6,7 +6,8 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 11,
+DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 10,
+                             SetScreenShotPermission, 11,
                              SetOperationModeChangedNotification, 12,
                              SetPerformanceModeChangedNotification, 13,
                              SetFocusHandlingMode, 16,

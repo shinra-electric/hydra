@@ -13,11 +13,14 @@ add_library(hydra-core
     horizon/shared_memory.hpp
     horizon/kernel.cpp
     horizon/kernel.hpp
+    horizon/filesystem/const.hpp
     horizon/filesystem/entry_base.hpp
     horizon/filesystem/file.cpp
     horizon/filesystem/file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
+    horizon/filesystem/device.cpp
+    horizon/filesystem/device.hpp
     horizon/filesystem/filesystem.cpp
     horizon/filesystem/filesystem.hpp
     horizon/loader/loader_base.hpp
@@ -27,6 +30,10 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/services/const.cpp
+    horizon/services/const.hpp
+    horizon/services/session.cpp
+    horizon/services/session.hpp
     horizon/services/service_base.cpp
     horizon/services/service_base.hpp
     horizon/services/domain_service.cpp
@@ -35,6 +42,8 @@ add_library(hydra-core
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp
     horizon/services/hid/applet_resource.hpp
+    horizon/services/hid/active_vibration_device_list.cpp
+    horizon/services/hid/active_vibration_device_list.hpp
     horizon/services/hid/hid_server.cpp
     horizon/services/hid/hid_server.hpp
     horizon/services/hid/hid_debug_server.cpp
@@ -117,6 +126,10 @@ add_library(hydra-core
     horizon/services/visrv/application_display_service.hpp
     horizon/services/visrv/manager_root_service.cpp
     horizon/services/visrv/manager_root_service.hpp
+    horizon/services/visrv/system_root_service.cpp
+    horizon/services/visrv/system_root_service.hpp
+    horizon/services/visrv/application_root_service.cpp
+    horizon/services/visrv/application_root_service.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.cpp
@@ -157,6 +170,14 @@ add_library(hydra-core
     horizon/services/ssl/sf/ssl_service.hpp
     horizon/services/spl/random_interface.cpp
     horizon/services/spl/random_interface.hpp
+    horizon/services/nifm/static_service.cpp
+    horizon/services/nifm/static_service.hpp
+    horizon/services/nifm/general_service.cpp
+    horizon/services/nifm/general_service.hpp
+    horizon/services/nifm/request.cpp
+    horizon/services/nifm/request.hpp
+    horizon/services/pcv/pcv_service.cpp
+    horizon/services/pcv/pcv_service.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp
@@ -211,6 +232,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/macro/driver_base.hpp
     hw/tegra_x1/gpu/macro/interpreter/driver.cpp
     hw/tegra_x1/gpu/macro/interpreter/driver.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/const.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp

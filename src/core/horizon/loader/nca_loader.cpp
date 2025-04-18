@@ -158,10 +158,13 @@ void load_section(FileReader& reader, const std::string& rom_filename,
         // Puyo Puyo Tetris: 0x00208000
         reader.Seek(0x00208000);
         auto romfs_reader = reader.CreateSubReader();
-        Filesystem::Filesystem::GetInstance().AddEntry(
+        const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+            FS_SD_MOUNT "/rom/romFS",
             new Filesystem::File(rom_filename, romfs_reader.GetOffset(),
                                  romfs_reader.GetSize()),
-            "/rom/romFS");
+            true);
+        ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
+               "Failed to add romFS entry: {}", res);
         break;
     }
     }

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/gpu/engines/const.hpp"
 
 #define METHOD_CASE(method_begin, method_count, func, arg_type)                \
     case method_begin ...(method_begin + method_count - 1):                    \
-        func(method - method_begin, bit_cast<arg_type>(arg));                  \
+        func(method - method_begin, std::bit_cast<arg_type>(arg));             \
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
@@ -58,7 +59,7 @@ template <typename RegsT> class EngineWithRegsBase : public EngineBase {
 
     void WriteReg(u32 reg, u32 value) {
         ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
-        LOG_DEBUG(Engines, "Writing to reg 0x{:08x} (value: 0x{:08x})", reg,
+        LOG_DEBUG(Engines, "Writing to reg 0x{:03x} (value: 0x{:08x})", reg,
                   value);
         regs_raw[reg] = value;
     }
