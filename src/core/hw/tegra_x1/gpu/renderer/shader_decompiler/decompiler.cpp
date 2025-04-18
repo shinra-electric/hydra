@@ -107,6 +107,18 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     Parse(builder, code_reader);
     builder->Finish();
     delete builder;
+
+#define DUMP_SHADERS 1
+#if DUMP_SHADERS
+    std::ofstream out(
+        fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
+                    (void*)code_reader.GetBase()),
+        std::ios::binary);
+    out.write(
+        reinterpret_cast<const char*>(code_reader.GetBase() + code_offset),
+        0x1000);
+    out.close();
+#endif
 }
 
 bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
@@ -744,8 +756,14 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmul");
     INST(0x3870000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
-    INST(0x3868000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul");
+    INST(0x3868000000000000, 0xfef8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, src1, src2);
+
+        observer->OpFloatMultiply(dst, src1, Operand::Immediate(src2));
+    }
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x3858000000000000, 0xfef8000000000000) {
@@ -813,8 +831,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imadsp");
     INST(0x3400000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
-    INST(0x3280000000000000, 0xfe80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma");
+    INST(0x3280000000000000, 0xfe80000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        const auto src3 = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, src1,
+                  src2, src3);
+
+        observer->OpFloatFma(dst, src1, Operand::Immediate(src2), src3);
+    }
     INST(0x3200000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
     INST(0x3000000000000000, 0xfe00000000000000)

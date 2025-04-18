@@ -22,28 +22,21 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
 }
 
 TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
-#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, s_x, s_y, s_z, s_w,  \
-                          texture_format)                                      \
+#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
     else if (image_format_word.image_format == ImageFormat::img_format &&      \
              image_format_word.component_r == ImageComponent::c_r &&           \
              image_format_word.component_g == ImageComponent::c_g &&           \
              image_format_word.component_b == ImageComponent::c_b &&           \
-             image_format_word.component_a == ImageComponent::c_a &&           \
-             image_format_word.swizzle_x == ImageSwizzle::s_x &&               \
-             image_format_word.swizzle_y == ImageSwizzle::s_y &&               \
-             image_format_word.swizzle_z == ImageSwizzle::s_z &&               \
-             image_format_word.swizzle_w ==                                    \
-                 ImageSwizzle::s_w) return TextureFormat::texture_format;
+             image_format_word.component_a ==                                  \
+                 ImageComponent::c_a) return TextureFormat::texture_format;
 
     // TODO: more formats
     if (image_format_word.image_format == ImageFormat::Invalid)
         return TextureFormat::Invalid;
-    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, R, G, B, A,
+    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm,
                       RGBA8Unorm) // TODO: why argb?
-    IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, R, G, B, OneFloat,
-                      BC1_RGB)
-    IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R, Zero, Zero, OneFloat,
-                      R8Unorm)
+    IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
+    IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU,

@@ -181,6 +181,17 @@ TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
 }
 
 void Renderer::BeginCommandBuffer() {
+#define CAPTURE 0
+
+// Debug
+#if CAPTURE
+    static bool did_capture = false;
+    if (!did_capture) {
+        BeginCapture();
+        did_capture = true;
+    }
+#endif
+
     ASSERT_DEBUG(!command_buffer, MetalRenderer,
                  "Command buffer already started");
     command_buffer = command_queue->commandBuffer();
@@ -194,6 +205,16 @@ void Renderer::EndCommandBuffer() {
     command_buffer->commit();
     command_buffer->release(); // TODO: release?
     command_buffer = nullptr;
+
+    // Debug
+#if CAPTURE
+    static u32 frames = 0;
+    if (capturing) {
+        if (frames >= 1)
+            EndCapture();
+        frames++;
+    }
+#endif
 }
 
 RenderPassBase*
@@ -297,17 +318,6 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
 
 void Renderer::Draw(const Engines::PrimitiveType primitive_type,
                     const u32 start, const u32 count, bool indexed) {
-#define CAPTURE 0
-
-    // Debug
-#if CAPTURE
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
-    }
-#endif
-
     auto encoder = GetRenderCommandEncoder();
 
     // State
@@ -341,16 +351,6 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
         encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
                                 NS::UInteger(start), NS::UInteger(count));
     }
-
-    // Debug
-#if CAPTURE
-    static u32 frames = 0;
-    if (capturing) {
-        if (frames >= 10)
-            EndCapture();
-        frames++;
-    }
-#endif
 }
 
 MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
