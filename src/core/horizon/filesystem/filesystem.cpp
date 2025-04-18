@@ -4,16 +4,16 @@
 #include "core/horizon/filesystem/file.hpp"
 
 #define VERIFY_PATH(path)                                                      \
-    if (path.empty() || path[0] != '/')                                        \
-        return FsResult::PathDoesNotExist;
-
-#define VERIFY_ADD_ENTRY_RESULT(res, path)                                     \
-    if (res == AddEntryResult::AlreadyExists)                                  \
-        LOG_WARNING(HorizonFilesystem, "Entry already exists (path: \"{}\")",  \
-                    path);                                                     \
-    else                                                                       \
-        ASSERT(res == AddEntryResult::Success, HorizonFilesystem,              \
-               "Failed to add entry. Reason: {}", res);
+    if (path.empty())                                                          \
+        return FsResult::NotMounted;                                           \
+    const auto slash_pos = path.find('/');                                     \
+    if (slash_pos == std::string::npos)                                        \
+        return FsResult::NotMounted;                                           \
+    const auto mount = path.substr(0, slash_pos);                              \
+    if (mount.empty())                                                         \
+        return FsResult::NotMounted;                                           \
+    const auto entry_path = path.substr(slash_pos);                            \
+    auto& device = devices[mount];
 
 namespace Hydra::Horizon::Filesystem {
 
@@ -25,21 +25,23 @@ Filesystem::Filesystem() {
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
+void Filesystem::Mount(const std::string& mount) { devices[mount] = {}; }
+
 FsResult Filesystem::AddEntry(EntryBase* entry, const std::string& path,
                               bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(entry, path.substr(1), add_intermediate);
+    return device.AddEntry(entry, entry_path, add_intermediate);
 }
 
 FsResult Filesystem::AddEntry(const std::string& host_path,
                               const std::string& path, bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(host_path, path.substr(1), add_intermediate);
+    return device.AddEntry(host_path, entry_path, add_intermediate);
 }
 
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
-    return root.GetEntry(path.substr(1), out_entry);
+    return device.GetEntry(entry_path, out_entry);
 }
 
 FsResult Filesystem::GetFile(const std::string& path, File*& out_file) {

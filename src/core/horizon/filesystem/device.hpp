@@ -1,18 +1,14 @@
 #pragma once
 
-#include "core/horizon/filesystem/device.hpp"
+#include "core/horizon/filesystem/directory.hpp"
 
 namespace Hydra::Horizon::Filesystem {
 
-class Filesystem {
+class File;
+class Directory;
+
+class Device {
   public:
-    static Filesystem& GetInstance();
-
-    Filesystem();
-    ~Filesystem();
-
-    void Mount(const std::string& mount);
-
     [[nodiscard]] FsResult AddEntry(EntryBase* entry, const std::string& path,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string& host_path,
@@ -21,12 +17,11 @@ class Filesystem {
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
 
-    [[nodiscard]] FsResult GetFile(const std::string& path, File*& out_file);
-    [[nodiscard]] FsResult GetDirectory(const std::string& path,
-                                        Directory*& out_directory);
+    // Getters
+    Directory& GetRoot() { return root; }
 
   private:
-    std::map<std::string, Device> devices;
+    Directory root;
 };
 
 } // namespace Hydra::Horizon::Filesystem

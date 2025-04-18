@@ -5,23 +5,150 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
+namespace {
+
+enum class SaveDataType : u8 {
+    System = 0,
+    Account = 1,
+    Bcat = 2,
+    Device = 3,
+    Temporary = 4,
+    Cache = 5,
+    SystemBcat = 6,
+};
+
+enum class SaveDataRank : u8 {
+    Primary = 0,
+    Secondary = 1,
+};
+
+enum class SaveDataFlags : u32 {
+    KeepAfterResettingSystemSaveData = BIT(0),
+    KeepAfterRefurbishment = BIT(1),
+    KeepAfterResettingSystemSaveDataWithoutUserSaveData = BIT(2),
+    NeedsSecureDelete = BIT(3),
+};
+
+enum class SaveDataMetaType : u8 {
+    None = 0,
+    Thumbnail = 1,
+    ExtensionContext = 2,
+};
+
+#pragma pack(push, 1)
+struct SaveDataAttribute {
+    u64 title_id;
+    u128 account_uid;
+    u64 system_save_data_id;
+    SaveDataType type;
+    SaveDataRank rank;
+    u16 index;
+    u32 pad_x24;
+    u64 unk_x28;
+    u64 unk_x30;
+    u64 unk_x38;
+};
+
+struct SaveDataCreationInfo {
+    i64 save_data_size;
+    i64 journal_size;
+    u64 available_size;
+    u64 owner_id;
+    SaveDataFlags flags;
+    u8 space_id;
+    u8 unk;
+    u8 padding[0x1a];
+};
+
+struct SaveDataMetaInfo {
+    u32 size;
+    SaveDataMetaType type; ///< \ref FsSaveDataMetaType
+    u8 reserved[0x0B];
+};
+
+struct OpenSaveDataFileSystemIn {
+    u8 space_id;
+    u8 pad[0x7];
+    SaveDataAttribute attr;
+};
+#pragma pack(pop)
+
+} // namespace
+
+} // namespace Hydra::Horizon::Services::Fssrv
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::SaveDataType, System,
+                       "system", Account, "account", Bcat, "bcat", Device,
+                       "device", Temporary, "temporary", Cache, "cache",
+                       SystemBcat, "system_bcat");
+
+namespace Hydra::Horizon::Services::Fssrv {
+
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
-                             SetCurrentProcess, 18, OpenSdCardFileSystem, 200,
+                             SetCurrentProcess, 18, OpenSdCardFileSystem, 22,
+                             CreateSaveDataFileSystem, 51,
+                             OpenSaveDataFileSystem, 200,
                              OpenDataStorageByProgramId, 203,
                              OpenPatchDataStorageByCurrentProcess, 1005,
                              GetGlobalAccessLogMode)
 
 void IFileSystemProxy::OpenFileSystem(REQUEST_COMMAND_PARAMS) {
     // TODO: correct?
-    auto path = readers.send_buffers_readers[0].ReadString();
-    LOG_DEBUG(HorizonServices, "Path: {}", path);
+    const auto mount = readers.send_buffers_readers[0].ReadString();
+    LOG_DEBUG(HorizonServices, "Mount: {}", mount);
 
-    add_service(new IFileSystem(/*path*/));
+    add_service(new IFileSystem(mount));
 }
 
 void IFileSystemProxy::OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS) {
     // TODO: correct?
-    add_service(new IFileSystem(/*"/sdmc"*/));
+    add_service(new IFileSystem(FS_SD_MOUNT));
+}
+
+void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
+    const auto attr = readers.reader.Read<SaveDataAttribute>();
+    const auto creation_info = readers.reader.Read<SaveDataCreationInfo>();
+    const auto meta_info = readers.reader.Read<SaveDataMetaInfo>();
+
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    std::string mount = "INVALID";
+    switch (attr.type) {
+    case SaveDataType::Account: {
+        u64 title_id = attr.title_id;
+        if (title_id == 0x0)
+            title_id = Kernel::GetInstance().GetTitleId();
+        mount = FS_SAVE_DATA_MOUNT(attr.account_uid, title_id);
+        break;
+    }
+    default:
+        LOG_NOT_IMPLEMENTED(HorizonServices, "Save data type {}", attr.type);
+        break;
+    }
+
+    Filesystem::Filesystem::GetInstance().Mount(mount);
+}
+
+void IFileSystemProxy::OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
+    const auto in = readers.reader.Read<OpenSaveDataFileSystemIn>();
+
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    std::string mount = "INVALID";
+    switch (in.attr.type) {
+    case SaveDataType::Account: {
+        u64 title_id = in.attr.title_id;
+        if (title_id == 0x0)
+            title_id = Kernel::GetInstance().GetTitleId();
+        mount = FS_SAVE_DATA_MOUNT(in.attr.account_uid, title_id);
+        break;
+    }
+    default:
+        LOG_NOT_IMPLEMENTED(HorizonServices, "Save data type {}", in.attr.type);
+        break;
+    }
+
+    add_service(new IFileSystem(mount));
 }
 
 void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
@@ -31,8 +158,8 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
     // TODO: what to do with program ID?
 
     Filesystem::File* file = nullptr;
-    const auto res =
-        Filesystem::Filesystem::GetInstance().GetFile("/rom/romFS", file);
+    const auto res = Filesystem::Filesystem::GetInstance().GetFile(
+        FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Data storage does not exist");
         // HACK
@@ -50,8 +177,8 @@ void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
 
     // HACK
     Filesystem::File* file = nullptr;
-    const auto res =
-        Filesystem::Filesystem::GetInstance().GetFile("/rom/romFS", file);
+    const auto res = Filesystem::Filesystem::GetInstance().GetFile(
+        FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Data storage does not exist");
         // HACK

@@ -38,7 +38,7 @@ EmulationContext::EmulationContext() {
     for (const auto& root_dir : Config::GetInstance().GetRootDirectories()) {
         const auto entry_name =
             root_dir.path.substr(root_dir.path.find_last_of("/") + 1);
-        const auto entry_path = fmt::format("/{}", entry_name);
+        const auto entry_path = fmt::format(FS_SD_MOUNT "/{}", entry_name);
         const auto res =
             Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
                 root_dir.path, entry_path);
@@ -84,9 +84,9 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define NOP 0xd503201f
 
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
-    cpu->GetMMU()->Store<u32>(0x4127f50c, NOP);
+    cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
-    cpu->GetMMU()->Store<u32>(0x40081730, NOP);
+    cpu->GetMMU()->Store<u32>(0x40081730, NOP); // CoreMask?
 }
 
 void EmulationContext::Run() {
@@ -117,7 +117,7 @@ void EmulationContext::Run() {
 
     // Select user account
     // HACK
-    state_manager.PushPreselectedUser(0);
+    state_manager.PushPreselectedUser(0x01234567);
 }
 
 void EmulationContext::Present() {

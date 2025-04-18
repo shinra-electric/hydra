@@ -199,13 +199,6 @@ class Kernel {
     Result svcGetInfo(InfoType info_type, handle_id_t handle_id,
                       u64 info_sub_type, u64& out_info);
 
-    // Getters
-    HW::Bus& GetBus() const { return bus; }
-
-    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
-
-    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
-
     // Helpers
     KernelHandle* GetHandle(handle_id_t handle_id) const {
         return handle_pool.GetObject(handle_id);
@@ -225,14 +218,24 @@ class Kernel {
 
     HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
+    // Getters
+    HW::Bus& GetBus() const { return bus; }
+
+    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
+
+    u64 GetTitleId() const { return title_id; }
+
+    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
+
   private:
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
 
+    Filesystem::Filesystem filesystem;
+
     uptr main_thread_entry_point{0x0};
     u64 main_thread_args[ARG_COUNT] = {0x0};
-
-    Filesystem::Filesystem filesystem;
+    u64 title_id{0x89abcdef}; // TODO: don't hardcode
 
     // Memory
     HW::TegraX1::CPU::MemoryBase* stack_mem;

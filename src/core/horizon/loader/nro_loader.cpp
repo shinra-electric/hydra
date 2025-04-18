@@ -7,7 +7,7 @@
 namespace Hydra::Horizon::Loader {
 
 static const std::string ROM_VIRTUAL_PATH =
-    "/rom.nro"; // TODO: what should this be?
+    FS_SD_MOUNT "/rom.nro"; // TODO: what should this be?
 
 namespace {
 

@@ -12,6 +12,7 @@ void IGeneralService::CreateRequest(REQUEST_COMMAND_PARAMS) {
 
     add_service(new IRequest());
 
+    // HACK
     std::this_thread::sleep_for(std::chrono::seconds(20));
 }
 

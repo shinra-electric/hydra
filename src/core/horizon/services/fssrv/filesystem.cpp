@@ -10,7 +10,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 2, CreateDirectory, 7, GetEntryType,
                              8, OpenFile, 9, OpenDirectory)
 
 void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
-    const auto path = readers.send_statics_readers[0].ReadString();
+    const auto path = mount + readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
     // TODO: this won't create the directory on the host
@@ -24,7 +24,7 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
-    const auto path = readers.send_statics_readers[0].ReadString();
+    const auto path = mount + readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
     Filesystem::EntryBase* entry;
@@ -42,7 +42,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
-    const auto path = readers.send_statics_readers[0].ReadString();
+    const auto path = mount + readers.send_statics_readers[0].ReadString();
     const auto flags = readers.reader.Read<FileFlags>();
     LOG_DEBUG(HorizonServices, "Path: {}, flags: {}", path, flags);
 
@@ -58,7 +58,7 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
-    const auto path = readers.send_statics_readers[0].ReadString();
+    const auto path = mount + readers.send_statics_readers[0].ReadString();
     const auto filter_flags = readers.reader.Read<DirectoryFilterFlags>();
     LOG_DEBUG(HorizonServices, "Path: {}, filter flags: {}", path,
               filter_flags);

@@ -19,6 +19,8 @@ add_library(hydra-core
     horizon/filesystem/file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
+    horizon/filesystem/device.cpp
+    horizon/filesystem/device.hpp
     horizon/filesystem/filesystem.cpp
     horizon/filesystem/filesystem.hpp
     horizon/loader/loader_base.hpp

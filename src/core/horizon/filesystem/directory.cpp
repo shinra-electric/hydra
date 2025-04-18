@@ -51,13 +51,13 @@ FsResult Directory::AddEntry(EntryBase* entry, const std::string& rel_path,
                     e = new Directory();
                     e->SetParent(this);
                 } else {
-                    return FsResult::PathDoesNotExist;
+                    return FsResult::DoesNotExist;
                 }
             }
 
             auto sub_dir = dynamic_cast<Directory*>(e);
             if (!sub_dir)
-                return FsResult::PathIsNotDirectory;
+                return FsResult::NotADirectory;
 
             return sub_dir->AddEntry(entry, next_entry_name);
         }
@@ -99,7 +99,7 @@ FsResult Directory::GetEntry(const std::string& rel_path,
         out_entry = GetEntryImpl(rel_path);
         if (!out_entry) {
             out_entry = nullptr;
-            return FsResult::PathDoesNotExist;
+            return FsResult::DoesNotExist;
         }
     } else {
         const auto sub_dir_name = rel_path.substr(0, slash_pos);
@@ -113,7 +113,7 @@ FsResult Directory::GetEntry(const std::string& rel_path,
                 return parent->GetEntry(next_entry_name, out_entry);
             } else {
                 out_entry = nullptr;
-                return FsResult::PathDoesNotExist;
+                return FsResult::DoesNotExist;
             }
         }
 
@@ -121,13 +121,13 @@ FsResult Directory::GetEntry(const std::string& rel_path,
         EntryBase* sub_dir = GetEntryImpl(sub_dir_name);
         if (!sub_dir) {
             out_entry = nullptr;
-            return FsResult::PathDoesNotExist;
+            return FsResult::DoesNotExist;
         }
 
         auto sub_dir_impl = dynamic_cast<Directory*>(sub_dir);
         if (!sub_dir_impl) {
             out_entry = nullptr;
-            return FsResult::PathIsNotDirectory;
+            return FsResult::NotADirectory;
         }
 
         return sub_dir_impl->GetEntry(next_entry_name, out_entry);
