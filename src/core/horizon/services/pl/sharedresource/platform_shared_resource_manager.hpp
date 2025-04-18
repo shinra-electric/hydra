@@ -17,6 +17,10 @@ class IPlatformSharedResourceManager : public ServiceBase {
     handle_id_t shared_memory_handle_id;
 
     // Commands
+    void RequestLoad(REQUEST_COMMAND_PARAMS);
+    void GetLoadState(REQUEST_COMMAND_PARAMS);
+    void GetSize(REQUEST_COMMAND_PARAMS);
+    void GetSharedMemoryAddressOffset(REQUEST_COMMAND_PARAMS);
     void GetSharedMemoryNativeHandle(REQUEST_COMMAND_PARAMS);
 };
 
