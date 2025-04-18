@@ -16,6 +16,17 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     set(SOURCE_FILES
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
+        swiftui/MenuCommands.swift
+        swiftui/ToolbarItems.swift
+        swiftui/Settings/GeneralSettingsView.swift
+        swiftui/Settings/GraphicsSettingsView.swift
+        swiftui/Settings/DebugSettingsView.swift
+        swiftui/Settings/SettingsView.swift
+        swiftui/Sidebar/DetailView.swift
+        swiftui/Sidebar/GamelistView.swift
+        swiftui/Sidebar/NowPlayingView.swift
+        swiftui/Sidebar/SidebarSelectionState.swift
+        swiftui/Sidebar/SidebarView.swift
     )
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
