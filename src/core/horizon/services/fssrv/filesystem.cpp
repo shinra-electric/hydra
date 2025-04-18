@@ -1,13 +1,50 @@
 #include "core/horizon/services/fssrv/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 2, CreateDirectory, 7, GetEntryType,
-                             8, OpenFile, 9, OpenDirectory)
+namespace {
+
+enum class CreateOption {
+    None = 0,
+    BigFile = BIT(0),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(CreateOption)
+
+struct CreateFileIn {
+    CreateOption flags;
+    u64 size;
+};
+
+} // namespace
+
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 2, CreateDirectory, 7,
+                             GetEntryType, 8, OpenFile, 9, OpenDirectory)
+
+void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
+    const auto in = readers.reader.Read<CreateFileIn>();
+
+    const auto path = mount + readers.send_statics_readers[0].ReadString();
+    LOG_DEBUG(HorizonServices, "Path: {}", path);
+
+    // TODO: uncomment
+    /*
+    // TODO: this won't create the directory on the host
+    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+        path, new Filesystem::File(),
+        true); // TODO: should create_intermediate be true?
+    if (res == Filesystem::FsResult::AlreadyExists)
+        LOG_WARNING(HorizonServices, "File \"{}\" already exists", path);
+    else
+        ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+               "Failed to create file: {}", res);
+        */
+    LOG_NOT_IMPLEMENTED(HorizonServices, "File creation");
+}
 
 void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
     const auto path = mount + readers.send_statics_readers[0].ReadString();
@@ -15,7 +52,8 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
 
     // TODO: this won't create the directory on the host
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        path, new Filesystem::Directory());
+        path, new Filesystem::Directory(),
+        true); // TODO: should create_intermediate be true?
     if (res == Filesystem::FsResult::AlreadyExists)
         LOG_WARNING(HorizonServices, "Directory \"{}\" already exists", path);
     else

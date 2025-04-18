@@ -19,6 +19,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
+    STUB_REQUEST_COMMAND(StartSixAxisSensor);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     void GetSupportedNpadStyleSet(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);

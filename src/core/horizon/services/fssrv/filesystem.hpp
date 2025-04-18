@@ -23,6 +23,7 @@ class IFileSystem : public ServiceBase {
     std::string mount;
 
     // Commands
+    void CreateFile(REQUEST_COMMAND_PARAMS);
     void CreateDirectory(REQUEST_COMMAND_PARAMS);
     void GetEntryType(REQUEST_COMMAND_PARAMS);
     void OpenFile(REQUEST_COMMAND_PARAMS);

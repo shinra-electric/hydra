@@ -8,11 +8,11 @@ namespace Hydra::Horizon::Services::Hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 11, ActivateTouchScreen, 21,
-    ActivateMouse, 31, ActivateKeyboard, 100, SetSupportedNpadStyleSet, 101,
-    GetSupportedNpadStyleSet, 102, SetSupportedNpadIdType, 103, ActivateNpad,
-    120, SetNpadJoyHoldType, 124, SetNpadJoyAssignmentModeDual, 128,
-    SetNpadHandheldActivationMode, 201, SendVibrationValue, 203,
-    CreateActiveVibrationDeviceList)
+    ActivateMouse, 31, ActivateKeyboard, 66, StartSixAxisSensor, 100,
+    SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
+    SetSupportedNpadIdType, 103, ActivateNpad, 120, SetNpadJoyHoldType, 124,
+    SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 201,
+    SendVibrationValue, 203, CreateActiveVibrationDeviceList)
 
 void IHidServer::CreateAppletResource(REQUEST_COMMAND_PARAMS) {
     u64 aruid = readers.reader.Read<u64>();

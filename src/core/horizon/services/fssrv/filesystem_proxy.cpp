@@ -7,6 +7,23 @@ namespace Hydra::Horizon::Services::Fssrv {
 
 namespace {
 
+enum class FileSystemProxyType {
+    Code,
+    Rom,
+    Logo,
+    Control,
+    Manual,
+    Meta,
+    Data,
+    Package,
+    RegisteredUpdate,
+};
+
+struct OpenFileSystemWithIdObsoleteIn {
+    FileSystemProxyType type;
+    u64 program_id;
+};
+
 enum class SaveDataType : u8 {
     System = 0,
     Account = 1,
@@ -77,15 +94,22 @@ struct OpenSaveDataFileSystemIn {
 
 } // namespace Hydra::Horizon::Services::Fssrv
 
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::FileSystemProxyType,
+                       Code, "code", Rom, "rom", Logo, "logo", Control,
+                       "control", Manual, "manual", Meta, "meta", Data, "data",
+                       Package, "package", RegisteredUpdate,
+                       "registered_update")
+
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::SaveDataType, System,
                        "system", Account, "account", Bcat, "bcat", Device,
                        "device", Temporary, "temporary", Cache, "cache",
-                       SystemBcat, "system_bcat");
+                       SystemBcat, "system_bcat")
 
 namespace Hydra::Horizon::Services::Fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
-                             SetCurrentProcess, 18, OpenSdCardFileSystem, 22,
+                             SetCurrentProcess, 8, OpenFileSystemWithIdObsolete,
+                             18, OpenSdCardFileSystem, 22,
                              CreateSaveDataFileSystem, 51,
                              OpenSaveDataFileSystem, 200,
                              OpenDataStorageByProgramId, 203,
@@ -93,11 +117,22 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
                              GetGlobalAccessLogMode)
 
 void IFileSystemProxy::OpenFileSystem(REQUEST_COMMAND_PARAMS) {
+    const auto type = readers.reader.Read<FileSystemProxyType>();
+
     // TODO: correct?
-    const auto mount = readers.send_buffers_readers[0].ReadString();
+    const auto mount = readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Mount: {}", mount);
 
     add_service(new IFileSystem(mount));
+}
+
+void IFileSystemProxy::OpenFileSystemWithIdObsolete(REQUEST_COMMAND_PARAMS) {
+    const auto in = readers.reader.Read<OpenFileSystemWithIdObsoleteIn>();
+    const auto id = readers.send_statics_readers[0].ReadString();
+
+    LOG_NOT_IMPLEMENTED(HorizonServices, "OpenFileSystemWithIdObsolete");
+
+    LOG_DEBUG(HorizonServices, "ID: {}", id);
 }
 
 void IFileSystemProxy::OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS) {
