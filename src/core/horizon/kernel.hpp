@@ -64,7 +64,7 @@ class Event : public KernelHandle {
 
     void Clear() {
         std::unique_lock<std::mutex> lock(mutex);
-        signaled = true;
+        signaled = false;
     }
 
     void Wait(i64 timeout) {

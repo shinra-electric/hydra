@@ -62,7 +62,7 @@ struct SaveDataCreationInfo {
 
 struct SaveDataMetaInfo {
     u32 size;
-    SaveDataMetaType type; ///< \ref FsSaveDataMetaType
+    SaveDataMetaType type;
     u8 reserved[0x0B];
 };
 

@@ -8,10 +8,14 @@ class IRequest : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IRequest)
 
+    IRequest();
+
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    KernelHandleWithId<Event> events[2];
+
     // Commands
     void GetRequestState(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(GetResult);

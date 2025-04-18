@@ -84,7 +84,15 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // cpu->GetMMU()->Store<u32>(0x800112e4, MOV_X0_XZR);
     cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
-    cpu->GetMMU()->Store<u32>(0x40081730, NOP); // CoreMask?
+
+    cpu->GetMMU()->Store<u32>(0x40082bbc, NOP); // CoreMask?
+    cpu->GetMMU()->Store<u32>(0x40082d8c, NOP); // svcQueryMemory
+
+    cpu->GetMMU()->Store<u32>(0x40081764, NOP); // Reading save screen.cfg
+
+    cpu->GetMMU()->Store<u32>(0x40093478, NOP); // HID (probably shared memory?)
+
+    // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
 }
 
 void EmulationContext::Run() {
@@ -110,7 +118,7 @@ void EmulationContext::Run() {
     // Enter focus
     auto& state_manager = Horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(Horizon::AppletMessage::None);
+    state_manager.SendMessage(Horizon::AppletMessage::Resume);
     state_manager.SetFocusState(Horizon::AppletFocusState::InFocus);
 
     // Select user account
@@ -121,8 +129,8 @@ void EmulationContext::Run() {
 void EmulationContext::Present() {
     // TODO: correct?
     // Inform the app that we want to display the window
-    Horizon::StateManager::GetInstance().SendMessage(
-        Horizon::AppletMessage::RequestToDisplay);
+    // Horizon::StateManager::GetInstance().SendMessage(
+    //    Horizon::AppletMessage::RequestToDisplay);
 
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);

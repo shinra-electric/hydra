@@ -30,6 +30,8 @@ class StateManager {
 
     void SetFocusState(AppletFocusState focus_state_) {
         SendMessage(AppletMessage::FocusStateChanged);
+        if (focus_state_ == AppletFocusState::InFocus)
+            SendMessage(AppletMessage::ChangeIntoForeground);
         // TODO: lock
         focus_state = focus_state_;
     }
@@ -58,6 +60,10 @@ class StateManager {
 
         AppletMessage msg = msg_queue.front();
         msg_queue.pop();
+
+        // Clear event
+        if (msg_queue.empty())
+            msg_event.handle->Clear();
 
         return msg;
     }

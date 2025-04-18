@@ -26,7 +26,14 @@ void ICommonStateGetter::GetEventHandle(REQUEST_COMMAND_PARAMS) {
 }
 
 void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(StateManager::GetInstance().ReceiveMessage());
+    const auto msg = StateManager::GetInstance().ReceiveMessage();
+    if (msg == AppletMessage::None) {
+        result = 0x680;
+        return;
+    }
+    LOG_DEBUG(HorizonServices, "MESSAGE: {}", msg);
+
+    writers.writer.Write(msg);
 }
 
 void ICommonStateGetter::GetOperationMode(REQUEST_COMMAND_PARAMS) {

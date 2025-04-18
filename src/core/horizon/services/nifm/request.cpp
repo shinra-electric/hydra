@@ -17,6 +17,8 @@ enum class RequestState {
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles)
 
+IRequest::IRequest() : events{{new Event()}, {new Event()}} {}
+
 void IRequest::GetRequestState(REQUEST_COMMAND_PARAMS) {
     LOG_FUNC_STUBBED(HorizonServices);
 
@@ -25,7 +27,8 @@ void IRequest::GetRequestState(REQUEST_COMMAND_PARAMS) {
 }
 
 void IRequest::GetSystemEventReadableHandles(REQUEST_COMMAND_PARAMS) {
-    LOG_NOT_IMPLEMENTED(HorizonServices, "GetSystemEventReadableHandles");
+    writers.copy_handles_writer.Write(events[0].id);
+    writers.copy_handles_writer.Write(events[1].id);
 }
 
 } // namespace Hydra::Horizon::Services::Nifm
