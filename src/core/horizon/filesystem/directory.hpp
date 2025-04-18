@@ -13,9 +13,9 @@ class Directory : public EntryBase {
 
     bool IsDirectory() const override { return true; }
 
-    FsResult AddEntry(EntryBase* entry, const std::string& rel_path,
+    FsResult AddEntry(const std::string& rel_path, EntryBase* entry,
                       bool add_intermediate = false);
-    FsResult AddEntry(const std::string& host_path, const std::string& rel_path,
+    FsResult AddEntry(const std::string& rel_path, const std::string& host_path,
                       bool add_intermediate = false);
     FsResult GetEntry(const std::string& rel_path, EntryBase*& out_entry);
 

@@ -118,7 +118,7 @@ void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = Kernel::GetInstance().GetTitleId();
-        mount = FS_SAVE_DATA_MOUNT(attr.account_uid, title_id);
+        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
         break;
     }
     default:
@@ -140,7 +140,7 @@ void IFileSystemProxy::OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
         u64 title_id = in.attr.title_id;
         if (title_id == 0x0)
             title_id = Kernel::GetInstance().GetTitleId();
-        mount = FS_SAVE_DATA_MOUNT(in.attr.account_uid, title_id);
+        mount = FS_SAVE_DATA_MOUNT(title_id, in.attr.account_uid);
         break;
     }
     default:

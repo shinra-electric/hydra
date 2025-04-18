@@ -3,9 +3,9 @@
 #include "common/common.hpp"
 
 #define FS_SD_MOUNT "sdmc:"
-#define FS_SAVE_DATA_MOUNT(account_uid, title_id)                              \
-    fmt::format(FS_SD_MOUNT "/Nintendo/SaveData/{:08x}/{:08x}", account_uid,   \
-                title_id)
+#define FS_SAVE_DATA_MOUNT(title_id, account_uid)                              \
+    fmt::format(FS_SD_MOUNT "/Nintendo/save/{:08x}/{:08x}", title_id,          \
+                account_uid)
 
 namespace Hydra::Horizon::Filesystem {
 
@@ -13,6 +13,7 @@ enum class FsResult {
     Success,
     NotMounted,
     DoesNotExist,
+    IntermediateDirectoryDoesNotExist,
     NotAFile,
     NotADirectory,
     AlreadyExists,
@@ -22,5 +23,7 @@ enum class FsResult {
 
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::Filesystem::FsResult, Success, "success",
                        NotMounted, "not mounted", DoesNotExist,
-                       "does not exist", NotAFile, "not a file", NotADirectory,
-                       "not a directory", AlreadyExists, "already exists")
+                       "does not exist", IntermediateDirectoryDoesNotExist,
+                       "intermediate directory does not exist", NotAFile,
+                       "not a file", NotADirectory, "not a directory",
+                       AlreadyExists, "already exists")

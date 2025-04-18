@@ -27,16 +27,17 @@ Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
 void Filesystem::Mount(const std::string& mount) { devices[mount] = {}; }
 
-FsResult Filesystem::AddEntry(EntryBase* entry, const std::string& path,
+FsResult Filesystem::AddEntry(const std::string& path, EntryBase* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
-    return device.AddEntry(entry, entry_path, add_intermediate);
+    return device.AddEntry(entry_path, entry, add_intermediate);
 }
 
-FsResult Filesystem::AddEntry(const std::string& host_path,
-                              const std::string& path, bool add_intermediate) {
+FsResult Filesystem::AddEntry(const std::string& path,
+                              const std::string& host_path,
+                              bool add_intermediate) {
     VERIFY_PATH(path);
-    return device.AddEntry(host_path, entry_path, add_intermediate);
+    return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {

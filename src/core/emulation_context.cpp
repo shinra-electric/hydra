@@ -35,16 +35,14 @@ EmulationContext::EmulationContext() {
     os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
 
     // Filesystem
-    for (const auto& root_dir : Config::GetInstance().GetRootDirectories()) {
-        const auto entry_name =
-            root_dir.path.substr(root_dir.path.find_last_of("/") + 1);
-        const auto entry_path = fmt::format(FS_SD_MOUNT "/{}", entry_name);
+    for (const auto& root_path : Config::GetInstance().GetRootPaths()) {
         const auto res =
             Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
-                root_dir.path, entry_path);
+                root_path.guest_path, root_path.host_path, true);
         ASSERT(res == Horizon::Filesystem::FsResult::Success, HorizonServices,
                "Failed to get root path: {}", res);
-        LOG_INFO(Other, "Mapped {} to {}", entry_path, root_dir.path);
+        LOG_INFO(Other, "Mapped {} to {}", root_path.guest_path,
+                 root_path.host_path);
     }
 }
 

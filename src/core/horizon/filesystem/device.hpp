@@ -9,10 +9,10 @@ class Directory;
 
 class Device {
   public:
-    [[nodiscard]] FsResult AddEntry(EntryBase* entry, const std::string& path,
+    [[nodiscard]] FsResult AddEntry(const std::string& path, EntryBase* entry,
                                     bool add_intermediate = false);
-    [[nodiscard]] FsResult AddEntry(const std::string& host_path,
-                                    const std::string& path,
+    [[nodiscard]] FsResult AddEntry(const std::string& path,
+                                    const std::string& host_path,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);

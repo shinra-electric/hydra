@@ -9,16 +9,16 @@
 
 namespace Hydra::Horizon::Filesystem {
 
-FsResult Device::AddEntry(EntryBase* entry, const std::string& path,
+FsResult Device::AddEntry(const std::string& path, EntryBase* entry,
                           bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(entry, path.substr(1), add_intermediate);
+    return root.AddEntry(path.substr(1), entry, add_intermediate);
 }
 
-FsResult Device::AddEntry(const std::string& host_path, const std::string& path,
+FsResult Device::AddEntry(const std::string& path, const std::string& host_path,
                           bool add_intermediate) {
     VERIFY_PATH(path);
-    return root.AddEntry(host_path, path.substr(1), add_intermediate);
+    return root.AddEntry(path.substr(1), host_path, add_intermediate);
 }
 
 FsResult Device::GetEntry(const std::string& path, EntryBase*& out_entry) {

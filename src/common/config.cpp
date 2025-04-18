@@ -43,7 +43,8 @@
     ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
 
-ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootDirectory, path, write_access)
+ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootPath, guest_path, host_path,
+                                    write_access)
 
 ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
                                           AppleHypervisor, "Apple Hypervisor",
@@ -106,7 +107,7 @@ Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
 void Config::LoadDefaults() {
     game_directories = {};
-    root_directories = {};
+    root_paths = {};
     cpu_backend = CpuBackend::Dynarmic;
 
     changed = true;
@@ -131,10 +132,10 @@ void Config::Serialize() {
             game_directories_arr.as_array().assign(game_directories.begin(),
                                                    game_directories.end());
 
-            auto& root_directories_arr = general["root_directories"];
-            root_directories_arr = toml::array{};
-            root_directories_arr.as_array().assign(root_directories.begin(),
-                                                   root_directories.end());
+            auto& root_paths_arr = general["root_paths"];
+            root_paths_arr = toml::array{};
+            root_paths_arr.as_array().assign(root_paths.begin(),
+                                             root_paths.end());
         }
 
         {
@@ -156,8 +157,8 @@ void Config::Deserialize() {
         const auto& general = data.at("General");
         game_directories = toml::find_or<std::vector<std::string>>(
             general, "game_directories", {});
-        root_directories = toml::find_or<std::vector<RootDirectory>>(
-            general, "root_directories", {});
+        root_paths =
+            toml::find_or<std::vector<RootPath>>(general, "root_paths", {});
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");

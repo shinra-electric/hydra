@@ -15,7 +15,7 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
 
     // TODO: this won't create the directory on the host
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        new Filesystem::Directory(), path);
+        path, new Filesystem::Directory());
     if (res == Filesystem::FsResult::AlreadyExists)
         LOG_WARNING(HorizonServices, "Directory \"{}\" already exists", path);
     else

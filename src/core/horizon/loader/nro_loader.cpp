@@ -115,9 +115,8 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Filesystem
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        new Filesystem::File(rom_filename, reader.GetOffset(),
-                             reader.GetSize()),
-        ROM_VIRTUAL_PATH);
+        ROM_VIRTUAL_PATH, new Filesystem::File(rom_filename, reader.GetOffset(),
+                                               reader.GetSize()));
     ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
            "Failed to add romFS entry: {}", res);
 }
