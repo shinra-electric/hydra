@@ -15,8 +15,10 @@ add_library(hydra-core
     horizon/kernel.hpp
     horizon/filesystem/const.hpp
     horizon/filesystem/entry_base.hpp
-    horizon/filesystem/file.cpp
-    horizon/filesystem/file.hpp
+    horizon/filesystem/file_base.hpp
+    horizon/filesystem/host_file.cpp
+    horizon/filesystem/host_file.hpp
+    horizon/filesystem/ram_file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
     horizon/filesystem/device.cpp

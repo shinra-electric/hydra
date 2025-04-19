@@ -1,7 +1,7 @@
 #include "core/horizon/services/fssrv/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
@@ -31,26 +31,19 @@ void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
     const auto path = mount + readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
-    // TODO: uncomment
-    /*
-    // TODO: this won't create the directory on the host
-    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        path, new Filesystem::File(),
-        true); // TODO: should create_intermediate be true?
+    const auto res = Filesystem::Filesystem::GetInstance().CreateFile(
+        path, true); // TODO: should create_intermediate be true?
     if (res == Filesystem::FsResult::AlreadyExists)
         LOG_WARNING(HorizonServices, "File \"{}\" already exists", path);
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
                "Failed to create file: {}", res);
-        */
-    LOG_NOT_IMPLEMENTED(HorizonServices, "File creation");
 }
 
 void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
     const auto path = mount + readers.send_statics_readers[0].ReadString();
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
-    // TODO: this won't create the directory on the host
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
         path, new Filesystem::Directory(),
         true); // TODO: should create_intermediate be true?
@@ -69,7 +62,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     const auto res =
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Entry does not exist");
+        LOG_WARNING(HorizonServices, "{}", res);
         result = MAKE_KERNEL_RESULT(0x202);
         return;
     }
@@ -84,10 +77,10 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     const auto flags = readers.reader.Read<FileFlags>();
     LOG_DEBUG(HorizonServices, "Path: {}, flags: {}", path, flags);
 
-    Filesystem::File* file;
+    Filesystem::FileBase* file;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "File does not exist");
+        LOG_WARNING(HorizonServices, "{}", res);
         result = MAKE_KERNEL_RESULT(0x202);
         return;
     }
@@ -105,7 +98,7 @@ void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
     const auto res =
         Filesystem::Filesystem::GetInstance().GetDirectory(path, directory);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "File does not exist");
+        LOG_WARNING(HorizonServices, "{}", res);
         // HACK
         result = static_cast<u32>(res);
         return;

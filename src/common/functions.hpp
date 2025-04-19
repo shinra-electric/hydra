@@ -83,6 +83,14 @@ inline std::ifstream open_file(const std::string& path, usize& out_size) {
     return ifs;
 }
 
+inline usize get_file_size(const std::string& path) {
+    usize size = 0;
+    auto ifs = open_file(path, size);
+    ifs.close();
+
+    return size;
+}
+
 // HACK
 template <typename T> T rotl(T v, u64 shift) {
     return (v << shift) | (v >> (32 - shift));

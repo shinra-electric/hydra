@@ -1,7 +1,7 @@
 #include "core/horizon/loader/nro_loader.hpp"
 
-#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel.hpp"
 
 namespace Hydra::Horizon::Loader {
@@ -48,7 +48,7 @@ struct NROHeader {
 
 } // namespace
 
-void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NROHeader>();
 
@@ -115,8 +115,9 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 
     // Filesystem
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        ROM_VIRTUAL_PATH, new Filesystem::File(rom_filename, reader.GetOffset(),
-                                               reader.GetSize()));
+        ROM_VIRTUAL_PATH,
+        new Filesystem::HostFile(rom_filename, reader.GetOffset(),
+                                 reader.GetSize()));
     ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
            "Failed to add romFS entry: {}", res);
 }

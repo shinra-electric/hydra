@@ -1,9 +1,10 @@
 # TODO: make a precompiled header
 add_library(hydra-common
     common.hpp
-    types.hpp
     macros.hpp
+    types.hpp
     functions.hpp
+    memory.hpp
     config.cpp
     config.hpp
     lz4.cpp

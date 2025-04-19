@@ -192,7 +192,7 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
 
     // TODO: what to do with program ID?
 
-    Filesystem::File* file = nullptr;
+    Filesystem::FileBase* file = nullptr;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(
         FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {
@@ -211,7 +211,7 @@ void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
                         "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
-    Filesystem::File* file = nullptr;
+    Filesystem::FileBase* file = nullptr;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(
         FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {

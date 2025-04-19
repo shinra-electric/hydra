@@ -4,7 +4,6 @@
 
 namespace Hydra::Horizon::Filesystem {
 
-class File;
 class Directory;
 
 class Device {

@@ -15,7 +15,7 @@ void IStorageAccessor::Write(REQUEST_COMMAND_PARAMS) {
     // TODO: correct?
     const usize size = data.GetSize() - offset;
 
-    const auto ptr = readers.send_buffers_readers[0].Read<u8>(size);
+    const auto ptr = readers.send_buffers_readers[0].ReadPtr<u8>(size);
     memcpy(data.GetPtrU8() + offset, ptr, size);
 }
 

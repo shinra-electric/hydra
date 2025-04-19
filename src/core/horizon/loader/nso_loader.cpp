@@ -40,7 +40,7 @@ struct NSOHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(FileReader& reader, uptr executable_mem_ptr,
+void read_segment(StreamReader& reader, uptr executable_mem_ptr,
                   const Segment& segment, const usize segment_file_size,
                   bool is_compressed) {
     // Skip
@@ -75,7 +75,7 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-void NSOLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NSOHeader>();
     ASSERT(std::memcmp(header.magic, "NSO0", 4) == 0, HorizonLoader,

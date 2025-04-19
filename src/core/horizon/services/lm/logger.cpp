@@ -97,7 +97,7 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
             return;
         }
 
-        const auto data = reader.Read<u8>(size);
+        const auto data = reader.ReadPtr<u8>(size);
 
 #define GET_DATA(type) *reinterpret_cast<type*>(data)
 #define GET_STRING() std::string(reinterpret_cast<const char*>(data), size)

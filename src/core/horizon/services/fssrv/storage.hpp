@@ -9,21 +9,24 @@ class IStorage : public ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStorage)
 
-    IStorage(Filesystem::File* file_);
+    IStorage(Filesystem::FileBase* file_);
     ~IStorage() override;
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
-    // Helpers
-    void ReadImpl(u8* ptr, u64 offset, usize& size);
-
-  private:
-    Filesystem::File* file;
-
     // Commands
     virtual void Read(REQUEST_COMMAND_PARAMS);
+    virtual void Write(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SetSize);
     void GetSize(REQUEST_COMMAND_PARAMS);
+
+    // Helpers
+    void ReadImpl(u8* ptr, i64 offset, usize& size);
+    void WriteImpl(u8* ptr, i64 offset, usize size);
+
+  private:
+    Filesystem::FileBase* file;
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

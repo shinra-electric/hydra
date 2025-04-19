@@ -70,8 +70,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     else
         LOG_ERROR(Other, "Unknown ROM extension \"{}\"", extension);
 
-    FileReader reader(ifs, 0, size);
-    loader->LoadROM(reader, rom_filename);
+    StreamReader reader(ifs, 0, size);
+    loader->LoadRom(reader, rom_filename);
     delete loader;
 
     ifs.close();

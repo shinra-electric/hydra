@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
 #include <map>
 #include <stdint.h>
 #include <string>
@@ -218,118 +217,6 @@ class small_cache {
 
     std::array<FastCacheEntry, fast_cache_size> fast_cache;
     std::map<KeyT, T> slow_cache;
-};
-
-class Reader {
-  public:
-    Reader(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
-
-    u64 Tell() { return static_cast<u64>(ptr - base); }
-
-    void Seek(u64 pos) { ptr = base + pos; }
-
-    void Skip(usize size) { ptr += size; }
-
-    template <typename T> T* ReadPtr() {
-        T* result = reinterpret_cast<T*>(ptr);
-        ptr += sizeof(T);
-
-        return result;
-    }
-
-    template <typename T> T Read() { return *ReadPtr<T>(); }
-
-    template <typename T> T* Read(usize count) {
-        T* result = reinterpret_cast<T*>(ptr);
-        ptr += sizeof(T) * count;
-
-        return result;
-    }
-
-    std::string ReadString() {
-        std::string result(reinterpret_cast<char*>(ptr));
-        ptr += result.size();
-
-        return result;
-    }
-
-    // Getters
-    u8* GetBase() const { return base; }
-    usize GetSize() const { return size; }
-    usize GetReadSize() const { return ptr - base; }
-
-  private:
-    u8* base;
-    u8* ptr;
-    usize size;
-};
-
-class Writer {
-  public:
-    Writer(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
-
-    template <typename T> T* Write(const T& value) {
-        T* result = reinterpret_cast<T*>(ptr);
-        *result = value;
-        ptr += sizeof(T);
-
-        return result;
-    }
-
-    template <typename T> T* Write(const T* write_ptr, usize count) {
-        T* result = reinterpret_cast<T*>(ptr);
-        memcpy(result, write_ptr, sizeof(T) * count);
-        ptr += sizeof(T) * count;
-
-        return result;
-    }
-
-    // Getters
-    u8* GetBase() const { return base; }
-    usize GetSize() const { return size; }
-    usize GetWrittenSize() const { return ptr - base; }
-
-  private:
-    u8* base;
-    u8* ptr;
-    usize size;
-};
-
-class FileReader {
-  public:
-    FileReader(std::ifstream& stream_, u64 offset_, usize size_)
-        : stream{stream_}, offset{offset_}, size{size_} {}
-
-    FileReader CreateSubReader(usize new_size) {
-        return FileReader(stream, stream.tellg(), new_size);
-    }
-
-    FileReader CreateSubReader() { return CreateSubReader(size - Tell()); }
-
-    u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
-
-    void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
-
-    template <typename T> T Read() {
-        T result;
-        stream.read(reinterpret_cast<char*>(&result), sizeof(T));
-
-        return result;
-    }
-
-    template <typename T> void Read(T* ptr, usize count) {
-        stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
-    }
-
-    // Getters
-    u64 GetOffset() const { return offset; }
-
-    usize GetSize() const { return size; }
-
-  private:
-    std::ifstream& stream;
-    u64 offset;
-    usize size;
 };
 
 template <typename SubclassT, typename T, typename DescriptorT>

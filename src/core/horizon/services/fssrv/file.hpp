@@ -17,7 +17,7 @@ class IFile : public IStorage {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFile)
 
-    IFile(Filesystem::File* file, FileFlags flags_)
+    IFile(Filesystem::FileBase* file, FileFlags flags_)
         : IStorage(file), flags{flags_} {}
 
   private:
@@ -25,6 +25,7 @@ class IFile : public IStorage {
 
     // Commands
     void Read(REQUEST_COMMAND_PARAMS) override;
+    void Write(REQUEST_COMMAND_PARAMS) override;
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

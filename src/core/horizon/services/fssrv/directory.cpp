@@ -1,6 +1,6 @@
 #include "core/horizon/services/fssrv/directory.hpp"
 
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/file_base.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
@@ -29,7 +29,7 @@ void IDirectory::Read(REQUEST_COMMAND_PARAMS) {
         e.type =
             (entry->IsDirectory() ? EntryType::Directory : EntryType::File);
         if (!entry->IsDirectory())
-            e.file_size = static_cast<Filesystem::File*>(entry)->GetSize();
+            e.file_size = static_cast<Filesystem::FileBase*>(entry)->GetSize();
         else
             e.file_size = 0;
 

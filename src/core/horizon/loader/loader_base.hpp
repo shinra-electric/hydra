@@ -8,7 +8,7 @@ class LoaderBase {
   public:
     virtual ~LoaderBase() = default;
 
-    virtual void LoadROM(FileReader& reader,
+    virtual void LoadRom(StreamReader& reader,
                          const std::string& rom_filename) = 0;
 };
 

@@ -1,7 +1,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/ram_file.hpp"
 
 #define VERIFY_PATH(path)                                                      \
     if (path.empty())                                                          \
@@ -58,18 +58,24 @@ FsResult Filesystem::AddEntry(const std::string& path,
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
+FsResult Filesystem::CreateFile(const std::string& path,
+                                bool add_intermediate) {
+    // TODO: don't always create RamFiles
+    return AddEntry(path, new RamFile(), add_intermediate);
+}
+
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string& path, File*& out_file) {
+FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
         return res;
 
-    out_file = dynamic_cast<File*>(entry);
+    out_file = dynamic_cast<FileBase*>(entry);
     if (!out_file)
         return FsResult::NotAFile;
 
