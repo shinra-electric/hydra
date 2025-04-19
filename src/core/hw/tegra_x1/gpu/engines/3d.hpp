@@ -122,17 +122,6 @@ enum class ViewportZClip : u32 {
     OneToOne,
 };
 
-struct BlendState {
-    u32 unknown; // TODO: is this just padding?
-    BlendOperation rgb_op;
-    BlendFactor src_rgb_factor;
-    BlendFactor dst_rgb_factor;
-    BlendOperation alpha_op;
-    BlendFactor src_alpha_factor;
-    BlendFactor dst_alpha_factor;
-    u32 padding;
-};
-
 // TODO: handle this differently
 inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
     switch (stage) {
@@ -297,8 +286,17 @@ struct Regs3D {
     u32 padding_0x4cb[0x4];
 
     // 0x4cf
-    BlendState blend_state;
-    u32 single_rop_control; // TODO: what is this?
+    struct {
+        u32 separate_for_alpha; // TODO: is this a bitfield or something?
+        BlendOperation rgb_op;
+        BlendFactor src_rgb_factor;
+        BlendFactor dst_rgb_factor;
+        BlendOperation alpha_op;
+        BlendFactor src_alpha_factor;
+        u32 global_color_key; // TODO: what is this?
+        BlendFactor dst_alpha_factor;
+    } blend_state;
+    u32 single_rop_control;
     u32 color_blend_enabled[COLOR_TARGET_COUNT];
 
     u32 padding_0x4e0[0x6e];
@@ -366,7 +364,16 @@ struct Regs3D {
     u32 padding_0x740[0x40];
 
     // 0x780
-    BlendState independent_blend_state[COLOR_TARGET_COUNT];
+    struct {
+        u32 unknown; // TODO: is this just padding?
+        BlendOperation rgb_op;
+        BlendFactor src_rgb_factor;
+        BlendFactor dst_rgb_factor;
+        BlendOperation alpha_op;
+        BlendFactor src_alpha_factor;
+        BlendFactor dst_alpha_factor;
+        u32 padding;
+    } independent_blend_state[COLOR_TARGET_COUNT];
 
     Iova vertex_array_limits[VERTEX_ARRAY_COUNT];
 

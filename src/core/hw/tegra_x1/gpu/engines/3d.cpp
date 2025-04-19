@@ -420,20 +420,28 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
                  "Advanced blending not implemented");
 
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-        const auto& render_target = regs.color_targets[i];
-        const auto& independent_blend =
-            (regs.independent_blend_enabled ? regs.independent_blend_state[i]
-                                            : regs.blend_state);
-        descriptor.color_target_states[i] = {
-            .format = Renderer::to_texture_format(render_target.format),
-            .blend_enabled = static_cast<bool>(regs.color_blend_enabled[i]),
-            .rgb_op = independent_blend.rgb_op,
-            .src_rgb_factor = independent_blend.src_rgb_factor,
-            .dst_rgb_factor = independent_blend.dst_rgb_factor,
-            .alpha_op = independent_blend.alpha_op,
-            .src_alpha_factor = independent_blend.src_alpha_factor,
-            .dst_alpha_factor = independent_blend.dst_alpha_factor,
-        };
+        auto& color_target = descriptor.color_target_states[i];
+        color_target.format =
+            Renderer::to_texture_format(regs.color_targets[i].format);
+        color_target.blend_enabled =
+            static_cast<bool>(regs.color_blend_enabled[i]);
+        if (regs.independent_blend_enabled) {
+            const auto& blend_state = regs.independent_blend_state[i];
+            color_target.rgb_op = blend_state.rgb_op;
+            color_target.src_rgb_factor = blend_state.src_rgb_factor;
+            color_target.dst_rgb_factor = blend_state.dst_rgb_factor;
+            color_target.alpha_op = blend_state.alpha_op;
+            color_target.src_alpha_factor = blend_state.src_alpha_factor;
+            color_target.dst_alpha_factor = blend_state.dst_alpha_factor;
+        } else {
+            const auto& blend_state = regs.blend_state;
+            color_target.rgb_op = blend_state.rgb_op;
+            color_target.src_rgb_factor = blend_state.src_rgb_factor;
+            color_target.dst_rgb_factor = blend_state.dst_rgb_factor;
+            color_target.alpha_op = blend_state.alpha_op;
+            color_target.src_alpha_factor = blend_state.src_alpha_factor;
+            color_target.dst_alpha_factor = blend_state.dst_alpha_factor;
+        }
     }
 
     return RENDERER->GetPipelineCache().Find(descriptor);
