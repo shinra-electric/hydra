@@ -63,6 +63,9 @@ i32 DisplayBinder::ConsumeBuffer() {
     buffers[slot].queued = false;
     queue_cv.notify_all();
 
+    // Signal event
+    event.handle->Signal();
+
     return slot;
 }
 
