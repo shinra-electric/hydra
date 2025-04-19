@@ -32,8 +32,8 @@ class LangBuilderBase : public BuilderBase {
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst, u32 const_buffer_index, reg_t coords_x,
-                         reg_t coords_y) override;
+    void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
+                         reg_t coords_x, reg_t coords_y) override;
 
   protected:
     virtual void InitializeResourceMapping() = 0;

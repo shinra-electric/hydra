@@ -371,18 +371,19 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xd200000000000000, 0xf600000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tlds");
     INST(0xd000000000000000, 0xf600000000000000) {
-        const auto todo1 = GET_REG(28);
-        const auto dst = GET_REG(0);
-        // TODO: are the coords correct?
+        // TODO: is the dst correct?
+        const auto dst1 = GET_REG(28);
+        const auto dst0 = GET_REG(0);
         const auto coords_x = GET_REG(8);
         const auto coords_y = GET_REG(20);
         const auto const_buffer_index = GET_VALUE_U32(36, 13);
         // TODO: texture type
         // TODO: component swizzle?
-        LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", todo1, dst,
+        LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", dst1, dst0,
                   coords_x, coords_y, const_buffer_index);
 
-        observer->OpTextureSample(dst, const_buffer_index, coords_x, coords_y);
+        observer->OpTextureSample(dst0, dst1, const_buffer_index, coords_x,
+                                  coords_y);
     }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");
