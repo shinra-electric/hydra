@@ -14,6 +14,7 @@ class IGeneralService : public ServiceBase {
   private:
     // Commands
     void CreateRequest(REQUEST_COMMAND_PARAMS);
+    void GetCurrentNetworkProfile(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Nifm
