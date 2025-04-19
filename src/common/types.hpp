@@ -24,6 +24,8 @@ using uptr = uintptr_t;
 using f32 = float;
 using f64 = double;
 
+using bool32 = u32;
+
 using paddr_t = uptr;
 using vaddr_t = uptr;
 using gpu_vaddr_t = uptr;

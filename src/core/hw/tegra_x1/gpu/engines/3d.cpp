@@ -409,8 +409,30 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
         descriptor.vertex_state.vertex_arrays[i] = {
             .enable = vertex_array.config.enable,
             .stride = vertex_array.config.stride,
-            .is_per_instance = regs.is_vertex_array_per_instance[i].enable,
+            .is_per_instance =
+                static_cast<bool>(regs.is_vertex_array_per_instance[i]),
             .divisor = vertex_array.divisor,
+        };
+    }
+
+    // Color targets
+    ASSERT_DEBUG(!regs.advanced_blend_enabled, Engines,
+                 "Advanced blending not implemented");
+
+    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        const auto& render_target = regs.color_targets[i];
+        const auto& independent_blend =
+            (regs.independent_blend_enabled ? regs.independent_blend_state[i]
+                                            : regs.blend_state);
+        descriptor.color_target_states[i] = {
+            .format = Renderer::to_texture_format(render_target.format),
+            .blend_enabled = static_cast<bool>(regs.color_blend_enabled[i]),
+            .rgb_op = independent_blend.rgb_op,
+            .src_rgb_factor = independent_blend.src_rgb_factor,
+            .dst_rgb_factor = independent_blend.dst_rgb_factor,
+            .alpha_op = independent_blend.alpha_op,
+            .src_alpha_factor = independent_blend.src_alpha_factor,
+            .dst_alpha_factor = independent_blend.dst_alpha_factor,
         };
     }
 

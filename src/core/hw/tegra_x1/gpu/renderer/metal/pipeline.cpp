@@ -68,9 +68,32 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         // vertex_array_descriptor->setStepRate(1);
     }
 
-    // HACK
-    pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(
-        MTL::PixelFormatBGRA8Unorm);
+    // Color targets
+    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        const auto& color_target_state = descriptor.color_target_states[i];
+        if (color_target_state.format == TextureFormat::Invalid)
+            continue;
+
+        auto color_attachment_descriptor =
+            pipeline_descriptor->colorAttachments()->object(i);
+        color_attachment_descriptor->setPixelFormat(
+            to_mtl_pixel_format(color_target_state.format));
+        if (color_target_state.blend_enabled) {
+            color_attachment_descriptor->setBlendingEnabled(true);
+            color_attachment_descriptor->setRgbBlendOperation(
+                to_mtl_blend_operation(color_target_state.rgb_op));
+            color_attachment_descriptor->setSourceRGBBlendFactor(
+                to_mtl_blend_factor(color_target_state.src_rgb_factor));
+            color_attachment_descriptor->setDestinationRGBBlendFactor(
+                to_mtl_blend_factor(color_target_state.dst_rgb_factor));
+            color_attachment_descriptor->setAlphaBlendOperation(
+                to_mtl_blend_operation(color_target_state.alpha_op));
+            color_attachment_descriptor->setSourceAlphaBlendFactor(
+                to_mtl_blend_factor(color_target_state.src_alpha_factor));
+            color_attachment_descriptor->setDestinationAlphaBlendFactor(
+                to_mtl_blend_factor(color_target_state.dst_alpha_factor));
+        }
+    }
 
     // Pipeline
     NS::Error* error;

@@ -10,7 +10,7 @@ namespace Hydra::Horizon::Services {
 
 void Session::Close() {
     // TODO: correct?
-    delete service;
+    // delete service;
     service = nullptr;
 }
 

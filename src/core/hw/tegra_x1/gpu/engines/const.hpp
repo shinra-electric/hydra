@@ -119,6 +119,36 @@ enum class DepthTestFunc : u32 {
     Always,
 };
 
+enum class BlendOperation : u32 {
+    Add = 1,
+    Sub = 2,
+    RevSub = 3,
+    Min = 4,
+    Max = 5,
+};
+
+enum class BlendFactor : u32 {
+    Zero = 1,
+    One = 2,
+    SrcColor = 3,
+    InvSrcColor = 4,
+    SrcAlpha = 5,
+    InvSrcAlpha = 6,
+    DstAlpha = 7,
+    InvDstAlpha = 8,
+    DstColor = 9,
+    InvDstColor = 10,
+    SrcAlphaSaturate = 11,
+    Src1Color = 16,
+    InvSrc1Color = 17,
+    Src1Alpha = 18,
+    InvSrc1Alpha = 19,
+    ConstColor = 1 | 0x20,
+    InvConstColor = 2 | 0x20,
+    ConstAlpha = 3 | 0x20,
+    InvConstAlpha = 4 | 0x20,
+};
+
 // Pitch - buffer, block linear - texture
 enum class MemoryLayout : u32 {
     BlockLinear,

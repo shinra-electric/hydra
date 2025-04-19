@@ -222,18 +222,6 @@ struct RenderPassDescriptor {
     RenderTargetDescriptor depth_stencil_target;
 };
 
-struct VertexArray {
-    bool enable;
-    u32 stride;
-    bool is_per_instance;
-    u32 divisor;
-};
-
-struct VertexState {
-    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
-    VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
-};
-
 enum class ShaderType {
     Vertex,
     Fragment,
@@ -261,10 +249,33 @@ struct ShaderDescriptor {
     ResourceMapping resource_mapping;
 };
 
+struct VertexArray {
+    bool enable;
+    u32 stride;
+    bool is_per_instance;
+    u32 divisor;
+};
+
+struct VertexState {
+    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
+};
+
+struct ColorTargetState {
+    TextureFormat format;
+    bool blend_enabled;
+    Engines::BlendOperation rgb_op;
+    Engines::BlendFactor src_rgb_factor;
+    Engines::BlendFactor dst_rgb_factor;
+    Engines::BlendOperation alpha_op;
+    Engines::BlendFactor src_alpha_factor;
+    Engines::BlendFactor dst_alpha_factor;
+};
+
 struct PipelineDescriptor {
     ShaderBase* shaders[usize(ShaderType::Count)];
     VertexState vertex_state;
-    // TODO: other stuff
+    ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

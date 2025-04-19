@@ -31,4 +31,9 @@ to_mtl_compare_func(Engines::DepthTestFunc depth_test_func);
 
 MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle);
 
+MTL::BlendOperation
+to_mtl_blend_operation(const Engines::BlendOperation blend_op);
+
+MTL::BlendFactor to_mtl_blend_factor(const Engines::BlendFactor blend_factor);
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal

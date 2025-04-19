@@ -672,4 +672,63 @@ MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle) {
     }
 }
 
+MTL::BlendOperation
+to_mtl_blend_operation(const Engines::BlendOperation blend_op) {
+    switch (blend_op) {
+    case Engines::BlendOperation::Add:
+        return MTL::BlendOperationAdd;
+    case Engines::BlendOperation::Sub:
+        return MTL::BlendOperationSubtract;
+    case Engines::BlendOperation::RevSub:
+        return MTL::BlendOperationReverseSubtract;
+    case Engines::BlendOperation::Min:
+        return MTL::BlendOperationMin;
+    case Engines::BlendOperation::Max:
+        return MTL::BlendOperationMax;
+    }
+}
+
+MTL::BlendFactor to_mtl_blend_factor(const Engines::BlendFactor blend_factor) {
+    switch (blend_factor) {
+    case Engines::BlendFactor::Zero:
+        return MTL::BlendFactorZero;
+    case Engines::BlendFactor::One:
+        return MTL::BlendFactorOne;
+    case Engines::BlendFactor::SrcColor:
+        return MTL::BlendFactorSourceColor;
+    case Engines::BlendFactor::InvSrcColor:
+        return MTL::BlendFactorOneMinusSourceColor;
+    case Engines::BlendFactor::SrcAlpha:
+        return MTL::BlendFactorSourceAlpha;
+    case Engines::BlendFactor::InvSrcAlpha:
+        return MTL::BlendFactorOneMinusSourceAlpha;
+    case Engines::BlendFactor::DstAlpha:
+        return MTL::BlendFactorDestinationAlpha;
+    case Engines::BlendFactor::InvDstAlpha:
+        return MTL::BlendFactorOneMinusDestinationAlpha;
+    case Engines::BlendFactor::DstColor:
+        return MTL::BlendFactorDestinationColor;
+    case Engines::BlendFactor::InvDstColor:
+        return MTL::BlendFactorOneMinusDestinationColor;
+    case Engines::BlendFactor::SrcAlphaSaturate:
+        return MTL::BlendFactorSourceAlphaSaturated;
+    case Engines::BlendFactor::Src1Color:
+        return MTL::BlendFactorSource1Color;
+    case Engines::BlendFactor::InvSrc1Color:
+        return MTL::BlendFactorOneMinusSource1Color;
+    case Engines::BlendFactor::Src1Alpha:
+        return MTL::BlendFactorSource1Alpha;
+    case Engines::BlendFactor::InvSrc1Alpha:
+        return MTL::BlendFactorOneMinusSource1Alpha;
+    case Engines::BlendFactor::ConstColor:
+        return MTL::BlendFactorBlendColor;
+    case Engines::BlendFactor::InvConstColor:
+        return MTL::BlendFactorOneMinusBlendColor;
+    case Engines::BlendFactor::ConstAlpha:
+        return MTL::BlendFactorBlendAlpha;
+    case Engines::BlendFactor::InvConstAlpha:
+        return MTL::BlendFactorOneMinusBlendAlpha;
+    }
+}
+
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
