@@ -47,8 +47,6 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
     : params{params_}, work_buffer_size{work_buffer_size_}, event(new Event()) {
-    // HACK
-    // event.handle->Signal();
 }
 
 void IAudioRenderer::RequestUpdate(REQUEST_COMMAND_PARAMS) {

@@ -23,7 +23,7 @@ void ISelfController::UnlockExit(REQUEST_COMMAND_PARAMS) {
 }
 
 void ISelfController::CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS) {
-    u32 binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder();
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // TODO: what display ID should be used?
     u64 layer_id =

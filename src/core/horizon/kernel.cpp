@@ -8,7 +8,6 @@
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
-#include <chrono>
 
 namespace Hydra::Horizon {
 
@@ -489,11 +488,12 @@ Result Kernel::svcClearEvent(handle_id_t event_handle_id) {
     LOG_DEBUG(HorizonKernel, "svcClearEvent called (event: 0x{:08x})",
               event_handle_id);
 
-    auto handle = dynamic_cast<Event*>(GetHandle(event_handle_id));
-    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+    auto event = dynamic_cast<Event*>(GetHandle(event_handle_id));
+    ASSERT_DEBUG(event, HorizonKernel, "Handle {} is not an event handle",
                  event_handle_id);
 
-    handle->Clear();
+    if (!event->Clear())
+        return MAKE_KERNEL_RESULT(Error::InvalidState); // TODO: correct?
 
     return RESULT_SUCCESS;
 }
@@ -557,8 +557,13 @@ Result Kernel::svcResetSignal(handle_id_t handle_id) {
     LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:x})",
               handle_id);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    // TODO: correct?
+    auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
+    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+                 handle_id);
+
+    if (!handle->Clear())
+        return MAKE_KERNEL_RESULT(Error::InvalidState);
 
     return RESULT_SUCCESS;
 }

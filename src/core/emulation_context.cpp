@@ -136,7 +136,7 @@ void EmulationContext::Present() {
         return;
 
     u32 binder_id = layer->GetBinderId();
-    auto& binder = os->GetDisplayBinderManager().GetBinder(binder_id);
+    auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
     i32 slot = binder.ConsumeBuffer();
     if (slot == -1)
         return;

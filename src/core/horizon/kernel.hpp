@@ -56,15 +56,23 @@ class KernelHandle {
 
 class Event : public KernelHandle {
   public:
+    Event(bool signaled_ = false) : signaled{signaled_} {}
+
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
         signaled = true;
         cv.notify_all();
     }
 
-    void Clear() {
-        std::unique_lock<std::mutex> lock(mutex);
-        signaled = false;
+    bool Clear() {
+        bool was_signaled;
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            was_signaled = signaled;
+            signaled = false;
+        }
+
+        return was_signaled;
     }
 
     void Wait(i64 timeout) {

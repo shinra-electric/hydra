@@ -5,6 +5,8 @@ add_library(hydra-core
     horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
+    horizon/display_driver.cpp
+    horizon/display_driver.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/hipc.hpp
