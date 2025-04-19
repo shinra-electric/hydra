@@ -158,6 +158,7 @@ add_library(hydra-core
     horizon/services/apm/session.hpp
     horizon/services/socket/client.cpp
     horizon/services/socket/client.hpp
+    horizon/services/audio/const.hpp
     horizon/services/audio/audio_out.cpp
     horizon/services/audio/audio_out.hpp
     horizon/services/audio/audio_out_manager.cpp

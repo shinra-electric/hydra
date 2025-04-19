@@ -37,7 +37,9 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Pl::SharedResource::LoadState,
 namespace Hydra::Horizon::Services::Pl::SharedResource {
 
 DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
-                             GetLoadState, 4, GetSharedMemoryNativeHandle)
+                             GetLoadState, 2, GetSize, 3,
+                             GetSharedMemoryAddressOffset, 4,
+                             GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
     shared_memory_handle_id =

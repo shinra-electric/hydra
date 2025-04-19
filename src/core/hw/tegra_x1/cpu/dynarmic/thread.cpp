@@ -145,6 +145,13 @@ bool Thread::MemoryWriteExclusive128(u64 addr, DynA64::Vector value,
     return true;
 }
 
+void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
+    LogStackTrace();
+
+    // TODO: handle the exception
+    LOG_ERROR(Dynarmic, "Exception");
+}
+
 u64 Thread::GetCNTPCT() {
     // TODO: use a cross-platform solution
     return mach_absolute_time();

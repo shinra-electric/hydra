@@ -76,9 +76,7 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
         svc_handler(this, svc);
     }
 
-    void ExceptionRaised(u64 pc, DynA64::Exception exception) override {
-        LOG_ERROR(Dynarmic, "Exception");
-    }
+    void ExceptionRaised(u64 pc, DynA64::Exception exception) override;
 
     u64 GetCNTPCT() override;
 

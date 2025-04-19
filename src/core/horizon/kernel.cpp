@@ -585,10 +585,10 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
     } else {
         handle_id_t handle_id = handle_ids[0];
         auto event = dynamic_cast<Event*>(GetHandle(handle_id));
-        ASSERT_DEBUG(event, HorizonKernel, "Handle {} is not an event handle",
-                     handle_id);
+        ASSERT_DEBUG(event, HorizonKernel,
+                     "Handle 0x{:x} is not an event handle", handle_id);
 
-        LOG_DEBUG(HorizonKernel, "Synchronizing with handle {}", handle_id);
+        LOG_DEBUG(HorizonKernel, "Synchronizing with handle 0x{:x}", handle_id);
 
         event->Wait(timeout);
     }

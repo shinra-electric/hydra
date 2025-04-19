@@ -81,6 +81,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define MOV_X0_XZR 0xd2800000
 #define NOP 0xd503201f
 
+    // Cave story+
     /*
     cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);

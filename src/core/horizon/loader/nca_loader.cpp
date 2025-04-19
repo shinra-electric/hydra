@@ -156,7 +156,8 @@ void load_section(FileReader& reader, const std::string& rom_filename,
         // Sonic Mania: 0x00068000
         // Shovel Knight: 0x00054000
         // Puyo Puyo Tetris: 0x00208000
-        reader.Seek(0x00208000);
+        // Cave Story+: 0x0004c000
+        reader.Seek(0x0004c000);
         auto romfs_reader = reader.CreateSubReader();
         const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
             FS_SD_MOUNT "/rom/romFS",
