@@ -142,8 +142,11 @@ void EmulationContext::Present() {
         return;
     const auto& buffer = binder.GetBuffer(slot);
 
+    auto renderer = gpu->GetRenderer();
+    renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer);
-    gpu->GetRenderer()->Present(texture);
+    renderer->Present(texture);
+    renderer->UnlockMutex();
 }
 
 } // namespace Hydra

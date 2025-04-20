@@ -14,7 +14,7 @@ class Texture final : public TextureBase {
     TextureBase* CreateView(const TextureViewDescriptor& descriptor) override;
 
     // Copying
-    void CopyFrom(const void* data) override;
+    void CopyFrom(const uptr data) override;
     void CopyFrom(const BufferBase* src, const usize src_stride,
                   const u32 dst_layer, const uint3 dst_origin,
                   const usize3 size) override;

@@ -44,12 +44,22 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
     return new Texture(desc, mtl_view);
 }
 
-void Texture::CopyFrom(const void* data) {
-    // TODO: do a GPU copy
+void Texture::CopyFrom(const uptr data) {
+    usize size = descriptor.stride * descriptor.height * 1;
+
+    // TODO: get the buffer from a buffer allocator instead
+    auto tmp_buffer = Renderer::GetInstance().GetDevice()->newBuffer(
+        size, MTL::ResourceStorageModeShared);
+    memcpy(tmp_buffer->contents(), reinterpret_cast<void*>(data), size);
+
+    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+
     // TODO: bytes per image
-    mtl_texture->replaceRegion(
-        MTL::Region{0, 0, 0, mtl_texture->width(), mtl_texture->height(), 1}, 0,
-        0, data, GetDescriptor().stride, 0);
+    encoder->copyFromBuffer(tmp_buffer, 0, descriptor.stride, 0,
+                            MTL::Size(descriptor.width, descriptor.height, 1),
+                            mtl_texture, 0, 0, MTL::Origin(0, 0, 0));
+
+    tmp_buffer->release();
 }
 
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,

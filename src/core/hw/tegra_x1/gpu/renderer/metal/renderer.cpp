@@ -120,9 +120,6 @@ void Renderer::Present(TextureBase* texture) {
     auto drawable = layer->nextDrawable();
     auto dst = drawable->texture();
 
-    // Command buffer
-    MTL::CommandBuffer* command_buffer = command_queue->commandBuffer();
-
     // Render pass
     auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
@@ -133,7 +130,7 @@ void Renderer::Present(TextureBase* texture) {
                                   // texture
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
-    auto encoder = command_buffer->renderCommandEncoder(render_pass_descriptor);
+    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
     render_pass_descriptor->release();
 
     // Draw
@@ -151,11 +148,10 @@ void Renderer::Present(TextureBase* texture) {
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
 
-    encoder->endEncoding();
+    EndEncoding();
 
     // Present
     command_buffer->presentDrawable(drawable);
-    command_buffer->commit();
 }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
@@ -180,34 +176,17 @@ TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
-void Renderer::BeginCommandBuffer() {
-#define CAPTURE 0
+void Renderer::EndCommandBuffer() {
+    CommitCommandBuffer();
 
-// Debug
+    // Debug
 #if CAPTURE
     static bool did_capture = false;
     if (!did_capture) {
         BeginCapture();
         did_capture = true;
     }
-#endif
 
-    ASSERT_DEBUG(!command_buffer, MetalRenderer,
-                 "Command buffer already started");
-    command_buffer = command_queue->commandBuffer();
-}
-
-void Renderer::EndCommandBuffer() {
-    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
-
-    EndEncoding();
-
-    command_buffer->commit();
-    command_buffer->release(); // TODO: release?
-    command_buffer = nullptr;
-
-    // Debug
-#if CAPTURE
     static u32 frames = 0;
     if (capturing) {
         if (frames >= 1)
@@ -373,8 +352,7 @@ MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
 
 MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
     MTL::RenderPassDescriptor* render_pass_descriptor) {
-    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
-
+    EnsureCommandBuffer();
     EndEncoding();
 
     command_encoder =
@@ -389,8 +367,7 @@ MTL::BlitCommandEncoder* Renderer::GetBlitCommandEncoder() {
     if (encoder_type == EncoderType::Blit)
         return GetBlitCommandEncoderUnchecked();
 
-    ASSERT_DEBUG(command_buffer, MetalRenderer, "Command buffer not started");
-
+    EnsureCommandBuffer();
     EndEncoding();
 
     command_encoder = command_buffer->blitCommandEncoder();
