@@ -13,11 +13,15 @@ HostFile::~HostFile() {
 }
 
 usize HostFile::GetSize() {
-    ASSERT_DEBUG(stream, HorizonFilesystem, "File is not open");
-    stream->seekg(0, std::ios::end);
-    auto size = stream->tellg();
+    usize file_size;
+    if (stream) {
+        stream->seekg(0, std::ios::end);
+        auto size = stream->tellg();
+    } else {
+        file_size = std::filesystem::file_size(host_path);
+    }
 
-    return std::min(static_cast<usize>(size) - offset, size_limit);
+    return std::min(static_cast<usize>(file_size) - offset, size_limit);
 }
 
 void HostFile::OpenImpl() {
