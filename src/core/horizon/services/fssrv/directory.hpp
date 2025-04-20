@@ -29,6 +29,8 @@ class IDirectory : public ServiceBase {
     Filesystem::Directory* directory;
     DirectoryFilterFlags filter_flags;
 
+    u32 entry_index{0};
+
     // Commands
     void Read(REQUEST_COMMAND_PARAMS);
 };

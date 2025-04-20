@@ -2,11 +2,6 @@
 
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
-#include "core/hw/tegra_x1/gpu/engines/2d.hpp"
-#include "core/hw/tegra_x1/gpu/engines/3d.hpp"
-#include "core/hw/tegra_x1/gpu/engines/compute.hpp"
-#include "core/hw/tegra_x1/gpu/engines/copy.hpp"
-#include "core/hw/tegra_x1/gpu/engines/inline.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
 namespace Hydra::HW::TegraX1::GPU {
@@ -52,19 +47,19 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
         Engines::EngineBase* engine = nullptr;
         switch (set_object_arg.class_id) {
         case 0xb197:
-            engine = new Engines::ThreeD();
+            engine = &three_d_engine;
             break;
         case 0xb1c0:
-            engine = new Engines::Compute();
+            engine = &compute_engine;
             break;
         case 0xa140:
-            engine = new Engines::Inline();
+            engine = &inline_engine;
             break;
         case 0x902d:
-            engine = new Engines::TwoD();
+            engine = &two_d_engine;
             break;
         case 0xb0b5:
-            engine = new Engines::Copy();
+            engine = &copy_engine;
             break;
         case 0xb06f:
             // TODO: implement

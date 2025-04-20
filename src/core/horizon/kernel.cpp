@@ -548,7 +548,8 @@ Result Kernel::svcCloseHandle(handle_id_t handle_id) {
     LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:x})",
               handle_id);
 
-    FreeHandle(handle_id);
+    // TODO: uncomment
+    // FreeHandle(handle_id);
 
     return RESULT_SUCCESS;
 }

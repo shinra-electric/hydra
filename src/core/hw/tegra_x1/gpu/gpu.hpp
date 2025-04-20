@@ -2,7 +2,11 @@
 
 #include "common/allocators/dynamic_pool.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
-#include "core/hw/tegra_x1/gpu/engines/engine_base.hpp"
+#include "core/hw/tegra_x1/gpu/engines/2d.hpp"
+#include "core/hw/tegra_x1/gpu/engines/3d.hpp"
+#include "core/hw/tegra_x1/gpu/engines/compute.hpp"
+#include "core/hw/tegra_x1/gpu/engines/copy.hpp"
+#include "core/hw/tegra_x1/gpu/engines/inline.hpp"
 #include "core/hw/tegra_x1/gpu/gpu_mmu.hpp"
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
@@ -127,6 +131,11 @@ class GPU {
     Pfifo pfifo;
 
     // Engines
+    Engines::ThreeD three_d_engine;
+    Engines::Compute compute_engine;
+    Engines::Inline inline_engine;
+    Engines::TwoD two_d_engine;
+    Engines::Copy copy_engine;
     Engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
 
     // Renderer

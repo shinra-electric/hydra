@@ -67,6 +67,9 @@ void IPlatformSharedResourceManager::GetSize(REQUEST_COMMAND_PARAMS) {
     const auto font_type = readers.reader.Read<SharedFontType>();
     LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
 
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    // HACK
     writers.writer.Write((u32)SHARED_MEMORY_SIZE);
 }
 
