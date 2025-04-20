@@ -11,7 +11,7 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     // If the formats match and swizzle is the default swizzle, return base
     if (descriptor.format == tex.base->GetDescriptor().format &&
         descriptor.swizzle_channels ==
-            get_texture_format_default_swizzle_channels(descriptor.format)) {
+            tex.base->GetDescriptor().swizzle_channels) {
         return tex.base;
     }
 

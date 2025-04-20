@@ -13,6 +13,8 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
         return SWIZZLE(R, G, B, A);
     case TextureFormat::R8Unorm:
         return SWIZZLE(R, Zero, Zero, OneFloat);
+    case TextureFormat::B5G6R5Unorm:
+        return SWIZZLE(R, G, B, OneFloat);
     default:
         LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
         return SWIZZLE(Zero, Zero, Zero, Zero);

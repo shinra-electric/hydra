@@ -146,6 +146,7 @@ void EmulationContext::Present() {
     renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer);
     renderer->Present(texture);
+    renderer->EndCommandBuffer();
     renderer->UnlockMutex();
 }
 
