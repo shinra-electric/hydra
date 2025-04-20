@@ -18,17 +18,29 @@ class InputManager {
                      HID::NpadAttributes attributes);
 
     // Events
+
+    // Npad
     void SetNpadButtons(HID::NpadIdType type, HID::NpadButtons buttons);
     void SetNpadAnalogStickStateL(HID::NpadIdType type,
                                   HID::AnalogStickState analog_stick);
     void SetNpadAnalogStickStateR(HID::NpadIdType type,
                                   HID::AnalogStickState analog_stick);
 
+    // Touch
+    void UpdateTouchStates();
+    u32 BeginTouch();
+    void SetTouchState(HID::TouchState state);
+    void EndTouch(u32 finger_id);
+
     // Getters
     const handle_id_t GetSharedMemoryId() const { return shared_memory_id; }
 
   private:
     handle_id_t shared_memory_id;
+
+    // State
+    usize touch_count{0};
+    u16 available_finger_mask{0xffff};
 
     // Helpers
     HID::SharedMemory* GetHidSharedMemory() const;

@@ -576,7 +576,7 @@ struct DebugPadSharedMemoryFormat {
 
 struct TouchState {
     u64 delta_time;
-    u32 attributes;
+    u32 attributes; // TODO: enum flags?
     u32 finger_id;
     u32 x;
     u32 y;
@@ -1145,7 +1145,7 @@ struct ConsoleSixAxisSensor {
 
 struct SharedMemory {
     DebugPadSharedMemoryFormat debug_pad;
-    TouchScreenSharedMemoryFormat touchscreen;
+    TouchScreenSharedMemoryFormat touch_screen;
     MouseSharedMemoryFormat mouse;
     KeyboardSharedMemoryFormat keyboard;
     union {
