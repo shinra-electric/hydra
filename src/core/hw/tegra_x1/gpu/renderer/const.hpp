@@ -157,6 +157,36 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
+enum class BlendOperation {
+    Add = 1,
+    Sub = 2,
+    RevSub = 3,
+    Min = 4,
+    Max = 5,
+};
+
+enum class BlendFactor {
+    Zero = 1,
+    One = 2,
+    SrcColor = 3,
+    InvSrcColor = 4,
+    SrcAlpha = 5,
+    InvSrcAlpha = 6,
+    DstAlpha = 7,
+    InvDstAlpha = 8,
+    DstColor = 9,
+    InvDstColor = 10,
+    SrcAlphaSaturate = 11,
+    Src1Color = 16,
+    InvSrc1Color = 17,
+    Src1Alpha = 18,
+    InvSrc1Alpha = 19,
+    ConstColor = 20,
+    InvConstColor = 21,
+    ConstAlpha = 22,
+    InvConstAlpha = 23,
+};
+
 struct BufferDescriptor {
     uptr ptr;
     usize size;
@@ -264,12 +294,12 @@ struct VertexState {
 struct ColorTargetState {
     TextureFormat format;
     bool blend_enabled;
-    Engines::BlendOperation rgb_op;
-    Engines::BlendFactor src_rgb_factor;
-    Engines::BlendFactor dst_rgb_factor;
-    Engines::BlendOperation alpha_op;
-    Engines::BlendFactor src_alpha_factor;
-    Engines::BlendFactor dst_alpha_factor;
+    BlendOperation rgb_op;
+    BlendFactor src_rgb_factor;
+    BlendFactor dst_rgb_factor;
+    BlendOperation alpha_op;
+    BlendFactor src_alpha_factor;
+    BlendFactor dst_alpha_factor;
 };
 
 struct PipelineDescriptor {

@@ -288,13 +288,13 @@ struct Regs3D {
     // 0x4cf
     struct {
         u32 separate_for_alpha; // TODO: is this a bitfield or something?
-        BlendOperation rgb_op;
-        BlendFactor src_rgb_factor;
-        BlendFactor dst_rgb_factor;
-        BlendOperation alpha_op;
-        BlendFactor src_alpha_factor;
+        u32 rgb_op;
+        u32 src_rgb_factor;
+        u32 dst_rgb_factor;
+        u32 alpha_op;
+        u32 src_alpha_factor;
         u32 global_color_key; // TODO: what is this?
-        BlendFactor dst_alpha_factor;
+        u32 dst_alpha_factor;
     } blend_state;
     u32 single_rop_control;
     u32 color_blend_enabled[COLOR_TARGET_COUNT];
@@ -366,12 +366,12 @@ struct Regs3D {
     // 0x780
     struct {
         u32 unknown; // TODO: is this just padding?
-        BlendOperation rgb_op;
-        BlendFactor src_rgb_factor;
-        BlendFactor dst_rgb_factor;
-        BlendOperation alpha_op;
-        BlendFactor src_alpha_factor;
-        BlendFactor dst_alpha_factor;
+        u32 rgb_op;
+        u32 src_rgb_factor;
+        u32 dst_rgb_factor;
+        u32 alpha_op;
+        u32 src_alpha_factor;
+        u32 dst_alpha_factor;
         u32 padding;
     } independent_blend_state[COLOR_TARGET_COUNT];
 

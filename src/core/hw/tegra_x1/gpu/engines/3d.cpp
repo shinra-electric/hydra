@@ -14,6 +14,84 @@ namespace {
 u32 get_image_handle(u32 handle) { return extract_bits<u32, 0, 20>(handle); }
 u32 get_sampler_handle(u32 handle) { return extract_bits<u32, 20, 12>(handle); }
 
+constexpr u32 GL_MIN = 0x8007;
+constexpr u32 GL_MAX = 0x8008;
+constexpr u32 GL_FUNC_ADD = 0x8006;
+constexpr u32 GL_FUNC_SUBTRACT = 0x800A;
+constexpr u32 GL_FUNC_REVERSE_SUBTRACT = 0x800B;
+
+Renderer::BlendOperation get_blend_operation(u32 blend_op) {
+    // TODO: D3D11?
+    if (true) {
+        switch (blend_op) {
+        case GL_MIN:
+            return Renderer::BlendOperation::Min;
+        case GL_MAX:
+            return Renderer::BlendOperation::Max;
+        case GL_FUNC_ADD:
+            return Renderer::BlendOperation::Add;
+        case GL_FUNC_SUBTRACT:
+            return Renderer::BlendOperation::Sub;
+        case GL_FUNC_REVERSE_SUBTRACT:
+            return Renderer::BlendOperation::RevSub;
+        default:
+            LOG_ERROR(Engines, "Unknown GL blend operation 0x{:04x}", blend_op);
+        }
+    } else {
+        LOG_ERROR(Engines, "D3D11 blend operation values not implemented");
+    }
+}
+
+constexpr u32 GL_ZERO = 0;
+constexpr u32 GL_ONE = 1;
+constexpr u32 GL_SRC_COLOR = 0x0300;
+constexpr u32 GL_ONE_MINUS_SRC_COLOR = 0x0301;
+constexpr u32 GL_SRC_ALPHA = 0x0302;
+constexpr u32 GL_ONE_MINUS_SRC_ALPHA = 0x0303;
+constexpr u32 GL_DST_ALPHA = 0x0304;
+constexpr u32 GL_ONE_MINUS_DST_ALPHA = 0x0305;
+constexpr u32 GL_DST_COLOR = 0x0306;
+constexpr u32 GL_ONE_MINUS_DST_COLOR = 0x0307;
+constexpr u32 GL_SRC_ALPHA_SATURATE = 0x0308;
+// TODO: more
+
+constexpr u32 GL_BLEND_FACTOR_BIT = 0x4000;
+
+Renderer::BlendFactor get_blend_factor(u32 blend_factor) {
+    if (blend_factor & GL_BLEND_FACTOR_BIT) { // GL
+        u32 gl_blend_factor = blend_factor & ~GL_BLEND_FACTOR_BIT;
+        switch (gl_blend_factor) {
+        case GL_ZERO:
+            return Renderer::BlendFactor::Zero;
+        case GL_ONE:
+            return Renderer::BlendFactor::One;
+        case GL_SRC_COLOR:
+            return Renderer::BlendFactor::SrcColor;
+        case GL_ONE_MINUS_SRC_COLOR:
+            return Renderer::BlendFactor::InvSrcColor;
+        case GL_SRC_ALPHA:
+            return Renderer::BlendFactor::SrcAlpha;
+        case GL_ONE_MINUS_SRC_ALPHA:
+            return Renderer::BlendFactor::InvSrcAlpha;
+        case GL_DST_ALPHA:
+            return Renderer::BlendFactor::DstAlpha;
+        case GL_ONE_MINUS_DST_ALPHA:
+            return Renderer::BlendFactor::InvDstAlpha;
+        case GL_DST_COLOR:
+            return Renderer::BlendFactor::DstColor;
+        case GL_ONE_MINUS_DST_COLOR:
+            return Renderer::BlendFactor::InvDstColor;
+        case GL_SRC_ALPHA_SATURATE:
+            return Renderer::BlendFactor::SrcAlphaSaturate;
+        default:
+            LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
+                      gl_blend_factor);
+        }
+    } else { // D3D11
+        LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
+    }
+}
+
 } // namespace
 
 DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
@@ -425,22 +503,34 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
             Renderer::to_texture_format(regs.color_targets[i].format);
         color_target.blend_enabled =
             static_cast<bool>(regs.color_blend_enabled[i]);
-        if (regs.independent_blend_enabled) {
-            const auto& blend_state = regs.independent_blend_state[i];
-            color_target.rgb_op = blend_state.rgb_op;
-            color_target.src_rgb_factor = blend_state.src_rgb_factor;
-            color_target.dst_rgb_factor = blend_state.dst_rgb_factor;
-            color_target.alpha_op = blend_state.alpha_op;
-            color_target.src_alpha_factor = blend_state.src_alpha_factor;
-            color_target.dst_alpha_factor = blend_state.dst_alpha_factor;
-        } else {
-            const auto& blend_state = regs.blend_state;
-            color_target.rgb_op = blend_state.rgb_op;
-            color_target.src_rgb_factor = blend_state.src_rgb_factor;
-            color_target.dst_rgb_factor = blend_state.dst_rgb_factor;
-            color_target.alpha_op = blend_state.alpha_op;
-            color_target.src_alpha_factor = blend_state.src_alpha_factor;
-            color_target.dst_alpha_factor = blend_state.dst_alpha_factor;
+        if (color_target.blend_enabled) {
+            if (regs.independent_blend_enabled) {
+                const auto& blend_state = regs.independent_blend_state[i];
+                color_target.rgb_op = get_blend_operation(blend_state.rgb_op);
+                color_target.src_rgb_factor =
+                    get_blend_factor(blend_state.src_rgb_factor);
+                color_target.dst_rgb_factor =
+                    get_blend_factor(blend_state.dst_rgb_factor);
+                color_target.alpha_op =
+                    get_blend_operation(blend_state.alpha_op);
+                color_target.src_alpha_factor =
+                    get_blend_factor(blend_state.src_alpha_factor);
+                color_target.dst_alpha_factor =
+                    get_blend_factor(blend_state.dst_alpha_factor);
+            } else {
+                const auto& blend_state = regs.blend_state;
+                color_target.rgb_op = get_blend_operation(blend_state.rgb_op);
+                color_target.src_rgb_factor =
+                    get_blend_factor(blend_state.src_rgb_factor);
+                color_target.dst_rgb_factor =
+                    get_blend_factor(blend_state.dst_rgb_factor);
+                color_target.alpha_op =
+                    get_blend_operation(blend_state.alpha_op);
+                color_target.src_alpha_factor =
+                    get_blend_factor(blend_state.src_alpha_factor);
+                color_target.dst_alpha_factor =
+                    get_blend_factor(blend_state.dst_alpha_factor);
+            }
         }
     }
 

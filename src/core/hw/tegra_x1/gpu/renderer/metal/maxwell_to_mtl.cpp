@@ -672,61 +672,60 @@ MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle) {
     }
 }
 
-MTL::BlendOperation
-to_mtl_blend_operation(const Engines::BlendOperation blend_op) {
+MTL::BlendOperation to_mtl_blend_operation(const BlendOperation blend_op) {
     switch (blend_op) {
-    case Engines::BlendOperation::Add:
+    case BlendOperation::Add:
         return MTL::BlendOperationAdd;
-    case Engines::BlendOperation::Sub:
+    case BlendOperation::Sub:
         return MTL::BlendOperationSubtract;
-    case Engines::BlendOperation::RevSub:
+    case BlendOperation::RevSub:
         return MTL::BlendOperationReverseSubtract;
-    case Engines::BlendOperation::Min:
+    case BlendOperation::Min:
         return MTL::BlendOperationMin;
-    case Engines::BlendOperation::Max:
+    case BlendOperation::Max:
         return MTL::BlendOperationMax;
     }
 }
 
-MTL::BlendFactor to_mtl_blend_factor(const Engines::BlendFactor blend_factor) {
+MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor) {
     switch (blend_factor) {
-    case Engines::BlendFactor::Zero:
+    case BlendFactor::Zero:
         return MTL::BlendFactorZero;
-    case Engines::BlendFactor::One:
+    case BlendFactor::One:
         return MTL::BlendFactorOne;
-    case Engines::BlendFactor::SrcColor:
+    case BlendFactor::SrcColor:
         return MTL::BlendFactorSourceColor;
-    case Engines::BlendFactor::InvSrcColor:
+    case BlendFactor::InvSrcColor:
         return MTL::BlendFactorOneMinusSourceColor;
-    case Engines::BlendFactor::SrcAlpha:
+    case BlendFactor::SrcAlpha:
         return MTL::BlendFactorSourceAlpha;
-    case Engines::BlendFactor::InvSrcAlpha:
+    case BlendFactor::InvSrcAlpha:
         return MTL::BlendFactorOneMinusSourceAlpha;
-    case Engines::BlendFactor::DstAlpha:
+    case BlendFactor::DstAlpha:
         return MTL::BlendFactorDestinationAlpha;
-    case Engines::BlendFactor::InvDstAlpha:
+    case BlendFactor::InvDstAlpha:
         return MTL::BlendFactorOneMinusDestinationAlpha;
-    case Engines::BlendFactor::DstColor:
+    case BlendFactor::DstColor:
         return MTL::BlendFactorDestinationColor;
-    case Engines::BlendFactor::InvDstColor:
+    case BlendFactor::InvDstColor:
         return MTL::BlendFactorOneMinusDestinationColor;
-    case Engines::BlendFactor::SrcAlphaSaturate:
+    case BlendFactor::SrcAlphaSaturate:
         return MTL::BlendFactorSourceAlphaSaturated;
-    case Engines::BlendFactor::Src1Color:
+    case BlendFactor::Src1Color:
         return MTL::BlendFactorSource1Color;
-    case Engines::BlendFactor::InvSrc1Color:
+    case BlendFactor::InvSrc1Color:
         return MTL::BlendFactorOneMinusSource1Color;
-    case Engines::BlendFactor::Src1Alpha:
+    case BlendFactor::Src1Alpha:
         return MTL::BlendFactorSource1Alpha;
-    case Engines::BlendFactor::InvSrc1Alpha:
+    case BlendFactor::InvSrc1Alpha:
         return MTL::BlendFactorOneMinusSource1Alpha;
-    case Engines::BlendFactor::ConstColor:
+    case BlendFactor::ConstColor:
         return MTL::BlendFactorBlendColor;
-    case Engines::BlendFactor::InvConstColor:
+    case BlendFactor::InvConstColor:
         return MTL::BlendFactorOneMinusBlendColor;
-    case Engines::BlendFactor::ConstAlpha:
+    case BlendFactor::ConstAlpha:
         return MTL::BlendFactorBlendAlpha;
-    case Engines::BlendFactor::InvConstAlpha:
+    case BlendFactor::InvConstAlpha:
         return MTL::BlendFactorOneMinusBlendAlpha;
     }
 }
