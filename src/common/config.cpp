@@ -101,6 +101,7 @@ Config::Config() {
     // LOG_INFO(Other, "Root directories: [{}]", fmt::join(root_directories, ",
     // "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
+    LOG_INFO(Other, "Debug logging: {}", debug_logging);
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
@@ -109,6 +110,7 @@ void Config::LoadDefaults() {
     game_directories = {};
     root_paths = {};
     cpu_backend = CpuBackend::Dynarmic;
+    debug_logging = true;
 
     changed = true;
 }
@@ -143,6 +145,11 @@ void Config::Serialize() {
             cpu["backend"] = cpu_backend;
         }
 
+        {
+            auto& debug = data.at("Debug");
+            debug["debug_logging"] = debug_logging;
+        }
+
         config_file << toml::format(data);
         config_file.close();
     } else {
@@ -164,6 +171,10 @@ void Config::Deserialize() {
         const auto& cpu = data.at("CPU");
         cpu_backend =
             toml::find_or<CpuBackend>(cpu, "backend", CpuBackend::Dynarmic);
+    }
+    if (data.contains("Debug")) {
+        const auto& debug = data.at("Debug");
+        debug_logging = toml::find_or<bool>(debug, "debug_logging", true);
     }
 
     // Validate

@@ -45,6 +45,8 @@ class Config {
 
     CpuBackend GetCpuBackend() const { return cpu_backend; }
 
+    bool IsDebugLoggingEnabled() const { return debug_logging; }
+
     // Setters
 #define SET_CONFIG_VALUE(name)                                                 \
     if (name##_ != name) {                                                     \
@@ -67,6 +69,10 @@ class Config {
         SET_CONFIG_VALUE(cpu_backend);
     }
 
+    void SetDebugLogging(bool debug_logging_) {
+        SET_CONFIG_VALUE(debug_logging);
+    }
+
 #undef SET_CONFIG_VALUE
 
   private:
@@ -78,6 +84,7 @@ class Config {
     std::vector<std::string> game_directories;
     std::vector<RootPath> root_paths;
     CpuBackend cpu_backend;
+    bool debug_logging;
 };
 
 } // namespace Hydra
