@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/allocators/static_pool.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
-#include "core/horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
 
@@ -12,7 +12,7 @@ class FdBase;
 
 constexpr usize MAX_FD_COUNT = 256;
 
-class INvDrvServices : public ServiceBase {
+class INvDrvServices : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(INvDrvServices)
 

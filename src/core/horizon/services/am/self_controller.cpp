@@ -27,7 +27,8 @@ void ISelfController::CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS) {
 
     // TODO: what display ID should be used?
     u64 layer_id =
-        Kernel::GetInstance().GetBus().GetDisplay(0)->CreateLayer(binder_id);
+        Kernel::Kernel::GetInstance().GetBus().GetDisplay(0)->CreateLayer(
+            binder_id);
 
     writers.writer.Write(layer_id);
 }

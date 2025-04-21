@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Lm {
 
@@ -20,7 +20,7 @@ struct Packet {
 
 } // namespace
 
-class ILogger : public ServiceBase {
+class ILogger : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ILogger)
 

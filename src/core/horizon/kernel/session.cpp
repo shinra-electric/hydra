@@ -1,12 +1,10 @@
-#include "core/horizon/services/session.hpp"
+#include "core/horizon/kernel/session.hpp"
 
-#include "core/horizon/cmif.hpp"
-#include "core/horizon/const.hpp"
-#include "core/horizon/kernel.hpp"
-#include "core/horizon/services/domain_service.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/horizon/kernel/cmif.hpp"
+#include "core/horizon/kernel/domain_service.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
 void Session::Close() {
     // TODO: correct?
@@ -18,7 +16,7 @@ void Session::Request(REQUEST_PARAMS) {
     service->Request(readers, writers, add_service);
 }
 
-void Session::Control(Readers& readers, Writers& writers) {
+void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* result = Cmif::write_out_header(writers.writer);
@@ -40,7 +38,7 @@ void Session::Control(Readers& readers, Writers& writers) {
     }
     case Cmif::ControlCommandType::CloneCurrentObject: { // clone current object
         auto clone = new Session(service);
-        handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = Kernel::Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
@@ -52,7 +50,7 @@ void Session::Control(Readers& readers, Writers& writers) {
     case Cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = new Session(service);
-        handle_id_t handle_id = Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = Kernel::Kernel::GetInstance().AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
@@ -63,4 +61,4 @@ void Session::Control(Readers& readers, Writers& writers) {
     }
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

@@ -1,16 +1,16 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
-class Session : public KernelHandle {
+class Session : public Handle {
   public:
     Session(ServiceBase* service_) : service{service_} {}
 
     void Close();
     void Request(REQUEST_PARAMS);
-    void Control(Readers& readers, Writers& writers);
+    void Control(Hipc::Readers& readers, Hipc::Writers& writers);
 
     // Getters
     // Handle GetHandle() const { return handle; }
@@ -24,4 +24,4 @@ class Session : public KernelHandle {
     handle_id_t handle_id{invalid<handle_id_t>()};
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

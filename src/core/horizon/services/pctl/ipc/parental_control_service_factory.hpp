@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Pctl::Ipc {
 
-class IParentalControlServiceFactory : public ServiceBase {
+class IParentalControlServiceFactory : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IParentalControlServiceFactory)
 

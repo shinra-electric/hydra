@@ -1,8 +1,12 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 #include "core/horizon/services/fssrv/const.hpp"
+
+namespace Hydra::Horizon::Filesystem {
+class Directory;
+}
 
 namespace Hydra::Horizon::Services::Fssrv {
 
@@ -14,7 +18,7 @@ enum class DirectoryFilterFlags {
 
 ENABLE_ENUM_BITMASK_OPERATORS(DirectoryFilterFlags)
 
-class IDirectory : public ServiceBase {
+class IDirectory : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IDirectory)
 

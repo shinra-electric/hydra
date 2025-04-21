@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-class DisplayServiceBase : public ServiceBase {
+class DisplayServiceBase : public Kernel::ServiceBase {
   protected:
     // Commands
     void CreateStrayLayer(REQUEST_COMMAND_PARAMS);

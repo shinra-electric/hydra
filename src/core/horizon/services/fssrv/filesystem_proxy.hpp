@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-class IFileSystemProxy : public ServiceBase {
+class IFileSystemProxy : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFileSystemProxy)
 

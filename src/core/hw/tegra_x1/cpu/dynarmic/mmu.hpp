@@ -14,7 +14,7 @@ class MMU : public MMUBase {
     uptr GetMemoryPtr(MemoryBase* memory) const override;
 
     void Map(vaddr_t va, usize size, MemoryBase* memory,
-             const Horizon::MemoryState state) override;
+             const Horizon::Kernel::MemoryState state) override;
     void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
     void Unmap(vaddr_t va, usize size) override;
 
@@ -25,8 +25,9 @@ class MMU : public MMUBase {
 
   private:
     uptr pages[128u * 1024u * 1024u] = {0x0};
-    Horizon::MemoryState states[128u * 1024u * 1024u] = {
-        {.type = Horizon::MemoryType::Free}}; // TODO: handle this differently
+    Horizon::Kernel::MemoryState states[128u * 1024u * 1024u] = {
+        {.type = Horizon::Kernel::MemoryType::Free}}; // TODO: handle this
+                                                      // differently
 };
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic

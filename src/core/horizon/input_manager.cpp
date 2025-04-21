@@ -1,7 +1,7 @@
 #include "core/horizon/input_manager.hpp"
 
 #include "core/horizon/hid.hpp"
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 #define GET_LIFO(lifo_name)                                                    \
     auto& lifo = GetHidSharedMemory()->lifo_name;                              \
@@ -23,7 +23,8 @@ constexpr usize MAX_FINGER_COUNT = 10;
 }
 
 InputManager::InputManager() {
-    shared_memory_id = Kernel::GetInstance().CreateSharedMemory(0x40000);
+    shared_memory_id = Kernel::Kernel::GetInstance().AddHandle(
+        new Kernel::SharedMemory(0x40000));
 }
 
 #define UPDATE_NPAD_LIFO(type, style_lower)                                    \
@@ -72,8 +73,10 @@ void InputManager::SetNpadAnalogStickStateR(
 }
 
 HID::SharedMemory* InputManager::GetHidSharedMemory() const {
-    return reinterpret_cast<HID::SharedMemory*>(
-        Kernel::GetInstance().GetSharedMemory(shared_memory_id).GetPtr());
+    auto shared_mem = dynamic_cast<Kernel::SharedMemory*>(
+        Kernel::Kernel::GetInstance().GetHandle(shared_memory_id));
+    ASSERT_DEBUG(shared_mem, Horizon, "Failed to get shared memory");
+    return reinterpret_cast<HID::SharedMemory*>(shared_mem->GetPtr());
 }
 
 void InputManager::UpdateTouchStates() {

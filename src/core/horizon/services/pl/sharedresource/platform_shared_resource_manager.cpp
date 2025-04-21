@@ -1,5 +1,7 @@
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 
+#include "core/horizon/kernel/kernel.hpp"
+
 namespace Hydra::Horizon::Services::Pl::SharedResource {
 
 namespace {
@@ -42,8 +44,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle_id =
-        Kernel::GetInstance().CreateSharedMemory(SHARED_MEMORY_SIZE);
+    shared_memory_handle_id = Kernel::Kernel::GetInstance().AddHandle(
+        new Kernel::SharedMemory(SHARED_MEMORY_SIZE));
 }
 
 void IPlatformSharedResourceManager::RequestLoad(REQUEST_COMMAND_PARAMS) {

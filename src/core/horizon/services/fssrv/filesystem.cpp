@@ -2,6 +2,7 @@
 
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 

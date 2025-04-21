@@ -1,5 +1,6 @@
 #include "core/horizon/services/fssrv/directory.hpp"
 
+#include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {

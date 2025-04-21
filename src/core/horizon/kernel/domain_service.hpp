@@ -2,9 +2,9 @@
 
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/macros.hpp"
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
 class DomainService : public ServiceBase {
   public:
@@ -19,8 +19,11 @@ class DomainService : public ServiceBase {
         return handle_id;
     }
 
+  protected:
+    void RequestImpl(REQUEST_IMPL_PARAMS) override { unreachable(); }
+
   private:
     Allocators::DynamicPool<ServiceBase*> object_pool;
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

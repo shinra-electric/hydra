@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
 namespace Hydra::Horizon {
@@ -40,7 +40,7 @@ struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    DisplayBinder() : event(new Event(true)) {}
+    DisplayBinder() : event(new Kernel::Event(true)) {}
 
     void AddBuffer(i32 slot, HW::TegraX1::GPU::NvGraphicsBuffer buff);
     i32 GetAvailableSlot();
@@ -52,10 +52,12 @@ struct DisplayBinder {
         return buffers[slot].buff;
     }
 
-    const KernelHandleWithId<Event>& GetEvent() const { return event; }
+    const Kernel::HandleWithId<Kernel::Event>& GetEvent() const {
+        return event;
+    }
 
   private:
-    KernelHandleWithId<Event> event;
+    Kernel::HandleWithId<Kernel::Event> event;
 
     DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                                     // max number of buffers?

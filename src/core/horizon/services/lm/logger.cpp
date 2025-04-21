@@ -93,7 +93,8 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
         u32 key;
         u32 size;
         if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size)) {
-            result = MAKE_KERNEL_RESULT(Error::InvalidCombination); // TODO
+            result =
+                MAKE_KERNEL_RESULT(Kernel::Error::InvalidCombination); // TODO
             return;
         }
 

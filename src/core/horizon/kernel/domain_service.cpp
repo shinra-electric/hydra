@@ -1,9 +1,9 @@
-#include "core/horizon/services/domain_service.hpp"
+#include "core/horizon/kernel/domain_service.hpp"
 
-#include "core/horizon/cmif.hpp"
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/cmif.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
 void DomainService::Request(REQUEST_PARAMS) {
     LOG_DEBUG(HorizonServices, "Domain service request");
@@ -34,4 +34,4 @@ void DomainService::Request(REQUEST_PARAMS) {
     }
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

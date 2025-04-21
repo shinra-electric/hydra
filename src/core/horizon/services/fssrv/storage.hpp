@@ -1,11 +1,15 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
+
+namespace Hydra::Horizon::Filesystem {
+class FileBase;
+}
 
 namespace Hydra::Horizon::Services::Fssrv {
 
 // TODO: does IStorage always need to be backed by a file?
-class IStorage : public ServiceBase {
+class IStorage : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStorage)
 

@@ -24,7 +24,7 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
 
     // Out
     CreateStrayLayerOut out{
-        .layer_id = Kernel::GetInstance()
+        .layer_id = Kernel::Kernel::GetInstance()
                         .GetBus()
                         .GetDisplay(in.display_id)
                         ->CreateLayer(binder_id),

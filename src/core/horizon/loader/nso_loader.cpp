@@ -1,7 +1,7 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
 #include "common/lz4.hpp"
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -102,8 +102,8 @@ void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
 
     // Create executable memory
     vaddr_t base;
-    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, MemoryPermission::ReadExecute, false, base);
+    auto ptr = Kernel::Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, Kernel::MemoryPermission::ReadExecute, false, base);
     LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}, size: 0x{:08x}", base,
               executable_size);
 
@@ -121,22 +121,22 @@ void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
 
     vaddr_t arg_data_base;
     // TODO: memory type
-    auto arg_data_ptr =
-        reinterpret_cast<ArgData*>(Kernel::GetInstance().CreateRomMemory(
-            ARG_DATA_SIZE, static_cast<MemoryType>(4),
-            MemoryPermission::ReadWrite, true, arg_data_base));
+    auto arg_data_ptr = reinterpret_cast<ArgData*>(
+        Kernel::Kernel::GetInstance().CreateRomMemory(
+            ARG_DATA_SIZE, static_cast<Kernel::MemoryType>(4),
+            Kernel::MemoryPermission::ReadWrite, true, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
     arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
 
     if (is_entry_point) {
         // Set entrypoint
-        Kernel::GetInstance().SetMainThreadEntryPoint(
+        Kernel::Kernel::GetInstance().SetMainThreadEntryPoint(
             base + header.text.memory_offset);
 
         // Args
-        Kernel::GetInstance().SetMainThreadArg(0, 0x0);
-        Kernel::GetInstance().SetMainThreadArg(
+        Kernel::Kernel::GetInstance().SetMainThreadArg(0, 0x0);
+        Kernel::Kernel::GetInstance().SetMainThreadArg(
             1, 0x0000000f); // TODO: what thread handle should be used?
     }
 

@@ -1,5 +1,7 @@
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 
+#include "core/horizon/filesystem/const.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 #include "core/horizon/services/fssrv/filesystem.hpp"
 
@@ -153,7 +155,7 @@ void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
-            title_id = Kernel::GetInstance().GetTitleId();
+            title_id = Kernel::Kernel::GetInstance().GetTitleId();
         mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
         root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
         break;
@@ -174,7 +176,7 @@ void IFileSystemProxy::OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
     case SaveDataType::Account: {
         u64 title_id = in.attr.title_id;
         if (title_id == 0x0)
-            title_id = Kernel::GetInstance().GetTitleId();
+            title_id = Kernel::Kernel::GetInstance().GetTitleId();
         mount = FS_SAVE_DATA_MOUNT(title_id, in.attr.account_uid);
         break;
     }

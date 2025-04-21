@@ -22,7 +22,7 @@ class OS {
     ~OS();
 
     // Getters
-    Kernel& GetKernel() { return kernel; }
+    Kernel::Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
     DisplayDriver& GetDisplayDriver() { return display_driver; }
     InputManager& GetInputManager() { return input_manager; }
@@ -35,7 +35,7 @@ class OS {
   private:
     HW::TegraX1::CPU::MMUBase* mmu;
 
-    Kernel kernel;
+    Kernel::Kernel kernel;
 
     // Services
     Services::Sm::IUserInterface* sm_user_interface;

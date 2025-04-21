@@ -1,6 +1,6 @@
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 

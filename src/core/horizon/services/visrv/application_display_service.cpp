@@ -1,9 +1,9 @@
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
-#include "core/horizon/services/service_base.hpp"
 #include "core/horizon/services/visrv/manager_display_service.hpp"
 #include "core/horizon/services/visrv/system_display_service.hpp"
 #include "core/hw/bus.hpp"
@@ -43,13 +43,13 @@ void IApplicationDisplayService::GetManagerDisplayService(
 
 void IApplicationDisplayService::OpenDisplay(REQUEST_COMMAND_PARAMS) {
     u64 display_id = 0; // TODO: get based on the name
-    Kernel::GetInstance().GetBus().GetDisplay(display_id)->Open();
+    Kernel::Kernel::GetInstance().GetBus().GetDisplay(display_id)->Open();
     writers.writer.Write(display_id);
 }
 
 void IApplicationDisplayService::CloseDisplay(REQUEST_COMMAND_PARAMS) {
     u64 display_id = readers.reader.Read<u64>();
-    Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
+    Kernel::Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
 }
 
 void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
@@ -57,7 +57,7 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
 
     u64 display_id = 0; // TODO: get based on the name
 
-    auto layer = Kernel::GetInstance()
+    auto layer = Kernel::Kernel::GetInstance()
                      .GetBus()
                      .GetDisplay(display_id)
                      ->GetLayer(in.layer_id);
@@ -94,7 +94,7 @@ void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
 
     u64 display_id = 0; // TODO: get from layer ID
 
-    Kernel::GetInstance()
+    Kernel::Kernel::GetInstance()
         .GetBus()
         .GetDisplay(display_id)
         ->GetLayer(layer_id)

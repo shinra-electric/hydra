@@ -11,6 +11,14 @@
 
 namespace Hydra {
 
+[[noreturn]] inline void unreachable() {
+#if defined(_MSC_VER) && !defined(__clang__) // MSVC
+    __assume(false);
+#else // GCC, Clang
+    __builtin_unreachable();
+#endif
+}
+
 template <typename T> constexpr T invalid() {
     return std::numeric_limits<T>::max();
 }

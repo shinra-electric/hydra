@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Hid {
 
-class IActiveVibrationDeviceList : public ServiceBase {
+class IActiveVibrationDeviceList : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IActiveVibrationDeviceList)
 

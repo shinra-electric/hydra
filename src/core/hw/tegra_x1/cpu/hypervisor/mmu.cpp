@@ -50,10 +50,11 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
     // Kernel memory
     uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
     // TODO: map to kernel page table instead
-    user_page_table.Map(
-        KERNEL_REGION_BASE, physical_memory_cur, KERNEL_MEM_SIZE,
-        {Horizon::MemoryType::Kernel, Horizon::MemoryAttribute::None,
-         Horizon::MemoryPermission::Execute});
+    user_page_table.Map(KERNEL_REGION_BASE, physical_memory_cur,
+                        KERNEL_MEM_SIZE,
+                        {Horizon::Kernel::MemoryType::Kernel,
+                         Horizon::Kernel::MemoryAttribute::None,
+                         Horizon::Kernel::MemoryPermission::Execute});
     physical_memory_cur += KERNEL_MEM_SIZE;
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -87,7 +88,7 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
 }
 
 void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
-              const Horizon::MemoryState state) {
+              const Horizon::Kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
     user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
                         state);
