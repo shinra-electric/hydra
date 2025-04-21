@@ -5,6 +5,7 @@ add_library(hydra-common
     types.hpp
     functions.hpp
     memory.hpp
+    time.hpp
     config.cpp
     config.hpp
     lz4.cpp

@@ -669,11 +669,7 @@ Result Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
 void Kernel::svcGetSystemTick(u64& out_tick) {
     LOG_DEBUG(HorizonKernel, "svcGetSystemTick called");
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
-
-    // HACK
-    out_tick = 0x0000000000000000;
+    out_tick = get_absolute_time();
 }
 
 Result Kernel::svcConnectToNamedPort(const std::string& name,

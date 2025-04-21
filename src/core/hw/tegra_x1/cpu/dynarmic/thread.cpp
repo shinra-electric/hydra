@@ -152,9 +152,6 @@ void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
     LOG_ERROR(Dynarmic, "Exception");
 }
 
-u64 Thread::GetCNTPCT() {
-    // TODO: use a cross-platform solution
-    return mach_absolute_time();
-}
+u64 Thread::GetCNTPCT() { return get_absolute_time(); }
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic
