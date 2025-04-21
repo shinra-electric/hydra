@@ -871,8 +871,17 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vadd");
     INST(0x1f00000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imul32i");
-    INST(0x1e00000000000000, 0xff00000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul32i");
+    INST(0x1e00000000000000, 0xff00000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(32, 20);
+        LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, src1,
+                  src2);
+
+        observer->OpMultiply(Operand::Register(dst, DataType::Float),
+                             Operand::Register(src1, DataType::Int),
+                             Operand::Immediate(src2, DataType::Float));
+    }
     INST(0x1d80000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd32i");
     INST(0x1c00000000000000, 0xfe80000000000000)
