@@ -20,9 +20,13 @@ SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU, "GPU")
 GPU::GPU(CPU::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
     SINGLETON_SET_INSTANCE(GPU, "GPU");
 
-    // TODO: choose based on the Renderer backend
+    switch (Config::GetInstance().GetGpuRenderer())
     {
+    case GpuRenderer::Metal:
         renderer = new Renderer::Metal::Renderer();
+        break;
+    default:
+        LOG_ERROR(GPU, "Unknown GPU renderer");
     }
 }
 

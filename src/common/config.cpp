@@ -49,6 +49,9 @@ ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
                                           AppleHypervisor, "Apple Hypervisor",
                                           Dynarmic, "dynarmic")
 
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, GpuRenderer, gpu_renderer,
+                                          Metal, "Metal")
+
 namespace Hydra {
 
 SINGLETON_DEFINE_GET_INSTANCE(Config, Other, "Config")
@@ -100,6 +103,7 @@ Config::Config() {
     // LOG_INFO(Other, "Root directories: [{}]", fmt::join(root_directories, ",
     // "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
+    LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
 }
 
@@ -110,6 +114,7 @@ void Config::LoadDefaults() {
     sd_card_path = GetDefaultSdCardPath();
     root_paths = GetDefaultRootPaths();
     cpu_backend = GetDefaultCpuBackend();
+    gpu_renderer = GetDefaultGpuRenderer();
     debug_logging = GetDefaultDebugLogging();
 
     changed = true;
@@ -148,6 +153,11 @@ void Config::Serialize() {
         }
 
         {
+            auto& graphics = data.at("Graphics");
+            graphics["renderer"] = gpu_renderer;
+        }
+
+        {
             auto& debug = data.at("Debug");
             debug["debug_logging"] = debug_logging;
         }
@@ -176,6 +186,11 @@ void Config::Deserialize() {
         cpu_backend =
             toml::find_or<CpuBackend>(cpu, "backend", GetDefaultCpuBackend());
     }
+    if (data.contains("Graphics")) {
+        const auto& graphics = data.at("Graphics");
+        gpu_renderer =
+            toml::find_or<GpuRenderer>(graphics, "renderer", GetDefaultGpuRenderer());
+    }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
@@ -184,8 +199,13 @@ void Config::Deserialize() {
 
     // Validate
     if (cpu_backend == CpuBackend::Invalid) {
-        LOG_WARNING(Other, "Invalid CPU backend, using Dynarmic");
+        LOG_WARNING(Other, "Invalid CPU backend, falling back to Dynarmic");
         cpu_backend = CpuBackend::Dynarmic;
+    }
+
+    if (gpu_renderer == GpuRenderer::Invalid) {
+        LOG_WARNING(Other, "Invalid GPU renderer, falling back to Metal");
+        gpu_renderer = GpuRenderer::Metal;
     }
 }
 

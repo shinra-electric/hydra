@@ -14,6 +14,12 @@ enum class CpuBackend {
     Dynarmic,
 };
 
+enum class GpuRenderer {
+    Invalid,
+
+    Metal,
+};
+
 struct RootPath {
     std::string guest_path;
     std::string host_path;
@@ -40,13 +46,10 @@ class Config {
     const std::vector<std::string>& GetGameDirectories() const {
         return game_directories;
     }
-
     const std::string& GetSdCardPath() const { return sd_card_path; }
-
     const std::vector<RootPath>& GetRootPaths() const { return root_paths; }
-
     CpuBackend GetCpuBackend() const { return cpu_backend; }
-
+    GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
     bool IsDebugLoggingEnabled() const { return debug_logging; }
 
     // Setters
@@ -89,6 +92,10 @@ class Config {
         SET_CONFIG_VALUE(cpu_backend);
     }
 
+    void SetGpuRenderer(GpuRenderer gpu_renderer_) {
+        SET_CONFIG_VALUE(gpu_renderer);
+    }
+
     void SetDebugLogging(bool debug_logging_) {
         SET_CONFIG_VALUE(debug_logging);
     }
@@ -105,6 +112,7 @@ class Config {
     std::string sd_card_path;
     std::vector<RootPath> root_paths;
     CpuBackend cpu_backend;
+    GpuRenderer gpu_renderer;
     bool debug_logging;
 
     // Default values
@@ -114,6 +122,7 @@ class Config {
     }
     std::vector<RootPath> GetDefaultRootPaths() const { return {}; }
     CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
+    GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     bool GetDefaultDebugLogging() const { return true; }
 };
 
