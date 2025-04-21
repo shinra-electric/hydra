@@ -1,9 +1,10 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/filesystem/ram_file.hpp"
 
-#define VERIFY_PATH(path)                                                      \
+#define GET_MOUNT(path)                                                        \
     if (path.empty())                                                          \
         return FsResult::NotMounted;                                           \
     const auto slash_pos = path.find('/');                                     \
@@ -12,7 +13,10 @@
     const auto mount = path.substr(0, slash_pos);                              \
     if (mount.empty())                                                         \
         return FsResult::NotMounted;                                           \
-    const auto entry_path = path.substr(slash_pos);                            \
+    const auto entry_path = path.substr(slash_pos);
+
+#define VERIFY_PATH(path)                                                      \
+    GET_MOUNT(path)                                                            \
     auto it = devices.find(mount);                                             \
     if (it == devices.end())                                                   \
         return FsResult::NotMounted;                                           \
@@ -60,8 +64,20 @@ FsResult Filesystem::AddEntry(const std::string& path,
 
 FsResult Filesystem::CreateFile(const std::string& path,
                                 bool add_intermediate) {
-    // TODO: don't always create RamFiles
-    return AddEntry(path, new RamFile(), add_intermediate);
+    GET_MOUNT(path);
+
+    // TODO: keep a list of host paths for each mount point instead
+    if (mount == FS_SD_MOUNT) {
+        const auto host_path =
+            fmt::format("{}/{}", Config::GetInstance().GetSdCardPath(), path);
+        return AddEntry(path, new HostFile(host_path), add_intermediate);
+    } else {
+        LOG_WARNING(HorizonFilesystem,
+                    "Could not find host path for path \"{}\", falling back to "
+                    "RAM backed file",
+                    path);
+        return AddEntry(path, new RamFile(), add_intermediate);
+    }
 }
 
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {

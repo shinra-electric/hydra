@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 
+#include "common/logging/log.hpp"
 #include "common/types.hpp"
 
 namespace Hydra {
@@ -16,7 +17,6 @@ enum class CpuBackend {
 struct RootPath {
     std::string guest_path;
     std::string host_path;
-    bool write_access;
 };
 
 class Config {
@@ -41,6 +41,8 @@ class Config {
         return game_directories;
     }
 
+    const std::string& GetSdCardPath() const { return sd_card_path; }
+
     const std::vector<RootPath>& GetRootPaths() const { return root_paths; }
 
     CpuBackend GetCpuBackend() const { return cpu_backend; }
@@ -59,9 +61,27 @@ class Config {
         changed = true;
     }
 
+    void RemoveGameDirectory(u32 index) {
+        ASSERT(index < game_directories.size(), Other,
+               "Index ({}) out of range ({})", index, game_directories.size());
+        game_directories.erase(game_directories.begin() + index);
+        changed = true;
+    }
+
+    void SetSdCardPath(const std::string& sd_card_path_) {
+        SET_CONFIG_VALUE(sd_card_path);
+    }
+
     void AddRootPath(const std::string& guest_path,
-                     const std::string& host_path, bool write_access) {
-        root_paths.push_back({guest_path, host_path, write_access});
+                     const std::string& host_path) {
+        root_paths.push_back({guest_path, host_path});
+        changed = true;
+    }
+
+    void RemoveRootPath(u32 index) {
+        ASSERT(index < root_paths.size(), Other, "Index ({}) out of range ({})",
+               index, root_paths.size());
+        root_paths.erase(root_paths.begin() + index);
         changed = true;
     }
 
@@ -82,9 +102,19 @@ class Config {
 
     // Config
     std::vector<std::string> game_directories;
+    std::string sd_card_path;
     std::vector<RootPath> root_paths;
     CpuBackend cpu_backend;
     bool debug_logging;
+
+    // Default values
+    std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
+    std::string GetDefaultSdCardPath() const {
+        return fmt::format("{}/sd_card", app_data_path);
+    }
+    std::vector<RootPath> GetDefaultRootPaths() const { return {}; }
+    CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
+    bool GetDefaultDebugLogging() const { return true; }
 };
 
 } // namespace Hydra

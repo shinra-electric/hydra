@@ -43,8 +43,7 @@
     ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
 
-ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootPath, guest_path, host_path,
-                                    write_access)
+ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootPath, guest_path, host_path)
 
 ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
                                           AppleHypervisor, "Apple Hypervisor",
@@ -91,12 +90,12 @@ Config::Config() {
     } else {
         // Load defaults
         LoadDefaults();
-        Serialize();
     }
 
     // Log
     LOG_INFO(Other, "Game directories: [{}]",
              fmt::join(game_directories, ", "));
+    LOG_INFO(Other, "SD card path: {}", sd_card_path);
     // TODO: uncomment
     // LOG_INFO(Other, "Root directories: [{}]", fmt::join(root_directories, ",
     // "));
@@ -107,10 +106,11 @@ Config::Config() {
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
 void Config::LoadDefaults() {
-    game_directories = {};
-    root_paths = {};
-    cpu_backend = CpuBackend::Dynarmic;
-    debug_logging = true;
+    game_directories = GetDefaultGameDirectories();
+    sd_card_path = GetDefaultSdCardPath();
+    root_paths = GetDefaultRootPaths();
+    cpu_backend = GetDefaultCpuBackend();
+    debug_logging = GetDefaultDebugLogging();
 
     changed = true;
 }
@@ -133,6 +133,8 @@ void Config::Serialize() {
             game_directories_arr = toml::array{};
             game_directories_arr.as_array().assign(game_directories.begin(),
                                                    game_directories.end());
+
+            general["sd_card_path"] = sd_card_path;
 
             auto& root_paths_arr = general["root_paths"];
             root_paths_arr = toml::array{};
@@ -163,18 +165,21 @@ void Config::Deserialize() {
     if (data.contains("General")) {
         const auto& general = data.at("General");
         game_directories = toml::find_or<std::vector<std::string>>(
-            general, "game_directories", {});
-        root_paths =
-            toml::find_or<std::vector<RootPath>>(general, "root_paths", {});
+            general, "game_directories", GetDefaultGameDirectories());
+        sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
+                                                  GetDefaultSdCardPath());
+        root_paths = toml::find_or<std::vector<RootPath>>(
+            general, "root_paths", GetDefaultRootPaths());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
         cpu_backend =
-            toml::find_or<CpuBackend>(cpu, "backend", CpuBackend::Dynarmic);
+            toml::find_or<CpuBackend>(cpu, "backend", GetDefaultCpuBackend());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        debug_logging = toml::find_or<bool>(debug, "debug_logging", true);
+        debug_logging = toml::find_or<bool>(debug, "debug_logging",
+                                            GetDefaultDebugLogging());
     }
 
     // Validate
