@@ -12,6 +12,20 @@ typedef u8 reg_t;
 
 constexpr reg_t RZ = 255;
 
+enum class DataType {
+    None,
+    Int,
+    UInt,
+    Float,
+};
+
+DataType to_data_type(Engines::VertexAttribType vertex_attrib_type);
+
+inline DataType to_data_type(TextureFormat format) {
+    // TODO: implement
+    return DataType::Float;
+}
+
 struct AMem {
     reg_t reg;
     u64 imm;
@@ -38,37 +52,34 @@ struct Operand {
         AMem amem;
         CMem cmem;
     };
+    DataType data_type;
 
-    static Operand Register(reg_t reg_) {
-        return Operand{.type = OperandType::Register, .reg = reg_};
+    static Operand Register(reg_t reg,
+                            const DataType data_type = DataType::UInt) {
+        return Operand{
+            .type = OperandType::Register, .reg = reg, .data_type = data_type};
     }
 
-    static Operand Immediate(u32 imm_) {
-        return Operand{.type = OperandType::Immediate, .imm = imm_};
+    static Operand Immediate(u32 imm,
+                             const DataType data_type = DataType::UInt) {
+        return Operand{
+            .type = OperandType::Immediate, .imm = imm, .data_type = data_type};
     }
 
-    static Operand AttributeMemory(const AMem& amem) {
-        return Operand{.type = OperandType::AttributeMemory, .amem = amem};
+    static Operand AttributeMemory(const AMem& amem,
+                                   const DataType data_type = DataType::UInt) {
+        return Operand{.type = OperandType::AttributeMemory,
+                       .amem = amem,
+                       .data_type = data_type};
     }
 
-    static Operand ConstMemory(const CMem& cmem) {
-        return Operand{.type = OperandType::ConstMemory, .cmem = cmem};
+    static Operand ConstMemory(const CMem& cmem,
+                               const DataType data_type = DataType::UInt) {
+        return Operand{.type = OperandType::ConstMemory,
+                       .cmem = cmem,
+                       .data_type = data_type};
     }
 };
-
-enum class DataType {
-    None,
-    Int,
-    UInt,
-    Float,
-};
-
-DataType to_data_type(Engines::VertexAttribType vertex_attrib_type);
-
-inline DataType to_data_type(TextureFormat format) {
-    // TODO: implement
-    return DataType::Float;
-}
 
 enum class SVSemantic {
     Invalid,

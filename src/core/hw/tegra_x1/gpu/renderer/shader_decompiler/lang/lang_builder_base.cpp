@@ -179,23 +179,21 @@ void LangBuilderBase::OpMove(reg_t dst, Operand src) {
     WriteStatement("{} = {}", GetReg(dst, true), GetOperand(src, false));
 }
 
-void LangBuilderBase::OpFloatAdd(reg_t dst, reg_t src1, Operand src2) {
-    WriteStatement("{} = {} + {}", GetReg(dst, true, DataType::Float),
-                   GetReg(src1, false, DataType::Float),
-                   GetOperand(src2, false, DataType::Float));
+void LangBuilderBase::OpAdd(Operand dst, Operand src1, Operand src2) {
+    WriteStatement("{} = {} + {}", GetOperand(dst, true),
+                   GetOperand(src1, false), GetOperand(src2, false));
 }
 
-void LangBuilderBase::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
-    WriteStatement("{} = {} * {}", GetReg(dst, true, DataType::Float),
-                   GetReg(src1, false, DataType::Float),
-                   GetOperand(src2, false, DataType::Float));
+void LangBuilderBase::OpMultiply(Operand dst, Operand src1, Operand src2) {
+    WriteStatement("{} = {} * {}", GetOperand(dst, true),
+                   GetOperand(src1, false), GetOperand(src2, false));
 }
 
 void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
                                  reg_t src3) {
     WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::Float),
                    GetReg(src1, false, DataType::Float),
-                   GetOperand(src2, false, DataType::Float),
+                   GetOperand(src2, false),
                    GetReg(src3, false, DataType::Float));
 }
 
