@@ -15,6 +15,18 @@ void hydra_config_add_game_directory(const char* path) {
     Hydra::Config::GetInstance().AddGameDirectory(path);
 }
 
+void hydra_config_remove_game_directory(uint32_t index) {
+    Hydra::Config::GetInstance().RemoveGameDirectory(index);
+}
+
+const char* hydra_config_get_sd_card_path() {
+    return Hydra::Config::GetInstance().GetSdCardPath().c_str();
+}
+
+void hydra_config_set_sd_card_path(const char* path) {
+    Hydra::Config::GetInstance().SetSdCardPath(path);
+}
+
 uint32_t hydra_config_get_root_paths_count() {
     return Hydra::Config::GetInstance().GetRootPaths().size();
 }
@@ -29,14 +41,12 @@ const char* hydra_config_get_root_path_host_path(uint32_t index) {
     return Hydra::Config::GetInstance().GetRootPaths()[index].host_path.c_str();
 }
 
-bool hydra_config_get_root_path_write_access(uint32_t index) {
-    return Hydra::Config::GetInstance().GetRootPaths()[index].write_access;
+void hydra_config_add_root_path(const char* guest_path, const char* host_path) {
+    Hydra::Config::GetInstance().AddRootPath(guest_path, host_path);
 }
 
-void hydra_config_add_root_path(const char* guest_path, const char* host_path,
-                                bool write_access) {
-    Hydra::Config::GetInstance().AddRootPath(guest_path, host_path,
-                                             write_access);
+void hydra_config_remove_root_path(uint32_t index) {
+    Hydra::Config::GetInstance().RemoveRootPath(index);
 }
 
 int hydra_config_get_cpu_backend() {

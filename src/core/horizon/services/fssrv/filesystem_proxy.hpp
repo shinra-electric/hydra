@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-class IFileSystemProxy : public ServiceBase {
+class IFileSystemProxy : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFileSystemProxy)
 
@@ -17,6 +17,7 @@ class IFileSystemProxy : public ServiceBase {
     // Commands
     void OpenFileSystem(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetCurrentProcess)
+    void OpenFileSystemWithIdObsolete(REQUEST_COMMAND_PARAMS);
     void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
     void CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS);

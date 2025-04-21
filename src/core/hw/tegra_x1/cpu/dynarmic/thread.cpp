@@ -33,7 +33,7 @@ void Thread::Initialize(
     config.tpidr_el0 = nullptr; // TODO: what is this?
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
-    config.cntfrq_el0 = 19200000; // TODO: make this a constant
+    config.cntfrq_el0 = CLOCK_RATE_HZ; // TODO: make this a constant
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
@@ -145,9 +145,20 @@ bool Thread::MemoryWriteExclusive128(u64 addr, DynA64::Vector value,
     return true;
 }
 
-u64 Thread::GetCNTPCT() {
-    // TODO: use a cross-platform solution
-    return mach_absolute_time();
+void Thread::CallSVC(u32 svc) {
+    LogStackTrace();
+    bool running = svc_handler(this, svc);
+    if (!running)
+        jit->HaltExecution();
 }
+
+void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
+    LogStackTrace();
+
+    // TODO: handle the exception
+    LOG_ERROR(Dynarmic, "Exception");
+}
+
+u64 Thread::GetCNTPCT() { return get_absolute_time(); }
 
 } // namespace Hydra::HW::TegraX1::CPU::Dynarmic

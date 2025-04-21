@@ -1,10 +1,11 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/audio/const.hpp"
 
 namespace Hydra::Horizon::Services::Audio {
 
-class IAudioRendererManager : public ServiceBase {
+class IAudioRendererManager : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAudioRendererManager)
 

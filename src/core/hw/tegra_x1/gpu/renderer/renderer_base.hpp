@@ -31,6 +31,10 @@ class RendererBase {
   public:
     virtual ~RendererBase() {}
 
+    // Mutex
+    void LockMutex() { mutex.lock(); }
+    void UnlockMutex() { mutex.unlock(); }
+
     virtual void SetSurface(void* surface) = 0;
 
     virtual void Present(TextureBase* texture) = 0;
@@ -44,7 +48,6 @@ class RendererBase {
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
 
     // Command buffer
-    virtual void BeginCommandBuffer() = 0;
     virtual void EndCommandBuffer() = 0;
 
     // Render pass
@@ -102,6 +105,8 @@ class RendererBase {
     // TODO
 
   private:
+    std::mutex mutex;
+
     // Caches
     BufferCache buffer_cache;
     TextureCache texture_cache;

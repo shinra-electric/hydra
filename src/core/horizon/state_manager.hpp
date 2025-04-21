@@ -1,6 +1,7 @@
 #pragma once
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/const.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 namespace Hydra::Horizon {
 
@@ -106,7 +107,9 @@ class StateManager {
     }
 
     // Getters
-    const KernelHandleWithId<Event>& GetMsgEvent() { return msg_event; }
+    const Kernel::HandleWithId<Kernel::Event>& GetMsgEvent() {
+        return msg_event;
+    }
 
   private:
     std::mutex mutex;
@@ -118,7 +121,7 @@ class StateManager {
     std::stack<u128> account_uids;
 
     // Events
-    KernelHandleWithId<Event> msg_event;
+    Kernel::HandleWithId<Kernel::Event> msg_event;
 };
 
 } // namespace Hydra::Horizon

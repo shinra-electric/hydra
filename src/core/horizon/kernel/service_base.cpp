@@ -1,11 +1,8 @@
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
-#include "core/horizon/cmif.hpp"
-#include "core/horizon/const.hpp"
-#include "core/horizon/kernel.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/horizon/kernel/cmif.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
 void ServiceBase::Request(REQUEST_PARAMS) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
@@ -16,4 +13,4 @@ void ServiceBase::Request(REQUEST_PARAMS) {
     RequestImpl(readers, writers, add_service, *result, cmif_in.command_id);
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

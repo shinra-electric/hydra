@@ -9,8 +9,8 @@ class ObserverBase {
     // Operations
     virtual void OpExit() = 0;
     virtual void OpMove(reg_t dst, Operand src) = 0;
-    virtual void OpFloatAdd(reg_t dst, reg_t src1, Operand src2) = 0;
-    virtual void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) = 0;
+    virtual void OpAdd(Operand dst, Operand src1, Operand src2) = 0;
+    virtual void OpMultiply(Operand dst, Operand src1, Operand src2) = 0;
     virtual void OpFloatFma(reg_t dst, reg_t src1, Operand src2,
                             reg_t src3) = 0;
     virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) = 0;
@@ -18,7 +18,7 @@ class ObserverBase {
     virtual void OpLoad(reg_t dst, Operand src) = 0;
     virtual void OpStore(AMem dst, reg_t src) = 0;
     virtual void OpInterpolate(reg_t dst, AMem src) = 0;
-    virtual void OpTextureSample(reg_t dst, u32 const_buffer_index,
+    virtual void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                                  reg_t coords_x, reg_t coords_y) = 0;
 
   private:

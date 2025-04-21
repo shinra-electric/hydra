@@ -8,16 +8,17 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     auto& tex = Find(descriptor);
 
-    // If the formats match, return base
-    // TODO: also check for swizzle
-    if (tex.base->GetDescriptor().format == descriptor.format) {
+    // If the formats match and swizzle is the default swizzle, return base
+    if (descriptor.format == tex.base->GetDescriptor().format &&
+        descriptor.swizzle_channels ==
+            tex.base->GetDescriptor().swizzle_channels) {
         return tex.base;
     }
 
     // Otherwise, get a texture view
     auto view_desc = TextureViewDescriptor{
         .format = descriptor.format,
-        // TODO: swizzle
+        .swizzle_channels = descriptor.swizzle_channels,
     };
     auto& view = tex.view_cache.Find(view_desc.GetHash());
     if (view)
@@ -61,7 +62,7 @@ void TextureCache::DecodeTexture(TextureBase* texture) {
     u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
     texture_decoder.Decode(texture->GetDescriptor(), scratch_buffer, out_data);
 
-    texture->CopyFrom(out_data);
+    texture->CopyFrom(reinterpret_cast<uptr>(out_data));
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

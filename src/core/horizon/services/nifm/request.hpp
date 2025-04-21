@@ -1,10 +1,11 @@
 #pragma once
 
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Nifm {
 
-class IRequest : public ServiceBase {
+class IRequest : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IRequest)
 
@@ -14,7 +15,7 @@ class IRequest : public ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
-    KernelHandleWithId<Event> events[2];
+    Kernel::HandleWithId<Kernel::Event> events[2];
 
     // Commands
     void GetRequestState(REQUEST_COMMAND_PARAMS);

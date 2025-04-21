@@ -5,18 +5,32 @@ add_library(hydra-core
     horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
+    horizon/display_driver.cpp
+    horizon/display_driver.hpp
     horizon/os.cpp
     horizon/os.hpp
-    horizon/hipc.hpp
-    horizon/cmif.hpp
-    horizon/shared_memory.cpp
-    horizon/shared_memory.hpp
-    horizon/kernel.cpp
-    horizon/kernel.hpp
+    horizon/kernel/const.hpp
+    horizon/kernel/hipc.cpp
+    horizon/kernel/hipc.hpp
+    horizon/kernel/cmif.hpp
+    horizon/kernel/session.cpp
+    horizon/kernel/session.hpp
+    horizon/kernel/service_base.cpp
+    horizon/kernel/service_base.hpp
+    horizon/kernel/domain_service.cpp
+    horizon/kernel/domain_service.hpp
+    horizon/kernel/shared_memory.cpp
+    horizon/kernel/shared_memory.hpp
+    horizon/kernel/thread.cpp
+    horizon/kernel/thread.hpp
+    horizon/kernel/kernel.cpp
+    horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
     horizon/filesystem/entry_base.hpp
-    horizon/filesystem/file.cpp
-    horizon/filesystem/file.hpp
+    horizon/filesystem/file_base.hpp
+    horizon/filesystem/host_file.cpp
+    horizon/filesystem/host_file.hpp
+    horizon/filesystem/ram_file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
     horizon/filesystem/device.cpp
@@ -30,14 +44,6 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
-    horizon/services/const.cpp
-    horizon/services/const.hpp
-    horizon/services/session.cpp
-    horizon/services/session.hpp
-    horizon/services/service_base.cpp
-    horizon/services/service_base.hpp
-    horizon/services/domain_service.cpp
-    horizon/services/domain_service.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp
@@ -158,6 +164,9 @@ add_library(hydra-core
     horizon/services/apm/session.hpp
     horizon/services/socket/client.cpp
     horizon/services/socket/client.hpp
+    horizon/services/socket/resolver/resolver.cpp
+    horizon/services/socket/resolver/resolver.hpp
+    horizon/services/audio/const.hpp
     horizon/services/audio/audio_out.cpp
     horizon/services/audio/audio_out.hpp
     horizon/services/audio/audio_out_manager.cpp

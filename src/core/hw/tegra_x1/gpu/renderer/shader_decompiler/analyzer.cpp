@@ -15,12 +15,12 @@ void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
-void Analyzer::OpFloatAdd(reg_t dst, reg_t src1, Operand src2) {
+void Analyzer::OpAdd(Operand dst, Operand src1, Operand src2) {
     if (src2.type == OperandType::ConstMemory)
         HandleCMemLoad(src2.cmem);
 }
 
-void Analyzer::OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) {
+void Analyzer::OpMultiply(Operand dst, Operand src1, Operand src2) {
     if (src2.type == OperandType::ConstMemory)
         HandleCMemLoad(src2.cmem);
 }
@@ -48,7 +48,7 @@ void Analyzer::OpStore(AMem dst, reg_t src) { HandleAMemStore(dst); }
 
 void Analyzer::OpInterpolate(reg_t dst, AMem src) { HandleAMemLoad(src); }
 
-void Analyzer::OpTextureSample(reg_t dst, u32 const_buffer_index,
+void Analyzer::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                                reg_t coords_x, reg_t coords_y) {
     push_unique(textures, const_buffer_index);
 }

@@ -9,6 +9,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
 Texture::Texture(const TextureDescriptor& descriptor)
     : TextureBase(descriptor) {
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
+    // TODO: type
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
 
@@ -25,19 +26,40 @@ Texture::Texture(const TextureDescriptor& descriptor,
 Texture::~Texture() { mtl_texture->release(); }
 
 TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
-    auto mtl_view =
-        mtl_texture->newTextureView(to_mtl_pixel_format(descriptor.format));
+    MTL::TextureSwizzleChannels swizzle_channels(
+        to_mtl_swizzle(descriptor.swizzle_channels.r),
+        to_mtl_swizzle(descriptor.swizzle_channels.g),
+        to_mtl_swizzle(descriptor.swizzle_channels.b),
+        to_mtl_swizzle(descriptor.swizzle_channels.a));
 
-    // TODO: don't pass this descriptor
-    return new Texture(GetDescriptor(), mtl_view);
+    // TODO: don't hardcode type, ranges and levels
+    auto mtl_view = mtl_texture->newTextureView(
+        to_mtl_pixel_format(descriptor.format), MTL::TextureType2D,
+        NS::Range(0, 1), NS::Range(0, 1), swizzle_channels);
+
+    auto desc = GetDescriptor();
+    desc.format = descriptor.format;
+    desc.swizzle_channels = descriptor.swizzle_channels;
+
+    return new Texture(desc, mtl_view);
 }
 
-void Texture::CopyFrom(const void* data) {
-    // TODO: do a GPU copy
+void Texture::CopyFrom(const uptr data) {
+    usize size = descriptor.stride * descriptor.height * 1;
+
+    // TODO: get the buffer from a buffer allocator instead
+    auto tmp_buffer = Renderer::GetInstance().GetDevice()->newBuffer(
+        size, MTL::ResourceStorageModeShared);
+    memcpy(tmp_buffer->contents(), reinterpret_cast<void*>(data), size);
+
+    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+
     // TODO: bytes per image
-    mtl_texture->replaceRegion(
-        MTL::Region{0, 0, 0, mtl_texture->width(), mtl_texture->height(), 1}, 0,
-        0, data, GetDescriptor().stride, 0);
+    encoder->copyFromBuffer(tmp_buffer, 0, descriptor.stride, 0,
+                            MTL::Size(descriptor.width, descriptor.height, 1),
+                            mtl_texture, 0, 0, MTL::Origin(0, 0, 0));
+
+    tmp_buffer->release();
 }
 
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,

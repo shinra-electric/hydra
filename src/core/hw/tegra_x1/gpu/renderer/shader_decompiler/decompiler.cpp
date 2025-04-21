@@ -107,6 +107,18 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     Parse(builder, code_reader);
     builder->Finish();
     delete builder;
+
+#define DUMP_SHADERS 0
+#if DUMP_SHADERS
+    std::ofstream out(
+        fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
+                    (void*)code_reader.GetBase()),
+        std::ios::binary);
+    out.write(
+        reinterpret_cast<const char*>(code_reader.GetBase() + code_offset),
+        0x1000);
+    out.close();
+#endif
 }
 
 bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
@@ -359,18 +371,19 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xd200000000000000, 0xf600000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tlds");
     INST(0xd000000000000000, 0xf600000000000000) {
-        const auto todo1 = GET_REG(28);
-        const auto dst = GET_REG(0);
-        // TODO: are the coords correct?
+        // TODO: is the dst correct?
+        const auto dst1 = GET_REG(28);
+        const auto dst0 = GET_REG(0);
         const auto coords_x = GET_REG(8);
         const auto coords_y = GET_REG(20);
         const auto const_buffer_index = GET_VALUE_U32(36, 13);
         // TODO: texture type
         // TODO: component swizzle?
-        LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", todo1, dst,
+        LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", dst1, dst0,
                   coords_x, coords_y, const_buffer_index);
 
-        observer->OpTextureSample(dst, const_buffer_index, coords_x, coords_y);
+        observer->OpTextureSample(dst0, dst1, const_buffer_index, coords_x,
+                                  coords_y);
     }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");
@@ -454,7 +467,9 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto src2 = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} r{}", dst, src1, src2);
 
-        observer->OpFloatMultiply(dst, src1, Operand::Register(src2));
+        observer->OpMultiply(Operand::Register(dst, DataType::Float),
+                             Operand::Register(src1, DataType::Float),
+                             Operand::Register(src2, DataType::Float));
     }
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -464,7 +479,9 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto src2 = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} r{}", dst, src1, src2);
 
-        observer->OpFloatAdd(dst, src1, Operand::Register(src2));
+        observer->OpAdd(Operand::Register(dst, DataType::Float),
+                        Operand::Register(src1, DataType::Float),
+                        Operand::Register(src2, DataType::Float));
     }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -528,7 +545,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} r{}", dst, src1, src2,
                   src3);
 
-        observer->OpFloatFma(dst, src1, Operand::Register(src2), src3);
+        observer->OpFloatFma(dst, src1,
+                             Operand::Register(src2, DataType::Float), src3);
     }
     INST(0x5900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -637,7 +655,9 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:x}]", dst, src1,
                   src2.idx, src2.imm);
 
-        observer->OpFloatMultiply(dst, src1, Operand::ConstMemory(src2));
+        observer->OpMultiply(Operand::Register(dst, DataType::Float),
+                             Operand::Register(src1, DataType::Float),
+                             Operand::ConstMemory(src2, DataType::Float));
     }
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -648,7 +668,9 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} c{}[0x{:x}]", dst, src1,
                   src2.idx, src2.imm);
 
-        observer->OpFloatAdd(dst, src1, Operand::ConstMemory(src2));
+        observer->OpAdd(Operand::Register(dst, DataType::Float),
+                        Operand::Register(src1, DataType::Float),
+                        Operand::ConstMemory(src2, DataType::Float));
     }
     INST(0x4c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -704,7 +726,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, src1,
                   src2.idx, src2.imm, src3);
 
-        observer->OpFloatFma(dst, src1, Operand::ConstMemory(src2), src3);
+        observer->OpFloatFma(dst, src1,
+                             Operand::ConstMemory(src2, DataType::Float), src3);
     }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -744,8 +767,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmul");
     INST(0x3870000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
-    INST(0x3868000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul");
+    INST(0x3868000000000000, 0xfef8000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, src1, src2);
+
+        observer->OpMultiply(Operand::Register(dst, DataType::Float),
+                             Operand::Register(src1, DataType::Float),
+                             Operand::Immediate(src2, DataType::Float));
+    }
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x3858000000000000, 0xfef8000000000000) {
@@ -754,7 +785,9 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: extend?
         LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} 0x{:x}", dst, src1, src2);
 
-        observer->OpFloatAdd(dst, src1, Operand::Immediate(src2));
+        observer->OpAdd(Operand::Register(dst, DataType::Float),
+                        Operand::Register(src1, DataType::Float),
+                        Operand::Immediate(src2, DataType::Float));
     }
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -813,8 +846,17 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imadsp");
     INST(0x3400000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
-    INST(0x3280000000000000, 0xfe80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma");
+    INST(0x3280000000000000, 0xfe80000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        const auto src3 = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, src1,
+                  src2, src3);
+
+        observer->OpFloatFma(dst, src1,
+                             Operand::Immediate(src2, DataType::Float), src3);
+    }
     INST(0x3200000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
     INST(0x3000000000000000, 0xfe00000000000000)
@@ -829,8 +871,17 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vadd");
     INST(0x1f00000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imul32i");
-    INST(0x1e00000000000000, 0xff00000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmul32i");
+    INST(0x1e00000000000000, 0xff00000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_VALUE_U32_EXTEND(32, 20);
+        LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, src1,
+                  src2);
+
+        observer->OpMultiply(Operand::Register(dst, DataType::Float),
+                             Operand::Register(src1, DataType::Int),
+                             Operand::Immediate(src2, DataType::Float));
+    }
     INST(0x1d80000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd32i");
     INST(0x1c00000000000000, 0xfe80000000000000)

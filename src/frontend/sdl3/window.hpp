@@ -20,6 +20,7 @@ class Window {
 
     // Inputs
     Horizon::HID::NpadButtons buttons{Horizon::HID::NpadButtons::None};
+    u32 finger_id{invalid<u32>()};
 };
 
 } // namespace Hydra::Frontend::SDL3

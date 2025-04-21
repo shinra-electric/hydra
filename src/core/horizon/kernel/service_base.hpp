@@ -1,12 +1,13 @@
 #pragma once
 
-#include "core/horizon/kernel.hpp"
-#include "core/horizon/services/const.hpp"
+#include "core/horizon/kernel/hipc.hpp"
 
 #define REQUEST_PARAMS                                                         \
-    Readers &readers, Writers &writers,                                        \
+    ::Hydra::Horizon::Kernel::Hipc::Readers &readers,                          \
+        ::Hydra::Horizon::Kernel::Hipc::Writers &writers,                      \
         const std::function<void(ServiceBase*)>&add_service
-#define REQUEST_COMMAND_PARAMS REQUEST_PARAMS, Result& result
+#define REQUEST_COMMAND_PARAMS                                                 \
+    REQUEST_PARAMS, ::Hydra::Horizon::Kernel::Result& result
 #define REQUEST_IMPL_PARAMS REQUEST_COMMAND_PARAMS, u32 id
 
 #define PASS_REQUEST_PARAMS readers, writers, add_service
@@ -32,11 +33,7 @@
 #define STUB_REQUEST_COMMAND(name)                                             \
     void name(REQUEST_COMMAND_PARAMS) { LOG_FUNC_STUBBED(HorizonServices); }
 
-namespace Hydra::Horizon {
-class Kernel;
-}
-
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel {
 
 // TODO: remove this
 #define DEFINE_SERVICE_VIRTUAL_FUNCTIONS(type)
@@ -49,7 +46,7 @@ class ServiceBase {
     virtual usize GetPointerBufferSize() { return 0; }
 
   protected:
-    virtual void RequestImpl(REQUEST_IMPL_PARAMS) {}
+    virtual void RequestImpl(REQUEST_IMPL_PARAMS) = 0;
 };
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel

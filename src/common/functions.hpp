@@ -11,6 +11,14 @@
 
 namespace Hydra {
 
+[[noreturn]] inline void unreachable() {
+#if defined(_MSC_VER) && !defined(__clang__) // MSVC
+    __assume(false);
+#else // GCC, Clang
+    __builtin_unreachable();
+#endif
+}
+
 template <typename T> constexpr T invalid() {
     return std::numeric_limits<T>::max();
 }
@@ -81,6 +89,14 @@ inline std::ifstream open_file(const std::string& path, usize& out_size) {
     ifs.seekg(0, std::ios::beg);
 
     return ifs;
+}
+
+inline usize get_file_size(const std::string& path) {
+    usize size = 0;
+    auto ifs = open_file(path, size);
+    ifs.close();
+
+    return size;
 }
 
 // HACK

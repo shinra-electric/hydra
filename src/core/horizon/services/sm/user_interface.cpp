@@ -22,6 +22,7 @@
 #include "core/horizon/services/settings/settings_server.hpp"
 #include "core/horizon/services/settings/system_settings_server.hpp"
 #include "core/horizon/services/socket/client.hpp"
+#include "core/horizon/services/socket/resolver/resolver.hpp"
 #include "core/horizon/services/spl/random_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
@@ -37,10 +38,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
 void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     u64 name = readers.reader.Read<u64>();
 
-    if (name == 0) {
-        result = MAKE_KERNEL_RESULT(Error::NotFound);
-        return;
-    }
+    LOG_DEBUG(HorizonServices, "Service name: \"{}\"", u64_to_str(name));
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
 // TODO: don't instantiate the services?
@@ -79,12 +77,12 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Spl::IRandomInterface, "csrng")
         SERVICE_CASE(Nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
         SERVICE_CASE(Pcv::IPcvService, "pcv")
+        SERVICE_CASE(Socket::Resolver::IResolver, "sfdnsres")
     default:
-        LOG_WARNING(HorizonServices, "Unknown service \"{}\"",
+        LOG_WARNING(HorizonServices, "Unknown service name \"{}\"",
                     u64_to_str(name));
-        result = MAKE_KERNEL_RESULT(Error::NotFound);
-        // TODO: don't throw
-        throw;
+        result = MAKE_KERNEL_RESULT(Kernel::Error::NotFound);
+        break;
     }
 }
 

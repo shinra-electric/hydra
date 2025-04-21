@@ -1,7 +1,6 @@
 #include "core/horizon/filesystem/device.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file.hpp"
 
 #define VERIFY_PATH(path)                                                      \
     if (path.empty() || path[0] != '/')                                        \

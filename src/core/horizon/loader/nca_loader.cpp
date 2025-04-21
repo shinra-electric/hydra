@@ -1,8 +1,8 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
-#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 
 namespace Hydra::Horizon::Loader {
@@ -106,7 +106,7 @@ struct PartitionEntry {
     u32 reserved;
 };
 
-void load_pfs0(FileReader& reader, const std::string& rom_filename) {
+void load_pfs0(StreamReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<PFS0Header>();
     ASSERT(std::memcmp(header.magic, "PFS0", 4) == 0, HorizonLoader,
@@ -136,12 +136,12 @@ void load_pfs0(FileReader& reader, const std::string& rom_filename) {
 
         reader.Seek(nso_offset + entry.offset);
         NSOLoader loader(entry_name == "rtld");
-        FileReader nso_reader = reader.CreateSubReader(entry.size);
-        loader.LoadROM(nso_reader, rom_filename);
+        auto nso_reader = reader.CreateSubReader(entry.size);
+        loader.LoadRom(nso_reader, rom_filename);
     }
 }
 
-void load_section(FileReader& reader, const std::string& rom_filename,
+void load_section(StreamReader& reader, const std::string& rom_filename,
                   PartitionType type) {
     switch (type) {
     case PartitionType::PartitionFS: {
@@ -156,12 +156,13 @@ void load_section(FileReader& reader, const std::string& rom_filename,
         // Sonic Mania: 0x00068000
         // Shovel Knight: 0x00054000
         // Puyo Puyo Tetris: 0x00208000
-        reader.Seek(0x00208000);
+        // Cave Story+: 0x0004c000
+        reader.Seek(0x0004c000);
         auto romfs_reader = reader.CreateSubReader();
         const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
             FS_SD_MOUNT "/rom/romFS",
-            new Filesystem::File(rom_filename, romfs_reader.GetOffset(),
-                                 romfs_reader.GetSize()),
+            new Filesystem::HostFile(rom_filename, romfs_reader.GetOffset(),
+                                     romfs_reader.GetSize()),
             true);
         ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
                "Failed to add romFS entry: {}", res);
@@ -173,7 +174,7 @@ void load_section(FileReader& reader, const std::string& rom_filename,
 } // namespace
 
 // TODO: don't hardcode stuff
-void NCALoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+void NCALoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NCAHeader>();
     // TODO: allow other NCA versions as well

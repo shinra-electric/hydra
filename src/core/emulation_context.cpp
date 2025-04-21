@@ -70,8 +70,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     else
         LOG_ERROR(Other, "Unknown ROM extension \"{}\"", extension);
 
-    FileReader reader(ifs, 0, size);
-    loader->LoadROM(reader, rom_filename);
+    StreamReader reader(ifs, 0, size);
+    loader->LoadRom(reader, rom_filename);
     delete loader;
 
     ifs.close();
@@ -81,6 +81,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define MOV_X0_XZR 0xd2800000
 #define NOP 0xd503201f
 
+    // Cave story+
     /*
     cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
     cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
@@ -135,14 +136,18 @@ void EmulationContext::Present() {
         return;
 
     u32 binder_id = layer->GetBinderId();
-    auto& binder = os->GetDisplayBinderManager().GetBinder(binder_id);
+    auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
     i32 slot = binder.ConsumeBuffer();
     if (slot == -1)
         return;
     const auto& buffer = binder.GetBuffer(slot);
 
+    auto renderer = gpu->GetRenderer();
+    renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer);
-    gpu->GetRenderer()->Present(texture);
+    renderer->Present(texture);
+    renderer->EndCommandBuffer();
+    renderer->UnlockMutex();
 }
 
 } // namespace Hydra

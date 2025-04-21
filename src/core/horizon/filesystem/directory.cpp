@@ -1,6 +1,6 @@
 #include "core/horizon/filesystem/directory.hpp"
 
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
 
 namespace Hydra::Horizon::Filesystem {
 
@@ -27,6 +27,9 @@ FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
            "Relative path cannot be empty");
 
     const auto slash_pos = rel_path.find('/');
+    if (slash_pos == 0)
+        return AddEntry(rel_path.substr(1), entry, add_intermediate);
+
     if (slash_pos == std::string::npos) {
         auto& e = entries[rel_path];
         if (e)
@@ -38,6 +41,19 @@ FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
         const auto sub_dir_name = rel_path.substr(0, slash_pos);
         const auto next_entry_name = rel_path.substr(slash_pos + 1);
 
+        // Handle special names
+        if (sub_dir_name == ".") {
+            return AddEntry(next_entry_name, entry, add_intermediate);
+        } else if (sub_dir_name == "..") {
+            if (parent) {
+                return parent->AddEntry(next_entry_name, entry,
+                                        add_intermediate);
+            } else {
+                return FsResult::DoesNotExist;
+            }
+        }
+
+        // Regular subdirectory
         auto& e = entries[sub_dir_name];
         if (next_entry_name.empty()) {
             if (e)
@@ -76,7 +92,7 @@ FsResult Directory::AddEntry(const std::string& rel_path,
     if (std::filesystem::is_directory(host_path)) {
         entry = new Directory(host_path);
     } else if (std::filesystem::is_regular_file(host_path)) {
-        entry = new File(host_path);
+        entry = new HostFile(host_path);
     } else {
         LOG_ERROR(HorizonFilesystem, "Invalid host path \"{}\"", host_path);
     }
@@ -92,6 +108,8 @@ FsResult Directory::GetEntry(const std::string& rel_path,
     }
 
     const auto slash_pos = rel_path.find('/');
+    if (slash_pos == 0)
+        return GetEntry(rel_path.substr(1), out_entry);
 
     // If there is no slash, or the slash is at the end of the string,
     // return the entry directly

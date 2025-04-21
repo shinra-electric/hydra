@@ -141,10 +141,51 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+struct SwizzleChannels {
+    ImageSwizzle r, g, b, a;
+
+    bool operator==(const SwizzleChannels& other) const {
+        return r == other.r && g == other.g && b == other.b && a == other.a;
+    }
+};
+
+SwizzleChannels
+get_texture_format_default_swizzle_channels(const TextureFormat format);
+
 TextureFormat to_texture_format(NvColorFormat color_format);
 TextureFormat to_texture_format(const ImageFormatWord image_format_word);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
+
+enum class BlendOperation {
+    Add = 1,
+    Sub = 2,
+    RevSub = 3,
+    Min = 4,
+    Max = 5,
+};
+
+enum class BlendFactor {
+    Zero = 1,
+    One = 2,
+    SrcColor = 3,
+    InvSrcColor = 4,
+    SrcAlpha = 5,
+    InvSrcAlpha = 6,
+    DstAlpha = 7,
+    InvDstAlpha = 8,
+    DstColor = 9,
+    InvDstColor = 10,
+    SrcAlphaSaturate = 11,
+    Src1Color = 16,
+    InvSrc1Color = 17,
+    Src1Alpha = 18,
+    InvSrc1Alpha = 19,
+    ConstColor = 20,
+    InvConstColor = 21,
+    ConstAlpha = 22,
+    InvConstAlpha = 23,
+};
 
 struct BufferDescriptor {
     uptr ptr;
@@ -159,14 +200,37 @@ struct TextureDescriptor {
     usize height;
     usize block_height_log2;
     usize stride;
+    SwizzleChannels swizzle_channels;
     // TODO: more
+
+    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
+                      const NvKind kind_, const usize width_,
+                      const usize height_, const usize block_height_log2_,
+                      const usize stride_,
+                      const SwizzleChannels& swizzle_channels_)
+        : ptr{ptr_}, format{format_}, kind{kind_}, width{width_},
+          height{height_}, block_height_log2{block_height_log2_},
+          stride{stride_}, swizzle_channels{swizzle_channels_} {}
+
+    TextureDescriptor(const uptr ptr_, const TextureFormat format_,
+                      const NvKind kind_, const usize width_,
+                      const usize height_, const usize block_height_log2_,
+                      const usize stride_)
+        : TextureDescriptor(
+              ptr_, format_, kind_, width_, height_, block_height_log2_,
+              stride_, get_texture_format_default_swizzle_channels(format_)) {}
 };
 
 struct TextureViewDescriptor {
     Renderer::TextureFormat format;
-    // TODO: swizzle
+    SwizzleChannels swizzle_channels;
 
-    u32 GetHash() const { return (u32)format; }
+    u32 GetHash() const {
+        return (u32)format | ((u32)swizzle_channels.r << 8) |
+               ((u32)swizzle_channels.g << 11) |
+               ((u32)swizzle_channels.b << 14) |
+               ((u32)swizzle_channels.a << 17);
+    }
 };
 
 struct RenderTargetDescriptor {
@@ -186,18 +250,6 @@ struct RenderTargetDescriptor {
 struct RenderPassDescriptor {
     RenderTargetDescriptor color_targets[COLOR_TARGET_COUNT];
     RenderTargetDescriptor depth_stencil_target;
-};
-
-struct VertexArray {
-    bool enable;
-    u32 stride;
-    bool is_per_instance;
-    u32 divisor;
-};
-
-struct VertexState {
-    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
-    VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
 };
 
 enum class ShaderType {
@@ -227,10 +279,33 @@ struct ShaderDescriptor {
     ResourceMapping resource_mapping;
 };
 
+struct VertexArray {
+    bool enable;
+    u32 stride;
+    bool is_per_instance;
+    u32 divisor;
+};
+
+struct VertexState {
+    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
+};
+
+struct ColorTargetState {
+    TextureFormat format;
+    bool blend_enabled;
+    BlendOperation rgb_op;
+    BlendFactor src_rgb_factor;
+    BlendFactor dst_rgb_factor;
+    BlendOperation alpha_op;
+    BlendFactor src_alpha_factor;
+    BlendFactor dst_alpha_factor;
+};
+
 struct PipelineDescriptor {
     ShaderBase* shaders[usize(ShaderType::Count)];
     VertexState vertex_state;
-    // TODO: other stuff
+    ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

@@ -17,7 +17,7 @@ enum class RequestState {
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles)
 
-IRequest::IRequest() : events{{new Event()}, {new Event()}} {}
+IRequest::IRequest() : events{{new Kernel::Event()}, {new Kernel::Event()}} {}
 
 void IRequest::GetRequestState(REQUEST_COMMAND_PARAMS) {
     LOG_FUNC_STUBBED(HorizonServices);

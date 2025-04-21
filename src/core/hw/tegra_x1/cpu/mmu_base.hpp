@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-#include "core/horizon/const.hpp"
+#include "core/horizon/kernel/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
@@ -10,7 +10,7 @@ namespace Hydra::HW::TegraX1::CPU {
 struct MemoryRegion {
     vaddr_t va;
     uptr size;
-    Horizon::MemoryState state;
+    Horizon::Kernel::MemoryState state;
 };
 
 class MMUBase {
@@ -25,8 +25,9 @@ class MMUBase {
     virtual uptr GetMemoryPtr(MemoryBase* memory) const = 0;
 
     virtual void Map(vaddr_t va, usize size, MemoryBase* memory,
-                     const Horizon::MemoryState state) = 0;
-    void Map(vaddr_t va, MemoryBase* memory, const Horizon::MemoryState state) {
+                     const Horizon::Kernel::MemoryState state) = 0;
+    void Map(vaddr_t va, MemoryBase* memory,
+             const Horizon::Kernel::MemoryState state) {
         Map(va, memory->GetSize(), memory, state);
     }
     virtual void Map(vaddr_t dst_va, vaddr_t src_va, usize size) = 0;
@@ -36,7 +37,7 @@ class MMUBase {
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
 
-    Horizon::MemoryInfo QueryMemory(vaddr_t va) const;
+    Horizon::Kernel::MemoryInfo QueryMemory(vaddr_t va) const;
 
     template <typename T> T Load(vaddr_t va) const {
         return *reinterpret_cast<T*>(UnmapAddr(va));

@@ -1,8 +1,9 @@
 #include "core/horizon/loader/nro_loader.hpp"
 
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/const.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -48,7 +49,7 @@ struct NROHeader {
 
 } // namespace
 
-void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
+void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NROHeader>();
 
@@ -59,14 +60,14 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto ptr = Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, MemoryPermission::ReadWriteExecute, true,
+    auto ptr = Kernel::Kernel::GetInstance().CreateExecutableMemory(
+        executable_size, Kernel::MemoryPermission::ReadWriteExecute, true,
         base); // TODO: is the permission correct?
     reader.Seek(0);
     reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
     // Set entrypoint
-    Kernel::GetInstance().SetMainThreadEntryPoint(
+    Kernel::Kernel::GetInstance().SetMainThreadEntryPoint(
         base + sizeof(NROHeader) +
         header.GetSection(NROSectionType::Text).offset);
 
@@ -110,13 +111,14 @@ void NROLoader::LoadROM(FileReader& reader, const std::string& rom_filename) {
 #undef ADD_ENTRY_MANDATORY
 #undef ADD_ENTRY
 
-    Kernel::GetInstance().SetMainThreadArg(0, base + config_offset);
-    Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
+    Kernel::Kernel::GetInstance().SetMainThreadArg(0, base + config_offset);
+    Kernel::Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
 
     // Filesystem
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        ROM_VIRTUAL_PATH, new Filesystem::File(rom_filename, reader.GetOffset(),
-                                               reader.GetSize()));
+        ROM_VIRTUAL_PATH,
+        new Filesystem::HostFile(rom_filename, reader.GetOffset(),
+                                 reader.GetSize()));
     ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
            "Failed to add romFS entry: {}", res);
 }

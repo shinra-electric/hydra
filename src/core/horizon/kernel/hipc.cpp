@@ -1,11 +1,11 @@
-#include "core/horizon/services/const.hpp"
+#include "core/horizon/kernel/hipc.hpp"
 
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::Horizon::Services {
+namespace Hydra::Horizon::Kernel::Hipc {
 
 u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                   const Hipc::BufferDescriptor& descriptor, usize size) {
+                   const BufferDescriptor& descriptor, usize size) {
     uptr addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
                 (u64)descriptor.address_high << 36;
     if (addr == 0x0)
@@ -19,7 +19,7 @@ u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
 }
 
 u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                   const Hipc::StaticDescriptor& descriptor, usize size) {
+                   const StaticDescriptor& descriptor, usize size) {
     uptr addr = descriptor.address_low | (u64)descriptor.address_mid << 32 |
                 (u64)descriptor.address_high << 36;
     if (addr == 0x0)
@@ -33,7 +33,7 @@ u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
 }
 
 u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                       const Hipc::RecvListEntry& descriptor, usize size) {
+                       const RecvListEntry& descriptor, usize size) {
     uptr addr = descriptor.address_low | (u64)descriptor.address_high << 32;
     if (addr == 0x0)
         return nullptr;
@@ -45,4 +45,4 @@ u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
     return reinterpret_cast<u8*>(mmu->UnmapAddr(addr));
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace Hydra::Horizon::Kernel::Hipc

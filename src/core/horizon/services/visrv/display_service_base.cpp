@@ -20,11 +20,11 @@ struct CreateStrayLayerOut {
 void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<CreateStrayLayerIn>();
 
-    u32 binder_id = OS::GetInstance().GetDisplayBinderManager().AddBinder();
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // Out
     CreateStrayLayerOut out{
-        .layer_id = Kernel::GetInstance()
+        .layer_id = Kernel::Kernel::GetInstance()
                         .GetBus()
                         .GetDisplay(in.display_id)
                         ->CreateLayer(binder_id),

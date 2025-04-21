@@ -8,8 +8,8 @@ MMUBase::MMUBase() { SINGLETON_SET_INSTANCE(MMU, "MMU"); }
 
 MMUBase::~MMUBase() { SINGLETON_UNSET_INSTANCE(); }
 
-Horizon::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
-    Horizon::MemoryInfo info;
+Horizon::Kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
+    Horizon::Kernel::MemoryInfo info;
     info.size = 0x0;
 
     auto region = QueryRegion(va);
@@ -28,7 +28,7 @@ Horizon::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
     // Resize to the right
     do {
         vaddr_t addr = info.addr + info.size;
-        if (addr >= Horizon::ADDRESS_SPACE_END)
+        if (addr >= Horizon::Kernel::ADDRESS_SPACE_END)
             break;
 
         region = QueryRegion(addr);

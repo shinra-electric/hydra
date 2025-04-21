@@ -1,11 +1,11 @@
 #pragma once
 
+#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/services/fssrv/const.hpp"
-#include "core/horizon/services/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-class IFileSystem : public ServiceBase {
+class IFileSystem : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IFileSystem)
 
@@ -23,7 +23,11 @@ class IFileSystem : public ServiceBase {
     std::string mount;
 
     // Commands
+    void CreateFile(REQUEST_COMMAND_PARAMS);
+    void DeleteFile(REQUEST_COMMAND_PARAMS);
     void CreateDirectory(REQUEST_COMMAND_PARAMS);
+    void DeleteDirectory(REQUEST_COMMAND_PARAMS);
+    void DeleteDirectoryRecursively(REQUEST_COMMAND_PARAMS);
     void GetEntryType(REQUEST_COMMAND_PARAMS);
     void OpenFile(REQUEST_COMMAND_PARAMS);
     void OpenDirectory(REQUEST_COMMAND_PARAMS);

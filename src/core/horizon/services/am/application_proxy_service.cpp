@@ -1,6 +1,6 @@
 #include "core/horizon/services/am/application_proxy_service.hpp"
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/am/application_proxy.hpp"
 
 namespace Hydra::Horizon::Services::Am {

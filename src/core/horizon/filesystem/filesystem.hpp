@@ -4,6 +4,8 @@
 
 namespace Hydra::Horizon::Filesystem {
 
+class FileBase;
+
 class Filesystem {
   public:
     static Filesystem& GetInstance();
@@ -19,10 +21,13 @@ class Filesystem {
     [[nodiscard]] FsResult AddEntry(const std::string& path,
                                     const std::string& host_path,
                                     bool add_intermediate = false);
+    [[nodiscard]] FsResult CreateFile(const std::string& path,
+                                      bool add_intermediate = false);
+
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
-
-    [[nodiscard]] FsResult GetFile(const std::string& path, File*& out_file);
+    [[nodiscard]] FsResult GetFile(const std::string& path,
+                                   FileBase*& out_file);
     [[nodiscard]] FsResult GetDirectory(const std::string& path,
                                         Directory*& out_directory);
 

@@ -1,23 +1,42 @@
 #include "core/horizon/input_manager.hpp"
 
 #include "core/horizon/hid.hpp"
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
-#define GET_LIFO(state) auto& lifo = GetHidSharedMemory()->state##_lifo;
+#define GET_LIFO(lifo_name)                                                    \
+    auto& lifo = GetHidSharedMemory()->lifo_name;                              \
+    auto& out_state = lifo.storage[lifo.header.tail].state;
 
-#define GET_NPAD_LIFO(type, style_lower)                                       \
-    GET_LIFO(npad.entries[u32(type)].internal_state.style_lower)
+#define UPDATE_LIFO(lifo_name)                                                 \
+    auto& lifo = GetHidSharedMemory()->lifo_name;                              \
+    /* TODO: set the tail properly */                                          \
+    lifo.header.tail = 0; /*(lifo.header.tail + 1) % 17;*/                     \
+    lifo.header.count = 1;                                                     \
+    auto& out_state = lifo.storage[lifo.header.tail].state;
+
+namespace Hydra::Horizon {
+
+namespace {
+
+constexpr usize MAX_FINGER_COUNT = 10;
+
+}
+
+InputManager::InputManager() {
+    shared_memory_id = Kernel::Kernel::GetInstance().AddHandle(
+        new Kernel::SharedMemory(0x40000));
+}
+
+#define UPDATE_NPAD_LIFO(type, style_lower)                                    \
+    UPDATE_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
 
 #define SET_NPAD_ENTRY(type, style_upper, style_lower, entry_dst, entry_src)   \
     if (any(GetHidSharedMemory()                                               \
                 ->npad.entries[u32(type)]                                      \
                 .internal_state.style_set &                                    \
             HID::NpadStyleSet::style_upper)) {                                 \
-        GET_NPAD_LIFO(type, style_lower);                                      \
-        /* TODO: set the tail properly */                                      \
-        lifo.header.tail = 0; /*(lifo.header.tail + 1) % 17;*/                 \
-        lifo.storage[lifo.header.tail].state.entry_dst = entry_src;            \
-        lifo.header.count = 1;                                                 \
+        UPDATE_NPAD_LIFO(type, style_lower);                                   \
+        out_state.entry_dst = entry_src;                                       \
     }
 
 #define SET_NPAD_ENTRIES_SEPARATE(type, entry_dst, entry_src)                  \
@@ -29,12 +48,6 @@
 
 #define SET_NPAD_ENTRIES(type, entry)                                          \
     SET_NPAD_ENTRIES_SEPARATE(type, entry, entry)
-
-namespace Hydra::Horizon {
-
-InputManager::InputManager() {
-    shared_memory_id = Kernel::GetInstance().CreateSharedMemory(0x40000);
-}
 
 void InputManager::ConnectNpad(HID::NpadIdType type,
                                HID::NpadStyleSet style_set,
@@ -60,8 +73,40 @@ void InputManager::SetNpadAnalogStickStateR(
 }
 
 HID::SharedMemory* InputManager::GetHidSharedMemory() const {
-    return reinterpret_cast<HID::SharedMemory*>(
-        Kernel::GetInstance().GetSharedMemory(shared_memory_id).GetPtr());
+    auto shared_mem = dynamic_cast<Kernel::SharedMemory*>(
+        Kernel::Kernel::GetInstance().GetHandle(shared_memory_id));
+    ASSERT_DEBUG(shared_mem, Horizon, "Failed to get shared memory");
+    return reinterpret_cast<HID::SharedMemory*>(shared_mem->GetPtr());
+}
+
+void InputManager::UpdateTouchStates() {
+    UPDATE_LIFO(touch_screen.lifo);
+    out_state.count = touch_count;
+}
+
+u32 InputManager::BeginTouch() {
+    for (u32 i = 0; i < MAX_FINGER_COUNT; i++) {
+        if (available_finger_mask & (1 << i)) {
+            available_finger_mask &= ~(1 << i);
+            touch_count++;
+            return i;
+        }
+    }
+
+    return invalid<u32>();
+}
+
+void InputManager::SetTouchState(HID::TouchState state) {
+    GET_LIFO(touch_screen.lifo);
+    out_state.touches[out_state.count++] = state;
+}
+
+void InputManager::EndTouch(u32 finger_id) {
+    ASSERT(finger_id < MAX_FINGER_COUNT, Horizon, "Invalid finger ID {}",
+           finger_id);
+    ASSERT_DEBUG(touch_count != 0, Horizon, "No touches active");
+    available_finger_mask |= (1 << finger_id);
+    touch_count--;
 }
 
 } // namespace Hydra::Horizon

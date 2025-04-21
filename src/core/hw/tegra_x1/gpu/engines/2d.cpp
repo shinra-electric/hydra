@@ -49,15 +49,12 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
 }
 
 Renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
-    const Renderer::TextureDescriptor descriptor{
-        .ptr = UNMAP_ADDR(info.addr),
-        .format = Renderer::to_texture_format(info.format),
-        .kind = NvKind::Pitch, // TODO: correct?
-        .width = static_cast<usize>(info.width),
-        .height = static_cast<usize>(info.height),
-        .block_height_log2 = 0, // HACK
-        .stride = static_cast<usize>(info.stride),
-    };
+    const Renderer::TextureDescriptor descriptor(
+        UNMAP_ADDR(info.addr), Renderer::to_texture_format(info.format),
+        NvKind::Pitch, // TODO: correct?
+        static_cast<usize>(info.width), static_cast<usize>(info.height),
+        0, // HACK
+        static_cast<usize>(info.stride));
 
     return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }

@@ -44,6 +44,8 @@ Window::~Window() {
 void Window::Run() {
     bool running = true;
     while (running) {
+        auto& input_manager = Horizon::OS::GetInstance().GetInputManager();
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT)
@@ -66,7 +68,8 @@ void Window::Run() {
         buttons |= Horizon::HID::NpadButtons::button;                          \
         break;
 
-            if (event.type == SDL_EVENT_KEY_DOWN) {
+            // Key down
+            else if (event.type == SDL_EVENT_KEY_DOWN) {
                 switch (event.key.key) {
                     KEY_CASES;
                 default:
@@ -81,7 +84,8 @@ void Window::Run() {
         buttons &= ~Horizon::HID::NpadButtons::button;                         \
         break;
 
-            if (event.type == SDL_EVENT_KEY_UP) {
+            // Key up
+            else if (event.type == SDL_EVENT_KEY_UP) {
                 switch (event.key.key) {
                     KEY_CASES;
                 default:
@@ -90,13 +94,59 @@ void Window::Run() {
             }
 
 #undef KEY_CASE
+
+            // Mouse down
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                switch (event.button.button) {
+                case SDL_BUTTON_LEFT:
+                    finger_id = input_manager.BeginTouch();
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            // Mouse up
+            else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+                switch (event.button.button) {
+                case SDL_BUTTON_LEFT:
+                    input_manager.EndTouch(finger_id);
+                    finger_id = invalid<u32>();
+                    break;
+                default:
+                    break;
+                }
+            }
+
+#undef KEY_CASE
+
+            // Mouse move
         }
 
-        Horizon::OS::GetInstance().GetInputManager().SetNpadButtons(
-            Horizon::HID::NpadIdType::Handheld, buttons);
+#undef KEY_CASES
 
-        if (emulation_context.IsRunning())
+        if (emulation_context.IsRunning()) {
+            // Input
+
+            // Npad
+            input_manager.SetNpadButtons(Horizon::HID::NpadIdType::Handheld,
+                                         buttons);
+
+            // Touch
+            input_manager.UpdateTouchStates();
+            if (finger_id != invalid<u32>()) {
+                f32 x, y;
+                SDL_GetMouseState(&x, &y);
+                input_manager.SetTouchState({
+                    .finger_id = finger_id,
+                    .x = static_cast<u32>(x),
+                    .y = static_cast<u32>(y),
+                    // TODO: other stuff
+                });
+            }
+
             emulation_context.Present();
+        }
     }
 }
 

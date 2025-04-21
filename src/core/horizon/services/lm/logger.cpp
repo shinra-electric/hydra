@@ -93,11 +93,12 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
         u32 key;
         u32 size;
         if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size)) {
-            result = MAKE_KERNEL_RESULT(Error::InvalidCombination); // TODO
+            result =
+                MAKE_KERNEL_RESULT(Kernel::Error::InvalidCombination); // TODO
             return;
         }
 
-        const auto data = reader.Read<u8>(size);
+        const auto data = reader.ReadPtr<u8>(size);
 
 #define GET_DATA(type) *reinterpret_cast<type*>(data)
 #define GET_STRING() std::string(reinterpret_cast<const char*>(data), size)

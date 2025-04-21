@@ -17,7 +17,7 @@ void IApplicationFunctions::PopLaunchParameter(REQUEST_COMMAND_PARAMS) {
 }
 
 void IApplicationFunctions::SetTerminateResult(REQUEST_COMMAND_PARAMS) {
-    auto res = readers.reader.Read<Result>();
+    auto res = readers.reader.Read<Kernel::Result>();
     LOG_DEBUG(HorizonServices, "Result: 0x{:x}", res);
 }
 

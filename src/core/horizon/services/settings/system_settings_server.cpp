@@ -1,5 +1,7 @@
 #include "core/horizon/services/settings/system_settings_server.hpp"
 
+#include "core/horizon/const.hpp"
+
 namespace Hydra::Horizon::Services::Settings {
 
 namespace {

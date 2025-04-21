@@ -1,6 +1,6 @@
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 
-#include "core/horizon/kernel.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
@@ -117,6 +117,11 @@ struct AdjustRefcountIn {
     BinderType type;
 };
 
+struct GetNativeHandleIn {
+    i32 binder_id;
+    u32 code; // TODO: should this be TransactCode?
+};
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
@@ -134,8 +139,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     usize written_begin = writer.GetWrittenSize();
 
     // Binder
-    auto& binder =
-        OS::GetInstance().GetDisplayBinderManager().GetBinder(in.binder_id);
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(in.binder_id);
 
     // Dispatch
     BinderResult b_result = BinderResult::Success;
@@ -270,8 +274,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
     auto in = readers.reader.Read<AdjustRefcountIn>();
 
-    auto& binder =
-        OS::GetInstance().GetDisplayBinderManager().GetBinder(in.binder_id);
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(in.binder_id);
 
     switch (in.type) {
     case BinderType::Weak:
@@ -284,12 +287,13 @@ void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
 }
 
 void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
-    const i32 id = readers.reader.Read<i32>();
-    const u32 code =
-        readers.reader.Read<u32>(); // TODO: should this be TransactCode?
+    const auto in = readers.reader.Read<GetNativeHandleIn>();
 
-    writers.copy_handles_writer.Write(
-        OS::GetInstance().GetDisplayBinderManager().GetEventHandle().id);
+    writers.copy_handles_writer.Write(OS::GetInstance()
+                                          .GetDisplayDriver()
+                                          .GetBinder(in.binder_id)
+                                          .GetEvent()
+                                          .id);
 }
 
 } // namespace Hydra::Horizon::Services::HosBinder

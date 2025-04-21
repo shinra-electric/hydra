@@ -1,5 +1,5 @@
 #include "core/horizon/services/visrv/manager_display_service.hpp"
-#include "core/horizon/services/service_base.hpp"
+#include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 

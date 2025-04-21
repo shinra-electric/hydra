@@ -14,6 +14,8 @@ class NvHostCtrl : public FdBase {
     DECLARE_IOCTL(GetConfig, readonly<char> name[0x41];
                   readonly<char> key[0x41]; writeonly<char /*[0x101]*/> value;
                   , value);
+    DECLARE_IOCTL(SyncptWaitEvent, readonly<u32> id; readonly<u32> tresh;
+                  writeonly<i32> timeout; writeonly<u32> value;, value);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

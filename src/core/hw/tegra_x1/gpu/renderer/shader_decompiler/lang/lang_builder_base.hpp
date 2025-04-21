@@ -24,16 +24,16 @@ class LangBuilderBase : public BuilderBase {
     // Operations
     void OpExit() override;
     void OpMove(reg_t dst, Operand src) override;
-    void OpFloatAdd(reg_t dst, reg_t src1, Operand src2) override;
-    void OpFloatMultiply(reg_t dst, reg_t src1, Operand src2) override;
+    void OpAdd(Operand dst, Operand src1, Operand src2) override;
+    void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, reg_t src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
     void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override;
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst, u32 const_buffer_index, reg_t coords_x,
-                         reg_t coords_y) override;
+    void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
+                         reg_t coords_x, reg_t coords_y) override;
 
   protected:
     virtual void InitializeResourceMapping() = 0;
@@ -105,17 +105,16 @@ class LangBuilderBase : public BuilderBase {
                            GetTypePrefix(data_type));
     }
 
-    std::string GetOperand(Operand operand, bool write = false,
-                           DataType data_type = DataType::UInt) {
+    std::string GetOperand(Operand operand, bool write = false) {
         switch (operand.type) {
         case OperandType::Register:
-            return GetReg(operand.reg, write, data_type);
+            return GetReg(operand.reg, write, operand.data_type);
         case OperandType::Immediate:
-            return GetImm(operand.imm, data_type);
+            return GetImm(operand.imm, operand.data_type);
         case OperandType::AttributeMemory:
-            return GetA(operand.amem, data_type);
+            return GetA(operand.amem, operand.data_type);
         case OperandType::ConstMemory:
-            return GetC(operand.cmem, data_type);
+            return GetC(operand.cmem, operand.data_type);
         }
     }
 

@@ -209,11 +209,15 @@ struct Regs3D {
     u32 padding_0x365[0x2];
 
     // 0x367
-    bool color_reduction_enable : 32;
+    bool32 color_reduction_enable;
     u32 clear_stencil;
 
-    u32 padding_0x369[0x7];
-    u32 padding_0x370[0x80];
+    u32 padding_0x369[0xb];
+
+    // 0x374
+    bool32 advanced_blend_enabled;
+
+    u32 padding_0x375[0x7b];
     u32 padding_0x3f0[0x8];
 
     // 0x3f8 depth target
@@ -261,22 +265,44 @@ struct Regs3D {
     u32 padding_0x48d[0x26];
 
     // 0x4b3
-    bool depth_test_enabled : 32;
+    bool32 depth_test_enabled;
 
-    u32 padding_0x4b4[0x6];
+    u32 padding_0x4b4[0x5];
 
-    // 0x4ba
-    bool depth_write_enabled : 32;
+    // 0x4b9
+    bool32 independent_blend_enabled;
+    bool32 depth_write_enabled;
 
     u32 padding_0x4bb[0x8];
 
     // 0x4c3
     DepthTestFunc depth_test_func;
 
-    u32 padding_0x4c4[0x8a];
+    u32 padding_0x4c4[0x3];
+
+    // 0x4c7
+    float4 blend_constant;
+
+    u32 padding_0x4cb[0x4];
+
+    // 0x4cf
+    struct {
+        u32 separate_for_alpha; // TODO: is this a bitfield or something?
+        u32 rgb_op;
+        u32 src_rgb_factor;
+        u32 dst_rgb_factor;
+        u32 alpha_op;
+        u32 src_alpha_factor;
+        u32 global_color_key; // TODO: what is this?
+        u32 dst_alpha_factor;
+    } blend_state;
+    u32 single_rop_control;
+    u32 color_blend_enabled[COLOR_TARGET_COUNT];
+
+    u32 padding_0x4e0[0x6e];
 
     // 0x54e
-    bool depth_target_enabled : 32;
+    bool32 depth_target_enabled;
 
     u32 padding_0x54f[0xe];
 
@@ -313,9 +339,7 @@ struct Regs3D {
     u32 padding_0x5f9[0x27];
 
     // 0x620
-    struct {
-        bool enable : 32;
-    } is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
+    bool32 is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
     u32 padding_0x630[0x90];
 
@@ -337,9 +361,20 @@ struct Regs3D {
         u32 divisor;
     } vertex_arrays[VERTEX_ARRAY_COUNT];
 
-    u32 padding_0x740[0x80];
+    u32 padding_0x740[0x40];
 
-    // 0x7c0 vertex array limits
+    // 0x780
+    struct {
+        u32 unknown; // TODO: is this just padding?
+        u32 rgb_op;
+        u32 src_rgb_factor;
+        u32 dst_rgb_factor;
+        u32 alpha_op;
+        u32 src_alpha_factor;
+        u32 dst_alpha_factor;
+        u32 padding;
+    } independent_blend_state[COLOR_TARGET_COUNT];
+
     Iova vertex_array_limits[VERTEX_ARRAY_COUNT];
 
     u32 padding_0x7e0[0x20];

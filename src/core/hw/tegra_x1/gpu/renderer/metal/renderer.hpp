@@ -64,7 +64,6 @@ class Renderer : public RendererBase {
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
 
     // Command buffer
-    void BeginCommandBuffer() override;
     void EndCommandBuffer() override;
 
     // Render pass
@@ -103,7 +102,21 @@ class Renderer : public RendererBase {
 
     // Helpers
 
-    // Command encoders
+    // Command buffer
+    void EnsureCommandBuffer() {
+        if (!command_buffer)
+            command_buffer = command_queue->commandBuffer();
+    }
+
+    void CommitCommandBuffer() {
+        if (command_buffer) {
+            EndEncoding();
+
+            command_buffer->commit();
+            command_buffer = nullptr;
+        }
+    }
+
     MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
         ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
                      "Render command encoder not active");

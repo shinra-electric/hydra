@@ -6,8 +6,9 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostAsGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(0x41, 0x01, BindChannel, 0x02,
-                                            AllocSpace, 0x06, MapBufferEx, 0x08,
-                                            GetVaRegions, 0x09, AllocASEx))
+                                            AllocSpace, 0x05, UnmapBuffer, 0x06,
+                                            MapBufferEx, 0x08, GetVaRegions,
+                                            0x09, AllocASEx))
 
 void NvHostAsGpu::BindChannel(BindChannelData& data, NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
@@ -22,6 +23,12 @@ void NvHostAsGpu::AllocSpace(AllocSpaceData& data, NvResult& result) {
         HW::TegraX1::GPU::GPU::GetInstance().AllocatePrivateAddressSpace(
             static_cast<usize>(data.pages) * static_cast<usize>(data.page_size),
             gpu_addr);
+}
+
+void NvHostAsGpu::UnmapBuffer(UnmapBufferData& data, NvResult& result) {
+    auto& gpu = HW::TegraX1::GPU::GPU::GetInstance();
+
+    LOG_FUNC_STUBBED(HorizonServices);
 }
 
 void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {

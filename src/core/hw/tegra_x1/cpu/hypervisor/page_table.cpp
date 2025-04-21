@@ -118,7 +118,7 @@ PageTable::PageTable(paddr_t base_pa)
 PageTable::~PageTable() = default;
 
 void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
-                    const Horizon::MemoryState state) {
+                    const Horizon::Kernel::MemoryState state) {
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
 
@@ -144,9 +144,9 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
             region.va = va & ~(level->GetBlockSize() - 1);
             region.pa = 0x0;
             region.size = level->GetBlockSize();
-            region.state = {Horizon::MemoryType::Free,
-                            Horizon::MemoryAttribute::None,
-                            Horizon::MemoryPermission::None};
+            region.state = {Horizon::Kernel::MemoryType::Free,
+                            Horizon::Kernel::MemoryAttribute::None,
+                            Horizon::Kernel::MemoryPermission::None};
 
             return region;
         }
@@ -167,14 +167,14 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
-    ASSERT(region.state.type != Horizon::MemoryType::Free, Hypervisor,
+    ASSERT(region.state.type != Horizon::Kernel::MemoryType::Free, Hypervisor,
            "Failed to unmap va 0x{:08x}", va);
 
     return region.UnmapAddr(va);
 }
 
-void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
-                         const Horizon::MemoryState state) {
+void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
+                         usize size, const Horizon::Kernel::MemoryState state) {
     vaddr_t end_va = va + size;
     do {
         MapLevelNext(
@@ -189,7 +189,8 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize si
 }
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
-                             usize size, const Horizon::MemoryState state) {
+                             usize size,
+                             const Horizon::Kernel::MemoryState state) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
     //           level.GetLevel(), va, pa, size);

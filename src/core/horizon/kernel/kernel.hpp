@@ -3,9 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/allocators/static_pool.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/shared_memory.hpp"
-#include <condition_variable>
-#include <type_traits>
+#include "core/horizon/kernel/shared_memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
 class MMUBase;
@@ -16,11 +14,9 @@ namespace Hydra::HW {
 class Bus;
 }
 
-namespace Hydra::Horizon {
+namespace Hydra::Horizon::Kernel {
 
-namespace Services {
 class ServiceBase;
-}
 
 // TODO: should this be used?
 constexpr u32 HANDLE_WAIT_MASK = 0x40000000;
@@ -49,22 +45,25 @@ class Mutex {
     std::condition_variable cv;
 };
 
-class KernelHandle {
+class Event : public Handle {
   public:
-    virtual ~KernelHandle() = default;
-};
+    Event(bool signaled_ = false) : signaled{signaled_} {}
 
-class Event : public KernelHandle {
-  public:
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
         signaled = true;
         cv.notify_all();
     }
 
-    void Clear() {
-        std::unique_lock<std::mutex> lock(mutex);
-        signaled = false;
+    bool Clear() {
+        bool was_signaled;
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            was_signaled = signaled;
+            signaled = false;
+        }
+
+        return was_signaled;
     }
 
     void Wait(i64 timeout) {
@@ -82,30 +81,7 @@ class Event : public KernelHandle {
     bool signaled{false};
 };
 
-class ThreadHandle : public KernelHandle {
-  public:
-    ThreadHandle(HW::TegraX1::CPU::MemoryBase* tls_mem_, vaddr_t tls_addr_,
-                 vaddr_t entry_point_, vaddr_t args_addr_,
-                 vaddr_t stack_top_addr_, i32 priority_)
-        : tls_mem{tls_mem_}, tls_addr{tls_addr_}, entry_point{entry_point_},
-          args_addr{args_addr_}, stack_top_addr{stack_top_addr_},
-          priority{priority_} {}
-    ~ThreadHandle() override;
-
-    void Start();
-
-  private:
-    HW::TegraX1::CPU::MemoryBase* tls_mem;
-    vaddr_t tls_addr;
-    vaddr_t entry_point;
-    vaddr_t args_addr;
-    vaddr_t stack_top_addr;
-    i32 priority;
-
-    std::thread* t = nullptr;
-};
-
-class TransferMemory : public KernelHandle {
+class TransferMemory : public Handle {
   public:
     TransferMemory(uptr addr_, u64 size_, MemoryPermission perm_)
         : addr{addr_}, size{size_}, perm{perm_} {}
@@ -146,7 +122,7 @@ class Kernel {
     }
 
     void ConnectServiceToPort(const std::string& port_name,
-                              Services::ServiceBase* service) {
+                              ServiceBase* service) {
         service_ports[port_name] = service;
     }
 
@@ -165,6 +141,7 @@ class Kernel {
                            vaddr_t stack_top_addr, i32 priority,
                            i32 processor_id, handle_id_t& out_thread_handle_id);
     Result svcStartThread(handle_id_t thread_handle_id);
+    void svcExitThread();
     void svcSleepThread(i64 nano);
     Result svcGetThreadPriority(handle_id_t thread_handle_id,
                                 i32& out_priority);
@@ -200,20 +177,14 @@ class Kernel {
                       u64 info_sub_type, u64& out_info);
 
     // Helpers
-    KernelHandle* GetHandle(handle_id_t handle_id) const {
+    Handle* GetHandle(handle_id_t handle_id) const {
         return handle_pool.GetObject(handle_id);
     }
-    void SetHandle(handle_id_t handle_id, KernelHandle* handle);
-    handle_id_t AddHandle(KernelHandle* handle);
+    void SetHandle(handle_id_t handle_id, Handle* handle);
+    handle_id_t AddHandle(Handle* handle);
     void FreeHandle(handle_id_t handle_id) {
         delete GetHandle(handle_id);
         handle_pool.FreeByIndex(handle_id);
-    }
-
-    handle_id_t CreateSharedMemory(usize size);
-
-    const SharedMemory& GetSharedMemory(handle_id_t handle_id) const {
-        return *shared_memory_pool.GetObject(handle_id);
     }
 
     HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
@@ -247,33 +218,32 @@ class Kernel {
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Handles
-    Allocators::DynamicPool<KernelHandle*> handle_pool;
-    Allocators::DynamicPool<SharedMemory*> shared_memory_pool;
+    Allocators::DynamicPool<Handle*> handle_pool;
 
     // TODO: use a different container?
     std::map<vaddr_t, Mutex> mutex_map;
     std::map<vaddr_t, std::condition_variable> cond_var_map;
 
     // Services
-    std::map<std::string, Services::ServiceBase*> service_ports;
+    std::map<std::string, ServiceBase*> service_ports;
     u8 service_scratch_buffer[0x200];
     u8 service_scratch_buffer_objects[0x100];
     u8 service_scratch_buffer_move_handles[0x100];
     u8 service_scratch_buffer_copy_handles[0x100];
 };
 
-template <typename T> struct KernelHandleWithId {
-    static_assert(std::is_convertible_v<T*, KernelHandle*>,
+template <typename T> struct HandleWithId {
+    static_assert(std::is_convertible_v<T*, Handle*>,
                   "Type does not inherit from KernelHandle");
 
     T* handle;
     handle_id_t id;
 
-    KernelHandleWithId(T* handle_) : handle{handle_} {
-        id = Kernel::GetInstance().AddHandle(handle);
+    HandleWithId(T* handle_) : handle{handle_} {
+        id = Kernel::Kernel::GetInstance().AddHandle(handle);
     }
 
-    ~KernelHandleWithId() { Kernel::GetInstance().FreeHandle(id); }
+    ~HandleWithId() { Kernel::GetInstance().FreeHandle(id); }
 };
 
-} // namespace Hydra::Horizon
+} // namespace Hydra::Horizon::Kernel

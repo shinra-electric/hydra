@@ -1,9 +1,10 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/filesystem/ram_file.hpp"
 
-#define VERIFY_PATH(path)                                                      \
+#define GET_MOUNT(path)                                                        \
     if (path.empty())                                                          \
         return FsResult::NotMounted;                                           \
     const auto slash_pos = path.find('/');                                     \
@@ -12,7 +13,10 @@
     const auto mount = path.substr(0, slash_pos);                              \
     if (mount.empty())                                                         \
         return FsResult::NotMounted;                                           \
-    const auto entry_path = path.substr(slash_pos);                            \
+    const auto entry_path = path.substr(slash_pos);
+
+#define VERIFY_PATH(path)                                                      \
+    GET_MOUNT(path)                                                            \
     auto it = devices.find(mount);                                             \
     if (it == devices.end())                                                   \
         return FsResult::NotMounted;                                           \
@@ -58,18 +62,36 @@ FsResult Filesystem::AddEntry(const std::string& path,
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
+FsResult Filesystem::CreateFile(const std::string& path,
+                                bool add_intermediate) {
+    GET_MOUNT(path);
+
+    // TODO: keep a list of host paths for each mount point instead
+    if (mount == FS_SD_MOUNT) {
+        const auto host_path =
+            fmt::format("{}/{}", Config::GetInstance().GetSdCardPath(), path);
+        return AddEntry(path, new HostFile(host_path), add_intermediate);
+    } else {
+        LOG_WARNING(HorizonFilesystem,
+                    "Could not find host path for path \"{}\", falling back to "
+                    "RAM backed file",
+                    path);
+        return AddEntry(path, new RamFile(), add_intermediate);
+    }
+}
+
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string& path, File*& out_file) {
+FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
         return res;
 
-    out_file = dynamic_cast<File*>(entry);
+    out_file = dynamic_cast<FileBase*>(entry);
     if (!out_file)
         return FsResult::NotAFile;
 
