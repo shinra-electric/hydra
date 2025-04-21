@@ -13,6 +13,7 @@ class IPcvService : public Kernel::ServiceBase {
 
   private:
     // Commands
+    void GetClockRate(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Pcv

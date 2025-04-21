@@ -43,6 +43,7 @@ class NvHostAsGpu : public FdBase {
             readonly<u64> align_or_offset;
         },
                                                             offset);
+    DECLARE_IOCTL(UnmapBuffer, readonly<gpu_vaddr_t> offset;);
     DECLARE_IOCTL(MapBufferEx, readonly<MapBufferFlags> flags;
                   readwrite<HW::TegraX1::GPU::NvKind> kind;
                   readonly<u32> nvmap_handle_id; u32 reserved;

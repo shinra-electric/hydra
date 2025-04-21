@@ -33,7 +33,7 @@ void Thread::Initialize(
     config.tpidr_el0 = nullptr; // TODO: what is this?
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
-    config.cntfrq_el0 = 19200000; // TODO: make this a constant
+    config.cntfrq_el0 = CLOCK_RATE_HZ; // TODO: make this a constant
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
