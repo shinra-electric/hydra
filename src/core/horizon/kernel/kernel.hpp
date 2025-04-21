@@ -141,6 +141,7 @@ class Kernel {
                            vaddr_t stack_top_addr, i32 priority,
                            i32 processor_id, handle_id_t& out_thread_handle_id);
     Result svcStartThread(handle_id_t thread_handle_id);
+    void svcExitThread();
     void svcSleepThread(i64 nano);
     Result svcGetThreadPriority(handle_id_t thread_handle_id,
                                 i32& out_priority);

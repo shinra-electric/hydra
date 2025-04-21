@@ -71,10 +71,7 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
         LOG_ERROR(Dynarmic, "Interpreter");
     }
 
-    void CallSVC(u32 svc) override {
-        LogStackTrace();
-        svc_handler(this, svc);
-    }
+    void CallSVC(u32 svc) override;
 
     void ExceptionRaised(u64 pc, DynA64::Exception exception) override;
 

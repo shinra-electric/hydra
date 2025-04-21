@@ -140,6 +140,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     case 0x7:
         svcExitProcess();
+        // TODO: exit all threads?
         return false;
     case 0x8:
         res = svcCreateThread(
@@ -153,6 +154,9 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         res = svcStartThread(thread->GetRegW(0));
         thread->SetRegW(0, res);
         break;
+    case 0xa:
+        svcExitThread();
+        return false;
     case 0xb:
         svcSleepThread(std::bit_cast<i64>(thread->GetRegX(0)));
         break;
@@ -398,6 +402,10 @@ Result Kernel::svcStartThread(handle_id_t thread_handle_id) {
     thread->Start();
 
     return RESULT_SUCCESS;
+}
+
+void Kernel::svcExitThread() {
+    LOG_DEBUG(HorizonKernel, "svcExitThread called");
 }
 
 void Kernel::svcSleepThread(i64 nano) {

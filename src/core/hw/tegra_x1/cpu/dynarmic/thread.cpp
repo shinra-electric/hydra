@@ -145,6 +145,13 @@ bool Thread::MemoryWriteExclusive128(u64 addr, DynA64::Vector value,
     return true;
 }
 
+void Thread::CallSVC(u32 svc) {
+    LogStackTrace();
+    bool running = svc_handler(this, svc);
+    if (!running)
+        jit->HaltExecution();
+}
+
 void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
     LogStackTrace();
 
