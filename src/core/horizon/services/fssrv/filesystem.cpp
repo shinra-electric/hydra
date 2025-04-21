@@ -23,14 +23,19 @@ struct CreateFileIn {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 2, CreateDirectory, 7,
-                             GetEntryType, 8, OpenFile, 9, OpenDirectory)
+DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
+                             CreateDirectory, 3, DeleteDirectory, 4,
+                             DeleteDirectoryRecursively, 7, GetEntryType, 8,
+                             OpenFile, 9, OpenDirectory)
+
+#define READ_PATH()                                                            \
+    const auto path = mount + readers.send_statics_readers[0].ReadString();    \
+    LOG_DEBUG(HorizonServices, "Path: {}", path);
 
 void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<CreateFileIn>();
 
-    const auto path = mount + readers.send_statics_readers[0].ReadString();
-    LOG_DEBUG(HorizonServices, "Path: {}", path);
+    READ_PATH();
 
     const auto res = Filesystem::Filesystem::GetInstance().CreateFile(
         path, true); // TODO: should create_intermediate be true?
@@ -41,9 +46,14 @@ void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
                "Failed to create file: {}", res);
 }
 
+void IFileSystem::DeleteFile(REQUEST_COMMAND_PARAMS) {
+    READ_PATH();
+
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
 void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
-    const auto path = mount + readers.send_statics_readers[0].ReadString();
-    LOG_DEBUG(HorizonServices, "Path: {}", path);
+    READ_PATH();
 
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
         path, new Filesystem::Directory(),
@@ -55,9 +65,20 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
                "Failed to create directory: {}", res);
 }
 
+void IFileSystem::DeleteDirectory(REQUEST_COMMAND_PARAMS) {
+    READ_PATH();
+
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
+void IFileSystem::DeleteDirectoryRecursively(REQUEST_COMMAND_PARAMS) {
+    READ_PATH();
+
+    LOG_FUNC_STUBBED(HorizonServices);
+}
+
 void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
-    const auto path = mount + readers.send_statics_readers[0].ReadString();
-    LOG_DEBUG(HorizonServices, "Path: {}", path);
+    READ_PATH();
 
     Filesystem::EntryBase* entry;
     const auto res =
@@ -75,9 +96,10 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
-    const auto path = mount + readers.send_statics_readers[0].ReadString();
+    READ_PATH();
+
     const auto flags = readers.reader.Read<FileFlags>();
-    LOG_DEBUG(HorizonServices, "Path: {}, flags: {}", path, flags);
+    LOG_DEBUG(HorizonServices, "Flags: {}", flags);
 
     Filesystem::FileBase* file;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
@@ -92,10 +114,10 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
 }
 
 void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
-    const auto path = mount + readers.send_statics_readers[0].ReadString();
+    READ_PATH();
+
     const auto filter_flags = readers.reader.Read<DirectoryFilterFlags>();
-    LOG_DEBUG(HorizonServices, "Path: {}, filter flags: {}", path,
-              filter_flags);
+    LOG_DEBUG(HorizonServices, "Filter flags: {}", filter_flags);
 
     Filesystem::Directory* directory;
     const auto res =

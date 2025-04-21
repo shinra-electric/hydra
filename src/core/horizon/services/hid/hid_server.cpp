@@ -12,7 +12,8 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
     SetSupportedNpadIdType, 103, ActivateNpad, 120, SetNpadJoyHoldType, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 201,
-    SendVibrationValue, 203, CreateActiveVibrationDeviceList)
+    SendVibrationValue, 203, CreateActiveVibrationDeviceList, 206,
+    SendVibrationValues)
 
 void IHidServer::CreateAppletResource(REQUEST_COMMAND_PARAMS) {
     u64 aruid = readers.reader.Read<u64>();

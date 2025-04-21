@@ -24,7 +24,10 @@ class IFileSystem : public Kernel::ServiceBase {
 
     // Commands
     void CreateFile(REQUEST_COMMAND_PARAMS);
+    void DeleteFile(REQUEST_COMMAND_PARAMS);
     void CreateDirectory(REQUEST_COMMAND_PARAMS);
+    void DeleteDirectory(REQUEST_COMMAND_PARAMS);
+    void DeleteDirectoryRecursively(REQUEST_COMMAND_PARAMS);
     void GetEntryType(REQUEST_COMMAND_PARAMS);
     void OpenFile(REQUEST_COMMAND_PARAMS);
     void OpenDirectory(REQUEST_COMMAND_PARAMS);

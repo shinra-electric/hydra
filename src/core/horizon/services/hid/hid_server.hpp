@@ -29,6 +29,7 @@ class IHidServer : public Kernel::ServiceBase {
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
     STUB_REQUEST_COMMAND(SendVibrationValue);
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(SendVibrationValues);
 };
 
 } // namespace Hydra::Horizon::Services::Hid
