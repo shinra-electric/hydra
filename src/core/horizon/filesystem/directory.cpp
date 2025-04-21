@@ -12,6 +12,11 @@ Directory::Directory(const std::string& host_path) {
         const auto& entry_path = entry.path().string();
         const auto entry_name =
             entry_path.substr(entry_path.find_last_of("/") + 1);
+
+        // Ignore certain entries
+        if (entry_name == ".DS_Store")
+            continue;
+
         AddEntry(entry_name, entry_path);
     }
 }
