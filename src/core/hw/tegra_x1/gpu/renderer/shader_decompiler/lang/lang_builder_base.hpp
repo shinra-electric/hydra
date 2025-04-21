@@ -106,16 +106,26 @@ class LangBuilderBase : public BuilderBase {
     }
 
     std::string GetOperand(Operand operand, bool write = false) {
+        std::string res;
         switch (operand.type) {
         case OperandType::Register:
-            return GetReg(operand.reg, write, operand.data_type);
+            res = GetReg(operand.reg, write, operand.data_type);
+            break;
         case OperandType::Immediate:
-            return GetImm(operand.imm, operand.data_type);
+            res = GetImm(operand.imm, operand.data_type);
+            break;
         case OperandType::AttributeMemory:
-            return GetA(operand.amem, operand.data_type);
+            res = GetA(operand.amem, operand.data_type);
+            break;
         case OperandType::ConstMemory:
-            return GetC(operand.cmem, operand.data_type);
+            res = GetC(operand.cmem, operand.data_type);
+            break;
         }
+
+        if (operand.neg)
+            return fmt::format("(-{})", res);
+        else
+            return res;
     }
 
     const char GetComponentFromIndex(u8 component_index) {

@@ -53,31 +53,41 @@ struct Operand {
         CMem cmem;
     };
     DataType data_type;
+    bool neg;
 
     static Operand Register(reg_t reg,
-                            const DataType data_type = DataType::UInt) {
-        return Operand{
-            .type = OperandType::Register, .reg = reg, .data_type = data_type};
+                            const DataType data_type = DataType::UInt,
+                            bool neg = false) {
+        return Operand{.type = OperandType::Register,
+                       .reg = reg,
+                       .data_type = data_type,
+                       .neg = neg};
     }
 
-    static Operand Immediate(u32 imm,
-                             const DataType data_type = DataType::UInt) {
-        return Operand{
-            .type = OperandType::Immediate, .imm = imm, .data_type = data_type};
+    static Operand Immediate(u32 imm, const DataType data_type = DataType::UInt,
+                             bool neg = false) {
+        return Operand{.type = OperandType::Immediate,
+                       .imm = imm,
+                       .data_type = data_type,
+                       .neg = neg};
     }
 
     static Operand AttributeMemory(const AMem& amem,
-                                   const DataType data_type = DataType::UInt) {
+                                   const DataType data_type = DataType::UInt,
+                                   bool neg = false) {
         return Operand{.type = OperandType::AttributeMemory,
                        .amem = amem,
-                       .data_type = data_type};
+                       .data_type = data_type,
+                       .neg = neg};
     }
 
     static Operand ConstMemory(const CMem& cmem,
-                               const DataType data_type = DataType::UInt) {
+                               const DataType data_type = DataType::UInt,
+                               bool neg = false) {
         return Operand{.type = OperandType::ConstMemory,
                        .cmem = cmem,
-                       .data_type = data_type};
+                       .data_type = data_type,
+                       .neg = neg};
     }
 };
 

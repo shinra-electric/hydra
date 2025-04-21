@@ -123,6 +123,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
 bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
+
 #define GET_VALUE_U(type_bit_count, b, count)                                  \
     extract_bits<u##type_bit_count, b, count>(inst)
 #define GET_VALUE_U_EXTEND(type_bit_count, b, count)                           \
@@ -131,9 +132,13 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
+
+#define GET_BIT(b) extract_bits<u32, b, 1>(inst)
+
 #define GET_AMEM() AMem{GET_REG(8), 0}
 #define GET_AMEM_IDX(b)                                                        \
     AMem { GET_REG(8), extract_bits<u32, b, 10>(inst) }
+
 // HACK: why do I have to multiply by 4?
 #define GET_CMEM(b_idx, count_imm)                                             \
     CMem{GET_VALUE_U32(b_idx, 5), RZ,                                          \
@@ -475,13 +480,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x5c58000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
+        const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
+        const bool neg2 = GET_BIT(45);
         const auto src2 = GET_REG(20);
-        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} r{}", dst, src1, src2);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}r{}", dst,
+                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
 
         observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float),
-                        Operand::Register(src2, DataType::Float));
+                        Operand::Register(src1, DataType::Float, neg1),
+                        Operand::Register(src2, DataType::Float, neg2));
     }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -663,14 +671,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x4c58000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
+        const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
+        const bool neg2 = GET_BIT(45);
         const auto src2 = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} c{}[0x{:x}]", dst, src1,
-                  src2.idx, src2.imm);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}c{}[0x{:x}]", dst,
+                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2.idx, src2.imm);
 
         observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float),
-                        Operand::ConstMemory(src2, DataType::Float));
+                        Operand::Register(src1, DataType::Float, neg1),
+                        Operand::ConstMemory(src2, DataType::Float, neg2));
     }
     INST(0x4c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -781,13 +791,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x3858000000000000, 0xfef8000000000000) {
         const auto dst = GET_REG(0);
+        const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
+        const bool neg2 = GET_BIT(45);
         const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: extend?
-        LOG_DEBUG(ShaderDecompiler, "fadd r{} r{} 0x{:x}", dst, src1, src2);
+        LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}0x{:x}", dst,
+                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
 
         observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float),
-                        Operand::Immediate(src2, DataType::Float));
+                        Operand::Register(src1, DataType::Float, neg1),
+                        Operand::Immediate(src2, DataType::Float, neg2));
     }
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -879,7 +892,7 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
                   src2);
 
         observer->OpMultiply(Operand::Register(dst, DataType::Float),
-                             Operand::Register(src1, DataType::Int),
+                             Operand::Register(src1, DataType::Float),
                              Operand::Immediate(src2, DataType::Float));
     }
     INST(0x1d80000000000000, 0xff80000000000000)
