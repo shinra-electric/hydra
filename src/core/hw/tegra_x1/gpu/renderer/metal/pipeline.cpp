@@ -22,6 +22,7 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
     // Vertex state
 
     // Vertex attribute states
+    u32 min_vertex_array_strides[VERTEX_ARRAY_COUNT] = {0};
     for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
         const auto& vertex_attrib_state =
             descriptor.vertex_state.vertex_attrib_states[i];
@@ -49,6 +50,13 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         vertex_attrib_descriptor->setFormat(to_mtl_vertex_format(
             vertex_attrib_state.type, vertex_attrib_state.size,
             vertex_attrib_state.bgra));
+
+        auto& min_vertex_array_stride =
+            min_vertex_array_strides[vertex_attrib_state.buffer_id];
+        min_vertex_array_stride =
+            std::max<u32>(min_vertex_array_stride,
+                          vertex_attrib_state.offset +
+                              16 /* TODO: size of vertex_attrib_state.size */);
     }
 
     // Vertex arrays
@@ -57,15 +65,35 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
         if (!vertex_array.enable)
             continue;
 
+        u32 stride = vertex_array.stride;
+        MTL::VertexStepFunction step_function;
+        u32 step_rate;
+        const auto min_stride = min_vertex_array_strides[i];
+        if (stride == 0) {
+            stride = min_stride;
+            step_function = MTL::VertexStepFunctionConstant;
+            step_rate = 0;
+        } else {
+            if (stride < min_stride)
+                LOG_WARNING(MetalRenderer,
+                            "Vertex array stride ({}) is less than minimum "
+                            "required stride ({})",
+                            stride, min_stride);
+            step_function = vertex_array.is_per_instance
+                                ? MTL::VertexStepFunctionPerInstance
+                                : MTL::VertexStepFunctionPerVertex;
+            step_rate = 1; // TODO: divisor
+        }
+
         auto vertex_array_descriptor =
             pipeline_descriptor->vertexDescriptor()->layouts()->object(
                 GetVertexBufferIndex(i));
-        vertex_array_descriptor->setStride(vertex_array.stride);
-        vertex_array_descriptor->setStepFunction(
-            vertex_array.is_per_instance ? MTL::VertexStepFunctionPerInstance
-                                         : MTL::VertexStepFunctionPerVertex);
-        // TODO: divisor
-        // vertex_array_descriptor->setStepRate(1);
+        vertex_array_descriptor->setStride(stride);
+        vertex_array_descriptor->setStepFunction(step_function);
+        vertex_array_descriptor->setStepRate(step_rate);
+
+        LOG_DEBUG(MetalRenderer, "Vertex array {} enabled, stride: {}", i,
+                  vertex_array.stride);
     }
 
     // Color targets
