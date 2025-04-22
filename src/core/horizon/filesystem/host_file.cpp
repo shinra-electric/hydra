@@ -3,37 +3,46 @@
 namespace Hydra::Horizon::Filesystem {
 
 HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
-    : FileBase(offset), host_path{host_path_}, size_limit{size_limit_} {}
+    : FileBase(offset), host_path{host_path_}, size_limit{size_limit_} {
+    if (!std::filesystem::exists(host_path)) {
+        // Intermediate directories
+        std::filesystem::create_directories(
+            std::filesystem::path(host_path).parent_path());
 
-HostFile::~HostFile() {
-    if (stream) {
-        LOG_WARNING(HorizonFilesystem, "File not closed properly");
-        delete stream;
+        // Empty file
+        // TODO: is there a better way to create an empty file?
+        std::ofstream ofs(host_path);
+        ofs.close();
     }
+}
+
+void HostFile::Resize(usize new_size) {
+    std::filesystem::resize_file(host_path, new_size);
+}
+
+FileStream HostFile::Open(FileOpenFlags flags) {
+    std::ios::openmode std_flags = std::ios::binary;
+    if (any(flags & FileOpenFlags::Read))
+        std_flags |= std::ios::in;
+    if (any(flags & FileOpenFlags::Write))
+        std_flags |= std::ios::out;
+    if (any(flags & FileOpenFlags::Append))
+        std_flags |= std::ios::app;
+    auto stream = new std::fstream(host_path, std_flags);
+
+    return FileStream(stream, offset, GetSize(), flags);
+}
+
+void HostFile::Close(FileStream& stream) {
+    auto fs = dynamic_cast<std::fstream*>(stream.GetStream());
+    ASSERT(fs, HorizonFilesystem, "Invalid stream type");
+    fs->close();
+    delete fs;
 }
 
 usize HostFile::GetSize() {
-    usize file_size;
-    if (stream) {
-        stream->seekg(0, std::ios::end);
-        auto size = stream->tellg();
-    } else {
-        file_size = std::filesystem::file_size(host_path);
-    }
-
+    usize file_size = std::filesystem::file_size(host_path);
     return std::min(static_cast<usize>(file_size) - offset, size_limit);
-}
-
-void HostFile::OpenImpl() {
-    ASSERT_DEBUG(!stream, HorizonFilesystem, "File is already open");
-    stream = new std::fstream(host_path, std::ios::in | std::ios::binary);
-}
-
-void HostFile::CloseImpl() {
-    ASSERT_DEBUG(stream, HorizonFilesystem, "File is not open");
-    stream->close();
-    delete stream;
-    stream = nullptr;
 }
 
 } // namespace Hydra::Horizon::Filesystem

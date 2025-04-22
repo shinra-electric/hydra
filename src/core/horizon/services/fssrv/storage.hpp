@@ -1,10 +1,7 @@
 #pragma once
 
+#include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/kernel/service_base.hpp"
-
-namespace Hydra::Horizon::Filesystem {
-class FileBase;
-}
 
 namespace Hydra::Horizon::Services::Fssrv {
 
@@ -13,7 +10,7 @@ class IStorage : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStorage)
 
-    IStorage(Filesystem::FileBase* file_);
+    IStorage(Filesystem::FileBase* file_, Filesystem::FileOpenFlags flags);
     ~IStorage() override;
 
   protected:
@@ -22,7 +19,7 @@ class IStorage : public Kernel::ServiceBase {
     // Commands
     virtual void Read(REQUEST_COMMAND_PARAMS);
     virtual void Write(REQUEST_COMMAND_PARAMS);
-    STUB_REQUEST_COMMAND(SetSize);
+    void SetSize(REQUEST_COMMAND_PARAMS);
     void GetSize(REQUEST_COMMAND_PARAMS);
 
     // Helpers
@@ -31,6 +28,7 @@ class IStorage : public Kernel::ServiceBase {
 
   private:
     Filesystem::FileBase* file;
+    Filesystem::FileStream stream;
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

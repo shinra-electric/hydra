@@ -7,6 +7,20 @@ namespace Hydra::Horizon::Filesystem {
 class RamFile : public FileBase {
   public:
     RamFile() : FileBase(0) {}
+    ~RamFile() override = default;
+
+    void Resize(usize new_size) override {
+        LOG_NOT_IMPLEMENTED(HorizonFilesystem,
+                            "RAM file resizing (size: 0x{:x})", new_size);
+    }
+
+    FileStream Open(FileOpenFlags flags) override {
+        return FileStream(&stream, offset, GetSize(), flags);
+    }
+
+    void Close(FileStream& stream) override {
+        // Do nothing
+    }
 
     // Getters
     usize GetSize() override {
@@ -15,12 +29,6 @@ class RamFile : public FileBase {
     }
 
   protected:
-    std::istream& GetInputStream() override { return stream; }
-    std::ostream& GetOutputStream() override { return stream; }
-
-    void OpenImpl() override {}
-    void CloseImpl() override {}
-
   private:
     std::stringstream stream;
 };

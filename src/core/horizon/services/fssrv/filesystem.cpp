@@ -98,7 +98,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
 void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     READ_PATH();
 
-    const auto flags = readers.reader.Read<FileFlags>();
+    const auto flags = readers.reader.Read<Filesystem::FileOpenFlags>();
     LOG_DEBUG(HorizonServices, "Flags: {}", flags);
 
     Filesystem::FileBase* file;

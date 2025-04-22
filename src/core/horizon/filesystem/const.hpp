@@ -22,6 +22,14 @@ enum class FsResult {
     AlreadyExists,
 };
 
+enum class FileOpenFlags {
+    None = 0,
+    Read = BIT(0),
+    Write = BIT(1),
+    Append = BIT(2),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(FileOpenFlags)
+
 } // namespace Hydra::Horizon::Filesystem
 
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::Filesystem::FsResult, Success, "success",
@@ -30,3 +38,6 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Filesystem::FsResult, Success, "success",
                        "intermediate directory does not exist", NotAFile,
                        "not a file", NotADirectory, "not a directory",
                        AlreadyExists, "already exists")
+
+ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Filesystem::FileOpenFlags, Read,
+                             "read", Write, "write", Append, "append")

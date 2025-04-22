@@ -204,7 +204,7 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
         return;
     }
 
-    add_service(new IStorage(file));
+    add_service(new IStorage(file, Filesystem::FileOpenFlags::Read));
 }
 
 void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
@@ -223,7 +223,7 @@ void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
         return;
     }
 
-    add_service(new IStorage(file));
+    add_service(new IStorage(file, Filesystem::FileOpenFlags::Read));
 }
 
 void IFileSystemProxy::GetGlobalAccessLogMode(REQUEST_COMMAND_PARAMS) {

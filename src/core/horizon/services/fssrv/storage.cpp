@@ -16,9 +16,10 @@ struct ReadWriteIn {
 DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read, 1, Write, 3, SetSize, 4,
                              GetSize)
 
-IStorage::IStorage(Filesystem::FileBase* file_) : file{file_} { file->Open(); }
+IStorage::IStorage(Filesystem::FileBase* file_, Filesystem::FileOpenFlags flags)
+    : file{file_}, stream(file->Open(flags)) {}
 
-IStorage::~IStorage() { file->Close(); }
+IStorage::~IStorage() { file->Close(stream); }
 
 void IStorage::Read(REQUEST_COMMAND_PARAMS) {
     const auto in = readers.reader.Read<ReadWriteIn>();
@@ -33,6 +34,11 @@ void IStorage::Write(REQUEST_COMMAND_PARAMS) {
     WriteImpl(readers.send_buffers_readers[0].GetBase(), in.offset, in.size);
 }
 
+void IStorage::SetSize(REQUEST_COMMAND_PARAMS) {
+    const auto size = readers.reader.Read<i64>();
+    file->Resize(size);
+}
+
 void IStorage::GetSize(REQUEST_COMMAND_PARAMS) {
     writers.writer.Write(file->GetSize());
 }
@@ -44,7 +50,7 @@ void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
     ASSERT_DEBUG(offset >= 0, HorizonServices, "Offset ({}) must be >= 0",
                  offset);
 
-    auto reader = file->CreateReader();
+    auto reader = stream.CreateReader();
     const auto max_size = reader.GetSize() - offset;
     if (size > max_size) {
         LOG_WARNING(HorizonServices,
@@ -64,7 +70,7 @@ void IStorage::WriteImpl(u8* ptr, i64 offset, usize size) {
     ASSERT_DEBUG(offset >= 0, HorizonServices, "Offset ({}) must be >= 0",
                  offset);
 
-    auto writer = file->CreateWriter();
+    auto writer = stream.CreateWriter();
     writer.Seek(offset);
     writer.Write(ptr, size);
 }

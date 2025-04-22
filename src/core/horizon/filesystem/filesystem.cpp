@@ -68,8 +68,8 @@ FsResult Filesystem::CreateFile(const std::string& path,
 
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
-        const auto host_path =
-            fmt::format("{}/{}", Config::GetInstance().GetSdCardPath(), path);
+        const auto host_path = fmt::format(
+            "{}{}", Config::GetInstance().GetSdCardPath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
         LOG_WARNING(HorizonFilesystem,
