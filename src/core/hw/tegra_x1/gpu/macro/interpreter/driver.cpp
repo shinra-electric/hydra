@@ -95,7 +95,7 @@ u32 Driver::InstExtractShiftLeftRegister(u8 rA, u8 bB, u8 rB, u8 size) {
 
 u32 Driver::InstRead(u8 rA, u32 imm) {
     LOG_DEBUG(Macro, "r{}: 0x{:08x}, imm: 0x{:08x}", rA, GetRegU32(rA), imm);
-    return Get3DReg(imm) << GetRegU32(rA); // TODO: correct?
+    return Get3DReg(GetRegU32(rA) + imm);
 }
 
 void Driver::InstBranch(BranchCondition cond, u8 rA, i32 imm, bool& branched) {

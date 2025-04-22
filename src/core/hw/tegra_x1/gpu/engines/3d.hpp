@@ -477,7 +477,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void ConfigureShaderStage(const ShaderStage stage, const u32* const_buffer,
                               const TextureImageControl* tex_header_pool);
 
-    void DrawInternal();
+    bool DrawInternal();
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

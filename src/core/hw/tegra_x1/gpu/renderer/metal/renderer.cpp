@@ -180,13 +180,8 @@ void Renderer::EndCommandBuffer() {
     CommitCommandBuffer();
 
     // Debug
+#define CAPTURE 0
 #if CAPTURE
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
-    }
-
     static u32 frames = 0;
     if (capturing) {
         if (frames >= 1)
@@ -329,6 +324,26 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
     } else {
         encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
                                 NS::UInteger(start), NS::UInteger(count));
+    }
+}
+
+void Renderer::EnsureCommandBuffer() {
+    if (!command_buffer) {
+#if CAPTURE
+        static bool did_capture = false;
+        if (!did_capture) {
+            BeginCapture();
+            did_capture = true;
+        }
+
+        static u32 frames = 0;
+        if (capturing) {
+            if (frames >= 1)
+                EndCapture();
+            frames++;
+        }
+#endif
+        command_buffer = command_queue->commandBuffer();
     }
 }
 

@@ -25,6 +25,23 @@ enum class TransactCode : u32 {
     SetPreallocatedBuffer,
 };
 
+void read_interface_name(Reader& reader) {
+    reader.Read<i32>(); // 0x100
+
+    i32 interface_name_len = reader.Read<i32>() + 1;
+    char interface_name[interface_name_len];
+    for (i32 i = 0; i < interface_name_len; i++) {
+        interface_name[i] = reader.Read<u16>();
+    }
+
+    // Alignment
+    if (interface_name_len % 2 != 0)
+        reader.Read<u16>();
+
+    LOG_DEBUG(HorizonServices, "Interface name: {}",
+              reinterpret_cast<const char*>(interface_name));
+}
+
 } // namespace
 
 } // namespace Hydra::Horizon::Services::HosBinder
@@ -144,6 +161,37 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     // Dispatch
     BinderResult b_result = BinderResult::Success;
     switch (in.code) {
+    case TransactCode::RequestBuffer: {
+        read_interface_name(reader);
+
+        i32 slot = reader.Read<i32>();
+        if (slot > MAX_BINDER_BUFFER_COUNT) {
+            writer.Write<u32>(0x0);
+            break;
+        }
+
+        writer.Write<u32>(0x1); // TODO: correct?
+
+        const auto& buffer = binder.GetBuffer(slot);
+
+        struct {
+            u32 width;
+            u32 height;
+            u32 stride;
+            u32 format;
+            u32 usage;
+        } buffer_info = {.width = buffer.planes[0].width,
+                         .height = buffer.planes[0].height,
+                         .stride = buffer.stride,
+                         .format = buffer.format,
+                         .usage = buffer.usage};
+
+        // TODO: correct?
+        writer.Write<u32>(sizeof(buffer_info) + sizeof(buffer));
+        writer.Write<u32>(0);
+        writer.Write(buffer_info);
+        writer.Write(buffer);
+    }
     case TransactCode::DequeueBuffer: {
         i32 slot = binder.GetAvailableSlot();
 
@@ -167,21 +215,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::QueueBuffer: {
-        // Interface name
-        reader.Read<i32>(); // 0x100
-
-        i32 interface_name_len = reader.Read<i32>() + 1;
-        char interface_name[interface_name_len];
-        for (i32 i = 0; i < interface_name_len; i++) {
-            interface_name[i] = reader.Read<u16>();
-        }
-
-        // Alignment
-        if (interface_name_len % 2 != 0)
-            reader.Read<u16>();
-
-        LOG_DEBUG(HorizonServices, "Interface name: {}",
-                  reinterpret_cast<const char*>(interface_name));
+        read_interface_name(reader);
 
         // Slot
         i32 slot = reader.Read<i32>();
@@ -203,7 +237,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::Connect: {
-        LOG_WARNING(HorizonServices, "Connect not implemented");
+        LOG_NOT_IMPLEMENTED(HorizonServices, "Connect");
 
         // HACK
         u64 arr[16] = {0};
@@ -212,21 +246,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::SetPreallocatedBuffer: {
-        // Interface name
-        reader.Read<i32>(); // 0x100
-
-        i32 interface_name_len = reader.Read<i32>() + 1;
-        char interface_name[interface_name_len];
-        for (i32 i = 0; i < interface_name_len; i++) {
-            interface_name[i] = reader.Read<u16>();
-        }
-
-        // Alignment
-        if (interface_name_len % 2 != 0)
-            reader.Read<u16>();
-
-        LOG_DEBUG(HorizonServices, "Interface name: {}",
-                  reinterpret_cast<const char*>(interface_name));
+        read_interface_name(reader);
 
         // Slot
         i32 slot = reader.Read<i32>();
@@ -242,7 +262,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         reader.Read<i32>(); // fd_count
 
         auto input_buffer = reader.Read<InputBuffer>();
-        auto buffer = reader.ReadPtr<HW::TegraX1::GPU::NvGraphicsBuffer>();
+        auto buffer = reader.Read<HW::TegraX1::GPU::NvGraphicsBuffer>();
 
         // pitch, size and offset seem to have completely wrong values
         LOG_DEBUG(HorizonServices,
@@ -250,13 +270,13 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
                   "layout: {}, pitch: 0x{:08x}, "
                   "unused: 0x{:08x}, offset: 0x{:08x}, kind: "
                   "{}, size: 0x{:08x}",
-                  buffer->planes[0].width, buffer->planes[0].height,
-                  buffer->planes[0].color_format, buffer->planes[0].layout,
-                  buffer->planes[0].pitch, buffer->planes[0].unused,
-                  buffer->planes[0].offset, buffer->planes[0].kind,
-                  buffer->planes[0].size);
+                  buffer.planes[0].width, buffer.planes[0].height,
+                  buffer.planes[0].color_format, buffer.planes[0].layout,
+                  buffer.planes[0].pitch, buffer.planes[0].unused,
+                  buffer.planes[0].offset, buffer.planes[0].kind,
+                  buffer.planes[0].size);
 
-        binder.AddBuffer(slot, *buffer);
+        binder.AddBuffer(slot, buffer);
 
         break;
     }

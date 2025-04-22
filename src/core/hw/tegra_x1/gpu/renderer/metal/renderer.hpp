@@ -103,10 +103,7 @@ class Renderer : public RendererBase {
     // Helpers
 
     // Command buffer
-    void EnsureCommandBuffer() {
-        if (!command_buffer)
-            command_buffer = command_queue->commandBuffer();
-    }
+    void EnsureCommandBuffer();
 
     void CommitCommandBuffer() {
         if (command_buffer) {

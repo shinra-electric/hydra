@@ -20,25 +20,39 @@ constexpr u32 GL_FUNC_ADD = 0x8006;
 constexpr u32 GL_FUNC_SUBTRACT = 0x800A;
 constexpr u32 GL_FUNC_REVERSE_SUBTRACT = 0x800B;
 
+constexpr u32 D3D11_BLEND_OP_ADD = 1;
+constexpr u32 D3D11_BLEND_OP_SUB = 2;
+constexpr u32 D3D11_BLEND_OP_REV_SUB = 3;
+constexpr u32 D3D11_BLEND_OP_MIN = 4;
+constexpr u32 D3D11_BLEND_OP_MAX = 5;
+
 Renderer::BlendOperation get_blend_operation(u32 blend_op) {
-    // TODO: D3D11?
-    if (true) {
-        switch (blend_op) {
-        case GL_MIN:
-            return Renderer::BlendOperation::Min;
-        case GL_MAX:
-            return Renderer::BlendOperation::Max;
-        case GL_FUNC_ADD:
-            return Renderer::BlendOperation::Add;
-        case GL_FUNC_SUBTRACT:
-            return Renderer::BlendOperation::Sub;
-        case GL_FUNC_REVERSE_SUBTRACT:
-            return Renderer::BlendOperation::RevSub;
-        default:
-            LOG_ERROR(Engines, "Unknown GL blend operation 0x{:04x}", blend_op);
-        }
-    } else {
-        LOG_ERROR(Engines, "D3D11 blend operation values not implemented");
+    switch (blend_op) {
+        // GL
+    case GL_MIN:
+        return Renderer::BlendOperation::Min;
+    case GL_MAX:
+        return Renderer::BlendOperation::Max;
+    case GL_FUNC_ADD:
+        return Renderer::BlendOperation::Add;
+    case GL_FUNC_SUBTRACT:
+        return Renderer::BlendOperation::Sub;
+    case GL_FUNC_REVERSE_SUBTRACT:
+        return Renderer::BlendOperation::RevSub;
+
+    // DX11
+    case D3D11_BLEND_OP_ADD:
+        return Renderer::BlendOperation::Add;
+    case D3D11_BLEND_OP_SUB:
+        return Renderer::BlendOperation::Sub;
+    case D3D11_BLEND_OP_REV_SUB:
+        return Renderer::BlendOperation::RevSub;
+    case D3D11_BLEND_OP_MIN:
+        return Renderer::BlendOperation::Min;
+    case D3D11_BLEND_OP_MAX:
+        return Renderer::BlendOperation::Max;
+    default:
+        LOG_ERROR(Engines, "Unknown blend operation 0x{:04x}", blend_op);
     }
 }
 
@@ -54,6 +68,23 @@ constexpr u32 GL_DST_COLOR = 0x0306;
 constexpr u32 GL_ONE_MINUS_DST_COLOR = 0x0307;
 constexpr u32 GL_SRC_ALPHA_SATURATE = 0x0308;
 // TODO: more
+
+constexpr u32 D3D11_BLEND_FACTOR_ZERO = 1;
+constexpr u32 D3D11_BLEND_FACTOR_ONE = 2;
+constexpr u32 D3D11_BLEND_FACTOR_SRC_COLOR = 3;
+constexpr u32 D3D11_BLEND_FACTOR_INV_SRC_COLOR = 4;
+constexpr u32 D3D11_BLEND_FACTOR_SRC_ALPHA = 5;
+constexpr u32 D3D11_BLEND_FACTOR_INV_SRC_ALPHA = 6;
+constexpr u32 D3D11_BLEND_FACTOR_DST_ALPHA = 7;
+constexpr u32 D3D11_BLEND_FACTOR_INV_DST_ALPHA = 8;
+constexpr u32 D3D11_BLEND_FACTOR_DST_COLOR = 9;
+constexpr u32 D3D11_BLEND_FACTOR_INV_DST_COLOR = 10;
+constexpr u32 D3D11_BLEND_FACTOR_SRC_ALPHA_SATURATE = 11;
+constexpr u32 D3D11_BLEND_FACTOR_SRC1_COLOR = 16;
+constexpr u32 D3D11_BLEND_FACTOR_INV_SRC1_COLOR = 17;
+constexpr u32 D3D11_BLEND_FACTOR_SRC1_ALPHA = 18;
+constexpr u32 D3D11_BLEND_FACTOR_INV_SRC1_ALPHA = 19;
+// TODO: const color and alpha?
 
 constexpr u32 GL_BLEND_FACTOR_BIT = 0x4000;
 
@@ -88,7 +119,40 @@ Renderer::BlendFactor get_blend_factor(u32 blend_factor) {
                       gl_blend_factor);
         }
     } else { // D3D11
-        LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
+        switch (blend_factor) {
+        case D3D11_BLEND_FACTOR_ZERO:
+            return Renderer::BlendFactor::Zero;
+        case D3D11_BLEND_FACTOR_ONE:
+            return Renderer::BlendFactor::One;
+        case D3D11_BLEND_FACTOR_SRC_COLOR:
+            return Renderer::BlendFactor::SrcColor;
+        case D3D11_BLEND_FACTOR_INV_SRC_COLOR:
+            return Renderer::BlendFactor::InvSrcColor;
+        case D3D11_BLEND_FACTOR_SRC_ALPHA:
+            return Renderer::BlendFactor::SrcAlpha;
+        case D3D11_BLEND_FACTOR_INV_SRC_ALPHA:
+            return Renderer::BlendFactor::InvSrcAlpha;
+        case D3D11_BLEND_FACTOR_DST_ALPHA:
+            return Renderer::BlendFactor::DstAlpha;
+        case D3D11_BLEND_FACTOR_INV_DST_ALPHA:
+            return Renderer::BlendFactor::InvDstAlpha;
+        case D3D11_BLEND_FACTOR_DST_COLOR:
+            return Renderer::BlendFactor::DstColor;
+        case D3D11_BLEND_FACTOR_INV_DST_COLOR:
+            return Renderer::BlendFactor::InvDstColor;
+        case D3D11_BLEND_FACTOR_SRC_ALPHA_SATURATE:
+            return Renderer::BlendFactor::SrcAlphaSaturate;
+        case D3D11_BLEND_FACTOR_SRC1_COLOR:
+            return Renderer::BlendFactor::Src1Color;
+        case D3D11_BLEND_FACTOR_INV_SRC1_COLOR:
+            return Renderer::BlendFactor::InvSrc1Color;
+        case D3D11_BLEND_FACTOR_SRC1_ALPHA:
+            return Renderer::BlendFactor::Src1Alpha;
+        case D3D11_BLEND_FACTOR_INV_SRC1_ALPHA:
+            return Renderer::BlendFactor::InvSrc1Alpha;
+        default:
+            LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
+        }
     }
 }
 
@@ -113,6 +177,9 @@ ThreeD::ThreeD() {
     {
         macro_driver = new Macro::Interpreter::Driver(this);
     }
+
+    // HACK
+    regs.shader_programs[(u32)ShaderStage::VertexB].config.enable = true;
 }
 
 ThreeD::~ThreeD() {
@@ -153,7 +220,8 @@ void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
 }
 
 void ThreeD::DrawVertexArray(const u32 index, u32 count) {
-    DrawInternal();
+    if (!DrawInternal())
+        return;
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
@@ -171,7 +239,8 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
-    DrawInternal();
+    if (!DrawInternal())
+        return;
 
     // Index buffer
     gpu_vaddr_t index_buffer_ptr = UNMAP_ADDR(regs.index_buffer_addr);
@@ -521,7 +590,12 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
     // TODO: images
 }
 
-void ThreeD::DrawInternal() {
+bool ThreeD::DrawInternal() {
+    if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
+        LOG_WARNING(Engines, "Vertex B stage not enabled, skipping draw");
+        return false;
+    }
+
     RENDERER->BindRenderPass(GetRenderPass());
 
     RENDERER->BindPipeline(GetPipeline());
@@ -558,6 +632,8 @@ void ThreeD::DrawInternal() {
                                  tex_header_pool);
         }
     }
+
+    return true;
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines

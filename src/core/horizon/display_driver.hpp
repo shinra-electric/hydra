@@ -48,7 +48,7 @@ struct DisplayBinder {
     i32 ConsumeBuffer();
 
     // Getters
-    HW::TegraX1::GPU::NvGraphicsBuffer& GetBuffer(i32 slot) {
+    const HW::TegraX1::GPU::NvGraphicsBuffer& GetBuffer(i32 slot) const {
         return buffers[slot].buff;
     }
 

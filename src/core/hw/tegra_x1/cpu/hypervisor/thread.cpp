@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"
 
 #include <mach/mach_time.h>
+#include <thread>
 
 #include "common/functions.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
@@ -77,8 +78,12 @@ void Thread::Run() {
 
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
-                // u64 spsr = cpu->GetSysReg(HV_SYS_REG_SPSR_EL1);
-                // u64 mode = (spsr >> 2) & 0x3;
+                // HACK
+                if (ec == 0x21) {
+                    LOG_WARNING(Hypervisor, "InstructionAbortSameEl");
+                    std::this_thread::sleep_for(
+                        std::chrono::seconds(0xffffffff));
+                }
 
                 u32 instruction = mmu->Load<u32>(elr);
 
@@ -99,11 +104,6 @@ void Thread::Run() {
                 case 0x25: {
                     // Debug
                     LogStackTrace(elr);
-
-                    // LOG_DEBUG(Hypervisor,
-                    //           "Data abort (PC: 0x{:08x}, FAR: 0x{:08x}, "
-                    //           "instruction: 0x{:08x})",
-                    //           elr, far, instruction);
 
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT(far_valid, Hypervisor, "FAR not valid");

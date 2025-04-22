@@ -35,9 +35,10 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
     auto& gpu = HW::TegraX1::GPU::GPU::GetInstance();
 
     if (any(data.flags & MapBufferFlags::Modify)) {
-        LOG_NOT_IMPLEMENTED(HorizonServices,
-                            "Address space modifying (address: 0x{:08x})",
-                            data.offset.Get());
+        LOG_NOT_IMPLEMENTED(
+            HorizonServices,
+            "Address space modifying (address: 0x{:08x}, size: 0x{:08x})",
+            data.offset.Get(), data.mapping_size.Get());
         return;
     }
 
@@ -53,7 +54,6 @@ void NvHostAsGpu::MapBufferEx(MapBufferExData& data, NvResult& result) {
 
     data.offset =
         gpu.MapBufferToAddressSpace(map.addr + data.buffer_offset, size, addr);
-    // LOG_DEBUG(HorizonServices, "OFFSET: 0x{:08x}", data.offset.Get());
 }
 
 void NvHostAsGpu::GetVaRegions(GetVaRegionsData& data, NvResult& result) {
