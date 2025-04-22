@@ -267,6 +267,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_cache.hpp
     hw/tegra_x1/gpu/renderer/pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/pipeline_cache.hpp
+    hw/tegra_x1/gpu/renderer/index_cache.cpp
+    hw/tegra_x1/gpu/renderer/index_cache.hpp
     hw/tegra_x1/gpu/renderer/const.cpp
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp

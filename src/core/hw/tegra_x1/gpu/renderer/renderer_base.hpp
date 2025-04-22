@@ -2,6 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/buffer_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
@@ -97,6 +98,7 @@ class RendererBase {
     RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
     ShaderCache& GetShaderCache() { return shader_cache; }
     PipelineCache& GetPipelineCache() { return pipeline_cache; }
+    IndexCache& GetIndexCache() { return index_cache; }
 
   protected:
     Info info{};
@@ -113,6 +115,7 @@ class RendererBase {
     RenderPassCache render_pass_cache;
     ShaderCache shader_cache;
     PipelineCache pipeline_cache;
+    IndexCache index_cache;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

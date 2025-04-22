@@ -8,8 +8,6 @@
 #include "common/macros.hpp"
 #include "common/types.hpp"
 
-#define PASS_VA_ARGS(...) , ##__VA_ARGS__
-
 #define LOG(level, c, ...)                                                     \
     Logging::log(Logging::Level::level, Logging::Class::c,                     \
                  Logging::trim_source_path(__FILE__), __LINE__, __func__,      \

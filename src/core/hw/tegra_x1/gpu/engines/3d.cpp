@@ -155,78 +155,19 @@ void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
 void ThreeD::DrawVertexArray(const u32 index, u32 count) {
     DrawInternal();
 
+    auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    Renderer::BufferBase* index_buffer{nullptr};
-    if (!RENDERER->GetInfo().IsPrimitiveSupported(primitive_type)) {
-        // TODO: move this into an index cache
-        PrimitiveType target_primitive_type;
-        usize index_count;
-        switch (primitive_type) {
-        case PrimitiveType::Quads:
-            target_primitive_type = PrimitiveType::Triangles;
-            index_count = count * 6 / 4;
-            break;
-        default:
-            throw;
-            break;
-        }
-
-        IndexType index_type;
-        // TODO: also support UInt8 index type
-        if (count <= 0x10000) {
-            index_type = IndexType::UInt16;
-        } else {
-            index_type = IndexType::UInt32;
-        }
-        usize index_size = get_index_type_size(index_type);
-
-        index_buffer =
-            RENDERER->AllocateTemporaryBuffer(index_count * index_size);
-        auto index_buffer_ptr = index_buffer->GetDescriptor().ptr;
-
-#define ADD_INDEX(index)                                                       \
-    switch (index_type) {                                                      \
-    case IndexType::UInt8:                                                     \
-        *reinterpret_cast<u8*>(index_buffer_ptr) = index;                      \
-    case IndexType::UInt16:                                                    \
-        *reinterpret_cast<u16*>(index_buffer_ptr) = index;                     \
-    case IndexType::UInt32:                                                    \
-        *reinterpret_cast<u32*>(index_buffer_ptr) = index;                     \
-    }                                                                          \
-    index_buffer_ptr += index_size;
-
-        // Generate indices
-        switch (primitive_type) {
-        case PrimitiveType::Quads:
-            for (u32 i = 0; i < count / 4; i++) {
-                const u32 base = i * 4;
-                const u32 base_index = i * 6;
-                ADD_INDEX(base + 0);
-                ADD_INDEX(base + 1);
-                ADD_INDEX(base + 2);
-                ADD_INDEX(base + 0);
-                ADD_INDEX(base + 2);
-                ADD_INDEX(base + 3);
-            }
-            break;
-        default:
-            throw;
-            break;
-        }
-
-#undef ADD_INDEX
-
+    Renderer::BufferBase* index_buffer =
+        RENDERER->GetIndexCache().Decode({.type = index_type,
+                                          .primitive_type = primitive_type,
+                                          .count = count,
+                                          .src_index_buffer = nullptr},
+                                         index_type, primitive_type, count);
+    if (index_buffer)
         RENDERER->BindIndexBuffer(index_buffer, index_type);
-
-        primitive_type = target_primitive_type;
-        count = index_count;
-    }
 
     RENDERER->Draw(primitive_type, regs.vertex_array_start, count,
                    index_buffer != nullptr);
-
-    if (index_buffer)
-        RENDERER->FreeTemporaryBuffer(index_buffer);
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
@@ -239,14 +180,24 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
         count * get_index_type_size(
                     regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr)
                                       // - MAKE_ADDR(regs.index_buffer_addr);
-
     auto index_buffer =
         RENDERER->GetBufferCache().Find({index_buffer_ptr, index_buffer_size});
+
     RENDERER->BindIndexBuffer(index_buffer, regs.index_type);
 
+    auto index_type = IndexType::None;
+    auto primitive_type = regs.begin.primitive_type;
+    index_buffer =
+        RENDERER->GetIndexCache().Decode({.type = index_type,
+                                          .primitive_type = primitive_type,
+                                          .count = count,
+                                          .src_index_buffer = index_buffer},
+                                         index_type, primitive_type, count);
+    ASSERT_DEBUG(index_buffer, GPU, "Index buffer not found");
+    RENDERER->BindIndexBuffer(index_buffer, index_type);
+
     // Draw
-    RENDERER->Draw(regs.begin.primitive_type, regs.vertex_elements_start, count,
-                   true);
+    RENDERER->Draw(primitive_type, regs.vertex_elements_start, count, true);
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {

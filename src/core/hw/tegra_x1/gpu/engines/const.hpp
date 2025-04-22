@@ -32,6 +32,7 @@ enum class PrimitiveType {
 };
 
 enum class IndexType {
+    None,
     UInt8,
     UInt16,
     UInt32,
@@ -152,8 +153,8 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
                        TriangleStripAdjacency, "triangle strip adjacency",
                        Patches, "patches")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::IndexType, UInt8, "u8",
-                       UInt16, "u16", UInt32, "u32")
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::IndexType, None,
+                       "none", UInt8, "u8", UInt16, "u16", UInt32, "u32")
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribType, None,
                        "none", Snorm, "snorm", Unorm, "unorm", Sint, "sint",

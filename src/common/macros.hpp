@@ -6,6 +6,8 @@
 
 #define THIS ((SubclassT*)this)
 
+#define PASS_VA_ARGS(...) , ##__VA_ARGS__
+
 #define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class, name)               \
     static type* g_instance = nullptr;                                         \
     type& type::GetInstance() {                                                \
