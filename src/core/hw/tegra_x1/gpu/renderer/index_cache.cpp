@@ -15,43 +15,74 @@ inline Engines::PrimitiveType get_primitive_type_quads_to_triangles() {
     return Engines::PrimitiveType::Triangles;
 }
 
+inline usize get_index_count_triangle_fan_to_triangle_strip(usize count) {
+    return count;
+}
+
+inline Engines::PrimitiveType
+get_primitive_type_triangle_fan_to_triangle_strip() {
+    return Engines::PrimitiveType::TriangleStrip;
+}
+
+#define GET_INDEX(idx, index)                                                  \
+    switch (index_type) {                                                      \
+    case Engines::IndexType::UInt8:                                            \
+        idx = GET_INDEX_IMPL(u8, index);                                       \
+        break;                                                                 \
+    case Engines::IndexType::UInt16:                                           \
+        idx = GET_INDEX_IMPL(u16, index);                                      \
+        break;                                                                 \
+    case Engines::IndexType::UInt32:                                           \
+        idx = GET_INDEX_IMPL(u32, index);                                      \
+        break;                                                                 \
+    default:                                                                   \
+        break;                                                                 \
+    }
+
 #define ADD_INDEX(index)                                                       \
     switch (index_type) {                                                      \
     case Engines::IndexType::UInt8:                                            \
         /* TODO: check for u8 support */                                       \
-        *reinterpret_cast<u16*>(out) = GET_INDEX(u8, index);                   \
+        *reinterpret_cast<u16*>(out) = index;                                  \
         out += sizeof(u16);                                                    \
         break;                                                                 \
     case Engines::IndexType::UInt16:                                           \
-        *reinterpret_cast<u16*>(out) = GET_INDEX(u16, index);                  \
+        *reinterpret_cast<u16*>(out) = index;                                  \
         out += sizeof(u16);                                                    \
         break;                                                                 \
     case Engines::IndexType::UInt32:                                           \
-        *reinterpret_cast<u32*>(out) = GET_INDEX(u32, index);                  \
+        *reinterpret_cast<u32*>(out) = index;                                  \
         out += sizeof(u32);                                                    \
         break;                                                                 \
     default:                                                                   \
         break;                                                                 \
     }
 
+#define ADD_INDEX_AUTO(index)                                                  \
+    {                                                                          \
+        u32 idx;                                                               \
+        GET_INDEX(idx, index);                                                 \
+        ADD_INDEX(index);                                                      \
+    }
+
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
     void decode_##name##_auto(uptr in_unused, uptr out,                        \
                               Engines::IndexType index_type, usize count)
-#define GET_INDEX(type, index) (index)
+#define GET_INDEX_IMPL(type, index) (index)
 
 #include "core/hw/tegra_x1/gpu/renderer/index_decoders.inc"
 
-#undef GET_INDEX
+#undef GET_INDEX_IMPL
 #undef DEFINE_DECODER_PROTOTYPE
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
     void decode_##name(uptr in, uptr out, Engines::IndexType index_type,       \
                        usize count)
-#define GET_INDEX(type, index) reinterpret_cast<type*>(in)[index]
+#define GET_INDEX_IMPL(type, index) reinterpret_cast<type*>(in)[index]
 
 #include "core/hw/tegra_x1/gpu/renderer/index_decoders.inc"
 
-#undef GET_INDEX
+#undef GET_INDEX_IMPL
 #undef DEFINE_DECODER_PROTOTYPE
 
 } // namespace
@@ -70,6 +101,10 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     case Engines::PrimitiveType::Quads:                                        \
         /* TODO: check for quads support */                                    \
         macro(quads_to_triangles);                                             \
+        break;                                                                 \
+    case Engines::PrimitiveType::TriangleFan:                                  \
+        /* TODO: check for triangle fan support */                             \
+        macro(triangle_fan_to_triangle_strip);                                 \
         break;                                                                 \
     default:                                                                   \
         return descriptor.src_index_buffer;                                    \
