@@ -262,13 +262,13 @@ inline Request make_request(void* base, Metadata meta) {
 }
 
 u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                   const BufferDescriptor& descriptor, usize size);
+                   const BufferDescriptor& descriptor, usize& size);
 
 u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                   const StaticDescriptor& descriptor, usize size);
+                   const StaticDescriptor& descriptor, usize& size);
 
 u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
-                       const RecvListEntry& descriptor, usize size);
+                       const RecvListEntry& descriptor, usize& size);
 
 #define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
     type##_##buffer_or_static##s_##reader_or_writer##s.reserve(                \

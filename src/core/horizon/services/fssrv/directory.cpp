@@ -30,6 +30,11 @@ void IDirectory::Read(REQUEST_COMMAND_PARAMS) {
     // TODO: respect filter flags
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
+        // Check if the writer has enough space to write the entry
+        if (writer.GetWrittenSize() + sizeof(FsDirectoryEntry) >
+            writer.GetSize())
+            break;
+
         // TODO: find a better way to index
         if (i < entry_index)
             continue;
@@ -47,11 +52,6 @@ void IDirectory::Read(REQUEST_COMMAND_PARAMS) {
 
         entry_index++;
         i++;
-
-        // Check if the writer has enough space to write the next entry
-        if (writer.GetWrittenSize() + sizeof(FsDirectoryEntry) >
-            writer.GetSize())
-            break;
     }
 
     writers.writer.Write<i32>(writer.GetWrittenSize() /
