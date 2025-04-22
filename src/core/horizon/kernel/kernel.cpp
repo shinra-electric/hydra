@@ -276,7 +276,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         break;
     default:
         LOG_NOT_IMPLEMENTED(HorizonKernel, "SVC 0x{:08x}", id);
-        res = MAKE_KERNEL_RESULT(Error::NotImplemented);
+        res = MAKE_RESULT(Svc, Error::NotImplemented);
         thread->SetRegW(0, res);
         break;
     }
@@ -288,7 +288,7 @@ Result Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     LOG_DEBUG(HorizonKernel, "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
-        return MAKE_KERNEL_RESULT(Error::InvalidSize); // TODO: correct?
+        return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
 
     mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
 
@@ -473,7 +473,7 @@ Result Kernel::svcClearEvent(handle_id_t event_handle_id) {
                  event_handle_id);
 
     if (!event->Clear())
-        return MAKE_KERNEL_RESULT(Error::InvalidState); // TODO: correct?
+        return MAKE_RESULT(Svc, Error::InvalidState); // TODO: correct?
 
     return RESULT_SUCCESS;
 }
@@ -552,7 +552,7 @@ Result Kernel::svcResetSignal(handle_id_t handle_id) {
                  handle_id);
 
     if (!handle->Clear())
-        return MAKE_KERNEL_RESULT(Error::InvalidState);
+        return MAKE_RESULT(Svc, Error::InvalidState);
 
     return RESULT_SUCCESS;
 }
@@ -684,7 +684,7 @@ Result Kernel::svcConnectToNamedPort(const std::string& name,
     auto it = service_ports.find(name);
     if (it == service_ports.end()) {
         LOG_ERROR(HorizonKernel, "Unknown service name \"{}\"", name);
-        return MAKE_KERNEL_RESULT(Error::NotFound);
+        return MAKE_RESULT(Svc, Error::NotFound);
     }
 
     out_session_handle_id = AddHandle(new Session(it->second));

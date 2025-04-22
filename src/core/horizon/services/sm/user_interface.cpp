@@ -81,7 +81,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     default:
         LOG_WARNING(HorizonServices, "Unknown service name \"{}\"",
                     u64_to_str(name));
-        result = MAKE_KERNEL_RESULT(Kernel::Error::NotFound);
+        result = MAKE_RESULT(Svc, Kernel::Error::NotFound); // TODO: module
         break;
     }
 }

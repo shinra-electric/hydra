@@ -3,6 +3,7 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/const.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
@@ -86,7 +87,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Error getting entry \"{}\": {}", path,
                     res);
-        result = MAKE_KERNEL_RESULT(0x202);
+        result = MAKE_RESULT(Fs, 1);
         return;
     }
 
@@ -106,7 +107,7 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Error opening file \"{}\": {}", path,
                     res);
-        result = MAKE_KERNEL_RESULT(0x202);
+        result = MAKE_RESULT(Fs, 1);
         return;
     }
 
@@ -125,8 +126,7 @@ void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
     if (res != Filesystem::FsResult::Success) {
         LOG_WARNING(HorizonServices, "Error opening directory \"{}\": {}", path,
                     res);
-        // HACK
-        result = static_cast<u32>(res);
+        result = MAKE_RESULT(Fs, 1);
         return;
     }
 

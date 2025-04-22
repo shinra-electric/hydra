@@ -75,8 +75,9 @@ void INvDrvServices::Ioctl(REQUEST_COMMAND_PARAMS) {
     writers.writer.Write(r);
 
     if (r != NvResult::Success)
-        result = MAKE_KERNEL_RESULT(
-            Kernel::Error::NotFound); // TODO: what should this be?
+        result =
+            MAKE_RESULT(Svc,
+                        Kernel::Error::NotFound); // TODO: what should this be?
 }
 
 void INvDrvServices::Initialize(REQUEST_COMMAND_PARAMS) {
@@ -103,8 +104,9 @@ void INvDrvServices::QueryEvent(REQUEST_COMMAND_PARAMS) {
     writers.copy_handles_writer.Write(handle_id);
 
     if (r != NvResult::Success)
-        result = MAKE_KERNEL_RESULT(
-            Kernel::Error::NotFound); // TODO: what should this be?
+        result =
+            MAKE_RESULT(Svc,
+                        Kernel::Error::NotFound); // TODO: what should this be?
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv

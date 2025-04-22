@@ -34,7 +34,8 @@ void IPcvService::SetClockRate(REQUEST_COMMAND_PARAMS) {
     const auto module_id = readers.reader.Read<ModuleId>();
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
-        result = MAKE_KERNEL_RESULT(Kernel::Error::InvalidEnumValue);
+        result =
+            MAKE_RESULT(Svc, Kernel::Error::InvalidEnumValue); // TODO: module
         return;
     }
 
@@ -46,7 +47,8 @@ void IPcvService::GetClockRate(REQUEST_COMMAND_PARAMS) {
     const auto module_id = readers.reader.Read<ModuleId>();
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
-        result = MAKE_KERNEL_RESULT(Kernel::Error::InvalidEnumValue);
+        result =
+            MAKE_RESULT(Svc, Kernel::Error::InvalidEnumValue); // TODO: module
         return;
     }
 
