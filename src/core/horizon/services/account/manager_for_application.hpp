@@ -4,11 +4,11 @@
 
 namespace Hydra::Horizon::Services::Account {
 
-class IProfile : public Kernel::ServiceBase {
+class IManagerForApplication : public Kernel::ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IProfile)
+    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IManagerForApplication)
 
-    IProfile(u128 user_id_) : user_id{user_id_} {}
+    IManagerForApplication(u128 user_id_) : user_id{user_id_} {}
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
@@ -17,8 +17,6 @@ class IProfile : public Kernel::ServiceBase {
     u128 user_id;
 
     // Commands
-    void Get(REQUEST_COMMAND_PARAMS);
-    void GetBase(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Account

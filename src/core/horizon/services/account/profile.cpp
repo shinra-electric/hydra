@@ -39,7 +39,7 @@ void IProfile::Get(REQUEST_COMMAND_PARAMS) {
 
     // TODO: get this from state manager
     AccountProfileBase profile_base{
-        .uid = account_uid,
+        .uid = user_id,
         .last_edit_timestamp = 0,
         .nickname = "Hydra user",
     };
@@ -49,7 +49,7 @@ void IProfile::Get(REQUEST_COMMAND_PARAMS) {
 void IProfile::GetBase(REQUEST_COMMAND_PARAMS) {
     // TODO: get this from state manager
     AccountProfileBase profile_base{
-        .uid = account_uid,
+        .uid = user_id,
         .last_edit_timestamp = 0,
         .nickname = "Hydra user",
     };

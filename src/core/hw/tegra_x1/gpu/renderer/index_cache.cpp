@@ -42,8 +42,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 #define ADD_INDEX(index)                                                       \
     switch (index_type) {                                                      \
     case Engines::IndexType::UInt8:                                            \
-        /* TODO: check for u8 support */                                       \
-        *reinterpret_cast<u16*>(out) = index;                                  \
+        *reinterpret_cast<u8*>(out) = index;                                   \
         out += sizeof(u16);                                                    \
         break;                                                                 \
     case Engines::IndexType::UInt16:                                           \

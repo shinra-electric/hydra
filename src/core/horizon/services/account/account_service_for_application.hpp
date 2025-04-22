@@ -15,6 +15,7 @@ class IAccountServiceForApplication : public Kernel::ServiceBase {
     // Commands
     void GetProfile(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV0)
+    void GetBaasAccountManagerForApplication(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Account

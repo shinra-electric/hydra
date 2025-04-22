@@ -154,6 +154,8 @@ add_library(hydra-core
     horizon/services/pctl/ipc/parental_control_service_factory.hpp
     horizon/services/account/profile.cpp
     horizon/services/account/profile.hpp
+    horizon/services/account/manager_for_application.cpp
+    horizon/services/account/manager_for_application.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
     horizon/services/account/account_service_for_system_service.cpp
