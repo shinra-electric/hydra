@@ -819,9 +819,19 @@ Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
               "size: 0x{:08x})",
               reason.type, buffer_ptr, buffer_size);
 
-    if (buffer_ptr && buffer_size == 0x4) {
-        LOG_DEBUG(HorizonKernel, "diagAbortWithResult (description: {})",
-                  ((*(u32*)buffer_ptr) >> 9) & 0x1FFF);
+    if (buffer_ptr) {
+        if (buffer_size == sizeof(u32)) {
+            const u32 value = *reinterpret_cast<u32*>(buffer_ptr);
+            const auto module = static_cast<Module>(value & 0x1ff);
+            const auto description = value >> 9;
+            LOG_INFO(HorizonKernel, "Module: {}, Description: 0x{:x}", module,
+                     description);
+        } else {
+            for (u32 i = 0; i < buffer_size / sizeof(u32); i++) {
+                const u32 value = reinterpret_cast<u32*>(buffer_ptr)[i];
+                LOG_INFO(HorizonKernel, "0x{:08x}", value);
+            }
+        }
     }
 
     if (!reason.notification_only)
@@ -892,6 +902,10 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = 4u * 1024u * 1024u;
         return RESULT_SUCCESS;
     }
+    case InfoType::DebuggerAttached:
+        // TODO: make this configurable
+        out_info = true;
+        return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
         // TODO: correct?
         // TODO: subtype 0-3

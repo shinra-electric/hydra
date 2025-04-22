@@ -19,6 +19,7 @@ class IAudioOut : public Kernel::ServiceBase {
 
     // Commands
     STUB_REQUEST_COMMAND(Start);
+    STUB_REQUEST_COMMAND(AppendAudioOutBuffer);
     void RegisterBufferEvent(REQUEST_COMMAND_PARAMS);
 };
 

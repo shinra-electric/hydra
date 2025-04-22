@@ -2,7 +2,8 @@
 
 namespace Hydra::Horizon::Services::Audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 4, RegisterBufferEvent)
+DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 3, AppendAudioOutBuffer, 4,
+                             RegisterBufferEvent)
 
 IAudioOut::IAudioOut() : buffer_event(new Kernel::Event()) {}
 
