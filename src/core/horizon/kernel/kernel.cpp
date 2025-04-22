@@ -15,9 +15,6 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
     SINGLETON_SET_INSTANCE(HorizonKernel, "Kernel");
 
-    // Filesystem
-    filesystem.Mount(FS_SD_MOUNT);
-
     // Memory
 
     // Stack memory

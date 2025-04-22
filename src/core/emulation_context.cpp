@@ -35,6 +35,7 @@ EmulationContext::EmulationContext() {
     os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
 
     // Filesystem
+    /*
     for (const auto& root_path : Config::GetInstance().GetRootPaths()) {
         const auto res =
             Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
@@ -44,6 +45,7 @@ EmulationContext::EmulationContext() {
         LOG_INFO(Other, "Mapped {} to {}", root_path.guest_path,
                  root_path.host_path);
     }
+    */
 }
 
 EmulationContext::~EmulationContext() {

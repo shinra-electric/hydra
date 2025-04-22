@@ -27,28 +27,6 @@ void hydra_config_set_sd_card_path(const char* path) {
     Hydra::Config::GetInstance().SetSdCardPath(path);
 }
 
-uint32_t hydra_config_get_root_paths_count() {
-    return Hydra::Config::GetInstance().GetRootPaths().size();
-}
-
-const char* hydra_config_get_root_path_guest_path(uint32_t index) {
-    return Hydra::Config::GetInstance()
-        .GetRootPaths()[index]
-        .guest_path.c_str();
-}
-
-const char* hydra_config_get_root_path_host_path(uint32_t index) {
-    return Hydra::Config::GetInstance().GetRootPaths()[index].host_path.c_str();
-}
-
-void hydra_config_add_root_path(const char* guest_path, const char* host_path) {
-    Hydra::Config::GetInstance().AddRootPath(guest_path, host_path);
-}
-
-void hydra_config_remove_root_path(uint32_t index) {
-    Hydra::Config::GetInstance().RemoveRootPath(index);
-}
-
 int hydra_config_get_cpu_backend() {
     return static_cast<int>(Hydra::Config::GetInstance().GetCpuBackend());
 }

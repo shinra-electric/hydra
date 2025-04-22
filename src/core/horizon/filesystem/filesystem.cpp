@@ -32,6 +32,10 @@ SINGLETON_DEFINE_GET_INSTANCE(Filesystem, HorizonFilesystem, "Filesystem")
 
 Filesystem::Filesystem() {
     SINGLETON_SET_INSTANCE(HorizonFilesystem, "Filesystem");
+
+    // SD card
+    MountImpl(FS_SD_MOUNT,
+              new Directory(Config::GetInstance().GetSdCardPath()));
 }
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }

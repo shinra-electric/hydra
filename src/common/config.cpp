@@ -43,8 +43,6 @@
     ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
 
-ENABLE_STRUCT_FORMATTING_AND_TOML11(Hydra::RootPath, guest_path, host_path)
-
 ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
                                           AppleHypervisor, "Apple Hypervisor",
                                           Dynarmic, "dynarmic")
@@ -112,7 +110,6 @@ Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 void Config::LoadDefaults() {
     game_directories = GetDefaultGameDirectories();
     sd_card_path = GetDefaultSdCardPath();
-    root_paths = GetDefaultRootPaths();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     debug_logging = GetDefaultDebugLogging();
@@ -140,11 +137,6 @@ void Config::Serialize() {
                                                    game_directories.end());
 
             general["sd_card_path"] = sd_card_path;
-
-            auto& root_paths_arr = general["root_paths"];
-            root_paths_arr = toml::array{};
-            root_paths_arr.as_array().assign(root_paths.begin(),
-                                             root_paths.end());
         }
 
         {
@@ -178,8 +170,6 @@ void Config::Deserialize() {
             general, "game_directories", GetDefaultGameDirectories());
         sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
                                                   GetDefaultSdCardPath());
-        root_paths = toml::find_or<std::vector<RootPath>>(
-            general, "root_paths", GetDefaultRootPaths());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
@@ -188,8 +178,8 @@ void Config::Deserialize() {
     }
     if (data.contains("Graphics")) {
         const auto& graphics = data.at("Graphics");
-        gpu_renderer =
-            toml::find_or<GpuRenderer>(graphics, "renderer", GetDefaultGpuRenderer());
+        gpu_renderer = toml::find_or<GpuRenderer>(graphics, "renderer",
+                                                  GetDefaultGpuRenderer());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");

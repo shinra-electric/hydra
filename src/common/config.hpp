@@ -20,11 +20,6 @@ enum class GpuRenderer {
     Metal,
 };
 
-struct RootPath {
-    std::string guest_path;
-    std::string host_path;
-};
-
 class Config {
   public:
     static Config& GetInstance();
@@ -47,7 +42,6 @@ class Config {
         return game_directories;
     }
     const std::string& GetSdCardPath() const { return sd_card_path; }
-    const std::vector<RootPath>& GetRootPaths() const { return root_paths; }
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
     bool IsDebugLoggingEnabled() const { return debug_logging; }
@@ -75,19 +69,6 @@ class Config {
         SET_CONFIG_VALUE(sd_card_path);
     }
 
-    void AddRootPath(const std::string& guest_path,
-                     const std::string& host_path) {
-        root_paths.push_back({guest_path, host_path});
-        changed = true;
-    }
-
-    void RemoveRootPath(u32 index) {
-        ASSERT(index < root_paths.size(), Other, "Index ({}) out of range ({})",
-               index, root_paths.size());
-        root_paths.erase(root_paths.begin() + index);
-        changed = true;
-    }
-
     void SetCpuBackend(CpuBackend cpu_backend_) {
         SET_CONFIG_VALUE(cpu_backend);
     }
@@ -110,7 +91,6 @@ class Config {
     // Config
     std::vector<std::string> game_directories;
     std::string sd_card_path;
-    std::vector<RootPath> root_paths;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
     bool debug_logging;
@@ -120,7 +100,6 @@ class Config {
     std::string GetDefaultSdCardPath() const {
         return fmt::format("{}/sd_card", app_data_path);
     }
-    std::vector<RootPath> GetDefaultRootPaths() const { return {}; }
     CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     bool GetDefaultDebugLogging() const { return true; }
