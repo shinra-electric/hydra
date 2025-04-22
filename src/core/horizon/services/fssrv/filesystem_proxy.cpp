@@ -165,6 +165,8 @@ void IFileSystemProxy::CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS) {
         break;
     }
 
+    const auto res =
+        Filesystem::Filesystem::GetInstance().CreateDirectory(root_path, true);
     Filesystem::Filesystem::GetInstance().Mount(mount, root_path);
 }
 

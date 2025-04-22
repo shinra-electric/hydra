@@ -23,6 +23,8 @@ class Filesystem {
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult CreateFile(const std::string& path,
                                       bool add_intermediate = false);
+    [[nodiscard]] FsResult CreateDirectory(const std::string& path,
+                                           bool add_intermediate = false);
 
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);

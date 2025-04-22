@@ -83,20 +83,22 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define MOV_X0_XZR 0xd2800000
 #define NOP 0xd503201f
 
-    // Cave story+
-    /*
-    cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
-    cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
+    // HACK
+    if (true) {                                     // Cave story+
+        cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
+        cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
 
-    cpu->GetMMU()->Store<u32>(0x40082bbc, NOP); // CoreMask?
-    cpu->GetMMU()->Store<u32>(0x40082d8c, NOP); // svcQueryMemory
+        cpu->GetMMU()->Store<u32>(0x40082bbc, NOP); // CoreMask?
+        cpu->GetMMU()->Store<u32>(0x40082d8c, NOP); // svcQueryMemory
 
-    cpu->GetMMU()->Store<u32>(0x40081764, NOP); // Reading save screen.cfg
+        // cpu->GetMMU()->Store<u32>(0x40081764, NOP); // Reading save
+        // screen.cfg
 
-    cpu->GetMMU()->Store<u32>(0x40093478, NOP); // HID (probably shared memory?)
+        cpu->GetMMU()->Store<u32>(0x40093478,
+                                  NOP); // HID (probably shared memory?)
 
-    // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
-    */
+        // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
+    }
 }
 
 void EmulationContext::Run() {

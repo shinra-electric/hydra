@@ -84,6 +84,11 @@ FsResult Filesystem::CreateFile(const std::string& path,
     }
 }
 
+FsResult Filesystem::CreateDirectory(const std::string& path,
+                                     bool add_intermediate) {
+    return AddEntry(path, new Directory(), add_intermediate);
+}
+
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
