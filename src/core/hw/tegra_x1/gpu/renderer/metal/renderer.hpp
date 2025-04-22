@@ -25,7 +25,7 @@ struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
     const Buffer* index_buffer{nullptr};
-    Engines::IndexType index_type{Engines::IndexType::UInt16};
+    Engines::IndexType index_type{Engines::IndexType::None};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [UNIFORM_BUFFER_BINDING_COUNT];

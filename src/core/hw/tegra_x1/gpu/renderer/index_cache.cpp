@@ -121,11 +121,6 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     // Returns src index buffer if no decoding is needed
     PRIMITIVE_TYPE_SWITCH(GET_PARAMS)
 
-    u64 hash = Hash(descriptor);
-    auto& index_buffer = cache[hash];
-    if (index_buffer)
-        return index_buffer;
-
     switch (out_count) {
     case 0 ... 0xff:
         // TODO: check for u8 support
@@ -138,6 +133,11 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         out_type = Engines::IndexType::UInt32;
         break;
     }
+
+    u64 hash = Hash(descriptor);
+    auto& index_buffer = cache[hash];
+    if (index_buffer)
+        return index_buffer;
 
     usize index_size = get_index_type_size(out_type);
     index_buffer = RENDERER->AllocateTemporaryBuffer(out_count * index_size);

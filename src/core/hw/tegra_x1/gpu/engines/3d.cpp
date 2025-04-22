@@ -185,7 +185,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
 
     RENDERER->BindIndexBuffer(index_buffer, regs.index_type);
 
-    auto index_type = IndexType::None;
+    auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
     index_buffer =
         RENDERER->GetIndexCache().Decode({.type = index_type,
