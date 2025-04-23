@@ -148,10 +148,10 @@ add_library(hydra-core
     horizon/services/lm/logger.hpp
     horizon/services/aocsrv/add_on_content_manager.cpp
     horizon/services/aocsrv/add_on_content_manager.hpp
-    horizon/services/pctl/ipc/parental_control_service.cpp
-    horizon/services/pctl/ipc/parental_control_service.hpp
-    horizon/services/pctl/ipc/parental_control_service_factory.cpp
-    horizon/services/pctl/ipc/parental_control_service_factory.hpp
+    horizon/services/pctl/parental_control_service.cpp
+    horizon/services/pctl/parental_control_service.hpp
+    horizon/services/pctl/parental_control_service_factory.cpp
+    horizon/services/pctl/parental_control_service_factory.hpp
     horizon/services/account/profile.cpp
     horizon/services/account/profile.hpp
     horizon/services/account/manager_for_application.cpp
@@ -191,6 +191,10 @@ add_library(hydra-core
     horizon/services/nifm/request.hpp
     horizon/services/pcv/pcv_service.cpp
     horizon/services/pcv/pcv_service.hpp
+    horizon/services/friends/service_creator.cpp
+    horizon/services/friends/service_creator.hpp
+    horizon/services/friends/friend_service.cpp
+    horizon/services/friends/friend_service.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp

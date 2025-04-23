@@ -17,6 +17,8 @@ class IManagerForApplication : public Kernel::ServiceBase {
     u128 user_id;
 
     // Commands
+    void CheckAvailability(REQUEST_COMMAND_PARAMS);
+    void GetAccountId(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Account

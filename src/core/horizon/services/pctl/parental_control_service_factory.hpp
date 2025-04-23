@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Services::Pctl::Ipc {
+namespace Hydra::Horizon::Services::Pctl {
 
 class IParentalControlServiceFactory : public Kernel::ServiceBase {
   public:
@@ -16,4 +16,4 @@ class IParentalControlServiceFactory : public Kernel::ServiceBase {
     void CreateParentalControlService(REQUEST_COMMAND_PARAMS);
 };
 
-} // namespace Hydra::Horizon::Services::Pctl::Ipc
+} // namespace Hydra::Horizon::Services::Pctl

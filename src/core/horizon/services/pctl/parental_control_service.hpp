@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Services::Pctl::Ipc {
+namespace Hydra::Horizon::Services::Pctl {
 
 class IParentalControlService : public Kernel::ServiceBase {
   public:
@@ -15,4 +15,4 @@ class IParentalControlService : public Kernel::ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Pctl::Ipc
+} // namespace Hydra::Horizon::Services::Pctl

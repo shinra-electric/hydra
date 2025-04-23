@@ -31,6 +31,7 @@ class IFileSystem : public Kernel::ServiceBase {
     void GetEntryType(REQUEST_COMMAND_PARAMS);
     void OpenFile(REQUEST_COMMAND_PARAMS);
     void OpenDirectory(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(Commit);
 };
 
 } // namespace Hydra::Horizon::Services::Fssrv

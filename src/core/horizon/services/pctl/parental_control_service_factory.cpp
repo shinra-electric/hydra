@@ -1,7 +1,8 @@
-#include "core/horizon/services/pctl/ipc/parental_control_service_factory.hpp"
-#include "core/horizon/services/pctl/ipc/parental_control_service.hpp"
+#include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 
-namespace Hydra::Horizon::Services::Pctl::Ipc {
+#include "core/horizon/services/pctl/parental_control_service.hpp"
+
+namespace Hydra::Horizon::Services::Pctl {
 
 DEFINE_SERVICE_COMMAND_TABLE(IParentalControlServiceFactory, 0,
                              CreateParentalControlService)
@@ -11,4 +12,4 @@ void IParentalControlServiceFactory::CreateParentalControlService(
     add_service(new IParentalControlService());
 }
 
-} // namespace Hydra::Horizon::Services::Pctl::Ipc
+} // namespace Hydra::Horizon::Services::Pctl

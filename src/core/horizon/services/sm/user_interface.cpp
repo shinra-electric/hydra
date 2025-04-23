@@ -8,6 +8,7 @@
 #include "core/horizon/services/apm/manager_privileged.hpp"
 #include "core/horizon/services/audio/audio_out_manager.hpp"
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
+#include "core/horizon/services/friends/service_creator.hpp"
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 #include "core/horizon/services/hid/hid_debug_server.hpp"
 #include "core/horizon/services/hid/hid_server.hpp"
@@ -15,7 +16,7 @@
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
-#include "core/horizon/services/pctl/ipc/parental_control_service_factory.hpp"
+#include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
@@ -65,8 +66,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Psm::IPsmServer, "psm")
         SERVICE_CASE(Lm::ILogService, "lm")
         SERVICE_CASE(AocSrv::IAddOnContentManager, "aoc:u")
-        SERVICE_CASE(Pctl::Ipc::IParentalControlServiceFactory, "pctl:s",
-                     "pctl:r", "pctl:a", "pctl")
+        SERVICE_CASE(Pctl::IParentalControlServiceFactory, "pctl:s", "pctl:r",
+                     "pctl:a", "pctl")
         SERVICE_CASE(Account::IAccountServiceForApplication, "acc:u0")
         SERVICE_CASE(Apm::IManagerPrivileged, "apm:p")
         SERVICE_CASE(Socket::IClient, "bsd:u", "bsd:s", "bsd:a")
@@ -80,6 +81,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Pcv::IPcvService, "pcv")
         SERVICE_CASE(Socket::Resolver::IResolver, "sfdnsres")
         SERVICE_CASE(Spl::IGeneralInterface, "spl:")
+        SERVICE_CASE(Friends::IServiceCreator, "friend:a")
     default:
         LOG_WARN(HorizonServices, "Unknown service name \"{}\"",
                  u64_to_str(name));

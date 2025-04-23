@@ -27,7 +27,7 @@ struct CreateFileIn {
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
                              DeleteDirectoryRecursively, 7, GetEntryType, 8,
-                             OpenFile, 9, OpenDirectory)
+                             OpenFile, 9, OpenDirectory, 10, Commit)
 
 #define READ_PATH()                                                            \
     const auto path = mount + readers.send_statics_readers[0].ReadString();    \
@@ -44,7 +44,7 @@ void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
         LOG_WARN(HorizonServices, "File \"{}\" already exists", path);
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
-               "Failed to create file: {}", res);
+               "Failed to create file \"{}\": {}", path, res);
 }
 
 void IFileSystem::DeleteFile(REQUEST_COMMAND_PARAMS) {
@@ -63,7 +63,7 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
         LOG_WARN(HorizonServices, "Directory \"{}\" already exists", path);
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
-               "Failed to create directory: {}", res);
+               "Failed to create directory \"{}\": {}", path, res);
 }
 
 void IFileSystem::DeleteDirectory(REQUEST_COMMAND_PARAMS) {
