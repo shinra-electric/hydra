@@ -21,6 +21,30 @@ enum class FileSystemProxyType {
     RegisteredUpdate,
 };
 
+enum BisPartitionId : u32 {
+    BootPartition1Root = 0,
+
+    BootPartition2Root = 10,
+
+    UserDataRoot = 20,
+    BootConfigAndPackage2Part1 = 21,
+    BootConfigAndPackage2Part2 = 22,
+    BootConfigAndPackage2Part3 = 23,
+    BootConfigAndPackage2Part4 = 24,
+    BootConfigAndPackage2Part5 = 25,
+    BootConfigAndPackage2Part6 = 26,
+    CalibrationBinary = 27,
+    CalibrationFile = 28,
+    SafeMode = 29,
+    User = 30,
+    System = 31,
+    SystemProperEncryption = 32,
+    SystemProperPartition = 33,
+    SignedSystemPartitionOnSafeMode = 34,
+    DeviceTreeBlob = 35,
+    System0 = 36,
+};
+
 struct OpenFileSystemWithIdObsoleteIn {
     FileSystemProxyType type;
     u64 program_id;
@@ -100,19 +124,35 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::FileSystemProxyType,
                        Code, "code", Rom, "rom", Logo, "logo", Control,
                        "control", Manual, "manual", Meta, "meta", Data, "data",
                        Package, "package", RegisteredUpdate,
-                       "registered_update")
+                       "registered update")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::Services::Fssrv::BisPartitionId, BootPartition1Root,
+    "boot partition 1 root", BootPartition2Root, "boot partition 2 root",
+    UserDataRoot, "user data root", BootConfigAndPackage2Part1,
+    "boot config and package 2 part 1", BootConfigAndPackage2Part2,
+    "boot config and package 2 part 2", BootConfigAndPackage2Part3,
+    "boot config and package 2 part 3", BootConfigAndPackage2Part4,
+    "boot config and package 2 part 4", BootConfigAndPackage2Part5,
+    "boot config and package 2 part 5", BootConfigAndPackage2Part6,
+    "boot config and package 2 part 6", CalibrationBinary, "calibration binary",
+    CalibrationFile, "calibration file", SafeMode, "safe mode", User, "user",
+    System, "system", SystemProperEncryption, "system proper encryption",
+    SystemProperPartition, "system proper partition",
+    SignedSystemPartitionOnSafeMode, "signed system partition on safe mode",
+    DeviceTreeBlob, "device tree blob", System0, "system 0")
 
 ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::SaveDataType, System,
                        "system", Account, "account", Bcat, "bcat", Device,
                        "device", Temporary, "temporary", Cache, "cache",
-                       SystemBcat, "system_bcat")
+                       SystemBcat, "system bcat")
 
 namespace Hydra::Horizon::Services::Fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
                              SetCurrentProcess, 8, OpenFileSystemWithIdObsolete,
-                             18, OpenSdCardFileSystem, 22,
-                             CreateSaveDataFileSystem, 51,
+                             11, OpenBisFileSystem, 18, OpenSdCardFileSystem,
+                             22, CreateSaveDataFileSystem, 51,
                              OpenSaveDataFileSystem, 200,
                              OpenDataStorageByProgramId, 203,
                              OpenPatchDataStorageByCurrentProcess, 1005,
@@ -135,6 +175,17 @@ void IFileSystemProxy::OpenFileSystemWithIdObsolete(REQUEST_COMMAND_PARAMS) {
     LOG_NOT_IMPLEMENTED(HorizonServices, "OpenFileSystemWithIdObsolete");
 
     LOG_DEBUG(HorizonServices, "ID: {}", id);
+}
+
+void IFileSystemProxy::OpenBisFileSystem(REQUEST_COMMAND_PARAMS) {
+    const auto partition_id = readers.reader.Read<BisPartitionId>();
+    const auto str =
+        readers.send_statics_readers[0].ReadString(); // TODO: what is this for?
+    LOG_DEBUG(HorizonServices, "Partition ID: {}, str: {}", partition_id, str);
+
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    result = MAKE_RESULT(Fs, 1771);
 }
 
 void IFileSystemProxy::OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS) {

@@ -18,6 +18,7 @@ class IFileSystemProxy : public Kernel::ServiceBase {
     void OpenFileSystem(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetCurrentProcess)
     void OpenFileSystemWithIdObsolete(REQUEST_COMMAND_PARAMS);
+    void OpenBisFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenSdCardFileSystem(REQUEST_COMMAND_PARAMS);
     void CreateSaveDataFileSystem(REQUEST_COMMAND_PARAMS);
     void OpenSaveDataFileSystem(REQUEST_COMMAND_PARAMS);

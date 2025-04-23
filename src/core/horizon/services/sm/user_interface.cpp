@@ -23,6 +23,7 @@
 #include "core/horizon/services/settings/system_settings_server.hpp"
 #include "core/horizon/services/socket/client.hpp"
 #include "core/horizon/services/socket/resolver/resolver.hpp"
+#include "core/horizon/services/spl/general_interface.hpp"
 #include "core/horizon/services/spl/random_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
@@ -78,6 +79,7 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
         SERVICE_CASE(Pcv::IPcvService, "pcv")
         SERVICE_CASE(Socket::Resolver::IResolver, "sfdnsres")
+        SERVICE_CASE(Spl::IGeneralInterface, "spl:")
     default:
         LOG_WARNING(HorizonServices, "Unknown service name \"{}\"",
                     u64_to_str(name));

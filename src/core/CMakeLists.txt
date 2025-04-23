@@ -181,6 +181,8 @@ add_library(hydra-core
     horizon/services/ssl/sf/ssl_service.hpp
     horizon/services/spl/random_interface.cpp
     horizon/services/spl/random_interface.hpp
+    horizon/services/spl/general_interface.cpp
+    horizon/services/spl/general_interface.hpp
     horizon/services/nifm/static_service.cpp
     horizon/services/nifm/static_service.hpp
     horizon/services/nifm/general_service.cpp
