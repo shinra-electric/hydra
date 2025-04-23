@@ -80,6 +80,7 @@ void Thread::Run() {
 
                 // HACK
                 if (ec == 0x21) {
+                    LogStackTrace(elr);
                     LOG_WARNING(Hypervisor, "InstructionAbortSameEl");
                     std::this_thread::sleep_for(
                         std::chrono::seconds(0xffffffff));

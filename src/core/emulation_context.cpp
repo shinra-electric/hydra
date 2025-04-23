@@ -84,7 +84,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 #define NOP 0xd503201f
 
     // HACK
-    if (true) {                                     // Cave story+
+    if (false) {                                    // Cave story+
         cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
         // cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
 
@@ -98,6 +98,15 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         //                           NOP); // HID (probably shared memory?)
 
         // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
+
+        cpu->GetMMU()->Store<u32>(0x42e81a48,
+                                  MOV_X0_XZR); // InstructionAbortSameEl
+    }
+
+    if (true) {                                     // Puyo Puyo Tetris
+        cpu->GetMMU()->Store<u32>(0x513e05d0, NOP); // Jump to heap
+        cpu->GetMMU()->Store<u32>(0x402cbecc, NOP); // Audio
+        cpu->GetMMU()->Store<u32>(0x51b9da48, NOP); // InstructionAbortSameEl
     }
 }
 

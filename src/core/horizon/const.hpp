@@ -116,6 +116,49 @@ enum class LaunchParameterKind : u32 {
     Unknown0,
 };
 
+enum class LanguageCode : u64 {
+    Japanese = str_to_u64("ja"),
+    AmericanEnglish = str_to_u64("en-US"),
+    French = str_to_u64("fr"),
+    German = str_to_u64("de"),
+    Italian = str_to_u64("it"),
+    Spanish = str_to_u64("es"),
+    Chinese = str_to_u64("zh-CN"),
+    Korean = str_to_u64("ko"),
+    Dutch = str_to_u64("nl"),
+    Portuguese = str_to_u64("pt"),
+    FuckRussia = str_to_u64("ru"), // TODO: should be "Russian"
+    Russian = FuckRussia,
+    Taiwanese = str_to_u64("zh-TW"),
+    BritishEnglish = str_to_u64("en-GB"),
+    CanadianFrench = str_to_u64("fr-CA"),
+    LatinAmericanSpanish = str_to_u64("es-419"),
+    SimplifiedChinese = str_to_u64("zh-Hans"),
+    TraditionalChinese = str_to_u64("zh-Hant"),
+    BrazilianPortugese = str_to_u64("pt-BR"),
+};
+
+constexpr LanguageCode available_languages[] = {
+    LanguageCode::Japanese,
+    LanguageCode::AmericanEnglish,
+    LanguageCode::French,
+    LanguageCode::German,
+    LanguageCode::Italian,
+    LanguageCode::Spanish,
+    LanguageCode::Chinese,
+    LanguageCode::Korean,
+    LanguageCode::Dutch,
+    LanguageCode::Portuguese,
+    LanguageCode::Russian,
+    LanguageCode::Taiwanese,
+    LanguageCode::BritishEnglish,
+    LanguageCode::CanadianFrench,
+    LanguageCode::LatinAmericanSpanish,
+    LanguageCode::SimplifiedChinese,
+    LanguageCode::TraditionalChinese,
+    LanguageCode::BrazilianPortugese,
+};
+
 } // namespace Hydra::Horizon
 
 ENABLE_ENUM_FORMATTING(

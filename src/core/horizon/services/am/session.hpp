@@ -13,6 +13,7 @@ class ISession : public Kernel::ServiceBase {
 
   private:
     // Commands
+    void SetPerformanceConfiguration(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Am

@@ -6,8 +6,8 @@
 namespace Hydra::Horizon::Services::Am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
-                             EnsureSaveData, 22, SetTerminateResult, 40,
-                             NotifyRunning)
+                             EnsureSaveData, 21, GetDesiredLanguage, 22,
+                             SetTerminateResult, 40, NotifyRunning)
 
 void IApplicationFunctions::PopLaunchParameter(REQUEST_COMMAND_PARAMS) {
     const auto kind = readers.reader.Read<LaunchParameterKind>();
@@ -29,9 +29,14 @@ void IApplicationFunctions::EnsureSaveData(REQUEST_COMMAND_PARAMS) {
     writers.writer.Write<u64>(0x0);
 }
 
+void IApplicationFunctions::GetDesiredLanguage(REQUEST_COMMAND_PARAMS) {
+    // TODO: make this configurable
+    writers.writer.Write(LanguageCode::AmericanEnglish);
+}
+
 void IApplicationFunctions::SetTerminateResult(REQUEST_COMMAND_PARAMS) {
     auto res = readers.reader.Read<Kernel::Result>();
-    LOG_DEBUG(HorizonServices, "Result: 0x{:x}", res);
+    LOG_INFO(HorizonServices, "Terminate result: 0x{:x}", res);
 }
 
 } // namespace Hydra::Horizon::Services::Am

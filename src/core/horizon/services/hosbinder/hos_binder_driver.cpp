@@ -172,6 +172,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         writer.Write<u32>(0x1); // TODO: correct?
 
+        // Buffer
         const auto& buffer = binder.GetBuffer(slot);
 
         struct {
@@ -186,9 +187,12 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
                          .format = buffer.format,
                          .usage = buffer.usage};
 
-        // TODO: correct?
-        writer.Write<u32>(sizeof(buffer_info) + sizeof(buffer));
-        writer.Write<u32>(0);
+        ParcelFlattenedObject flattened_obj = {
+            .size = sizeof(buffer_info) + sizeof(buffer),
+            .fd_count = 0,
+        };
+        writer.Write(flattened_obj);
+
         writer.Write(buffer_info);
         writer.Write(buffer);
     }
@@ -197,7 +201,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         writer.Write(slot);
         // HACK
-        writer.Write((i32)1);
+        writer.Write<i32>(1);
 
         // Flattened object
         ParcelFlattenedObject flattened_obj = {
@@ -236,12 +240,32 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         break;
     }
-    case TransactCode::Connect: {
-        LOG_NOT_IMPLEMENTED(HorizonServices, "Connect");
+    case TransactCode::Query: {
+        read_interface_name(reader);
 
-        // HACK
-        u64 arr[16] = {0};
-        writer.Write(arr, 16);
+        const auto what = reader.Read<i32>(); // TODO: enum
+        LOG_NOT_IMPLEMENTED(HorizonServices, "Query (what: {})", what);
+
+        i32 value = 0; // HACK
+
+        writer.Write(value);
+
+        break;
+    }
+    case TransactCode::Connect: {
+        struct {
+            u32 width;
+            u32 height;
+            u32 transform_hint;
+            u32 num_pending_buffers;
+        } output{
+            .width = 1280,            // TODO: dont' hardcode
+            .height = 720,            // TODO: dont' hardcode
+            .transform_hint = 0,      // HACK
+            .num_pending_buffers = 0, // HACK
+        };
+
+        writer.Write(output);
 
         break;
     }

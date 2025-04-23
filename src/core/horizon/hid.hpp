@@ -195,7 +195,7 @@ enum class KeyboardLockKeyEvent {
     ScrollLockToggle = BIT(8),
 };
 
-enum class NpadIdType {
+enum class NpadIdType : u8 {
     No1,
     No2,
     No3,

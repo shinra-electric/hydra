@@ -27,6 +27,7 @@ class IHidServer : public Kernel::ServiceBase {
     STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
+    void GetVibrationDeviceInfo(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SendVibrationValue);
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SendVibrationValues);
