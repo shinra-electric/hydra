@@ -53,9 +53,9 @@ void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
     auto reader = stream.CreateReader();
     const auto max_size = reader.GetSize() - offset;
     if (size > max_size) {
-        LOG_WARNING(HorizonServices,
-                    "Reading {} bytes, but maximum readable size is {}", size,
-                    max_size);
+        LOG_WARN(HorizonServices,
+                 "Reading {} bytes, but maximum readable size is {}", size,
+                 max_size);
         size = max_size;
     }
 

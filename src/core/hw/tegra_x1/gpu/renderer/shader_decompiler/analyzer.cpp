@@ -69,8 +69,8 @@ void Analyzer::HandleAMemStore(const AMem amem) {
 
 void Analyzer::HandleCMemLoad(const CMem cmem) {
     if (cmem.reg != RZ) {
-        LOG_WARNING(ShaderDecompiler, "Indexing not implemented (src: r{})",
-                    cmem.reg);
+        LOG_WARN(ShaderDecompiler, "Indexing not implemented (src: r{})",
+                 cmem.reg);
         return;
     }
 

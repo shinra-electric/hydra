@@ -84,7 +84,7 @@ uptr MMU::UnmapAddr(vaddr_t va) const {
 
     // HACK
     if (page >= sizeof_array(pages)) {
-        LOG_WARNING(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        LOG_WARN(Dynarmic, "Failed to unmap va 0x{:08x}", va);
         static u64 zero = 0;
         return reinterpret_cast<uptr>(&zero);
     }
@@ -93,7 +93,7 @@ uptr MMU::UnmapAddr(vaddr_t va) const {
 
     if (pages[page] == 0x0) {
         // TODO: error
-        LOG_WARNING(Dynarmic, "Failed to unmap va 0x{:08x}", va);
+        LOG_WARN(Dynarmic, "Failed to unmap va 0x{:08x}", va);
         // HACK
         static u64 zero = 0;
         return reinterpret_cast<uptr>(&zero);

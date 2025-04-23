@@ -81,7 +81,7 @@ void Thread::Run() {
                 // HACK
                 if (ec == 0x21) {
                     LogStackTrace(elr);
-                    LOG_WARNING(Hypervisor, "InstructionAbortSameEl");
+                    LOG_WARN(Hypervisor, "InstructionAbortSameEl");
                     std::this_thread::sleep_for(
                         std::chrono::seconds(0xffffffff));
                 }
@@ -136,7 +136,7 @@ void Thread::Run() {
                 SetReg(HV_REG_PC,
                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
             } else if (hvEc == 0x17) { // SMC
-                LOG_WARNING(Hypervisor, "SMC instruction");
+                LOG_WARN(Hypervisor, "SMC instruction");
 
                 AdvancePC();
             } else if (hvEc == 0x18) {
@@ -266,7 +266,7 @@ void Thread::LogStackTrace(uptr pc) {
         //     break;
         // HACK
         // if (fp < 0x10000000 || fp >= 0x20000000) {
-        //    LOG_WARNING(Hypervisor, "Currputed stack");
+        //    LOG_WARN(Hypervisor, "Currputed stack");
         //    break;
         //}
 
@@ -278,8 +278,8 @@ void Thread::LogStackTrace(uptr pc) {
 }
 
 void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
-    LOG_WARNING(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ",
-                instruction, far);
+    LOG_WARN(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ", instruction,
+             far);
 
     // Set the return address
     // TODO: correct?

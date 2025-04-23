@@ -324,7 +324,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
 
     switch (group) {
     case 0x0 ... 0x3:
-        LOG_WARNING(Engines, "Reserved");
+        LOG_WARN(Engines, "Reserved");
         break;
     case 0x4: {
         const auto index = extract_bits<u32, 4, 5>(data);
@@ -345,7 +345,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
         break;
     }
     default:
-        LOG_WARNING(Engines, "Unknown group {}", group);
+        LOG_WARN(Engines, "Unknown group {}", group);
         break;
     }
 }
@@ -592,7 +592,7 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
 
 bool ThreeD::DrawInternal() {
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
-        LOG_WARNING(Engines, "Vertex B stage not enabled, skipping draw");
+        LOG_WARN(Engines, "Vertex B stage not enabled, skipping draw");
         return false;
     }
 

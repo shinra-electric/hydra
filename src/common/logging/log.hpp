@@ -26,7 +26,7 @@
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, fmt, ...)                                               \
     LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
-#define LOG_WARNING(c, ...) LOG(Warning, c, __VA_ARGS__)
+#define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_ERROR(c, ...)                                                      \
@@ -40,7 +40,8 @@
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
-    LOG_WARNING(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+    LOG_WARN(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
+#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_WARN(c, "{}", __func__)
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \

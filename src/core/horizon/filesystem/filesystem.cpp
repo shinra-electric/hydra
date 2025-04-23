@@ -76,10 +76,10 @@ FsResult Filesystem::CreateFile(const std::string& path,
             "{}{}", Config::GetInstance().GetSdCardPath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
-        LOG_WARNING(HorizonFilesystem,
-                    "Could not find host path for path \"{}\", falling back to "
-                    "RAM backed file",
-                    path);
+        LOG_WARN(HorizonFilesystem,
+                 "Could not find host path for path \"{}\", falling back to "
+                 "RAM backed file",
+                 path);
         return AddEntry(path, new RamFile(), add_intermediate);
     }
 }

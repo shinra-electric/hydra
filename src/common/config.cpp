@@ -189,12 +189,12 @@ void Config::Deserialize() {
 
     // Validate
     if (cpu_backend == CpuBackend::Invalid) {
-        LOG_WARNING(Other, "Invalid CPU backend, falling back to Dynarmic");
+        LOG_WARN(Other, "Invalid CPU backend, falling back to Dynarmic");
         cpu_backend = CpuBackend::Dynarmic;
     }
 
     if (gpu_renderer == GpuRenderer::Invalid) {
-        LOG_WARNING(Other, "Invalid GPU renderer, falling back to Metal");
+        LOG_WARN(Other, "Invalid GPU renderer, falling back to Metal");
         gpu_renderer = GpuRenderer::Metal;
     }
 }

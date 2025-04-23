@@ -25,9 +25,8 @@
         switch (nr) {                                                          \
             FOR_EACH_0_2(IOCTL_CASE, __VA_ARGS__)                              \
         default:                                                               \
-            LOG_WARNING(HorizonServices,                                       \
-                        "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr,     \
-                        type);                                                 \
+            LOG_WARN(HorizonServices,                                          \
+                     "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
             break;                                                             \
         }                                                                      \
         break;
@@ -37,9 +36,8 @@
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
-            LOG_WARNING(HorizonServices,                                       \
-                        "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr,     \
-                        type);                                                 \
+            LOG_WARN(HorizonServices,                                          \
+                     "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
             break;                                                             \
         }                                                                      \
     }
@@ -71,7 +69,7 @@ class FdBase {
     virtual void Ioctl(IOCTL_PARAMS) = 0;
     virtual void QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                             NvResult& out_result) {
-        LOG_WARNING(HorizonServices, "Unknown event id {}", event_id_u32);
+        LOG_WARN(HorizonServices, "Unknown event id {}", event_id_u32);
 
         out_result = NvResult::NotSupported;
     }

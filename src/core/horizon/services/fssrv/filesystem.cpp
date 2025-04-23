@@ -41,7 +41,7 @@ void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
     const auto res = Filesystem::Filesystem::GetInstance().CreateFile(
         path, true); // TODO: should create_intermediate be true?
     if (res == Filesystem::FsResult::AlreadyExists)
-        LOG_WARNING(HorizonServices, "File \"{}\" already exists", path);
+        LOG_WARN(HorizonServices, "File \"{}\" already exists", path);
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
                "Failed to create file: {}", res);
@@ -60,7 +60,7 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
         path, new Filesystem::Directory(),
         true); // TODO: should create_intermediate be true?
     if (res == Filesystem::FsResult::AlreadyExists)
-        LOG_WARNING(HorizonServices, "Directory \"{}\" already exists", path);
+        LOG_WARN(HorizonServices, "Directory \"{}\" already exists", path);
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
                "Failed to create directory: {}", res);
@@ -85,8 +85,7 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
     const auto res =
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Error getting entry \"{}\": {}", path,
-                    res);
+        LOG_WARN(HorizonServices, "Error getting entry \"{}\": {}", path, res);
         result = MAKE_RESULT(Fs, 1);
         return;
     }
@@ -105,8 +104,7 @@ void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
     Filesystem::FileBase* file;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Error opening file \"{}\": {}", path,
-                    res);
+        LOG_WARN(HorizonServices, "Error opening file \"{}\": {}", path, res);
         result = MAKE_RESULT(Fs, 1);
         return;
     }
@@ -124,8 +122,8 @@ void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
     const auto res =
         Filesystem::Filesystem::GetInstance().GetDirectory(path, directory);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Error opening directory \"{}\": {}", path,
-                    res);
+        LOG_WARN(HorizonServices, "Error opening directory \"{}\": {}", path,
+                 res);
         result = MAKE_RESULT(Fs, 1);
         return;
     }

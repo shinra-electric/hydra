@@ -81,8 +81,8 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
         SERVICE_CASE(Socket::Resolver::IResolver, "sfdnsres")
         SERVICE_CASE(Spl::IGeneralInterface, "spl:")
     default:
-        LOG_WARNING(HorizonServices, "Unknown service name \"{}\"",
-                    u64_to_str(name));
+        LOG_WARN(HorizonServices, "Unknown service name \"{}\"",
+                 u64_to_str(name));
         result = MAKE_RESULT(Svc, Kernel::Error::NotFound); // TODO: module
         break;
     }

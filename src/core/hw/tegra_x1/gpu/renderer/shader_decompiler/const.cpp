@@ -21,8 +21,8 @@ DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
     case Engines::VertexAttribType::Float:
         return DataType::Float;
     default:
-        LOG_WARNING(ShaderDecompiler, "Unknown vertex attrib type {}",
-                    vertex_attrib_type);
+        LOG_WARN(ShaderDecompiler, "Unknown vertex attrib type {}",
+                 vertex_attrib_type);
         return DataType::None;
     }
 }

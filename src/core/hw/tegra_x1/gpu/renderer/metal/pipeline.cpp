@@ -75,10 +75,10 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
             step_rate = 0;
         } else {
             if (stride < min_stride)
-                LOG_WARNING(MetalRenderer,
-                            "Vertex array stride ({}) is less than minimum "
-                            "required stride ({})",
-                            stride, min_stride);
+                LOG_WARN(MetalRenderer,
+                         "Vertex array stride ({}) is less than minimum "
+                         "required stride ({})",
+                         stride, min_stride);
             step_function = vertex_array.is_per_instance
                                 ? MTL::VertexStepFunctionPerInstance
                                 : MTL::VertexStepFunctionPerVertex;

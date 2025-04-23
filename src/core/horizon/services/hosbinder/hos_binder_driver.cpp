@@ -278,7 +278,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         // Input buffer
         bool has_input_buffer = reader.Read<i32>();
         if (!has_input_buffer) {
-            LOG_WARNING(HorizonServices, "No input buffer");
+            LOG_WARN(HorizonServices, "No input buffer");
             break;
         }
 
@@ -305,7 +305,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     default:
-        LOG_WARNING(HorizonServices, "Unknown code {}", in.code);
+        LOG_WARN(HorizonServices, "Unknown code {}", in.code);
         break;
     }
 

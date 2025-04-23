@@ -924,7 +924,7 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
         observer->OpMove(dst, Operand::Immediate(value));
     }
     else {
-        LOG_WARNING(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
+        LOG_WARN(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
         return false;
     }
 

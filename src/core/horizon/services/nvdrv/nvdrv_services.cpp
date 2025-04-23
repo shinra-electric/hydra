@@ -43,7 +43,7 @@ void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     } else if (path == "/dev/nvhost-gpu") {
         fd_pool.GetObjectRef(handle_id) = new Ioctl::NvHostGpu();
     } else {
-        LOG_WARNING(HorizonServices, "Unknown path \"{}\"", path);
+        LOG_WARN(HorizonServices, "Unknown path \"{}\"", path);
         // TODO: don't throw
         throw;
     }

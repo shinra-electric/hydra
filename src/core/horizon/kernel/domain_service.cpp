@@ -28,8 +28,8 @@ void DomainService::Request(REQUEST_PARAMS) {
         LOG_DEBUG(HorizonServices, "Closed subservice");
         break;
     default:
-        LOG_WARNING(HorizonServices, "Unknown domain request type {}",
-                    cmif_in.type);
+        LOG_WARN(HorizonServices, "Unknown domain request type {}",
+                 cmif_in.type);
         break;
     }
 }

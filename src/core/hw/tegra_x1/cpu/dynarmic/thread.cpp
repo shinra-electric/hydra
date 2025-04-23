@@ -80,7 +80,7 @@ void Thread::LogStackTrace() {
         //     break;
         // HACK
         if (fp < 0x10000000 || fp >= 0x20000000) {
-            LOG_WARNING(Hypervisor, "Currputed stack");
+            LOG_WARN(Hypervisor, "Currputed stack");
             break;
         }
 

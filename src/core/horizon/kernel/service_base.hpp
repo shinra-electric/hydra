@@ -25,7 +25,7 @@
         switch (id) {                                                          \
             FOR_EACH_0_2(SERVICE_COMMAND_CASE, __VA_ARGS__)                    \
         default:                                                               \
-            LOG_WARNING(HorizonServices, "Unknown request {}", id);            \
+            LOG_WARN(HorizonServices, "Unknown request {}", id);               \
             break;                                                             \
         }                                                                      \
     }

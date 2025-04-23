@@ -701,8 +701,8 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
 
     // HACK
     if (!session) {
-        LOG_WARNING(HorizonKernel, "Handle 0x{:x} is not a session handle",
-                    session_handle_id);
+        LOG_WARN(HorizonKernel, "Handle 0x{:x} is not a session handle",
+                 session_handle_id);
         return RESULT_SUCCESS;
     }
 
@@ -742,7 +742,7 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
         session->Control(readers, writers);
         break;
     default:
-        LOG_WARNING(HorizonKernel, "Unknown command {}", command_type);
+        LOG_WARN(HorizonKernel, "Unknown command {}", command_type);
         break;
     }
 
@@ -917,7 +917,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = 0;
         return RESULT_SUCCESS;
     default:
-        LOG_WARNING(HorizonKernel, "Unimplemented info type {}", info_type);
+        LOG_WARN(HorizonKernel, "Unimplemented info type {}", info_type);
         return RESULT_SUCCESS;
     }
 }

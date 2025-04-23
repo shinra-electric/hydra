@@ -251,7 +251,7 @@ void IFileSystemProxy::OpenDataStorageByProgramId(REQUEST_COMMAND_PARAMS) {
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(
         FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Data storage does not exist");
+        LOG_WARN(HorizonServices, "Data storage does not exist");
         // HACK
         result = static_cast<u32>(res);
         return;
@@ -270,7 +270,7 @@ void IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(
         FS_SD_MOUNT "/rom/romFS", file);
     if (res != Filesystem::FsResult::Success) {
-        LOG_WARNING(HorizonServices, "Data storage does not exist");
+        LOG_WARN(HorizonServices, "Data storage does not exist");
         // HACK
         result = static_cast<u32>(res);
         return;
