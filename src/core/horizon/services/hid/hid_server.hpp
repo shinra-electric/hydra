@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Services::Hid {
@@ -8,12 +9,16 @@ class IHidServer : public Kernel::ServiceBase {
   public:
     DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IHidServer)
 
+    IHidServer();
+
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    Kernel::HandleWithId<Kernel::Event> npad_style_set_update_event;
+
     // Commands
     void CreateAppletResource(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
@@ -24,6 +29,7 @@ class IHidServer : public Kernel::ServiceBase {
     void GetSupportedNpadStyleSet(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
+    void AcquireNpadStyleSetUpdateEventHandle(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);

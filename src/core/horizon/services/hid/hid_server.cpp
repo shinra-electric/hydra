@@ -34,16 +34,26 @@ struct VibrationDeviceInfo {
     VibrationDevicePosition position;
 };
 
+struct AcquireNpadStyleSetUpdateEventHandleIn {
+    u32 id;
+    u32 pad;
+    u64 aruid;
+    u64 event_ptr; // Unused
+};
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 11, ActivateTouchScreen, 21,
     ActivateMouse, 31, ActivateKeyboard, 66, StartSixAxisSensor, 100,
     SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
-    SetSupportedNpadIdType, 103, ActivateNpad, 120, SetNpadJoyHoldType, 124,
+    SetSupportedNpadIdType, 103, ActivateNpad, 106,
+    AcquireNpadStyleSetUpdateEventHandle, 120, SetNpadJoyHoldType, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 200,
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
     CreateActiveVibrationDeviceList, 206, SendVibrationValues)
+
+IHidServer::IHidServer() : npad_style_set_update_event(new Kernel::Event()) {}
 
 void IHidServer::CreateAppletResource(REQUEST_COMMAND_PARAMS) {
     u64 aruid = readers.reader.Read<u64>();
@@ -54,6 +64,15 @@ void IHidServer::CreateAppletResource(REQUEST_COMMAND_PARAMS) {
 void IHidServer::GetSupportedNpadStyleSet(REQUEST_COMMAND_PARAMS) {
     // TODO: make this configurable?
     writers.writer.Write(HID::NpadStyleSet::Standard);
+}
+
+void IHidServer::AcquireNpadStyleSetUpdateEventHandle(REQUEST_COMMAND_PARAMS) {
+    const auto in =
+        readers.reader.Read<AcquireNpadStyleSetUpdateEventHandleIn>();
+
+    // TODO: params
+
+    writers.copy_handles_writer.Write(npad_style_set_update_event.id);
 }
 
 void IHidServer::GetVibrationDeviceInfo(REQUEST_COMMAND_PARAMS) {

@@ -3,6 +3,6 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService)
+DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService, 6002, SetLayerVisibility)
 
 } // namespace Hydra::Horizon::Services::ViSrv

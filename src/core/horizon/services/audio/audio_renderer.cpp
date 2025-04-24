@@ -50,6 +50,8 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
       event(new Kernel::Event()) {}
 
 void IAudioRenderer::RequestUpdate(REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_STUBBED(HorizonServices);
+
     auto& writer = writers.recv_buffers_writers[0];
 
     // Header

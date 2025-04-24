@@ -4,7 +4,7 @@ namespace Hydra::Horizon::Services::Lm {
 
 namespace {
 
-enum class LogPacketFlags : u8 {
+enum class PacketFlags : u8 {
     None = 0,
 
     Head = BIT(0),
@@ -12,9 +12,9 @@ enum class LogPacketFlags : u8 {
     LittleEndian = BIT(2),
 };
 
-ENABLE_ENUM_BITMASK_OPERATORS(Hydra::Horizon::Services::Lm::LogPacketFlags)
+ENABLE_ENUM_BITMASK_OPERATORS(Hydra::Horizon::Services::Lm::PacketFlags)
 
-enum class LogSeverity : u8 {
+enum class Severity : u8 {
     Trace,
     Info,
     Warn,
@@ -25,9 +25,9 @@ enum class LogSeverity : u8 {
 struct LogPacketHeader {
     u64 process_id;
     u64 thread_id;
-    LogPacketFlags flags;
+    PacketFlags flags;
     u8 reserved;
-    LogSeverity severity;
+    Severity severity;
     u8 verbosity;
     u32 payload_size;
 };
@@ -68,11 +68,11 @@ bool try_read_uleb128(Reader& reader, u32& result) {
 
 } // namespace Hydra::Horizon::Services::Lm
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Lm::LogSeverity, Trace,
-                       "trace", Info, "info", Warn, "warn", Error, "error",
-                       Fatal, "fatal")
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Lm::Severity, Trace, "trace",
+                       Info, "info", Warn, "warn", Error, "error", Fatal,
+                       "fatal")
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Services::Lm::LogPacketFlags, Head,
+ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Services::Lm::PacketFlags, Head,
                              "head", Tail, "tail", LittleEndian,
                              "little endian")
 
@@ -85,8 +85,8 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
     const auto header = reader.Read<LogPacketHeader>();
 
     // From Ryujinx
-    bool is_head_packet = any(header.flags & LogPacketFlags::Head);
-    bool is_tail_packet = any(header.flags & LogPacketFlags::Tail);
+    bool is_head_packet = any(header.flags & PacketFlags::Head);
+    bool is_tail_packet = any(header.flags & PacketFlags::Tail);
 
     while (reader.GetReadSize() - sizeof(LogPacketHeader) <
            header.payload_size) { // TODO: correct?
@@ -111,14 +111,8 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
             break;
         case LogDataChunkKey::TextLog: {
             const auto text = GET_STRING();
-
-            if (is_head_packet && is_tail_packet) {
-                packet.message = text;
-            } else {
-                packet.message += text;
-                // TODO: limit the size?
-            }
-
+            packet.message += text;
+            // TODO: limit the size?
             break;
         }
         case LogDataChunkKey::Line:

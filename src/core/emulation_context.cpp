@@ -103,10 +103,21 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
                                   MOV_X0_XZR); // InstructionAbortSameEl
     }
 
-    if (true) {                                     // Puyo Puyo Tetris
+    if (false) {                                    // Puyo Puyo Tetris
         cpu->GetMMU()->Store<u32>(0x513e05d0, NOP); // Jump to heap
         cpu->GetMMU()->Store<u32>(0x402cbecc, NOP); // Audio
         cpu->GetMMU()->Store<u32>(0x51b9da48, NOP); // InstructionAbortSameEl
+    }
+
+    if (false) {                                    // Sonic Mania
+        cpu->GetMMU()->Store<u32>(0x4144170c, NOP); // Jump to heap
+    }
+
+    if (true) {                                     // Shovel Knight
+        cpu->GetMMU()->Store<u32>(0x40d9c66c, NOP); // Jump to heap
+        cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
+        cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert
+        cpu->GetMMU()->Store<u32>(0x401b4d7c, NOP); // Audio
     }
 }
 

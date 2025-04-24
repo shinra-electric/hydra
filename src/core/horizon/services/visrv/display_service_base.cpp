@@ -48,4 +48,8 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
     writers.recv_buffers_writers[0].Write(data);
 }
 
+void DisplayServiceBase::SetLayerVisibility(REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+}
+
 } // namespace Hydra::Horizon::Services::ViSrv

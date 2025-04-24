@@ -8,6 +8,7 @@ class DisplayServiceBase : public Kernel::ServiceBase {
   protected:
     // Commands
     void CreateStrayLayer(REQUEST_COMMAND_PARAMS);
+    void SetLayerVisibility(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

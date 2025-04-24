@@ -12,6 +12,8 @@ class ISystemDisplayService : public DisplayServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // Commands
+    void GetDisplayMode(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv
