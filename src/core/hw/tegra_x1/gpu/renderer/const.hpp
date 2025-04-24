@@ -142,7 +142,10 @@ enum class TextureFormat {
 };
 
 struct SwizzleChannels {
-    ImageSwizzle r, g, b, a;
+    ImageSwizzle r : 3;
+    ImageSwizzle g : 3;
+    ImageSwizzle b : 3;
+    ImageSwizzle a : 3;
 
     bool operator==(const SwizzleChannels& other) const {
         return r == other.r && g == other.g && b == other.b && a == other.a;

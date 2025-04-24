@@ -2,8 +2,55 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
+bool texture_format_can_be_swizzled(TextureFormat format) {
+    switch (format) {
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::R8Unorm:
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRA8Unorm_sRGB:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Sint:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Sint:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Float:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Sint:
+    case TextureFormat::R8Uint:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Unorm_sRGB:
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Sint:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBA32Uint:
+        return true;
+    default:
+        return false;
+    }
+}
+
 SwizzleChannels
 get_texture_format_default_swizzle_channels(const TextureFormat format) {
+    if (!texture_format_can_be_swizzled(format))
+        return {ImageSwizzle::Zero, ImageSwizzle::Zero, ImageSwizzle::Zero,
+                ImageSwizzle::Zero};
+
 #define SWIZZLE(r, g, b, a)                                                    \
     {ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a}
 
