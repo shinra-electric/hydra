@@ -113,11 +113,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         cpu->GetMMU()->Store<u32>(0x4144170c, NOP); // Jump to heap
     }
 
-    if (true) {                                     // Shovel Knight
+    if (false) {                                    // Shovel Knight
         cpu->GetMMU()->Store<u32>(0x40d9c66c, NOP); // Jump to heap
-        cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
-        cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert
-        cpu->GetMMU()->Store<u32>(0x401b4d7c, NOP); // Audio
+        // cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
+        // cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert
+        cpu->GetMMU()->Store<u32>(0x405142c8, NOP); // Audio
     }
 }
 
@@ -168,7 +168,7 @@ void EmulationContext::Present() {
 
     auto renderer = gpu->GetRenderer();
     renderer->LockMutex();
-    auto texture = gpu->GetTexture(buffer);
+    auto texture = gpu->GetTexture(buffer.nv_buffer);
     renderer->Present(texture);
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();

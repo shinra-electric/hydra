@@ -22,6 +22,9 @@
 
 #define SINGLETON_UNSET_INSTANCE() g_instance = nullptr
 
+#define MAKE_MAGIC4(c0, c1, c2, c3)                                            \
+    (((u32)(c0) << 24) | ((u32)(c1) << 16) | ((u32)(c2) << 8) | (u32)(c3))
+
 #define BIT(n) (1u << (n))
 #define BITL(n) (1ul << (n))
 

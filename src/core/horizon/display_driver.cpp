@@ -2,10 +2,9 @@
 
 namespace Hydra::Horizon {
 
-void DisplayBinder::AddBuffer(i32 slot,
-                              HW::TegraX1::GPU::NvGraphicsBuffer buff) {
+void DisplayBinder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
     buffers[slot].initialized = true;
-    buffers[slot].buff = buff;
+    buffers[slot].buffer = buff;
     buffer_count++;
 }
 

@@ -5,31 +5,30 @@
 
 namespace Hydra::Horizon {
 
-struct ParcelData {
-    u32 unknown0;
-    u32 unknown1;
-    u32 binder_id;
-    u32 unknown2[3];
-    u64 str;
-    u64 unknown3;
+struct GraphicBufferHeader {
+    u32 magic;
+    u32 width;
+    u32 height;
+    u32 stride;
+    u32 format;
+    u32 usage;
+
+    u32 pid;
+    u32 refcount;
+
+    u32 fd_count;
+    u32 int_count;
 };
 
-struct Parcel {
-    u32 data_size;
-    u32 data_offset;
-    u32 objects_size;
-    u32 objects_offset;
-};
-
-struct ParcelFlattenedObject {
-    i32 size;
-    i32 fd_count;
+struct GraphicBuffer {
+    GraphicBufferHeader header;
+    HW::TegraX1::GPU::NvGraphicsBuffer nv_buffer;
 };
 
 struct DisplayBuffer {
     bool initialized = false;
     bool queued = false;
-    HW::TegraX1::GPU::NvGraphicsBuffer buff;
+    GraphicBuffer buffer;
 };
 
 constexpr usize MAX_BINDER_BUFFER_COUNT = 3; // TODO: what should this be?
@@ -42,14 +41,14 @@ struct DisplayBinder {
 
     DisplayBinder() : event(new Kernel::Event(true)) {}
 
-    void AddBuffer(i32 slot, HW::TegraX1::GPU::NvGraphicsBuffer buff);
+    void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
     void QueueBuffer(i32 slot);
     i32 ConsumeBuffer();
 
     // Getters
-    const HW::TegraX1::GPU::NvGraphicsBuffer& GetBuffer(i32 slot) const {
-        return buffers[slot].buff;
+    const GraphicBuffer& GetBuffer(i32 slot) const {
+        return buffers[slot].buffer;
     }
 
     const Kernel::HandleWithId<Kernel::Event>& GetEvent() const {

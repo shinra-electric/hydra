@@ -17,6 +17,7 @@ class IHidServer : public Kernel::ServiceBase {
     void RequestImpl(REQUEST_IMPL_PARAMS) override;
 
   private:
+    // TODO: one event for each style set
     Kernel::HandleWithId<Kernel::Event> npad_style_set_update_event;
 
     // Commands

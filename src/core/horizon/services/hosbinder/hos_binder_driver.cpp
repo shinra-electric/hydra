@@ -4,6 +4,8 @@
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
+// TODO: this whole thing needs a rewrite
+
 namespace Hydra::Horizon::Services::HosBinder {
 
 namespace {
@@ -98,29 +100,14 @@ struct NvMultiFence {
 struct BqBufferOutput {
     u32 width;
     u32 height;
-    u32 transformHint;
-    u32 numPendingBuffers;
+    u32 transform_hint;
+    u32 num_pending_buffers;
 };
 
 struct TransactParcelIn {
     i32 binder_id;
     TransactCode code;
     u32 flags;
-};
-
-struct InputBuffer {
-    u32 magic;
-    u32 width;
-    u32 height;
-    u32 stride;
-    u32 format;
-    u32 usage;
-
-    u32 pid;
-    u32 refcount;
-
-    u32 num_fds;
-    u32 num_words;
 };
 
 enum class BinderType : i32 {
@@ -149,6 +136,8 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto& writer = writers.recv_buffers_writers[0];
 
     auto in = readers.reader.Read<TransactParcelIn>();
+    LOG_DEBUG(HorizonServices, "Code: {}", in.code);
+
     auto parcel_in = reader.Read<Parcel>();
     reader.Seek(parcel_in.data_offset);
 
@@ -170,31 +159,15 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
             break;
         }
 
-        writer.Write<u32>(0x1); // TODO: correct?
-
         // Buffer
+        writer.Write<u32>(0x1);                   // TODO: correct?
+        writer.Write<i32>(sizeof(GraphicBuffer)); // len
+        writer.Write<i32>(0);                     // fd_count
+
         const auto& buffer = binder.GetBuffer(slot);
-
-        struct {
-            u32 width;
-            u32 height;
-            u32 stride;
-            u32 format;
-            u32 usage;
-        } buffer_info = {.width = buffer.planes[0].width,
-                         .height = buffer.planes[0].height,
-                         .stride = buffer.stride,
-                         .format = buffer.format,
-                         .usage = buffer.usage};
-
-        ParcelFlattenedObject flattened_obj = {
-            .size = sizeof(buffer_info) + sizeof(buffer),
-            .fd_count = 0,
-        };
-        writer.Write(flattened_obj);
-
-        writer.Write(buffer_info);
         writer.Write(buffer);
+
+        break;
     }
     case TransactCode::DequeueBuffer: {
         i32 slot = binder.GetAvailableSlot();
@@ -219,13 +192,14 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::QueueBuffer: {
+        LOG_NOT_IMPLEMENTED(HorizonServices, "QueueBuffer");
+
         read_interface_name(reader);
 
         // Slot
         i32 slot = reader.Read<i32>();
 
-        // Input buffer
-        auto input_buffer = reader.Read<InputBuffer>();
+        // TODO: input
 
         binder.QueueBuffer(slot);
 
@@ -234,8 +208,8 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         writer.Write<BqBufferOutput>({
             .width = 0,
             .height = 0,
-            .transformHint = 0,
-            .numPendingBuffers = 0,
+            .transform_hint = 0,
+            .num_pending_buffers = 0,
         });
 
         break;
@@ -285,20 +259,18 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         reader.Read<i32>(); // len
         reader.Read<i32>(); // fd_count
 
-        auto input_buffer = reader.Read<InputBuffer>();
-        auto buffer = reader.Read<HW::TegraX1::GPU::NvGraphicsBuffer>();
+        auto buffer = reader.Read<GraphicBuffer>();
 
-        // pitch, size and offset seem to have completely wrong values
+        // Debug
+        const auto& plane = buffer.nv_buffer.planes[0];
         LOG_DEBUG(HorizonServices,
-                  "width: 0x{:08x}, height: 0x{:08x}, color_format: {}, "
+                  "width: {}, height: {}, color_format: {}, "
                   "layout: {}, pitch: 0x{:08x}, "
                   "unused: 0x{:08x}, offset: 0x{:08x}, kind: "
                   "{}, size: 0x{:08x}",
-                  buffer.planes[0].width, buffer.planes[0].height,
-                  buffer.planes[0].color_format, buffer.planes[0].layout,
-                  buffer.planes[0].pitch, buffer.planes[0].unused,
-                  buffer.planes[0].offset, buffer.planes[0].kind,
-                  buffer.planes[0].size);
+                  plane.width, plane.height, plane.color_format, plane.layout,
+                  plane.pitch, plane.unused, plane.offset, plane.kind,
+                  plane.size);
 
         binder.AddBuffer(slot, buffer);
 
