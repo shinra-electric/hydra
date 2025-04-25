@@ -23,9 +23,11 @@ struct OpenLayerIn {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
-                             GetManagerDisplayService, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer,
-                             2101, SetLayerScalingMode)
+                             GetManagerDisplayService, 103,
+                             GetIndirectDisplayTransactionService, 1010,
+                             OpenDisplay, 1020, CloseDisplay, 2020, OpenLayer,
+                             2021, CloseLayer, 2101, SetLayerScalingMode, 5202,
+                             GetDisplayVsyncEvent)
 
 void IApplicationDisplayService::GetRelayService(REQUEST_COMMAND_PARAMS) {
     add_service(new HosBinder::IHOSBinderDriver());
@@ -39,6 +41,12 @@ void IApplicationDisplayService::GetSystemDisplayService(
 void IApplicationDisplayService::GetManagerDisplayService(
     REQUEST_COMMAND_PARAMS) {
     add_service(new IManagerDisplayService());
+}
+
+void IApplicationDisplayService::GetIndirectDisplayTransactionService(
+    REQUEST_COMMAND_PARAMS) {
+    // TODO: how is this different from GetRelayService?
+    add_service(new HosBinder::IHOSBinderDriver());
 }
 
 void IApplicationDisplayService::OpenDisplay(REQUEST_COMMAND_PARAMS) {
@@ -62,7 +70,6 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
                      .GetDisplay(display_id)
                      ->GetLayer(in.layer_id);
     layer->Open();
-    LOG_DEBUG(HorizonServices, "OPENED LAYER {}", in.layer_id);
 
     // Out
     // TODO: correct?
@@ -99,6 +106,16 @@ void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
         .GetDisplay(display_id)
         ->GetLayer(layer_id)
         ->Close();
+}
+
+void IApplicationDisplayService::GetDisplayVsyncEvent(REQUEST_COMMAND_PARAMS) {
+    const auto display_id = readers.reader.Read<u64>();
+
+    writers.move_handles_writer.Write(Kernel::Kernel::GetInstance()
+                                          .GetBus()
+                                          .GetDisplay(display_id)
+                                          ->GetVSyncEvent()
+                                          .id);
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

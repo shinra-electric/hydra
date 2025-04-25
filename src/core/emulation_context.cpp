@@ -155,6 +155,11 @@ void EmulationContext::Run() {
 void EmulationContext::Present() {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
+    if (!display->IsOpen())
+        return;
+
+    display->GetVSyncEvent().handle->Signal(); // Signal V-Sync
+
     auto layer = display->GetPresentableLayer();
     if (!layer)
         return;

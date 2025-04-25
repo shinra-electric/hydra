@@ -20,11 +20,13 @@ class IApplicationDisplayService : public DisplayServiceBase {
     void GetRelayService(REQUEST_COMMAND_PARAMS);
     void GetSystemDisplayService(REQUEST_COMMAND_PARAMS);
     void GetManagerDisplayService(REQUEST_COMMAND_PARAMS);
+    void GetIndirectDisplayTransactionService(REQUEST_COMMAND_PARAMS);
     void OpenDisplay(REQUEST_COMMAND_PARAMS);
     void CloseDisplay(REQUEST_COMMAND_PARAMS);
     void OpenLayer(REQUEST_COMMAND_PARAMS);
     void CloseLayer(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(SetLayerScalingMode);
+    void GetDisplayVsyncEvent(REQUEST_COMMAND_PARAMS);
 
   private:
 };
