@@ -291,27 +291,34 @@ u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
 
 struct Readers {
     Reader reader;
+    Reader* objects_reader;
     std::vector<Reader> send_statics_readers;
     std::vector<Reader> send_buffers_readers;
     std::vector<Reader> exch_buffers_readers;
 
     Readers(const HW::TegraX1::CPU::MMUBase* mmu, ParsedRequest hipc_in)
         : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10),
-                 hipc_in.meta.num_data_words * sizeof(u32)) {
+                 hipc_in.meta.num_data_words * sizeof(u32)),
+          objects_reader{nullptr} {
         CREATE_STATIC_READERS_OR_WRITERS(reader, send);
         CREATE_BUFFER_READERS_OR_WRITERS(reader, send);
         CREATE_BUFFER_READERS_OR_WRITERS(reader, exch);
+    }
+
+    ~Readers() {
+        if (objects_reader)
+            delete objects_reader;
     }
 };
 
 struct Writers {
     Writer writer;
-    std::vector<Writer> recv_list_writers;
-    std::vector<Writer> recv_buffers_writers;
-    std::vector<Writer> exch_buffers_writers;
     Writer objects_writer;
     Writer move_handles_writer;
     Writer copy_handles_writer;
+    std::vector<Writer> recv_list_writers;
+    std::vector<Writer> recv_buffers_writers;
+    std::vector<Writer> exch_buffers_writers;
 
     Writers(const HW::TegraX1::CPU::MMUBase* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,

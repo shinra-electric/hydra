@@ -68,8 +68,7 @@ inline Result* write_out_header(Writer& writer) {
     auto hdr = writer.Write(OutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0,
-        .result = MAKE_RESULT(
-            SfHipc, Error::NotImplemented), // TODO: is module correct?
+        .result = RESULT_SUCCESS,
         .token = 0,
     });
 

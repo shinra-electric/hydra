@@ -13,7 +13,7 @@ class Session : public Handle {
     void Control(Hipc::Readers& readers, Hipc::Writers& writers);
 
     // Getters
-    // Handle GetHandle() const { return handle; }
+    ServiceBase* GetService() const { return service; }
 
     // Setters
     void SetHandleId(handle_id_t handle_id_) { handle_id = handle_id_; }

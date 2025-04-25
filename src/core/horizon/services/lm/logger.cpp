@@ -100,7 +100,7 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
 
         const auto data = reader.ReadPtr<u8>(size);
 
-#define GET_DATA(type) *reinterpret_cast<type*>(data)
+#define GET_DATA(type) *reinterpret_cast<const type*>(data)
 #define GET_STRING() std::string(reinterpret_cast<const char*>(data), size)
 
         switch (static_cast<LogDataChunkKey>(key)) {

@@ -13,6 +13,8 @@ class ILibraryAppletCreator : public Kernel::ServiceBase {
 
   private:
     // Commands
+    void CreateLibraryApplet(REQUEST_COMMAND_PARAMS);
+    void CreateStorage(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Am

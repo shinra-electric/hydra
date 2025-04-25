@@ -5,12 +5,14 @@
 #define REQUEST_PARAMS                                                         \
     ::Hydra::Horizon::Kernel::Hipc::Readers &readers,                          \
         ::Hydra::Horizon::Kernel::Hipc::Writers &writers,                      \
-        const std::function<void(ServiceBase*)>&add_service
+        const std::function<void(ServiceBase*)>&add_service,                   \
+        const std::function<::Hydra::Horizon::Kernel::ServiceBase*(            \
+            handle_id_t)>&get_service
 #define REQUEST_COMMAND_PARAMS                                                 \
     REQUEST_PARAMS, ::Hydra::Horizon::Kernel::Result& result
 #define REQUEST_IMPL_PARAMS REQUEST_COMMAND_PARAMS, u32 id
 
-#define PASS_REQUEST_PARAMS readers, writers, add_service
+#define PASS_REQUEST_PARAMS readers, writers, add_service, get_service
 #define PASS_REQUEST_COMMAND_PARAMS PASS_REQUEST_PARAMS, result
 #define PASS_REQUEST_IMPL_PARAMS PASS_REQUEST_COMMAND_PARAMS, id
 

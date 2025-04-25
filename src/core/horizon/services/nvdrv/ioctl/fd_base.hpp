@@ -13,7 +13,7 @@
         func##Data data_dummy;                                                 \
         func##Data* data = &data_dummy;                                        \
         if (reader)                                                            \
-            data = reader->ReadPtr<func##Data>();                              \
+            data = const_cast<func##Data*>(reader->ReadPtr<func##Data>());     \
         func(*data, result);                                                   \
         if (writer)                                                            \
             writer->Write(*data);                                              \

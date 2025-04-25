@@ -12,15 +12,12 @@ void Session::Close() {
     service = nullptr;
 }
 
-void Session::Request(REQUEST_PARAMS) {
-    service->Request(readers, writers, add_service);
-}
+void Session::Request(REQUEST_PARAMS) { service->Request(PASS_REQUEST_PARAMS); }
 
 void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* result = Cmif::write_out_header(writers.writer);
-    *result = RESULT_SUCCESS;
 
     const auto command =
         static_cast<Cmif::ControlCommandType>(cmif_in.command_id);

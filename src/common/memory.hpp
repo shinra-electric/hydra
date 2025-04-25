@@ -9,7 +9,8 @@ namespace Hydra {
 
 class Reader {
   public:
-    Reader(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
+    Reader(const u8* base_, usize size_)
+        : base{base_}, ptr{base_}, size{size_} {}
 
     u64 Tell() { return static_cast<u64>(ptr - base); }
 
@@ -17,30 +18,31 @@ class Reader {
 
     void Skip(usize size) { ptr += size; }
 
-    template <typename T> T* ReadPtr(usize count = 1) {
-        T* result = reinterpret_cast<T*>(ptr);
+    template <typename T> const T* ReadPtr(usize count = 1) {
+        const T* result = reinterpret_cast<const T*>(ptr);
         ptr += sizeof(T) * count;
 
         return result;
     }
 
-    template <typename T> T Read() { return *ReadPtr<T>(); }
+    template <typename T> const T Read() { return *ReadPtr<T>(); }
 
     std::string ReadString() {
-        std::string result(reinterpret_cast<char*>(ptr));
+        std::string result(reinterpret_cast<const char*>(ptr));
         ptr += result.size();
 
         return result;
     }
 
     // Getters
-    u8* GetBase() const { return base; }
+    const u8* GetBase() const { return base; }
+    const u8* GetPtr() const { return ptr; }
     usize GetSize() const { return size; }
     usize GetReadSize() const { return ptr - base; }
 
   private:
-    u8* base;
-    u8* ptr;
+    const u8* base;
+    const u8* ptr;
     usize size;
 };
 

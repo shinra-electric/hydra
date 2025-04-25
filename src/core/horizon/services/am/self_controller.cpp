@@ -6,7 +6,8 @@
 
 namespace Hydra::Horizon::Services::Am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 10,
+DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
+                             GetLibraryAppletLaunchableEvent, 10,
                              SetScreenShotPermission, 11,
                              SetOperationModeChangedNotification, 12,
                              SetPerformanceModeChangedNotification, 13,
@@ -14,12 +15,19 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 10,
                              SetOutOfFocusSuspendingEnabled, 40,
                              CreateManagedDisplayLayer)
 
+ISelfController::ISelfController()
+    : library_applet_launchable_event(new Kernel::Event(true)) {}
+
 void ISelfController::LockExit(REQUEST_COMMAND_PARAMS) {
     StateManager::GetInstance().LockExit();
 }
 
 void ISelfController::UnlockExit(REQUEST_COMMAND_PARAMS) {
     StateManager::GetInstance().UnlockExit();
+}
+
+void ISelfController::GetLibraryAppletLaunchableEvent(REQUEST_COMMAND_PARAMS) {
+    writers.copy_handles_writer.Write(library_applet_launchable_event.id);
 }
 
 void ISelfController::CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS) {

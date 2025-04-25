@@ -110,6 +110,8 @@ add_library(hydra-core
     horizon/services/am/display_controller.hpp
     horizon/services/am/library_applet_creator.cpp
     horizon/services/am/library_applet_creator.hpp
+    horizon/services/am/library_applet_accessor.cpp
+    horizon/services/am/library_applet_accessor.hpp
     horizon/services/am/application_functions.cpp
     horizon/services/am/application_functions.hpp
     horizon/services/am/debug_functions.cpp

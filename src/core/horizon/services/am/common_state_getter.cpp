@@ -28,7 +28,7 @@ void ICommonStateGetter::GetEventHandle(REQUEST_COMMAND_PARAMS) {
 void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {
     const auto msg = StateManager::GetInstance().ReceiveMessage();
     if (msg == AppletMessage::None) {
-        result = 0x680;
+        result = MAKE_RESULT(Am, 0x3);
         return;
     }
     LOG_DEBUG(HorizonServices, "MESSAGE: {}", msg);

@@ -8,9 +8,8 @@ void ServiceBase::Request(REQUEST_PARAMS) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
     Result* result = Cmif::write_out_header(writers.writer);
-    *result = RESULT_SUCCESS;
 
-    RequestImpl(readers, writers, add_service, *result, cmif_in.command_id);
+    RequestImpl(PASS_REQUEST_PARAMS, *result, cmif_in.command_id);
 }
 
 } // namespace Hydra::Horizon::Kernel

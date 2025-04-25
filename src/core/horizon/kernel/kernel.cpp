@@ -730,12 +730,18 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
         break;
     case Cmif::CommandType::Request:
         LOG_DEBUG(HorizonKernel, "COMMAND: Request");
-        session->Request(readers, writers, [&](ServiceBase* service) {
-            auto session = new Session(service);
-            handle_id_t handle_id = AddHandle(session);
-            session->SetHandleId(handle_id);
-            writers.move_handles_writer.Write(handle_id);
-        });
+        session->Request(
+            readers, writers,
+            [&](ServiceBase* service) {
+                auto session = new Session(service);
+                handle_id_t handle_id = AddHandle(session);
+                session->SetHandleId(handle_id);
+                writers.move_handles_writer.Write(handle_id);
+            },
+            [&](handle_id_t handle_id) {
+                return static_cast<Session*>(GetHandle(handle_id))
+                    ->GetService();
+            });
         break;
     case Cmif::CommandType::Control:
         LOG_DEBUG(HorizonKernel, "COMMAND: Control");
@@ -918,7 +924,7 @@ Result Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         return RESULT_SUCCESS;
     default:
         LOG_WARN(HorizonKernel, "Unimplemented info type {}", info_type);
-        return RESULT_SUCCESS;
+        return MAKE_RESULT(Svc, 0x78);
     }
 }
 

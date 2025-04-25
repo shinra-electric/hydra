@@ -24,7 +24,7 @@ class IStorage : public Kernel::ServiceBase {
 
     // Helpers
     void ReadImpl(u8* ptr, i64 offset, usize& size);
-    void WriteImpl(u8* ptr, i64 offset, usize size);
+    void WriteImpl(const u8* ptr, i64 offset, usize size);
 
   private:
     Filesystem::FileBase* file;

@@ -63,7 +63,7 @@ void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
     reader.Read(ptr, size);
 }
 
-void IStorage::WriteImpl(u8* ptr, i64 offset, usize size) {
+void IStorage::WriteImpl(const u8* ptr, i64 offset, usize size) {
     LOG_DEBUG(HorizonServices, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
               size);
 
