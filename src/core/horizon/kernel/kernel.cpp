@@ -579,6 +579,15 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
     } else {
         handle_id_t handle_id = handle_ids[0];
         auto event = dynamic_cast<Event*>(GetHandle(handle_id));
+
+        // HACK
+        if (!event) {
+            LOG_WARN(HorizonKernel, "Handle 0x{:x} is not an event handle",
+                     handle_id);
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            return RESULT_SUCCESS;
+        }
+
         ASSERT_DEBUG(event, HorizonKernel,
                      "Handle 0x{:x} is not an event handle", handle_id);
 

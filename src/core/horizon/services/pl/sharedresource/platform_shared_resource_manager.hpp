@@ -22,6 +22,7 @@ class IPlatformSharedResourceManager : public Kernel::ServiceBase {
     void GetSize(REQUEST_COMMAND_PARAMS);
     void GetSharedMemoryAddressOffset(REQUEST_COMMAND_PARAMS);
     void GetSharedMemoryNativeHandle(REQUEST_COMMAND_PARAMS);
+    void GetSharedFontInOrderOfPriority(REQUEST_COMMAND_PARAMS);
 };
 
 } // namespace Hydra::Horizon::Services::Pl::SharedResource

@@ -75,6 +75,9 @@ void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     const u64 argv_offset = executable_size;
 
     std::string args = fmt::format("\"{}\"", ROM_VIRTUAL_PATH);
+    for (const auto& arg : Config::GetInstance().GetProcessArgs())
+        args += fmt::format(" \"{}\"", arg);
+
     char* argv = reinterpret_cast<char*>(ptr + argv_offset);
     memcpy(argv, args.c_str(), args.size());
     argv[args.size()] = '\0';
@@ -100,8 +103,7 @@ void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
 
     ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
                         0); // TODO: what thread handle should be used?
-    ADD_ENTRY_MANDATORY(Argv, 0,
-                        base + argv_offset); // TODO: what should value0 be?
+    ADD_ENTRY_MANDATORY(Argv, 0, base + argv_offset);
     // TODO: supply the actual availability
     ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX, UINT64_MAX);
     ADD_ENTRY_MANDATORY(SyscallAvailableHint2, UINT64_MAX, 0);

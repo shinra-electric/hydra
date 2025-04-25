@@ -102,6 +102,7 @@ Config::Config() {
     // "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
+    LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
 }
 
@@ -112,6 +113,7 @@ void Config::LoadDefaults() {
     sd_card_path = GetDefaultSdCardPath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
+    process_args = GetDefaultProcessArgs();
     debug_logging = GetDefaultDebugLogging();
 
     changed = true;
@@ -151,6 +153,7 @@ void Config::Serialize() {
 
         {
             auto& debug = data.at("Debug");
+            debug["process_args"] = process_args;
             debug["debug_logging"] = debug_logging;
         }
 
@@ -183,6 +186,8 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
+        process_args = toml::find_or<std::vector<std::string>>(
+            debug, "process_args", GetDefaultProcessArgs());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
     }

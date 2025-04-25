@@ -36,6 +36,30 @@ void hydra_config_set_cpu_backend(int backend) {
         static_cast<Hydra::CpuBackend>(backend));
 }
 
+uint32_t hydra_config_get_process_args_count() {
+    return Hydra::Config::GetInstance().GetProcessArgs().size();
+}
+
+const char* hydra_config_get_process_arg(uint32_t index) {
+    return Hydra::Config::GetInstance().GetProcessArgs()[index].c_str();
+}
+
+void hydra_config_add_process_arg(const char* arg) {
+    Hydra::Config::GetInstance().AddProcessArg(arg);
+}
+
+void hydra_config_remove_process_arg(uint32_t index) {
+    Hydra::Config::GetInstance().RemoveProcessArg(index);
+}
+
+bool hydra_config_is_debug_logging_enabled() {
+    return Hydra::Config::GetInstance().IsDebugLoggingEnabled();
+}
+
+void hydra_config_set_debug_logging(bool enabled) {
+    Hydra::Config::GetInstance().SetDebugLogging(enabled);
+}
+
 // Emulation context
 void* hydra_emulation_context_create() { return new Hydra::EmulationContext(); }
 

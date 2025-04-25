@@ -12,7 +12,9 @@
     /* TODO: set the tail properly */                                          \
     lifo.header.tail = 0; /*(lifo.header.tail + 1) % 17;*/                     \
     lifo.header.count = 1;                                                     \
-    auto& out_state = lifo.storage[lifo.header.tail].state;
+    auto& storage = lifo.storage[lifo.header.tail];                            \
+    storage.sampling_number = get_absolute_time(); /* TODO: correct? */        \
+    auto& out_state = storage.state;
 
 namespace Hydra::Horizon {
 

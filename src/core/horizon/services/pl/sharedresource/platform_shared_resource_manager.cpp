@@ -91,4 +91,9 @@ void IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
     writers.copy_handles_writer.Write(shared_memory_handle_id);
 }
 
+void IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
+    REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+}
+
 } // namespace Hydra::Horizon::Services::Pl::SharedResource

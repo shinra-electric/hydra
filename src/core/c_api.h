@@ -20,6 +20,14 @@ void hydra_config_set_sd_card_path(const char* path);
 int hydra_config_get_cpu_backend();
 void hydra_config_set_cpu_backend(int backend);
 
+uint32_t hydra_config_get_process_args_count();
+const char* hydra_config_get_process_arg(uint32_t index);
+void hydra_config_add_process_arg(const char* arg);
+void hydra_config_remove_process_arg(uint32_t index);
+
+bool hydra_config_is_debug_logging_enabled();
+void hydra_config_set_debug_logging(bool enabled);
+
 // Emulation context
 void* hydra_emulation_context_create();
 void hydra_emulation_context_destroy(void* ctx);

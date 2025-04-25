@@ -44,6 +44,9 @@ class Config {
     const std::string& GetSdCardPath() const { return sd_card_path; }
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
+    const std::vector<std::string>& GetProcessArgs() const {
+        return process_args;
+    }
     bool IsDebugLoggingEnabled() const { return debug_logging; }
 
     // Setters
@@ -77,6 +80,18 @@ class Config {
         SET_CONFIG_VALUE(gpu_renderer);
     }
 
+    void AddProcessArg(const std::string& arg) {
+        process_args.push_back(arg);
+        changed = true;
+    }
+
+    void RemoveProcessArg(u32 index) {
+        ASSERT(index < process_args.size(), Other,
+               "Index ({}) out of range ({})", index, process_args.size());
+        process_args.erase(process_args.begin() + index);
+        changed = true;
+    }
+
     void SetDebugLogging(bool debug_logging_) {
         SET_CONFIG_VALUE(debug_logging);
     }
@@ -93,6 +108,7 @@ class Config {
     std::string sd_card_path;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
+    std::vector<std::string> process_args;
     bool debug_logging;
 
     // Default values
@@ -102,6 +118,7 @@ class Config {
     }
     CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
+    std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }
 };
 

@@ -192,8 +192,6 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::QueueBuffer: {
-        LOG_NOT_IMPLEMENTED(HorizonServices, "QueueBuffer");
-
         read_interface_name(reader);
 
         // Slot
@@ -206,8 +204,8 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         // Buffer output
         // TODO
         writer.Write<BqBufferOutput>({
-            .width = 0,
-            .height = 0,
+            .width = 1280,
+            .height = 720,
             .transform_hint = 0,
             .num_pending_buffers = 0,
         });
@@ -227,19 +225,12 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     case TransactCode::Connect: {
-        struct {
-            u32 width;
-            u32 height;
-            u32 transform_hint;
-            u32 num_pending_buffers;
-        } output{
-            .width = 1280,            // TODO: dont' hardcode
-            .height = 720,            // TODO: dont' hardcode
+        writer.Write<BqBufferOutput>({
+            .width = 1280,            // TODO: don't hardcode
+            .height = 720,            // TODO: don't hardcode
             .transform_hint = 0,      // HACK
             .num_pending_buffers = 0, // HACK
-        };
-
-        writer.Write(output);
+        });
 
         break;
     }
