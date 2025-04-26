@@ -27,22 +27,16 @@ enum class TransactCode : u32 {
     SetPreallocatedBuffer,
 };
 
-void read_interface_name(Reader& reader) {
-    reader.Read<i32>(); // 0x100
-
-    i32 interface_name_len = reader.Read<i32>() + 1;
-    char interface_name[interface_name_len];
-    for (i32 i = 0; i < interface_name_len; i++) {
-        interface_name[i] = reader.Read<u16>();
-    }
-
-    // Alignment
-    if (interface_name_len % 2 != 0)
-        reader.Read<u16>();
-
-    LOG_DEBUG(HorizonServices, "Interface name: {}",
-              reinterpret_cast<const char*>(interface_name));
-}
+// From Ryujinx
+enum class NativeWindowAttribute : u32 {
+    Width = 0,
+    Height = 1,
+    Format = 2,
+    MinUnqueuedBuffers = 3,
+    ConsumerRunningBehind = 9,
+    ConsumerUsageBits = 10,
+    MaxBufferCountAsync = 12,
+};
 
 } // namespace
 
@@ -59,6 +53,13 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::HosBinder::TransactCode,
                        "set sideband stream", AllocateBuffers,
                        "allocate buffers", SetPreallocatedBuffer,
                        "set preallocated buffer")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::Services::HosBinder::NativeWindowAttribute, Width, "width",
+    Height, "height", Format, "format", MinUnqueuedBuffers,
+    "min unqueued buffers", ConsumerRunningBehind, "consumer running behind",
+    ConsumerUsageBits, "consumer usage bits", MaxBufferCountAsync,
+    "max buffer count async")
 
 #include "common/logging/log.hpp"
 
@@ -84,6 +85,17 @@ enum class BinderResult : i32 {
     FdsNotAllowed = INT32_MIN + 7,
     FailedTransaction = INT32_MIN + 2,
     BadType = INT32_MIN + 1,
+};
+
+enum class PixelFormat : u32 {
+    Unknown,
+    RGBA8888,
+    RGBX8888,
+    RGB888,
+    RGB565,
+    BGRA8888,
+    RGBA5551,
+    RGBA4444,
 };
 
 // TODO: define these somewhere else
@@ -126,6 +138,23 @@ struct GetNativeHandleIn {
     u32 code; // TODO: should this be TransactCode?
 };
 
+void read_interface_name(Reader& reader) {
+    reader.Read<i32>(); // 0x100
+
+    i32 interface_name_len = reader.Read<i32>() + 1;
+    char interface_name[interface_name_len];
+    for (i32 i = 0; i < interface_name_len; i++) {
+        interface_name[i] = reader.Read<u16>();
+    }
+
+    // Alignment
+    if (interface_name_len % 2 != 0)
+        reader.Read<u16>();
+
+    LOG_DEBUG(HorizonServices, "Interface name: {}",
+              reinterpret_cast<const char*>(interface_name));
+}
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
@@ -155,6 +184,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
 
         i32 slot = reader.Read<i32>();
         if (slot > MAX_BINDER_BUFFER_COUNT) {
+            LOG_WARN(HorizonServices, "Invalid slot: {}", slot);
             writer.Write<u32>(0x0);
             break;
         }
@@ -165,6 +195,14 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         writer.Write<i32>(0);                     // fd_count
 
         const auto& buffer = binder.GetBuffer(slot);
+        /*
+        LOG_DEBUG(
+            HorizonServices,
+            "Width: {}, height: {}, planes[0].width: {}, planes[0].height: {}",
+            buffer.header.width, buffer.header.height,
+            buffer.nv_buffer.planes[0].width,
+            buffer.nv_buffer.planes[0].height);
+            */
         writer.Write(buffer);
 
         break;
@@ -173,17 +211,12 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         i32 slot = binder.GetAvailableSlot();
 
         writer.Write(slot);
-        // HACK
-        writer.Write<i32>(1);
-
-        // Flattened object
-        ParcelFlattenedObject flattened_obj = {
-            .size = sizeof(NvMultiFence),
-            .fd_count = 0,
-        };
-        writer.Write(flattened_obj);
 
         // NvMultiFence
+        writer.Write<i32>(1);
+        writer.Write<i32>(sizeof(NvMultiFence)); // len
+        writer.Write<i32>(0);                    // fd_count
+
         NvMultiFence nv_multi_fence = {
             .num_fences = 0,
         };
@@ -204,10 +237,10 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         // Buffer output
         // TODO
         writer.Write<BqBufferOutput>({
-            .width = 1280,
-            .height = 720,
-            .transform_hint = 0,
-            .num_pending_buffers = 0,
+            .width = 1280,       // TODO: don't hardcode
+            .height = 720,       // TODO: don't hardcode
+            .transform_hint = 0, // HACK
+            .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
         });
 
         break;
@@ -215,10 +248,25 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     case TransactCode::Query: {
         read_interface_name(reader);
 
-        const auto what = reader.Read<i32>(); // TODO: enum
-        LOG_NOT_IMPLEMENTED(HorizonServices, "Query (what: {})", what);
+        const auto what = reader.Read<NativeWindowAttribute>();
+        LOG_DEBUG(HorizonServices, "what: {}", what);
 
-        i32 value = 0; // HACK
+        u32 value = 0;
+        switch (what) {
+        case NativeWindowAttribute::Width:
+            value = 1280; // TODO: don't hardcode
+            break;
+        case NativeWindowAttribute::Height:
+            value = 720; // TODO: don't hardcode
+            break;
+        case NativeWindowAttribute::Format:
+            value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(HorizonServices, "Native window attribute {}",
+                                what);
+            break;
+        }
 
         writer.Write(value);
 
@@ -226,10 +274,10 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     }
     case TransactCode::Connect: {
         writer.Write<BqBufferOutput>({
-            .width = 1280,            // TODO: don't hardcode
-            .height = 720,            // TODO: don't hardcode
-            .transform_hint = 0,      // HACK
-            .num_pending_buffers = 0, // HACK
+            .width = 1280,       // TODO: don't hardcode
+            .height = 720,       // TODO: don't hardcode
+            .transform_hint = 0, // HACK
+            .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
         });
 
         break;

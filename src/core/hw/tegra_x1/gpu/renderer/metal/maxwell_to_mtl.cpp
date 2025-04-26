@@ -53,9 +53,9 @@ std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     PIXEL_FORMAT_ENTRY(Z16Unorm, Depth16Unorm, false),
     PIXEL_FORMAT_ENTRY(Z24Unorm_X8Uint, Depth32Float_Stencil8, true), // HACK
     PIXEL_FORMAT_ENTRY(Z32Float, Depth32Float, false),
-    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true), // HACK
-    PIXEL_FORMAT_ENTRY(Z32Float_X24S8Uint, Invalid, true),            // TODO
-    COLOR_PIXEL_FORMAT_ENTRY(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB),       // HACK
+    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true),    // HACK
+    PIXEL_FORMAT_ENTRY(Z32Float_X24S8Uint, Depth32Float_Stencil8, true), // HACK
+    COLOR_PIXEL_FORMAT_ENTRY(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB),          // HACK
     COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm_sRGB, RGBA8Unorm_sRGB),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA4Unorm, ABGR4Unorm),     // HACK
     COLOR_PIXEL_FORMAT_ENTRY(RGB5Unorm, BGR5A1Unorm),     // HACK

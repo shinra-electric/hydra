@@ -17,8 +17,6 @@ enum class EventId {
 
 void NvHostGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
                            NvResult& result) {
-    LOG_FUNC_STUBBED(HorizonServices);
-
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {
     case EventId::SmExceptionBptIntReport:

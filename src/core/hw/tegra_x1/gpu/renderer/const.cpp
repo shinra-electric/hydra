@@ -214,7 +214,7 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
         DEPTH_SURFACE_FORMAT_CASE(Z24S8Unorm, Z24Unorm_S8Uint)
         DEPTH_SURFACE_FORMAT_CASE(S8Uint, S8Uint)
         DEPTH_SURFACE_FORMAT_CASE(Z24C8Unorm, Invalid)
-        DEPTH_SURFACE_FORMAT_CASE(Z32S8X24Float, Invalid) // TODO
+        DEPTH_SURFACE_FORMAT_CASE(Z32S8X24Float, Z32Float_X24S8Uint) // TODO
         DEPTH_SURFACE_FORMAT_CASE(Z24X8S8C8X16Unorm, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32X8C8X16Float, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32S8C8X16Float, Invalid)

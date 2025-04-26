@@ -116,8 +116,16 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     if (true) {                                     // Shovel Knight
         cpu->GetMMU()->Store<u32>(0x40d9c66c, NOP); // Jump to heap
         // cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
+        // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Crash after NVN
+        // assert
         // cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert
         cpu->GetMMU()->Store<u32>(0x405142c8, NOP); // Audio
+        // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Crash after NVN assert
+
+        cpu->GetMMU()->Store<u32>(0x42285e2c,
+                                  MOV_X0_XZR); // Set result code to
+                                               // NVN_WINDOW_ACQUIRE_TEXTURE_RESULT_SUCCESS
+                                               // in nvnQueueAcquireTexture
     }
 }
 
