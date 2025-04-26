@@ -63,13 +63,13 @@ Config::Config() {
         app_data_path =
             fmt::format("{}/Library/Application Support/" APP_NAME, home);
     else
-        LOG_ERROR(Other, "Failed to find HOME path");
+        LOG_FATAL(Other, "Failed to find HOME path");
 #elif defined(_WIN32)
     // Windows
     if (const char* app_data = std::getenv("APPDATA"))
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
     else
-        LOG_ERROR(Other, "Failed to find APPDATA path");
+        LOG_FATAL(Other, "Failed to find APPDATA path");
 #else
     // Linux and other Unix-like systems
     if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME"))
@@ -77,7 +77,7 @@ Config::Config() {
     else if (const char* home = std::getenv("HOME"))
         app_data_path = fmt::format("{}/.config/" APP_NAME, home);
     else
-        LOG_ERROR(Other, "Failed to find HOME path");
+        LOG_FATAL(Other, "Failed to find HOME path");
 #endif
 
     // Create the app data directory
@@ -160,7 +160,7 @@ void Config::Serialize() {
         config_file << toml::format(data);
         config_file.close();
     } else {
-        LOG_ERROR(Other, "Failed to create config file");
+        LOG_FATAL(Other, "Failed to create config file");
     }
 }
 

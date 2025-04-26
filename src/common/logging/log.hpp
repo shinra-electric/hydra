@@ -27,16 +27,12 @@
 #define LOG_STUBBED(c, fmt, ...)                                               \
     LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
-
-#ifdef HYDRA_DEBUG
-#define LOG_ERROR(c, ...)                                                      \
+#define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
+#define LOG_FATAL(c, ...)                                                      \
     {                                                                          \
-        LOG(Error, c, __VA_ARGS__);                                            \
+        LOG(Fatal, c, __VA_ARGS__);                                            \
         throw;                                                                 \
     }
-#else
-#define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
-#endif
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
@@ -87,6 +83,7 @@ enum class Level {
     Stubbed,
     Warning,
     Error,
+    Fatal,
 };
 
 enum class Class {
@@ -112,7 +109,8 @@ enum class Class {
 } // namespace Hydra::Logging
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
-                       Stubbed, "stubbed", Warning, "warning", Error, "error")
+                       Stubbed, "stubbed", Warning, "warning", Error, "error",
+                       Fatal, "fatal")
 
 ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
@@ -155,6 +153,9 @@ void log(Level level, Class c, const std::string& file, u32 line,
             color = fmt::terminal_color::bright_yellow;
             break;
         case Level::Error:
+            color = fmt::terminal_color::bright_red;
+            break;
+        case Level::Fatal:
             color = fmt::terminal_color::red;
             break;
         }

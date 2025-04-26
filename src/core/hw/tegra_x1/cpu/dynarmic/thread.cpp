@@ -156,7 +156,7 @@ void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
     LogStackTrace();
 
     // TODO: handle the exception
-    LOG_ERROR(Dynarmic, "Exception");
+    LOG_FATAL(Dynarmic, "Exception");
 }
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }

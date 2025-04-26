@@ -68,7 +68,7 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
                                  DynA64::Vector expected) override;
 
     void InterpreterFallback(u64 pc, usize num_instructions) override {
-        LOG_ERROR(Dynarmic, "Interpreter");
+        LOG_FATAL(Dynarmic, "Interpreter");
     }
 
     void CallSVC(u32 svc) override;

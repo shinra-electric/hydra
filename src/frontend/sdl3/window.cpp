@@ -10,7 +10,7 @@ Window::Window(int argc, const char* argv[]) {
 
     // SLD3 initialization
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        LOG_ERROR(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
+        LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
         return;
     }
 
@@ -19,7 +19,7 @@ Window::Window(int argc, const char* argv[]) {
 
     if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, 0, &window,
                                      &renderer)) {
-        LOG_ERROR(SDL3Window, "Failed to create SDL3 window/renderer: {}",
+        LOG_FATAL(SDL3Window, "Failed to create SDL3 window/renderer: {}",
                   SDL_GetError());
         return;
     }

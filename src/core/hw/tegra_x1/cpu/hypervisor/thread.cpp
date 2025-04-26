@@ -117,7 +117,7 @@ void Thread::Run() {
                     // Debug
                     LogStackTrace(elr);
 
-                    LOG_ERROR(
+                    LOG_FATAL(
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
@@ -164,7 +164,7 @@ void Thread::Run() {
                     op2 == 1) { // cntpct_el0
                     value = mach_absolute_time();
                 } else {
-                    LOG_ERROR(Hypervisor,
+                    LOG_FATAL(Hypervisor,
                               "Unknown MSR instruction (opcode: 0x{:08x}, "
                               "rt: {}, op0: {}, op1: {}, crn: {}, crm: {}, "
                               "op2: {})",
@@ -182,7 +182,7 @@ void Thread::Run() {
                 LogStackTrace(pc);
                 LogRegisters(true);
 
-                LOG_ERROR(Hypervisor, "BRK instruction");
+                LOG_FATAL(Hypervisor, "BRK instruction");
 
                 break;
             } else {
@@ -190,7 +190,7 @@ void Thread::Run() {
                 LogStackTrace(pc);
                 LogRegisters();
 
-                LOG_ERROR(
+                LOG_FATAL(
                     Hypervisor,
                     "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
                     "0x{:08x}, PC: 0x{:08x}, "
@@ -209,7 +209,7 @@ void Thread::Run() {
             UpdateVTimer();
         } else {
             // TODO: don't cast to u32
-            LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
+            LOG_FATAL(Hypervisor, "Unexpected VM exit reason {}",
                       (u32)exit->reason);
             break;
         }

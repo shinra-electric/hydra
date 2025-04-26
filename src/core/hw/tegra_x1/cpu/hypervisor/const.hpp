@@ -17,7 +17,7 @@ inline uptr allocate_vm_memory(usize size) {
     void* ptr;
     posix_memalign(&ptr, APPLE_PAGE_SIZE, size);
     if (!ptr) {
-        LOG_ERROR(Hypervisor, "Failed to allocate memory");
+        LOG_FATAL(Hypervisor, "Failed to allocate memory");
         return 0x0;
     }
 

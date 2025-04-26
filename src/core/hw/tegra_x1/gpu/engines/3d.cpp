@@ -53,6 +53,7 @@ Renderer::BlendOperation get_blend_operation(u32 blend_op) {
         return Renderer::BlendOperation::Max;
     default:
         LOG_ERROR(Engines, "Unknown blend operation 0x{:04x}", blend_op);
+        return Renderer::BlendOperation::Add;
     }
 }
 
@@ -117,6 +118,7 @@ Renderer::BlendFactor get_blend_factor(u32 blend_factor) {
         default:
             LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
                       gl_blend_factor);
+            return Renderer::BlendFactor::Zero;
         }
     } else { // D3D11
         switch (blend_factor) {
@@ -152,6 +154,7 @@ Renderer::BlendFactor get_blend_factor(u32 blend_factor) {
             return Renderer::BlendFactor::InvSrc1Alpha;
         default:
             LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
+            return Renderer::BlendFactor::Zero;
         }
     }
 }
@@ -388,6 +391,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     const auto gpu_addr = MAKE_ADDR(render_target.addr);
     if (gpu_addr == 0x0) {
+        // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid color render target at index {}",
                   render_target_index);
         return nullptr;
@@ -408,6 +412,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
     const auto gpu_addr = MAKE_ADDR(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
+        // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid depth render target");
         return nullptr;
     }

@@ -21,7 +21,7 @@ EmulationContext::EmulationContext() {
         cpu = new Hydra::HW::TegraX1::CPU::Dynarmic::CPU();
         break;
     default:
-        LOG_ERROR(Other, "Unknown CPU backend");
+        LOG_FATAL(Other, "Unknown CPU backend");
         break;
     }
 
@@ -70,7 +70,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     else if (extension == "nca")
         loader = new Horizon::Loader::NCALoader();
     else
-        LOG_ERROR(Other, "Unknown ROM extension \"{}\"", extension);
+        LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
 
     StreamReader reader(ifs, 0, size);
     loader->LoadRom(reader, rom_filename);
@@ -122,10 +122,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         cpu->GetMMU()->Store<u32>(0x405142c8, NOP); // Audio
         // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Crash after NVN assert
 
-        cpu->GetMMU()->Store<u32>(0x42285e2c,
-                                  MOV_X0_XZR); // Set result code to
-                                               // NVN_WINDOW_ACQUIRE_TEXTURE_RESULT_SUCCESS
-                                               // in nvnQueueAcquireTexture
+        cpu->GetMMU()->Store<u32>(
+            0x42285e2c,
+            MOV_X0_XZR); // Set result code to
+                         // NVN_WINDOW_ACQUIRE_TEXTURE_RESULT_SUCCESS
+                         // in nvnQueueAcquireTexture
     }
 }
 
