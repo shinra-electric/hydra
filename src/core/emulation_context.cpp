@@ -113,7 +113,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         cpu->GetMMU()->Store<u32>(0x4144170c, NOP); // Jump to heap
     }
 
-    if (false) {                                    // Shovel Knight
+    if (true) {                                     // Shovel Knight
         cpu->GetMMU()->Store<u32>(0x40d9c66c, NOP); // Jump to heap
         // cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
         // cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert

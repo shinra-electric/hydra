@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
@@ -58,11 +59,18 @@ struct ZCullInfo {
 
 class NvHostCtrlGpu : public FdBase {
   public:
+    NvHostCtrlGpu()
+        : error_event(new Kernel::Event()), unknown_event(new Kernel::Event()) {
+    }
+
     void Ioctl(IOCTL_PARAMS) override;
     void QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
-                    NvResult& out_result) override;
+                    NvResult& result) override;
 
   private:
+    Kernel::HandleWithId<Kernel::Event> error_event;
+    Kernel::HandleWithId<Kernel::Event> unknown_event;
+
     // Ioctls
     DECLARE_IOCTL(ZCullGetCtxSize, writeonly<u32> size, size);
     DECLARE_IOCTL(ZCullGetInfo, writeonly<ZCullInfo> info, info);
@@ -70,7 +78,7 @@ class NvHostCtrlGpu : public FdBase {
                   readonly<uptr> buf_addr;
                   writeonly<GpuCharacteristics> characteristics;
                   , buf_size, characteristics);
-    DECLARE_IOCTL(GetTPCMasks, readonly<u32> mask_buffer_size;
+    DECLARE_IOCTL(GetTpcMasks, readonly<u32> mask_buffer_size;
                   readonly<u32> reserved[3]; writeonly<u64> mask_buffer;
                   , mask_buffer);
     DECLARE_IOCTL(ZbcGetActiveSlotMask, writeonly<u32> slot;

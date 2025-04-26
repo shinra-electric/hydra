@@ -6,12 +6,24 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(0x47, 0x01, ZCullGetCtxSize, 0x02,
                                             ZCullGetInfo, 0x05,
                                             GetCharacteristics, 0x06,
-                                            GetTPCMasks, 0x14,
+                                            GetTpcMasks, 0x14,
                                             ZbcGetActiveSlotMask))
 
 void NvHostCtrlGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
-                               NvResult& out_result) {
-    LOG_FUNC_STUBBED(HorizonServices);
+                               NvResult& result) {
+    switch (event_id_u32) {
+    case 0x01:
+        out_handle_id = error_event.id;
+        break;
+    case 0x02:
+        out_handle_id = unknown_event.id;
+        break;
+    default:
+        LOG_WARN(HorizonServices, "Unknown event ID: {:02x}", event_id_u32);
+        out_handle_id = 0;
+        result = NvResult::BadParameter;
+        break;
+    }
 }
 
 void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
@@ -25,8 +37,19 @@ void NvHostCtrlGpu::ZCullGetCtxSize(ZCullGetCtxSizeData& data,
 void NvHostCtrlGpu::ZCullGetInfo(ZCullGetInfoData& data, NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
 
-    // TODO: what should this be?
-    data.info = ZCullInfo{};
+    // From Ryujinx
+    data.info = ZCullInfo{
+        .width_align_pixels = 0x20,
+        .height_align_pixels = 0x20,
+        .pixel_squares_by_aliquots = 0x400,
+        .aliquot_total = 0x800,
+        .region_byte_multiplier = 0x20,
+        .region_header_size = 0x20,
+        .subregion_header_size = 0xc0,
+        .subregion_width_align_pixels = 0x20,
+        .subregion_height_align_pixels = 0x40,
+        .subregion_count = 0x10,
+    };
 }
 
 void NvHostCtrlGpu::GetCharacteristics(GetCharacteristicsData& data,
@@ -79,22 +102,23 @@ void NvHostCtrlGpu::GetCharacteristics(GetCharacteristicsData& data,
     };
 }
 
-void NvHostCtrlGpu::GetTPCMasks(GetTPCMasksData& data, NvResult& result) {
+void NvHostCtrlGpu::GetTpcMasks(GetTpcMasksData& data, NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     ASSERT_DEBUG(data.mask_buffer_size != 0x0, HorizonServices,
                  "Mask buffer size cannot be 0x0");
 
-    // TODO: what should this be?
-    data.mask_buffer = 0x1;
+    // TODO: correct?
+    data.mask_buffer = 0x3;
 }
 
 void NvHostCtrlGpu::ZbcGetActiveSlotMask(ZbcGetActiveSlotMaskData& data,
                                          NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
 
+    // TODO: correct?
     data.slot = 0x07;
-    data.mask = 0x0; // TODO
+    data.mask = 0x01;
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

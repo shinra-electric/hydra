@@ -5,29 +5,34 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
+namespace {
+
 enum class EventId {
-    SmException_BptIntReport = 1,
-    SmException_BptPauseReport,
+    SmExceptionBptIntReport = 1,
+    SmExceptionBptPauseReport,
     ErrorNotifierEvent,
 };
 
+}
+
 void NvHostGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
-                           NvResult& out_result) {
+                           NvResult& result) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {
-    case EventId::SmException_BptIntReport:
-        // TODO: set out_handle_id
+    case EventId::SmExceptionBptIntReport:
+        out_handle_id = sm_exception_bpt_int_report_event.id;
         break;
-    case EventId::SmException_BptPauseReport:
-        // TODO: set out_handle_id
+    case EventId::SmExceptionBptPauseReport:
+        out_handle_id = sm_exception_bpt_pause_report_event.id;
         break;
     case EventId::ErrorNotifierEvent:
-        // TODO: set out_handle_id
+        out_handle_id = error_notifier_event.id;
         break;
     default:
-        out_result = NvResult::NotSupported;
+        result = NvResult::NotSupported;
+        break;
     }
 }
 
