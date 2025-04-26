@@ -576,6 +576,8 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
                "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0;
+
+        return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
         handle_id_t handle_id = handle_ids[0];
         auto event = dynamic_cast<Event*>(GetHandle(handle_id));
@@ -593,7 +595,8 @@ Result Kernel::svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
 
         LOG_DEBUG(HorizonKernel, "Synchronizing with handle 0x{:x}", handle_id);
 
-        event->Wait(timeout);
+        if (!event->Wait(timeout))
+            return MAKE_RESULT(Svc, Error::TimedOut);
     }
 
     return RESULT_SUCCESS;

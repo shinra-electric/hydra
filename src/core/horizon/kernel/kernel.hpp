@@ -66,13 +66,22 @@ class Event : public Handle {
         return was_signaled;
     }
 
-    void Wait(i64 timeout) {
+    // Returns true if the event was signaled, false on timeout
+    bool Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
-        if (timeout == INFINITE_TIMEOUT)
-            cv.wait(lock, [&] { return signaled; });
-        else
-            cv.wait_for(lock, std::chrono::nanoseconds(timeout),
-                        [&] { return signaled; });
+
+        // First, check if the event is already signaled
+        if (signaled)
+            return true;
+
+        if (timeout == INFINITE_TIMEOUT) {
+            cv.wait(lock);
+            return false;
+        } else {
+            const auto status =
+                cv.wait_for(lock, std::chrono::nanoseconds(timeout));
+            return (status == std::cv_status::no_timeout);
+        }
     }
 
   private:
