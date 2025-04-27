@@ -90,6 +90,8 @@ add_library(hydra-core
     horizon/services/nvdrv/const.hpp
     horizon/services/nvdrv/nvdrv_services.cpp
     horizon/services/nvdrv/nvdrv_services.hpp
+    horizon/services/settings/nx_settings.cpp
+    horizon/services/settings/nx_settings.hpp
     horizon/services/settings/settings_server.cpp
     horizon/services/settings/settings_server.hpp
     horizon/services/settings/system_settings_server.cpp

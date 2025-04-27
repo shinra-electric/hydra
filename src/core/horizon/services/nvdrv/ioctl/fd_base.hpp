@@ -42,7 +42,7 @@
         }                                                                      \
     }
 
-#define IOCTL_OUT_MEMBER_COPY(member) member = o.member.Get();
+#define IOCTL_OUT_MEMBER_COPY(member) member = o.member;
 
 #define DECLARE_IOCTL_IMPL(ioctl, attr, args, ...)                             \
     struct ioctl##Data {                                                       \

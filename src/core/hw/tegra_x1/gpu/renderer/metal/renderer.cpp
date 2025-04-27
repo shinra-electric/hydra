@@ -324,7 +324,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
 
     static u32 frames = 0;
     if (capturing) {
-        if (frames >= 5)
+        if (frames >= 100)
             EndCapture();
         frames++;
     }

@@ -149,6 +149,9 @@ template <typename T> class readonly {
     T value;
 } __attribute__((packed));
 
+template <typename T, usize size>
+class readonly_array : public readonly<std::array<T, size>> {};
+
 template <typename T> class writeonly {
   public:
     writeonly() {}
@@ -156,11 +159,14 @@ template <typename T> class writeonly {
     void operator=(const T& new_value) { value = new_value; }
 
     // Getters
-    const T& Get() const { return value; }
+    T& Get() { return value; }
 
   private:
     T value;
 } __attribute__((packed));
+
+template <typename T, usize size>
+class writeonly_array : public writeonly<std::array<T, size>> {};
 
 template <typename T> class readwrite {
   public:
@@ -176,6 +182,9 @@ template <typename T> class readwrite {
   private:
     T value;
 } __attribute__((packed));
+
+template <typename T, usize size>
+class readwrite_array : public readwrite<std::array<T, size>> {};
 
 template <typename KeyT, typename T, usize fast_cache_size = 4>
 class small_cache {

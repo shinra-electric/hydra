@@ -61,6 +61,24 @@ template <typename T> inline T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
+inline std::string to_lower(const std::string& str) {
+    // TODO: make this more efficient?
+    std::string result;
+    std::transform(str.begin(), str.end(), std::back_inserter(result),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    return result;
+}
+
+inline std::string to_upper(const std::string& str) {
+    // TODO: make this more efficient?
+    std::string result;
+    std::transform(str.begin(), str.end(), std::back_inserter(result),
+                   [](unsigned char c) { return std::toupper(c); });
+
+    return result;
+}
+
 inline constexpr uint64_t str_to_u64(const char* str, size_t idx = 0,
                                      uint64_t result = 0) {
     return (str[idx] == '\0' || idx >= 8)
