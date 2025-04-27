@@ -36,7 +36,10 @@ void IApplicationFunctions::GetDesiredLanguage(REQUEST_COMMAND_PARAMS) {
 
 void IApplicationFunctions::SetTerminateResult(REQUEST_COMMAND_PARAMS) {
     auto res = readers.reader.Read<Kernel::Result>();
-    LOG_INFO(HorizonServices, "Terminate result: 0x{:x}", res);
+    const auto module = GET_RESULT_MODULE(res);
+    const auto description = GET_RESULT_DESCRIPTION(res);
+    LOG_INFO(HorizonKernel, "Module: {}, description: 0x{:x}", module,
+             description);
 }
 
 } // namespace Hydra::Horizon::Services::Am

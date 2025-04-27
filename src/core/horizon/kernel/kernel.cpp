@@ -801,10 +801,10 @@ Result Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
 
     if (buffer_ptr) {
         if (buffer_size == sizeof(u32)) {
-            const u32 value = *reinterpret_cast<u32*>(buffer_ptr);
-            const auto module = static_cast<Module>(value & 0x1ff);
-            const auto description = value >> 9;
-            LOG_INFO(HorizonKernel, "Module: {}, Description: 0x{:x}", module,
+            const u32 result = *reinterpret_cast<u32*>(buffer_ptr);
+            const auto module = GET_RESULT_MODULE(result);
+            const auto description = GET_RESULT_DESCRIPTION(result);
+            LOG_INFO(HorizonKernel, "Module: {}, description: 0x{:x}", module,
                      description);
         } else {
             for (u32 i = 0; i < buffer_size / sizeof(u32); i++) {

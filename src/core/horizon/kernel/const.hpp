@@ -293,8 +293,13 @@ enum class Error {
 typedef u32 Result;
 
 #define MAKE_RESULT(module, description)                                       \
-    (((static_cast<u32>(::Hydra::Horizon::Kernel::Module::module) & 0x1FF)) |  \
-     (static_cast<u32>(description) & 0x1FFF) << 9)
+    (((static_cast<u32>(::Hydra::Horizon::Kernel::Module::module) & 0x1ff)) |  \
+     (static_cast<u32>(description) & 0x1fff) << 9)
+
+#define GET_RESULT_MODULE(result)                                              \
+    static_cast<::Hydra::Horizon::Kernel::Module>((result) & 0x1ff)
+
+#define GET_RESULT_DESCRIPTION(result) ((result) >> 9)
 
 #define RESULT_SUCCESS 0
 
