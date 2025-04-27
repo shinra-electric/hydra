@@ -554,7 +554,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
                   src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::Register(src2, DataType::Float), src3);
+                             Operand::Register(src2, DataType::Float),
+                             Operand::Register(src3, DataType::Float));
     }
     INST(0x5900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -584,8 +585,18 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imadsp");
     INST(0x5200000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
-    INST(0x5180000000000000, 0xff80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma");
+    INST(0x5180000000000000, 0xff80000000000000) {
+        const auto dst = GET_REG(0);
+        const auto src1 = GET_REG(8);
+        const auto src2 = GET_REG(39);
+        const auto src3 = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} c{}[0x{:x}]", dst, src1,
+                  src2, src3.idx, src3.imm);
+
+        observer->OpFloatFma(dst, src1,
+                             Operand::Register(src2, DataType::Float),
+                             Operand::ConstMemory(src3, DataType::Float));
+    }
     INST(0x5100000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "xmad");
     INST(0x50f8000000000000, 0xfff8000000000000)
@@ -737,7 +748,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
                   src2.idx, src2.imm, src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::ConstMemory(src2, DataType::Float), src3);
+                             Operand::ConstMemory(src2, DataType::Float),
+                             Operand::Register(src3, DataType::Float));
     }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -868,7 +880,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
                   src2, src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::Immediate(src2, DataType::Float), src3);
+                             Operand::Immediate(src2, DataType::Float),
+                             Operand::Register(src3, DataType::Float));
     }
     INST(0x3200000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");

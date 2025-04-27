@@ -190,11 +190,10 @@ void LangBuilderBase::OpMultiply(Operand dst, Operand src1, Operand src2) {
 }
 
 void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
-                                 reg_t src3) {
+                                 Operand src3) {
     WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::Float),
                    GetReg(src1, false, DataType::Float),
-                   GetOperand(src2, false),
-                   GetReg(src3, false, DataType::Float));
+                   GetOperand(src2, false), GetOperand(src3, false));
 }
 
 void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {

@@ -12,7 +12,7 @@ class ObserverBase {
     virtual void OpAdd(Operand dst, Operand src1, Operand src2) = 0;
     virtual void OpMultiply(Operand dst, Operand src1, Operand src2) = 0;
     virtual void OpFloatFma(reg_t dst, reg_t src1, Operand src2,
-                            reg_t src3) = 0;
+                            Operand src3) = 0;
     virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) = 0;
     virtual void OpMathFunction(MathFunc func, reg_t dst, reg_t src) = 0;
     virtual void OpLoad(reg_t dst, Operand src) = 0;

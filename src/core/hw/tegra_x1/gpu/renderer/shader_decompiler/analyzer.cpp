@@ -16,33 +16,19 @@ void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
 } // namespace
 
 void Analyzer::OpAdd(Operand dst, Operand src1, Operand src2) {
-    if (src2.type == OperandType::ConstMemory)
-        HandleCMemLoad(src2.cmem);
+    HandleLoad(src2);
 }
 
 void Analyzer::OpMultiply(Operand dst, Operand src1, Operand src2) {
-    if (src2.type == OperandType::ConstMemory)
-        HandleCMemLoad(src2.cmem);
+    HandleLoad(src2);
 }
 
-void Analyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2, reg_t src3) {
-    if (src2.type == OperandType::ConstMemory)
-        HandleCMemLoad(src2.cmem);
+void Analyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
+    HandleLoad(src2);
+    HandleLoad(src3);
 }
 
-void Analyzer::OpLoad(reg_t dst, Operand src) {
-    switch (src.type) {
-    case OperandType::AttributeMemory:
-        HandleAMemLoad(src.amem);
-        break;
-    case OperandType::ConstMemory:
-        HandleCMemLoad(src.cmem);
-        break;
-    default:
-        LOG_ERROR(ShaderDecompiler, "Invalid OpLoad src type {}", src.type);
-        break;
-    }
-}
+void Analyzer::OpLoad(reg_t dst, Operand src) { HandleLoad(src); }
 
 void Analyzer::OpStore(AMem dst, reg_t src) { HandleAMemStore(dst); }
 
@@ -60,13 +46,6 @@ void Analyzer::HandleAMemLoad(const AMem amem) {
     push_sv(input_svs, stage_inputs, amem.imm);
 }
 
-void Analyzer::HandleAMemStore(const AMem amem) {
-    // TODO: support indexing with src
-    ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
-                 "Indexing not implemented (src: r{})", amem.reg);
-    push_sv(output_svs, stage_outputs, amem.imm);
-}
-
 void Analyzer::HandleCMemLoad(const CMem cmem) {
     if (cmem.reg != RZ) {
         LOG_WARN(ShaderDecompiler, "Indexing not implemented (src: r{})",
@@ -76,6 +55,44 @@ void Analyzer::HandleCMemLoad(const CMem cmem) {
 
     auto& size = uniform_buffers[cmem.idx];
     size = std::max(size, static_cast<usize>(cmem.imm) + sizeof(u32));
+}
+
+void Analyzer::HandleLoad(const Operand operand) {
+    switch (operand.type) {
+    case OperandType::Register:
+    case OperandType::Immediate:
+        break;
+    case OperandType::AttributeMemory:
+        HandleAMemLoad(operand.amem);
+        break;
+    case OperandType::ConstMemory:
+        HandleCMemLoad(operand.cmem);
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Operand type {}", operand.type);
+        break;
+    }
+}
+
+void Analyzer::HandleAMemStore(const AMem amem) {
+    // TODO: support indexing with src
+    ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
+                 "Indexing not implemented (src: r{})", amem.reg);
+    push_sv(output_svs, stage_outputs, amem.imm);
+}
+
+void Analyzer::HandleStore(const Operand operand) {
+    switch (operand.type) {
+    case OperandType::Register:
+    case OperandType::Immediate:
+        break;
+    case OperandType::AttributeMemory:
+        HandleAMemStore(operand.amem);
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Operand type {}", operand.type);
+        break;
+    }
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
