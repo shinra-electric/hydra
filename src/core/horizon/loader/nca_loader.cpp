@@ -157,7 +157,7 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
         // Shovel Knight: 0x00054000
         // Puyo Puyo Tetris: 0x00208000
         // Cave Story+: 0x0004c000
-        reader.Seek(0x00054000);
+        reader.Seek(0x00208000);
         auto romfs_reader = reader.CreateSubReader();
         const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
             FS_SD_MOUNT "/rom/romFS",

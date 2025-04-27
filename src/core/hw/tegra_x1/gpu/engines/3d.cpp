@@ -371,10 +371,23 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     if (gpu_addr == 0x0)
         return nullptr;
 
+    NvKind kind;
+    switch (tic.hdr_version) {
+    case TicHdrVersion::Pitch:
+        kind = NvKind::Pitch;
+        break;
+    case TicHdrVersion::BlockLinear:
+        kind = NvKind::Generic_16BX2; // TODO: correct?
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
+        kind = NvKind::Pitch;
+        break;
+    }
+
     const Renderer::TextureDescriptor descriptor(
         GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        Renderer::to_texture_format(tic.format_word),
-        NvKind::Pitch, // TODO: correct?
+        Renderer::to_texture_format(tic.format_word), kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2,                         // TODO: correct?

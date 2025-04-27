@@ -18,6 +18,14 @@ class PipelineBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
+enum TicHdrVersion : u32 {
+    _1DBuffer = 0,
+    PitchColorKey = 1,
+    Pitch = 2,
+    BlockLinear = 3,
+    BlockLinearColorKey = 4,
+};
+
 struct TextureImageControl {
     // 0x00
     ImageFormatWord format_word;
@@ -28,7 +36,7 @@ struct TextureImageControl {
     // 0x08
     u32 addr_hi : 16;
     u32 view_layer_base_3_7 : 5;
-    u32 hdr_version : 3;
+    TicHdrVersion hdr_version : 3;
     u32 load_store_hint_maybe : 1;
     u32 view_coherency_hash : 4;
     u32 view_layer_base_8_10 : 3;
@@ -481,3 +489,8 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Engines
+
+ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::TicHdrVersion,
+                       _1DBuffer, "1D buffer", PitchColorKey, "pitch color key",
+                       Pitch, "pitch", BlockLinear, "block linear",
+                       BlockLinearColorKey, "block linear color key")

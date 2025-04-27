@@ -105,6 +105,7 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm,
                       RGBA8Unorm) // TODO: why argb?
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
+    IMAGE_FORMAT_CASE(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA)
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     IMAGE_FORMAT_CASE(B5G6R5, Unorm, Unorm, Unorm, Unorm, B5G6R5Unorm)
     IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
