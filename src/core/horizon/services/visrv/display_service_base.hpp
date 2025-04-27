@@ -4,6 +4,15 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
+struct ParcelData {
+    u32 unknown0;
+    u32 unknown1;
+    u32 binder_id;
+    u32 unknown2[3];
+    u64 str;
+    u64 unknown3;
+};
+
 class DisplayServiceBase : public Kernel::ServiceBase {
   protected:
     // Commands

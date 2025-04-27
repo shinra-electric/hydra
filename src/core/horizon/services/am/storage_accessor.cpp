@@ -26,7 +26,8 @@ void IStorageAccessor::Read(REQUEST_COMMAND_PARAMS) {
     // TODO: correct?
     const usize size = data.GetSize() - offset;
 
-    writers.recv_buffers_writers[0].Write<u8>(data.GetPtrU8() + offset, size);
+    writers.recv_buffers_writers[0].WritePtr<u8>(data.GetPtrU8() + offset,
+                                                 size);
 }
 
 } // namespace Hydra::Horizon::Services::Am

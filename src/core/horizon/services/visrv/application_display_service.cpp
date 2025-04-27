@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
+#include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/horizon/services/visrv/manager_display_service.hpp"
 #include "core/horizon/services/visrv/system_display_service.hpp"
 #include "core/hw/bus.hpp"
@@ -73,27 +74,21 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
 
     // Out
     // TODO: correct?
-    writers.writer.Write(sizeof(Parcel) + sizeof(ParcelData));
+    writers.writer.Write(sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData));
 
     // Parcel
-    Parcel parcel{
-        .data_size = sizeof(ParcelData),
-        .data_offset = sizeof(Parcel),
-        .objects_size = 0,
-        .objects_offset = 0,
-    };
-    writers.recv_buffers_writers[0].Write(parcel);
+    HosBinder::ParcelWriter parcel_writer(writers.recv_buffers_writers[0]);
 
-    // Parcel data
-    ParcelData data{
+    parcel_writer.Write<ParcelData>({
         .unknown0 = 0x2,
         .unknown1 = 0x0, // TODO
         .binder_id = layer->GetBinderId(),
         .unknown2 = {0x0},
         .str = str_to_u64("dispdrv"),
         .unknown3 = 0x0,
-    };
-    writers.recv_buffers_writers[0].Write(data);
+    });
+
+    parcel_writer.Finalize();
 }
 
 void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {

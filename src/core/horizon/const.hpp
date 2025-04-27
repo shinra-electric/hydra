@@ -31,27 +31,6 @@ constexpr FirmwareVersion FIRMWARE_VERSION = {
     .display_title = "Hydra firmware 1.0.0",
 };
 
-struct ParcelData {
-    u32 unknown0;
-    u32 unknown1;
-    u32 binder_id;
-    u32 unknown2[3];
-    u64 str;
-    u64 unknown3;
-};
-
-struct Parcel {
-    u32 data_size;
-    u32 data_offset;
-    u32 objects_size;
-    u32 objects_offset;
-};
-
-struct ParcelFlattenedObject {
-    i32 size;
-    i32 fd_count;
-};
-
 enum class ConfigEntryType : u32 {
     EndOfList = 0,        ///< Entry list terminator.
     MainThreadHandle = 1, ///< Provides the handle to the main thread.

@@ -1,6 +1,7 @@
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
 #include "core/horizon/os.hpp"
+#include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 
@@ -28,24 +29,25 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
                         .GetBus()
                         .GetDisplay(in.display_id)
                         ->CreateLayer(binder_id),
-        .native_window_size = sizeof(ParcelData) + sizeof(Parcel),
+        .native_window_size =
+            sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData),
     };
     writers.writer.Write(out);
 
     // Parcel
-    Parcel parcel{
-        .data_size = sizeof(ParcelData),
-        .data_offset = sizeof(Parcel),
-        .objects_size = 0,
-        .objects_offset = 0,
-    };
-    writers.recv_buffers_writers[0].Write(parcel);
+    HosBinder::ParcelWriter parcel_writer(writers.recv_buffers_writers[0]);
 
-    // Parcel data
-    ParcelData data{
+    // TODO: correct?
+    parcel_writer.Write<ParcelData>({
+        .unknown0 = 0x2,
+        .unknown1 = 0x0, // TODO
         .binder_id = binder_id,
-    };
-    writers.recv_buffers_writers[0].Write(data);
+        .unknown2 = {0x0},
+        .str = str_to_u64("dispdrv"),
+        .unknown3 = 0x0,
+    });
+
+    parcel_writer.Finalize();
 }
 
 void DisplayServiceBase::SetLayerVisibility(REQUEST_COMMAND_PARAMS) {

@@ -13,9 +13,7 @@ class Reader {
         : base{base_}, ptr{base_}, size{size_} {}
 
     u64 Tell() { return static_cast<u64>(ptr - base); }
-
     void Seek(u64 pos) { ptr = base + pos; }
-
     void Skip(usize size) { ptr += size; }
 
     template <typename T> const T* ReadPtr(usize count = 1) {
@@ -89,6 +87,10 @@ class Writer {
   public:
     Writer(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
 
+    u64 Tell() { return static_cast<u64>(ptr - base); }
+    void Seek(u64 pos) { ptr = base + pos; }
+    void Skip(usize size) { ptr += size; }
+
     template <typename T> T* Write(const T& value) {
         T* result = reinterpret_cast<T*>(ptr);
         *result = value;
@@ -97,10 +99,13 @@ class Writer {
         return result;
     }
 
-    template <typename T> T* Write(const T* write_ptr, usize count) {
+    template <typename T>
+    T* WritePtr(const T* data = nullptr, usize count = 1) {
         T* result = reinterpret_cast<T*>(ptr);
-        memcpy(result, write_ptr, sizeof(T) * count);
-        ptr += sizeof(T) * count;
+        usize s = sizeof(T) * count;
+        if (data)
+            memcpy(result, data, s);
+        ptr += s;
 
         return result;
     }

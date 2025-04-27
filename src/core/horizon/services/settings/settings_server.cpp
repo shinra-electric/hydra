@@ -14,8 +14,8 @@ void ISettingsServer::GetLanguageCode(REQUEST_COMMAND_PARAMS) {
 }
 
 void ISettingsServer::GetAvailableLanguageCodes(REQUEST_COMMAND_PARAMS) {
-    writers.recv_list_writers[0].Write(available_languages,
-                                       sizeof_array(available_languages));
+    writers.recv_list_writers[0].WritePtr(available_languages,
+                                          sizeof_array(available_languages));
     writers.writer.Write<i32>(sizeof_array(available_languages));
 }
 
