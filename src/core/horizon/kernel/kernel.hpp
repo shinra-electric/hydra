@@ -17,6 +17,7 @@ class Bus;
 namespace Hydra::Horizon::Kernel {
 
 class ServiceBase;
+class Thread;
 
 // TODO: should this be used?
 constexpr u32 HANDLE_WAIT_MASK = 0x40000000;
@@ -101,8 +102,6 @@ class TransferMemory : public Handle {
     MemoryPermission perm;
 };
 
-constexpr usize ARG_COUNT = 2;
-
 class Kernel {
   public:
     static Kernel& GetInstance();
@@ -110,25 +109,12 @@ class Kernel {
     Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_);
     ~Kernel();
 
-    void InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
-                          vaddr_t entry_point, vaddr_t tls_addr,
-                          vaddr_t stack_top_addr);
-    void InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread);
-
     // Loading
     uptr CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
                          bool add_guard_page, vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
     uptr CreateExecutableMemory(usize size, MemoryPermission perm,
                                 bool add_guard_page, vaddr_t& out_base);
-    void SetMainThreadEntryPoint(uptr main_thread_entry_point_) {
-        main_thread_entry_point = main_thread_entry_point_;
-    }
-    void SetMainThreadArg(u32 index, u64 value) {
-        ASSERT_DEBUG(index < ARG_COUNT, HorizonKernel, "Invalid arg index {}",
-                     index);
-        main_thread_args[index] = value;
-    }
 
     void ConnectServiceToPort(const std::string& port_name,
                               ServiceBase* service) {
@@ -205,21 +191,15 @@ class Kernel {
 
     u64 GetTitleId() const { return title_id; }
 
-    HW::TegraX1::CPU::MemoryBase* GetTlsMemory() const { return tls_mem; }
-
   private:
     HW::Bus& bus;
     HW::TegraX1::CPU::MMUBase* mmu;
 
     Filesystem::Filesystem filesystem;
 
-    uptr main_thread_entry_point{0x0};
-    u64 main_thread_args[ARG_COUNT] = {0x0};
     u64 title_id{0x89abcdef}; // TODO: don't hardcode
 
     // Memory
-    HW::TegraX1::CPU::MemoryBase* stack_mem;
-    HW::TegraX1::CPU::MemoryBase* tls_mem; // TODO: remove this
     HW::TegraX1::CPU::MemoryBase* heap_mem;
     std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
 
@@ -243,7 +223,7 @@ class Kernel {
 
 template <typename T> struct HandleWithId {
     static_assert(std::is_convertible_v<T*, Handle*>,
-                  "Type does not inherit from KernelHandle");
+                  "Type does not inherit from Handle");
 
     T* handle;
     handle_id_t id;

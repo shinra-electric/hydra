@@ -8,8 +8,8 @@ class NSOLoader : public LoaderBase {
   public:
     NSOLoader(const bool is_entry_point_) : is_entry_point{is_entry_point_} {}
 
-    void LoadRom(StreamReader& reader,
-                 const std::string& rom_filename) override;
+    Kernel::Process* LoadRom(StreamReader& reader,
+                             const std::string& rom_filename) override;
 
   private:
     const bool is_entry_point;

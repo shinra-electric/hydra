@@ -6,8 +6,8 @@ namespace Hydra::Horizon::Loader {
 
 class NROLoader : public LoaderBase {
   public:
-    void LoadRom(StreamReader& reader,
-                 const std::string& rom_filename) override;
+    Kernel::Process* LoadRom(StreamReader& reader,
+                             const std::string& rom_filename) override;
 };
 
 } // namespace Hydra::Horizon::Loader

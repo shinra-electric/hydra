@@ -106,7 +106,8 @@ struct PartitionEntry {
     u32 reserved;
 };
 
-void load_pfs0(StreamReader& reader, const std::string& rom_filename) {
+void load_pfs0(StreamReader& reader, const std::string& rom_filename,
+               Kernel::Process*& out_process) {
     // Header
     const auto header = reader.Read<PFS0Header>();
     ASSERT(std::memcmp(header.magic, "PFS0", 4) == 0, HorizonLoader,
@@ -137,18 +138,23 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename) {
         reader.Seek(nso_offset + entry.offset);
         NSOLoader loader(entry_name == "rtld");
         auto nso_reader = reader.CreateSubReader(entry.size);
-        loader.LoadRom(nso_reader, rom_filename);
+        auto process = loader.LoadRom(nso_reader, rom_filename);
+        if (process) {
+            ASSERT(!out_process, HorizonLoader,
+                   "Cannot load multiple processes");
+            out_process = process;
+        }
     }
 }
 
 void load_section(StreamReader& reader, const std::string& rom_filename,
-                  PartitionType type) {
+                  PartitionType type, Kernel::Process*& out_process) {
     switch (type) {
     case PartitionType::PartitionFS: {
         // TODO: don't hardcode
         reader.Seek(0x00004000);
         auto pfs0_reader = reader.CreateSubReader();
-        load_pfs0(pfs0_reader, rom_filename);
+        load_pfs0(pfs0_reader, rom_filename, out_process);
         break;
     }
     case PartitionType::RomFS: {
@@ -174,7 +180,8 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
 } // namespace
 
 // TODO: don't hardcode stuff
-void NCALoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
+Kernel::Process* NCALoader::LoadRom(StreamReader& reader,
+                                    const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NCAHeader>();
     // TODO: allow other NCA versions as well
@@ -182,6 +189,7 @@ void NCALoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
            "Invalid NCA magic");
 
     // FS entries
+    Kernel::Process* process = nullptr;
     for (u32 i = 0; i < FS_ENTRY_COUNT; i++) {
         const auto& entry = header.fs_entries[i];
 
@@ -194,11 +202,16 @@ void NCALoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
 
         // HACK
         if (i == 0)
-            load_section(entry_reader, rom_filename,
-                         PartitionType::PartitionFS);
+            load_section(entry_reader, rom_filename, PartitionType::PartitionFS,
+                         process);
         else if (i == 1)
-            load_section(entry_reader, rom_filename, PartitionType::RomFS);
+            load_section(entry_reader, rom_filename, PartitionType::RomFS,
+                         process);
     }
+
+    ASSERT(process, HorizonLoader, "Failed to load process");
+
+    return process;
 }
 
 } // namespace Hydra::Horizon::Loader

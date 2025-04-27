@@ -15,23 +15,8 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
     SINGLETON_SET_INSTANCE(HorizonKernel, "Kernel");
 
-    // Memory
-
-    // Stack memory
-    stack_mem = mmu->AllocateMemory(DEFAULT_STACK_MEM_SIZE);
-    mmu->Map(STACK_REGION_BASE, stack_mem,
-             {MemoryType::Stack, MemoryAttribute::None,
-              MemoryPermission::ReadWrite});
-    // TODO: correct?
-    mmu->Map(ALIAS_REGION_BASE, stack_mem,
-             {MemoryType::Alias, MemoryAttribute::None,
-              MemoryPermission::ReadWrite});
-
-    // TLS memory
-    vaddr_t tls_addr;
-    tls_mem = CreateTlsMemory(tls_addr);
-
     // Heap memory
+    // TODO: is this necessary? The app should call svcSetHeapSize anyway
     heap_mem = mmu->AllocateMemory(DEFAULT_HEAP_MEM_SIZE);
     mmu->Map(HEAP_REGION_BASE, heap_mem,
              {MemoryType::Normal_1_0_0, MemoryAttribute::None,
@@ -41,34 +26,12 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
 }
 
 Kernel::~Kernel() {
-    mmu->FreeMemory(stack_mem);
-    mmu->FreeMemory(tls_mem);
+    // TODO: also unmap
     mmu->FreeMemory(heap_mem);
     for (auto mem : executable_mems)
         mmu->FreeMemory(mem);
 
     SINGLETON_UNSET_INSTANCE();
-}
-
-void Kernel::InitializeThread(HW::TegraX1::CPU::ThreadBase* thread,
-                              vaddr_t entry_point, vaddr_t tls_addr,
-                              vaddr_t stack_top_addr) {
-    thread->Initialize([&](HW::TegraX1::CPU::ThreadBase* thread,
-                           u64 id) { return SupervisorCall(thread, id); },
-                       tls_addr, stack_top_addr);
-
-    // Set initial PC
-    ASSERT_DEBUG(entry_point != 0x0, HorizonKernel, "Invalid entry point");
-    thread->SetRegPC(entry_point);
-}
-
-void Kernel::InitializeMainThread(HW::TegraX1::CPU::ThreadBase* thread) {
-    InitializeThread(thread, main_thread_entry_point, TLS_REGION_BASE,
-                     STACK_REGION_BASE + DEFAULT_STACK_MEM_SIZE);
-
-    // Arguments
-    for (u32 i = 0; i < ARG_COUNT; i++)
-        thread->SetRegX(i, main_thread_args[i]);
 }
 
 uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
@@ -377,15 +340,12 @@ Result Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
               "processor_id: {})",
               entry_point, args_addr, stack_top_addr, priority, processor_id);
 
-    // TLS memory
-    vaddr_t new_tls_mem_base;
-    auto new_tls_mem = CreateTlsMemory(new_tls_mem_base);
-
     // Thread
     // TODO: processor ID
-    out_thread_handle_id =
-        AddHandle(new Thread(new_tls_mem, new_tls_mem_base, entry_point,
-                             args_addr, stack_top_addr, priority));
+    auto thread = new Thread(stack_top_addr, priority);
+    thread->SetEntryPoint(entry_point);
+    thread->SetArg(0, args_addr);
+    out_thread_handle_id = AddHandle(thread);
 
     return RESULT_SUCCESS;
 }
@@ -395,8 +355,10 @@ Result Kernel::svcStartThread(handle_id_t thread_handle_id) {
               thread_handle_id);
 
     // Start thread
-    auto thread = static_cast<Thread*>(GetHandle(thread_handle_id));
-    thread->Start();
+    auto thread = dynamic_cast<Thread*>(GetHandle(thread_handle_id));
+    ASSERT_DEBUG(thread, HorizonKernel, "Handle 0x{:x} is not a Thread",
+                 thread_handle_id);
+    thread->Run();
 
     return RESULT_SUCCESS;
 }

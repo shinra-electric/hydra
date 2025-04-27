@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
@@ -34,8 +35,9 @@ class EmulationContext {
     Hydra::HW::Bus* bus;
     Hydra::Horizon::OS* os;
 
+    Hydra::Horizon::Kernel::Process* process;
+
     std::atomic_bool is_running = false;
-    std::vector<std::thread*> threads;
 };
 
 } // namespace Hydra

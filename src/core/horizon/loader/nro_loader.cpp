@@ -4,6 +4,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -49,7 +50,8 @@ struct NROHeader {
 
 } // namespace
 
-void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
+Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
+                                    const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NROHeader>();
 
@@ -65,11 +67,6 @@ void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
         base); // TODO: is the permission correct?
     reader.Seek(0);
     reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
-
-    // Set entrypoint
-    Kernel::Kernel::GetInstance().SetMainThreadEntryPoint(
-        base + sizeof(NROHeader) +
-        header.GetSection(NROSectionType::Text).offset);
 
     // Args
     const u64 argv_offset = executable_size;
@@ -113,9 +110,6 @@ void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
 #undef ADD_ENTRY_MANDATORY
 #undef ADD_ENTRY
 
-    Kernel::Kernel::GetInstance().SetMainThreadArg(0, base + config_offset);
-    Kernel::Kernel::GetInstance().SetMainThreadArg(1, UINT64_MAX);
-
     // Filesystem
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
         ROM_VIRTUAL_PATH,
@@ -123,6 +117,17 @@ void NROLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
                                  reader.GetSize()));
     ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
            "Failed to add romFS entry: {}", res);
+
+    // Process
+    Kernel::Process* process = new Kernel::Process();
+    auto& main_thread = process->GetMainThread();
+    main_thread.handle->SetEntryPoint(
+        base + sizeof(NROHeader) +
+        header.GetSection(NROSectionType::Text).offset);
+    main_thread.handle->SetArg(0, base + config_offset);
+    main_thread.handle->SetArg(1, UINT64_MAX);
+
+    return process;
 }
 
 } // namespace Hydra::Horizon::Loader

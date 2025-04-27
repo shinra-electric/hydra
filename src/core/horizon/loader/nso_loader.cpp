@@ -2,6 +2,7 @@
 
 #include "common/lz4.hpp"
 #include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace Hydra::Horizon::Loader {
 
@@ -75,7 +76,8 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
+Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
+                                    const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NSOHeader>();
     ASSERT(std::memcmp(header.magic, "NSO0", 4) == 0, HorizonLoader,
@@ -129,17 +131,6 @@ void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
 
-    if (is_entry_point) {
-        // Set entrypoint
-        Kernel::Kernel::GetInstance().SetMainThreadEntryPoint(
-            base + header.text.memory_offset);
-
-        // Args
-        Kernel::Kernel::GetInstance().SetMainThreadArg(0, 0x0);
-        Kernel::Kernel::GetInstance().SetMainThreadArg(
-            1, 0x0000000f); // TODO: what thread handle should be used?
-    }
-
     // Debug
 #define DUMP 0
 #if DUMP
@@ -149,6 +140,19 @@ void NSOLoader::LoadRom(StreamReader& reader, const std::string& rom_filename) {
     out.write(reinterpret_cast<const char*>(ptr), executable_size);
     out.close();
 #endif
+
+    // Process
+    if (is_entry_point) {
+        Kernel::Process* process = new Kernel::Process();
+        auto& main_thread = process->GetMainThread();
+        main_thread.handle->SetEntryPoint(base + header.text.memory_offset);
+        main_thread.handle->SetArg(0, 0x0);
+        main_thread.handle->SetArg(1, main_thread.id);
+
+        return process;
+    } else {
+        return nullptr;
+    }
 }
 
 } // namespace Hydra::Horizon::Loader

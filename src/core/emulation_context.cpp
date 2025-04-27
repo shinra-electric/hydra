@@ -49,10 +49,7 @@ EmulationContext::EmulationContext() {
 }
 
 EmulationContext::~EmulationContext() {
-    for (auto t : threads) {
-        // Force the thead to exit
-        delete t;
-    }
+    // TODO: delete objects
 }
 
 void EmulationContext::LoadRom(const std::string& rom_filename) {
@@ -73,7 +70,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
 
     StreamReader reader(ifs, 0, size);
-    loader->LoadRom(reader, rom_filename);
+    process = loader->LoadRom(reader, rom_filename);
     delete loader;
 
     ifs.close();
@@ -148,25 +145,6 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 }
 
 void EmulationContext::Run() {
-    // Main thread
-    std::thread* t = new std::thread([&]() {
-        // Main thread
-        Hydra::HW::TegraX1::CPU::ThreadBase* main_thread =
-            cpu->CreateThread(os->GetKernel().GetTlsMemory());
-        os->GetKernel().InitializeMainThread(main_thread);
-
-        // Run
-        main_thread->Run();
-
-        // Cleanup
-        delete main_thread;
-
-        // Notify that emulation has ended
-        is_running = false;
-    });
-
-    is_running = true;
-
     // Enter focus
     auto& state_manager = Horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
@@ -176,6 +154,9 @@ void EmulationContext::Run() {
     // Select user account
     // HACK
     state_manager.PushPreselectedUser(0x01234567);
+
+    process->Run();
+    is_running = true;
 }
 
 void EmulationContext::Present() {
