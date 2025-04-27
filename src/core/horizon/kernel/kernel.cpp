@@ -914,12 +914,12 @@ handle_id_t Kernel::AddHandle(Handle* handle) {
 }
 
 HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
-    auto mem = mmu->AllocateMemory(DEFAULT_TLS_MEM_SIZE);
+    auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
-    tls_mem_base += DEFAULT_TLS_MEM_SIZE;
+    tls_mem_base += TLS_MEM_SIZE;
 
     return mem;
 }

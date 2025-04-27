@@ -78,14 +78,6 @@ void Thread::Run() {
 
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
-                // HACK
-                if (ec == 0x21) {
-                    LogStackTrace(elr);
-                    LOG_WARN(Hypervisor, "InstructionAbortSameEl");
-                    std::this_thread::sleep_for(
-                        std::chrono::seconds(0xffffffff));
-                }
-
                 u32 instruction = mmu->Load<u32>(elr);
 
                 switch (ec) {

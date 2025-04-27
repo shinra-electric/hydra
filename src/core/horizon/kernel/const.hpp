@@ -11,14 +11,13 @@ constexpr usize ADDRESS_SPACE_SIZE = ADDRESS_SPACE_END - ADDRESS_SPACE_START;
 
 constexpr uptr STACK_REGION_BASE = 0x10000000;
 constexpr usize STACK_REGION_SIZE = 0x10000000;
-constexpr usize DEFAULT_STACK_MEM_SIZE = 0x2000000;
 
 constexpr uptr ALIAS_REGION_BASE = 0x30000000;
 constexpr usize ALIAS_REGION_SIZE = STACK_REGION_SIZE;
 
 constexpr uptr TLS_REGION_BASE = 0x20000000;
 constexpr usize TLS_REGION_SIZE = 0x10000000;
-constexpr usize DEFAULT_TLS_MEM_SIZE = 0x20000;
+constexpr usize TLS_MEM_SIZE = 0x20000;
 
 constexpr uptr HEAP_REGION_BASE = 0x100000000;
 constexpr usize HEAP_REGION_SIZE = 0x100000000;

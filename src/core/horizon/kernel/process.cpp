@@ -6,12 +6,16 @@
 
 namespace Hydra::Horizon::Kernel {
 
+constexpr usize MAIN_THREAD_STACK_SIZE =
+    0x4000000; // TODO: why does the size need to be double the size it used to
+               // be before the thread rework? InstructionAbortSameEl otherwise
+
 Process::Process()
-    : main_thread(new Thread(STACK_REGION_BASE + DEFAULT_STACK_MEM_SIZE,
+    : main_thread(new Thread(STACK_REGION_BASE + MAIN_THREAD_STACK_SIZE - 0x10,
                              20)) /* TODO: priority */ {
     // Stack memory
     auto& mmu = HW::TegraX1::CPU::MMUBase::GetInstance();
-    stack_mem = mmu.AllocateMemory(DEFAULT_STACK_MEM_SIZE);
+    stack_mem = mmu.AllocateMemory(MAIN_THREAD_STACK_SIZE);
     mmu.Map(STACK_REGION_BASE, stack_mem,
             {MemoryType::Stack, MemoryAttribute::None,
              MemoryPermission::ReadWrite});
@@ -22,6 +26,8 @@ Process::Process()
 }
 
 Process::~Process() {
+    HW::TegraX1::CPU::MMUBase::GetInstance().Unmap(ALIAS_REGION_BASE,
+                                                   stack_mem->GetSize());
     HW::TegraX1::CPU::MMUBase::GetInstance().Unmap(STACK_REGION_BASE,
                                                    stack_mem->GetSize());
     HW::TegraX1::CPU::MMUBase::GetInstance().FreeMemory(stack_mem);
