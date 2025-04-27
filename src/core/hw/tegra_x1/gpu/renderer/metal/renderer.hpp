@@ -158,7 +158,7 @@ class Renderer : public RendererBase {
 
     CA::MetalLayer* layer;
 
-    // Objects
+    // Resources
 
     // Depth stencil states
     MTL::DepthStencilState* depth_stencil_state_always_and_write;
@@ -172,6 +172,9 @@ class Renderer : public RendererBase {
     BlitPipelineCache* blit_pipeline_cache;
     ClearColorPipelineCache* clear_color_pipeline_cache;
     ClearDepthPipelineCache* clear_depth_pipeline_cache;
+
+    // Null
+    MTL::Texture* null_texture;
 
     // Command buffer
     MTL::CommandBuffer* command_buffer{nullptr};

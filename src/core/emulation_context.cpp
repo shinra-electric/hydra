@@ -115,6 +115,12 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         cpu->GetMMU()->Store<u32>(0x4029ff44, NOP);
         cpu->GetMMU()->Store<u32>(0x402a004c, NOP);
         cpu->GetMMU()->Store<u32>(0x402a005c, NOP);
+
+        cpu->GetMMU()->Store<u32>(
+            0x401d8208,
+            NOP); // This one doesn't seem to do anything with GPU
+
+        cpu->GetMMU()->Store<u32>(0x40131060, NOP);
     }
 
     if (false) {                                    // Sonic Mania

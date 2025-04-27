@@ -367,9 +367,17 @@ Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
 
 Renderer::TextureBase*
 ThreeD::GetTexture(const TextureImageControl& tic) const {
-    const uptr gpu_addr = make_addr(tic.addr_lo, tic.addr_hi);
-    if (gpu_addr == 0x0)
+    // HACK
+    if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
+        LOG_ERROR(Engines, "1D buffer");
         return nullptr;
+    }
+
+    const uptr gpu_addr = make_addr(tic.addr_lo, tic.addr_hi);
+    if (gpu_addr == 0x0) {
+        LOG_ERROR(Engines, "Texture address is NULL");
+        return nullptr;
+    }
 
     NvKind kind;
     switch (tic.hdr_version) {
@@ -600,6 +608,7 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         if (texture)
             RENDERER->BindTexture(texture, to_renderer_shader_type(stage),
                                   renderer_index);
+        // TODO: else bind null texture
 
         // Sampler
         // TODO

@@ -45,7 +45,7 @@ Renderer::Renderer() {
     // Functions
     */
 
-    // Objects
+    // Resources
 
     // Depth stencil states
 
@@ -74,6 +74,37 @@ Renderer::Renderer() {
     blit_pipeline_cache = new BlitPipelineCache();
     clear_color_pipeline_cache = new ClearColorPipelineCache();
     clear_depth_pipeline_cache = new ClearDepthPipelineCache();
+
+    // Null
+
+    // Texture
+    constexpr usize NULL_TEXTURE_WIDTH = 128;
+    constexpr usize NULL_TEXTURE_HEIGHT = 128;
+
+    MTL::TextureDescriptor* texture_desc =
+        MTL::TextureDescriptor::alloc()->init();
+    texture_desc->setWidth(NULL_TEXTURE_WIDTH);
+    texture_desc->setHeight(NULL_TEXTURE_HEIGHT);
+    texture_desc->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
+    texture_desc->setStorageMode(MTL::StorageModeShared);
+    texture_desc->setUsage(MTL::TextureUsageShaderRead);
+    null_texture = device->newTexture(texture_desc);
+    texture_desc->release();
+
+    // HACK: fill the null texture with a gradient
+    {
+        uchar4 gradient[NULL_TEXTURE_HEIGHT][NULL_TEXTURE_WIDTH];
+        for (u32 y = 0; y < NULL_TEXTURE_HEIGHT; y++) {
+            for (u32 x = 0; x < NULL_TEXTURE_WIDTH; x++) {
+                gradient[y][x] = uchar4(
+                    {static_cast<u8>(x * 256 / NULL_TEXTURE_WIDTH),
+                     static_cast<u8>(y * 256 / NULL_TEXTURE_HEIGHT), 0, 255});
+            }
+        }
+        null_texture->replaceRegion(
+            MTL::Region(0, 0, 0, NULL_TEXTURE_WIDTH, NULL_TEXTURE_HEIGHT, 1), 0,
+            gradient, sizeof(gradient) / NULL_TEXTURE_HEIGHT);
+    }
 
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
@@ -364,6 +395,12 @@ MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
         command_buffer->renderCommandEncoder(render_pass_descriptor);
     encoder_type = EncoderType::Render;
     encoder_state.render_pass = render_pass_descriptor;
+
+    // HACK: bind null textures
+    for (u32 i = 0; i < TEXTURE_COUNT; i++) {
+        GetRenderCommandEncoderUnchecked()->setVertexTexture(null_texture, i);
+        GetRenderCommandEncoderUnchecked()->setFragmentTexture(null_texture, i);
+    }
 
     return GetRenderCommandEncoderUnchecked();
 }

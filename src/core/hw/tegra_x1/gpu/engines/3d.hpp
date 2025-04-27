@@ -18,7 +18,7 @@ class PipelineBase;
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
-enum TicHdrVersion : u32 {
+enum class TicHdrVersion : u32 {
     _1DBuffer = 0,
     PitchColorKey = 1,
     Pitch = 2,
