@@ -39,7 +39,8 @@ class IHidServer : public Kernel::ServiceBase {
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
     // HACK: this command is usually called from a separate thread which
     // randomly throws InvalidCmifOutHeader error (0x1a80a), therefore we let
-    // the thread sleep STUB_REQUEST_COMMAND(SendVibrationValues);
+    // the thread sleep
+    // STUB_REQUEST_COMMAND(SendVibrationValues);
     void SendVibrationValues(REQUEST_COMMAND_PARAMS) {
         LOG_WARN(HorizonServices, "Infinite sleep");
         std::this_thread::sleep_for(std::chrono::seconds(0xffffffff));
