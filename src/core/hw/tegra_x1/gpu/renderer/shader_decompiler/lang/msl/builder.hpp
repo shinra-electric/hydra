@@ -6,7 +6,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
 
 class Builder final : public LangBuilderBase {
   public:
-    Builder(const Analyzer& analyzer, const ShaderType type,
+    Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
             const GuestShaderState& state, std::vector<u8>& out_code,
             ResourceMapping& out_resource_mapping)
         : LangBuilderBase(analyzer, type, state, out_code,

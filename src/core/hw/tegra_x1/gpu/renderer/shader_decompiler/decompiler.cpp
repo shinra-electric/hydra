@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
@@ -79,7 +79,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
                            const GuestShaderState& state,
                            std::vector<u8>& out_code,
                            ResourceMapping& out_resource_mapping) {
-    Analyzer analyzer;
+    Analyzer::Analyzer analyzer;
 
     // Builder
     BuilderBase* builder;

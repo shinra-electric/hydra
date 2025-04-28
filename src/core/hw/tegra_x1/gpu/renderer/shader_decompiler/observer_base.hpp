@@ -7,19 +7,19 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 class ObserverBase {
   public:
     // Operations
-    virtual void OpExit() = 0;
-    virtual void OpMove(reg_t dst, Operand src) = 0;
-    virtual void OpAdd(Operand dst, Operand src1, Operand src2) = 0;
-    virtual void OpMultiply(Operand dst, Operand src1, Operand src2) = 0;
-    virtual void OpFloatFma(reg_t dst, reg_t src1, Operand src2,
-                            Operand src3) = 0;
-    virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) = 0;
-    virtual void OpMathFunction(MathFunc func, reg_t dst, reg_t src) = 0;
-    virtual void OpLoad(reg_t dst, Operand src) = 0;
-    virtual void OpStore(AMem dst, reg_t src) = 0;
-    virtual void OpInterpolate(reg_t dst, AMem src) = 0;
+    virtual void OpExit() {}
+    virtual void OpMove(reg_t dst, Operand src) {}
+    virtual void OpAdd(Operand dst, Operand src1, Operand src2) {}
+    virtual void OpMultiply(Operand dst, Operand src1, Operand src2) {}
+    virtual void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
+    }
+    virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) {}
+    virtual void OpMathFunction(MathFunc func, reg_t dst, reg_t src) {}
+    virtual void OpLoad(reg_t dst, Operand src) {}
+    virtual void OpStore(AMem dst, reg_t src) {}
+    virtual void OpInterpolate(reg_t dst, AMem src) {}
     virtual void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
-                                 reg_t coords_x, reg_t coords_y) = 0;
+                                 reg_t coords_x, reg_t coords_y) {}
 
   private:
 };

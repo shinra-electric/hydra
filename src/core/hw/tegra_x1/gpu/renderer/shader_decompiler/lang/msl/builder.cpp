@@ -1,19 +1,21 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
 
 void Builder::InitializeResourceMapping() {
-    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
         out_resource_mapping.uniform_buffers[index] = index;
     }
 
     // TODO: storage buffers
 
     u32 texture_index = 0;
-    for (const auto const_buffer_index : analyzer.GetTextures()) {
+    for (const auto const_buffer_index :
+         analyzer.GetMemoryAnalyzer().GetTextures()) {
         out_resource_mapping.textures[const_buffer_index] = texture_index++;
     }
 
@@ -56,7 +58,7 @@ void Builder::EmitDeclarations() {
         break;
     case ShaderType::Fragment:
         Write("float4 position [[position]];");
-        for (const auto input : analyzer.GetStageInputs()) {
+        for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs()) {
             const auto sv = SV(SVSemantic::UserInOut, input);
             // TODO: don't hardcode the type
             Write("float4 {} {};", GetSVName(sv),
@@ -75,7 +77,7 @@ void Builder::EmitDeclarations() {
     EnterScope("struct StageOut");
 
     // SVs
-    for (const auto sv_semantic : analyzer.GetOutputSVs()) {
+    for (const auto sv_semantic : analyzer.GetMemoryAnalyzer().GetOutputSVs()) {
         switch (sv_semantic) {
         case SVSemantic::Position:
             Write("float4 position [[position]];");
@@ -90,7 +92,8 @@ void Builder::EmitDeclarations() {
     // Stage outputs
     switch (type) {
     case ShaderType::Vertex:
-        for (const auto output : analyzer.GetStageOutputs()) {
+        for (const auto output :
+             analyzer.GetMemoryAnalyzer().GetStageOutputs()) {
             const auto sv = SV(SVSemantic::UserInOut, output);
             // TODO: don't hardcode the type
             Write("float4 {} {};", GetSVName(sv), GetSVQualifierName(sv, true));
@@ -115,7 +118,8 @@ void Builder::EmitDeclarations() {
     WriteNewline();
 
     // Uniform buffers
-    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
         EnterScope("struct UBuff{}", index);
 
         // Data
@@ -146,7 +150,8 @@ void Builder::EmitMainPrototype() {
     // TODO
 
     // Uniform buffers
-    for (const auto& [index, size] : analyzer.GetUniformBuffers()) {
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
         ADD_ARG("constant UBuff{}& ubuff{} [[buffer({})]]", index, index,
                 out_resource_mapping.uniform_buffers[index]);
     }
@@ -155,7 +160,8 @@ void Builder::EmitMainPrototype() {
     // TODO
 
     // Textures
-    for (const auto const_buffer_index : analyzer.GetTextures()) {
+    for (const auto const_buffer_index :
+         analyzer.GetMemoryAnalyzer().GetTextures()) {
         const auto index = out_resource_mapping.textures[const_buffer_index];
         // TODO: don't hardcode texture type
         ADD_ARG("texture2d<float> tex{} [[texture({})]]", const_buffer_index,
