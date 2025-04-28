@@ -59,8 +59,10 @@ void TextureCache::DestroyElement(Tex& texture) {
 }
 
 void TextureCache::DecodeTexture(TextureBase* texture) {
-    u8* out_data = scratch_buffer + sizeof(scratch_buffer) / 2;
-    texture_decoder.Decode(texture->GetDescriptor(), scratch_buffer, out_data);
+    scratch_buffer.resize(texture->GetDescriptor().stride *
+                          texture->GetDescriptor().height);
+    auto out_data = scratch_buffer.data();
+    texture_decoder.Decode(texture->GetDescriptor(), out_data);
 
     texture->CopyFrom(reinterpret_cast<uptr>(out_data));
 }

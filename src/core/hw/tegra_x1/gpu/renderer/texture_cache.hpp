@@ -31,7 +31,7 @@ class TextureCache : public CacheBase<TextureCache, Tex, TextureDescriptor> {
     TextureDecoder texture_decoder;
 
     // Buffers
-    u8 scratch_buffer[0x4000 * 0x4000 * 0x4]; // TODO: allocate dynamically
+    std::vector<u8> scratch_buffer;
 
     // Helpers
     void DecodeTexture(TextureBase* texture);
