@@ -13,7 +13,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
 class LangBuilderBase : public BuilderBase {
   public:
-    LangBuilderBase(const Analyzer& analyzer, const ShaderType type,
+    LangBuilderBase(const Analyzer::Analyzer& analyzer, const ShaderType type,
                     const GuestShaderState& state, std::vector<u8>& out_code,
                     ResourceMapping& out_resource_mapping)
         : BuilderBase(analyzer, type, state, out_code, out_resource_mapping) {}

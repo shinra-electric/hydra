@@ -13,10 +13,17 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             LOG_NOT_IMPLEMENTED(Engines, "Copy buffer to buffer");
         } else {
-            // TODO: don't multiply by 4
+            // NOTE: a texture copy could be possible, as LineLengthIn contains
+            // the width and PitchOut contains the stride, hence we could find
+            // the pixel size and later use a texture view to alias the base
+            // texture. However, this could break the order in which memory is
+            // copied and create issues. Block formats could also be
+            // problematic.
+
+            // TODO: check this
             memcpy((void*)UNMAP_ADDR(regs.offset_out),
                    (void*)UNMAP_ADDR(regs.offset_in),
-                   regs.line_length_in * regs.line_count * 4);
+                   regs.dst.stride * regs.line_count);
             // TODO: do a GPU copy
             /*
             const auto src =

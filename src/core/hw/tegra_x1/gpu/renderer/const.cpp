@@ -2,74 +2,6 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer {
 
-bool texture_format_can_be_swizzled(TextureFormat format) {
-    switch (format) {
-    case TextureFormat::RGBA8Unorm:
-    case TextureFormat::R8Unorm:
-    case TextureFormat::B5G6R5Unorm:
-    case TextureFormat::RGBA8Unorm_sRGB:
-    case TextureFormat::BGRA8Unorm:
-    case TextureFormat::BGRA8Unorm_sRGB:
-    case TextureFormat::RGB10A2Unorm:
-    case TextureFormat::RGB10A2Uint:
-    case TextureFormat::RG8Unorm:
-    case TextureFormat::RG8Snorm:
-    case TextureFormat::RG8Sint:
-    case TextureFormat::RG8Uint:
-    case TextureFormat::R16Unorm:
-    case TextureFormat::R16Snorm:
-    case TextureFormat::R16Sint:
-    case TextureFormat::R16Uint:
-    case TextureFormat::R16Float:
-    case TextureFormat::R8Snorm:
-    case TextureFormat::R8Sint:
-    case TextureFormat::R8Uint:
-    case TextureFormat::RGBX8Unorm:
-    case TextureFormat::RGBX8Unorm_sRGB:
-    case TextureFormat::BGRX8Unorm:
-    case TextureFormat::BGRX8Unorm_sRGB:
-    case TextureFormat::RGBA16Unorm:
-    case TextureFormat::RGBA16Snorm:
-    case TextureFormat::RGBA16Sint:
-    case TextureFormat::RGBA16Uint:
-    case TextureFormat::RGBA16Float:
-    case TextureFormat::RG32Float:
-    case TextureFormat::RG32Sint:
-    case TextureFormat::RG32Uint:
-    case TextureFormat::RGBA32Float:
-    case TextureFormat::RGBA32Sint:
-    case TextureFormat::RGBA32Uint:
-        return true;
-    default:
-        return false;
-    }
-}
-
-SwizzleChannels
-get_texture_format_default_swizzle_channels(const TextureFormat format) {
-    if (!texture_format_can_be_swizzled(format))
-        return {ImageSwizzle::Zero, ImageSwizzle::Zero, ImageSwizzle::Zero,
-                ImageSwizzle::Zero};
-
-#define SWIZZLE(r, g, b, a)                                                    \
-    {ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a}
-
-    // TODO: implement all formats
-    switch (format) {
-    case TextureFormat::RGBA8Unorm:
-        return SWIZZLE(R, G, B, A);
-    case TextureFormat::R8Unorm:
-        return SWIZZLE(R, Zero, Zero, OneFloat);
-    case TextureFormat::B5G6R5Unorm:
-        return SWIZZLE(R, G, B, OneFloat);
-    default:
-        LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
-        return SWIZZLE(Zero, Zero, Zero, Zero);
-    }
-
-#undef SWIZZLE
-}
-
 TextureFormat to_texture_format(NvColorFormat color_format) {
 #define NV_COLOR_FORMAT_CASE(color_format, texture_format)                     \
     case NvColorFormat::color_format:                                          \
@@ -228,6 +160,258 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
     }
 
 #undef DEPTH_SURFACE_FORMAT_CASE
+}
+
+usize get_texture_format_stride(const TextureFormat format, usize width) {
+    // TODO: check this
+    switch (format) {
+    case TextureFormat::Invalid:
+        return 0;
+    case TextureFormat::R8Unorm:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Uint:
+    case TextureFormat::R8Sint:
+        return width;
+    case TextureFormat::R16Float:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Sint:
+        return width * 2;
+    case TextureFormat::R32Float:
+    case TextureFormat::R32Uint:
+    case TextureFormat::R32Sint:
+        return width * 4;
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::RG8Sint:
+        return width * 2;
+    case TextureFormat::RG16Float:
+    case TextureFormat::RG16Unorm:
+    case TextureFormat::RG16Snorm:
+    case TextureFormat::RG16Uint:
+    case TextureFormat::RG16Sint:
+        return width * 4;
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RG32Sint:
+        return width * 8;
+    case TextureFormat::RGB32Float:
+    case TextureFormat::RGB32Uint:
+    case TextureFormat::RGB32Sint:
+        return width * 12;
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::RGBA8Snorm:
+    case TextureFormat::RGBA8Uint:
+    case TextureFormat::RGBA8Sint:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Snorm:
+    case TextureFormat::RGBX8Uint:
+    case TextureFormat::RGBX8Sint:
+    case TextureFormat::RGBX8Unorm_sRGB:
+        return width * 4;
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBX16Float:
+    case TextureFormat::RGBX16Unorm:
+    case TextureFormat::RGBX16Snorm:
+    case TextureFormat::RGBX16Uint:
+    case TextureFormat::RGBX16Sint:
+        return width * 8;
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Uint:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBX32Float:
+    case TextureFormat::RGBX32Uint:
+    case TextureFormat::RGBX32Sint:
+        return width * 16;
+    case TextureFormat::S8Uint:
+        return width;
+    case TextureFormat::Z16Unorm:
+        return width * 2;
+    case TextureFormat::Z24Unorm_X8Uint:
+    case TextureFormat::Z24Unorm_S8Uint:
+        return width * 4;
+    case TextureFormat::Z32Float:
+        return width * 4;
+    case TextureFormat::Z32Float_X24S8Uint:
+        return width * 8;
+        return width * 4;
+    case TextureFormat::RGBA4Unorm:
+        return width * 2;
+    case TextureFormat::RGB5Unorm:
+    case TextureFormat::RGB5A1Unorm:
+    case TextureFormat::R5G6B5Unorm:
+        return width * 2;
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+        return width * 4;
+    case TextureFormat::RG11B10Float:
+        return width * 4;
+    case TextureFormat::E5BGR9Float:
+        return width * 4;
+    case TextureFormat::BC1_RGB:
+    case TextureFormat::BC1_RGBA:
+    case TextureFormat::BC1_RGB_sRGB:
+    case TextureFormat::BC1_RGBA_sRGB:
+        return ((width + 3) / 4) * 8;
+    case TextureFormat::BC2_RGBA:
+    case TextureFormat::BC3_RGBA:
+    case TextureFormat::BC2_RGBA_sRGB:
+    case TextureFormat::BC3_RGBA_sRGB:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::BC4_RUnorm:
+    case TextureFormat::BC4_RSnorm:
+        return ((width + 3) / 4) * 8;
+    case TextureFormat::BC5_RGUnorm:
+    case TextureFormat::BC5_RGSnorm:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::BC7_RGBAUnorm:
+    case TextureFormat::BC7_RGBAUnorm_sRGB:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::BC6H_RGBA_SF16_Float:
+    case TextureFormat::BC6H_RGBA_UF16_Float:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::ASTC_RGBA_4x4:
+    case TextureFormat::ASTC_RGBA_4x4_sRGB:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::ASTC_RGBA_5x4:
+    case TextureFormat::ASTC_RGBA_5x4_sRGB:
+        return ((width + 4) / 5) * 16;
+    case TextureFormat::ASTC_RGBA_5x5:
+    case TextureFormat::ASTC_RGBA_5x5_sRGB:
+        return ((width + 4) / 5) * 16;
+    case TextureFormat::ASTC_RGBA_6x5:
+    case TextureFormat::ASTC_RGBA_6x5_sRGB:
+        return ((width + 5) / 6) * 16;
+    case TextureFormat::ASTC_RGBA_6x6:
+    case TextureFormat::ASTC_RGBA_6x6_sRGB:
+        return ((width + 5) / 6) * 16;
+    case TextureFormat::ASTC_RGBA_8x5:
+    case TextureFormat::ASTC_RGBA_8x5_sRGB:
+        return ((width + 7) / 8) * 16;
+    case TextureFormat::ASTC_RGBA_8x6:
+    case TextureFormat::ASTC_RGBA_8x6_sRGB:
+        return ((width + 7) / 8) * 16;
+    case TextureFormat::ASTC_RGBA_8x8:
+    case TextureFormat::ASTC_RGBA_8x8_sRGB:
+        return ((width + 7) / 8) * 16;
+    case TextureFormat::ASTC_RGBA_10x5:
+    case TextureFormat::ASTC_RGBA_10x5_sRGB:
+        return ((width + 9) / 10) * 16;
+    case TextureFormat::ASTC_RGBA_10x6:
+    case TextureFormat::ASTC_RGBA_10x6_sRGB:
+        return ((width + 9) / 10) * 16;
+    case TextureFormat::ASTC_RGBA_10x8:
+    case TextureFormat::ASTC_RGBA_10x8_sRGB:
+        return ((width + 9) / 10) * 16;
+    case TextureFormat::ASTC_RGBA_10x10:
+    case TextureFormat::ASTC_RGBA_10x10_sRGB:
+        return ((width + 9) / 10) * 16;
+    case TextureFormat::ASTC_RGBA_12x10:
+    case TextureFormat::ASTC_RGBA_12x10_sRGB:
+        return ((width + 11) / 12) * 16;
+    case TextureFormat::ASTC_RGBA_12x12:
+    case TextureFormat::ASTC_RGBA_12x12_sRGB:
+        return ((width + 11) / 12) * 16;
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BGR5Unorm:
+    case TextureFormat::BGR5A1Unorm:
+    case TextureFormat::A1BGR5Unorm:
+        return width * 2;
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm_sRGB:
+        return width * 4;
+    case TextureFormat::ETC2_R_Unorm:
+    case TextureFormat::ETC2_R_Snorm:
+        return ((width + 3) / 4) * 8;
+    case TextureFormat::ETC2_RG_Unorm:
+    case TextureFormat::ETC2_RG_Snorm:
+        return ((width + 3) / 4) * 16;
+    case TextureFormat::ETC2_RGB:
+    case TextureFormat::PTA_ETC2_RGB:
+    case TextureFormat::ETC2_RGB_sRGB:
+    case TextureFormat::PTA_ETC2_RGB_sRGB:
+        return ((width + 3) / 4) * 8;
+    case TextureFormat::ETC2_RGBA:
+    case TextureFormat::ETC2_RGBA_sRGB:
+        return ((width + 3) / 4) * 16;
+    }
+}
+
+bool texture_format_can_be_swizzled(TextureFormat format) {
+    switch (format) {
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::R8Unorm:
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRA8Unorm_sRGB:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Sint:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Sint:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Float:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Sint:
+    case TextureFormat::R8Uint:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Unorm_sRGB:
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Sint:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBA32Uint:
+        return true;
+    default:
+        return false;
+    }
+}
+
+SwizzleChannels
+get_texture_format_default_swizzle_channels(const TextureFormat format) {
+    if (!texture_format_can_be_swizzled(format))
+        return {ImageSwizzle::Zero, ImageSwizzle::Zero, ImageSwizzle::Zero,
+                ImageSwizzle::Zero};
+
+#define SWIZZLE(r, g, b, a)                                                    \
+    {ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a}
+
+    // TODO: implement all formats
+    switch (format) {
+    case TextureFormat::RGBA8Unorm:
+        return SWIZZLE(R, G, B, A);
+    case TextureFormat::R8Unorm:
+        return SWIZZLE(R, Zero, Zero, OneFloat);
+    case TextureFormat::B5G6R5Unorm:
+        return SWIZZLE(R, G, B, OneFloat);
+    default:
+        LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
+        return SWIZZLE(Zero, Zero, Zero, Zero);
+    }
+
+#undef SWIZZLE
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer

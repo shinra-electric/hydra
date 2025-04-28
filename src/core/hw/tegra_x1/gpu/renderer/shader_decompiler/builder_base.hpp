@@ -6,13 +6,15 @@ namespace Hydra::HW::TegraX1::GPU::Renderer {
 class GuestShaderState;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
-
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 class Analyzer;
+}
+
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 class BuilderBase : public ObserverBase {
   public:
-    BuilderBase(const Analyzer& analyzer_, const ShaderType type_,
+    BuilderBase(const Analyzer::Analyzer& analyzer_, const ShaderType type_,
                 const GuestShaderState& state_, std::vector<u8>& out_code_,
                 ResourceMapping& out_resource_mapping_)
         : analyzer{analyzer_}, type{type_}, state{state_}, out_code{out_code_},
@@ -23,7 +25,7 @@ class BuilderBase : public ObserverBase {
     virtual void Finish() = 0;
 
   protected:
-    const Analyzer& analyzer;
+    const Analyzer::Analyzer& analyzer;
     const ShaderType type;
     const GuestShaderState& state;
 

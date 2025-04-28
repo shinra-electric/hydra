@@ -141,6 +141,13 @@ enum class TextureFormat {
     ETC2_RGBA_sRGB,
 };
 
+TextureFormat to_texture_format(NvColorFormat color_format);
+TextureFormat to_texture_format(const ImageFormatWord image_format_word);
+TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
+TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
+
+usize get_texture_format_stride(const TextureFormat format, usize width);
+
 struct SwizzleChannels {
     ImageSwizzle r : 3;
     ImageSwizzle g : 3;
@@ -154,11 +161,6 @@ struct SwizzleChannels {
 
 SwizzleChannels
 get_texture_format_default_swizzle_channels(const TextureFormat format);
-
-TextureFormat to_texture_format(NvColorFormat color_format);
-TextureFormat to_texture_format(const ImageFormatWord image_format_word);
-TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
-TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
 enum class BlendOperation {
     Add = 1,

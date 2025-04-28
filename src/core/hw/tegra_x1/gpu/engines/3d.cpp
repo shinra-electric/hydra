@@ -393,13 +393,13 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         break;
     }
 
+    const auto format = Renderer::to_texture_format(tic.format_word);
     const Renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        Renderer::to_texture_format(tic.format_word), kind,
+        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format, kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
-        tic.tile_height_gobs_log2,                         // TODO: correct?
-        static_cast<usize>((tic.width_minus_one + 1) * 4), // HACK
+        tic.tile_height_gobs_log2, // TODO: correct?
+        get_texture_format_stride(format, tic.width_minus_one + 1),
         {tic.format_word.swizzle_x, tic.format_word.swizzle_y,
          tic.format_word.swizzle_z, tic.format_word.swizzle_w});
 
@@ -418,14 +418,13 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         return nullptr;
     }
 
+    const auto format = Renderer::to_texture_format(render_target.format);
     const Renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        Renderer::to_texture_format(render_target.format),
+        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         render_target.width, render_target.height,
-        0,                      // TODO
-        render_target.width * 4 // HACK
-    );
+        0, // TODO
+        get_texture_format_stride(format, render_target.width));
 
     return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
@@ -438,14 +437,13 @@ Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
         return nullptr;
     }
 
+    const auto format = Renderer::to_texture_format(regs.depth_target_format);
     const Renderer::TextureDescriptor descriptor(
-        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
-        Renderer::to_texture_format(regs.depth_target_format),
+        GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         regs.depth_target_width, regs.depth_target_height,
-        0,                          // TODO
-        regs.depth_target_width * 4 // HACK
-    );
+        0, // TODO
+        get_texture_format_stride(format, regs.depth_target_width));
 
     return RENDERER->GetTextureCache().GetTextureView(descriptor);
 }
