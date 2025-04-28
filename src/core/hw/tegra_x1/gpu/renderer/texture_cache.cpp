@@ -30,7 +30,10 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
 }
 
 Tex TextureCache::Create(const TextureDescriptor& descriptor) {
-    auto texture = RENDERER->CreateTexture(descriptor);
+    auto desc = descriptor;
+    desc.swizzle_channels =
+        get_texture_format_default_swizzle_channels(desc.format);
+    auto texture = RENDERER->CreateTexture(desc);
     DecodeTexture(texture);
 
     return {texture};
