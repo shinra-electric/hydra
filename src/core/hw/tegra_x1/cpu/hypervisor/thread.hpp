@@ -82,7 +82,9 @@ class Thread : public ThreadBase {
     // Debug
     void LogRegisters(bool simd = false, u32 count = 32) override;
 
-    void LogStackTrace(uptr pc);
+  protected:
+    // Debug
+    void LogStackTraceImpl() override;
 
   private:
     MMU* mmu;

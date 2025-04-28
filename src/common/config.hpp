@@ -48,6 +48,7 @@ class Config {
         return process_args;
     }
     bool IsDebugLoggingEnabled() const { return debug_logging; }
+    bool IsLogStackTraceEnabled() const { return log_stack_trace; }
 
     // Setters
 #define SET_CONFIG_VALUE(name)                                                 \
@@ -96,6 +97,10 @@ class Config {
         SET_CONFIG_VALUE(debug_logging);
     }
 
+    void SetLogStackTrace(bool log_stack_trace_) {
+        SET_CONFIG_VALUE(log_stack_trace);
+    }
+
 #undef SET_CONFIG_VALUE
 
   private:
@@ -110,6 +115,7 @@ class Config {
     GpuRenderer gpu_renderer;
     std::vector<std::string> process_args;
     bool debug_logging;
+    bool log_stack_trace;
 
     // Default values
     std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
@@ -120,6 +126,7 @@ class Config {
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }
+    bool GetDefaultLogStackTrace() const { return false; }
 };
 
 } // namespace Hydra

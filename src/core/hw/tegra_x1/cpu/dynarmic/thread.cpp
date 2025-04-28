@@ -57,17 +57,18 @@ void Thread::Initialize(
 void Thread::Run() { jit->Run(); }
 
 void Thread::LogRegisters(bool simd, u32 count) {
-    // TODO
+    // TODO: implement
+    LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
 }
 
-void Thread::LogStackTrace() {
+void Thread::LogStackTraceImpl() {
     u64 fp = jit->GetRegister(29);
     u64 lr = jit->GetRegister(30);
     u64 sp = jit->GetSP();
 
     LOG_DEBUG(CPU, "Stack trace:");
-    // LOG_DEBUG(CPU, "SP: 0x{:08x}", sp);
     LOG_DEBUG(CPU, "0x{:08x}", jit->GetPC());
+    // TODO: ELR?
 
     for (uint64_t frame = 0; fp != 0; frame++) {
         LOG_DEBUG(CPU, "0x{:08x}", lr - 0x4);
@@ -76,13 +77,11 @@ void Thread::LogStackTrace() {
             break;
         }
 
-        // if (!stack_mem->AddrIsInRange(fp))
-        //     break;
         // HACK
-        if (fp < 0x10000000 || fp >= 0x20000000) {
-            LOG_WARN(Hypervisor, "Currputed stack");
-            break;
-        }
+        // if (fp < 0x10000000 || fp >= 0x20000000) {
+        //    LOG_WARN(Hypervisor, "Currputed stack");
+        //    break;
+        //}
 
         u64 new_fp = mmu->Load<u64>(fp);
         lr = mmu->Load<u64>(fp + 8);

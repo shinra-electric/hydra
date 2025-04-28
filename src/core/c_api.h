@@ -28,6 +28,9 @@ void hydra_config_remove_process_arg(uint32_t index);
 bool hydra_config_is_debug_logging_enabled();
 void hydra_config_set_debug_logging(bool enabled);
 
+bool hydra_config_is_log_stack_trace_enabled();
+void hydra_config_set_log_stack_trace(bool enabled);
+
 // Emulation context
 void* hydra_emulation_context_create();
 void hydra_emulation_context_destroy(void* ctx);

@@ -35,7 +35,10 @@ class Thread final : public ThreadBase, private DynA64::UserCallbacks {
 
     // Debug
     void LogRegisters(bool simd = false, u32 count = 32) override;
-    void LogStackTrace();
+
+  protected:
+    // Debug
+    void LogStackTraceImpl() override;
 
   private:
     MMU* mmu;

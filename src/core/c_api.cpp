@@ -60,6 +60,14 @@ void hydra_config_set_debug_logging(bool enabled) {
     Hydra::Config::GetInstance().SetDebugLogging(enabled);
 }
 
+bool hydra_config_is_log_stack_trace_enabled() {
+    return Hydra::Config::GetInstance().IsLogStackTraceEnabled();
+}
+
+void hydra_config_set_log_stack_trace(bool enabled) {
+    Hydra::Config::GetInstance().SetLogStackTrace(enabled);
+}
+
 // Emulation context
 void* hydra_emulation_context_create() { return new Hydra::EmulationContext(); }
 

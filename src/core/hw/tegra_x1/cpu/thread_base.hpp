@@ -24,10 +24,21 @@ class ThreadBase {
     u32 GetRegW(u8 reg) const { return static_cast<u32>(GetRegX(reg)); }
     void SetRegW(u8 reg, u32 value) { SetRegX(reg, static_cast<u64>(value)); }
 
+    // Debug
     virtual void LogRegisters(bool simd = false, u32 count = 32) = 0;
+    void LogStackTrace() {
+        if (!Config::GetInstance().IsLogStackTraceEnabled())
+            return;
+
+        LogStackTraceImpl();
+    }
 
     // Getters
     MemoryBase* GetTlsMemory() const { return tls_mem; }
+
+  protected:
+    // Debug
+    virtual void LogStackTraceImpl() = 0;
 
   private:
     MemoryBase* tls_mem;

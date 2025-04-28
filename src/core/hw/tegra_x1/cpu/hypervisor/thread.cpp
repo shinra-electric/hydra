@@ -66,6 +66,8 @@ void Thread::Run() {
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
+            LogStackTrace();
+
             u64 syndrome = exit->exception.syndrome;
             u8 hvEc = (syndrome >> 26) & 0x3f;
             u64 pc = GetReg(HV_REG_PC);
@@ -82,12 +84,7 @@ void Thread::Run() {
 
                 switch (ec) {
                 case 0x15:
-                    // Debug
-                    LogStackTrace(elr);
-                    // cpu->LogRegisters();
-
                     running = svc_handler(this, esr & 0xffff);
-
                     break;
                 case 0x18:
                     LOG_DEBUG(Hypervisor, "MSR MSR");
@@ -95,9 +92,6 @@ void Thread::Run() {
                     throw;
                     break;
                 case 0x25: {
-                    // Debug
-                    LogStackTrace(elr);
-
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT(far_valid, Hypervisor, "FAR not valid");
 
@@ -106,9 +100,6 @@ void Thread::Run() {
                     break;
                 }
                 default:
-                    // Debug
-                    LogStackTrace(elr);
-
                     LOG_FATAL(
                         Hypervisor,
                         "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
@@ -133,9 +124,6 @@ void Thread::Run() {
                 AdvancePC();
             } else if (hvEc == 0x18) {
                 // TODO: this should not happen
-
-                // Debug
-                LogStackTrace(pc);
 
                 LOG_DEBUG(Hypervisor, "MSR MRS instruction");
 
@@ -171,7 +159,6 @@ void Thread::Run() {
                 // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                 AdvancePC();
             } else if (hvEc == 0x3C) { // BRK
-                LogStackTrace(pc);
                 LogRegisters(true);
 
                 LOG_FATAL(Hypervisor, "BRK instruction");
@@ -179,7 +166,6 @@ void Thread::Run() {
                 break;
             } else {
                 // Debug
-                LogStackTrace(pc);
                 LogRegisters();
 
                 LOG_FATAL(
@@ -239,13 +225,14 @@ void Thread::LogRegisters(bool simd, u32 count) {
     LOG_DEBUG(Hypervisor, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
 }
 
-void Thread::LogStackTrace(uptr pc) {
+void Thread::LogStackTraceImpl() {
     u64 fp = GetReg(HV_REG_FP);
     u64 lr = GetReg(HV_REG_LR);
     u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
 
     LOG_DEBUG(Hypervisor, "Stack trace:");
-    LOG_DEBUG(Hypervisor, "0x{:08x}", pc);
+    LOG_DEBUG(Hypervisor, "0x{:08x}", GetReg(HV_REG_PC));
+    LOG_DEBUG(Hypervisor, "0x{:08x}", GetSysReg(HV_SYS_REG_ELR_EL1));
 
     for (uint64_t frame = 0; fp != 0; frame++) {
         LOG_DEBUG(Hypervisor, "0x{:08x}", lr - 0x4);
@@ -254,8 +241,6 @@ void Thread::LogStackTrace(uptr pc) {
             break;
         }
 
-        // if (!stack_mem->AddrIsInRange(fp))
-        //     break;
         // HACK
         // if (fp < 0x10000000 || fp >= 0x20000000) {
         //    LOG_WARN(Hypervisor, "Currputed stack");

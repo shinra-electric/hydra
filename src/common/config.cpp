@@ -104,6 +104,7 @@ Config::Config() {
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
+    LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
@@ -115,6 +116,7 @@ void Config::LoadDefaults() {
     gpu_renderer = GetDefaultGpuRenderer();
     process_args = GetDefaultProcessArgs();
     debug_logging = GetDefaultDebugLogging();
+    log_stack_trace = GetDefaultLogStackTrace();
 
     changed = true;
 }
@@ -155,6 +157,7 @@ void Config::Serialize() {
             auto& debug = data.at("Debug");
             debug["process_args"] = process_args;
             debug["debug_logging"] = debug_logging;
+            debug["log_stack_trace"] = log_stack_trace;
         }
 
         config_file << toml::format(data);
@@ -190,6 +193,8 @@ void Config::Deserialize() {
             debug, "process_args", GetDefaultProcessArgs());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
+        log_stack_trace = toml::find_or<bool>(debug, "log_stack_trace",
+                                              GetDefaultLogStackTrace());
     }
 
     // Validate
