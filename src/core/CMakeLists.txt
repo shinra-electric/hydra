@@ -231,6 +231,8 @@ add_library(hydra-core
     hw/tegra_x1/cpu/dynarmic/cpu.cpp
     hw/tegra_x1/cpu/dynarmic/cpu.hpp
     hw/tegra_x1/gpu/const.hpp
+    hw/tegra_x1/gpu/texture_util.cpp
+    hw/tegra_x1/gpu/texture_util.hpp
     hw/tegra_x1/gpu/gpu_mmu.cpp
     hw/tegra_x1/gpu/gpu_mmu.hpp
     hw/tegra_x1/gpu/pfifo.cpp

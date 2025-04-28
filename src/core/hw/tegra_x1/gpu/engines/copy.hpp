@@ -87,9 +87,25 @@ struct RegsCopy {
     u32 padding_0x108[0xb8];
 
     // 0x1c0
-    u32 remap_const_hi;
-    u32 remap_const_lo;
-    u32 remap_components;
+    u32 remap_const1;
+    u32 remap_const2;
+    struct {
+        u32 dst_x : 3;
+        u32 padding1 : 1;
+        u32 dst_y : 3;
+        u32 padding2 : 1;
+        u32 dst_z : 3;
+        u32 padding3 : 1;
+        u32 dst_w : 3;
+        u32 padding4 : 1;
+        u32 component_size_minus_one : 2;
+        u32 padding5 : 2;
+        u32 src_component_count_minus_one : 2;
+        u32 padding6 : 2;
+        u32 dst_component_count_minus_one : 2;
+        u32 padding7 : 2;
+        u32 padding8 : 4;
+    } remap_components;
     TextureCopyInfo dst;
 
     u32 padding_0x1c9;
@@ -114,6 +130,7 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
         MemoryLayout src_memory_layout : 1;
         MemoryLayout dst_memory_layout : 1;
         bool multi_line_enable : 1;
+        bool remap_enable : 1;
         bool force_rmw_disable : 1;
         bool src_memory_is_physical : 1;
         bool dst_memory_is_physical : 1;

@@ -41,7 +41,8 @@ Tex TextureCache::Create(const TextureDescriptor& descriptor) {
 
 void TextureCache::Update(Tex& texture) {
     // TODO: if data changed
-    if (texture.base->GetDescriptor().kind == NvKind::Generic_16BX2) // HACK
+    if (texture.base->GetDescriptor().width == 1280 &&
+        texture.base->GetDescriptor().height == 720) // HACK
         DecodeTexture(texture.base);
 }
 

@@ -3,12 +3,22 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
+#include "core/hw/tegra_x1/gpu/texture_util.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Engines {
 
 DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 
 void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
+    // TODO: implement component remapping
+    if (data.remap_enable) {
+        const auto& c = regs.remap_components;
+        ASSERT_DEBUG(
+            c.dst_x == 0 && c.dst_y == 1 && c.dst_z == 2 && c.dst_w == 3,
+            Engines, "Component remapping not implemented ({}, {}, {}, {})",
+            c.dst_x, c.dst_y, c.dst_z, c.dst_w);
+    }
+
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             LOG_NOT_IMPLEMENTED(Engines, "Copy buffer to buffer");
@@ -20,11 +30,28 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             // copied and create issues. Block formats could also be
             // problematic.
 
-            // TODO: check this
-            memcpy((void*)UNMAP_ADDR(regs.offset_out),
-                   (void*)UNMAP_ADDR(regs.offset_in),
-                   regs.dst.stride * regs.line_count);
-            // TODO: do a GPU copy
+            // Encode as Generic 16BX2
+            // HACK
+            usize stride = regs.dst.stride;
+            if (data.remap_enable) {
+                const auto& c = regs.remap_components;
+                const auto component_size = c.component_size_minus_one + 1;
+                const auto component_count =
+                    c.dst_component_count_minus_one + 1;
+                usize bytes_per_block = component_count * component_size;
+                stride *= bytes_per_block;
+            }
+
+            encode_generic_16bx2(
+                stride, regs.line_count,
+                get_block_size_log2(regs.dst.block_size.height),
+                reinterpret_cast<u8*>(UNMAP_ADDR(regs.offset_in)),
+                reinterpret_cast<u8*>(UNMAP_ADDR(regs.offset_out)));
+
+            // memcpy((void*)UNMAP_ADDR(regs.offset_out),
+            //        (void*)UNMAP_ADDR(regs.offset_in), stride *
+            //        regs.line_count);
+
             /*
             const auto src =
                 GetBuffer(regs.offset_in,
@@ -35,7 +62,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
 
             dst->CopyFrom(src);
             */
-            // TODO: texture copy?
+
             /*
             auto texture =
                 GetTexture(regs.offset_out_lo, regs.offset_out_hi, regs.dst);

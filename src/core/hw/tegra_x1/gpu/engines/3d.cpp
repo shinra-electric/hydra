@@ -385,7 +385,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         kind = NvKind::Pitch;
         break;
     case TicHdrVersion::BlockLinear:
-        kind = NvKind::Generic_16BX2; // TODO: correct?
+        kind = NvKind::Generic_16BX2;
         break;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
