@@ -46,11 +46,10 @@ class Builder final : public BuilderBase {
   private:
     llvm::LLVMContext context;
     llvm::Module module;
-
     luft::AirType types;
+    llvm::IRBuilder<>* builder;
 
     llvm::Function* function;
-    llvm::IRBuilder<>* builder;
 
     // Arguments
     std::map<Sv, u32> inputs;
@@ -73,6 +72,10 @@ class Builder final : public BuilderBase {
     void RunOptimizationPasses(llvm::OptimizationLevel opt);
 
     // Helpers
+    luft::AIRBuilderContext GetAirBuilderContext() {
+        return luft::AIRBuilderContext(context, module, *builder, types);
+    }
+
     llvm::Type* GetLlvmType(DataType data_type) {
         switch (data_type) {
         case DataType::Int:

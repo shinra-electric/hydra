@@ -216,6 +216,7 @@ void LangBuilderBase::OpStore(AMem dst, reg_t src) {
 }
 
 void LangBuilderBase::OpInterpolate(reg_t dst, AMem src) {
+    // TODO: interpolate param
     WriteStatement("{} = {}", GetReg(dst, true), GetA(src));
 }
 

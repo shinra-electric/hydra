@@ -252,12 +252,35 @@ void Builder::OpStore(AMem dst, reg_t src) {
 }
 
 void Builder::OpInterpolate(reg_t dst, AMem src) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    // TODO: interpolate param
+    builder->CreateStore(GetA(src), GetReg(dst, true));
 }
 
 void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                               reg_t coords_x, reg_t coords_y) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    llvm::Value* coords_v = llvm::UndefValue::get(types._float2);
+    coords_v = builder->CreateInsertElement(coords_v, GetReg(coords_x),
+                                            GetImmediate(0));
+    coords_v = builder->CreateInsertElement(coords_v, GetReg(coords_y),
+                                            GetImmediate(0));
+
+    // TODO: don't hardcode the type
+    auto res_v = luft::call_sample(
+                     luft::MSLTexture{
+                         .component_type = luft::msl_float,
+                         .memory_access = luft::MemoryAccess::sample,
+                         .resource_kind = luft::TextureKind::texture_2d,
+                         .resource_kind_logical = luft::TextureKind::texture_2d,
+                     },
+                     function->getArg(textures[const_buffer_index]),
+                     function->getArg(samplers[const_buffer_index]), coords_v,
+                     GetImmediate(0))
+                     .build(GetAirBuilderContext())
+                     .get();
+    builder->CreateStore(builder->CreateShuffleVector(res_v, {0, 1}),
+                         GetReg(dst0, true));
+    builder->CreateStore(builder->CreateShuffleVector(res_v, {2, 3}),
+                         GetReg(dst1, true));
 }
 
 void Builder::InitializeSignature(
