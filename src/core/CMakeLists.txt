@@ -330,4 +330,4 @@ add_library(hydra-core
     c_api.h
 )
 
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic luft hydra-common)

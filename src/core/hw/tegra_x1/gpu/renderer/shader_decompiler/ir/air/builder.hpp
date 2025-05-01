@@ -1,5 +1,19 @@
 #pragma once
 
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Passes/OptimizationLevel.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Support/VersionTuple.h"
+#include "llvm/Transforms/Scalar/Scalarizer.h"
+
+#include "luft/luft.hpp"
+
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR {
@@ -8,8 +22,7 @@ class Builder final : public BuilderBase {
   public:
     Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
             const GuestShaderState& state, std::vector<u8>& out_code,
-            ResourceMapping& out_resource_mapping)
-        : BuilderBase(analyzer, type, state, out_code, out_resource_mapping) {}
+            ResourceMapping& out_resource_mapping);
 
     void Start() override;
     void Finish() override;
@@ -27,6 +40,16 @@ class Builder final : public BuilderBase {
     void OpInterpolate(reg_t dst, AMem src) override;
     void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                          reg_t coords_x, reg_t coords_y) override;
+
+  private:
+    llvm::LLVMContext context;
+    llvm::Module module;
+
+    luft::AirType types;
+
+    llvm::IRBuilder<>* builder;
+
+    void RunOptimizationPasses(llvm::OptimizationLevel opt);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR
