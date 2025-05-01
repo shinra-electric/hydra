@@ -37,7 +37,7 @@
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
 #define LOG_NOT_IMPLEMENTED(c, fmt, ...)                                       \
     LOG_WARN(c, fmt " not implemented" PASS_VA_ARGS(__VA_ARGS__))
-#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_WARN(c, "{}", __func__)
+#define LOG_FUNC_NOT_IMPLEMENTED(c) LOG_NOT_IMPLEMENTED(c, "{}", __func__)
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \

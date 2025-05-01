@@ -50,6 +50,9 @@ ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
 ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, GpuRenderer, gpu_renderer,
                                           Metal, "Metal")
 
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, ShaderBackend, shader_backend,
+                                          Msl, "MSL", Air, "AIR")
+
 namespace Hydra {
 
 SINGLETON_DEFINE_GET_INSTANCE(Config, Other, "Config")
@@ -83,15 +86,14 @@ Config::Config() {
     // Create the app data directory
     std::filesystem::create_directories(app_data_path);
 
+    // Load defaults
+    LoadDefaults();
+
     // Open the config file
     std::string config_path = GetConfigPath();
     bool config_exists = std::filesystem::exists(config_path);
-    if (config_exists) {
+    if (config_exists)
         Deserialize();
-    } else {
-        // Load defaults
-        LoadDefaults();
-    }
 
     // Log
     LOG_INFO(Other, "Game directories: [{}]",
@@ -102,6 +104,7 @@ Config::Config() {
     // "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
+    LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);
@@ -114,6 +117,7 @@ void Config::LoadDefaults() {
     sd_card_path = GetDefaultSdCardPath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
+    shader_backend = GetDefaultShaderBackend();
     process_args = GetDefaultProcessArgs();
     debug_logging = GetDefaultDebugLogging();
     log_stack_trace = GetDefaultLogStackTrace();
@@ -151,6 +155,7 @@ void Config::Serialize() {
         {
             auto& graphics = data.at("Graphics");
             graphics["renderer"] = gpu_renderer;
+            graphics["shader_backend"] = shader_backend;
         }
 
         {
@@ -186,6 +191,8 @@ void Config::Deserialize() {
         const auto& graphics = data.at("Graphics");
         gpu_renderer = toml::find_or<GpuRenderer>(graphics, "renderer",
                                                   GetDefaultGpuRenderer());
+        shader_backend = toml::find_or<ShaderBackend>(
+            graphics, "shader_backend", GetDefaultShaderBackend());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
@@ -207,6 +214,13 @@ void Config::Deserialize() {
         LOG_WARN(Other, "Invalid GPU renderer, falling back to Metal");
         gpu_renderer = GpuRenderer::Metal;
     }
+
+    if (shader_backend == ShaderBackend::Invalid) {
+        LOG_WARN(Other, "Invalid shader backend, falling back to AIR");
+        shader_backend = ShaderBackend::Air;
+    }
+
+    changed = false;
 }
 
 } // namespace Hydra

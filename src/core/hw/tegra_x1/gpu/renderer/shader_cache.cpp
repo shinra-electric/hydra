@@ -16,7 +16,7 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
                        0x1000); // TODO: size
     ShaderDecompiler::Decompiler decompiler;
     decompiler.Decompile(code_reader, host_descriptor.type, descriptor.state,
-                         host_descriptor.code,
+                         host_descriptor.backend, host_descriptor.code,
                          host_descriptor.resource_mapping);
 
     return RENDERER->CreateShader(host_descriptor);

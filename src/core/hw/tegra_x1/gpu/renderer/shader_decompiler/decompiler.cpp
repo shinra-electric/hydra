@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
@@ -77,17 +78,10 @@ struct ShaderHeader {
 
 void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
                            const GuestShaderState& state,
+                           ShaderBackend& out_backend,
                            std::vector<u8>& out_code,
                            ResourceMapping& out_resource_mapping) {
     Analyzer::Analyzer analyzer;
-
-    // Builder
-    BuilderBase* builder;
-    // TODO: choose based on the Shader Decompiler backend
-    {
-        builder = new Lang::MSL::Builder(analyzer, type, state, out_code,
-                                         out_resource_mapping);
-    }
 
     // Header
     // TODO: don't read in case of compute shaders
@@ -102,6 +96,23 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     Parse(&analyzer, code_reader);
 
     // Decompile
+    BuilderBase* builder;
+    out_backend = Config::GetInstance().GetShaderBackend();
+    switch (out_backend) {
+    case ShaderBackend::Msl:
+        builder = new Lang::MSL::Builder(analyzer, type, state, out_code,
+                                         out_resource_mapping);
+        break;
+    case ShaderBackend::Air:
+        builder = new IR::AIR::Builder(analyzer, type, state, out_code,
+                                       out_resource_mapping);
+        break;
+    default:
+        // TODO: log the backend
+        LOG_FATAL(ShaderDecompiler, "Unsupported shader backend");
+        break;
+    }
+
     builder->Start();
     code_reader.Seek(code_offset);
     Parse(builder, code_reader);

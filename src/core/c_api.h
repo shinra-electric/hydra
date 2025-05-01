@@ -20,6 +20,12 @@ void hydra_config_set_sd_card_path(const char* path);
 int hydra_config_get_cpu_backend();
 void hydra_config_set_cpu_backend(int backend);
 
+int hydra_config_get_gpu_renderer();
+void hydra_config_set_gpu_renderer(int renderer);
+
+int hydra_config_get_shader_backend();
+void hydra_config_set_shader_backend(int backend);
+
 uint32_t hydra_config_get_process_args_count();
 const char* hydra_config_get_process_arg(uint32_t index);
 void hydra_config_add_process_arg(const char* arg);

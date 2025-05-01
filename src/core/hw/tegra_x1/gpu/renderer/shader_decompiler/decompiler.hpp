@@ -17,7 +17,8 @@ class Decompiler final {
     ~Decompiler() = default;
 
     void Decompile(Reader& code_reader, const ShaderType type,
-                   const GuestShaderState& state, std::vector<u8>& out_code,
+                   const GuestShaderState& state, ShaderBackend& out_backend,
+                   std::vector<u8>& out_code,
                    ResourceMapping& out_resource_mapping);
 
   private:
