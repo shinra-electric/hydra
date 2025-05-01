@@ -286,7 +286,49 @@ void Builder::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
 }
 
 void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto src_v = GetReg(src, false, DataType::Float);
+
+#define MATH_FUNC(name)                                                        \
+    luft::call_float_unary_op(#name, src_v).build(GetAirBuilderContext()).get()
+
+    llvm::Value* res_v;
+    // TODO: check
+    switch (func) {
+    case MathFunc::Cos:
+        res_v = MATH_FUNC(cos);
+        break;
+    case MathFunc::Sin:
+        res_v = MATH_FUNC(sin);
+        break;
+    case MathFunc::Ex2:
+        res_v = MATH_FUNC(ex2);
+        break;
+    case MathFunc::Lg2:
+        res_v = MATH_FUNC(log2);
+        break;
+    case MathFunc::Rcp:
+        res_v = builder->CreateFDiv(GetImmediate<f32>(1.0f), src_v);
+        break;
+    case MathFunc::Rsq:
+    case MathFunc::Rcp64h:
+        res_v = builder->CreateFDiv(GetImmediate<f32>(1.0f),
+                                    src_v); // TODO: correct
+        break;
+    case MathFunc::Rsq64h:
+        res_v = builder->CreateFDiv(GetImmediate<f32>(1.0f),
+                                    MATH_FUNC(sqrt)); // TODO: correct?
+        break;
+    case MathFunc::Sqrt:
+        res_v = MATH_FUNC(sqrt);
+        break;
+    default:
+        res_v = nullptr;
+        break;
+    }
+
+#undef MATH_FUNC
+
+    builder->CreateStore(res_v, GetReg(dst, true, DataType::Float));
 }
 
 void Builder::OpLoad(reg_t dst, Operand src) {
@@ -306,11 +348,14 @@ void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                               reg_t coords_x, reg_t coords_y) {
     llvm::Value* coords_v = llvm::UndefValue::get(types._float2);
     coords_v = builder->CreateInsertElement(
-        coords_v, GetReg(coords_x, false, DataType::Float), GetImmediate(0));
+        coords_v, GetReg(coords_x, false, DataType::Float),
+        GetImmediate<u32>(0));
     coords_v = builder->CreateInsertElement(
-        coords_v, GetReg(coords_y, false, DataType::Float), GetImmediate(0));
+        coords_v, GetReg(coords_y, false, DataType::Float),
+        GetImmediate<u32>(0));
 
     // TODO: don't hardcode the type
+    // TODO: why does it return { <4 x float>, i8 }?
     auto res_v = luft::call_sample(
                      luft::MSLTexture{
                          .component_type = luft::msl_float,
@@ -320,10 +365,9 @@ void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                      },
                      function->getArg(textures[const_buffer_index]),
                      function->getArg(samplers[const_buffer_index]), coords_v,
-                     GetImmediate(0))
+                     GetImmediate<u32>(0))
                      .build(GetAirBuilderContext())
                      .get();
-    // TODO: why does it return { <4 x float>, i8 }?
     res_v = builder->CreateExtractValue(res_v, 0);
     for (u32 i = 0; i < 2; i++)
         builder->CreateStore(builder->CreateExtractElement(res_v, i),

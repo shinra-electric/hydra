@@ -186,9 +186,11 @@ class LangBuilderBase : public BuilderBase {
             return fmt::format("{:#}f", imm);
         else if constexpr (std::is_same_v<T, f64>)
             return fmt::format("{:#}f", imm);
-        else
+        else {
             LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
                       typeid(T).name());
+            return INVALID_VALUE;
+        }
     }
 
     std::string GetImmediate(const u32 imm, DataType data_type) {

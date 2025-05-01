@@ -91,13 +91,28 @@ class Builder final : public BuilderBase {
         }
     }
 
+    // TODO: signed and unsigned
+    template <typename T = u32> llvm::Constant* GetImmediate(const T imm) {
+        if constexpr (std::is_same_v<T, i32>)
+            return llvm::ConstantInt::get(types._int, imm);
+        else if constexpr (std::is_same_v<T, u32>)
+            return llvm::ConstantInt::get(types._int, imm);
+        else if constexpr (std::is_same_v<T, f32>)
+            return llvm::ConstantFP::get(types._float, imm);
+        else {
+            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
+                      typeid(T).name());
+            return nullptr;
+        }
+    }
+
     llvm::Value* GetReg(reg_t reg, bool write = false,
                         DataType data_type = DataType::UInt) {
         if (reg == RZ && !write)
-            return GetImmediate(0, data_type);
+            return GetImm(0, data_type);
 
-        auto res_v = builder->CreateGEP(regs_ty, regs_v,
-                                        {GetImmediate(0), GetImmediate(reg)});
+        auto res_v = builder->CreateGEP(
+            regs_ty, regs_v, {GetImmediate<u32>(0), GetImmediate<u32>(reg)});
         if (data_type == DataType::Float)
             res_v = builder->CreateBitCast(
                 res_v, llvm::Type::getFloatPtrTy(context, 0));
@@ -107,7 +122,7 @@ class Builder final : public BuilderBase {
         return res_v;
     }
 
-    llvm::Constant* GetImmediate(u32 imm, DataType data_type = DataType::UInt) {
+    llvm::Constant* GetImm(u32 imm, DataType data_type = DataType::UInt) {
         switch (data_type) {
         // TODO: same for int and uint?
         case DataType::Int:
@@ -127,7 +142,7 @@ class Builder final : public BuilderBase {
         // TODO: support indexing with reg
         auto res_v = builder->CreateGEP(
             amem_ty, amem_v,
-            {GetImmediate(0), GetImmediate(amem.imm / sizeof(u32))});
+            {GetImmediate<u32>(0), GetImmediate<u32>(amem.imm / sizeof(u32))});
         if (data_type == DataType::Float)
             res_v = builder->CreateBitCast(
                 res_v, llvm::Type::getFloatPtrTy(context, 0));
@@ -139,9 +154,10 @@ class Builder final : public BuilderBase {
 
     llvm::Value* GetC(const CMem cmem, bool write = false,
                       DataType data_type = DataType::UInt) {
-        auto res_v = builder->CreateGEP(cmem_ty, cmem_v,
-                                        {GetImmediate(0), GetReg(cmem.reg),
-                                         GetImmediate(cmem.imm / sizeof(u32))});
+        auto res_v =
+            builder->CreateGEP(cmem_ty, cmem_v,
+                               {GetImmediate<u32>(0), GetReg(cmem.reg),
+                                GetImmediate<u32>(cmem.imm / sizeof(u32))});
         if (data_type == DataType::Float)
             res_v = builder->CreateBitCast(
                 res_v, llvm::Type::getFloatPtrTy(context, 0));
@@ -158,7 +174,7 @@ class Builder final : public BuilderBase {
             res = GetReg(operand.reg, write, operand.data_type);
             break;
         case OperandType::Immediate:
-            res = GetImmediate(operand.imm, operand.data_type);
+            res = GetImm(operand.imm, operand.data_type);
             break;
         case OperandType::AttributeMemory:
             res = GetA(operand.amem, write, operand.data_type);
@@ -190,7 +206,7 @@ class Builder final : public BuilderBase {
             builder->CreateStructGEP(function->getReturnType(), ret, output);
         auto ptr = builder->CreateInBoundsGEP(
             function->getReturnType()->getStructElementType(output), sv_ptr,
-            {GetImmediate(0), GetImmediate(access.component_index)});
+            {GetImmediate<u32>(0), GetImmediate<u32>(access.component_index)});
         builder->CreateStore(value, ptr);
     }
 };
