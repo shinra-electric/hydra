@@ -98,9 +98,6 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     // Decompile
     BuilderBase* builder;
     out_backend = Config::GetInstance().GetShaderBackend();
-    // HACK
-    if (type == ShaderType::Vertex)
-        out_backend = ShaderBackend::Msl;
     switch (out_backend) {
     case ShaderBackend::Msl:
         builder = new Lang::MSL::Builder(analyzer, type, state, out_code,

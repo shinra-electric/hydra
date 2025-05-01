@@ -137,7 +137,7 @@ class Config {
     }
     CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
-    ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Air; }
+    ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }
     bool GetDefaultLogStackTrace() const { return false; }

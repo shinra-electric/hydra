@@ -216,8 +216,10 @@ void Config::Deserialize() {
     }
 
     if (shader_backend == ShaderBackend::Invalid) {
-        LOG_WARN(Other, "Invalid shader backend, falling back to AIR");
-        shader_backend = ShaderBackend::Air;
+        LOG_WARN(Other, "Invalid shader backend, falling back to MSL");
+        shader_backend = ShaderBackend::Msl;
+    } else if (shader_backend == ShaderBackend::Air) {
+        LOG_ERROR(Other, "AIR shader backend is not functional");
     }
 
     changed = false;

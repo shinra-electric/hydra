@@ -256,9 +256,9 @@ void Builder::OpAdd(Operand dst, Operand src1, Operand src2) {
     auto src2_v = GetOperand(src2);
     llvm::Value* res_v;
     if (src1.data_type == DataType::Float)
-        res_v = builder->CreateFAdd(src1_v, src2_v);
+        res_v = builder->CreateFAdd(src1_v, src2_v, "fadd");
     else
-        res_v = builder->CreateAdd(src1_v, src2_v);
+        res_v = builder->CreateAdd(src1_v, src2_v, "add");
     builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
@@ -267,21 +267,22 @@ void Builder::OpMultiply(Operand dst, Operand src1, Operand src2) {
     auto src2_v = GetOperand(src2);
     llvm::Value* res_v;
     if (src1.data_type == DataType::Float)
-        res_v = builder->CreateFMul(src1_v, src2_v);
+        res_v = builder->CreateFMul(src1_v, src2_v, "fmul");
     else
-        res_v = builder->CreateMul(src1_v, src2_v);
+        res_v = builder->CreateMul(src1_v, src2_v, "mul");
     builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
 void Builder::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
     auto res_v = builder->CreateFAdd(
         GetReg(src1, false, DataType::Float),
-        builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
+        builder->CreateFMul(GetOperand(src2), GetOperand(src3), "fma_fmul"),
+        "fma");
     builder->CreateStore(res_v, GetReg(dst, true, DataType::Float));
 }
 
 void Builder::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
-    auto res_v = builder->CreateShl(GetReg(src), shift);
+    auto res_v = builder->CreateShl(GetReg(src), shift, "shift_left");
     builder->CreateStore(res_v, GetReg(dst, true));
 }
 
@@ -372,8 +373,8 @@ void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
     for (u32 i = 0; i < 2; i++)
         builder->CreateStore(builder->CreateExtractElement(res_v, i),
                              GetReg(dst0 + i, true, DataType::Float));
-    for (u32 i = 2; i < 4; i++)
-        builder->CreateStore(builder->CreateExtractElement(res_v, i),
+    for (u32 i = 0; i < 2; i++)
+        builder->CreateStore(builder->CreateExtractElement(res_v, 2 + i),
                              GetReg(dst1 + i, true, DataType::Float));
 }
 
