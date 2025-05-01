@@ -17,9 +17,20 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         break;
     }
     case ShaderBackend::Air: {
-        LOG_FATAL(
-            MetalRenderer,
-            "AIR shader backend is not supported for the Metal renderer yet");
+        auto dispatch_data =
+            dispatch_data_create(descriptor.code.data(), descriptor.code.size(),
+                                 dispatch_get_global_queue(0, 0),
+                                 ^{
+                                 });
+
+        NS::Error* error;
+        library = Renderer::GetInstance().GetDevice()->newLibrary(dispatch_data,
+                                                                  &error);
+        if (error) {
+            LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
+                      error->localizedDescription()->utf8String());
+            error->release(); // TODO: release?
+        }
         break;
     }
     default:
