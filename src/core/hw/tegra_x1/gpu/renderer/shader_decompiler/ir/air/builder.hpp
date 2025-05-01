@@ -49,7 +49,15 @@ class Builder final : public BuilderBase {
 
     luft::AirType types;
 
+    llvm::Function* function;
     llvm::IRBuilder<>* builder;
+
+    // Arguments
+    std::map<Sv, u32> inputs;
+    std::map<Sv, u32> outputs;
+    std::map<u32, std::pair<u32, usize>> buffers;
+    std::map<u32, u32> textures;
+    std::map<u32, u32> samplers;
 
     // Types
     llvm::Type* regs_ty;
@@ -148,6 +156,11 @@ class Builder final : public BuilderBase {
             return builder->CreateNeg(res);
         else
             return res;
+    }
+
+    llvm::Value* AccessSv(const SvAccess& access) {
+        return builder->CreateExtractElement(
+            function->getArg(inputs[access.sv]), access.component_index);
     }
 };
 

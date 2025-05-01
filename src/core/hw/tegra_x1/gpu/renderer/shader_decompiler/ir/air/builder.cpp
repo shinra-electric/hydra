@@ -93,8 +93,9 @@ void Builder::Start() {
     // Builder
     luft::FunctionSignatureBuilder signature_builder;
     InitializeSignature(signature_builder);
-    auto [function, meta] =
+    auto [func, meta] =
         signature_builder.CreateFunction("main_", context, module, 0, false);
+    function = func;
 
     auto entry_bb = llvm::BasicBlock::Create(context, "entry", function);
     builder = new llvm::IRBuilder<>(entry_bb);
@@ -115,20 +116,83 @@ void Builder::Start() {
     module.getOrInsertNamedMetadata(stage_name)->addOperand(meta);
 
     // Registers
-    regs_ty = llvm::ArrayType::get(types._float, 256);
+    regs_ty = llvm::ArrayType::get(types._int, 256);
     regs_v = builder->CreateAlloca(regs_ty, nullptr, "r");
 
     // AMEM
-    amem_ty = llvm::ArrayType::get(types._float,
+    amem_ty = llvm::ArrayType::get(types._int,
                                    0x200); // TODO: what should be the size?
     amem_v = builder->CreateAlloca(amem_ty, nullptr, "a");
 
+    switch (type) {
+    case ShaderType::Vertex:
+        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+            const auto vertex_attrib_state = state.vertex_attrib_states[i];
+            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+                continue;
+
+            // HACK: how are attributes disabled?
+            if (vertex_attrib_state.is_fixed)
+                continue;
+
+            // TODO: only set if the Rendered backend doesn't support scaled
+            // attributes
+            bool needs_scaling = (vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Sscaled ||
+                                  vertex_attrib_state.type ==
+                                      Engines::VertexAttribType::Uscaled);
+
+            const auto sv = Sv(SvSemantic::UserInOut, i);
+            for (u32 c = 0; c < 4; c++) {
+                const auto attr = GetA({RZ, 0x80 + i * 0x10 + c * 0x4}, true);
+                auto v = AccessSv(SvAccess(sv, c));
+                if (needs_scaling)
+                    v = builder->CreateFPExt(v, types._float); // TODO: what
+
+                builder->CreateStore(v, attr);
+            }
+        }
+        break;
+    case ShaderType::Fragment:
+#define ADD_INPUT(sv_semantic, index, a_base)                                  \
+    {                                                                          \
+        for (u32 c = 0; c < 4; c++) {                                          \
+            const auto attr = GetA({RZ, a_base + c * 0x4}, true);              \
+            auto v = AccessSv(SvAccess(Sv(sv_semantic, index), c));            \
+            builder->CreateStore(v, attr);                                     \
+        }                                                                      \
+    }
+
+        ADD_INPUT(SvSemantic::Position, invalid<u8>(), 0x70);
+        for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs())
+            ADD_INPUT(SvSemantic::UserInOut, input, 0x80 + input * 0x10);
+
+#undef ADD_INPUT
+        break;
+    default:
+        break;
+    }
+
     // CMEM
     llvm::ArrayType* cmem_buffer_ty = llvm::ArrayType::get(
-        types._float, 0x40); // TODO: what should be the size?
+        types._int, 0x40); // TODO: what should be the size?
     cmem_ty =
         llvm::ArrayType::get(cmem_buffer_ty, UNIFORM_BUFFER_BINDING_COUNT);
     cmem_v = builder->CreateAlloca(cmem_ty, nullptr, "c");
+
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
+        const auto& buffer = buffers[index];
+        u32 u32_count = size / sizeof(u32);
+        for (u32 i = 0; i < u32_count; i++) {
+            auto v = builder->CreateExtractValue(
+                builder->CreateLoad(
+                    llvm::ArrayType::get(types._int, size / sizeof(u32)),
+                    function->getArg(buffer.first)),
+                {i});
+            builder->CreateStore(GetC({index, RZ, i * sizeof(u32)}, true), v);
+        }
+    }
 }
 
 void Builder::Finish() {
@@ -226,11 +290,13 @@ void Builder::InitializeSignature(
                 break;
             }
 
-            signature_builder.DefineInput(luft::InputVertexStageIn{
-                .attribute = i,
-                .type = data_type,
-                .name = fmt::format("attribute{}", i),
-            });
+            u32 arg_index =
+                signature_builder.DefineInput(luft::InputVertexStageIn{
+                    .attribute = i,
+                    .type = data_type,
+                    .name = fmt::format("attribute{}", i),
+                });
+            inputs[Sv(SvSemantic::UserInOut, i)] = arg_index;
         }
         break;
     case ShaderType::Fragment:
@@ -241,13 +307,15 @@ void Builder::InitializeSignature(
             // TODO: don't hardcode the type
             const auto type = luft::msl_float4;
 
-            signature_builder.DefineInput(luft::InputFragmentStageIn{
-                .user = fmt::format("user{}", input),
-                .type = type,
-                .interpolation =
-                    luft::Interpolation::center_no_perspective, // TODO
-                .pull_mode = false,                             // TODO
-            });
+            u32 arg_index =
+                signature_builder.DefineInput(luft::InputFragmentStageIn{
+                    .user = fmt::format("user{}", input),
+                    .type = type,
+                    .interpolation =
+                        luft::Interpolation::center_no_perspective, // TODO
+                    .pull_mode = false,                             // TODO
+                });
+            inputs[Sv(SvSemantic::UserInOut, input)] = arg_index;
         }
         break;
     default:
@@ -257,11 +325,13 @@ void Builder::InitializeSignature(
     // Output SVs
     for (const auto sv_semantic : analyzer.GetMemoryAnalyzer().GetOutputSVs()) {
         switch (sv_semantic) {
-        case SVSemantic::Position:
-            signature_builder.DefineOutput(luft::OutputPosition{
+        case SvSemantic::Position: {
+            u32 arg_index = signature_builder.DefineOutput(luft::OutputPosition{
                 .type = luft::msl_float4,
             });
+            outputs[Sv(SvSemantic::Position)] = arg_index;
             break;
+        }
         default:
             LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Output SV semantic {}",
                                 sv_semantic);
@@ -277,10 +347,11 @@ void Builder::InitializeSignature(
             // TODO: don't hardcode the type
             const auto type = luft::msl_float4;
 
-            signature_builder.DefineOutput(luft::OutputVertex{
+            u32 arg_index = signature_builder.DefineOutput(luft::OutputVertex{
                 .user = fmt::format("user{}", output),
                 .type = type,
             });
+            outputs[Sv(SvSemantic::UserInOut, output)] = arg_index;
         }
         break;
     case ShaderType::Fragment:
@@ -307,11 +378,13 @@ void Builder::InitializeSignature(
                 type = luft::msl_float4;
                 break;
             }
-            signature_builder.DefineOutput(luft::OutputRenderTarget{
-                .dual_source_blending = false, // TODO
-                .index = i,
-                .type = type,
-            });
+            u32 arg_index =
+                signature_builder.DefineOutput(luft::OutputRenderTarget{
+                    .dual_source_blending = false, // TODO
+                    .index = i,
+                    .type = type,
+                });
+            outputs[Sv(SvSemantic::UserInOut, i)] = arg_index;
         }
         break;
     default:
@@ -322,16 +395,18 @@ void Builder::InitializeSignature(
     for (const auto& [index, size] :
          analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
         // TODO: are the sizes correct?
-        signature_builder.DefineInput(luft::ArgumentBindingBuffer{
-            .buffer_size = size,
-            .location_index = index,
-            .array_size = static_cast<uint32_t>(size / sizeof(u32)),
-            .memory_access = luft::MemoryAccess::read,
-            .address_space = luft::AddressSpace::constant,
-            .type = luft::msl_float,
-            .arg_name = fmt::format("ubuff{}", index),
-            .raster_order_group = {},
-        });
+        auto arg_index =
+            signature_builder.DefineInput(luft::ArgumentBindingBuffer{
+                .buffer_size = size,
+                .location_index = index,
+                .array_size = static_cast<u32>(size / sizeof(u32)),
+                .memory_access = luft::MemoryAccess::read,
+                .address_space = luft::AddressSpace::constant,
+                .type = luft::msl_uint,
+                .arg_name = fmt::format("ubuff{}", index),
+                .raster_order_group = {},
+            });
+        buffers[index] = {arg_index, size};
     }
 
     // Storage buffers
@@ -341,27 +416,36 @@ void Builder::InitializeSignature(
     for (const auto const_buffer_index :
          analyzer.GetMemoryAnalyzer().GetTextures()) {
         const auto index = out_resource_mapping.textures[const_buffer_index];
-        // TODO: don't hardcode texture type
-        signature_builder.DefineInput(luft::ArgumentBindingTexture{
-            .location_index = index,
-            .array_size = 1,
-            .memory_access = luft::MemoryAccess::sample,
-            .type =
-                luft::MSLTexture{
-                    .component_type = luft::msl_float,
+        {
+            // TODO: don't hardcode texture type
+            u32 arg_index =
+                signature_builder.DefineInput(luft::ArgumentBindingTexture{
+                    .location_index = index,
+                    .array_size = 1,
                     .memory_access = luft::MemoryAccess::sample,
-                    .resource_kind = luft::TextureKind::texture_2d,
-                    .resource_kind_logical = luft::TextureKind::texture_2d,
-                },
-            .arg_name = fmt::format("tex{}", index),
-            .raster_order_group = {},
-        });
+                    .type =
+                        luft::MSLTexture{
+                            .component_type = luft::msl_float,
+                            .memory_access = luft::MemoryAccess::sample,
+                            .resource_kind = luft::TextureKind::texture_2d,
+                            .resource_kind_logical =
+                                luft::TextureKind::texture_2d,
+                        },
+                    .arg_name = fmt::format("tex{}", index),
+                    .raster_order_group = {},
+                });
+            textures[index] = arg_index;
+        }
 
-        signature_builder.DefineInput(luft::ArgumentBindingSampler{
-            .location_index = index,
-            .array_size = 1,
-            .arg_name = fmt::format("samplr{}", index),
-        });
+        {
+            u32 arg_index =
+                signature_builder.DefineInput(luft::ArgumentBindingSampler{
+                    .location_index = index,
+                    .array_size = 1,
+                    .arg_name = fmt::format("samplr{}", index),
+                });
+            samplers[index] = arg_index;
+        }
     }
 
     // Images

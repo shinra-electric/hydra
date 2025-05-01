@@ -63,11 +63,11 @@ void LangBuilderBase::Start() {
                                   vertex_attrib_state.type ==
                                       Engines::VertexAttribType::Uscaled);
 
-            const auto sv = SV(SVSemantic::UserInOut, i);
+            const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
                 const auto attr = GetA({RZ, 0x80 + i * 0x10 + c * 0x4});
                 const auto qualified_name =
-                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), false);
+                    GetSvAccessNameQualified(SvAccess(sv, c), false);
                 if (needs_scaling)
                     WriteStatement("{} = as_type<uint>((float){})", attr,
                                    qualified_name);
@@ -81,15 +81,16 @@ void LangBuilderBase::Start() {
 #define ADD_INPUT(sv_semantic, index, a_base)                                  \
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
-            WriteStatement(                                                    \
-                "{} = as_type<uint>({})", GetA({RZ, a_base + c * 0x4}),        \
-                GetSVNameQualified(SV(sv_semantic, index, c), false));         \
+            WriteStatement("{} = as_type<uint>({})",                           \
+                           GetA({RZ, a_base + c * 0x4}),                       \
+                           GetSvAccessNameQualified(                           \
+                               SvAccess(Sv(sv_semantic, index), c), false));   \
         }                                                                      \
     }
 
-        ADD_INPUT(SVSemantic::Position, invalid<u8>(), 0x70);
+        ADD_INPUT(SvSemantic::Position, invalid<u8>(), 0x70);
         for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs())
-            ADD_INPUT(SVSemantic::UserInOut, input, 0x80 + input * 0x10);
+            ADD_INPUT(SvSemantic::UserInOut, input, 0x80 + input * 0x10);
 
 #undef ADD_INPUT
         break;
@@ -138,16 +139,16 @@ void LangBuilderBase::OpExit() {
 #define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
-            WriteStatement(                                                    \
-                "{} = as_type<float>({})",                                     \
-                GetSVNameQualified(SV(sv_semantic, index, c), true),           \
-                GetA({RZ, a_base + c * 0x4}));                                 \
+            WriteStatement("{} = as_type<float>({})",                          \
+                           GetSvAccessNameQualified(                           \
+                               SvAccess(Sv(sv_semantic, index), c), true),     \
+                           GetA({RZ, a_base + c * 0x4}));                      \
         }                                                                      \
     }
 
-        ADD_OUTPUT(SVSemantic::Position, invalid<u8>(), 0x70);
+        ADD_OUTPUT(SvSemantic::Position, invalid<u8>(), 0x70);
         for (const auto output : analyzer.GetMemoryAnalyzer().GetStageOutputs())
-            ADD_OUTPUT(SVSemantic::UserInOut, output, 0x80 + output * 0x10);
+            ADD_OUTPUT(SvSemantic::UserInOut, output, 0x80 + output * 0x10);
 
 #undef ADD_OUTPUT
         break;
@@ -160,7 +161,8 @@ void LangBuilderBase::OpExit() {
             for (u32 c = 0; c < 4; c++) {
                 WriteStatement(
                     "{} = as_type<{}>({})",
-                    GetSVNameQualified(SV(SVSemantic::UserInOut, i, c), true),
+                    GetSvAccessNameQualified(
+                        SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
                     to_data_type(color_target_format),
                     GetReg(i * 4 + c, false));
             }

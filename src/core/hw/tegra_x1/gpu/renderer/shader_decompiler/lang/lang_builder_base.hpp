@@ -211,11 +211,11 @@ class LangBuilderBase : public BuilderBase {
     //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
     // }
 
-    std::string GetSVName(const SV sv) {
+    std::string GetSvName(const Sv& sv) {
         switch (sv.semantic) {
-        case SVSemantic::Position:
+        case SvSemantic::Position:
             return "position";
-        case SVSemantic::UserInOut:
+        case SvSemantic::UserInOut:
             return fmt::format("user{}", sv.index);
         default:
             LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV {} (index: {})",
@@ -224,10 +224,12 @@ class LangBuilderBase : public BuilderBase {
         }
     }
 
-    std::string GetSVNameQualified(const SV sv, bool output) {
+    std::string GetSvAccessNameQualified(const SvAccess& sv_access,
+                                         bool output) {
         // TODO: is it okay to access components just like this?
-        return fmt::format("{}.{}.{}", GetInOutName(output), GetSVName(sv),
-                           GetComponentFromIndex(sv.component_index));
+        return fmt::format("{}.{}.{}", GetInOutName(output),
+                           GetSvName(sv_access.sv),
+                           GetComponentFromIndex(sv_access.component_index));
     }
 
     std::string GetInOutName(bool output) {

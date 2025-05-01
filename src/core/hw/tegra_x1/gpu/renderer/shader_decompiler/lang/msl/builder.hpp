@@ -26,7 +26,7 @@ class Builder final : public LangBuilderBase {
 
   private:
     // Helpers
-    std::string GetSVQualifierName(const SV sv, bool output);
+    std::string GetSvQualifierName(const Sv& sv, bool output);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

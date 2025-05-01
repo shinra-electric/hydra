@@ -51,18 +51,18 @@ void Builder::EmitDeclarations() {
             if (vertex_attrib_state.is_fixed)
                 continue;
 
-            const auto sv = SV(SVSemantic::UserInOut, i);
+            const auto sv = Sv(SvSemantic::UserInOut, i);
             Write("{}4 {} {};", to_data_type(vertex_attrib_state.type),
-                  GetSVName(sv), GetSVQualifierName(sv, false));
+                  GetSvName(sv), GetSvQualifierName(sv, false));
         }
         break;
     case ShaderType::Fragment:
         Write("float4 position [[position]];");
         for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs()) {
-            const auto sv = SV(SVSemantic::UserInOut, input);
+            const auto sv = Sv(SvSemantic::UserInOut, input);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSVName(sv),
-                  GetSVQualifierName(sv, false));
+            Write("float4 {} {};", GetSvName(sv),
+                  GetSvQualifierName(sv, false));
         }
         break;
     default:
@@ -79,7 +79,7 @@ void Builder::EmitDeclarations() {
     // SVs
     for (const auto sv_semantic : analyzer.GetMemoryAnalyzer().GetOutputSVs()) {
         switch (sv_semantic) {
-        case SVSemantic::Position:
+        case SvSemantic::Position:
             Write("float4 position [[position]];");
             break;
         default:
@@ -94,9 +94,9 @@ void Builder::EmitDeclarations() {
     case ShaderType::Vertex:
         for (const auto output :
              analyzer.GetMemoryAnalyzer().GetStageOutputs()) {
-            const auto sv = SV(SVSemantic::UserInOut, output);
+            const auto sv = Sv(SvSemantic::UserInOut, output);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSVName(sv), GetSVQualifierName(sv, true));
+            Write("float4 {} {};", GetSvName(sv), GetSvQualifierName(sv, true));
         }
         break;
     case ShaderType::Fragment:
@@ -105,9 +105,9 @@ void Builder::EmitDeclarations() {
             if (color_target_format == TextureFormat::Invalid)
                 continue;
 
-            const auto sv = SV(SVSemantic::UserInOut, i);
+            const auto sv = Sv(SvSemantic::UserInOut, i);
             Write("{}4 {} {};", to_data_type(color_target_format),
-                  GetSVName(sv), GetSVQualifierName(sv, true));
+                  GetSvName(sv), GetSvQualifierName(sv, true));
         }
         break;
     default:
@@ -191,11 +191,11 @@ void Builder::EmitExit() {
     WriteStatement("return __out");
 }
 
-std::string Builder::GetSVQualifierName(const SV sv, bool output) {
+std::string Builder::GetSvQualifierName(const Sv& sv, bool output) {
     switch (sv.semantic) {
-    case SVSemantic::Position:
+    case SvSemantic::Position:
         return "[[position]]";
-    case SVSemantic::UserInOut:
+    case SvSemantic::UserInOut:
         switch (type) {
         case ShaderType::Vertex:
             if (output)

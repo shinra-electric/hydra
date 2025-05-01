@@ -17,8 +17,8 @@ class MemoryAnalyzer : public ObserverBase {
                          reg_t coords_x, reg_t coords_y) override;
 
     // Getters
-    const std::vector<SVSemantic>& GetInputSVs() const { return input_svs; }
-    const std::vector<SVSemantic>& GetOutputSVs() const { return output_svs; }
+    const std::vector<SvSemantic>& GetInputSVs() const { return input_svs; }
+    const std::vector<SvSemantic>& GetOutputSVs() const { return output_svs; }
     const std::vector<u8>& GetStageInputs() const { return stage_inputs; }
     const std::vector<u8>& GetStageOutputs() const { return stage_outputs; }
     const std::map<u32, usize>& GetUniformBuffers() const {
@@ -27,8 +27,8 @@ class MemoryAnalyzer : public ObserverBase {
     const std::vector<u32>& GetTextures() const { return textures; }
 
   private:
-    std::vector<SVSemantic> input_svs;
-    std::vector<SVSemantic> output_svs;
+    std::vector<SvSemantic> input_svs;
+    std::vector<SvSemantic> output_svs;
     std::vector<u8> stage_inputs;
     std::vector<u8> stage_outputs;
     std::map<u32, usize> uniform_buffers;
