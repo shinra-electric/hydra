@@ -113,6 +113,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
         break;
     }
 
+    builder->InitializeResourceMapping();
     builder->Start();
     code_reader.Seek(code_offset);
     Parse(builder, code_reader);

@@ -12,9 +12,9 @@ class Builder final : public LangBuilderBase {
         : LangBuilderBase(analyzer, type, state, out_code,
                           out_resource_mapping) {}
 
-  protected:
     void InitializeResourceMapping() override;
 
+  protected:
     void EmitHeader() override;
     void EmitTypeAliases() override;
     void EmitDeclarations() override;

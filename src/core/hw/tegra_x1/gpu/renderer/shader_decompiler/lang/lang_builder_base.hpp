@@ -36,8 +36,6 @@ class LangBuilderBase : public BuilderBase {
                          reg_t coords_x, reg_t coords_y) override;
 
   protected:
-    virtual void InitializeResourceMapping() = 0;
-
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
     virtual void EmitDeclarations() = 0;

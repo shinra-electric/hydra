@@ -21,6 +21,7 @@ class BuilderBase : public ObserverBase {
           out_resource_mapping{out_resource_mapping_} {}
     virtual ~BuilderBase() {}
 
+    virtual void InitializeResourceMapping() = 0;
     virtual void Start() = 0;
     virtual void Finish() = 0;
 

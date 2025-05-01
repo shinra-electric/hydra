@@ -6,8 +6,6 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
 void LangBuilderBase::Start() {
-    InitializeResourceMapping();
-
     // Header
     EmitHeader();
     WriteNewline();

@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 
+#include "air_signature.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
 
@@ -13,6 +14,23 @@ Builder::Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
                  ResourceMapping& out_resource_mapping)
     : BuilderBase(analyzer, type, state, out_code, out_resource_mapping),
       module("default", context), types(context) {}
+
+void Builder::InitializeResourceMapping() {
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
+        out_resource_mapping.uniform_buffers[index] = index;
+    }
+
+    // TODO: storage buffers
+
+    u32 texture_index = 0;
+    for (const auto const_buffer_index :
+         analyzer.GetMemoryAnalyzer().GetTextures()) {
+        out_resource_mapping.textures[const_buffer_index] = texture_index++;
+    }
+
+    // TODO: images
+}
 
 void Builder::Start() {
     // TODO: diagnostics handler
@@ -74,7 +92,7 @@ void Builder::Start() {
 
     // Builder
     luft::FunctionSignatureBuilder signature_builder;
-    // TODO: define inputs and outputs
+    InitializeSignature(signature_builder);
     auto [function, meta] =
         signature_builder.CreateFunction("main_", context, module, 0, false);
 
@@ -154,6 +172,178 @@ void Builder::OpInterpolate(reg_t dst, AMem src) {
 void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                               reg_t coords_x, reg_t coords_y) {
     LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+}
+
+void Builder::InitializeSignature(
+    luft::FunctionSignatureBuilder& signature_builder) {
+    // Stage inputs
+    switch (type) {
+    case ShaderType::Vertex:
+        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+            const auto vertex_attrib_state = state.vertex_attrib_states[i];
+            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+                continue;
+
+            // HACK: how are attributes disabled?
+            if (vertex_attrib_state.is_fixed)
+                continue;
+
+            luft::InputAttributeComponentType data_type =
+                luft::InputAttributeComponentType::Unknown;
+            switch (to_data_type(vertex_attrib_state.type)) {
+            case DataType::Float:
+                data_type = luft::InputAttributeComponentType::Float;
+                break;
+            case DataType::Int:
+                data_type = luft::InputAttributeComponentType::Int;
+                break;
+            case DataType::UInt:
+                data_type = luft::InputAttributeComponentType::Uint;
+                break;
+            default:
+                break;
+            }
+
+            signature_builder.DefineInput(luft::InputVertexStageIn{
+                .attribute = i,
+                .type = data_type,
+                .name = fmt::format("attribute{}", i),
+            });
+        }
+        break;
+    case ShaderType::Fragment:
+        signature_builder.DefineInput(luft::InputPosition{
+            .interpolation = luft::Interpolation::center_no_perspective, // TODO
+        });
+        for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs()) {
+            // TODO: don't hardcode the type
+            const auto type = luft::msl_float4;
+
+            signature_builder.DefineInput(luft::InputFragmentStageIn{
+                .user = fmt::format("user{}", input),
+                .type = type,
+                .interpolation =
+                    luft::Interpolation::center_no_perspective, // TODO
+                .pull_mode = false,                             // TODO
+            });
+        }
+        break;
+    default:
+        break;
+    }
+
+    // Output SVs
+    for (const auto sv_semantic : analyzer.GetMemoryAnalyzer().GetOutputSVs()) {
+        switch (sv_semantic) {
+        case SVSemantic::Position:
+            signature_builder.DefineOutput(luft::OutputPosition{
+                .type = luft::msl_float4,
+            });
+            break;
+        default:
+            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Output SV semantic {}",
+                                sv_semantic);
+            break;
+        }
+    }
+
+    // Stage outputs
+    switch (type) {
+    case ShaderType::Vertex:
+        for (const auto output :
+             analyzer.GetMemoryAnalyzer().GetStageOutputs()) {
+            // TODO: don't hardcode the type
+            const auto type = luft::msl_float4;
+
+            signature_builder.DefineOutput(luft::OutputVertex{
+                .user = fmt::format("user{}", output),
+                .type = type,
+            });
+        }
+        break;
+    case ShaderType::Fragment:
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_format = state.color_target_formats[i];
+            if (color_target_format == TextureFormat::Invalid)
+                continue;
+
+            luft::MSLScalerOrVectorType type;
+            switch (to_data_type(color_target_format)) {
+            case DataType::Float:
+                type = luft::msl_float4;
+                break;
+            case DataType::Int:
+                type = luft::msl_int4;
+                break;
+            case DataType::UInt:
+                type = luft::msl_uint4;
+                break;
+            default:
+                LOG_ERROR(ShaderDecompiler,
+                          "Unsupported color target format {}",
+                          color_target_format);
+                type = luft::msl_float4;
+                break;
+            }
+            signature_builder.DefineOutput(luft::OutputRenderTarget{
+                .dual_source_blending = false, // TODO
+                .index = i,
+                .type = type,
+            });
+        }
+        break;
+    default:
+        break;
+    }
+
+    // Uniform buffers
+    for (const auto& [index, size] :
+         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
+        // TODO: are the sizes correct?
+        signature_builder.DefineInput(luft::ArgumentBindingBuffer{
+            .buffer_size = size,
+            .location_index = index,
+            .array_size = static_cast<uint32_t>(size / sizeof(u32)),
+            .memory_access = luft::MemoryAccess::read,
+            .address_space = luft::AddressSpace::constant,
+            .type = luft::msl_uint,
+            .arg_name = fmt::format("ubuff{}", index),
+            .raster_order_group = {},
+        });
+    }
+
+    // Storage buffers
+    // TODO
+
+    // Textures
+    for (const auto const_buffer_index :
+         analyzer.GetMemoryAnalyzer().GetTextures()) {
+        const auto index = out_resource_mapping.textures[const_buffer_index];
+        // TODO: don't hardcode texture type
+        signature_builder.DefineInput(luft::ArgumentBindingTexture{
+            .location_index = index,
+            .array_size = 1,
+            .memory_access = luft::MemoryAccess::sample,
+            .type =
+                luft::MSLTexture{
+                    .component_type = luft::msl_float,
+                    .memory_access = luft::MemoryAccess::sample,
+                    .resource_kind = luft::TextureKind::texture_2d,
+                    .resource_kind_logical = luft::TextureKind::texture_2d,
+                },
+            .arg_name = fmt::format("tex{}", index),
+            .raster_order_group = {},
+        });
+
+        signature_builder.DefineInput(luft::ArgumentBindingSampler{
+            .location_index = index,
+            .array_size = 1,
+            .arg_name = fmt::format("samplr{}", index),
+        });
+    }
+
+    // Images
+    // TODO
 }
 
 void Builder::RunOptimizationPasses(llvm::OptimizationLevel opt) {

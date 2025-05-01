@@ -24,6 +24,7 @@ class Builder final : public BuilderBase {
             const GuestShaderState& state, std::vector<u8>& out_code,
             ResourceMapping& out_resource_mapping);
 
+    void InitializeResourceMapping() override;
     void Start() override;
     void Finish() override;
 
@@ -49,6 +50,7 @@ class Builder final : public BuilderBase {
 
     llvm::IRBuilder<>* builder;
 
+    void InitializeSignature(luft::FunctionSignatureBuilder& signature_builder);
     void RunOptimizationPasses(llvm::OptimizationLevel opt);
 };
 
