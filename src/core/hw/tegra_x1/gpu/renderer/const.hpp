@@ -280,6 +280,7 @@ struct ResourceMapping {
 
 struct ShaderDescriptor {
     ShaderType type;
+    ShaderBackend backend;
     std::vector<u8> code;
     ResourceMapping resource_mapping;
 };

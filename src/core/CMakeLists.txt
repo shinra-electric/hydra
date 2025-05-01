@@ -273,6 +273,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
     hw/tegra_x1/gpu/renderer/texture_decoder.cpp
@@ -328,4 +330,4 @@ add_library(hydra-core
     c_api.h
 )
 
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic luft hydra-common)

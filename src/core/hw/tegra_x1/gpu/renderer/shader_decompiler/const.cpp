@@ -43,30 +43,30 @@ u32 get_load_store_count(LoadStoreMode mode) {
     }
 }
 
-const SV get_sv_from_addr(u64 addr) {
+const SvAccess get_sv_access_from_addr(u64 addr) {
     ASSERT_ALIGNMENT_DEBUG(addr, 4, ShaderDecompiler, "Address");
 
-    struct SVBase {
-        SVSemantic semantic;
+    struct SvBase {
+        SvSemantic semantic;
         u64 base_addr;
     };
 
-    static constexpr SVBase bases[] = {
-        {SVSemantic::UserInOut, 0x80},
-        {SVSemantic::Position, 0x70},
+    static constexpr SvBase bases[] = {
+        {SvSemantic::UserInOut, 0x80},
+        {SvSemantic::Position, 0x70},
     };
 
     for (const auto& base : bases) {
         if (addr >= base.base_addr) {
-            return SV(base.semantic,
-                      static_cast<u8>((addr - base.base_addr) >> 4),
-                      static_cast<u8>((addr >> 2) & 0x3));
+            return SvAccess(Sv(base.semantic,
+                               static_cast<u8>((addr - base.base_addr) >> 4)),
+                            static_cast<u8>((addr >> 2) & 0x3));
         }
     }
 
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV address 0x{:02x}", addr);
 
-    return SVSemantic::Invalid;
+    return SvAccess(Sv(SvSemantic::Invalid), invalid<u8>());
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

@@ -12,9 +12,9 @@ class Builder final : public LangBuilderBase {
         : LangBuilderBase(analyzer, type, state, out_code,
                           out_resource_mapping) {}
 
-  protected:
     void InitializeResourceMapping() override;
 
+  protected:
     void EmitHeader() override;
     void EmitTypeAliases() override;
     void EmitDeclarations() override;
@@ -26,7 +26,7 @@ class Builder final : public LangBuilderBase {
 
   private:
     // Helpers
-    std::string GetSVQualifierName(const SV sv, bool output);
+    std::string GetSvQualifierName(const Sv& sv, bool output);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL

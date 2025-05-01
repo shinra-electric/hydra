@@ -20,6 +20,13 @@ enum class GpuRenderer {
     Metal,
 };
 
+enum class ShaderBackend {
+    Invalid,
+
+    Msl,
+    Air,
+};
+
 class Config {
   public:
     static Config& GetInstance();
@@ -44,6 +51,7 @@ class Config {
     const std::string& GetSdCardPath() const { return sd_card_path; }
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
+    ShaderBackend GetShaderBackend() const { return shader_backend; }
     const std::vector<std::string>& GetProcessArgs() const {
         return process_args;
     }
@@ -81,6 +89,10 @@ class Config {
         SET_CONFIG_VALUE(gpu_renderer);
     }
 
+    void SetShaderBackend(ShaderBackend shader_backend_) {
+        SET_CONFIG_VALUE(shader_backend);
+    }
+
     void AddProcessArg(const std::string& arg) {
         process_args.push_back(arg);
         changed = true;
@@ -113,6 +125,7 @@ class Config {
     std::string sd_card_path;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
+    ShaderBackend shader_backend;
     std::vector<std::string> process_args;
     bool debug_logging;
     bool log_stack_trace;
@@ -124,6 +137,7 @@ class Config {
     }
     CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
+    ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }
     bool GetDefaultLogStackTrace() const { return false; }

@@ -4,10 +4,10 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
 namespace {
 
-void push_sv(std::vector<SVSemantic>& svs, std::vector<u8>& stage_in_outs,
+void push_sv(std::vector<SvSemantic>& svs, std::vector<u8>& stage_in_outs,
              u64 addr) {
-    const auto sv = get_sv_from_addr(addr);
-    if (sv.semantic == SVSemantic::UserInOut)
+    const auto sv = get_sv_access_from_addr(addr).sv;
+    if (sv.semantic == SvSemantic::UserInOut)
         push_unique(stage_in_outs, sv.index);
     else
         push_unique(svs, sv.semantic);

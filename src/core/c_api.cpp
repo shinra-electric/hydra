@@ -36,6 +36,24 @@ void hydra_config_set_cpu_backend(int backend) {
         static_cast<Hydra::CpuBackend>(backend));
 }
 
+int hydra_config_get_gpu_renderer() {
+    return static_cast<int>(Hydra::Config::GetInstance().GetGpuRenderer());
+}
+
+void hydra_config_set_gpu_renderer(int renderer) {
+    Hydra::Config::GetInstance().SetGpuRenderer(
+        static_cast<Hydra::GpuRenderer>(renderer));
+}
+
+int hydra_config_get_shader_backend() {
+    return static_cast<int>(Hydra::Config::GetInstance().GetShaderBackend());
+}
+
+void hydra_config_set_shader_backend(int backend) {
+    Hydra::Config::GetInstance().SetShaderBackend(
+        static_cast<Hydra::ShaderBackend>(backend));
+}
+
 uint32_t hydra_config_get_process_args_count() {
     return Hydra::Config::GetInstance().GetProcessArgs().size();
 }

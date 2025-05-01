@@ -91,23 +91,37 @@ struct Operand {
     }
 };
 
-enum class SVSemantic {
+enum class SvSemantic {
     Invalid,
     Position,
     UserInOut,
     // TODO: more
 };
 
-struct SV {
-    SVSemantic semantic;
+struct Sv {
+    SvSemantic semantic;
     u8 index;
-    u8 component_index;
     // TODO: more?
 
-    SV(SVSemantic semantic_, u8 index_ = invalid<u8>(),
-       u8 component_index_ = invalid<u8>())
-        : semantic{semantic_}, index{index_},
-          component_index{component_index_} {}
+    Sv(SvSemantic semantic_, u8 index_ = invalid<u8>())
+        : semantic{semantic_}, index{index_} {}
+
+    bool const operator==(const Sv& o) const {
+        return semantic == o.semantic && index == o.index;
+    }
+
+    bool const operator<(const Sv& o) const {
+        return semantic < o.semantic ||
+               (semantic == o.semantic && index < o.index);
+    }
+};
+
+struct SvAccess {
+    Sv sv;
+    u8 component_index;
+
+    SvAccess(const Sv& sv_, u8 component_index_)
+        : sv{sv_}, component_index{component_index_} {}
 };
 
 enum class LoadStoreMode {
@@ -134,7 +148,7 @@ enum class MathFunc {
     Sqrt,
 };
 
-const SV get_sv_from_addr(u64 addr);
+const SvAccess get_sv_access_from_addr(u64 addr);
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
 
@@ -148,7 +162,7 @@ ENABLE_ENUM_FORMATTING(
     UInt, "uint", Float, "float")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::SVSemantic, Invalid,
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::SvSemantic, Invalid,
     "invalid", Position, "position", UserInOut, "user in out")
 
 ENABLE_ENUM_FORMATTING(
