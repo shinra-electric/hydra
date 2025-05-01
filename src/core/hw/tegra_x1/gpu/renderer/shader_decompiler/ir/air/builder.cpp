@@ -97,9 +97,10 @@ void Builder::Start() {
         signature_builder.CreateFunction("main_", context, module, 0, false);
     function = func;
 
+    auto prologue_bb = llvm::BasicBlock::Create(context, "prologue", function);
     auto entry_bb = llvm::BasicBlock::Create(context, "entry", function);
     epilogue_bb = llvm::BasicBlock::Create(context, "epilogue", function);
-    builder = new llvm::IRBuilder<>(entry_bb);
+    builder = new llvm::IRBuilder<>(prologue_bb);
     builder->getFastMathFlags().setFast(FAST_MATH_ENABLED);
 
     std::string stage_name;
@@ -194,6 +195,9 @@ void Builder::Start() {
             builder->CreateStore(v, GetC({index, RZ, i * sizeof(u32)}, true));
         }
     }
+
+    builder->CreateBr(entry_bb);
+    builder->SetInsertPoint(entry_bb);
 }
 
 void Builder::Finish() {
@@ -212,11 +216,13 @@ void Builder::Finish() {
     // TODO: enable optimizations
     // RunOptimizationPasses(llvm::OptimizationLevel::O2);
 
-    // TODO: write to the output code
+    // TODO: write directly to the output code
     llvm::SmallVector<char, 0> vec;
     llvm::raw_svector_ostream os(vec);
     luft::metallib::MetallibWriter writer;
     writer.Write(module, os);
+
+    out_code.assign(vec.begin(), vec.end());
 }
 
 void Builder::OpExit() { builder->CreateBr(epilogue_bb); }
