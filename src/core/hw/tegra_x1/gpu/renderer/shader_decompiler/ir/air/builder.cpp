@@ -98,6 +98,7 @@ void Builder::Start() {
     function = func;
 
     auto entry_bb = llvm::BasicBlock::Create(context, "entry", function);
+    epilogue_bb = llvm::BasicBlock::Create(context, "epilogue", function);
     builder = new llvm::IRBuilder<>(entry_bb);
     builder->getFastMathFlags().setFast(FAST_MATH_ENABLED);
 
@@ -145,7 +146,7 @@ void Builder::Start() {
             const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
                 const auto attr = GetA({RZ, 0x80 + i * 0x10 + c * 0x4}, true);
-                auto v = AccessSv(SvAccess(sv, c));
+                auto v = LoadSvInput(SvAccess(sv, c));
                 if (needs_scaling)
                     v = builder->CreateFPExt(v, types._float); // TODO: what
 
@@ -158,7 +159,7 @@ void Builder::Start() {
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
             const auto attr = GetA({RZ, a_base + c * 0x4}, true);              \
-            auto v = AccessSv(SvAccess(Sv(sv_semantic, index), c));            \
+            auto v = LoadSvInput(SvAccess(Sv(sv_semantic, index), c));         \
             builder->CreateStore(v, attr);                                     \
         }                                                                      \
     }
@@ -190,19 +191,26 @@ void Builder::Start() {
                     llvm::ArrayType::get(types._int, size / sizeof(u32)),
                     function->getArg(buffer.first)),
                 {i});
-            builder->CreateStore(GetC({index, RZ, i * sizeof(u32)}, true), v);
+            builder->CreateStore(v, GetC({index, RZ, i * sizeof(u32)}, true));
         }
     }
 }
 
 void Builder::Finish() {
-    delete builder;
+    CreateEpilogue();
 
-    // TODO: enable optimizations
-    // RunOptimizationPasses(llvm::OptimizationLevel::O2);
+    delete builder;
 
     // TODO: remove this
     module.print(llvm::outs(), nullptr);
+
+#ifdef HYDRA_DEBUG
+    if (llvm::verifyModule(module, &llvm::errs()))
+        LOG_FATAL(ShaderDecompiler, "LLVM module verification failed")
+#endif
+
+    // TODO: enable optimizations
+    // RunOptimizationPasses(llvm::OptimizationLevel::O2);
 
     // TODO: write to the output code
     llvm::SmallVector<char, 0> vec;
@@ -211,25 +219,38 @@ void Builder::Finish() {
     writer.Write(module, os);
 }
 
-void Builder::OpExit() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
+void Builder::OpExit() { builder->CreateBr(epilogue_bb); }
 
 void Builder::OpMove(reg_t dst, Operand src) {
     builder->CreateStore(GetOperand(src), GetReg(dst, true));
 }
 
 void Builder::OpAdd(Operand dst, Operand src1, Operand src2) {
-    auto res_v = builder->CreateAdd(GetOperand(src1), GetOperand(src2));
+    auto src1_v = GetOperand(src1);
+    auto src2_v = GetOperand(src2);
+    llvm::Value* res_v;
+    if (src1.data_type == DataType::Float)
+        res_v = builder->CreateFAdd(src1_v, src2_v);
+    else
+        res_v = builder->CreateAdd(src1_v, src2_v);
     builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
 void Builder::OpMultiply(Operand dst, Operand src1, Operand src2) {
-    auto res_v = builder->CreateFMul(GetOperand(src1), GetOperand(src2));
+    auto src1_v = GetOperand(src1);
+    auto src2_v = GetOperand(src2);
+    llvm::Value* res_v;
+    if (src1.data_type == DataType::Float)
+        res_v = builder->CreateFMul(src1_v, src2_v);
+    else
+        res_v = builder->CreateMul(src1_v, src2_v);
     builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
 void Builder::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
     auto res_v = builder->CreateFAdd(
-        GetReg(src1), builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
+        GetReg(src1, false, DataType::Float),
+        builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
     builder->CreateStore(res_v, GetReg(dst, true));
 }
 
@@ -243,8 +264,7 @@ void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
 }
 
 void Builder::OpLoad(reg_t dst, Operand src) {
-    auto res_v = builder->CreateLoad(types._float, GetOperand(src));
-    builder->CreateStore(res_v, GetReg(dst, true));
+    builder->CreateStore(GetOperand(src), GetReg(dst, true));
 }
 
 void Builder::OpStore(AMem dst, reg_t src) {
@@ -473,6 +493,49 @@ void Builder::InitializeSignature(
 
     // Images
     // TODO
+}
+
+void Builder::CreateEpilogue() {
+    builder->SetInsertPoint(epilogue_bb);
+
+    auto ret = builder->CreateAlloca(function->getReturnType());
+
+    // Outputs
+    switch (type) {
+    case ShaderType::Vertex:
+        // TODO: don't hardcode the bit cast type
+#define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
+    {                                                                          \
+        for (u32 c = 0; c < 4; c++) {                                          \
+            auto attr = GetA({RZ, a_base + c * 0x4});                          \
+            StoreSvOutput(ret, SvAccess(Sv(sv_semantic, index), c), attr);     \
+        }                                                                      \
+    }
+
+        ADD_OUTPUT(SvSemantic::Position, invalid<u8>(), 0x70);
+        for (const auto output : analyzer.GetMemoryAnalyzer().GetStageOutputs())
+            ADD_OUTPUT(SvSemantic::UserInOut, output, 0x80 + output * 0x10);
+
+#undef ADD_OUTPUT
+        break;
+    case ShaderType::Fragment:
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_format = state.color_target_formats[i];
+            if (color_target_format == TextureFormat::Invalid)
+                continue;
+
+            for (u32 c = 0; c < 4; c++) {
+                auto color = GetReg(i * 4 + c, false);
+                StoreSvOutput(ret, SvAccess(Sv(SvSemantic::UserInOut, i), c),
+                              color);
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    builder->CreateRet(builder->CreateLoad(function->getReturnType(), ret));
 }
 
 void Builder::RunOptimizationPasses(llvm::OptimizationLevel opt) {

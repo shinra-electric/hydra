@@ -50,6 +50,7 @@ class Builder final : public BuilderBase {
     llvm::IRBuilder<>* builder;
 
     llvm::Function* function;
+    llvm::BasicBlock* epilogue_bb;
 
     // Arguments
     std::map<Sv, u32> inputs;
@@ -69,6 +70,7 @@ class Builder final : public BuilderBase {
     llvm::AllocaInst* cmem_v;
 
     void InitializeSignature(luft::FunctionSignatureBuilder& signature_builder);
+    void CreateEpilogue();
     void RunOptimizationPasses(llvm::OptimizationLevel opt);
 
     // Helpers
@@ -161,9 +163,20 @@ class Builder final : public BuilderBase {
             return res;
     }
 
-    llvm::Value* AccessSv(const SvAccess& access) {
+    llvm::Value* LoadSvInput(const SvAccess& access) {
         return builder->CreateExtractElement(
             function->getArg(inputs[access.sv]), access.component_index);
+    }
+
+    void StoreSvOutput(llvm::Value* ret, const SvAccess& access,
+                       llvm::Value* value) {
+        const auto output = outputs[access.sv];
+        auto sv_ptr = builder->CreateInBoundsGEP(function->getReturnType(), ret,
+                                                 {GetImmediate(output)});
+        auto ptr = builder->CreateInBoundsGEP(
+            function->getReturnType()->getStructElementType(output), sv_ptr,
+            {GetImmediate(access.component_index)});
+        builder->CreateStore(value, ptr);
     }
 };
 
