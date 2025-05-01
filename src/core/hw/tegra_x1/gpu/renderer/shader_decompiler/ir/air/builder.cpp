@@ -113,6 +113,22 @@ void Builder::Start() {
         break;
     }
     module.getOrInsertNamedMetadata(stage_name)->addOperand(meta);
+
+    // Registers
+    regs_ty = llvm::ArrayType::get(types._float, 256);
+    regs_v = builder->CreateAlloca(regs_ty, nullptr, "r");
+
+    // AMEM
+    amem_ty = llvm::ArrayType::get(types._float,
+                                   0x200); // TODO: what should be the size?
+    amem_v = builder->CreateAlloca(amem_ty, nullptr, "a");
+
+    // CMEM
+    llvm::ArrayType* cmem_buffer_ty = llvm::ArrayType::get(
+        types._float, 0x40); // TODO: what should be the size?
+    cmem_ty =
+        llvm::ArrayType::get(cmem_buffer_ty, UNIFORM_BUFFER_BINDING_COUNT);
+    cmem_v = builder->CreateAlloca(cmem_ty, nullptr, "c");
 }
 
 void Builder::Finish() {
@@ -134,23 +150,28 @@ void Builder::Finish() {
 void Builder::OpExit() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
 
 void Builder::OpMove(reg_t dst, Operand src) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    builder->CreateStore(GetOperand(src), GetReg(dst));
 }
 
 void Builder::OpAdd(Operand dst, Operand src1, Operand src2) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto res_v = builder->CreateAdd(GetOperand(src1), GetOperand(src2));
+    builder->CreateStore(res_v, GetOperand(dst));
 }
 
 void Builder::OpMultiply(Operand dst, Operand src1, Operand src2) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto res_v = builder->CreateFMul(GetOperand(src1), GetOperand(src2));
+    builder->CreateStore(res_v, GetOperand(dst));
 }
 
 void Builder::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto res_v = builder->CreateFAdd(
+        GetReg(src1), builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
+    builder->CreateStore(res_v, GetReg(dst));
 }
 
 void Builder::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto res_v = builder->CreateShl(GetReg(src), shift);
+    builder->CreateStore(res_v, GetReg(dst));
 }
 
 void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
@@ -158,11 +179,12 @@ void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
 }
 
 void Builder::OpLoad(reg_t dst, Operand src) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    auto res_v = builder->CreateLoad(types._float, GetOperand(src));
+    builder->CreateStore(res_v, GetReg(dst));
 }
 
 void Builder::OpStore(AMem dst, reg_t src) {
-    LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler);
+    builder->CreateStore(GetReg(src), GetA(dst));
 }
 
 void Builder::OpInterpolate(reg_t dst, AMem src) {
@@ -306,7 +328,7 @@ void Builder::InitializeSignature(
             .array_size = static_cast<uint32_t>(size / sizeof(u32)),
             .memory_access = luft::MemoryAccess::read,
             .address_space = luft::AddressSpace::constant,
-            .type = luft::msl_uint,
+            .type = luft::msl_float,
             .arg_name = fmt::format("ubuff{}", index),
             .raster_order_group = {},
         });

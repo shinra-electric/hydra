@@ -11,6 +11,7 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/VersionTuple.h"
 #include "llvm/Transforms/Scalar/Scalarizer.h"
+#include <bit>
 
 #include "luft/luft.hpp"
 
@@ -50,8 +51,77 @@ class Builder final : public BuilderBase {
 
     llvm::IRBuilder<>* builder;
 
+    // Types
+    llvm::Type* regs_ty;
+    llvm::Type* amem_ty;
+    llvm::Type* cmem_ty;
+
+    // Allocas
+    llvm::AllocaInst* regs_v;
+    llvm::AllocaInst* amem_v;
+    llvm::AllocaInst* cmem_v;
+
     void InitializeSignature(luft::FunctionSignatureBuilder& signature_builder);
     void RunOptimizationPasses(llvm::OptimizationLevel opt);
+
+    // Helpers
+    llvm::Value* GetReg(reg_t reg, bool write = false,
+                        DataType data_type = DataType::UInt) {
+        if (reg == RZ && !write)
+            return GetImmediate(0, data_type);
+
+        return builder->CreateGEP(regs_ty, regs_v, {GetImmediate(reg)});
+    }
+
+    llvm::Constant* GetImmediate(u32 imm, DataType data_type = DataType::UInt) {
+        switch (data_type) {
+        // TODO: same for int and uint?
+        case DataType::Int:
+        case DataType::UInt:
+            return llvm::ConstantInt::get(context, llvm::APInt(32, imm));
+        case DataType::Float:
+            return llvm::ConstantFP::get(
+                context, llvm::APFloat(std::bit_cast<f32>(imm)));
+        default:
+            LOG_ERROR(ShaderDecompiler, "Unsupported data type");
+            return nullptr;
+        }
+    }
+
+    llvm::Value* GetA(const AMem amem, DataType data_type = DataType::UInt) {
+        // TODO: support indexing with reg
+        return builder->CreateGEP(amem_ty, amem_v,
+                                  {GetImmediate(amem.imm / sizeof(u32))});
+    }
+
+    llvm::Value* GetC(const CMem cmem, DataType data_type = DataType::UInt) {
+        return builder->CreateGEP(
+            cmem_ty, cmem_v,
+            {GetReg(cmem.reg), GetImmediate(cmem.imm / sizeof(u32))});
+    }
+
+    llvm::Value* GetOperand(Operand operand, bool write = false) {
+        llvm::Value* res;
+        switch (operand.type) {
+        case OperandType::Register:
+            res = GetReg(operand.reg, write, operand.data_type);
+            break;
+        case OperandType::Immediate:
+            res = GetImmediate(operand.imm, operand.data_type);
+            break;
+        case OperandType::AttributeMemory:
+            res = GetA(operand.amem, operand.data_type);
+            break;
+        case OperandType::ConstMemory:
+            res = GetC(operand.cmem, operand.data_type);
+            break;
+        }
+
+        if (operand.neg)
+            return builder->CreateNeg(res);
+        else
+            return res;
+    }
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR
