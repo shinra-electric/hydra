@@ -65,12 +65,29 @@ class Builder final : public BuilderBase {
     void RunOptimizationPasses(llvm::OptimizationLevel opt);
 
     // Helpers
+    llvm::Type* GetLlvmType(DataType data_type) {
+        switch (data_type) {
+        case DataType::Int:
+        case DataType::UInt:
+            return types._int;
+        case DataType::Float:
+            return types._float;
+        default:
+            LOG_ERROR(ShaderDecompiler, "Unsupported data type");
+            return nullptr;
+        }
+    }
+
     llvm::Value* GetReg(reg_t reg, bool write = false,
                         DataType data_type = DataType::UInt) {
         if (reg == RZ && !write)
             return GetImmediate(0, data_type);
 
-        return builder->CreateGEP(regs_ty, regs_v, {GetImmediate(reg)});
+        auto res_v = builder->CreateGEP(regs_ty, regs_v, {GetImmediate(reg)});
+        if (!write)
+            return builder->CreateLoad(GetLlvmType(data_type), res_v);
+
+        return res_v;
     }
 
     llvm::Constant* GetImmediate(u32 imm, DataType data_type = DataType::UInt) {
@@ -88,16 +105,26 @@ class Builder final : public BuilderBase {
         }
     }
 
-    llvm::Value* GetA(const AMem amem, DataType data_type = DataType::UInt) {
+    llvm::Value* GetA(const AMem amem, bool write = false,
+                      DataType data_type = DataType::UInt) {
         // TODO: support indexing with reg
-        return builder->CreateGEP(amem_ty, amem_v,
-                                  {GetImmediate(amem.imm / sizeof(u32))});
+        auto res_v = builder->CreateGEP(amem_ty, amem_v,
+                                        {GetImmediate(amem.imm / sizeof(u32))});
+        if (!write)
+            return builder->CreateLoad(GetLlvmType(data_type), res_v);
+
+        return res_v;
     }
 
-    llvm::Value* GetC(const CMem cmem, DataType data_type = DataType::UInt) {
-        return builder->CreateGEP(
+    llvm::Value* GetC(const CMem cmem, bool write = false,
+                      DataType data_type = DataType::UInt) {
+        auto res_v = builder->CreateGEP(
             cmem_ty, cmem_v,
             {GetReg(cmem.reg), GetImmediate(cmem.imm / sizeof(u32))});
+        if (!write)
+            return builder->CreateLoad(GetLlvmType(data_type), res_v);
+
+        return res_v;
     }
 
     llvm::Value* GetOperand(Operand operand, bool write = false) {
@@ -110,10 +137,10 @@ class Builder final : public BuilderBase {
             res = GetImmediate(operand.imm, operand.data_type);
             break;
         case OperandType::AttributeMemory:
-            res = GetA(operand.amem, operand.data_type);
+            res = GetA(operand.amem, write, operand.data_type);
             break;
         case OperandType::ConstMemory:
-            res = GetC(operand.cmem, operand.data_type);
+            res = GetC(operand.cmem, write, operand.data_type);
             break;
         }
 

@@ -150,28 +150,28 @@ void Builder::Finish() {
 void Builder::OpExit() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
 
 void Builder::OpMove(reg_t dst, Operand src) {
-    builder->CreateStore(GetOperand(src), GetReg(dst));
+    builder->CreateStore(GetOperand(src), GetReg(dst, true));
 }
 
 void Builder::OpAdd(Operand dst, Operand src1, Operand src2) {
     auto res_v = builder->CreateAdd(GetOperand(src1), GetOperand(src2));
-    builder->CreateStore(res_v, GetOperand(dst));
+    builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
 void Builder::OpMultiply(Operand dst, Operand src1, Operand src2) {
     auto res_v = builder->CreateFMul(GetOperand(src1), GetOperand(src2));
-    builder->CreateStore(res_v, GetOperand(dst));
+    builder->CreateStore(res_v, GetOperand(dst, true));
 }
 
 void Builder::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
     auto res_v = builder->CreateFAdd(
         GetReg(src1), builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
-    builder->CreateStore(res_v, GetReg(dst));
+    builder->CreateStore(res_v, GetReg(dst, true));
 }
 
 void Builder::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
     auto res_v = builder->CreateShl(GetReg(src), shift);
-    builder->CreateStore(res_v, GetReg(dst));
+    builder->CreateStore(res_v, GetReg(dst, true));
 }
 
 void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
@@ -180,11 +180,11 @@ void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
 
 void Builder::OpLoad(reg_t dst, Operand src) {
     auto res_v = builder->CreateLoad(types._float, GetOperand(src));
-    builder->CreateStore(res_v, GetReg(dst));
+    builder->CreateStore(res_v, GetReg(dst, true));
 }
 
 void Builder::OpStore(AMem dst, reg_t src) {
-    builder->CreateStore(GetReg(src), GetA(dst));
+    builder->CreateStore(GetReg(src), GetA(dst, true));
 }
 
 void Builder::OpInterpolate(reg_t dst, AMem src) {
