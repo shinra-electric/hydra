@@ -45,7 +45,7 @@ class Builder final : public BuilderBase {
 
   private:
     llvm::LLVMContext context;
-    llvm::Module module;
+    llvm::Module* m;
     luft::AirType types;
     llvm::IRBuilder<>* builder;
 
@@ -75,7 +75,7 @@ class Builder final : public BuilderBase {
 
     // Helpers
     luft::AIRBuilderContext GetAirBuilderContext() {
-        return luft::AIRBuilderContext(context, module, *builder, types);
+        return luft::AIRBuilderContext(context, *m, *builder, types);
     }
 
     llvm::Type* GetLlvmType(DataType data_type) {
@@ -96,7 +96,11 @@ class Builder final : public BuilderBase {
         if (reg == RZ && !write)
             return GetImmediate(0, data_type);
 
-        auto res_v = builder->CreateGEP(regs_ty, regs_v, {GetImmediate(reg)});
+        auto res_v = builder->CreateGEP(regs_ty, regs_v,
+                                        {GetImmediate(0), GetImmediate(reg)});
+        if (data_type == DataType::Float)
+            res_v = builder->CreateBitCast(
+                res_v, llvm::Type::getFloatPtrTy(context, 0));
         if (!write)
             return builder->CreateLoad(GetLlvmType(data_type), res_v);
 
@@ -121,8 +125,12 @@ class Builder final : public BuilderBase {
     llvm::Value* GetA(const AMem amem, bool write = false,
                       DataType data_type = DataType::UInt) {
         // TODO: support indexing with reg
-        auto res_v = builder->CreateGEP(amem_ty, amem_v,
-                                        {GetImmediate(amem.imm / sizeof(u32))});
+        auto res_v = builder->CreateGEP(
+            amem_ty, amem_v,
+            {GetImmediate(0), GetImmediate(amem.imm / sizeof(u32))});
+        if (data_type == DataType::Float)
+            res_v = builder->CreateBitCast(
+                res_v, llvm::Type::getFloatPtrTy(context, 0));
         if (!write)
             return builder->CreateLoad(GetLlvmType(data_type), res_v);
 
@@ -131,9 +139,12 @@ class Builder final : public BuilderBase {
 
     llvm::Value* GetC(const CMem cmem, bool write = false,
                       DataType data_type = DataType::UInt) {
-        auto res_v = builder->CreateGEP(
-            cmem_ty, cmem_v,
-            {GetReg(cmem.reg), GetImmediate(cmem.imm / sizeof(u32))});
+        auto res_v = builder->CreateGEP(cmem_ty, cmem_v,
+                                        {GetImmediate(0), GetReg(cmem.reg),
+                                         GetImmediate(cmem.imm / sizeof(u32))});
+        if (data_type == DataType::Float)
+            res_v = builder->CreateBitCast(
+                res_v, llvm::Type::getFloatPtrTy(context, 0));
         if (!write)
             return builder->CreateLoad(GetLlvmType(data_type), res_v);
 
@@ -164,18 +175,22 @@ class Builder final : public BuilderBase {
     }
 
     llvm::Value* LoadSvInput(const SvAccess& access) {
-        return builder->CreateExtractElement(
+        auto v = builder->CreateExtractElement(
             function->getArg(inputs[access.sv]), access.component_index);
+        if (!v->getType()->isIntegerTy())
+            v = builder->CreateBitCast(v, types._int);
+
+        return v;
     }
 
     void StoreSvOutput(llvm::Value* ret, const SvAccess& access,
                        llvm::Value* value) {
         const auto output = outputs[access.sv];
-        auto sv_ptr = builder->CreateInBoundsGEP(function->getReturnType(), ret,
-                                                 {GetImmediate(output)});
+        auto sv_ptr =
+            builder->CreateStructGEP(function->getReturnType(), ret, output);
         auto ptr = builder->CreateInBoundsGEP(
             function->getReturnType()->getStructElementType(output), sv_ptr,
-            {GetImmediate(access.component_index)});
+            {GetImmediate(0), GetImmediate(access.component_index)});
         builder->CreateStore(value, ptr);
     }
 };

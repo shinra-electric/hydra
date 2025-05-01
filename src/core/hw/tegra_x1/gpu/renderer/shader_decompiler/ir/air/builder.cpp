@@ -13,7 +13,9 @@ Builder::Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
                  const GuestShaderState& state, std::vector<u8>& out_code,
                  ResourceMapping& out_resource_mapping)
     : BuilderBase(analyzer, type, state, out_code, out_resource_mapping),
-      module("default", context), types(context) {}
+      types(context) {
+    context.setOpaquePointers(false);
+}
 
 void Builder::InitializeResourceMapping() {
     for (const auto& [index, size] :
@@ -33,35 +35,35 @@ void Builder::InitializeResourceMapping() {
 }
 
 void Builder::Start() {
+    m = new llvm::Module("default", context);
+
     // TODO: diagnostics handler
 
     // TODO: move this to the API
-    module.setSourceFileName("airconv_generated.metal");
-    module.setTargetTriple("air64-apple-macosx14.0.0");
-    module.setDataLayout(
-        "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:"
-        "64-f32:32:32-f64:"
-        "64:64-v16:16:16-v24:32:32-v32:32:32-v48:64:64-v64:64:"
-        "64-v96:128:128-"
-        "v128:128:128-v192:256:256-v256:256:256-v512:512:512-"
-        "v1024:1024:1024-n8:"
-        "16:32");
-    module.setSDKVersion(llvm::VersionTuple(14, 0));
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Error, "wchar_size", 4);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max, "frame-pointer",
-                         2);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max,
-                         "air.max_device_buffers", 31);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max,
-                         "air.max_constant_buffers", 31);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max,
-                         "air.max_threadgroup_buffers", 31);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max, "air.max_textures",
-                         128);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max,
-                         "air.max_read_write_textures", 8);
-    module.addModuleFlag(llvm::Module::ModFlagBehavior::Max, "air.max_samplers",
-                         16);
+    m->setSourceFileName("airconv_generated.metal");
+    m->setTargetTriple("air64-apple-macosx14.0.0");
+    m->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:"
+                     "64-f32:32:32-f64:"
+                     "64:64-v16:16:16-v24:32:32-v32:32:32-v48:64:64-v64:64:"
+                     "64-v96:128:128-"
+                     "v128:128:128-v192:256:256-v256:256:256-v512:512:512-"
+                     "v1024:1024:1024-n8:"
+                     "16:32");
+    m->setSDKVersion(llvm::VersionTuple(14, 0));
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Error, "wchar_size", 4);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max, "frame-pointer", 2);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max,
+                     "air.max_device_buffers", 31);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max,
+                     "air.max_constant_buffers", 31);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max,
+                     "air.max_threadgroup_buffers", 31);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max, "air.max_textures",
+                     128);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max,
+                     "air.max_read_write_textures", 8);
+    m->addModuleFlag(llvm::Module::ModFlagBehavior::Max, "air.max_samplers",
+                     16);
 
     auto createUnsignedInteger = [&](uint32_t s) {
         return llvm::ConstantAsMetadata::get(
@@ -69,18 +71,16 @@ void Builder::Start() {
     };
     auto createString = [&](auto s) { return llvm::MDString::get(context, s); };
 
-    auto airVersion = module.getOrInsertNamedMetadata("air.version");
+    auto airVersion = m->getOrInsertNamedMetadata("air.version");
     airVersion->addOperand(llvm::MDTuple::get(
         context, {createUnsignedInteger(2), createUnsignedInteger(6),
                   createUnsignedInteger(0)}));
-    auto airLangVersion =
-        module.getOrInsertNamedMetadata("air.language_version");
+    auto airLangVersion = m->getOrInsertNamedMetadata("air.language_version");
     airLangVersion->addOperand(llvm::MDTuple::get(
         context, {createString("Metal"), createUnsignedInteger(3),
                   createUnsignedInteger(0), createUnsignedInteger(0)}));
 
-    auto airCompileOptions =
-        module.getOrInsertNamedMetadata("air.compile_options");
+    auto airCompileOptions = m->getOrInsertNamedMetadata("air.compile_options");
     airCompileOptions->addOperand(llvm::MDTuple::get(
         context, {createString("air.compile.denorms_disable")}));
     airCompileOptions->addOperand(llvm::MDTuple::get(
@@ -94,7 +94,7 @@ void Builder::Start() {
     luft::FunctionSignatureBuilder signature_builder;
     InitializeSignature(signature_builder);
     auto [func, meta] =
-        signature_builder.CreateFunction("main_", context, module, 0, false);
+        signature_builder.CreateFunction("main_", context, *m, 0, false);
     function = func;
 
     auto prologue_bb = llvm::BasicBlock::Create(context, "prologue", function);
@@ -115,7 +115,7 @@ void Builder::Start() {
         stage_name = "air.unknown";
         break;
     }
-    module.getOrInsertNamedMetadata(stage_name)->addOperand(meta);
+    m->getOrInsertNamedMetadata(stage_name)->addOperand(meta);
 
     // Registers
     regs_ty = llvm::ArrayType::get(types._int, 256);
@@ -206,29 +206,49 @@ void Builder::Finish() {
     delete builder;
 
     // TODO: remove this
-    module.print(llvm::outs(), nullptr);
+    m->print(llvm::outs(), nullptr);
 
 #ifdef HYDRA_DEBUG
-    if (llvm::verifyModule(module, &llvm::errs()))
-        LOG_FATAL(ShaderDecompiler, "LLVM module verification failed")
+    if (llvm::verifyModule(*m, &llvm::errs()))
+        LOG_FATAL(ShaderDecompiler, "LLVM m verification failed");
 #endif
 
-    // TODO: enable optimizations
+    // HACK
+    /*
+    std::string temp_code;
+    llvm::raw_string_ostream temp_stream(temp_code);
+    m->print(temp_stream, nullptr);
+    delete m;
+
+    std::unique_ptr<llvm::MemoryBuffer> buffer =
+        llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(temp_code));
+    llvm::SMDiagnostic error;
+    auto new_module = llvm::parseIR(buffer->getMemBufferRef(), error, context);
+    if (new_module) {
+        m = new_module.get();
+    } else {
+        error.print("llvm-code", llvm::errs());
+        throw;
+    }
+    */
+
     // RunOptimizationPasses(llvm::OptimizationLevel::O2);
 
     // TODO: write directly to the output code
     llvm::SmallVector<char, 0> vec;
     llvm::raw_svector_ostream os(vec);
     luft::metallib::MetallibWriter writer;
-    writer.Write(module, os);
+    writer.Write(*m, os);
 
     out_code.assign(vec.begin(), vec.end());
+
+    delete m;
 }
 
 void Builder::OpExit() { builder->CreateBr(epilogue_bb); }
 
 void Builder::OpMove(reg_t dst, Operand src) {
-    builder->CreateStore(GetOperand(src), GetReg(dst, true));
+    builder->CreateStore(GetOperand(src), GetReg(dst, true, src.data_type));
 }
 
 void Builder::OpAdd(Operand dst, Operand src1, Operand src2) {
@@ -257,7 +277,7 @@ void Builder::OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
     auto res_v = builder->CreateFAdd(
         GetReg(src1, false, DataType::Float),
         builder->CreateFMul(GetOperand(src2), GetOperand(src3)));
-    builder->CreateStore(res_v, GetReg(dst, true));
+    builder->CreateStore(res_v, GetReg(dst, true, DataType::Float));
 }
 
 void Builder::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
@@ -270,7 +290,7 @@ void Builder::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
 }
 
 void Builder::OpLoad(reg_t dst, Operand src) {
-    builder->CreateStore(GetOperand(src), GetReg(dst, true));
+    builder->CreateStore(GetOperand(src), GetReg(dst, true, src.data_type));
 }
 
 void Builder::OpStore(AMem dst, reg_t src) {
@@ -285,10 +305,10 @@ void Builder::OpInterpolate(reg_t dst, AMem src) {
 void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                               reg_t coords_x, reg_t coords_y) {
     llvm::Value* coords_v = llvm::UndefValue::get(types._float2);
-    coords_v = builder->CreateInsertElement(coords_v, GetReg(coords_x),
-                                            GetImmediate(0));
-    coords_v = builder->CreateInsertElement(coords_v, GetReg(coords_y),
-                                            GetImmediate(0));
+    coords_v = builder->CreateInsertElement(
+        coords_v, GetReg(coords_x, false, DataType::Float), GetImmediate(0));
+    coords_v = builder->CreateInsertElement(
+        coords_v, GetReg(coords_y, false, DataType::Float), GetImmediate(0));
 
     // TODO: don't hardcode the type
     auto res_v = luft::call_sample(
@@ -303,10 +323,14 @@ void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                      GetImmediate(0))
                      .build(GetAirBuilderContext())
                      .get();
-    builder->CreateStore(builder->CreateShuffleVector(res_v, {0, 1}),
-                         GetReg(dst0, true));
-    builder->CreateStore(builder->CreateShuffleVector(res_v, {2, 3}),
-                         GetReg(dst1, true));
+    // TODO: why does it return { <4 x float>, i8 }?
+    res_v = builder->CreateExtractValue(res_v, 0);
+    for (u32 i = 0; i < 2; i++)
+        builder->CreateStore(builder->CreateExtractElement(res_v, i),
+                             GetReg(dst0 + i, true, DataType::Float));
+    for (u32 i = 2; i < 4; i++)
+        builder->CreateStore(builder->CreateExtractElement(res_v, i),
+                             GetReg(dst1 + i, true, DataType::Float));
 }
 
 void Builder::InitializeSignature(
@@ -358,7 +382,7 @@ void Builder::InitializeSignature(
 
             u32 arg_index =
                 signature_builder.DefineInput(luft::InputFragmentStageIn{
-                    .user = fmt::format("user{}", input),
+                    .user = fmt::format("locn{}", input),
                     .type = type,
                     .interpolation =
                         luft::Interpolation::center_no_perspective, // TODO
@@ -397,7 +421,7 @@ void Builder::InitializeSignature(
             const auto type = luft::msl_float4;
 
             u32 arg_index = signature_builder.DefineOutput(luft::OutputVertex{
-                .user = fmt::format("user{}", output),
+                .user = fmt::format("locn{}", output),
                 .type = type,
             });
             outputs[Sv(SvSemantic::UserInOut, output)] = arg_index;
@@ -483,7 +507,7 @@ void Builder::InitializeSignature(
                     .arg_name = fmt::format("tex{}", index),
                     .raster_order_group = {},
                 });
-            textures[index] = arg_index;
+            textures[const_buffer_index] = arg_index;
         }
 
         {
@@ -493,7 +517,7 @@ void Builder::InitializeSignature(
                     .array_size = 1,
                     .arg_name = fmt::format("samplr{}", index),
                 });
-            samplers[index] = arg_index;
+            samplers[const_buffer_index] = arg_index;
         }
     }
 
@@ -513,7 +537,8 @@ void Builder::CreateEpilogue() {
 #define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
-            auto attr = GetA({RZ, a_base + c * 0x4});                          \
+            /* TODO: don't hardcode the type */                                \
+            auto attr = GetA({RZ, a_base + c * 0x4}, false, DataType::Float);  \
             StoreSvOutput(ret, SvAccess(Sv(sv_semantic, index), c), attr);     \
         }                                                                      \
     }
@@ -531,7 +556,8 @@ void Builder::CreateEpilogue() {
                 continue;
 
             for (u32 c = 0; c < 4; c++) {
-                auto color = GetReg(i * 4 + c, false);
+                // TODO: don't hardcode the type
+                auto color = GetReg(i * 4 + c, false, DataType::Float);
                 StoreSvOutput(ret, SvAccess(Sv(SvSemantic::UserInOut, i), c),
                               color);
             }
@@ -581,13 +607,14 @@ void Builder::RunOptimizationPasses(llvm::OptimizationLevel opt) {
     llvm::ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(opt);
 
     llvm::FunctionPassManager FPM;
-    FPM.addPass(llvm::ScalarizerPass());
+    // FPM.addPass(llvm::ScalarizerPass());
 
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
-    MPM.addPass(llvm::VerifierPass());
+    // TODO: remove?
+    // MPM.addPass(llvm::VerifierPass());
 
     // Optimize the IR!
-    MPM.run(module, MAM);
+    MPM.run(*m, MAM);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR
