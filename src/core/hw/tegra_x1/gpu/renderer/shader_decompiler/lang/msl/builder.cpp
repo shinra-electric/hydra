@@ -22,6 +22,8 @@ void Builder::InitializeResourceMapping() {
     // TODO: images
 }
 
+void Builder::OpDiscard() { Write("discard_fragment();"); }
+
 void Builder::EmitHeader() {
     Write("#include <metal_stdlib>");
     Write("using namespace metal;");

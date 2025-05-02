@@ -14,6 +14,9 @@ class Builder final : public LangBuilderBase {
 
     void InitializeResourceMapping() override;
 
+    // Operations
+    void OpDiscard() override;
+
   protected:
     void EmitHeader() override;
     void EmitTypeAliases() override;

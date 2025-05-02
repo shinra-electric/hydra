@@ -20,6 +20,7 @@ class ObserverBase {
     virtual void OpInterpolate(reg_t dst, AMem src) {}
     virtual void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                                  reg_t coords_x, reg_t coords_y) {}
+    virtual void OpDiscard() {}
 
     // Setters
     void SetPC(const u32 pc_) { pc = pc_; }

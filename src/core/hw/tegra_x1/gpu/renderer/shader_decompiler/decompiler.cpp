@@ -281,8 +281,12 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "cont");
     INST(0xe340000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "brk");
-    INST(0xe330000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "kil");
+    INST(0xe330000000000000, 0xfff0000000000000) {
+        // TODO: f0f8_0
+        LOG_DEBUG(ShaderDecompiler, "kil");
+
+        observer->OpDiscard();
+    }
     INST(0xe320000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ret");
     INST(0xe310000000000000, 0xfff0000000000000)
