@@ -189,6 +189,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xf0a8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bar");
     INST(0xeff0000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto mode = get_operand_eff0_0(inst);
         auto amem = GET_AMEM_IDX(20);
         const auto src = GET_REG(0);
@@ -204,6 +206,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xefe8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pixld");
     INST(0xefd8000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto mode = get_operand_eff0_0(inst);
         const auto dst = GET_REG(0);
         auto amem = GET_AMEM_IDX(20);
@@ -223,6 +227,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xef98000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "membar");
     INST(0xef90000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM_R(36, 8, 16);
         LOG_DEBUG(ShaderDecompiler, "ld r{} c{}[r{} + 0x{:x}]", dst, src.idx,
@@ -307,6 +313,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xe310000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "longjmp");
     INST(0xe300000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
         // TODO: f0f8_0
         LOG_DEBUG(ShaderDecompiler, "exit");
 
@@ -369,6 +377,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xe200000000000000, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "jmx");
     INST(0xe00000000000ff00, 0xff0000400000ff00) {
+        HANDLE_PRED_COND();
+
         // TODO: mode
         const auto dst = GET_REG(0);
         const auto amem = GET_AMEM_IDX(28);
@@ -409,6 +419,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xd200000000000000, 0xf600000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tlds");
     INST(0xd000000000000000, 0xf600000000000000) {
+        HANDLE_PRED_COND();
+
         // TODO: is the dst correct?
         const auto dst1 = GET_REG(28);
         const auto dst0 = GET_REG(0);
@@ -484,6 +496,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5ca0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sel");
     INST(0x5c98000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
         const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
@@ -500,6 +514,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5c70000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
     INST(0x5c68000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_REG(20);
@@ -512,6 +528,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x5c58000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
@@ -579,6 +597,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5a00000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
     INST(0x5980000000000000, 0xff80000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_REG(20);
@@ -619,6 +639,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5200000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
     INST(0x5180000000000000, 0xff80000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_REG(39);
@@ -656,6 +678,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x5088000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pset");
     INST(0x5080000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto func = get_operand_5080_0(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(8);
@@ -684,6 +708,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4ca0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sel");
     INST(0x4c98000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM(34, 14);
         const auto todo = GET_VALUE_U32(39, 4);
@@ -701,6 +727,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4c70000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
     INST(0x4c68000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_CMEM(34, 14);
@@ -714,6 +742,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x4c58000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
@@ -755,15 +785,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4bc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
     INST(0x4bb0000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
         const auto cmp = get_operand_5bb0_0(inst);
         const auto bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
         const auto rhs = GET_CMEM(34, 14);
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler,
-                            "fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp, bin,
-                            dst, combine, lhs, rhs.idx, rhs.imm);
+        LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp,
+                  bin, dst, combine, lhs, rhs.idx, rhs.imm);
 
         observer->OpSetPred(cmp, bin, dst, combine,
                             Operand::Register(lhs, DataType::Float),
@@ -786,6 +817,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4a00000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
     INST(0x4980000000000000, 0xff80000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_CMEM(34, 14);
@@ -836,6 +869,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x3870000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dadd");
     INST(0x3868000000000000, 0xfef8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
@@ -848,6 +883,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
     INST(0x3858000000000000, 0xfef8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
@@ -863,6 +900,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
     INST(0x3848000000000000, 0xfef8000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src = GET_REG(8);
         const auto shift = GET_VALUE_U32(20, 19) |
@@ -898,15 +937,16 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x36c0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
     INST(0x36b0000000000000, 0xfef0000000000000) {
+        HANDLE_PRED_COND();
+
         const auto cmp = get_operand_5bb0_0(inst);
         const auto bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
         const auto rhs = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler,
-                            "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp, bin, dst,
-                            combine, lhs, rhs);
+        LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp,
+                  bin, dst, combine, lhs, rhs);
 
         observer->OpSetPred(cmp, bin, dst, combine,
                             Operand::Register(lhs, DataType::Float),
@@ -931,6 +971,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x3400000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad");
     INST(0x3280000000000000, 0xfe80000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
@@ -957,6 +999,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x1f00000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imul32i");
     INST(0x1e00000000000000, 0xff00000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
         const auto src2 = GET_VALUE_U32_EXTEND(32, 20);
@@ -986,6 +1030,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x0200000000000000, 0xfe00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop3");
     INST(0x0100000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
         const auto dst = GET_REG(0);
         const auto value = GET_VALUE_U32_EXTEND(32, 20);
         const auto todo =
