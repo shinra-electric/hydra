@@ -2,8 +2,60 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+
+namespace {
+
+std::string cmp_op_to_str(ComparisonOperator cmp) {
+    // TODO: are the U ones the same?
+    switch (cmp) {
+    case ComparisonOperator::F:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::Less:
+    case ComparisonOperator::LessU:
+        return "<";
+    case ComparisonOperator::Equal:
+    case ComparisonOperator::EqualU:
+        return "==";
+    case ComparisonOperator::LessEqual:
+    case ComparisonOperator::LessEqualU:
+        return "<=";
+    case ComparisonOperator::Greater:
+    case ComparisonOperator::GreaterU:
+        return ">";
+    case ComparisonOperator::NotEqual:
+    case ComparisonOperator::NotEqualU:
+        return "!=";
+    case ComparisonOperator::GreaterEqual:
+    case ComparisonOperator::GreaterEqualU:
+        return ">=";
+    case ComparisonOperator::Num:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::Nan:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::T:
+        return INVALID_VALUE; // TODO
+    default:
+        return INVALID_VALUE;
+    }
+}
+
+std::string bin_op_to_str(BinaryOperator bin) {
+    switch (bin) {
+    case BinaryOperator::And:
+        return "&";
+    case BinaryOperator::Or:
+        return "|";
+    case BinaryOperator::Xor:
+        return "^";
+    default:
+        return INVALID_VALUE;
+    }
+}
+
+} // namespace
 
 void LangBuilderBase::Start() {
     // Header
@@ -28,16 +80,20 @@ void LangBuilderBase::Start() {
     // Main prototype
     EmitMainPrototype();
 
-    // Registers
-    Write("Reg r[256];");
-    WriteNewline();
-
     // Temporary
     EnterScope("union");
     Write("int4 i;");
     Write("uint4 u;");
     Write("float4 f;");
     ExitScope("temp");
+    WriteNewline();
+
+    // Registers
+    Write("Reg r[256];");
+    WriteNewline();
+
+    // Predicates
+    Write("bool p[8];"); // TODO: is the size correct?
     WriteNewline();
 
     // Attribute memory
@@ -200,6 +256,15 @@ void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
 void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
     WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
                    GetReg(src, false, DataType::UInt), shift);
+}
+
+void LangBuilderBase::OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
+                                pred_t dst, pred_t combine, Operand lhs,
+                                Operand rhs) {
+    // TODO: is the combining correct?
+    WriteStatement("{} = ({} {} {}) {} {}", GetPred(dst), GetOperand(lhs),
+                   cmp_op_to_str(cmp), GetOperand(rhs), bin_op_to_str(bin),
+                   GetPred(combine));
 }
 
 void LangBuilderBase::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {

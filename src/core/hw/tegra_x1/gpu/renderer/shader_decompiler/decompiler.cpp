@@ -135,6 +135,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
 bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
+#define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
 
 #define GET_VALUE_U(type_bit_count, b, count)                                  \
     extract_bits<u##type_bit_count, b, count>(inst)
@@ -740,8 +741,19 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0x4bc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
     INST(0x4bb0000000000000, 0xfff0000000000000) {
-        // TODO
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fsetp");
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto lhs = GET_REG(8);
+        const auto rhs = GET_CMEM(34, 14);
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler,
+                            "fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp, bin,
+                            dst, combine, lhs, rhs.idx, rhs.imm);
+
+        observer->OpSetPred(cmp, bin, dst, combine,
+                            Operand::Register(lhs, DataType::Float),
+                            Operand::ConstMemory(rhs, DataType::Float));
     }
     INST(0x4ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -871,8 +883,21 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lea");
     INST(0x36c0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
-    INST(0x36b0000000000000, 0xfef0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fsetp");
+    INST(0x36b0000000000000, 0xfef0000000000000) {
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto lhs = GET_REG(8);
+        const auto rhs = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler,
+                            "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp, bin, dst,
+                            combine, lhs, rhs);
+
+        observer->OpSetPred(cmp, bin, dst, combine,
+                            Operand::Register(lhs, DataType::Float),
+                            Operand::Immediate(rhs, DataType::Float));
+    }
     INST(0x36a0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
     INST(0x3680000000000000, 0xfef0000000000000)

@@ -14,6 +14,9 @@ class ObserverBase {
     virtual void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) {
     }
     virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) {}
+    virtual void OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
+                           pred_t dst, pred_t combine, Operand lhs,
+                           Operand rhs) {}
     virtual void OpMathFunction(MathFunc func, reg_t dst, reg_t src) {}
     virtual void OpLoad(reg_t dst, Operand src) {}
     virtual void OpStore(AMem dst, reg_t src) {}

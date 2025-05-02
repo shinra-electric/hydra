@@ -28,6 +28,8 @@ class LangBuilderBase : public BuilderBase {
     void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
+    void OpSetPred(ComparisonOperator cmp, BinaryOperator bin, pred_t dst,
+                   pred_t combine, Operand lhs, Operand rhs) override;
     void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override;
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
@@ -87,6 +89,14 @@ class LangBuilderBase : public BuilderBase {
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
+    std::string GetPred(pred_t pred, bool write = false) {
+        // TODO: correct?
+        if (pred == PRED_ONE && !write)
+            return GetImmediate(true);
+
+        return fmt::format("p[{}]", pred);
+    }
+
     std::string GetImm(u32 imm, DataType data_type = DataType::UInt) {
         return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
     }
@@ -108,6 +118,12 @@ class LangBuilderBase : public BuilderBase {
         switch (operand.type) {
         case OperandType::Register:
             res = GetReg(operand.reg, write, operand.data_type);
+            break;
+        case OperandType::Predicate:
+            ASSERT_DEBUG(operand.data_type == DataType::None, ShaderDecompiler,
+                         "Predicates cannot have types (type: {})",
+                         operand.data_type);
+            res = GetPred(operand.pred, write);
             break;
         case OperandType::Immediate:
             res = GetImm(operand.imm, operand.data_type);
@@ -186,6 +202,8 @@ class LangBuilderBase : public BuilderBase {
             return fmt::format("{:#}f", imm);
         else if constexpr (std::is_same_v<T, f64>)
             return fmt::format("{:#}f", imm);
+        else if constexpr (std::is_same_v<T, bool>)
+            return fmt::format("{}", imm);
         else {
             LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
                       typeid(T).name());
