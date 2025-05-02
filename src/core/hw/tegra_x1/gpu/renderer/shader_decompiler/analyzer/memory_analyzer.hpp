@@ -1,20 +1,20 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
-class MemoryAnalyzer : public ObserverBase {
+class MemoryAnalyzer {
   public:
     // Operations
-    void OpAdd(Operand dst, Operand src1, Operand src2) override;
-    void OpMultiply(Operand dst, Operand src1, Operand src2) override;
-    void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
-    void OpLoad(reg_t dst, Operand src) override;
-    void OpStore(AMem dst, reg_t src) override;
-    void OpInterpolate(reg_t dst, AMem src) override;
+    void OpAdd(Operand dst, Operand src1, Operand src2);
+    void OpMultiply(Operand dst, Operand src1, Operand src2);
+    void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3);
+    void OpLoad(reg_t dst, Operand src);
+    void OpStore(AMem dst, reg_t src);
+    void OpInterpolate(reg_t dst, AMem src);
     void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
-                         reg_t coords_x, reg_t coords_y) override;
+                         reg_t coords_x, reg_t coords_y);
 
     // Getters
     const std::vector<SvSemantic>& GetInputSVs() const { return input_svs; }

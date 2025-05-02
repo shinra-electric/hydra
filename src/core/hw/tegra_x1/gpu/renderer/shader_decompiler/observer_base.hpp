@@ -21,7 +21,11 @@ class ObserverBase {
     virtual void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                                  reg_t coords_x, reg_t coords_y) {}
 
-  private:
+    // Setters
+    void SetPC(const u32 pc_) { pc = pc_; }
+
+  protected:
+    u32 pc{0};
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

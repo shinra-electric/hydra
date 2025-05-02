@@ -331,8 +331,10 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "brx");
     INST(0xe240000000000020, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bra");
-    INST(0xe240000000000000, 0xfff0000000000020)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bra");
+    INST(0xe240000000000000, 0xfff0000000000020) {
+        // TODO
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bra");
+    }
     INST(0xe230000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pexit");
     INST(0xe220000000000020, 0xfff0000000000020)
@@ -733,8 +735,10 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lea");
     INST(0x4bc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
-    INST(0x4bb0000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fsetp");
+    INST(0x4bb0000000000000, 0xfff0000000000000) {
+        // TODO
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fsetp");
+    }
     INST(0x4ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
     INST(0x4b80000000000000, 0xfff0000000000000)
@@ -957,21 +961,23 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 }
 
 void Decompiler::Parse(ObserverBase* observer, Reader& code_reader) {
-    u32 index = 0;
+    u32 pc = 0;
     while (true) {
         u64 inst = code_reader.Read<u64>();
         LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
-        if (index % 4 == 0) {
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
+        if (pc % 4 == 0) {
+            // TODO: should sched even be handled?
+            // LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sched");
         } else {
+            observer->SetPC(pc);
             if (!ParseInstruction(observer, inst))
                 break;
         }
 
         // TODO: when to end
 
-        index++;
+        pc++;
     }
 }
 

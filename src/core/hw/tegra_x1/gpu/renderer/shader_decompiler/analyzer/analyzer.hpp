@@ -1,17 +1,17 @@
 #pragma once
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/control_flow_builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
 class Analyzer : public ObserverBase {
   public:
     // Operations
-    void OpExit() override { mem_analyzer.OpExit(); }
+    void OpExit() override { control_flow_builder.OpExit(); }
 
-    void OpMove(reg_t dst, Operand src) override {
-        mem_analyzer.OpMove(dst, src);
-    }
+    void OpMove(reg_t dst, Operand src) override {}
 
     void OpAdd(Operand dst, Operand src1, Operand src2) override {
         mem_analyzer.OpAdd(dst, src1, src2);
@@ -26,13 +26,9 @@ class Analyzer : public ObserverBase {
         mem_analyzer.OpFloatFma(dst, src1, src2, src3);
     }
 
-    void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override {
-        mem_analyzer.OpShiftLeft(dst, src, shift);
-    }
+    void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override {}
 
-    void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override {
-        mem_analyzer.OpMathFunction(func, dst, src);
-    }
+    void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override {}
 
     void OpLoad(reg_t dst, Operand src) override {
         mem_analyzer.OpLoad(dst, src);
@@ -57,6 +53,7 @@ class Analyzer : public ObserverBase {
 
   private:
     MemoryAnalyzer mem_analyzer;
+    ControlFlowBuilder control_flow_builder;
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
