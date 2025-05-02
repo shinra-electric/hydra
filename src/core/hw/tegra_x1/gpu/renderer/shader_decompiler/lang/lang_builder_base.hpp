@@ -21,6 +21,8 @@ class LangBuilderBase : public BuilderBase {
     void Start() override;
     void Finish() override;
 
+    void SetNextPredCond(const PredCond pred_cond) override;
+
     // Operations
     void OpExit() override;
     void OpMove(reg_t dst, Operand src) override;
@@ -47,20 +49,34 @@ class LangBuilderBase : public BuilderBase {
     virtual std::string EmitTextureSample(u32 const_buffer_index,
                                           const std::string& coords) = 0;
 
-    template <typename... T> void Write(WRITE_ARGS) {
-        // TODO: handle indentation differently
-        std::string indent_str;
-        for (u32 i = 0; i < indent; i++) {
-            indent_str += "    ";
-        }
-        WriteRaw("{}{}\n", indent_str, FMT);
-    }
-
     template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 
+    template <typename... T> void WriteWithIndent(WRITE_ARGS) {
+        // TODO: handle indentation differently
+        std::string indent_str;
+        if (!skip_indent) {
+            for (u32 i = 0; i < indent; i++) {
+                indent_str += "    ";
+            }
+        } else {
+            skip_indent = false;
+        }
+        WriteRaw("{}{}", indent_str, FMT);
+    }
+
+    template <typename... T> void Write(WRITE_ARGS) {
+        WriteWithIndent("{}\n", FMT);
+    }
+
     void WriteNewline() { code_str += "\n"; }
+
     template <typename... T> void WriteStatement(WRITE_ARGS) {
         Write("{};", FMT);
+    }
+
+    template <typename... T> void EnterScopeTemp(WRITE_ARGS) {
+        WriteWithIndent("{} ", FMT);
+        skip_indent = true;
     }
 
     void EnterScopeEmpty() { EnterScopeImpl(""); }
@@ -259,7 +275,8 @@ class LangBuilderBase : public BuilderBase {
   private:
     std::string code_str;
 
-    u32 indent = 0;
+    u32 indent{0};
+    bool skip_indent{false};
 
     template <typename... T> void EnterScopeImpl(WRITE_ARGS) {
         Write("{}{{", FMT);

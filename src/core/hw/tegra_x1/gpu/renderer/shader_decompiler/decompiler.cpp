@@ -1,7 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
+// #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
@@ -103,10 +103,10 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
         builder = new Lang::MSL::Builder(analyzer, type, state, out_code,
                                          out_resource_mapping);
         break;
-    case ShaderBackend::Air:
-        builder = new IR::AIR::Builder(analyzer, type, state, out_code,
-                                       out_resource_mapping);
-        break;
+    // case ShaderBackend::Air:
+    //     builder = new IR::AIR::Builder(analyzer, type, state, out_code,
+    //                                    out_resource_mapping);
+    //     break;
     default:
         // TODO: log the backend
         LOG_FATAL(ShaderDecompiler, "Unsupported shader backend");
@@ -159,6 +159,18 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
 #define GET_CMEM_R(b_idx, b_reg, count_imm)                                    \
     CMem{GET_VALUE_U32(b_idx, 5), GET_REG(b_reg),                              \
          extract_bits<u32, 20, count_imm>(inst) * 4}
+
+#define HANDLE_PRED_COND()                                                     \
+    if ((inst & 0x00000000000f0000) == 0x00000000000f0000) { /* never */       \
+        LOG_DEBUG(ShaderDecompiler, "never");                                  \
+        throw; /* TODO: implement */                                           \
+    }                                                                          \
+    if ((inst & 0x00000000000f0000) == 0x0000000000000000) {                   \
+        const auto pred = GET_PRED(16);                                        \
+        const bool not_ = GET_BIT(19);                                         \
+        LOG_DEBUG(ShaderDecompiler, "if {}p{}", not_ ? "!" : "", pred);        \
+        observer->SetNextPredCond({pred, not_});                               \
+    }
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
@@ -283,6 +295,8 @@ bool Decompiler::ParseInstruction(ObserverBase* observer, u64 inst) {
     INST(0xe340000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "brk");
     INST(0xe330000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
         // TODO: f0f8_0
         LOG_DEBUG(ShaderDecompiler, "kil");
 

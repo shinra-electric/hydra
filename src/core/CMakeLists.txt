@@ -275,8 +275,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.cpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp
+    #hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.cpp
+    #hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
     hw/tegra_x1/gpu/renderer/texture_decoder.cpp

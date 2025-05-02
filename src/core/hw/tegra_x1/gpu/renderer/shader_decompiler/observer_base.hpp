@@ -6,6 +6,8 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 class ObserverBase {
   public:
+    virtual void SetNextPredCond(const PredCond pred_cond) {}
+
     // Operations
     virtual void OpExit() {}
     virtual void OpMove(reg_t dst, Operand src) {}

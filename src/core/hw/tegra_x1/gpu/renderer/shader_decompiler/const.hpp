@@ -102,6 +102,12 @@ struct Operand {
     }
 };
 
+struct PredCond {
+    pred_t pred;
+    bool not_;
+    bool never;
+};
+
 enum class SvSemantic {
     Invalid,
     Position,
