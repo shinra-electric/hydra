@@ -20,10 +20,6 @@ class Decompiler final {
                    const GuestShaderState& state, ShaderBackend& out_backend,
                    std::vector<u8>& out_code,
                    ResourceMapping& out_resource_mapping);
-
-  private:
-    bool ParseInstruction(ObserverBase* observer, u64 inst);
-    void Parse(ObserverBase* observer, Reader& code_reader);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

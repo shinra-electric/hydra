@@ -12,7 +12,7 @@ typedef u8 reg_t;
 typedef u8 pred_t;
 
 constexpr reg_t RZ = 255;
-constexpr pred_t PRED_ONE = 7;
+constexpr pred_t PT = 7;
 
 enum class DataType {
     None,

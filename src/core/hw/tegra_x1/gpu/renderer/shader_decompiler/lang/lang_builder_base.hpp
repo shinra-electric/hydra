@@ -106,8 +106,7 @@ class LangBuilderBase : public BuilderBase {
     }
 
     std::string GetPred(pred_t pred, bool write = false) {
-        // TODO: correct?
-        if (pred == PRED_ONE && !write)
+        if (pred == PT && !write)
             return GetImmediate(true);
 
         return fmt::format("p[{}]", pred);

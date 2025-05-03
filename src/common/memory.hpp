@@ -12,6 +12,10 @@ class Reader {
     Reader(const u8* base_, usize size_)
         : base{base_}, ptr{base_}, size{size_} {}
 
+    Reader CreateSubReader(usize new_size = invalid<usize>()) {
+        return Reader(ptr, std::min<usize>(new_size, size - Tell()));
+    }
+
     u64 Tell() { return static_cast<u64>(ptr - base); }
     void Seek(u64 pos) { ptr = base + pos; }
     void Skip(usize size) { ptr += size; }
@@ -51,11 +55,9 @@ class StreamReader {
         Seek(0);
     }
 
-    StreamReader CreateSubReader(usize new_size) {
-        return StreamReader(stream, stream.tellg(), new_size);
+    StreamReader CreateSubReader(usize new_size = invalid<usize>()) {
+        return StreamReader(stream, stream.tellg(), std::min<usize>(new_size, size - Tell()));
     }
-
-    StreamReader CreateSubReader() { return CreateSubReader(size - Tell()); }
 
     u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
 
