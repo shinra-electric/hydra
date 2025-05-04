@@ -21,7 +21,7 @@ class LangBuilderBase : public BuilderBase {
     void Start() override;
     void Finish() override;
 
-    void SetNextPredCond(const PredCond pred_cond) override;
+    void SetPredCond(const PredCond pred_cond) override;
 
     // Operations
     void OpExit() override;

@@ -8,6 +8,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
+typedef u64 instruction_t;
 typedef u8 reg_t;
 typedef u8 pred_t;
 

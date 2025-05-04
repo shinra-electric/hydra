@@ -5,14 +5,23 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator {
 
 Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
-    const auto pc = code_reader.Tell() / sizeof(u64);
-    const auto inst = code_reader.Read<u64>();
+    const u32 pc = code_reader.Tell() / sizeof(instruction_t);
+    const auto inst = code_reader.Read<instruction_t>();
     if ((pc % 4) == 0) // Sched
         return {ResultCode::None};
 
     observer->SetPC(pc);
     LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
+    const auto res = ParseNextInstructionImpl(observer, pc, inst);
+    observer->ClearPredCond();
+
+    return res;
+}
+
+Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
+                                              const u32 pc,
+                                              const instruction_t inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
 
@@ -24,8 +33,20 @@ Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
 #define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
 #define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
 #define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
+#define GET_VALUE_I_SIGN_EXTEND(type_bit_count, b, count)                      \
+    sign_extend<i##type_bit_count, count>(GET_VALUE_U(type_bit_count, b, count))
+#define GET_VALUE_I32_SIGN_EXTEND(b, count)                                    \
+    GET_VALUE_I_SIGN_EXTEND(32, b, count)
+#define GET_VALUE_I64_SIGN_EXTEND(b, count)                                    \
+    GET_VALUE_I_SIGN_EXTEND(64, b, count)
 
 #define GET_BIT(b) extract_bits<u32, b, 1>(inst)
+
+#define GET_BTARG()                                                            \
+    static_cast<u32>(pc +                                                      \
+                     std::bit_cast<i32>(GET_VALUE_I32_SIGN_EXTEND(20, 24)) /   \
+                         sizeof(instruction_t) +                               \
+                     1)
 
 #define GET_AMEM()                                                             \
     AMem { GET_REG(8), 0 }
@@ -43,23 +64,35 @@ Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     }
 
 #define HANDLE_PRED_COND()                                                     \
-    if ((inst & 0x00000000000f0000) == 0x00000000000f0000) { /* never */       \
+    bool conditional = false;                                                  \
+    if ((inst & 0x00000000000f0000) == 0x0000000000070000) { /* never */       \
+        /* Nothing */                                                          \
+    } else if ((inst & 0x00000000000f0000) ==                                  \
+               0x00000000000f0000) { /* never */                               \
         LOG_DEBUG(ShaderDecompiler, "never");                                  \
         throw; /* TODO: implement */                                           \
-    }                                                                          \
-    if ((inst & 0x00000000000f0000) == 0x0000000000000000) {                   \
+    } else {                                                                   \
         const auto pred = GET_PRED(16);                                        \
         const bool not_ = GET_BIT(19);                                         \
         LOG_DEBUG(ShaderDecompiler, "if {}p{}", not_ ? "!" : "", pred);        \
-        observer->SetNextPredCond({pred, not_});                               \
+        observer->SetPredCond({pred, not_});                                   \
+        conditional = true;                                                    \
     }
 
     INST0(0xfbe0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
     INST(0xf6e0000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "out");
-    INST(0xf0f8000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sync");
+    INST(0xf0f8000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: f0f8_0
+        LOG_DEBUG(ShaderDecompiler, "sync");
+
+        observer->OpSync();
+
+        return {ResultCode::EndBlock};
+    }
     INST(0xf0f0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "depbar");
     INST(0xf0c8000000000000, 0xfff8000000000000)
@@ -222,8 +255,14 @@ Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pbk");
     INST(0xe290000000000020, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ssy");
-    INST(0xe290000000000000, 0xfff0000000000020)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ssy");
+    INST(0xe290000000000000, 0xfff0000000000020) {
+        const auto target = GET_BTARG();
+        LOG_DEBUG(ShaderDecompiler, "ssy 0x{:x}", target);
+
+        observer->OpSetSync(target);
+
+        return {ResultCode::SyncPoint, target};
+    }
     INST(0xe280000000000020, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "plongjmp");
     INST(0xe280000000000000, 0xfff0000000000020)
@@ -243,8 +282,17 @@ Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     INST(0xe240000000000020, 0xfff0000000000020)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bra");
     INST(0xe240000000000000, 0xfff0000000000020) {
-        // TODO
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "bra");
+        HANDLE_PRED_COND();
+
+        // TODO: f0f8_0
+        const auto target = GET_BTARG();
+        LOG_DEBUG(ShaderDecompiler, "bra 0x{:x}", target);
+
+        observer->OpBranch(target);
+
+        return {conditional ? ResultCode::BranchConditional
+                            : ResultCode::Branch,
+                target};
     }
     INST(0xe230000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pexit");

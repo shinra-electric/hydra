@@ -187,7 +187,7 @@ void LangBuilderBase::Finish() {
     LOG_DEBUG(ShaderDecompiler, "Decompiled: \"\n{}\"", code_str);
 }
 
-void LangBuilderBase::SetNextPredCond(const PredCond pred_cond) {
+void LangBuilderBase::SetPredCond(const PredCond pred_cond) {
     EnterScopeTemp("if ({}{})", pred_cond.not_ ? "!" : "",
                    GetPred(pred_cond.pred));
 }

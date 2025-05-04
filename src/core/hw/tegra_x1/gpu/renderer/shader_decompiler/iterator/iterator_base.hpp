@@ -31,10 +31,13 @@ class IteratorBase {
   protected:
     Result ParseNextInstruction(ObserverBase* observer);
 
-    void Jump(u32 target) { code_reader.Seek(target); }
+    void Jump(u32 target) { code_reader.Seek(target * sizeof(instruction_t)); }
 
   private:
     Reader code_reader;
+
+    Result ParseNextInstructionImpl(ObserverBase* observer, const u32 pc,
+                                    const instruction_t inst);
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator
