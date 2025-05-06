@@ -66,7 +66,15 @@ struct CfgCodeBlock : public CfgNode {
 struct CfgBlock : public CfgNode {
     std::vector<CfgNode*> nodes;
 
-    CfgBlock(const std::vector<CfgNode*>& nodes_) : nodes{nodes_} {}
+    CfgBlock(const std::vector<CfgNode*>& nodes_) {
+        for (const auto node : nodes_) {
+            if (auto block_node = dynamic_cast<CfgBlock*>(node))
+                nodes.insert(nodes.end(), block_node->nodes.begin(),
+                             block_node->nodes.end());
+            else
+                nodes.push_back(node);
+        }
+    }
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_block = dynamic_cast<const CfgBlock*>(other)) {
