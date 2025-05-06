@@ -39,6 +39,8 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     GET_VALUE_I_SIGN_EXTEND(32, b, count)
 #define GET_VALUE_I64_SIGN_EXTEND(b, count)                                    \
     GET_VALUE_I_SIGN_EXTEND(64, b, count)
+    // TODO: correct?
+#define GET_VALUE_F32() ((GET_BIT(56) << 31) | (GET_VALUE_U32(20, 19) << 12))
 
 #define GET_BIT(b) extract_bits<u32, b, 1>(inst)
 
@@ -804,7 +806,7 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
 
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
-        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        const auto src2 = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, src1, src2);
 
         observer->OpMultiply(Operand::Register(dst, DataType::Float),
@@ -820,7 +822,7 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const bool neg1 = GET_BIT(48);
         const auto src1 = GET_REG(8);
         const bool neg2 = GET_BIT(45);
-        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: extend?
+        const auto src2 = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}0x{:x}", dst,
                   neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
 
@@ -875,7 +877,7 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
-        const auto rhs = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        const auto rhs = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp,
                   bin, dst, combine, lhs, rhs);
 
@@ -906,7 +908,7 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
 
         const auto dst = GET_REG(0);
         const auto src1 = GET_REG(8);
-        const auto src2 = GET_VALUE_U32_EXTEND(20, 20); // TODO: 20 + 19, 56 + 1
+        const auto src2 = GET_VALUE_F32();
         const auto src3 = GET_REG(39);
         LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, src1,
                   src2, src3);
