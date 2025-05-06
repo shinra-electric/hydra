@@ -61,7 +61,8 @@ class CfgBuilder : public ObserverBase {
     }
 
     void EndBlock(const CfgBlockEdge& edge) {
-        FinishBlock(*crnt_block, pc + 1, edge);
+        FinishBlock(*crnt_block,
+                    pc + (edge.type == CfgBlockEdgeType::Exit ? 1 : 0), edge);
         crnt_block = nullptr;
     }
 

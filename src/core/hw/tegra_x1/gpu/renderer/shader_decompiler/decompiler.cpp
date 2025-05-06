@@ -3,6 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structured_iterator.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_group.hpp"
 // #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
@@ -111,13 +112,13 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     case ShaderBackend::Msl: {
         builder = new Lang::MSL::Builder(memory_analyzer, type, state, out_code,
                                          out_resource_mapping);
-        auto block = Lang::Structurize(cfg_builder.GetEntryBlock());
+        auto root_block = Lang::Structurize(cfg_builder.GetEntryBlock());
 
         // Debug
-        block->Log();
+        root_block->Log();
 
-        // TODO: use a structured iterator
-        iterator = new AllPathsIterator(code_reader.CreateSubReader());
+        iterator = new Lang::StructuredIterator(code_reader.CreateSubReader(),
+                                                root_block);
         break;
     }
     // case ShaderBackend::Air:

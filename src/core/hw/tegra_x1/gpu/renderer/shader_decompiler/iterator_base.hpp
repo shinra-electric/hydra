@@ -47,3 +47,8 @@ class IteratorBase {
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::ResultCode, None,
+    "none", Branch, "branch", BranchConditional, "branch conditional",
+    SyncPoint, "sync point", EndBlock, "end block", Error, "error")

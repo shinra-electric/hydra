@@ -12,6 +12,8 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 #define INVALID_VALUE "INVALID"
 
 class LangBuilderBase : public BuilderBase {
+    friend class StructuredIterator;
+
   public:
     using BuilderBase::BuilderBase;
 
