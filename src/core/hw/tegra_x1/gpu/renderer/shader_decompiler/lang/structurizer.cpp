@@ -4,7 +4,7 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
 namespace {
 
-CfgStructuredNode* ResolveBlockImpl(const CfgBasicBlock* block) {
+CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
     switch (block->edge.type) {
     case CfgBlockEdgeType::Branch:
         return new CfgStructuredNodeWithEdge{

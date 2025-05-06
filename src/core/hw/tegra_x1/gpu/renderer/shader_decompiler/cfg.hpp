@@ -4,15 +4,6 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
-struct CfgNode {
-    virtual ~CfgNode() = default;
-
-    virtual bool IsSameAs(const CfgNode* other) const = 0;
-
-    // Debug
-    virtual void Log(const u32 indent = 0) const = 0;
-};
-
 enum class CfgBlockEdgeType {
     Branch,
     BranchConditional,
@@ -68,23 +59,13 @@ enum class CfgBlockStatus {
     Finished,
 };
 
-struct CfgBasicBlock : public CfgNode {
+struct CfgBasicBlock {
     CfgBlockStatus status{CfgBlockStatus::Unvisited};
     range<u32> code_range;
     u32 return_sync_point{invalid<u32>()};
     CfgBlockEdge edge;
 
-    bool IsSameAs(const CfgNode* other) const override {
-        if (auto other_block = dynamic_cast<const CfgBasicBlock*>(other)) {
-            return code_range == other_block->code_range &&
-                   return_sync_point == other_block->return_sync_point &&
-                   edge == other_block->edge;
-        }
-
-        return false;
-    }
-
-    void Log(const u32 indent = 0) const override {
+    void Log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
                   code_range.begin);
         if (status == CfgBlockStatus::Unvisited) {

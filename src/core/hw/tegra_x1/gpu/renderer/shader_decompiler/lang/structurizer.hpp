@@ -4,14 +4,20 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 
-struct CfgStructuredNode : public CfgNode {};
+struct CfgNode {
+    virtual ~CfgNode() = default;
 
-struct CfgStructuredNodeWithEdge : public CfgStructuredNode {
-    CfgStructuredNode* node;
-    CfgStructuredNode* branch_target;
+    virtual bool IsSameAs(const CfgNode* other) const = 0;
 
-    CfgStructuredNodeWithEdge(CfgStructuredNode* node_,
-                              CfgStructuredNode* branch_target_)
+    // Debug
+    virtual void Log(const u32 indent = 0) const = 0;
+};
+
+struct CfgStructuredNodeWithEdge : public CfgNode {
+    CfgNode* node;
+    CfgNode* branch_target;
+
+    CfgStructuredNodeWithEdge(CfgNode* node_, CfgNode* branch_target_)
         : node{node_}, branch_target{branch_target_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
@@ -36,7 +42,7 @@ struct CfgStructuredNodeWithEdge : public CfgStructuredNode {
     }
 };
 
-struct CfgCodeBlock : public CfgStructuredNode {
+struct CfgCodeBlock : public CfgNode {
     range<u32> code_range;
 
     CfgCodeBlock(range<u32> code_range_) : code_range{code_range_} {}
@@ -57,10 +63,10 @@ struct CfgCodeBlock : public CfgStructuredNode {
     }
 };
 
-struct CfgBlock : public CfgStructuredNode {
-    std::vector<CfgStructuredNode*> nodes;
+struct CfgBlock : public CfgNode {
+    std::vector<CfgNode*> nodes;
 
-    CfgBlock(const std::vector<CfgStructuredNode*>& nodes_) : nodes{nodes_} {}
+    CfgBlock(const std::vector<CfgNode*>& nodes_) : nodes{nodes_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_block = dynamic_cast<const CfgBlock*>(other)) {
@@ -87,10 +93,10 @@ struct CfgBlock : public CfgStructuredNode {
     }
 };
 
-struct CfgIfElseBlock : public CfgStructuredNode {
+struct CfgIfElseBlock : public CfgNode {
     PredCond pred_cond;
-    CfgStructuredNode* then_block;
-    CfgStructuredNode* else_block;
+    CfgNode* then_block;
+    CfgNode* else_block;
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_if_else_block =
@@ -103,8 +109,8 @@ struct CfgIfElseBlock : public CfgStructuredNode {
         return false;
     }
 
-    CfgIfElseBlock(const PredCond pred_cond_, CfgStructuredNode* then_block_,
-                   CfgStructuredNode* else_block_)
+    CfgIfElseBlock(const PredCond pred_cond_, CfgNode* then_block_,
+                   CfgNode* else_block_)
         : pred_cond{pred_cond_}, then_block{then_block_}, else_block{
                                                               else_block_} {}
 
