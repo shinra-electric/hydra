@@ -73,7 +73,7 @@ struct CfgBlock : public CfgNode {
             if (nodes.size() != other_block->nodes.size())
                 return false;
 
-            for (size_t i = 0; i < nodes.size(); ++i) {
+            for (u32 i = 0; i < nodes.size(); i++) {
                 if (!nodes[i]->IsSameAs(other_block->nodes[i]))
                     return false;
             }
@@ -102,8 +102,8 @@ struct CfgIfElseBlock : public CfgNode {
         if (auto other_if_else_block =
                 dynamic_cast<const CfgIfElseBlock*>(other)) {
             return pred_cond == other_if_else_block->pred_cond &&
-                   then_block == other_if_else_block->then_block &&
-                   else_block == other_if_else_block->else_block;
+                   then_block->IsSameAs(other_if_else_block->then_block) &&
+                   else_block->IsSameAs(other_if_else_block->else_block);
         }
 
         return false;

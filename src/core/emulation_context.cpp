@@ -100,7 +100,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
                                   MOV_X0_XZR); // InstructionAbortSameEl
     }
 
-    if (false) {                                    // Puyo Puyo Tetris
+    if (true) {                                     // Puyo Puyo Tetris
         cpu->GetMMU()->Store<u32>(0x513e05d0, NOP); // Jump to heap
         cpu->GetMMU()->Store<u32>(0x402cbecc, NOP); // Audio
         // cpu->GetMMU()->Store<u32>(0x51b9da48, NOP); // InstructionAbortSameEl
