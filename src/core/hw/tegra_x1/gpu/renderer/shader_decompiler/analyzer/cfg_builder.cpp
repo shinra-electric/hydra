@@ -27,9 +27,6 @@ void CfgBuilder::OpSync() {
 }
 
 void CfgBuilder::OpBranch(u32 target) {
-    ASSERT_DEBUG(sync_point != invalid<u32>(), ShaderDecompiler,
-                 "Invalid sync point");
-
     CfgBlockEdge edge;
     if (pred_cond) {
         edge.type = CfgBlockEdgeType::BranchConditional;

@@ -137,9 +137,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
         fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
                     (void*)code_reader.GetBase()),
         std::ios::binary);
-    out.write(
-        reinterpret_cast<const char*>(code_reader.GetBase() + code_offset),
-        0x1000);
+    out.write(reinterpret_cast<const char*>(code_reader.GetPtr()), 0x1000);
     out.close();
 #endif
 }
