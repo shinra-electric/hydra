@@ -4,6 +4,7 @@
 #include <string>
 
 #include "common/functions.hpp"
+#include "common/logging/log.hpp"
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
@@ -275,3 +276,12 @@ class CacheBase {
 };
 
 } // namespace Hydra
+
+template <typename T>
+struct fmt::formatter<Hydra::range<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(Hydra::range<T> range, FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("[{}...{}]", range.begin, range.end), ctx);
+    }
+};

@@ -4,132 +4,139 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
-enum class CfgNodeEdgeType {
+struct CfgNodeBase {
+    virtual ~CfgNodeBase() = default;
+
+    // Debug
+    virtual void Log() const = 0;
+};
+
+enum class CfgBlockEdgeType {
     Branch,
     BranchConditional,
     Exit,
 };
 
-struct CfgNode;
+struct CfgBlock;
 
-struct CfgNodeEdge {
-    CfgNodeEdgeType type;
+struct CfgBlockEdge {
+    CfgBlockEdgeType type;
     union {
         struct {
-            CfgNode* target;
+            CfgBlock* target;
         } branch;
         struct {
-            CfgNode* target_true;
-            CfgNode* target_false;
+            PredCond pred_cond;
+            CfgBlock* target_true;
+            CfgBlock* target_false;
         } branch_conditional;
     };
-};
-
-struct CfgNode {
-    range<u32> code_range;
-    u32 return_sync_point;
-    CfgNodeEdge edge;
-};
-
-enum class CfgNodeStatus {
-    Unvisited,
-    Visited,
-    Finished,
 };
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
 
 ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::
-                           Analyzer::CfgNodeEdgeType,
+                           Analyzer::CfgBlockEdgeType,
                        Branch, "branch", BranchConditional,
                        "branch conditional", Exit, "exit")
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
+enum class CfgBlockStatus {
+    Unvisited,
+    Visited,
+    Finished,
+};
+
+struct CfgBlock : public CfgNodeBase {
+    CfgBlockStatus status{CfgBlockStatus::Unvisited};
+    range<u32> code_range;
+    u32 return_sync_point;
+    CfgBlockEdge edge;
+
+    void Log() const override {
+        if (status == CfgBlockStatus::Unvisited) {
+            LOG_DEBUG(ShaderDecompiler, "\tUNVISITED");
+            return;
+        } else if (status == CfgBlockStatus::Visited) {
+            LOG_DEBUG(ShaderDecompiler, "\tVISITED");
+            return;
+        }
+
+        LOG_DEBUG(ShaderDecompiler, "\tCode: {}", code_range);
+        if (return_sync_point != invalid<u32>())
+            LOG_DEBUG(ShaderDecompiler, "\tReturn Sync Point: {}",
+                      return_sync_point);
+
+        LOG_DEBUG(ShaderDecompiler, "\tEdge: {}", edge.type);
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            LOG_DEBUG(ShaderDecompiler, "\t\tTarget: {}",
+                      edge.branch.target->code_range.begin);
+            break;
+        case CfgBlockEdgeType::BranchConditional:
+            LOG_DEBUG(ShaderDecompiler, "\t\tif {}p{}",
+                      edge.branch_conditional.pred_cond.not_ ? "!" : "",
+                      edge.branch_conditional.pred_cond.pred);
+            LOG_DEBUG(ShaderDecompiler, "\t\tTarget True: {}",
+                      edge.branch_conditional.target_true->code_range.begin);
+            LOG_DEBUG(ShaderDecompiler, "\t\tTarget False: {}",
+                      edge.branch_conditional.target_false->code_range.begin);
+            break;
+        case CfgBlockEdgeType::Exit:
+            break;
+        }
+    }
+};
+
 class CFG {
   public:
-    CfgNode& GetNode(u32 label) { return GetNodeImpl(label).first; }
+    CfgBlock* GetBlock(u32 label) { return GetBlockImpl(label); }
 
-    CfgNode& VisitNode(u32 label) {
-        auto& node_ = GetNodeImpl(label);
-        auto& status = node_.second;
-        ASSERT_DEBUG(status == CfgNodeStatus::Unvisited, ShaderDecompiler,
-                     "Node 0x{:x} already visited", label);
+    CfgBlock* VisitBlock(u32 label) {
+        auto* block = GetBlockImpl(label);
+        ASSERT_DEBUG(block->status == CfgBlockStatus::Unvisited,
+                     ShaderDecompiler, "Block 0x{:x} already visited", label);
+        block->status = CfgBlockStatus::Visited;
+        block->code_range = range(label);
 
-        status = CfgNodeStatus::Visited;
-        return node_.first;
+        return block;
     }
 
-    void FinishNode(u32 label, const u32 end, const CfgNodeEdge& edge) {
-        auto& node_ = nodes[label];
-        auto& node = node_.first;
-        auto& status = node_.second;
-        ASSERT_DEBUG(status == CfgNodeStatus::Visited, ShaderDecompiler,
-                     "Node 0x{:x} finished without being visited", label);
+    void FinishBlock(CfgBlock* block, const u32 end, const CfgBlockEdge& edge) {
+        ASSERT_DEBUG(block->status == CfgBlockStatus::Visited, ShaderDecompiler,
+                     "Block 0x{:x} finished without being visited",
+                     block->code_range.begin);
 
-        node.code_range.end = end;
-        node.edge = edge;
-        status = CfgNodeStatus::Finished;
-    }
-
-    void FinishNode(const CfgNode& node, const u32 end,
-                    const CfgNodeEdge& edge) {
-        FinishNode(node.code_range.begin, end, edge);
+        block->code_range.end = end;
+        block->edge = edge;
+        block->status = CfgBlockStatus::Finished;
     }
 
     // Debug
     void LogNodes() const {
-        for (const auto& [label, node_] : nodes) {
-            LOG_DEBUG(ShaderDecompiler, "Label: {}", label);
-
-            const auto status = node_.second;
-            if (status == CfgNodeStatus::Unvisited) {
-                LOG_DEBUG(ShaderDecompiler, "UNVISITED");
-                continue;
-            } else if (status == CfgNodeStatus::Visited) {
-                LOG_DEBUG(ShaderDecompiler, "VISITED");
-                continue;
-            }
-
-            auto& node = node_.first;
-            LOG_DEBUG(ShaderDecompiler, "\tCode: {}", node.code_range);
-            if (node.return_sync_point != invalid<u32>())
-                LOG_DEBUG(ShaderDecompiler, "\tReturn Sync Point: {}",
-                          node.return_sync_point);
-
-            const auto& edge = node.edge;
-            LOG_DEBUG(ShaderDecompiler, "\tEdge: {}", edge.type);
-            switch (edge.type) {
-            case CfgNodeEdgeType::Branch:
-                LOG_DEBUG(ShaderDecompiler, "\t\tTarget: {}",
-                          edge.branch.target->code_range.begin);
-                break;
-            case CfgNodeEdgeType::BranchConditional:
-                LOG_DEBUG(
-                    ShaderDecompiler, "\t\tTarget True: {}",
-                    edge.branch_conditional.target_true->code_range.begin);
-                LOG_DEBUG(
-                    ShaderDecompiler, "\t\tTarget False: {}",
-                    edge.branch_conditional.target_false->code_range.begin);
-                break;
-            case CfgNodeEdgeType::Exit:
-                break;
-            }
+        for (const auto& [label, node] : nodes) {
+            LOG_DEBUG(ShaderDecompiler, "Label: 0x{:x}", label);
+            node->Log();
         }
     }
 
   private:
-    std::map<u32, std::pair<CfgNode, CfgNodeStatus>> nodes;
+    std::map<u32, CfgNodeBase*> nodes;
 
-    std::pair<CfgNode, CfgNodeStatus>& GetNodeImpl(u32 label) {
-        auto& node_ = nodes[label];
-        auto& node = node_.first;
-        const auto& status = node_.second;
-        if (status == CfgNodeStatus::Unvisited) {
-            node.code_range = range(label);
+    CfgBlock* GetBlockImpl(u32 label) {
+        auto& node = nodes[label];
+        if (!node) {
+            auto block = new CfgBlock();
+            node = block;
+            return block;
         }
 
-        return node_;
+        auto block = dynamic_cast<CfgBlock*>(node);
+        ASSERT_DEBUG(block, ShaderDecompiler, "Node 0x{:x} is not a block",
+                     label);
+
+        return block;
     }
 };
 

@@ -26,20 +26,20 @@ class CfgBuilder : public ObserverBase {
 
   private:
     CFG cfg;
-    CfgNode* crnt_node;
+    CfgBlock* crnt_block;
 
     u32 sync_point{invalid<u32>()};
     nullable<PredCond> pred_cond;
 
-    CfgNode* GetBranchTarget(u32 label, u32 return_sync_point) {
-        auto& node = cfg.GetNode(label);
-        node.return_sync_point = return_sync_point;
-        return &node;
+    CfgBlock* GetBranchTarget(u32 label, u32 return_sync_point) {
+        auto block = cfg.GetBlock(label);
+        block->return_sync_point = return_sync_point;
+        return block;
     }
 
-    void EndNode(const CfgNodeEdge& edge) {
-        cfg.FinishNode(*crnt_node, pc + 1, edge);
-        crnt_node = nullptr;
+    void EndBlock(const CfgBlockEdge& edge) {
+        cfg.FinishBlock(crnt_block, pc + 1, edge);
+        crnt_block = nullptr;
     }
 };
 

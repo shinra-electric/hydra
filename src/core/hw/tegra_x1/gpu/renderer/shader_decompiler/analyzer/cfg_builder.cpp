@@ -2,49 +2,50 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
-CfgBuilder::CfgBuilder() { crnt_node = &cfg.VisitNode(0); }
+CfgBuilder::CfgBuilder() { crnt_block = cfg.VisitBlock(0); }
 
 void CfgBuilder::BlockChanged() {
-    ASSERT_DEBUG(!crnt_node, ShaderDecompiler,
+    ASSERT_DEBUG(!crnt_block, ShaderDecompiler,
                  "Starting a new block without finishing the previous one");
-    crnt_node = &cfg.VisitNode(pc);
+    crnt_block = cfg.VisitBlock(pc);
 }
 
 void CfgBuilder::OpSetSync(u32 target) { sync_point = target; }
 
 void CfgBuilder::OpSync() {
-    const auto target = crnt_node->return_sync_point;
+    const auto target = crnt_block->return_sync_point;
     ASSERT_DEBUG(target != invalid<u32>(), ShaderDecompiler,
                  "Invalid sync point");
 
-    CfgNodeEdge edge;
-    edge.type = CfgNodeEdgeType::Branch;
-    edge.branch.target = &cfg.GetNode(target);
-    EndNode(edge);
+    CfgBlockEdge edge;
+    edge.type = CfgBlockEdgeType::Branch;
+    edge.branch.target = cfg.GetBlock(target);
+    EndBlock(edge);
 }
 
 void CfgBuilder::OpBranch(u32 target) {
     ASSERT_DEBUG(sync_point != invalid<u32>(), ShaderDecompiler,
                  "Invalid sync point");
 
-    CfgNodeEdge edge;
+    CfgBlockEdge edge;
     if (pred_cond) {
-        edge.type = CfgNodeEdgeType::BranchConditional;
+        edge.type = CfgBlockEdgeType::BranchConditional;
+        edge.branch_conditional.pred_cond = pred_cond;
         edge.branch_conditional.target_true =
             GetBranchTarget(target, sync_point);
         edge.branch_conditional.target_false =
             GetBranchTarget(pc + 1, sync_point);
     } else {
-        edge.type = CfgNodeEdgeType::Branch;
+        edge.type = CfgBlockEdgeType::Branch;
         edge.branch.target = GetBranchTarget(target, sync_point);
     }
-    EndNode(edge);
+    EndBlock(edge);
 }
 
 void CfgBuilder::OpExit() {
-    CfgNodeEdge edge;
-    edge.type = CfgNodeEdgeType::Exit;
-    EndNode(edge);
+    CfgBlockEdge edge;
+    edge.type = CfgBlockEdgeType::Exit;
+    EndBlock(edge);
 }
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
