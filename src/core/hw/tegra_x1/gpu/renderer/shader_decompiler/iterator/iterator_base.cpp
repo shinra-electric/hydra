@@ -5,8 +5,8 @@
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator {
 
 Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
-    const u32 pc = code_reader.Tell() / sizeof(instruction_t);
     const auto inst = code_reader.Read<instruction_t>();
+    const u32 pc = GetPC();
     if ((pc % 4) == 0) // Sched
         return {ResultCode::None};
 
@@ -65,13 +65,12 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
 
 #define HANDLE_PRED_COND()                                                     \
     bool conditional = false;                                                  \
-    if ((inst & 0x00000000000f0000) == 0x0000000000070000) { /* never */       \
-        /* Nothing */                                                          \
+    if ((inst & 0x00000000000f0000) == 0x0000000000070000) { /* nothing */     \
     } else if ((inst & 0x00000000000f0000) ==                                  \
                0x00000000000f0000) { /* never */                               \
         LOG_DEBUG(ShaderDecompiler, "never");                                  \
         throw; /* TODO: implement */                                           \
-    } else {                                                                   \
+    } else {   /* conditional */                                               \
         const auto pred = GET_PRED(16);                                        \
         const bool not_ = GET_BIT(19);                                         \
         LOG_DEBUG(ShaderDecompiler, "if {}p{}", not_ ? "!" : "", pred);        \

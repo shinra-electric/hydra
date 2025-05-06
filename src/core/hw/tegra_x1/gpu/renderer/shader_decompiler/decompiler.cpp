@@ -1,7 +1,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/all_paths_iterator.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_group.hpp"
 // #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 
@@ -81,8 +83,6 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
                            ShaderBackend& out_backend,
                            std::vector<u8>& out_code,
                            ResourceMapping& out_resource_mapping) {
-    Analyzer::Analyzer analyzer;
-
     // Header
     // TODO: don't read in case of compute shaders
     const ShaderHeader header = code_reader.Read<ShaderHeader>();
@@ -91,10 +91,16 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
                  "Invalid shader version {}", header.version);
 
     // Analyze
+    Analyzer::MemoryAnalyzer memory_analyzer;
+    Analyzer::CfgBuilder cfg_builder;
     {
+        ObserverGroup<2> observer_group({&memory_analyzer, &cfg_builder});
         Iterator::AllPathsIterator iterator(code_reader.CreateSubReader());
-        iterator.Iterate(&analyzer);
+        iterator.Iterate(&observer_group);
     }
+
+    // Debug
+    cfg_builder.GetCFG().LogNodes();
 
     // Decompile
     BuilderBase* builder;
@@ -102,7 +108,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     out_backend = Config::GetInstance().GetShaderBackend();
     switch (out_backend) {
     case ShaderBackend::Msl:
-        builder = new Lang::MSL::Builder(analyzer, type, state, out_code,
+        builder = new Lang::MSL::Builder(memory_analyzer, type, state, out_code,
                                          out_resource_mapping);
         // TODO: use a structured iterator
         iterator =

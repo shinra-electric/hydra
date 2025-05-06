@@ -182,3 +182,12 @@ void log(Level level, Class c, const std::string& file, u32 line,
 }
 
 } // namespace Hydra::Logging
+
+template <typename T>
+struct fmt::formatter<Hydra::range<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(Hydra::range<T> range, FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("[{}...{}]", range.begin, range.end), ctx);
+    }
+};

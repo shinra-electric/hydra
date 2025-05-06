@@ -16,7 +16,7 @@ void SharedMemory::MapToRange(
     const ::Hydra::range<uptr> range,
     MemoryPermission perm) { // TODO: why ::Hydra::range?
     HW::TegraX1::CPU::MMUBase::GetInstance().Map(
-        range.base, memory, {MemoryType::Shared, MemoryAttribute::None, perm});
+        range.begin, memory, {MemoryType::Shared, MemoryAttribute::None, perm});
 }
 
 uptr SharedMemory::GetPtr() const {

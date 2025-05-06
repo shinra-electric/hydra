@@ -31,7 +31,13 @@ class IteratorBase {
   protected:
     Result ParseNextInstruction(ObserverBase* observer);
 
-    void Jump(u32 target) { code_reader.Seek(target * sizeof(instruction_t)); }
+    void Jump(ObserverBase* observer, u32 target) {
+        code_reader.Seek(target * sizeof(instruction_t));
+        observer->SetPC(target);
+        observer->BlockChanged();
+    }
+
+    u32 GetPC() const { return code_reader.Tell() / sizeof(instruction_t) - 1; }
 
   private:
     Reader code_reader;

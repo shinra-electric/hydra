@@ -9,9 +9,12 @@ void AllPathsIterator::Iterate(ObserverBase* observer) {
         case ResultCode::None:
             break;
         case ResultCode::Branch:
-            Jump(res.target);
+            Jump(observer, res.target);
             break;
         case ResultCode::BranchConditional:
+            block_queue.push(res.target);
+            Jump(observer, GetPC() + 1);
+            break;
         case ResultCode::SyncPoint:
             block_queue.push(res.target);
             break;
@@ -21,7 +24,7 @@ void AllPathsIterator::Iterate(ObserverBase* observer) {
 
             const auto target = block_queue.front();
             block_queue.pop();
-            Jump(target);
+            Jump(observer, target);
             break;
         }
         case ResultCode::Error:

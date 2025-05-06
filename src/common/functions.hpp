@@ -7,7 +7,7 @@
 #include <string>
 #include <sys/mman.h>
 
-#include "common/types.hpp"
+#include "common/type_aliases.hpp"
 
 namespace Hydra {
 

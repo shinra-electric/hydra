@@ -268,9 +268,9 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/all_paths_iterator.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/control_flow_builder.cpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/control_flow_builder.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp

@@ -16,7 +16,7 @@ class Reader {
         return Reader(ptr, std::min<usize>(new_size, size - Tell()));
     }
 
-    u64 Tell() { return static_cast<u64>(ptr - base); }
+    u64 Tell() const { return static_cast<u64>(ptr - base); }
     void Seek(u64 pos) { ptr = base + pos; }
     void Skip(usize size) { ptr += size; }
 
@@ -56,11 +56,11 @@ class StreamReader {
     }
 
     StreamReader CreateSubReader(usize new_size = invalid<usize>()) {
-        return StreamReader(stream, stream.tellg(), std::min<usize>(new_size, size - Tell()));
+        return StreamReader(stream, stream.tellg(),
+                            std::min<usize>(new_size, size - Tell()));
     }
 
-    u64 Tell() { return static_cast<u64>(stream.tellg()) - offset; }
-
+    u64 Tell() const { return static_cast<u64>(stream.tellg()) - offset; }
     void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
 
     template <typename T> T Read() {

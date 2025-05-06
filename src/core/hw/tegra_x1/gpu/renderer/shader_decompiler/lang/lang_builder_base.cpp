@@ -1,7 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
@@ -145,7 +145,7 @@ void LangBuilderBase::Start() {
     }
 
         ADD_INPUT(SvSemantic::Position, invalid<u8>(), 0x70);
-        for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs())
+        for (const auto input : memory_analyzer.GetStageInputs())
             ADD_INPUT(SvSemantic::UserInOut, input, 0x80 + input * 0x10);
 
 #undef ADD_INPUT
@@ -161,8 +161,7 @@ void LangBuilderBase::Start() {
     WriteNewline();
 
     // Uniform buffers
-    for (const auto& [index, size] :
-         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
+    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
         u32 u32_count = size / sizeof(u32);
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
@@ -208,7 +207,7 @@ void LangBuilderBase::OpExit() {
     }
 
         ADD_OUTPUT(SvSemantic::Position, invalid<u8>(), 0x70);
-        for (const auto output : analyzer.GetMemoryAnalyzer().GetStageOutputs())
+        for (const auto output : memory_analyzer.GetStageOutputs())
             ADD_OUTPUT(SvSemantic::UserInOut, output, 0x80 + output * 0x10);
 
 #undef ADD_OUTPUT
