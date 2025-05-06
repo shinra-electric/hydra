@@ -21,25 +21,52 @@ class CfgBuilder : public ObserverBase {
     void OpBranch(u32 target) override;
     void OpExit() override;
 
-    // Getters
-    const CFG& GetCFG() const { return cfg; }
+    // Debug
+    void LogBlocks() const {
+        for (const auto& [label, block] : blocks) {
+            LOG_DEBUG(ShaderDecompiler, "Label: {}", label);
+            block.Log();
+        }
+    }
 
   private:
-    CFG cfg;
+    std::map<u32, CfgBlock> blocks;
+    CfgBlock* entry_point_block;
+
     CfgBlock* crnt_block;
 
     u32 sync_point{invalid<u32>()};
     nullable<PredCond> pred_cond;
 
-    CfgBlock* GetBranchTarget(u32 label, u32 return_sync_point) {
-        auto block = cfg.GetBlock(label);
-        block->return_sync_point = return_sync_point;
+    CfgBlock& VisitBlock(u32 label) {
+        auto& block = blocks[label];
+        ASSERT_DEBUG(block.status == CfgBlockStatus::Unvisited,
+                     ShaderDecompiler, "Block 0x{:x} already visited", label);
+        block.status = CfgBlockStatus::Visited;
+        block.code_range = range(label);
+
         return block;
     }
 
+    void FinishBlock(CfgBlock& block, const u32 end, const CfgBlockEdge& edge) {
+        ASSERT_DEBUG(block.status == CfgBlockStatus::Visited, ShaderDecompiler,
+                     "Block 0x{:x} finished without being visited",
+                     block.code_range.begin);
+
+        block.code_range.end = end;
+        block.edge = edge;
+        block.status = CfgBlockStatus::Finished;
+    }
+
     void EndBlock(const CfgBlockEdge& edge) {
-        cfg.FinishBlock(crnt_block, pc + 1, edge);
+        FinishBlock(*crnt_block, pc + 1, edge);
         crnt_block = nullptr;
+    }
+
+    CfgBlock& GetBranchTarget(u32 label, u32 return_sync_point) {
+        auto& block = blocks[label];
+        block.return_sync_point = return_sync_point;
+        return block;
     }
 };
 

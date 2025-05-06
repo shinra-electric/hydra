@@ -2,12 +2,15 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 
-CfgBuilder::CfgBuilder() { crnt_block = cfg.VisitBlock(0); }
+CfgBuilder::CfgBuilder() {
+    entry_point_block = &VisitBlock(0);
+    crnt_block = entry_point_block;
+}
 
 void CfgBuilder::BlockChanged() {
     ASSERT_DEBUG(!crnt_block, ShaderDecompiler,
                  "Starting a new block without finishing the previous one");
-    crnt_block = cfg.VisitBlock(pc);
+    crnt_block = &VisitBlock(pc);
 }
 
 void CfgBuilder::OpSetSync(u32 target) { sync_point = target; }
@@ -19,7 +22,7 @@ void CfgBuilder::OpSync() {
 
     CfgBlockEdge edge;
     edge.type = CfgBlockEdgeType::Branch;
-    edge.branch.target = cfg.GetBlock(target);
+    edge.branch.target = &blocks[target];
     EndBlock(edge);
 }
 
@@ -32,12 +35,12 @@ void CfgBuilder::OpBranch(u32 target) {
         edge.type = CfgBlockEdgeType::BranchConditional;
         edge.branch_conditional.pred_cond = pred_cond;
         edge.branch_conditional.target_true =
-            GetBranchTarget(target, sync_point);
+            &GetBranchTarget(target, sync_point);
         edge.branch_conditional.target_false =
-            GetBranchTarget(pc + 1, sync_point);
+            &GetBranchTarget(pc + 1, sync_point);
     } else {
         edge.type = CfgBlockEdgeType::Branch;
-        edge.branch.target = GetBranchTarget(target, sync_point);
+        edge.branch.target = &GetBranchTarget(target, sync_point);
     }
     EndBlock(edge);
 }

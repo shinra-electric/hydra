@@ -100,7 +100,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     }
 
     // Debug
-    cfg_builder.GetCFG().LogNodes();
+    cfg_builder.LogBlocks();
 
     // Decompile
     BuilderBase* builder;

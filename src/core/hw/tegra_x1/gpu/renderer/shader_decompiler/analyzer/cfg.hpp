@@ -51,7 +51,7 @@ enum class CfgBlockStatus {
 struct CfgBlock : public CfgNodeBase {
     CfgBlockStatus status{CfgBlockStatus::Unvisited};
     range<u32> code_range;
-    u32 return_sync_point;
+    u32 return_sync_point{invalid<u32>()};
     CfgBlockEdge edge;
 
     void Log() const override {
@@ -86,57 +86,6 @@ struct CfgBlock : public CfgNodeBase {
         case CfgBlockEdgeType::Exit:
             break;
         }
-    }
-};
-
-class CFG {
-  public:
-    CfgBlock* GetBlock(u32 label) { return GetBlockImpl(label); }
-
-    CfgBlock* VisitBlock(u32 label) {
-        auto* block = GetBlockImpl(label);
-        ASSERT_DEBUG(block->status == CfgBlockStatus::Unvisited,
-                     ShaderDecompiler, "Block 0x{:x} already visited", label);
-        block->status = CfgBlockStatus::Visited;
-        block->code_range = range(label);
-
-        return block;
-    }
-
-    void FinishBlock(CfgBlock* block, const u32 end, const CfgBlockEdge& edge) {
-        ASSERT_DEBUG(block->status == CfgBlockStatus::Visited, ShaderDecompiler,
-                     "Block 0x{:x} finished without being visited",
-                     block->code_range.begin);
-
-        block->code_range.end = end;
-        block->edge = edge;
-        block->status = CfgBlockStatus::Finished;
-    }
-
-    // Debug
-    void LogNodes() const {
-        for (const auto& [label, node] : nodes) {
-            LOG_DEBUG(ShaderDecompiler, "Label: 0x{:x}", label);
-            node->Log();
-        }
-    }
-
-  private:
-    std::map<u32, CfgNodeBase*> nodes;
-
-    CfgBlock* GetBlockImpl(u32 label) {
-        auto& node = nodes[label];
-        if (!node) {
-            auto block = new CfgBlock();
-            node = block;
-            return block;
-        }
-
-        auto block = dynamic_cast<CfgBlock*>(node);
-        ASSERT_DEBUG(block, ShaderDecompiler, "Node 0x{:x} is not a block",
-                     label);
-
-        return block;
     }
 };
 
