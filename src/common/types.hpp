@@ -1,43 +1,32 @@
 #pragma once
 
-#include <cstdint>
 #include <map>
-#include <stdint.h>
 #include <string>
 
+#include "common/functions.hpp"
+#include "common/logging/log.hpp"
 #include "common/macros.hpp"
+#include "common/type_aliases.hpp"
 
 namespace Hydra {
 
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
-using i128 = __int128_t;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using u128 = __uint128_t;
-using usize = size_t;
-using uptr = uintptr_t;
-using f32 = float;
-using f64 = double;
-
-using bool32 = u32;
-
-using paddr_t = uptr;
-using vaddr_t = uptr;
-using gpu_vaddr_t = uptr;
-using handle_id_t = u32;
-
 template <typename T> struct range {
   public:
-    T base;
-    usize size;
+    T begin;
+    T end;
 
-    range() : base{0}, size{0} {}
-    range(T base_, usize size_) : base{base_}, size{size_} {}
+    range() : begin{0}, end{0} {}
+    range(T begin_) : begin{begin_}, end{invalid<T>()} {}
+    range(T begin_, T end_) : begin{begin_}, end{end_} {}
+
+    bool operator==(const range& other) const {
+        return begin == other.begin && end == other.end;
+    }
+
+    // Getters
+    T GetBegin() const { return begin; }
+    T GetEnd() const { return end; }
+    T GetSize() const { return end - begin; }
 };
 
 struct sized_ptr {
@@ -55,6 +44,37 @@ struct sized_ptr {
   private:
     uptr ptr;
     usize size;
+};
+
+template <typename T> class nullable {
+  public:
+    nullable() : obj{}, is_valid{false} {}
+    nullable(const nullable<T>& other)
+        : obj{other.obj}, is_valid{other.is_valid} {}
+    nullable(const T& obj_) : obj{obj_}, is_valid{true} {}
+    nullable(const T* obj_)
+        : obj{obj_ ? *obj_ : T{}}, is_valid{obj_ != nullptr} {}
+
+    operator bool() const { return is_valid; }
+    operator T() { return obj; }
+    operator T() const { return obj; }
+
+    void operator=(const T& other) {
+        obj = other;
+        is_valid = true;
+    }
+    void operator=(const T* other) {
+        if (other)
+            obj = *other;
+        is_valid = other != nullptr;
+    }
+
+    T* operator->() { return &obj; }
+    const T* operator->() const { return &obj; }
+
+  private:
+    T obj;
+    bool is_valid;
 };
 
 template <typename T, usize component_count> class vec {
@@ -260,3 +280,12 @@ class CacheBase {
 };
 
 } // namespace Hydra
+
+template <typename T>
+struct fmt::formatter<Hydra::range<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(Hydra::range<T> range, FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("<{}...{})", range.begin, range.end), ctx);
+    }
+};

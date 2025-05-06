@@ -454,7 +454,7 @@ Result Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
     ASSERT_DEBUG(shared_mem, HorizonKernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
-    shared_mem->MapToRange(range(addr, size), perm);
+    shared_mem->MapToRange(range(addr, addr + size), perm);
 
     return RESULT_SUCCESS;
 }

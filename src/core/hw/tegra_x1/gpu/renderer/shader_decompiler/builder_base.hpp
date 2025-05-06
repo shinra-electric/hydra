@@ -7,18 +7,19 @@ class GuestShaderState;
 }
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
-class Analyzer;
+class MemoryAnalyzer;
 }
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 class BuilderBase : public ObserverBase {
   public:
-    BuilderBase(const Analyzer::Analyzer& analyzer_, const ShaderType type_,
-                const GuestShaderState& state_, std::vector<u8>& out_code_,
+    BuilderBase(const Analyzer::MemoryAnalyzer& memory_analyzer_,
+                const ShaderType type_, const GuestShaderState& state_,
+                std::vector<u8>& out_code_,
                 ResourceMapping& out_resource_mapping_)
-        : analyzer{analyzer_}, type{type_}, state{state_}, out_code{out_code_},
-          out_resource_mapping{out_resource_mapping_} {}
+        : memory_analyzer{memory_analyzer_}, type{type_}, state{state_},
+          out_code{out_code_}, out_resource_mapping{out_resource_mapping_} {}
     virtual ~BuilderBase() {}
 
     virtual void InitializeResourceMapping() = 0;
@@ -26,7 +27,7 @@ class BuilderBase : public ObserverBase {
     virtual void Finish() = 0;
 
   protected:
-    const Analyzer::Analyzer& analyzer;
+    const Analyzer::MemoryAnalyzer& memory_analyzer;
     const ShaderType type;
     const GuestShaderState& state;
 

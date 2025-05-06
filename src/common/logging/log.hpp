@@ -6,7 +6,7 @@
 #include <fmt/core.h>
 
 #include "common/macros.hpp"
-#include "common/types.hpp"
+#include "common/type_aliases.hpp"
 
 #define LOG(level, c, ...)                                                     \
     Logging::log(Logging::Level::level, Logging::Class::c,                     \
@@ -57,6 +57,9 @@
 #endif
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
+
+#define INDENT_FMT "{:{}}"
+#define PASS_INDENT(indent) "", ((indent)*4)
 
 namespace Hydra::Logging {
 

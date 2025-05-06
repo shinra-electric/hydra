@@ -15,6 +15,8 @@ void push_sv(std::vector<SvSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
+void MemoryAnalyzer::OpMove(reg_t dst, Operand src) { HandleLoad(src); }
+
 void MemoryAnalyzer::OpAdd(Operand dst, Operand src1, Operand src2) {
     HandleLoad(src2);
 }
@@ -27,6 +29,13 @@ void MemoryAnalyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
                                 Operand src3) {
     HandleLoad(src2);
     HandleLoad(src3);
+}
+
+void MemoryAnalyzer::OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
+                               pred_t dst, pred_t combine, Operand lhs,
+                               Operand rhs) {
+    HandleLoad(lhs);
+    HandleLoad(rhs);
 }
 
 void MemoryAnalyzer::OpLoad(reg_t dst, Operand src) { HandleLoad(src); }

@@ -2,6 +2,7 @@
 add_library(hydra-common
     common.hpp
     macros.hpp
+    type_aliases.hpp
     types.hpp
     functions.hpp
     memory.hpp

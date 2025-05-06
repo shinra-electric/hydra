@@ -7,9 +7,14 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
 class MemoryAnalyzer : public ObserverBase {
   public:
     // Operations
+    void OpMove(reg_t dst, Operand src) override;
     void OpAdd(Operand dst, Operand src1, Operand src2) override;
     void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
+
+    void OpSetPred(ComparisonOperator cmp, BinaryOperator bin, pred_t dst,
+                   pred_t combine, Operand lhs, Operand rhs) override;
+
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
     void OpInterpolate(reg_t dst, AMem src) override;

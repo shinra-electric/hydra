@@ -12,14 +12,15 @@ namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
 #define INVALID_VALUE "INVALID"
 
 class LangBuilderBase : public BuilderBase {
+    friend class StructuredIterator;
+
   public:
-    LangBuilderBase(const Analyzer::Analyzer& analyzer, const ShaderType type,
-                    const GuestShaderState& state, std::vector<u8>& out_code,
-                    ResourceMapping& out_resource_mapping)
-        : BuilderBase(analyzer, type, state, out_code, out_resource_mapping) {}
+    using BuilderBase::BuilderBase;
 
     void Start() override;
     void Finish() override;
+
+    void SetPredCond(const PredCond pred_cond) override;
 
     // Operations
     void OpExit() override;
@@ -28,6 +29,8 @@ class LangBuilderBase : public BuilderBase {
     void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
+    void OpSetPred(ComparisonOperator cmp, BinaryOperator bin, pred_t dst,
+                   pred_t combine, Operand lhs, Operand rhs) override;
     void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override;
     void OpLoad(reg_t dst, Operand src) override;
     void OpStore(AMem dst, reg_t src) override;
@@ -45,20 +48,34 @@ class LangBuilderBase : public BuilderBase {
     virtual std::string EmitTextureSample(u32 const_buffer_index,
                                           const std::string& coords) = 0;
 
-    template <typename... T> void Write(WRITE_ARGS) {
-        // TODO: handle indentation differently
-        std::string indent_str;
-        for (u32 i = 0; i < indent; i++) {
-            indent_str += "    ";
-        }
-        WriteRaw("{}{}\n", indent_str, FMT);
-    }
-
     template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 
+    template <typename... T> void WriteWithIndent(WRITE_ARGS) {
+        // TODO: handle indentation differently
+        std::string indent_str;
+        if (!skip_indent) {
+            for (u32 i = 0; i < indent; i++) {
+                indent_str += "    ";
+            }
+        } else {
+            skip_indent = false;
+        }
+        WriteRaw("{}{}", indent_str, FMT);
+    }
+
+    template <typename... T> void Write(WRITE_ARGS) {
+        WriteWithIndent("{}\n", FMT);
+    }
+
     void WriteNewline() { code_str += "\n"; }
+
     template <typename... T> void WriteStatement(WRITE_ARGS) {
         Write("{};", FMT);
+    }
+
+    template <typename... T> void EnterScopeTemp(WRITE_ARGS) {
+        WriteWithIndent("{} ", FMT);
+        skip_indent = true;
     }
 
     void EnterScopeEmpty() { EnterScopeImpl(""); }
@@ -87,6 +104,13 @@ class LangBuilderBase : public BuilderBase {
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
+    std::string GetPred(pred_t pred, bool write = false) {
+        if (pred == PT && !write)
+            return GetImmediate(true);
+
+        return fmt::format("p[{}]", pred);
+    }
+
     std::string GetImm(u32 imm, DataType data_type = DataType::UInt) {
         return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
     }
@@ -108,6 +132,12 @@ class LangBuilderBase : public BuilderBase {
         switch (operand.type) {
         case OperandType::Register:
             res = GetReg(operand.reg, write, operand.data_type);
+            break;
+        case OperandType::Predicate:
+            ASSERT_DEBUG(operand.data_type == DataType::None, ShaderDecompiler,
+                         "Predicates cannot have types (type: {})",
+                         operand.data_type);
+            res = GetPred(operand.pred, write);
             break;
         case OperandType::Immediate:
             res = GetImm(operand.imm, operand.data_type);
@@ -186,6 +216,8 @@ class LangBuilderBase : public BuilderBase {
             return fmt::format("{:#}f", imm);
         else if constexpr (std::is_same_v<T, f64>)
             return fmt::format("{:#}f", imm);
+        else if constexpr (std::is_same_v<T, bool>)
+            return fmt::format("{}", imm);
         else {
             LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
                       typeid(T).name());
@@ -241,7 +273,8 @@ class LangBuilderBase : public BuilderBase {
   private:
     std::string code_str;
 
-    u32 indent = 0;
+    u32 indent{0};
+    bool skip_indent{false};
 
     template <typename... T> void EnterScopeImpl(WRITE_ARGS) {
         Write("{}{{", FMT);

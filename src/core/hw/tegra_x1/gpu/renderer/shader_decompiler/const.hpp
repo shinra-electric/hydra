@@ -8,9 +8,12 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
+typedef u64 instruction_t;
 typedef u8 reg_t;
+typedef u8 pred_t;
 
 constexpr reg_t RZ = 255;
+constexpr pred_t PT = 7;
 
 enum class DataType {
     None,
@@ -39,6 +42,7 @@ struct CMem {
 
 enum class OperandType {
     Register,
+    Predicate,
     Immediate,
     AttributeMemory,
     ConstMemory,
@@ -48,6 +52,7 @@ struct Operand {
     OperandType type;
     union {
         reg_t reg;
+        pred_t pred;
         u32 imm;
         AMem amem;
         CMem cmem;
@@ -61,6 +66,13 @@ struct Operand {
         return Operand{.type = OperandType::Register,
                        .reg = reg,
                        .data_type = data_type,
+                       .neg = neg};
+    }
+
+    static Operand Predicate(pred_t pred, bool neg = false) {
+        return Operand{.type = OperandType::Predicate,
+                       .pred = pred,
+                       .data_type = DataType::None,
                        .neg = neg};
     }
 
@@ -88,6 +100,16 @@ struct Operand {
                        .cmem = cmem,
                        .data_type = data_type,
                        .neg = neg};
+    }
+};
+
+struct PredCond {
+    pred_t pred;
+    bool not_;
+    bool never;
+
+    bool operator==(const PredCond& other) const {
+        return pred == other.pred && not_ == other.not_ && never == other.never;
     }
 };
 
@@ -124,8 +146,11 @@ struct SvAccess {
         : sv{sv_}, component_index{component_index_} {}
 };
 
+const SvAccess get_sv_access_from_addr(u64 addr);
+
 enum class LoadStoreMode {
     Invalid,
+
     B32,
     B64,
     B96,
@@ -148,7 +173,34 @@ enum class MathFunc {
     Sqrt,
 };
 
-const SvAccess get_sv_access_from_addr(u64 addr);
+enum class ComparisonOperator {
+    Invalid,
+
+    F, // TODO: what is this?
+    Less,
+    Equal,
+    LessEqual,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Num, // TODO: what is this?
+    Nan, // TODO: what is this?
+    LessU,
+    EqualU,
+    LessEqualU,
+    GreaterU,
+    NotEqualU,
+    GreaterEqualU,
+    T, // TODO: what is this?
+};
+
+enum class BinaryOperator {
+    Invalid,
+
+    And,
+    Or,
+    Xor,
+};
 
 } // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
 
@@ -170,8 +222,20 @@ ENABLE_ENUM_FORMATTING(
     "invalid", B32, "b32", B64, "b64", B96, "b96", B128, "b128")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::MathFunc, Cos, "cos",
-    Sin, "sin", Ex2, "ex2", Lg2, "lg2", Rcp, "rcp", Rsq, "rsq", Rcp64h,
-    "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::MathFunc, Invalid,
+    "invalid", Cos, "cos", Sin, "sin", Ex2, "ex2", Lg2, "lg2", Rcp, "rcp", Rsq,
+    "rsq", Rcp64h, "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::ComparisonOperator,
+    Invalid, "invalid", F, "f", Less, "less", Equal, "equal", Greater,
+    "greater", LessEqual, "less equal", NotEqual, "not equal", GreaterEqual,
+    "greater equal", Num, "num", Nan, "nan", LessU, "less U", EqualU, "equal U",
+    LessEqualU, "less equal U", GreaterU, "greater U", NotEqualU, "not equal U",
+    GreaterEqualU, "greater equal U", T, "t")
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::BinaryOperator,
+    Invalid, "invalid", And, "and", Or, "or", Xor, "xor")
 
 #include "common/logging/log.hpp"

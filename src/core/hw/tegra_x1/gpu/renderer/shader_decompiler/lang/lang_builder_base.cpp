@@ -1,9 +1,61 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+
+namespace {
+
+std::string cmp_op_to_str(ComparisonOperator cmp) {
+    // TODO: are the U ones the same?
+    switch (cmp) {
+    case ComparisonOperator::F:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::Less:
+    case ComparisonOperator::LessU:
+        return "<";
+    case ComparisonOperator::Equal:
+    case ComparisonOperator::EqualU:
+        return "==";
+    case ComparisonOperator::LessEqual:
+    case ComparisonOperator::LessEqualU:
+        return "<=";
+    case ComparisonOperator::Greater:
+    case ComparisonOperator::GreaterU:
+        return ">";
+    case ComparisonOperator::NotEqual:
+    case ComparisonOperator::NotEqualU:
+        return "!=";
+    case ComparisonOperator::GreaterEqual:
+    case ComparisonOperator::GreaterEqualU:
+        return ">=";
+    case ComparisonOperator::Num:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::Nan:
+        return INVALID_VALUE; // TODO
+    case ComparisonOperator::T:
+        return INVALID_VALUE; // TODO
+    default:
+        return INVALID_VALUE;
+    }
+}
+
+std::string bin_op_to_str(BinaryOperator bin) {
+    switch (bin) {
+    case BinaryOperator::And:
+        return "&";
+    case BinaryOperator::Or:
+        return "|";
+    case BinaryOperator::Xor:
+        return "^";
+    default:
+        return INVALID_VALUE;
+    }
+}
+
+} // namespace
 
 void LangBuilderBase::Start() {
     // Header
@@ -28,16 +80,20 @@ void LangBuilderBase::Start() {
     // Main prototype
     EmitMainPrototype();
 
-    // Registers
-    Write("Reg r[256];");
-    WriteNewline();
-
     // Temporary
     EnterScope("union");
     Write("int4 i;");
     Write("uint4 u;");
     Write("float4 f;");
     ExitScope("temp");
+    WriteNewline();
+
+    // Registers
+    Write("Reg r[256];");
+    WriteNewline();
+
+    // Predicates
+    Write("bool p[8];"); // TODO: is the size correct?
     WriteNewline();
 
     // Attribute memory
@@ -89,7 +145,7 @@ void LangBuilderBase::Start() {
     }
 
         ADD_INPUT(SvSemantic::Position, invalid<u8>(), 0x70);
-        for (const auto input : analyzer.GetMemoryAnalyzer().GetStageInputs())
+        for (const auto input : memory_analyzer.GetStageInputs())
             ADD_INPUT(SvSemantic::UserInOut, input, 0x80 + input * 0x10);
 
 #undef ADD_INPUT
@@ -105,8 +161,7 @@ void LangBuilderBase::Start() {
     WriteNewline();
 
     // Uniform buffers
-    for (const auto& [index, size] :
-         analyzer.GetMemoryAnalyzer().GetUniformBuffers()) {
+    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
         u32 u32_count = size / sizeof(u32);
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
@@ -131,6 +186,11 @@ void LangBuilderBase::Finish() {
     LOG_DEBUG(ShaderDecompiler, "Decompiled: \"\n{}\"", code_str);
 }
 
+void LangBuilderBase::SetPredCond(const PredCond pred_cond) {
+    EnterScopeTemp("if ({}{})", pred_cond.not_ ? "!" : "",
+                   GetPred(pred_cond.pred));
+}
+
 void LangBuilderBase::OpExit() {
     // Outputs
     switch (type) {
@@ -147,7 +207,7 @@ void LangBuilderBase::OpExit() {
     }
 
         ADD_OUTPUT(SvSemantic::Position, invalid<u8>(), 0x70);
-        for (const auto output : analyzer.GetMemoryAnalyzer().GetStageOutputs())
+        for (const auto output : memory_analyzer.GetStageOutputs())
             ADD_OUTPUT(SvSemantic::UserInOut, output, 0x80 + output * 0x10);
 
 #undef ADD_OUTPUT
@@ -200,6 +260,15 @@ void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
 void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
     WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
                    GetReg(src, false, DataType::UInt), shift);
+}
+
+void LangBuilderBase::OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
+                                pred_t dst, pred_t combine, Operand lhs,
+                                Operand rhs) {
+    // TODO: is the combining correct?
+    WriteStatement("{} = ({} {} {}) {} {}", GetPred(dst), GetOperand(lhs),
+                   cmp_op_to_str(cmp), GetOperand(rhs), bin_op_to_str(bin),
+                   GetPred(combine));
 }
 
 void LangBuilderBase::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {

@@ -41,9 +41,9 @@ Tex TextureCache::Create(const TextureDescriptor& descriptor) {
 
 void TextureCache::Update(Tex& texture) {
     // TODO: if data changed
-    if (texture.base->GetDescriptor().width == 1280 &&
-        texture.base->GetDescriptor().height == 720) // HACK
-        DecodeTexture(texture.base);
+    // if (texture.base->GetDescriptor().width == 1280 &&
+    //    texture.base->GetDescriptor().height == 720) // HACK
+    //    DecodeTexture(texture.base);
 }
 
 u64 TextureCache::Hash(const TextureDescriptor& descriptor) {
