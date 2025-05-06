@@ -58,6 +58,9 @@
 #define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
     ASSERT_ALIGNMENT(value, alignment, c, name)
 
+#define INDENT_FMT "{:{}}"
+#define PASS_INDENT(indent) "", ((indent)*4)
+
 namespace Hydra::Logging {
 
 // From yuzu

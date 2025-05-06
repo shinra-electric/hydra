@@ -1,8 +1,8 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/iterator_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator_base.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     const auto inst = code_reader.Read<instruction_t>();
@@ -980,4 +980,4 @@ Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     return {ResultCode::None};
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

@@ -1,8 +1,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/all_paths_iterator.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_group.hpp"
 // #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
@@ -95,7 +96,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     Analyzer::CfgBuilder cfg_builder;
     {
         ObserverGroup<2> observer_group({&memory_analyzer, &cfg_builder});
-        Iterator::AllPathsIterator iterator(code_reader.CreateSubReader());
+        AllPathsIterator iterator(code_reader.CreateSubReader());
         iterator.Iterate(&observer_group);
     }
 
@@ -104,16 +105,21 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
     // Decompile
     BuilderBase* builder;
-    Iterator::IteratorBase* iterator;
+    IteratorBase* iterator;
     out_backend = Config::GetInstance().GetShaderBackend();
     switch (out_backend) {
-    case ShaderBackend::Msl:
+    case ShaderBackend::Msl: {
         builder = new Lang::MSL::Builder(memory_analyzer, type, state, out_code,
                                          out_resource_mapping);
+        auto block = Lang::Structurize(cfg_builder.GetEntryBlock());
+
+        // Debug
+        block->Log();
+
         // TODO: use a structured iterator
-        iterator =
-            new Iterator::AllPathsIterator(code_reader.CreateSubReader());
+        iterator = new AllPathsIterator(code_reader.CreateSubReader());
         break;
+    }
     // case ShaderBackend::Air:
     //     builder = new IR::AIR::Builder(analyzer, type, state, out_code,
     //                                    out_resource_mapping);

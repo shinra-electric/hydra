@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
@@ -23,22 +23,23 @@ class CfgBuilder : public ObserverBase {
 
     // Debug
     void LogBlocks() const {
-        for (const auto& [label, block] : blocks) {
-            LOG_DEBUG(ShaderDecompiler, "Label: {}", label);
+        for (const auto& [label, block] : blocks)
             block.Log();
-        }
     }
 
-  private:
-    std::map<u32, CfgBlock> blocks;
-    CfgBlock* entry_point_block;
+    // Getters
+    const CfgBasicBlock* GetEntryBlock() const { return entry_point_block; }
 
-    CfgBlock* crnt_block;
+  private:
+    std::map<u32, CfgBasicBlock> blocks;
+    CfgBasicBlock* entry_point_block;
+
+    CfgBasicBlock* crnt_block;
 
     u32 sync_point{invalid<u32>()};
     nullable<PredCond> pred_cond;
 
-    CfgBlock& VisitBlock(u32 label) {
+    CfgBasicBlock& VisitBlock(u32 label) {
         auto& block = blocks[label];
         ASSERT_DEBUG(block.status == CfgBlockStatus::Unvisited,
                      ShaderDecompiler, "Block 0x{:x} already visited", label);
@@ -48,7 +49,8 @@ class CfgBuilder : public ObserverBase {
         return block;
     }
 
-    void FinishBlock(CfgBlock& block, const u32 end, const CfgBlockEdge& edge) {
+    void FinishBlock(CfgBasicBlock& block, const u32 end,
+                     const CfgBlockEdge& edge) {
         ASSERT_DEBUG(block.status == CfgBlockStatus::Visited, ShaderDecompiler,
                      "Block 0x{:x} finished without being visited",
                      block.code_range.begin);
@@ -63,7 +65,7 @@ class CfgBuilder : public ObserverBase {
         crnt_block = nullptr;
     }
 
-    CfgBlock& GetBranchTarget(u32 label, u32 return_sync_point) {
+    CfgBasicBlock& GetBranchTarget(u32 label, u32 return_sync_point) {
         auto& block = blocks[label];
         block.return_sync_point = return_sync_point;
         return block;

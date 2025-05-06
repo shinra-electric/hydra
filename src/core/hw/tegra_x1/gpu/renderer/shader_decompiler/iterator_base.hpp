@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator {
+namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
 enum class ResultCode {
     None,
@@ -46,4 +46,4 @@ class IteratorBase {
                                     const instruction_t inst);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Iterator
+} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler

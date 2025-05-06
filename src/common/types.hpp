@@ -19,6 +19,10 @@ template <typename T> struct range {
     range(T begin_) : begin{begin_}, end{invalid<T>()} {}
     range(T begin_, T end_) : begin{begin_}, end{end_} {}
 
+    bool operator==(const range& other) const {
+        return begin == other.begin && end == other.end;
+    }
+
     // Getters
     T GetBegin() const { return begin; }
     T GetEnd() const { return end; }
@@ -282,6 +286,6 @@ struct fmt::formatter<Hydra::range<T>> : formatter<string_view> {
     template <typename FormatContext>
     auto format(Hydra::range<T> range, FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("[{}...{}]", range.begin, range.end), ctx);
+            fmt::format("<{}...{})", range.begin, range.end), ctx);
     }
 };

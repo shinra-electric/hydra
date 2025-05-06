@@ -107,6 +107,10 @@ struct PredCond {
     pred_t pred;
     bool not_;
     bool never;
+
+    bool operator==(const PredCond& other) const {
+        return pred == other.pred && not_ == other.not_ && never == other.never;
+    }
 };
 
 enum class SvSemantic {

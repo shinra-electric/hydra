@@ -261,20 +261,22 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/iterator_base.cpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/iterator_base.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/all_paths_iterator.cpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator/all_paths_iterator.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator_base.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/iterator_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.cpp
