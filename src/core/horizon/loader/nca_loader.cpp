@@ -152,6 +152,11 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
     switch (type) {
     case PartitionType::PartitionFS: {
         // TODO: don't hardcode
+        // Sonic Mania: 0x00004000
+        // Shovel Knight: 0x00004000
+        // Puyo Puyo Tetris: 0x00004000
+        // Cave Story+: 0x00004000
+        // The Binding of Isaac: 0x00008000
         reader.Seek(0x00004000);
         auto pfs0_reader = reader.CreateSubReader();
         load_pfs0(pfs0_reader, rom_filename, out_process);
@@ -163,6 +168,7 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
         // Shovel Knight: 0x00054000
         // Puyo Puyo Tetris: 0x00208000
         // Cave Story+: 0x0004c000
+        // The Binding of Isaac: 0x00124000
         reader.Seek(0x00208000);
         auto romfs_reader = reader.CreateSubReader();
         const auto res = Filesystem::Filesystem::GetInstance().AddEntry(

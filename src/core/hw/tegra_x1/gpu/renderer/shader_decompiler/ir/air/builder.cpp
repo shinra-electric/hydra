@@ -178,8 +178,7 @@ void Builder::Start() {
     // CMEM
     llvm::ArrayType* cmem_buffer_ty = llvm::ArrayType::get(
         types._int, 0x40); // TODO: what should be the size?
-    cmem_ty =
-        llvm::ArrayType::get(cmem_buffer_ty, UNIFORM_BUFFER_BINDING_COUNT);
+    cmem_ty = llvm::ArrayType::get(cmem_buffer_ty, CONST_BUFFER_BINDING_COUNT);
     cmem_v = builder->CreateAlloca(cmem_ty, nullptr, "c");
 
     for (const auto& [index, size] :

@@ -157,7 +157,7 @@ void LangBuilderBase::Start() {
 
     // Constant memory
     Write("Reg c[{}][0x40];",
-          UNIFORM_BUFFER_BINDING_COUNT); // TODO: what should the size be?
+          CONST_BUFFER_BINDING_COUNT); // TODO: what should the size be?
     WriteNewline();
 
     // Uniform buffers

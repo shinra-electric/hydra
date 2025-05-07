@@ -177,9 +177,7 @@ ThreeD::ThreeD() {
     SINGLETON_SET_INSTANCE(Engines, "3D engine");
 
     // TODO: choose based on Macro backend
-    {
-        macro_driver = new Macro::Interpreter::Driver(this);
-    }
+    { macro_driver = new Macro::Interpreter::Driver(this); }
 
     // HACK
     regs.shader_programs[(u32)ShaderStage::VertexB].config.enable = true;
@@ -339,9 +337,11 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
             const auto buffer = RENDERER->GetBufferCache().Find(
                 {const_buffer_gpu_ptr, regs.const_buffer_selector_size});
 
+            bound_const_buffers[index] = const_buffer_gpu_ptr;
             RENDERER->BindUniformBuffer(
                 buffer, to_renderer_shader_type(shader_stage), index);
         } else {
+            bound_const_buffers[index] = 0x0;
             RENDERER->BindUniformBuffer(
                 nullptr, to_renderer_shader_type(shader_stage), index);
         }
@@ -582,7 +582,6 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,
-                                  const u32* const_buffer,
                                   const TextureImageControl* tex_header_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
@@ -595,9 +594,11 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
 
     // Textures
     RENDERER->UnbindTextures(to_renderer_shader_type(stage));
+    auto tex_const_buffer = reinterpret_cast<const u32*>(
+        bound_const_buffers[regs.bindless_texture_const_buffer_slot]);
     for (const auto [const_buffer_index, renderer_index] :
          resource_mapping.textures) {
-        const auto texture_handle = const_buffer[const_buffer_index];
+        const auto texture_handle = tex_const_buffer[const_buffer_index];
 
         // Image
         const auto image_handle = get_image_handle(texture_handle);
@@ -638,24 +639,15 @@ bool ThreeD::DrawInternal() {
         RENDERER->BindVertexBuffer(buffer, i);
     }
 
-    // Constant buffer
-    const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
-    if (const_buffer_gpu_addr != 0x0) {
-        const auto const_buffer = reinterpret_cast<const u32*>(
-            GPU::GetInstance().GetGPUMMU().UnmapAddr(const_buffer_gpu_addr));
+    // Configure stages
+    const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
+    if (tex_header_pool_gpu_addr != 0x0) {
+        const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
+            GPU::GetInstance().GetGPUMMU().UnmapAddr(tex_header_pool_gpu_addr));
 
-        const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
-        if (tex_header_pool_gpu_addr != 0x0) {
-            const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-                GPU::GetInstance().GetGPUMMU().UnmapAddr(
-                    tex_header_pool_gpu_addr));
-
-            // TODO: configure all stages
-            ConfigureShaderStage(ShaderStage::VertexB, const_buffer,
-                                 tex_header_pool);
-            ConfigureShaderStage(ShaderStage::Fragment, const_buffer,
-                                 tex_header_pool);
-        }
+        // TODO: configure all stages
+        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool);
+        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool);
     }
 
     return true;

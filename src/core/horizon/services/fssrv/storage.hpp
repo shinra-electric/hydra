@@ -19,6 +19,7 @@ class IStorage : public Kernel::ServiceBase {
     // Commands
     virtual void Read(REQUEST_COMMAND_PARAMS);
     virtual void Write(REQUEST_COMMAND_PARAMS);
+    STUB_REQUEST_COMMAND(Flush);
     void SetSize(REQUEST_COMMAND_PARAMS);
     void GetSize(REQUEST_COMMAND_PARAMS);
 

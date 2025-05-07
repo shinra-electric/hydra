@@ -109,7 +109,7 @@ Renderer::Renderer() {
     // Clear state
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
          shader_type++) {
-        for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
+        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             state.uniform_buffers[shader_type][i] = nullptr;
         for (u32 i = 0; i < TEXTURE_COUNT; i++)
             state.textures[shader_type][i] = nullptr;
@@ -320,7 +320,7 @@ void Renderer::Draw(const Engines::PrimitiveType primitive_type,
         SetVertexBuffer(i);
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
          shader_type++) {
-        for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
+        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             SetUniformBuffer(ShaderType(shader_type), i);
     }
     // TODO: storage buffers
@@ -504,7 +504,7 @@ void Renderer::SetVertexBuffer(u32 index) {
 void Renderer::SetUniformBuffer(ShaderType shader_type, u32 index) {
     // TODO: get the index from resource mapping
 
-    ASSERT_DEBUG(index < UNIFORM_BUFFER_BINDING_COUNT, MetalRenderer,
+    ASSERT_DEBUG(index < CONST_BUFFER_BINDING_COUNT, MetalRenderer,
                  "Invalid uniform buffer index {}", index);
 
     const auto buffer =

@@ -107,7 +107,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
         // Error 0x2a2 after loading a file and
         // allocating + mapping GPU memory
-        cpu->GetMMU()->Store<u32>(0x4029f964, NOP);
+        cpu->GetMMU()->Store<u32>(0x402bcb58, NOP);
+
         cpu->GetMMU()->Store<u32>(0x4029ff3c, NOP);
         cpu->GetMMU()->Store<u32>(0x4029ff44, NOP);
         cpu->GetMMU()->Store<u32>(0x402a004c, NOP);
@@ -120,6 +121,20 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         cpu->GetMMU()->Store<u32>(0x40131060, NOP);
         cpu->GetMMU()->Store<u32>(0x401cbd64, NOP);
         cpu->GetMMU()->Store<u32>(0x401cbd6c, NOP);
+
+        cpu->GetMMU()->Store<u32>(0x4025f584, NOP);
+
+        // 0x5137c3d4
+        // 0x402bbbec
+        // 0x402288f0
+        // 0x402288c8
+        // 0x40229d84
+        // 0x4004e958
+        // 0x4004f9e4
+        // 0x4022a190
+        // 0x402cd35c
+        // 0x402c4e00
+        cpu->GetMMU()->Store<u32>(0x4004e958, NOP);
     }
 
     if (false) {                                    // Sonic Mania
@@ -143,6 +158,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
         // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Singleton not
         // initialized
+    }
+
+    if (false) {                                    // The Binding of Isaac
+        cpu->GetMMU()->Store<u32>(0x414535d0, NOP); // Jump to heap
+        cpu->GetMMU()->Store<u32>(0x40244354, NOP); // HV exception
     }
 }
 

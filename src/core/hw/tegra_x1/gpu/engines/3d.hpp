@@ -411,8 +411,12 @@ struct Regs3D {
     u32 not_a_register_0x8e4[0x10];
 
     u32 padding_0x8f4[0xc];
+    u32 padding_0x900[0x82];
 
-    u32 padding_0x900[0x400];
+    // 0x982
+    u32 bindless_texture_const_buffer_slot;
+
+    u32 padding_0x983[0x37d];
 
     // 0xd00
     u32 mme_scratch[0x80];
@@ -442,6 +446,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     // Active state (for quick access)
     Renderer::ShaderBase* active_shaders[u32(Renderer::ShaderType::Count)] = {
         nullptr};
+
+    // State
+    uptr bound_const_buffers[CONST_BUFFER_BINDING_COUNT] = {0x0};
 
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;
@@ -482,7 +489,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     Renderer::ShaderBase* GetShader(ShaderStage stage);
     Renderer::PipelineBase* GetPipeline();
 
-    void ConfigureShaderStage(const ShaderStage stage, const u32* const_buffer,
+    void ConfigureShaderStage(const ShaderStage stage,
                               const TextureImageControl* tex_header_pool);
 
     bool DrawInternal();

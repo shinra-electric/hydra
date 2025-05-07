@@ -13,8 +13,8 @@ struct ReadWriteIn {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read, 1, Write, 3, SetSize, 4,
-                             GetSize)
+DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read, 1, Write, 2, Flush, 3, SetSize,
+                             4, GetSize)
 
 IStorage::IStorage(Filesystem::FileBase* file_, Filesystem::FileOpenFlags flags)
     : file{file_}, stream(file->Open(flags)) {}

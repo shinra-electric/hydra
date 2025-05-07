@@ -28,7 +28,7 @@ struct State {
     Engines::IndexType index_type{Engines::IndexType::None};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
-                                 [UNIFORM_BUFFER_BINDING_COUNT];
+                                 [CONST_BUFFER_BINDING_COUNT];
     const Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
 
