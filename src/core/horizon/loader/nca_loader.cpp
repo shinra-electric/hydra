@@ -333,6 +333,9 @@ Kernel::Process* NCALoader::LoadRom(StreamReader& reader,
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), HorizonLoader,
            "Invalid NCA magic");
 
+    // Title ID
+    Kernel::Kernel::GetInstance().SetTitleId(header.program_id);
+
     Kernel::Process* process = nullptr;
 
     // FS entries

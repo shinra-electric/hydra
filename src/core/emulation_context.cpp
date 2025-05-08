@@ -1,5 +1,7 @@
 #include "core/emulation_context.hpp"
 
+#include "hatch/hatch.hpp"
+
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -75,6 +77,31 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
     ifs.close();
 
+    // Patch
+    const auto target_patch_filename =
+        fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
+    for (const auto& patch_directory :
+         Config::GetInstance().GetPatchDirectories()) {
+        for (const auto& dir_entry :
+             std::filesystem::directory_iterator{patch_directory}) {
+            if (dir_entry.path().filename() == target_patch_filename) {
+                std::ifstream ifs(dir_entry);
+
+                // Deserialize
+                Hatch::Deserializer deserializer;
+                deserializer.Deserialize(ifs);
+
+                const auto& hatch = deserializer.GetHatch();
+
+                // Memory patch
+                for (const auto& entry : hatch.GetMemoryPatch())
+                    cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+
+                ifs.close();
+            }
+        }
+    }
+
     // HACK
 #define BRK 0xd4200000
 #define MOV_X0_XZR 0xd2800000
@@ -100,7 +127,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
                                   MOV_X0_XZR); // InstructionAbortSameEl
     }
 
-    if (true) {                                     // Puyo Puyo Tetris
+    if (false) {                                    // Puyo Puyo Tetris
         cpu->GetMMU()->Store<u32>(0x513e05d0, NOP); // Jump to heap
         cpu->GetMMU()->Store<u32>(0x402cbecc, NOP); // Audio
         // cpu->GetMMU()->Store<u32>(0x51b9da48, NOP); // InstructionAbortSameEl

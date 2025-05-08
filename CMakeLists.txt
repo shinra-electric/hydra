@@ -20,9 +20,10 @@ endif()
 find_package(fmt CONFIG REQUIRED)
 
 #add_subdirectory(externals/fmt)
-add_subdirectory(externals/toml11)
+#add_subdirectory(externals/toml11) # Hatch already uses toml11
 add_subdirectory(externals/dynarmic)
 add_subdirectory(externals/luft)
+add_subdirectory(externals/hatch)
 
 #include_directories(externals/fmt/include)
 include_directories(externals/metal-cpp dynarmic)

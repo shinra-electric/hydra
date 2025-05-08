@@ -189,7 +189,10 @@ class Kernel {
 
     Filesystem::Filesystem& GetFilesystem() { return filesystem; }
 
-    u64 GetTitleId() const { return title_id; }
+    u64 GetTitleID() const { return title_id; }
+
+    // Setters
+    void SetTitleId(const u64 title_id_) { title_id = title_id_; }
 
   private:
     HW::Bus& bus;
@@ -197,7 +200,7 @@ class Kernel {
 
     Filesystem::Filesystem filesystem;
 
-    u64 title_id{0x89abcdef}; // TODO: don't hardcode
+    u64 title_id{invalid<u64>()};
 
     // Memory
     HW::TegraX1::CPU::MemoryBase* heap_mem;
