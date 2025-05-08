@@ -135,7 +135,11 @@ class Config {
     std::string GetDefaultSdCardPath() const {
         return fmt::format("{}/sd_card", app_data_path);
     }
-    CpuBackend GetDefaultCpuBackend() const { return CpuBackend::Dynarmic; }
+    CpuBackend GetDefaultCpuBackend() const {
+        // TODO: use Dynarmic by default on all platforms except for Apple
+        // Silicon
+        return CpuBackend::AppleHypervisor;
+    }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }

@@ -157,10 +157,10 @@ struct FsHeader {
 };
 #pragma pack(pop)
 
-struct NCAHeader {
+struct NcaHeader {
     u8 signature0[0x100];
     u8 signature1[0x100];
-    char magic[4];
+    u32 magic;
     DistributionType distribution_type;
     ContentType content_type;
     KeyGenerationOld key_generation_old;
@@ -198,8 +198,8 @@ struct NCAHeader {
     }
 };
 
-struct PFS0Header {
-    char magic[4];
+struct Pfs0Header {
+    u32 magic;
     u32 entry_count;
     u32 string_table_size;
     u32 reserved;
@@ -231,17 +231,17 @@ namespace {
 void load_pfs0(StreamReader& reader, const std::string& rom_filename,
                Kernel::Process*& out_process) {
     // Header
-    const auto header = reader.Read<PFS0Header>();
-    ASSERT(std::memcmp(header.magic, "PFS0", 4) == 0, HorizonLoader,
+    const auto header = reader.Read<Pfs0Header>();
+    ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), HorizonLoader,
            "Invalid PFS0 magic");
 
     // Entries
     PartitionEntry entries[header.entry_count];
-    reader.Read(entries, header.entry_count);
+    reader.ReadPtr(entries, header.entry_count);
 
     // String table
     char string_table[header.string_table_size];
-    reader.Read(string_table, header.string_table_size);
+    reader.ReadPtr(string_table, header.string_table_size);
 
     // NSOs
     u64 nso_offset = reader.Tell();
@@ -328,9 +328,9 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
 Kernel::Process* NCALoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
-    const auto header = reader.Read<NCAHeader>();
+    const auto header = reader.Read<NcaHeader>();
     // TODO: allow other NCA versions as well
-    ASSERT(std::memcmp(header.magic, "NCA3", 4) == 0, HorizonLoader,
+    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), HorizonLoader,
            "Invalid NCA magic");
 
     Kernel::Process* process = nullptr;

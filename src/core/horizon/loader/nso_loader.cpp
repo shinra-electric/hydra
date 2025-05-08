@@ -14,8 +14,8 @@ struct Segment {
     u32 size;
 };
 
-struct NSOHeader {
-    char magic[4];
+struct NsoHeader {
+    u32 magic;
     u32 version;
     u32 reserved1;
     u32 flags;
@@ -52,13 +52,13 @@ void read_segment(StreamReader& reader, uptr executable_mem_ptr,
     if (is_compressed) {
         // Decompress
         u8 file[file_size];
-        reader.Read(file, file_size);
+        reader.ReadPtr(file, file_size);
         decompress_lz4(
             file, file_size,
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
             segment.size);
     } else {
-        reader.Read(
+        reader.ReadPtr(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
             file_size);
     }
@@ -79,8 +79,8 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
-    const auto header = reader.Read<NSOHeader>();
-    ASSERT(std::memcmp(header.magic, "NSO0", 4) == 0, HorizonLoader,
+    const auto header = reader.Read<NsoHeader>();
+    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), HorizonLoader,
            "Invalid NSO magic");
 
     // Determine executable memory size

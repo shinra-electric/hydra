@@ -50,8 +50,13 @@ class Reader {
 
 class StreamReader {
   public:
-    StreamReader(std::istream& stream_, u64 offset_, usize size_)
+    StreamReader(std::istream& stream_, u64 offset_ = 0,
+                 usize size_ = invalid<usize>())
         : stream{stream_}, offset{offset_}, size{size_} {
+        if (size == invalid<usize>()) {
+            stream.seekg(0, std::ios::end);
+            size = Tell();
+        }
         Seek(0);
     }
 
@@ -70,7 +75,7 @@ class StreamReader {
         return result;
     }
 
-    template <typename T> void Read(T* ptr, usize count) {
+    template <typename T> void ReadPtr(T* ptr, usize count) {
         stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
     }
 
@@ -125,20 +130,24 @@ class Writer {
 
 class StreamWriter {
   public:
-    StreamWriter(std::ostream& stream_, u64 offset_, usize size_)
+    StreamWriter(std::ostream& stream_, u64 offset_ = 0,
+                 usize size_ = invalid<usize>())
         : stream{stream_}, offset{offset_}, size{size_} {
+        if (size == invalid<usize>()) {
+            stream.seekp(0, std::ios::end);
+            size = Tell();
+        }
         Seek(0);
     }
 
     u64 Tell() { return static_cast<u64>(stream.tellp()) - offset; }
-
     void Seek(u64 pos) { stream.seekp(offset + pos, std::ios::beg); }
 
     template <typename T> void Write(const T& value) {
         stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
     }
 
-    template <typename T> void Write(const T* write_ptr, usize count) {
+    template <typename T> void WritePtr(const T* write_ptr, usize count) {
         stream.write(reinterpret_cast<const char*>(write_ptr),
                      count * sizeof(T));
     }

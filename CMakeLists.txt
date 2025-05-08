@@ -28,6 +28,7 @@ add_subdirectory(externals/luft)
 include_directories(externals/metal-cpp dynarmic)
 
 # TODO: find out why release builds are broken
+# TODO: do compile flags need to be specified manually?
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
     add_definitions(-DHYDRA_DEBUG)

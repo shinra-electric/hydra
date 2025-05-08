@@ -60,7 +60,7 @@ void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
     }
 
     reader.Seek(offset);
-    reader.Read(ptr, size);
+    reader.ReadPtr(ptr, size);
 }
 
 void IStorage::WriteImpl(const u8* ptr, i64 offset, usize size) {
@@ -72,7 +72,7 @@ void IStorage::WriteImpl(const u8* ptr, i64 offset, usize size) {
 
     auto writer = stream.CreateWriter();
     writer.Seek(offset);
-    writer.Write(ptr, size);
+    writer.WritePtr(ptr, size);
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv

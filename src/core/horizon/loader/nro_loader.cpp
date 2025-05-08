@@ -13,24 +13,24 @@ static const std::string ROM_VIRTUAL_PATH =
 
 namespace {
 
-enum class NROSectionType {
+enum class NroSectionType {
     Text,
     Ro,
     Data,
 };
 
-struct NROSection {
+struct NroSection {
     u32 offset;
     u32 size;
 };
 
-struct NROHeader {
+struct NroHeader {
     u8 rocrt[16];
-    char magic[4];
+    u32 magic;
     u32 version;
     u32 size;
     u32 flags;
-    NROSection sections[3];
+    NroSection sections[3];
     u32 bss_size;
     u8 reserved1[4];
     u8 module_id[32];
@@ -43,7 +43,7 @@ struct NROHeader {
     u32 dyn_sym_offset;
     u32 dyn_sym_size;
 
-    const NROSection& GetSection(NROSectionType type) const {
+    const NroSection& GetSection(NroSectionType type) const {
         return sections[static_cast<u32>(type)];
     }
 };
@@ -53,10 +53,10 @@ struct NROHeader {
 Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
-    const auto header = reader.Read<NROHeader>();
+    const auto header = reader.Read<NroHeader>();
 
     // Validate
-    ASSERT(std::memcmp(header.magic, "NRO0", 4) == 0, HorizonLoader,
+    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), HorizonLoader,
            "Invalid NRO magic \"{}\"", header.magic);
 
     // Create executable memory
@@ -66,7 +66,7 @@ Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
         executable_size, Kernel::MemoryPermission::ReadWriteExecute, true,
         base); // TODO: is the permission correct?
     reader.Seek(0);
-    reader.Read(reinterpret_cast<u8*>(ptr), reader.GetSize());
+    reader.ReadPtr(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
     // Args
     const u64 argv_offset = executable_size;
@@ -122,8 +122,8 @@ Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     Kernel::Process* process = new Kernel::Process();
     auto& main_thread = process->GetMainThread();
     main_thread.handle->SetEntryPoint(
-        base + sizeof(NROHeader) +
-        header.GetSection(NROSectionType::Text).offset);
+        base + sizeof(NroHeader) +
+        header.GetSection(NroSectionType::Text).offset);
     main_thread.handle->SetArg(0, base + config_offset);
     main_thread.handle->SetArg(1, UINT64_MAX);
 

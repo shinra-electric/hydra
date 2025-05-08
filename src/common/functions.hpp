@@ -61,6 +61,11 @@ template <typename T> inline T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
+inline constexpr u32 make_magic4(const char c0, const char c1, const char c2,
+                                 const char c3) {
+    return (u32)c0 | (u32)c1 << 8 | (u32)c2 << 16 | (u32)c3 << 24;
+}
+
 inline std::string to_lower(const std::string& str) {
     // TODO: make this more efficient?
     std::string result;

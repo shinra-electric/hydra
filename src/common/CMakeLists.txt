@@ -17,4 +17,5 @@ add_library(hydra-common
     allocators/dynamic_pool.hpp
 )
 
-target_link_libraries(hydra-common PUBLIC fmt::fmt toml11::toml11)
+target_link_libraries(hydra-common PUBLIC fmt::fmt)
+target_link_libraries(hydra-common PRIVATE toml11::toml11)
