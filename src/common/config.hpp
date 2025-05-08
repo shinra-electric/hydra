@@ -48,6 +48,9 @@ class Config {
     const std::vector<std::string>& GetGameDirectories() const {
         return game_directories;
     }
+    const std::vector<std::string>& GetPatchDirectories() const {
+        return patch_directories;
+    }
     const std::string& GetSdCardPath() const { return sd_card_path; }
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
@@ -74,6 +77,18 @@ class Config {
         ASSERT(index < game_directories.size(), Other,
                "Index ({}) out of range ({})", index, game_directories.size());
         game_directories.erase(game_directories.begin() + index);
+        changed = true;
+    }
+
+    void AddPatchDirectory(const std::string& directory) {
+        patch_directories.push_back(directory);
+        changed = true;
+    }
+
+    void RemovePatchDirectory(u32 index) {
+        ASSERT(index < patch_directories.size(), Other,
+               "Index ({}) out of range ({})", index, patch_directories.size());
+        patch_directories.erase(patch_directories.begin() + index);
         changed = true;
     }
 
@@ -122,6 +137,7 @@ class Config {
 
     // Config
     std::vector<std::string> game_directories;
+    std::vector<std::string> patch_directories;
     std::string sd_card_path;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
@@ -132,6 +148,7 @@ class Config {
 
     // Default values
     std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
+    std::vector<std::string> GetDefaultPatchDirectories() const { return {}; }
     std::string GetDefaultSdCardPath() const {
         return fmt::format("{}/sd_card", app_data_path);
     }

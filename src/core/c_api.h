@@ -14,6 +14,11 @@ const char* hydra_config_get_game_directory(uint32_t index);
 void hydra_config_add_game_directory(const char* path);
 void hydra_config_remove_game_directory(uint32_t index);
 
+uint32_t hydra_config_get_patch_directories_count();
+const char* hydra_config_get_patch_directory(uint32_t index);
+void hydra_config_add_patch_directory(const char* path);
+void hydra_config_remove_patch_directory(uint32_t index);
+
 const char* hydra_config_get_sd_card_path();
 void hydra_config_set_sd_card_path(const char* path);
 

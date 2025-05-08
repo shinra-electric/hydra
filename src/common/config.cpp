@@ -98,10 +98,9 @@ Config::Config() {
     // Log
     LOG_INFO(Other, "Game directories: [{}]",
              fmt::join(game_directories, ", "));
+    LOG_INFO(Other, "Patch directories: [{}]",
+             fmt::join(patch_directories, ", "));
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
-    // TODO: uncomment
-    // LOG_INFO(Other, "Root directories: [{}]", fmt::join(root_directories, ",
-    // "));
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
@@ -114,6 +113,7 @@ Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
 void Config::LoadDefaults() {
     game_directories = GetDefaultGameDirectories();
+    patch_directories = GetDefaultPatchDirectories();
     sd_card_path = GetDefaultSdCardPath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
@@ -143,6 +143,11 @@ void Config::Serialize() {
             game_directories_arr = toml::array{};
             game_directories_arr.as_array().assign(game_directories.begin(),
                                                    game_directories.end());
+
+            auto& patch_directories_arr = general["patch_directories"];
+            patch_directories_arr = toml::array{};
+            patch_directories_arr.as_array().assign(patch_directories.begin(),
+                                                    patch_directories.end());
 
             general["sd_card_path"] = sd_card_path;
         }
@@ -179,6 +184,8 @@ void Config::Deserialize() {
         const auto& general = data.at("General");
         game_directories = toml::find_or<std::vector<std::string>>(
             general, "game_directories", GetDefaultGameDirectories());
+        patch_directories = toml::find_or<std::vector<std::string>>(
+            general, "patch_directories", GetDefaultPatchDirectories());
         sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
                                                   GetDefaultSdCardPath());
     }

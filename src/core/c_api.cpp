@@ -19,6 +19,22 @@ void hydra_config_remove_game_directory(uint32_t index) {
     Hydra::Config::GetInstance().RemoveGameDirectory(index);
 }
 
+uint32_t hydra_config_get_patch_directories_count() {
+    return Hydra::Config::GetInstance().GetPatchDirectories().size();
+}
+
+const char* hydra_config_get_patch_directory(uint32_t index) {
+    return Hydra::Config::GetInstance().GetPatchDirectories()[index].c_str();
+}
+
+void hydra_config_add_patch_directory(const char* path) {
+    Hydra::Config::GetInstance().AddPatchDirectory(path);
+}
+
+void hydra_config_remove_patch_directory(uint32_t index) {
+    Hydra::Config::GetInstance().RemovePatchDirectory(index);
+}
+
 const char* hydra_config_get_sd_card_path() {
     return Hydra::Config::GetInstance().GetSdCardPath().c_str();
 }
