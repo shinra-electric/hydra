@@ -17,7 +17,7 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
 
     // Heap memory
     // TODO: is this necessary? The app should call svcSetHeapSize anyway
-    heap_mem = mmu->AllocateMemory(DEFAULT_HEAP_MEM_SIZE);
+    heap_mem = mmu->AllocateMemory(0x1000000);
     mmu->Map(HEAP_REGION_BASE, heap_mem,
              {MemoryType::Normal_1_0_0, MemoryAttribute::None,
               MemoryPermission::ReadWriteExecute});
@@ -760,21 +760,6 @@ Result Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
 #undef GET_ARRAY_SIZE
 #undef WRITE_ARRAY
 
-    // AppletMessage_FocusStateChanged for _appletReceiveMessage
-    // AppletMessage_InFocus for _appletGetCurrentFocusState
-    // TODO: no longer needed?
-    /*
-    static int num_executed = 0;
-    num_executed++;
-    Logging::log(Logging::Level::Debug, "NUM EXECUTED: %i", num_executed);
-    if (num_executed == 25)
-        *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
-                 sizeof(CmifOutHeader))) = 15;
-    if (num_executed == 26)
-        *((u32*)(out_addr + sizeof(CmifDomainOutHeader) +
-                 sizeof(CmifOutHeader))) = 1;
-    */
-
     return RESULT_SUCCESS;
 }
 
@@ -914,6 +899,8 @@ handle_id_t Kernel::AddHandle(Handle* handle) {
 }
 
 HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
+    constexpr usize TLS_MEM_SIZE = 0x20000;
+
     auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,

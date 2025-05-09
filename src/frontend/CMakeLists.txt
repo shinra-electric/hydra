@@ -58,8 +58,8 @@ target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 # Signing
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
 
-# TODO: use --deep for debugging?
+# TODO: use --deep?
 add_custom_command(TARGET hydra POST_BUILD VERBATIM
-    COMMAND codesign --entitlements ${ENTITLEMENTS_FILE} -f -s - "$<TARGET_FILE:hydra>"
+    COMMAND codesign --entitlements ${ENTITLEMENTS_FILE} --force --sign - --timestamp --options runtime "$<TARGET_FILE:hydra>"
     COMMENT "Signing hydra with entitlements"
 )

@@ -2,10 +2,6 @@
 
 namespace Hydra::Horizon {
 
-// HACK: official games dequeue and request a buffer, but never queue it. This
-// is a hack to present the buffer anyways
-static i32 hack = -1;
-
 void DisplayBinder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
@@ -40,10 +36,6 @@ i32 DisplayBinder::GetAvailableSlot() {
     if (slot == -1)
         LOG_ERROR(Horizon, "No available slots");
 
-    // HACK: official games dequeue and request a buffer, but never queue it.
-    // This is a hack to present the buffer anyways
-    hack = slot;
-
     return slot;
 }
 
@@ -60,10 +52,6 @@ i32 DisplayBinder::ConsumeBuffer() {
     // TODO: should there be a timeout?
     queue_cv.wait_for(lock, std::chrono::nanoseconds(67 * 1000 * 1000),
                       [&] { return !queued_buffers.empty(); });
-
-    // HACK
-    if (queued_buffers.empty() && hack != -1)
-        return hack;
 
     if (queued_buffers.empty())
         return -1;

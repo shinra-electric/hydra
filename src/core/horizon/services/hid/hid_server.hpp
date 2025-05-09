@@ -38,8 +38,8 @@ class IHidServer : public Kernel::ServiceBase {
     STUB_REQUEST_COMMAND(SendVibrationValue);
     void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
     // HACK: this command is usually called from a separate thread which
-    // randomly throws InvalidCmifOutHeader error (0x1a80a), therefore we let
-    // the thread sleep
+    // randomly throws InvalidCmifOutHeader error 0x1a80a (probably some sort of
+    // memory corruption), therefore we let the thread sleep
     // STUB_REQUEST_COMMAND(SendVibrationValues);
     void SendVibrationValues(REQUEST_COMMAND_PARAMS) {
         LOG_WARN(HorizonServices, "Infinite sleep");
