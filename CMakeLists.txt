@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15...3.31)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
-option(CODESIGN_IDENTITY "The identity to use for macOS code signing.")
 set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
 
 set(CMAKE_CXX_STANDARD 20)
