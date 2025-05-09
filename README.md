@@ -6,7 +6,7 @@ Hydra is an experimental Nintendo Switch emulator for macOS.
 
 The emulator is still in very early stages. A few homebrew games work perfectly, and one official game, Puyo Puyo Tetris, is almost playable.
 
-TODO: image
+![Puyo Puyo Tetris](images/puyo_puyo_tetris.png)
 
 In order to run official games, you will need to download a set of patches to prevent crashes on startup. You can get the patches together with the guide on how to install them [here](https://github.com/SamoZ256/hydra-patches).
 
