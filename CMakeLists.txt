@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # TODO: only enable Swift if SwiftUI is enabled
 project(hydra VERSION 0.1.0 LANGUAGES CXX Swift)
 
-# This is used when bundling the app. 
+# This is used when bundling the app.
 # TODO: Change the build hash based on github
 set(BUILD_HASH "Hash")
 
@@ -29,7 +29,7 @@ find_package(fmt CONFIG REQUIRED)
 #add_subdirectory(externals/fmt)
 #add_subdirectory(externals/toml11) # Hatch already uses toml11
 add_subdirectory(externals/dynarmic)
-add_subdirectory(externals/luft)
+#add_subdirectory(externals/luft)
 add_subdirectory(externals/hatch)
 
 #include_directories(externals/fmt/include)

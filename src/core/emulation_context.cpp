@@ -1,5 +1,6 @@
 #include "core/emulation_context.hpp"
 
+#include "common/functions.hpp"
 #include "hatch/hatch.hpp"
 
 #include "core/horizon/loader/nca_loader.hpp"
@@ -77,6 +78,9 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
     ifs.close();
 
+    LOG_INFO(Other, "-------- Title info --------");
+    LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
+
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
@@ -84,7 +88,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
          Config::GetInstance().GetPatchDirectories()) {
         for (const auto& dir_entry :
              std::filesystem::directory_iterator{patch_directory}) {
-            if (dir_entry.path().filename() == target_patch_filename) {
+            if (to_lower(dir_entry.path().filename().string()) ==
+                target_patch_filename) {
+                LOG_INFO(Other, "Applying patch \"{}\"",
+                         dir_entry.path().string());
+
                 std::ifstream ifs(dir_entry);
 
                 // Deserialize
@@ -101,99 +109,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
             }
         }
     }
-
-    // HACK
-#define BRK 0xd4200000
-#define MOV_X0_XZR 0xd2800000
-#define NOP 0xd503201f
-
-    // HACK
-    if (false) {                                    // Cave story+
-        cpu->GetMMU()->Store<u32>(0x4127f50c, NOP); // Jump to heap
-        // cpu->GetMMU()->Store<u32>(0x4009cbec, NOP);
-
-        // cpu->GetMMU()->Store<u32>(0x40082bbc, NOP); // CoreMask?
-        // cpu->GetMMU()->Store<u32>(0x40082d8c, NOP); // svcQueryMemory
-
-        // cpu->GetMMU()->Store<u32>(0x40081764, NOP); // Reading save
-        // screen.cfg
-
-        // cpu->GetMMU()->Store<u32>(0x40093478,
-        //                           NOP); // HID (probably shared memory?)
-
-        // cpu->GetMMU()->Store<u32>(0x4001f118, NOP);
-
-        cpu->GetMMU()->Store<u32>(0x42e81a48,
-                                  MOV_X0_XZR); // InstructionAbortSameEl
-    }
-
-    if (false) {                                    // Puyo Puyo Tetris
-        cpu->GetMMU()->Store<u32>(0x513e05d0, NOP); // Jump to heap
-        cpu->GetMMU()->Store<u32>(0x402cbecc, NOP); // Audio
-        // cpu->GetMMU()->Store<u32>(0x51b9da48, NOP); // InstructionAbortSameEl
-
-        // Error 0x2a2 after loading a file and
-        // allocating + mapping GPU memory
-        cpu->GetMMU()->Store<u32>(0x402bcb58, NOP);
-
-        cpu->GetMMU()->Store<u32>(0x4029ff3c, NOP);
-        cpu->GetMMU()->Store<u32>(0x4029ff44, NOP);
-        cpu->GetMMU()->Store<u32>(0x402a004c, NOP);
-        cpu->GetMMU()->Store<u32>(0x402a005c, NOP);
-
-        cpu->GetMMU()->Store<u32>(
-            0x401d8208,
-            NOP); // This one doesn't seem to do anything with GPU
-
-        cpu->GetMMU()->Store<u32>(0x40131060, NOP);
-        cpu->GetMMU()->Store<u32>(0x401cbd64, NOP);
-        cpu->GetMMU()->Store<u32>(0x401cbd6c, NOP);
-
-        cpu->GetMMU()->Store<u32>(0x4025f584, NOP);
-
-        // 0x5137c3d4
-        // 0x402bbbec
-        // 0x402288f0
-        // 0x402288c8
-        // 0x40229d84
-        // 0x4004e958
-        // 0x4004f9e4
-        // 0x4022a190
-        // 0x402cd35c
-        // 0x402c4e00
-        cpu->GetMMU()->Store<u32>(0x4004e958, NOP);
-    }
-
-    if (false) {                                    // Sonic Mania
-        cpu->GetMMU()->Store<u32>(0x4144170c, NOP); // Jump to heap
-    }
-
-    if (false) {                                    // Shovel Knight
-        cpu->GetMMU()->Store<u32>(0x40d9c66c, NOP); // Jump to heap
-        // cpu->GetMMU()->Store<u32>(0x404f5a10, NOP); // NVN assert
-        // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Crash after NVN
-        // assert
-        // cpu->GetMMU()->Store<u32>(0x404f5a88, NOP); // NVN assert
-        cpu->GetMMU()->Store<u32>(0x405142c8, NOP); // Audio
-        // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Crash after NVN assert
-
-        cpu->GetMMU()->Store<u32>(
-            0x42285e2c,
-            MOV_X0_XZR); // Set result code to
-                         // NVN_WINDOW_ACQUIRE_TEXTURE_RESULT_SUCCESS
-                         // in nvnQueueAcquireTexture
-
-        // cpu->GetMMU()->Store<u32>(0x404c21d4, NOP); // Singleton not
-        // initialized
-    }
-
-    if (false) {                                    // The Binding of Isaac
-        cpu->GetMMU()->Store<u32>(0x414535d0, NOP); // Jump to heap
-        cpu->GetMMU()->Store<u32>(0x40244354, NOP); // HV exception
-    }
 }
 
 void EmulationContext::Run() {
+    LOG_INFO(Other, "-------- Run --------");
+
     // Enter focus
     auto& state_manager = Horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
