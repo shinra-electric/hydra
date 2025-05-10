@@ -5,28 +5,9 @@
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-// TODO: this whole thing needs a rewrite
-
 namespace Hydra::Horizon::Services::HosBinder {
 
 namespace {
-
-enum class TransactCode : u32 {
-    RequestBuffer = 1,
-    SetBufferCount,
-    DequeueBuffer,
-    DetachBuffer,
-    DetachNextBuffer,
-    AttachBuffer,
-    QueueBuffer,
-    CancelBuffer,
-    Query,
-    Connect,
-    Disconnect,
-    SetSidebandStream,
-    AllocateBuffers,
-    SetPreallocatedBuffer,
-};
 
 // From Ryujinx
 enum class NativeWindowAttribute : u32 {
@@ -42,18 +23,6 @@ enum class NativeWindowAttribute : u32 {
 } // namespace
 
 } // namespace Hydra::Horizon::Services::HosBinder
-
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::HosBinder::TransactCode,
-                       RequestBuffer, "request buffer", SetBufferCount,
-                       "set buffer count", DequeueBuffer, "dequeue buffer",
-                       DetachBuffer, "detach buffer", DetachNextBuffer,
-                       "detach next buffer", AttachBuffer, "attach buffer",
-                       QueueBuffer, "queue buffer", CancelBuffer,
-                       "cancel buffer", Query, "query", Connect, "connect",
-                       Disconnect, "disconnect", SetSidebandStream,
-                       "set sideband stream", AllocateBuffers,
-                       "allocate buffers", SetPreallocatedBuffer,
-                       "set preallocated buffer")
 
 ENABLE_ENUM_FORMATTING(
     Hydra::Horizon::Services::HosBinder::NativeWindowAttribute, Width, "width",
@@ -142,7 +111,8 @@ struct GetNativeHandleIn {
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
-                             AdjustRefcount, 2, GetNativeHandle)
+                             AdjustRefcount, 2, GetNativeHandle, 3,
+                             TransactParcelAuto)
 
 void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     auto& reader = readers.send_buffers_readers[0];
@@ -154,12 +124,63 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
     ParcelReader parcel_reader(reader);
     ParcelWriter parcel_writer(writer);
 
-    // Binder
+    TransactParcelImpl(in.binder_id, in.code, in.flags, parcel_reader,
+                       parcel_writer);
+
+    parcel_writer.Finalize();
+}
+
+void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
+    auto in = readers.reader.Read<AdjustRefcountIn>();
+
     auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(in.binder_id);
+
+    switch (in.type) {
+    case BinderType::Weak:
+        binder.weak_ref_count += in.addval;
+        break;
+    case BinderType::Strong:
+        binder.strong_ref_count += in.addval;
+        break;
+    }
+}
+
+void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
+    const auto in = readers.reader.Read<GetNativeHandleIn>();
+
+    writers.copy_handles_writer.Write(OS::GetInstance()
+                                          .GetDisplayDriver()
+                                          .GetBinder(in.binder_id)
+                                          .GetEvent()
+                                          .id);
+}
+
+void IHOSBinderDriver::TransactParcelAuto(REQUEST_COMMAND_PARAMS) {
+    auto& reader = readers.send_buffers_readers[0];
+    auto& writer = writers.recv_buffers_writers[0];
+
+    auto in = readers.reader.Read<TransactParcelIn>();
+    LOG_DEBUG(HorizonServices, "Code: {}", in.code);
+
+    ParcelReader parcel_reader(reader);
+    ParcelWriter parcel_writer(writer);
+
+    TransactParcelImpl(in.binder_id, in.code, in.flags, parcel_reader,
+                       parcel_writer);
+
+    parcel_writer.Finalize();
+}
+
+void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
+                                          u32 flags,
+                                          ParcelReader& parcel_reader,
+                                          ParcelWriter& parcel_writer) {
+    // Binder
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(binder_id);
 
     // Dispatch
     BinderResult b_result = BinderResult::Success;
-    switch (in.code) {
+    switch (code) {
     case TransactCode::RequestBuffer: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
         LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
@@ -167,7 +188,7 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         i32 slot = parcel_reader.Read<i32>();
         if (slot > MAX_BINDER_BUFFER_COUNT) {
             LOG_WARN(HorizonServices, "Invalid slot: {}", slot);
-            writer.Write<u32>(0x0);
+            parcel_writer.Write<u32>(0x0);
             break;
         }
 
@@ -283,39 +304,12 @@ void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
         break;
     }
     default:
-        LOG_WARN(HorizonServices, "Unknown code {}", in.code);
+        LOG_WARN(HorizonServices, "Unknown code {}", code);
         break;
     }
 
     // Result
     parcel_writer.Write(b_result);
-
-    parcel_writer.Finalize();
-}
-
-void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
-    auto in = readers.reader.Read<AdjustRefcountIn>();
-
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(in.binder_id);
-
-    switch (in.type) {
-    case BinderType::Weak:
-        binder.weak_ref_count += in.addval;
-        break;
-    case BinderType::Strong:
-        binder.strong_ref_count += in.addval;
-        break;
-    }
-}
-
-void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<GetNativeHandleIn>();
-
-    writers.copy_handles_writer.Write(OS::GetInstance()
-                                          .GetDisplayDriver()
-                                          .GetBinder(in.binder_id)
-                                          .GetEvent()
-                                          .id);
 }
 
 } // namespace Hydra::Horizon::Services::HosBinder

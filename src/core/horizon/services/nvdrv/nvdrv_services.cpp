@@ -27,7 +27,8 @@ struct QueryEventIn {
 Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
-                             4, QueryEvent, 8, SetAruid)
+                             4, QueryEvent, 8, SetAruid, 13,
+                             SetGraphicsFirmwareMemoryMarginEnabled)
 
 void INvDrvServices::Open(REQUEST_COMMAND_PARAMS) {
     auto path = readers.send_buffers_readers[0].ReadString();

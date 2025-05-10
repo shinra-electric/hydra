@@ -5,9 +5,16 @@
 
 namespace Hydra::Horizon::Services::Account {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 5, GetProfile, 100,
-                             InitializeApplicationInfoV0, 101,
-                             GetBaasAccountManagerForApplication)
+DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 1, GetUserExistence,
+                             5, GetProfile, 100, InitializeApplicationInfoV0,
+                             101, GetBaasAccountManagerForApplication)
+
+void IAccountServiceForApplication::GetUserExistence(REQUEST_COMMAND_PARAMS) {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+
+    // HACK
+    writers.writer.Write(true);
+}
 
 void IAccountServiceForApplication::GetProfile(REQUEST_COMMAND_PARAMS) {
     const u128 user_id = readers.reader.Read<u128>();

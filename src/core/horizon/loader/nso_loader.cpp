@@ -51,12 +51,13 @@ void read_segment(StreamReader& reader, uptr executable_mem_ptr,
 
     if (is_compressed) {
         // Decompress
-        u8 file[file_size];
+        auto file = new u8[file_size];
         reader.ReadPtr(file, file_size);
         decompress_lz4(
             file, file_size,
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
             segment.size);
+        delete[] file;
     } else {
         reader.ReadPtr(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),

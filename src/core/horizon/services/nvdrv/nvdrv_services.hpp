@@ -25,7 +25,8 @@ class INvDrvServices : public Kernel::ServiceBase {
     void Ioctl(REQUEST_COMMAND_PARAMS);
     void Initialize(REQUEST_COMMAND_PARAMS);
     void QueryEvent(REQUEST_COMMAND_PARAMS);
-    STUB_REQUEST_COMMAND(SetAruid)
+    STUB_REQUEST_COMMAND(SetAruid);
+    STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 
     // TODO: what should be the max number of fds?
     static Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> fd_pool;

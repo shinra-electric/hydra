@@ -13,6 +13,7 @@ class IAccountServiceForApplication : public Kernel::ServiceBase {
 
   private:
     // Commands
+    void GetUserExistence(REQUEST_COMMAND_PARAMS);
     void GetProfile(REQUEST_COMMAND_PARAMS);
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV0)
     void GetBaasAccountManagerForApplication(REQUEST_COMMAND_PARAMS);
