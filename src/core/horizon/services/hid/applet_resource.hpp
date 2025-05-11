@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Hid {
 
-class IAppletResource : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAppletResource)
-
+class IAppletResource : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetSharedMemoryHandle(REQUEST_COMMAND_PARAMS);
+    result_t GetSharedMemoryHandle(OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace Hydra::Horizon::Services::Hid

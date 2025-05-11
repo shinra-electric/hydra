@@ -288,7 +288,7 @@ enum class Error {
     NotDebugged = 520,
 };
 
-typedef u32 Result;
+typedef u32 result_t;
 
 #define MAKE_RESULT(module, description)                                       \
     (((static_cast<u32>(::Hydra::Horizon::Kernel::Module::module) & 0x1ff)) |  \

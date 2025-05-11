@@ -46,6 +46,7 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/services/const.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp

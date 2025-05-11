@@ -69,18 +69,20 @@ struct SfNetworkProfileData {
 DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
                              GetCurrentNetworkProfile)
 
-void IGeneralService::CreateRequest(REQUEST_COMMAND_PARAMS) {
-    const auto requirement_preset = readers.reader.Read<i32>();
+result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
+                                        i32 requirement_preset) {
     LOG_DEBUG(HorizonServices, "Requirement preset: {}", requirement_preset);
 
     add_service(new IRequest());
+    return RESULT_SUCCESS;
 }
 
-void IGeneralService::GetCurrentNetworkProfile(REQUEST_COMMAND_PARAMS) {
+result_t IGeneralService::GetCurrentNetworkProfile(
+    OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_NOT_IMPLEMENTED(HorizonServices, "GetCurrentNetworkProfile");
 
     // HACK
-    writers.recv_list_writers[0].Write<SfNetworkProfileData>(
+    out_buffer.writer->Write<SfNetworkProfileData>(
         {.ip_setting_data =
              {
                  .ip_address_setting =
@@ -112,6 +114,7 @@ void IGeneralService::GetCurrentNetworkProfile(REQUEST_COMMAND_PARAMS) {
              .ssid = {0x7},
              .passphrase = {0x13},
          }});
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Nifm

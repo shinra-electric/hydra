@@ -1,28 +1,52 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Pl::SharedResource {
 
-class IPlatformSharedResourceManager : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IPlatformSharedResourceManager)
+enum class SharedFontType : u32 {
+    JapanUsEurope,
+    ChineseSimplified,
+    ExtendedChineseSimplified,
+    ChineseTraditional,
+    Korean,
+    NintendoExtended,
+};
 
+enum class LoadState : u32 {
+    Loading,
+    Loaded,
+};
+
+class IPlatformSharedResourceManager : public ServiceBase {
+  public:
     IPlatformSharedResourceManager();
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     handle_id_t shared_memory_handle_id;
 
     // Commands
-    void RequestLoad(REQUEST_COMMAND_PARAMS);
-    void GetLoadState(REQUEST_COMMAND_PARAMS);
-    void GetSize(REQUEST_COMMAND_PARAMS);
-    void GetSharedMemoryAddressOffset(REQUEST_COMMAND_PARAMS);
-    void GetSharedMemoryNativeHandle(REQUEST_COMMAND_PARAMS);
-    void GetSharedFontInOrderOfPriority(REQUEST_COMMAND_PARAMS);
+    result_t RequestLoad(SharedFontType font_type);
+    result_t GetLoadState(SharedFontType font_type, LoadState* out_state);
+    result_t GetSize(SharedFontType font_type, u32* out_size);
+    result_t GetSharedMemoryAddressOffset(SharedFontType font_type,
+                                          u32* out_address_offset);
+    result_t
+    GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
+    result_t GetSharedFontInOrderOfPriority();
 };
 
 } // namespace Hydra::Horizon::Services::Pl::SharedResource
+
+ENABLE_ENUM_FORMATTING(
+    Hydra::Horizon::Services::Pl::SharedResource::SharedFontType, JapanUsEurope,
+    "Japan/US/Europe", ChineseSimplified, "Chinese Simplified",
+    ExtendedChineseSimplified, "Extended Chinese Simplified",
+    ChineseTraditional, "Chinese Traditional", Korean, "Korean",
+    NintendoExtended, "Nintendo Extended")
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Pl::SharedResource::LoadState,
+                       Loading, "Loading", Loaded, "Loaded")

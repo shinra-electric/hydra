@@ -37,9 +37,8 @@ namespace Hydra::Horizon::Services::Sm {
 DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
                              GetServiceHandle)
 
-void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
-    u64 name = readers.reader.Read<u64>();
-
+result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
+                                          u64 name) {
     LOG_DEBUG(HorizonServices, "Service name: \"{}\"", u64_to_str(name));
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
@@ -85,9 +84,10 @@ void IUserInterface::GetServiceHandle(REQUEST_COMMAND_PARAMS) {
     default:
         LOG_WARN(HorizonServices, "Unknown service name \"{}\"",
                  u64_to_str(name));
-        result = MAKE_RESULT(Svc, Kernel::Error::NotFound); // TODO: module
-        break;
+        return MAKE_RESULT(Svc, Kernel::Error::NotFound); // TODO: module
     }
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Sm

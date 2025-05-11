@@ -9,22 +9,24 @@ DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 1, GetUserExistence,
                              5, GetProfile, 100, InitializeApplicationInfoV0,
                              101, GetBaasAccountManagerForApplication)
 
-void IAccountServiceForApplication::GetUserExistence(REQUEST_COMMAND_PARAMS) {
+result_t IAccountServiceForApplication::GetUserExistence(bool* out_exists) {
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
 
     // HACK
-    writers.writer.Write(true);
+    *out_exists = true;
+    return RESULT_SUCCESS;
 }
 
-void IAccountServiceForApplication::GetProfile(REQUEST_COMMAND_PARAMS) {
-    const u128 user_id = readers.reader.Read<u128>();
+result_t IAccountServiceForApplication::GetProfile(add_service_fn_t add_service,
+                                                   u128 user_id) {
     add_service(new IProfile(user_id));
+    return RESULT_SUCCESS;
 }
 
-void IAccountServiceForApplication::GetBaasAccountManagerForApplication(
-    REQUEST_COMMAND_PARAMS) {
-    const auto user_id = readers.reader.Read<u128>();
+result_t IAccountServiceForApplication::GetBaasAccountManagerForApplication(
+    add_service_fn_t add_service, u128 user_id) {
     add_service(new IManagerForApplication(user_id));
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Account

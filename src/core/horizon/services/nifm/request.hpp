@@ -1,26 +1,34 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Nifm {
 
-class IRequest : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IRequest)
+enum class RequestState {
+    Invalid,
+    Free,
+    OnHold,
+    Accepted,
+    Blocking,
+};
 
+class IRequest : public ServiceBase {
+  public:
     IRequest();
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     Kernel::HandleWithId<Kernel::Event> events[2];
 
     // Commands
-    void GetRequestState(REQUEST_COMMAND_PARAMS);
+    result_t GetRequestState(RequestState* out_state);
     STUB_REQUEST_COMMAND(GetResult);
-    void GetSystemEventReadableHandles(REQUEST_COMMAND_PARAMS);
+    result_t
+    GetSystemEventReadableHandles(OutHandle<HandleAttr::Copy> out_handle0,
+                                  OutHandle<HandleAttr::Copy> out_handle1);
 };
 
 } // namespace Hydra::Horizon::Services::Nifm

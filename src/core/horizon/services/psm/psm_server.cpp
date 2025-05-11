@@ -4,40 +4,34 @@
 
 namespace Hydra::Horizon::Services::Psm {
 
-namespace {
-
-enum class ChargerType {
-    Unconnected,
-    EnoughPower,
-    NoPower,
-    NotSupported,
-};
-
-}
-
 DEFINE_SERVICE_COMMAND_TABLE(IPsmServer, 0, GetBatteryChargePercentage, 1,
                              GetChargerType, 13, GetRawBatteryChargePercentage,
                              14, IsEnoughPowerSupplied, 15,
                              GetBatteryAgePercentage)
 
-void IPsmServer::GetBatteryChargePercentage(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write<u32>(100);
+result_t IPsmServer::GetBatteryChargePercentage(u32* out_percentage) {
+    *out_percentage = 100;
+    return RESULT_SUCCESS;
 }
 
-void IPsmServer::GetChargerType(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(ChargerType::EnoughPower);
+result_t IPsmServer::GetChargerType(ChargerType* out_type) {
+    *out_type = ChargerType::EnoughPower;
+    return RESULT_SUCCESS;
 }
 
-void IPsmServer::GetRawBatteryChargePercentage(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(100.0);
+result_t IPsmServer::GetRawBatteryChargePercentage(f64* out_percentage) {
+    *out_percentage = 100.0;
+    return RESULT_SUCCESS;
 }
 
-void IPsmServer::IsEnoughPowerSupplied(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(true);
+result_t IPsmServer::IsEnoughPowerSupplied(bool* out_is_enough) {
+    *out_is_enough = true;
+    return RESULT_SUCCESS;
 }
 
-void IPsmServer::GetBatteryAgePercentage(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(0.0);
+result_t IPsmServer::GetBatteryAgePercentage(f64* out_percentage) {
+    *out_percentage = 0.0;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Psm

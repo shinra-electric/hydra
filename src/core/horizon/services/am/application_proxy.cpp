@@ -17,36 +17,46 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxy, 0, GetCommonStateGetter, 1,
                              GetLibraryAppletCreator, 20,
                              GetApplicationFunctions, 1000, GetDebugFunctions)
 
-void IApplicationProxy::GetCommonStateGetter(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetCommonStateGetter(add_service_fn_t add_service) {
     add_service(new ICommonStateGetter());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetSelfController(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetSelfController(add_service_fn_t add_service) {
     add_service(new ISelfController());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetWindowController(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetWindowController(add_service_fn_t add_service) {
     add_service(new IWindowController());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetAudioController(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetAudioController(add_service_fn_t add_service) {
     add_service(new IAudioController());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetDisplayController(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetDisplayController(add_service_fn_t add_service) {
     add_service(new IDisplayController());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetLibraryAppletCreator(REQUEST_COMMAND_PARAMS) {
+result_t
+IApplicationProxy::GetLibraryAppletCreator(add_service_fn_t add_service) {
     add_service(new ILibraryAppletCreator());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetApplicationFunctions(REQUEST_COMMAND_PARAMS) {
+result_t
+IApplicationProxy::GetApplicationFunctions(add_service_fn_t add_service) {
     add_service(new IApplicationFunctions());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationProxy::GetDebugFunctions(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationProxy::GetDebugFunctions(add_service_fn_t add_service) {
     add_service(new IDebugFunctions());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

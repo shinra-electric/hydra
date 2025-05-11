@@ -105,7 +105,7 @@ bool DriverBase::ParseInstruction(u32 pc) {
     }
     }
 
-    // Result operation
+    // result_t operation
     if (op != Operation::Branch) {
         ResultOperation result_op =
             static_cast<ResultOperation>(GET_DATA_U32(4, 3));

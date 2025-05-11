@@ -4,30 +4,16 @@
 
 namespace Hydra::Horizon::Services::Audio {
 
-namespace {
-
-struct OpenAudioOutIn {
-    u32 sample_rate;
-    u16 channel_count;
-    u16 reserved;
-    u64 aruid;
-};
-
-struct OpenAudioOutOut {
-    u32 sample_rate;
-    u32 channel_count;
-    u32 pcm_format;
-    u32 state;
-};
-
-} // namespace
-
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 1, OpenAudioOut)
 
-void IAudioOutManager::OpenAudioOut(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<OpenAudioOutIn>();
+result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
+                                        u32 sample_rate, u16 channel_count,
+                                        u16 reserved, u64 aruid,
+                                        u32* out_sample_rate,
+                                        u32* out_channel_count,
+                                        u32* out_pcm_format, u32* out_state) {
     LOG_DEBUG(HorizonServices, "Sample rate: {}, channel count: {}",
-              in.sample_rate, in.channel_count);
+              sample_rate, channel_count);
 
     // TODO: name in and out
 
@@ -35,12 +21,12 @@ void IAudioOutManager::OpenAudioOut(REQUEST_COMMAND_PARAMS) {
 
     // Out
     // TODO: correct?
-    OpenAudioOutOut out{
-        .sample_rate = in.sample_rate, .channel_count = in.channel_count,
-        // TODO: pcm_format
-        // TODO: state
-    };
-    writers.writer.Write(out);
+    *out_sample_rate = sample_rate;
+    *out_channel_count = channel_count;
+    // TODO: pcm_format
+    // TODO: state
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Audio

@@ -48,6 +48,44 @@ class Reader {
     usize size;
 };
 
+class Writer {
+  public:
+    Writer(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
+
+    u64 Tell() { return static_cast<u64>(ptr - base); }
+    void Seek(u64 pos) { ptr = base + pos; }
+    void Skip(usize size) { ptr += size; }
+
+    template <typename T> T* Write(const T& value) {
+        T* result = reinterpret_cast<T*>(ptr);
+        *result = value;
+        ptr += sizeof(T);
+
+        return result;
+    }
+
+    template <typename T>
+    T* WritePtr(const T* data = nullptr, usize count = 1) {
+        T* result = reinterpret_cast<T*>(ptr);
+        usize s = sizeof(T) * count;
+        if (data)
+            memcpy(result, data, s);
+        ptr += s;
+
+        return result;
+    }
+
+    // Getters
+    u8* GetBase() const { return base; }
+    usize GetSize() const { return size; }
+    usize GetWrittenSize() const { return ptr - base; }
+
+  private:
+    u8* base;
+    u8* ptr;
+    usize size;
+};
+
 class StreamReader {
   public:
     StreamReader(std::istream& stream_, u64 offset_ = 0,
@@ -87,44 +125,6 @@ class StreamReader {
   private:
     std::istream& stream;
     u64 offset;
-    usize size;
-};
-
-class Writer {
-  public:
-    Writer(u8* base_, usize size_) : base{base_}, ptr{base_}, size{size_} {}
-
-    u64 Tell() { return static_cast<u64>(ptr - base); }
-    void Seek(u64 pos) { ptr = base + pos; }
-    void Skip(usize size) { ptr += size; }
-
-    template <typename T> T* Write(const T& value) {
-        T* result = reinterpret_cast<T*>(ptr);
-        *result = value;
-        ptr += sizeof(T);
-
-        return result;
-    }
-
-    template <typename T>
-    T* WritePtr(const T* data = nullptr, usize count = 1) {
-        T* result = reinterpret_cast<T*>(ptr);
-        usize s = sizeof(T) * count;
-        if (data)
-            memcpy(result, data, s);
-        ptr += s;
-
-        return result;
-    }
-
-    // Getters
-    u8* GetBase() const { return base; }
-    usize GetSize() const { return size; }
-    usize GetWrittenSize() const { return ptr - base; }
-
-  private:
-    u8* base;
-    u8* ptr;
     usize size;
 };
 

@@ -8,14 +8,16 @@ namespace Hydra::Horizon::Services::ViSrv {
 DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
                              GetDisplayServiceWithProxyNameExchange)
 
-void IManagerRootService::GetDisplayService(REQUEST_COMMAND_PARAMS) {
+result_t IManagerRootService::GetDisplayService(add_service_fn_t add_service) {
     add_service(new IApplicationDisplayService());
+    return RESULT_SUCCESS;
 }
 
-void IManagerRootService::GetDisplayServiceWithProxyNameExchange(
-    REQUEST_COMMAND_PARAMS) {
+result_t IManagerRootService::GetDisplayServiceWithProxyNameExchange(
+    add_service_fn_t add_service) {
     // TODO: should take input u64 and u32
     add_service(new IApplicationDisplayService());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

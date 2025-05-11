@@ -9,16 +9,16 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              EnsureSaveData, 21, GetDesiredLanguage, 22,
                              SetTerminateResult, 40, NotifyRunning)
 
-void IApplicationFunctions::PopLaunchParameter(REQUEST_COMMAND_PARAMS) {
-    const auto kind = readers.reader.Read<LaunchParameterKind>();
+result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
+                                                   LaunchParameterKind kind) {
     LOG_DEBUG(HorizonServices, "Kind: {}", kind);
 
     add_service(
         new IStorage(StateManager::GetInstance().PopLaunchParameter(kind)));
+    return RESULT_SUCCESS;
 }
 
-void IApplicationFunctions::EnsureSaveData(REQUEST_COMMAND_PARAMS) {
-    const auto user_id = readers.reader.Read<u128>();
+result_t IApplicationFunctions::EnsureSaveData(u128 user_id, u64* out_unknown) {
     LOG_DEBUG(HorizonServices, "User ID: {}", user_id);
 
     LOG_FUNC_STUBBED(HorizonServices);
@@ -26,20 +26,24 @@ void IApplicationFunctions::EnsureSaveData(REQUEST_COMMAND_PARAMS) {
     // HACK
     // NOTE: writing anything other than 0x0 causes the game to launch the
     // dataErase LibraryApplet
-    writers.writer.Write<u64>(0x0);
+    *out_unknown = 0x0;
+    return RESULT_SUCCESS;
 }
 
-void IApplicationFunctions::GetDesiredLanguage(REQUEST_COMMAND_PARAMS) {
+result_t
+IApplicationFunctions::GetDesiredLanguage(LanguageCode* out_language_code) {
     // TODO: make this configurable
-    writers.writer.Write(LanguageCode::AmericanEnglish);
+    *out_language_code = LanguageCode::AmericanEnglish;
+    return RESULT_SUCCESS;
 }
 
-void IApplicationFunctions::SetTerminateResult(REQUEST_COMMAND_PARAMS) {
-    auto res = readers.reader.Read<Kernel::Result>();
-    const auto module = GET_RESULT_MODULE(res);
-    const auto description = GET_RESULT_DESCRIPTION(res);
+result_t IApplicationFunctions::SetTerminateResult(result_t result) {
+    const auto module = GET_RESULT_MODULE(result);
+    const auto description = GET_RESULT_DESCRIPTION(result);
     LOG_INFO(HorizonKernel, "Module: {}, description: 0x{:x}", module,
              description);
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

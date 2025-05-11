@@ -18,27 +18,30 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
 ISelfController::ISelfController()
     : library_applet_launchable_event(new Kernel::Event(true)) {}
 
-void ISelfController::LockExit(REQUEST_COMMAND_PARAMS) {
+result_t ISelfController::LockExit() {
     StateManager::GetInstance().LockExit();
+    return RESULT_SUCCESS;
 }
 
-void ISelfController::UnlockExit(REQUEST_COMMAND_PARAMS) {
+result_t ISelfController::UnlockExit() {
     StateManager::GetInstance().UnlockExit();
+    return RESULT_SUCCESS;
 }
 
-void ISelfController::GetLibraryAppletLaunchableEvent(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(library_applet_launchable_event.id);
+result_t ISelfController::GetLibraryAppletLaunchableEvent(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = library_applet_launchable_event.id;
+    return RESULT_SUCCESS;
 }
 
-void ISelfController::CreateManagedDisplayLayer(REQUEST_COMMAND_PARAMS) {
+result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // TODO: what display ID should be used?
-    u64 layer_id =
+    *out_layer_id =
         Kernel::Kernel::GetInstance().GetBus().GetDisplay(0)->CreateLayer(
             binder_id);
-
-    writers.writer.Write(layer_id);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

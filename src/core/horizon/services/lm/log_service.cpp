@@ -6,12 +6,12 @@ namespace Hydra::Horizon::Services::Lm {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILogService, 0, OpenLogger)
 
-void ILogService::OpenLogger(REQUEST_COMMAND_PARAMS) {
-    // TODO: what is this for?
-    const u64 process_id = readers.reader.Read<u64>();
+result_t ILogService::OpenLogger(add_service_fn_t add_service, u64 process_id) {
+    // TODO: what is process ID for?
     LOG_DEBUG(HorizonServices, "Process ID: {}", process_id);
 
     add_service(new ILogger());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Lm

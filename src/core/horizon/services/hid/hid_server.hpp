@@ -1,49 +1,81 @@
 #pragma once
 
+#include "core/horizon/hid.hpp"
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Hid {
 
-class IHidServer : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IHidServer)
+struct VibrationDeviceHandle {
+    u32 type_value;
+    u8 npad_style_index;
+    HID::NpadIdType player_number;
+    u8 device_index;
+    u8 pad;
+};
 
+enum class VibrationDeviceType : u32 {
+    Unknown,
+    LinearResonantActuator,
+    GcErm,
+    Erm,
+};
+
+enum class VibrationDevicePosition : u32 {
+    None,
+    Left,
+    Right,
+};
+
+struct VibrationDeviceInfo {
+    VibrationDeviceType device_type;
+    VibrationDevicePosition position;
+};
+
+class IHidServer : public ServiceBase {
+  public:
     IHidServer();
 
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // TODO: one event for each style set
     Kernel::HandleWithId<Kernel::Event> npad_style_set_update_event;
 
     // Commands
-    void CreateAppletResource(REQUEST_COMMAND_PARAMS);
+    result_t CreateAppletResource(Kernel::add_service_fn_t add_service,
+                                  u64 aruid);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
-    void GetSupportedNpadStyleSet(REQUEST_COMMAND_PARAMS);
+    result_t GetSupportedNpadStyleSet(HID::NpadStyleSet* style_set);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
-    void AcquireNpadStyleSetUpdateEventHandle(REQUEST_COMMAND_PARAMS);
+    result_t AcquireNpadStyleSetUpdateEventHandle(
+        u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+        OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
-    void GetVibrationDeviceInfo(REQUEST_COMMAND_PARAMS);
+    result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,
+                                    VibrationDeviceInfo* info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
-    void CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS);
+    result_t
+    CreateActiveVibrationDeviceList(Kernel::add_service_fn_t add_service);
     // HACK: this command is usually called from a separate thread which
     // randomly throws InvalidCmifOutHeader error 0x1a80a (probably some sort of
     // memory corruption), therefore we let the thread sleep
     // STUB_REQUEST_COMMAND(SendVibrationValues);
-    void SendVibrationValues(REQUEST_COMMAND_PARAMS) {
+    result_t SendVibrationValues() {
         LOG_WARN(HorizonServices, "Infinite sleep");
         std::this_thread::sleep_for(std::chrono::seconds(0xffffffff));
+
+        return RESULT_SUCCESS;
     }
 };
 

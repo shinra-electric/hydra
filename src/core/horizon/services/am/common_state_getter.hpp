@@ -1,24 +1,27 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
+#include "core/horizon/state_manager.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class ICommonStateGetter : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ICommonStateGetter)
+enum class OperationMode {
+    Handheld,
+    Console,
+};
 
+class ICommonStateGetter : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetEventHandle(REQUEST_COMMAND_PARAMS);
-    void ReceiveMessage(REQUEST_COMMAND_PARAMS);
+    result_t GetEventHandle(OutHandle<HandleAttr::Copy> out_handle);
+    result_t ReceiveMessage(AppletMessage* out_message);
     STUB_REQUEST_COMMAND(DisallowToEnterSleep);
-    void GetOperationMode(REQUEST_COMMAND_PARAMS);
+    result_t GetOperationMode(OperationMode* out_mode);
     STUB_REQUEST_COMMAND(GetPerformanceMode);
-    void GetCurrentFocusState(REQUEST_COMMAND_PARAMS);
+    result_t GetCurrentFocusState(AppletFocusState* out_state);
 };
 
 } // namespace Hydra::Horizon::Services::Am

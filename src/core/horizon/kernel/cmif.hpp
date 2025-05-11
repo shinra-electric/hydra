@@ -60,11 +60,11 @@ struct DomainOutHeader {
 struct OutHeader {
     u32 magic;
     u32 version;
-    Result result;
+    result_t result;
     u32 token;
 };
 
-inline Result* write_out_header(Writer& writer) {
+inline result_t* write_out_header(Writer& writer) {
     auto hdr = writer.Write(OutHeader{
         .magic = CMIF_OUT_HEADER_MAGIC,
         .version = 0,

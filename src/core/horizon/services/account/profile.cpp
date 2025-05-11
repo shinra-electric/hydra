@@ -15,17 +15,13 @@ struct AccountUserData {
     u8 unk_x20[0x60];
 };
 
-struct AccountProfileBase {
-    u128 uid;
-    u64 last_edit_timestamp;
-    char nickname[0x20];
-};
-
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IProfile, 0, Get, 1, GetBase)
 
-void IProfile::Get(REQUEST_COMMAND_PARAMS) {
+result_t
+IProfile::Get(AccountProfileBase* out_base,
+              OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer) {
     // TODO: get this from state manager
     AccountUserData user_data{
         .unk_x0 = 0,
@@ -35,25 +31,22 @@ void IProfile::Get(REQUEST_COMMAND_PARAMS) {
         .mii_id = {0},
         .unk_x20 = {0},
     };
-    writers.recv_list_writers[0].Write(user_data);
+    out_user_data_buffer.writer->Write(user_data);
 
-    // TODO: get this from state manager
-    AccountProfileBase profile_base{
-        .uid = user_id,
-        .last_edit_timestamp = 0,
-        .nickname = "Hydra user",
-    };
-    writers.writer.Write(profile_base);
+    GetBase(out_base);
+
+    return RESULT_SUCCESS;
 }
 
-void IProfile::GetBase(REQUEST_COMMAND_PARAMS) {
+result_t IProfile::GetBase(AccountProfileBase* out_base) {
     // TODO: get this from state manager
-    AccountProfileBase profile_base{
+    *out_base = {
         .uid = user_id,
         .last_edit_timestamp = 0,
         .nickname = "Hydra user",
     };
-    writers.writer.Write(profile_base);
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Account

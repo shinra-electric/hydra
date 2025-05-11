@@ -1,19 +1,19 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Audio {
 
-class IAudioOutManager : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAudioOutManager)
-
+class IAudioOutManager : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void OpenAudioOut(REQUEST_COMMAND_PARAMS);
+    result_t OpenAudioOut(add_service_fn_t add_service, u32 sample_rate,
+                          u16 channel_count, u16 reserved, u64 aruid,
+                          u32* out_sample_rate, u32* out_channel_count,
+                          u32* out_pcm_format, u32* out_state);
 };
 
 } // namespace Hydra::Horizon::Services::Audio

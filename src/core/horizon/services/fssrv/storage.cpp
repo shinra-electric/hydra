@@ -4,15 +4,6 @@
 
 namespace Hydra::Horizon::Services::Fssrv {
 
-namespace {
-
-struct ReadWriteIn {
-    i64 offset;
-    u64 size;
-};
-
-} // namespace
-
 DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Read, 1, Write, 2, Flush, 3, SetSize,
                              4, GetSize)
 
@@ -21,29 +12,8 @@ IStorage::IStorage(Filesystem::FileBase* file_, Filesystem::FileOpenFlags flags)
 
 IStorage::~IStorage() { file->Close(stream); }
 
-void IStorage::Read(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<ReadWriteIn>();
-
-    usize size = in.size;
-    ReadImpl(writers.recv_buffers_writers[0].GetBase(), in.offset, size);
-}
-
-void IStorage::Write(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<ReadWriteIn>();
-
-    WriteImpl(readers.send_buffers_readers[0].GetBase(), in.offset, in.size);
-}
-
-void IStorage::SetSize(REQUEST_COMMAND_PARAMS) {
-    const auto size = readers.reader.Read<i64>();
-    file->Resize(size);
-}
-
-void IStorage::GetSize(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(file->GetSize());
-}
-
-void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
+result_t IStorage::Read(i64 offset, u64 size,
+                        OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_DEBUG(HorizonServices, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
               size);
 
@@ -60,10 +30,13 @@ void IStorage::ReadImpl(u8* ptr, i64 offset, usize& size) {
     }
 
     reader.Seek(offset);
-    reader.ReadPtr(ptr, size);
+    reader.ReadPtr(out_buffer.writer->GetBase(), size);
+
+    return RESULT_SUCCESS;
 }
 
-void IStorage::WriteImpl(const u8* ptr, i64 offset, usize size) {
+result_t IStorage::Write(i64 offset, u64 size,
+                         InBuffer<BufferAttr::MapAlias> in_buffer) {
     LOG_DEBUG(HorizonServices, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
               size);
 
@@ -72,7 +45,19 @@ void IStorage::WriteImpl(const u8* ptr, i64 offset, usize size) {
 
     auto writer = stream.CreateWriter();
     writer.Seek(offset);
-    writer.WritePtr(ptr, size);
+    writer.WritePtr(in_buffer.reader->GetBase(), size);
+
+    return RESULT_SUCCESS;
+}
+
+result_t IStorage::SetSize(i64 size) {
+    file->Resize(size);
+    return RESULT_SUCCESS;
+}
+
+result_t IStorage::GetSize(i64* out_size) {
+    *out_size = file->GetSize();
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv

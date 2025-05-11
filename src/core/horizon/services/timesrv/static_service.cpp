@@ -12,28 +12,38 @@ DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetStandardLocalSystemClock, 5,
                              GetEphemeralNetworkSystemClock)
 
-void IStaticService::GetStandardUserSystemClock(REQUEST_COMMAND_PARAMS) {
+result_t
+IStaticService::GetStandardUserSystemClock(add_service_fn_t add_service) {
     add_service(new ISystemClock(SystemClockType::StandardUser));
+    return RESULT_SUCCESS;
 }
 
-void IStaticService::GetStandardNetworkSystemClock(REQUEST_COMMAND_PARAMS) {
+result_t
+IStaticService::GetStandardNetworkSystemClock(add_service_fn_t add_service) {
     add_service(new ISystemClock(SystemClockType::StandardNetwork));
+    return RESULT_SUCCESS;
 }
 
-void IStaticService::GetStandardSteadyClock(REQUEST_COMMAND_PARAMS) {
+result_t IStaticService::GetStandardSteadyClock(add_service_fn_t add_service) {
     add_service(new ISteadyClock());
+    return RESULT_SUCCESS;
 }
 
-void IStaticService::GetTimeZoneService(REQUEST_COMMAND_PARAMS) {
+result_t IStaticService::GetTimeZoneService(add_service_fn_t add_service) {
     add_service(new ITimeZoneService());
+    return RESULT_SUCCESS;
 }
 
-void IStaticService::GetStandardLocalSystemClock(REQUEST_COMMAND_PARAMS) {
+result_t
+IStaticService::GetStandardLocalSystemClock(add_service_fn_t add_service) {
     add_service(new ISystemClock(SystemClockType::StandardLocal));
+    return RESULT_SUCCESS;
 }
 
-void IStaticService::GetEphemeralNetworkSystemClock(REQUEST_COMMAND_PARAMS) {
+result_t
+IStaticService::GetEphemeralNetworkSystemClock(add_service_fn_t add_service) {
     add_service(new ISystemClock(SystemClockType::EphemeralNetwork));
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::TimeSrv

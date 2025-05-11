@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Socket::Resolver {
 
-class IResolver : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IResolver)
-
+class IResolver : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetAddrInfoRequest(REQUEST_COMMAND_PARAMS);
+    result_t GetAddrInfoRequest();
 };
 
 } // namespace Hydra::Horizon::Services::Socket::Resolver

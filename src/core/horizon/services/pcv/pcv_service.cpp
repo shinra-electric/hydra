@@ -30,29 +30,26 @@ namespace Hydra::Horizon::Services::Pcv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IPcvService, 2, SetClockRate, 3, GetClockRate)
 
-void IPcvService::SetClockRate(REQUEST_COMMAND_PARAMS) {
-    const auto module_id = readers.reader.Read<ModuleId>();
+result_t IPcvService::SetClockRate(ModuleId module_id, u32 rate) {
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
-        result =
-            MAKE_RESULT(Svc, Kernel::Error::InvalidEnumValue); // TODO: module
-        return;
+        return MAKE_RESULT(Svc,
+                           Kernel::Error::InvalidEnumValue); // TODO: module
     }
 
-    const auto rate = readers.reader.Read<u32>();
     clock_rates[(u32)module_id] = rate;
+    return RESULT_SUCCESS;
 }
 
-void IPcvService::GetClockRate(REQUEST_COMMAND_PARAMS) {
-    const auto module_id = readers.reader.Read<ModuleId>();
+result_t IPcvService::GetClockRate(ModuleId module_id, u32* out_rate) {
     if (module_id >= ModuleId::Count) {
         LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
-        result =
-            MAKE_RESULT(Svc, Kernel::Error::InvalidEnumValue); // TODO: module
-        return;
+        return MAKE_RESULT(Svc,
+                           Kernel::Error::InvalidEnumValue); // TODO: module
     }
 
-    writers.writer.Write(clock_rates[(u32)module_id]);
+    *out_rate = clock_rates[(u32)module_id];
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Pcv

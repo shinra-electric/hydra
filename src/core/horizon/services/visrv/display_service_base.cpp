@@ -1,44 +1,26 @@
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
 #include "core/horizon/os.hpp"
-#include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-struct CreateStrayLayerIn {
-    u32 layer_flags;
-    u32 pad;
-    u64 display_id;
-};
-
-struct CreateStrayLayerOut {
-    u64 layer_id;
-    u64 native_window_size;
-};
-
-void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
-    auto in = readers.reader.Read<CreateStrayLayerIn>();
-
+result_t DisplayServiceBase::CreateStrayLayerImpl(
+    u32 flags, u64 display_id, u64* out_layer_id, u64* out_native_window_size,
+    HosBinder::ParcelWriter& out_parcel_writer) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // Out
-    CreateStrayLayerOut out{
-        .layer_id = Kernel::Kernel::GetInstance()
+    *out_layer_id = Kernel::Kernel::GetInstance()
                         .GetBus()
-                        .GetDisplay(in.display_id)
-                        ->CreateLayer(binder_id),
-        .native_window_size =
-            sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData),
-    };
-    writers.writer.Write(out);
-
-    // Parcel
-    HosBinder::ParcelWriter parcel_writer(writers.recv_buffers_writers[0]);
+                        .GetDisplay(display_id)
+                        ->CreateLayer(binder_id);
+    *out_native_window_size =
+        sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData);
 
     // TODO: correct?
-    parcel_writer.Write<ParcelData>({
+    out_parcel_writer.Write<ParcelData>({
         .unknown0 = 0x2,
         .unknown1 = 0x0, // TODO
         .binder_id = binder_id,
@@ -47,11 +29,15 @@ void DisplayServiceBase::CreateStrayLayer(REQUEST_COMMAND_PARAMS) {
         .unknown3 = 0x0,
     });
 
-    parcel_writer.Finalize();
+    return RESULT_SUCCESS;
 }
 
-void DisplayServiceBase::SetLayerVisibility(REQUEST_COMMAND_PARAMS) {
+result_t DisplayServiceBase::SetLayerVisibilityImpl(u64 layer_id,
+                                                    bool visible) {
+    LOG_DEBUG(HorizonServices, "Layer ID: {}, visible: {}", layer_id, visible);
+
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

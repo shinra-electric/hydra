@@ -2,33 +2,37 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-namespace {
-
-// TODO: correct?
-struct GetDisplayModeOut {
-    u32 width;
-    u32 height;
-    float refresh_rate;
-    i32 unknown;
-};
-
-} // namespace
-
 DEFINE_SERVICE_COMMAND_TABLE(ISystemDisplayService, 2207, SetLayerVisibility,
                              2312, CreateStrayLayer, 3200, GetDisplayMode)
 
-void ISystemDisplayService::GetDisplayMode(REQUEST_COMMAND_PARAMS) {
+result_t ISystemDisplayService::CreateStrayLayer(
+    aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+    u64* out_native_window_size,
+    OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
+    HosBinder::ParcelWriter parcel_writer(*out_parcel_buffer.writer);
+    auto result = CreateStrayLayerImpl(flags, display_id, out_layer_id,
+                                       out_native_window_size, parcel_writer);
+
+    parcel_writer.Finalize();
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemDisplayService::SetLayerVisibility(u64 layer_id, bool visible) {
+    return SetLayerVisibility(layer_id, visible);
+}
+
+result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
+                                               u32* out_height,
+                                               float* out_refresh_rate,
+                                               i32* out_unknown) {
     LOG_FUNC_STUBBED(HorizonServices);
 
-    const auto display_id = readers.reader.Read<u64>();
-
     // TODO: get this from the display
-    writers.writer.Write<GetDisplayModeOut>({
-        .width = 1280,
-        .height = 720,
-        .refresh_rate = 60.0f,
-        .unknown = 0,
-    });
+    *out_width = 1280;
+    *out_height = 720;
+    *out_refresh_rate = 60.0f;
+    *out_unknown = 0;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

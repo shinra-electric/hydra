@@ -4,7 +4,7 @@
 
 namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
 
-Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
+result_t IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     const auto inst = code_reader.Read<instruction_t>();
     const u32 pc = GetPC();
     if ((pc % 4) == 0) // Sched
@@ -19,9 +19,9 @@ Result IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     return res;
 }
 
-Result IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
-                                              const u32 pc,
-                                              const instruction_t inst) {
+result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
+                                                const u32 pc,
+                                                const instruction_t inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
 

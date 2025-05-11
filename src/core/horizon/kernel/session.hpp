@@ -9,7 +9,7 @@ class Session : public Handle {
     Session(ServiceBase* service_) : service{service_} {}
 
     void Close();
-    void Request(REQUEST_PARAMS);
+    void Request(RequestContext& context);
     void Control(Hipc::Readers& readers, Hipc::Writers& writers);
 
     // Getters

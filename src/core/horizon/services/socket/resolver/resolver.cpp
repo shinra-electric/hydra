@@ -4,8 +4,9 @@ namespace Hydra::Horizon::Services::Socket::Resolver {
 
 DEFINE_SERVICE_COMMAND_TABLE(IResolver, 6, GetAddrInfoRequest)
 
-void IResolver::GetAddrInfoRequest(REQUEST_COMMAND_PARAMS) {
-    LOG_NOT_IMPLEMENTED(HorizonServices, "GetAddrInfoRequest");
+result_t IResolver::GetAddrInfoRequest() {
+    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Socket::Resolver

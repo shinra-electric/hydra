@@ -8,35 +8,7 @@ namespace {
 
 constexpr usize SHARED_MEMORY_SIZE = 0x01100000;
 
-enum class SharedFontType : u32 {
-    JapanUsEurope,
-    ChineseSimplified,
-    ExtendedChineseSimplified,
-    ChineseTraditional,
-    Korean,
-    NintendoExtended,
-};
-
-enum class LoadState : u32 {
-    Loading,
-    Loaded,
-};
-
 } // namespace
-
-} // namespace Hydra::Horizon::Services::Pl::SharedResource
-
-ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::Pl::SharedResource::SharedFontType, JapanUsEurope,
-    "Japan/US/Europe", ChineseSimplified, "Chinese Simplified",
-    ExtendedChineseSimplified, "Extended Chinese Simplified",
-    ChineseTraditional, "Chinese Traditional", Korean, "Korean",
-    NintendoExtended, "Nintendo Extended")
-
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Pl::SharedResource::LoadState,
-                       Loading, "Loading", Loaded, "Loaded")
-
-namespace Hydra::Horizon::Services::Pl::SharedResource {
 
 DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetLoadState, 2, GetSize, 3,
@@ -48,52 +20,55 @@ IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
         new Kernel::SharedMemory(SHARED_MEMORY_SIZE));
 }
 
-void IPlatformSharedResourceManager::RequestLoad(REQUEST_COMMAND_PARAMS) {
-    const auto font_type = readers.reader.Read<SharedFontType>();
+result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {
     LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
 
     LOG_FUNC_STUBBED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
-void IPlatformSharedResourceManager::GetLoadState(REQUEST_COMMAND_PARAMS) {
-    const auto font_type = readers.reader.Read<SharedFontType>();
-    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
-
-    LOG_FUNC_STUBBED(HorizonServices);
-
-    // HACK
-    writers.writer.Write(LoadState::Loaded);
-}
-
-void IPlatformSharedResourceManager::GetSize(REQUEST_COMMAND_PARAMS) {
-    const auto font_type = readers.reader.Read<SharedFontType>();
+result_t IPlatformSharedResourceManager::GetLoadState(SharedFontType font_type,
+                                                      LoadState* out_state) {
     LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
 
     LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
-    writers.writer.Write((u32)SHARED_MEMORY_SIZE);
+    *out_state = LoadState::Loaded;
+    return RESULT_SUCCESS;
 }
 
-void IPlatformSharedResourceManager::GetSharedMemoryAddressOffset(
-    REQUEST_COMMAND_PARAMS) {
-    const auto font_type = readers.reader.Read<SharedFontType>();
+result_t IPlatformSharedResourceManager::GetSize(SharedFontType font_type,
+                                                 u32* out_size) {
     LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
 
     LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
-    writers.writer.Write<u32>(0);
+    *out_size = SHARED_MEMORY_SIZE;
+    return RESULT_SUCCESS;
 }
 
-void IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
-    REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(shared_memory_handle_id);
+result_t IPlatformSharedResourceManager::GetSharedMemoryAddressOffset(
+    SharedFontType font_type, u32* out_address_offset) {
+    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
+
+    LOG_FUNC_STUBBED(HorizonServices);
+
+    // HACK
+    *out_address_offset = 0;
+    return RESULT_SUCCESS;
 }
 
-void IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
-    REQUEST_COMMAND_PARAMS) {
+result_t IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = shared_memory_handle_id;
+    return RESULT_SUCCESS;
+}
+
+result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority() {
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Pl::SharedResource

@@ -1,20 +1,19 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Nifm {
 
-class IGeneralService : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IGeneralService)
-
+class IGeneralService : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void CreateRequest(REQUEST_COMMAND_PARAMS);
-    void GetCurrentNetworkProfile(REQUEST_COMMAND_PARAMS);
+    result_t CreateRequest(add_service_fn_t add_service,
+                           i32 requirement_preset);
+    result_t
+    GetCurrentNetworkProfile(OutBuffer<BufferAttr::HipcPointer> out_buffer);
 };
 
 } // namespace Hydra::Horizon::Services::Nifm

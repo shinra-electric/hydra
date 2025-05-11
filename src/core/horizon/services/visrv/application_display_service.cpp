@@ -1,8 +1,8 @@
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/os.hpp"
+#include "core/horizon/services/const.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/horizon/services/visrv/manager_display_service.hpp"
@@ -12,16 +12,6 @@
 
 namespace Hydra::Horizon::Services::ViSrv {
 
-namespace {
-
-struct OpenLayerIn {
-    u64 display_name;
-    u64 layer_id;
-    u64 applet_resource_user_id;
-};
-
-} // namespace
-
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
                              GetManagerDisplayService, 103,
@@ -30,54 +20,62 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              2021, CloseLayer, 2101, SetLayerScalingMode, 5202,
                              GetDisplayVsyncEvent)
 
-void IApplicationDisplayService::GetRelayService(REQUEST_COMMAND_PARAMS) {
+result_t
+IApplicationDisplayService::GetRelayService(add_service_fn_t add_service) {
     add_service(new HosBinder::IHOSBinderDriver());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::GetSystemDisplayService(
-    REQUEST_COMMAND_PARAMS) {
+result_t IApplicationDisplayService::GetSystemDisplayService(
+    add_service_fn_t add_service) {
     add_service(new ISystemDisplayService());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::GetManagerDisplayService(
-    REQUEST_COMMAND_PARAMS) {
+result_t IApplicationDisplayService::GetManagerDisplayService(
+    add_service_fn_t add_service) {
     add_service(new IManagerDisplayService());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::GetIndirectDisplayTransactionService(
-    REQUEST_COMMAND_PARAMS) {
+result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
+    add_service_fn_t add_service) {
     // TODO: how is this different from GetRelayService?
     add_service(new HosBinder::IHOSBinderDriver());
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::OpenDisplay(REQUEST_COMMAND_PARAMS) {
+result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
     u64 display_id = 0; // TODO: get based on the name
     Kernel::Kernel::GetInstance().GetBus().GetDisplay(display_id)->Open();
-    writers.writer.Write(display_id);
+
+    *out_display_id = display_id;
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::CloseDisplay(REQUEST_COMMAND_PARAMS) {
-    u64 display_id = readers.reader.Read<u64>();
+result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
     Kernel::Kernel::GetInstance().GetBus().GetDisplay(display_id)->Close();
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
-    auto in = readers.reader.Read<OpenLayerIn>();
-
+result_t IApplicationDisplayService::OpenLayer(
+    u64 display_name, u64 layer_id, u64 aruid, u64* out_native_window_size,
+    OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
     u64 display_id = 0; // TODO: get based on the name
 
     auto layer = Kernel::Kernel::GetInstance()
                      .GetBus()
                      .GetDisplay(display_id)
-                     ->GetLayer(in.layer_id);
+                     ->GetLayer(layer_id);
     layer->Open();
 
     // Out
     // TODO: correct?
-    writers.writer.Write(sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData));
+    *out_native_window_size =
+        sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData);
 
     // Parcel
-    HosBinder::ParcelWriter parcel_writer(writers.recv_buffers_writers[0]);
+    HosBinder::ParcelWriter parcel_writer(*parcel_buffer.writer);
 
     parcel_writer.Write<ParcelData>({
         .unknown0 = 0x2,
@@ -89,11 +87,10 @@ void IApplicationDisplayService::OpenLayer(REQUEST_COMMAND_PARAMS) {
     });
 
     parcel_writer.Finalize();
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
-    auto layer_id = readers.reader.Read<u64>();
-
+result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     u64 display_id = 0; // TODO: get from layer ID
 
     Kernel::Kernel::GetInstance()
@@ -101,16 +98,17 @@ void IApplicationDisplayService::CloseLayer(REQUEST_COMMAND_PARAMS) {
         .GetDisplay(display_id)
         ->GetLayer(layer_id)
         ->Close();
+    return RESULT_SUCCESS;
 }
 
-void IApplicationDisplayService::GetDisplayVsyncEvent(REQUEST_COMMAND_PARAMS) {
-    const auto display_id = readers.reader.Read<u64>();
-
-    writers.move_handles_writer.Write(Kernel::Kernel::GetInstance()
-                                          .GetBus()
-                                          .GetDisplay(display_id)
-                                          ->GetVSyncEvent()
-                                          .id);
+result_t IApplicationDisplayService::GetDisplayVsyncEvent(
+    u64 display_id, OutHandle<HandleAttr::Move> out_handle) {
+    out_handle = Kernel::Kernel::GetInstance()
+                     .GetBus()
+                     .GetDisplay(display_id)
+                     ->GetVSyncEvent()
+                     .id;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::ViSrv

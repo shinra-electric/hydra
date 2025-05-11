@@ -9,24 +9,24 @@ class IHOSBinderDriver;
 namespace Hydra::Horizon::Services::ViSrv {
 
 class IApplicationDisplayService : public DisplayServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IApplicationDisplayService)
-
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   protected:
     // Commands
-    void GetRelayService(REQUEST_COMMAND_PARAMS);
-    void GetSystemDisplayService(REQUEST_COMMAND_PARAMS);
-    void GetManagerDisplayService(REQUEST_COMMAND_PARAMS);
-    void GetIndirectDisplayTransactionService(REQUEST_COMMAND_PARAMS);
-    void OpenDisplay(REQUEST_COMMAND_PARAMS);
-    void CloseDisplay(REQUEST_COMMAND_PARAMS);
-    void OpenLayer(REQUEST_COMMAND_PARAMS);
-    void CloseLayer(REQUEST_COMMAND_PARAMS);
+    result_t GetRelayService(add_service_fn_t add_service);
+    result_t GetSystemDisplayService(add_service_fn_t add_service);
+    result_t GetManagerDisplayService(add_service_fn_t add_service);
+    result_t GetIndirectDisplayTransactionService(add_service_fn_t add_service);
+    result_t OpenDisplay(u64* out_display_id);
+    result_t CloseDisplay(u64 display_id);
+    result_t OpenLayer(u64 display_name, u64 layer_id, u64 aruid,
+                       u64* out_native_window_size,
+                       OutBuffer<BufferAttr::MapAlias> parcel_buffer);
+    result_t CloseLayer(u64 layer_id);
     STUB_REQUEST_COMMAND(SetLayerScalingMode);
-    void GetDisplayVsyncEvent(REQUEST_COMMAND_PARAMS);
+    result_t GetDisplayVsyncEvent(u64 display_id,
+                                  OutHandle<HandleAttr::Move> out_handle);
 
   private:
 };

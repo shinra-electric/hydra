@@ -2,14 +2,17 @@
 
 namespace Hydra::Horizon::Services::Account {
 
-DEFINE_SERVICE_COMMAND_TABLE(IManagerForApplication, 0, CheckAvailability, 1, GetAccountId)
+DEFINE_SERVICE_COMMAND_TABLE(IManagerForApplication, 0, CheckAvailability, 1,
+                             GetAccountId)
 
-void IManagerForApplication::CheckAvailability(REQUEST_COMMAND_PARAMS) {
+result_t IManagerForApplication::CheckAvailability() {
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
-void IManagerForApplication::GetAccountId(REQUEST_COMMAND_PARAMS) {
+result_t IManagerForApplication::GetAccountId() {
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Account

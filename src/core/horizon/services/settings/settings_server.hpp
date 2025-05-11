@@ -1,23 +1,24 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/const.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Settings {
 
-class ISettingsServer : public Kernel::ServiceBase {
+class ISettingsServer : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ISettingsServer)
-
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetLanguageCode(REQUEST_COMMAND_PARAMS);
-    void GetAvailableLanguageCodes(REQUEST_COMMAND_PARAMS);
-    void GetAvailableLanguageCodeCount(REQUEST_COMMAND_PARAMS);
+    result_t GetLanguageCode(LanguageCode* out_language_code);
+    result_t
+    GetAvailableLanguageCodes(i32* out_count,
+                              OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t GetAvailableLanguageCodeCount(i32* out_count);
 };
 
 } // namespace Hydra::Horizon::Services::Settings

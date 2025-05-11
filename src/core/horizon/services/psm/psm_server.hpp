@@ -1,23 +1,27 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Psm {
 
-class IPsmServer : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IPsmServer)
+enum class ChargerType {
+    Unconnected,
+    EnoughPower,
+    NoPower,
+    NotSupported,
+};
 
+class IPsmServer : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetBatteryChargePercentage(REQUEST_COMMAND_PARAMS);
-    void GetChargerType(REQUEST_COMMAND_PARAMS);
-    void GetRawBatteryChargePercentage(REQUEST_COMMAND_PARAMS);
-    void IsEnoughPowerSupplied(REQUEST_COMMAND_PARAMS);
-    void GetBatteryAgePercentage(REQUEST_COMMAND_PARAMS);
+    result_t GetBatteryChargePercentage(u32* out_percentage);
+    result_t GetChargerType(ChargerType* out_type);
+    result_t GetRawBatteryChargePercentage(f64* out_percentage);
+    result_t IsEnoughPowerSupplied(bool* out_is_enough);
+    result_t GetBatteryAgePercentage(f64* out_percentage);
 };
 
 } // namespace Hydra::Horizon::Services::Psm

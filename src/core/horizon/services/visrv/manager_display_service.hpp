@@ -5,13 +5,16 @@
 namespace Hydra::Horizon::Services::ViSrv {
 
 class IManagerDisplayService : public DisplayServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IManagerDisplayService)
-
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
+    // Commands
+    result_t
+    CreateStrayLayer(aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+                     u64* out_native_window_size,
+                     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
+    result_t SetLayerVisibility(u64 layer_id, bool visible);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

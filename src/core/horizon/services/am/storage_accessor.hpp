@@ -1,25 +1,23 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class IStorageAccessor : public Kernel::ServiceBase {
+class IStorageAccessor : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStorageAccessor)
-
     IStorageAccessor(const sized_ptr data_) : data{data_} {}
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     const sized_ptr data;
 
     // Commands
-    void GetSize(REQUEST_COMMAND_PARAMS);
-    void Write(REQUEST_COMMAND_PARAMS);
-    void Read(REQUEST_COMMAND_PARAMS);
+    result_t GetSize(i64* out_size);
+    result_t Write(i64 offset, InBuffer<BufferAttr::AutoSelect> buffer);
+    result_t Read(i64 offset, OutBuffer<BufferAttr::AutoSelect> out_buffer);
 };
 
 } // namespace Hydra::Horizon::Services::Am

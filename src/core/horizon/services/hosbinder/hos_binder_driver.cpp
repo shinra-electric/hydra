@@ -86,89 +86,63 @@ struct BqBufferOutput {
     u32 num_pending_buffers;
 };
 
-struct TransactParcelIn {
-    i32 binder_id;
-    TransactCode code;
-    u32 flags;
-};
-
-enum class BinderType : i32 {
-    Weak = 0,
-    Strong = 1,
-};
-
-struct AdjustRefcountIn {
-    i32 binder_id;
-    i32 addval;
-    BinderType type;
-};
-
-struct GetNativeHandleIn {
-    i32 binder_id;
-    u32 code; // TODO: should this be TransactCode?
-};
-
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
                              AdjustRefcount, 2, GetNativeHandle, 3,
                              TransactParcelAuto)
 
-void IHOSBinderDriver::TransactParcel(REQUEST_COMMAND_PARAMS) {
-    auto& reader = readers.send_buffers_readers[0];
-    auto& writer = writers.recv_buffers_writers[0];
+result_t IHOSBinderDriver::TransactParcel(
+    i32 binder_id, TransactCode code, u32 flags,
+    InBuffer<BufferAttr::MapAlias> in_parcel_buffer,
+    OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
+    LOG_DEBUG(HorizonServices, "Code: {}", code);
 
-    auto in = readers.reader.Read<TransactParcelIn>();
-    LOG_DEBUG(HorizonServices, "Code: {}", in.code);
+    ParcelReader parcel_reader(*in_parcel_buffer.reader);
+    ParcelWriter parcel_writer(*out_parcel_buffer.writer);
 
-    ParcelReader parcel_reader(reader);
-    ParcelWriter parcel_writer(writer);
-
-    TransactParcelImpl(in.binder_id, in.code, in.flags, parcel_reader,
-                       parcel_writer);
+    TransactParcelImpl(binder_id, code, flags, parcel_reader, parcel_writer);
 
     parcel_writer.Finalize();
+    return RESULT_SUCCESS;
 }
 
-void IHOSBinderDriver::AdjustRefcount(REQUEST_COMMAND_PARAMS) {
-    auto in = readers.reader.Read<AdjustRefcountIn>();
-
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(in.binder_id);
-
-    switch (in.type) {
+result_t IHOSBinderDriver::AdjustRefcount(i32 binder_id, i32 add_value,
+                                          BinderType type) {
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(binder_id);
+    switch (type) {
     case BinderType::Weak:
-        binder.weak_ref_count += in.addval;
+        binder.weak_ref_count += add_value;
         break;
     case BinderType::Strong:
-        binder.strong_ref_count += in.addval;
+        binder.strong_ref_count += add_value;
         break;
     }
+
+    return RESULT_SUCCESS;
 }
 
-void IHOSBinderDriver::GetNativeHandle(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<GetNativeHandleIn>();
-
-    writers.copy_handles_writer.Write(OS::GetInstance()
-                                          .GetDisplayDriver()
-                                          .GetBinder(in.binder_id)
-                                          .GetEvent()
-                                          .id);
+result_t
+IHOSBinderDriver::GetNativeHandle(i32 binder_id, u32 code,
+                                  OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle =
+        OS::GetInstance().GetDisplayDriver().GetBinder(binder_id).GetEvent().id;
+    return RESULT_SUCCESS;
 }
 
-void IHOSBinderDriver::TransactParcelAuto(REQUEST_COMMAND_PARAMS) {
-    auto& reader = readers.send_buffers_readers[0];
-    auto& writer = writers.recv_buffers_writers[0];
+result_t IHOSBinderDriver::TransactParcelAuto(
+    i32 binder_id, TransactCode code, u32 flags,
+    InBuffer<BufferAttr::AutoSelect> in_parcel_buffer,
+    OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer) {
+    LOG_DEBUG(HorizonServices, "Code: {}", code);
 
-    auto in = readers.reader.Read<TransactParcelIn>();
-    LOG_DEBUG(HorizonServices, "Code: {}", in.code);
+    ParcelReader parcel_reader(*in_parcel_buffer.reader);
+    ParcelWriter parcel_writer(*out_parcel_buffer.writer);
 
-    ParcelReader parcel_reader(reader);
-    ParcelWriter parcel_writer(writer);
-
-    TransactParcelImpl(in.binder_id, in.code, in.flags, parcel_reader,
-                       parcel_writer);
+    TransactParcelImpl(binder_id, code, flags, parcel_reader, parcel_writer);
 
     parcel_writer.Finalize();
+    return RESULT_SUCCESS;
 }
 
 void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
@@ -308,7 +282,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
 
-    // Result
+    // result_t
     parcel_writer.Write(b_result);
 }
 

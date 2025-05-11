@@ -80,8 +80,8 @@ namespace Hydra::Horizon::Services::Lm {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
-void ILogger::Log(REQUEST_COMMAND_PARAMS) {
-    auto& reader = readers.send_buffers_readers[0];
+result_t ILogger::Log(InBuffer<BufferAttr::MapAlias> buffer) {
+    auto& reader = *buffer.reader;
     const auto header = reader.Read<LogPacketHeader>();
 
     // From Ryujinx
@@ -92,11 +92,9 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
            header.payload_size) { // TODO: correct?
         u32 key;
         u32 size;
-        if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size)) {
-            result = MAKE_RESULT(
+        if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size))
+            return MAKE_RESULT(
                 Svc, Kernel::Error::InvalidCombination); // TODO: module
-            return;
-        }
 
         const auto data = reader.ReadPtr<u8>(size);
 
@@ -169,6 +167,8 @@ void ILogger::Log(REQUEST_COMMAND_PARAMS) {
         LOG_INFO(HorizonServices, "Log:\n{}", msg);
         packet = {};
     }
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Lm

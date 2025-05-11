@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
 namespace Hydra::Horizon::Services::Pcv {
@@ -98,12 +98,9 @@ enum class ModuleId : u32 {
     Count = 88,
 };
 
-class IPcvService : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IPcvService)
-
+class IPcvService : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // TODO: other clock rates
@@ -111,8 +108,8 @@ class IPcvService : public Kernel::ServiceBase {
                                              0};
 
     // Commands
-    void SetClockRate(REQUEST_COMMAND_PARAMS);
-    void GetClockRate(REQUEST_COMMAND_PARAMS);
+    result_t SetClockRate(ModuleId module_id, u32 rate);
+    result_t GetClockRate(ModuleId module_id, u32* out_rate);
 };
 
 } // namespace Hydra::Horizon::Services::Pcv
