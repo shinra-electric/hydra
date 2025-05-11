@@ -78,6 +78,10 @@ add_library(hydra-core
     horizon/services/timesrv/steady_clock.hpp
     horizon/services/timesrv/time_zone_service.cpp
     horizon/services/timesrv/time_zone_service.hpp
+    horizon/services/nvdrv/const.hpp
+    horizon/services/nvdrv/nvdrv_services.cpp
+    horizon/services/nvdrv/nvdrv_services.hpp
+    horizon/services/nvdrv/ioctl/const.hpp
     horizon/services/nvdrv/ioctl/fd_base.hpp
     horizon/services/nvdrv/ioctl/channel_base.cpp
     horizon/services/nvdrv/ioctl/channel_base.hpp
@@ -91,9 +95,6 @@ add_library(hydra-core
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_gpu.hpp
-    horizon/services/nvdrv/const.hpp
-    horizon/services/nvdrv/nvdrv_services.cpp
-    horizon/services/nvdrv/nvdrv_services.hpp
     horizon/services/settings/nx_settings.cpp
     horizon/services/settings/nx_settings.hpp
     horizon/services/settings/settings_server.cpp

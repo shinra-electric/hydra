@@ -6,22 +6,15 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 class NvMap : public FdBase {
   public:
-    void Ioctl(IOCTL_PARAMS) override;
+    NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
 
   private:
     // Ioctls
-    DECLARE_IOCTL(Create, readonly<u32> size; writeonly<handle_id_t> handle_id;
-                  , handle_id);
-    DECLARE_IOCTL(FromId, readonly<u32> id; writeonly<handle_id_t> handle_id;
-                  , handle_id);
-    DECLARE_IOCTL(Alloc, readonly<handle_id_t> handle_id; readonly<u32> heapmask;
-                  readonly<u32> flags; readwrite<u32> alignment;
-                  readonly<u8> kind; readonly<u8> pad[7]; readonly<uptr> addr;
-                  , alignment);
-    DECLARE_IOCTL(Free, readonly<handle_id_t> handle_id; readonly<u32> pad;
-                  writeonly<u64> addr; writeonly<u64> size;
-                  writeonly<u32> flags;, addr, size, flags);
-    DECLARE_IOCTL(GetId, writeonly<u32> id; readonly<handle_id_t> handle_id;, id);
+    NvResult Create(u32 size, handle_id_t* out_handle_id);
+    NvResult FromId(u32 id, handle_id_t* out_handle_id);
+    NvResult Alloc(handle_id_t handle_id, u32 heap_mask, u32 flags, InOutSingle<u32> inout_alignment, aligned<u8, 8> kind, gpu_vaddr_t addr);
+    NvResult Free(aligned<handle_id_t, 8> handle_id, gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags);
+    NvResult GetId(u32* out_id, handle_id_t handle_id);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

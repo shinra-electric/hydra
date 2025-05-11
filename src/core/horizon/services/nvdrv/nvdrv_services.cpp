@@ -50,13 +50,17 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
     // Dispatch
     u32 type = (code >> 8) & 0xff;
     u32 nr = code & 0xff;
-    NvResult r = NvResult::Success;
-    fd->Ioctl(in_buffer.reader, out_buffer.writer, type, nr, r);
+
+    Ioctl::IoctlContext context{
+        .reader = in_buffer.reader,
+        .writer = out_buffer.writer,
+    };
+    NvResult result = fd->Ioctl(context, type, nr);
 
     // Write result
-    *out_result = r;
+    *out_result = result;
 
-    if (r != NvResult::Success)
+    if (result != NvResult::Success)
         return MAKE_RESULT(
             Svc,
             Kernel::Error::NotFound); // TODO: what should this be?
@@ -80,15 +84,14 @@ result_t INvDrvServices::QueryEvent(handle_id_t fd_id, u32 event_id,
     auto fd = fd_pool.Get(fd_id);
 
     // Dispatch
-    NvResult r = NvResult::Success;
     handle_id_t handle_id = INVALID_HANDLE_ID;
-    fd->QueryEvent(event_id, handle_id, r);
+    NvResult result = fd->QueryEvent(event_id, handle_id);
 
     // Write result
-    *out_result = r;
+    *out_result = result;
     out_handle = handle_id;
 
-    if (r != NvResult::Success)
+    if (result != NvResult::Success)
         return MAKE_RESULT(
             Svc,
             Kernel::Error::NotFound); // TODO: what should this be?

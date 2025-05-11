@@ -154,7 +154,6 @@ void read_arg(RequestContext& context, CommandArguments& args) {
                      arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutData) {
-            // TODO: check this
             arg = context.writers.writer.WritePtr<typename traits::BaseType>();
 
             // Next
@@ -241,33 +240,6 @@ void read_arg(RequestContext& context, CommandArguments& args) {
         }
     }
 }
-
-template <typename T> struct function_traits;
-
-template <typename R, typename... Args> struct function_traits<R(Args...)> {
-    using return_type = R;
-    static constexpr size_t arg_count = sizeof...(Args);
-
-    template <size_t N> struct arg {
-        using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
-    };
-
-    using args_tuple = std::tuple<Args...>;
-};
-
-template <typename R, typename... Args>
-struct function_traits<R (*)(Args...)> : function_traits<R(Args...)> {};
-
-template <typename C, typename R, typename... Args>
-struct function_traits<R (C::*)(Args...)> : function_traits<R(Args...)> {};
-
-template <typename C, typename R, typename... Args>
-struct function_traits<R (C::*)(Args...) const> : function_traits<R(Args...)> {
-};
-
-template <typename R, typename... Args>
-struct function_traits<std::function<R(Args...)>>
-    : function_traits<R(Args...)> {};
 
 template <typename Class, typename... Args, size_t... Is>
 result_t invoke_command_with_args(RequestContext& context, Class& instance,

@@ -4,37 +4,43 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvMap, DEFINE_IOCTL_TABLE_ENTRY(0x01, 0x01, Create, 0x03,
+DEFINE_IOCTL_TABLE(NvMap, DEFINE_IOCTL_TABLE_ENTRY(NvMap, 0x01, 0x01, Create, 0x03,
                                                    FromId, 0x04, Alloc, 0x05,
                                                    Free, 0x0E, GetId))
 
-void NvMap::Create(CreateData& data, NvResult& result) {
-    data.handle_id = HW::TegraX1::GPU::GPU::GetInstance().CreateMap(data.size);
+NvResult NvMap::Create(u32 size, handle_id_t* out_handle_id) {
+    *out_handle_id = HW::TegraX1::GPU::GPU::GetInstance().CreateMap(size);
+    return NvResult::Success;
 }
 
-void NvMap::FromId(FromIdData& data, NvResult& result) {
-    data.handle_id =
-        HW::TegraX1::GPU::GPU::GetInstance().GetMapHandleId(data.id);
+NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
+    *out_handle_id =
+        HW::TegraX1::GPU::GPU::GetInstance().GetMapHandleId(id);
+    return NvResult::Success;
 }
 
-void NvMap::Alloc(AllocData& data, NvResult& result) {
-    HW::TegraX1::GPU::GPU::GetInstance().AllocateMap(data.handle_id, data.addr,
-                                                     data.flags == 1);
-    data.alignment = HW::TegraX1::GPU::PAGE_SIZE; // TODO: correct?
+NvResult NvMap::Alloc(handle_id_t handle_id, u32 heap_mask, u32 flags, InOutSingle<u32> inout_alignment, aligned<u8, 8> kind, gpu_vaddr_t addr) {
+    // TODO: flags wtf
+    HW::TegraX1::GPU::GPU::GetInstance().AllocateMap(handle_id, addr,
+                                                     flags == 1);
+    inout_alignment = HW::TegraX1::GPU::PAGE_SIZE; // TODO: correct?
+    return NvResult::Success;
 }
 
-void NvMap::Free(FreeData& data, NvResult& result) {
+NvResult NvMap::Free(aligned<handle_id_t, 8> handle_id, gpu_vaddr_t* out_addr, u64* out_size, u32* out_flags) {
     auto& gpu = HW::TegraX1::GPU::GPU::GetInstance();
-    auto map = gpu.GetMap(data.handle_id);
-    gpu.FreeMap(data.handle_id);
+    auto map = gpu.GetMap(handle_id);
+    gpu.FreeMap(handle_id);
 
-    data.addr = map.addr;
-    data.size = map.size;
-    data.flags = map.write ? 1 : 0; // TODO: correct?
+    *out_addr = map.addr;
+    *out_size = map.size;
+    *out_flags = map.write ? 1 : 0; // TODO: correct?
+    return NvResult::Success;
 }
 
-void NvMap::GetId(GetIdData& data, NvResult& result) {
-    data.id = HW::TegraX1::GPU::GPU::GetInstance().GetMapId(data.handle_id);
+NvResult NvMap::GetId(u32* out_id, handle_id_t handle_id) {
+    *out_id = HW::TegraX1::GPU::GPU::GetInstance().GetMapId(handle_id);
+    return NvResult::Success;
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

@@ -154,59 +154,6 @@ using ulong4 = vec<u64, 4>;
 using usize4 = vec<usize, 4>;
 using float4 = vec<float, 4>;
 
-template <typename T> class readonly {
-  public:
-    readonly() {}
-    readonly(const T& value_) : value{value_} {}
-    void operator=(const T&) = delete;
-
-    operator T() const { return value; }
-
-    // Getters
-    const T& Get() const { return value; }
-
-  private:
-    T value;
-} __attribute__((packed));
-
-template <typename T, usize size>
-class readonly_array : public readonly<std::array<T, size>> {};
-
-template <typename T> class writeonly {
-  public:
-    writeonly() {}
-    writeonly(const T& value_) : value{value_} {}
-    void operator=(const T& new_value) { value = new_value; }
-
-    // Getters
-    T& Get() { return value; }
-
-  private:
-    T value;
-} __attribute__((packed));
-
-template <typename T, usize size>
-class writeonly_array : public writeonly<std::array<T, size>> {};
-
-template <typename T> class readwrite {
-  public:
-    readwrite() {}
-    readwrite(const T& value_) : value{value_} {}
-    void operator=(const T& new_value) { value = new_value; }
-
-    operator T&() { return value; }
-    operator const T&() const { return value; }
-
-    // Getters
-    const T& Get() const { return value; }
-
-  private:
-    T value;
-} __attribute__((packed));
-
-template <typename T, usize size>
-class readwrite_array : public readwrite<std::array<T, size>> {};
-
 template <typename T, usize alignment> class aligned {
   public:
     static_assert(sizeof(T) <= alignment);

@@ -4,6 +4,7 @@ add_library(hydra-common
     macros.hpp
     type_aliases.hpp
     types.hpp
+    traits.hpp
     functions.hpp
     memory.hpp
     time.hpp
