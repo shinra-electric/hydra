@@ -21,8 +21,6 @@ Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
     mmu->Map(HEAP_REGION_BASE, heap_mem,
              {MemoryType::Normal_1_0_0, MemoryAttribute::None,
               MemoryPermission::ReadWriteExecute});
-
-    AddHandle(nullptr);
 }
 
 Kernel::~Kernel() {
@@ -449,8 +447,8 @@ result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
         shared_mem_handle_id, addr, size, perm);
 
     // Map
-    auto shared_mem = dynamic_cast<SharedMemory*>(
-        handle_pool.GetObjectRef(shared_mem_handle_id));
+    auto shared_mem =
+        dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
     ASSERT_DEBUG(shared_mem, HorizonKernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
@@ -468,8 +466,8 @@ result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
         shared_mem_handle_id, addr, size);
 
     // Map
-    auto shared_mem = dynamic_cast<SharedMemory*>(
-        handle_pool.GetObjectRef(shared_mem_handle_id));
+    auto shared_mem =
+        dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
     ASSERT_DEBUG(shared_mem, HorizonKernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
@@ -890,17 +888,6 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         LOG_WARN(HorizonKernel, "Unimplemented info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
-}
-
-void Kernel::SetHandle(handle_id_t handle_id, Handle* handle) {
-    handle_pool.GetObjectRef(handle_id) = handle;
-}
-
-handle_id_t Kernel::AddHandle(Handle* handle) {
-    handle_id_t handle_id = handle_pool.AllocateForIndex();
-    handle_pool.GetObjectRef(handle_id) = handle;
-
-    return handle_id;
 }
 
 HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {

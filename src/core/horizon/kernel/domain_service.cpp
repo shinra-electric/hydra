@@ -11,7 +11,7 @@ void DomainService::Request(RequestContext& context) {
     // Domain in
     auto cmif_in = context.readers.reader.Read<Cmif::DomainInHeader>();
     LOG_DEBUG(HorizonServices, "Object ID: 0x{:08x}", cmif_in.object_id);
-    auto subservice = object_pool.GetObject(cmif_in.object_id);
+    auto subservice = subservice_pool.Get(cmif_in.object_id);
 
     if (cmif_in.num_in_objects != 0) {
         auto objects = context.readers.reader.GetPtr() + cmif_in.data_size;
@@ -27,19 +27,18 @@ void DomainService::Request(RequestContext& context) {
             context.readers,
             context.writers,
             [&](ServiceBase* service) {
-                handle_id_t handle_id = AddObject(service);
+                handle_id_t handle_id = subservice_pool.Add(service);
                 context.writers.objects_writer.Write(handle_id);
             },
             [&](handle_id_t handle_id) {
-                return object_pool.GetObject(handle_id);
+                return subservice_pool.Get(handle_id);
             },
         };
         subservice->Request(subcontext);
         break;
     }
     case Cmif::DomainCommandType::Close:
-        delete subservice;
-        object_pool.FreeByIndex(cmif_in.object_id);
+        subservice_pool.Free(cmif_in.object_id);
         LOG_DEBUG(HorizonKernel, "Closed subservice");
         break;
     default:

@@ -3,6 +3,7 @@
 #include "common/allocators/dynamic_pool.hpp"
 #include "common/allocators/static_pool.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 
 namespace Hydra::HW::TegraX1::CPU {
@@ -175,14 +176,10 @@ class Kernel {
 
     // Helpers
     Handle* GetHandle(handle_id_t handle_id) const {
-        return handle_pool.GetObject(handle_id);
+        return handle_pool.Get(handle_id);
     }
-    void SetHandle(handle_id_t handle_id, Handle* handle);
-    handle_id_t AddHandle(Handle* handle);
-    void FreeHandle(handle_id_t handle_id) {
-        delete GetHandle(handle_id);
-        handle_pool.FreeByIndex(handle_id);
-    }
+    handle_id_t AddHandle(Handle* handle) { return handle_pool.Add(handle); }
+    void FreeHandle(handle_id_t handle_id) { handle_pool.Free(handle_id); }
 
     HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
@@ -212,7 +209,7 @@ class Kernel {
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Handles
-    Allocators::DynamicPool<Handle*> handle_pool;
+    DynamicHandlePool<Handle> handle_pool;
 
     // TODO: use a different container?
     std::map<vaddr_t, Mutex> mutex_map;

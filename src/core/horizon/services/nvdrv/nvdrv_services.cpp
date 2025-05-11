@@ -21,15 +21,15 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
     auto path = path_buffer.reader->ReadString();
     handle_id_t fd_id = fd_pool.AllocateForIndex();
     if (path == "/dev/nvhost-ctrl") {
-        fd_pool.GetObjectRef(fd_id) = new Ioctl::NvHostCtrl();
+        fd_pool.GetRef(fd_id) = new Ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
-        fd_pool.GetObjectRef(fd_id) = new Ioctl::NvMap();
+        fd_pool.GetRef(fd_id) = new Ioctl::NvMap();
     } else if (path == "/dev/nvhost-as-gpu") {
-        fd_pool.GetObjectRef(fd_id) = new Ioctl::NvHostAsGpu();
+        fd_pool.GetRef(fd_id) = new Ioctl::NvHostAsGpu();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
-        fd_pool.GetObjectRef(fd_id) = new Ioctl::NvHostCtrlGpu();
+        fd_pool.GetRef(fd_id) = new Ioctl::NvHostCtrlGpu();
     } else if (path == "/dev/nvhost-gpu") {
-        fd_pool.GetObjectRef(fd_id) = new Ioctl::NvHostGpu();
+        fd_pool.GetRef(fd_id) = new Ioctl::NvHostGpu();
     } else {
         LOG_WARN(HorizonServices, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO
@@ -45,7 +45,7 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
                                InBuffer<BufferAttr::AutoSelect> in_buffer,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    auto fd = fd_pool.GetObject(fd_id);
+    auto fd = fd_pool.Get(fd_id);
 
     // Dispatch
     u32 type = (code >> 8) & 0xff;
@@ -77,11 +77,11 @@ result_t INvDrvServices::Initialize(u32 transfer_mem_size,
 result_t INvDrvServices::QueryEvent(handle_id_t fd_id, u32 event_id,
                                     NvResult* out_result,
                                     OutHandle<HandleAttr::Copy> out_handle) {
-    auto fd = fd_pool.GetObject(fd_id);
+    auto fd = fd_pool.Get(fd_id);
 
     // Dispatch
     NvResult r = NvResult::Success;
-    handle_id_t handle_id = 0x0;
+    handle_id_t handle_id = INVALID_HANDLE_ID;
     fd->QueryEvent(event_id, handle_id, r);
 
     // Write result

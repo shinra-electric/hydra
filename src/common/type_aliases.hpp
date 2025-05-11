@@ -26,4 +26,6 @@ using vaddr_t = uptr;
 using gpu_vaddr_t = uptr;
 using handle_id_t = u32;
 
+constexpr handle_id_t INVALID_HANDLE_ID = 0;
+
 } // namespace Hydra

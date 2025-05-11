@@ -41,7 +41,7 @@ class GPU {
     // Memory map
     u32 CreateMap(usize size) {
         handle_id_t handle_id = memory_maps.AllocateForIndex();
-        MemoryMap& memory_map = memory_maps.GetObjectRef(handle_id);
+        MemoryMap& memory_map = memory_maps.GetRef(handle_id);
         memory_map = {};
         memory_map.size = size;
 
@@ -49,7 +49,7 @@ class GPU {
     }
 
     void AllocateMap(handle_id_t handle_id, uptr addr, bool write) {
-        MemoryMap& memory_map = memory_maps.GetObjectRef(handle_id);
+        MemoryMap& memory_map = memory_maps.GetRef(handle_id);
         memory_map.addr = addr;
         memory_map.write = write;
     }
@@ -61,7 +61,7 @@ class GPU {
     handle_id_t GetMapHandleId(u32 id) { return id - 1; }
 
     MemoryMap& GetMap(handle_id_t handle_id) {
-        return memory_maps.GetObjectRef(handle_id);
+        return memory_maps.GetRef(handle_id);
     }
 
     MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }

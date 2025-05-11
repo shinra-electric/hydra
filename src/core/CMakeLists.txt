@@ -10,6 +10,7 @@ add_library(hydra-core
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
+    horizon/kernel/handle_pool.hpp
     horizon/kernel/hipc.cpp
     horizon/kernel/hipc.hpp
     horizon/kernel/cmif.hpp

@@ -33,7 +33,12 @@ template <typename T, u32 size> class StaticPool {
         return UINT32_MAX;
     }
 
-    T& Allocate() { return GetObjectRef(AllocateForIndex()); }
+    T& Allocate() { return GetRef(AllocateForIndex()); }
+    u32 Add(const T& object) {
+        u32 index = AllocateForIndex();
+        GetRef(index) = object;
+        return index;
+    }
 
     void Free(u32 index) { FREE_SLOT(index) |= MASK(index); }
 
@@ -43,12 +48,12 @@ template <typename T, u32 size> class StaticPool {
     }
 
     // Getters
-    T GetObject(u32 index) const {
+    T Get(u32 index) const {
         AssertIndex(index);
         return objects[index];
     }
 
-    T& GetObjectRef(u32 index) {
+    T& GetRef(u32 index) {
         AssertIndex(index);
         return objects[index];
     }

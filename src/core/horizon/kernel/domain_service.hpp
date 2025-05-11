@@ -1,7 +1,6 @@
 #pragma once
 
-#include "common/allocators/dynamic_pool.hpp"
-#include "common/macros.hpp"
+#include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Kernel {
@@ -10,11 +9,8 @@ class DomainService : public ServiceBase {
   public:
     void Request(RequestContext& context) override;
 
-    handle_id_t AddObject(ServiceBase* object) {
-        handle_id_t handle_id = object_pool.AllocateForIndex();
-        object_pool.GetObjectRef(handle_id) = object;
-
-        return handle_id;
+    handle_id_t AddSubservice(ServiceBase* service) {
+        return subservice_pool.Add(service);
     }
 
   protected:
@@ -23,7 +19,7 @@ class DomainService : public ServiceBase {
     }
 
   private:
-    Allocators::DynamicPool<ServiceBase*> object_pool;
+    DynamicHandlePool<ServiceBase> subservice_pool;
 };
 
 } // namespace Hydra::Horizon::Kernel

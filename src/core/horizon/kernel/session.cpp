@@ -8,7 +8,7 @@ namespace Hydra::Horizon::Kernel {
 
 void Session::Close() {
     // TODO: correct?
-    // delete service;
+    delete service;
     service = nullptr;
 }
 
@@ -25,7 +25,7 @@ void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
     switch (command) {
     case Cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         auto domain_service = new DomainService();
-        handle_id = domain_service->AddObject(service);
+        handle_id = domain_service->AddSubservice(service);
         service = domain_service;
 
         // Out
