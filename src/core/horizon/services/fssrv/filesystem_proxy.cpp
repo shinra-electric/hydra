@@ -46,8 +46,7 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
         unknown_buffer.reader->ReadString(); // TODO: what is this for?
-    LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id,
-              unknown);
+    LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id, unknown);
 
     LOG_FUNC_STUBBED(Services);
 
@@ -73,8 +72,8 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
+        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
+        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
         break;
     }
     default:
@@ -101,8 +100,8 @@ result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
+        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
+        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
         break;
     }
     default:
@@ -143,8 +142,7 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
 
 result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
     add_service_fn_t add_service) {
-    LOG_NOT_IMPLEMENTED(Services,
-                        "OpenPatchDataStorageByCurrentProcess");
+    LOG_NOT_IMPLEMENTED(Services, "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
     filesystem::FileBase* file = nullptr;

@@ -12,10 +12,8 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
     u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // Out
-    *out_layer_id = KERNEL
-                        .GetBus()
-                        .GetDisplay(display_id)
-                        ->CreateLayer(binder_id);
+    *out_layer_id =
+        KERNEL.GetBus().GetDisplay(display_id)->CreateLayer(binder_id);
     *out_native_window_size =
         sizeof(hosbinder::ParcelHeader) + sizeof(ParcelData);
 

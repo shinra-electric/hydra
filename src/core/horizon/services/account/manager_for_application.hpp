@@ -6,17 +6,17 @@ namespace hydra::horizon::services::account {
 
 class IManagerForApplication : public ServiceBase {
   public:
-    IManagerForApplication(u128 user_id_) : user_id{user_id_} {}
+    IManagerForApplication(uuid_t user_id_) : user_id{user_id_} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    u128 user_id;
+    uuid_t user_id;
 
     // Commands
-    result_t CheckAvailability();
-    result_t GetAccountId();
+    STUB_REQUEST_COMMAND(CheckAvailability);
+    result_t GetAccountId(uuid_t* out_id);
 };
 
 } // namespace hydra::horizon::services::account

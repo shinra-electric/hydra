@@ -72,7 +72,7 @@ kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     const u64 argv_offset = executable_size;
 
     std::string args = fmt::format("\"{}\"", ROM_VIRTUAL_PATH);
-    for (const auto& arg : Config::GetInstance().GetProcessArgs())
+    for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs())
         args += fmt::format(" \"{}\"", arg);
 
     char* argv = reinterpret_cast<char*>(ptr + argv_offset);

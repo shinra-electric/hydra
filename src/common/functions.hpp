@@ -19,9 +19,11 @@ namespace hydra {
 #endif
 }
 
-template <typename T> constexpr T invalid() {
+template <typename T> constexpr T all_ones() {
     return std::numeric_limits<T>::max();
 }
+
+template <typename T> constexpr T invalid() { return all_ones<T>(); }
 
 template <typename T, u64 b, u64 count> constexpr T mask() {
     return ((1u << count) - 1u) << b;
@@ -57,8 +59,17 @@ inline uptr make_addr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
-template <typename T> inline T ceil_divide(T dividend, T divisor) {
+template <typename T> T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
+}
+
+template <typename T> T random() { return rand() & all_ones<T>(); }
+
+inline u64 random64() { return (u64)rand() | ((u64)rand() << 32); }
+
+inline u128 random128() {
+    return (u128)rand() | ((u128)rand() << 32) | ((u128)rand() << 64) |
+           ((u128)rand() << 96);
 }
 
 inline constexpr u32 make_magic4(const char c0, const char c1, const char c2,

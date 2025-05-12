@@ -18,7 +18,8 @@ result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationFunctions::EnsureSaveData(u128 user_id, u64* out_unknown) {
+result_t IApplicationFunctions::EnsureSaveData(uuid_t user_id,
+                                               u64* out_unknown) {
     LOG_DEBUG(Services, "User ID: {}", user_id);
 
     LOG_FUNC_STUBBED(Services);
@@ -40,8 +41,7 @@ IApplicationFunctions::GetDesiredLanguage(LanguageCode* out_language_code) {
 result_t IApplicationFunctions::SetTerminateResult(result_t result) {
     const auto module = GET_RESULT_MODULE(result);
     const auto description = GET_RESULT_DESCRIPTION(result);
-    LOG_INFO(Kernel, "Module: {}, description: 0x{:x}", module,
-             description);
+    LOG_INFO(Kernel, "Module: {}, description: 0x{:x}", module, description);
 
     return RESULT_SUCCESS;
 }

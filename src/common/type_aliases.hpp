@@ -21,6 +21,8 @@ using f64 = double;
 
 using bool32 = u32;
 
+using uuid_t = u128;
+using magic4_t = u32;
 using paddr_t = uptr;
 using vaddr_t = uptr;
 using gpu_vaddr_t = uptr;

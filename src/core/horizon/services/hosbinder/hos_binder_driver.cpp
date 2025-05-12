@@ -226,8 +226,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
             value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
             break;
         default:
-            LOG_NOT_IMPLEMENTED(Services, "Native window attribute {}",
-                                what);
+            LOG_NOT_IMPLEMENTED(Services, "Native window attribute {}", what);
             break;
         }
 

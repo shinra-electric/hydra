@@ -28,10 +28,10 @@ struct BlitParams {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer, "Metal renderer")
+SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer)
 
 Renderer::Renderer() {
-    SINGLETON_SET_INSTANCE(MetalRenderer, "Metal renderer");
+    SINGLETON_SET_INSTANCE(Renderer, MetalRenderer);
 
     // Device
     device = MTL::CreateSystemDefaultDevice();
@@ -650,4 +650,4 @@ void Renderer::EndCapture() {
     capturing = false;
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::Renderer::metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

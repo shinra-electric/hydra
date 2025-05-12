@@ -12,4 +12,4 @@ class IFriendService : public ServiceBase {
     // Commands
 };
 
-} // namespace hydra::horizon::services::friend
+} // namespace hydra::horizon::services::friends

@@ -7,7 +7,8 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
-#define METAL_RENDERER_INSTANCE hydra::hw::tegra_x1::gpu::renderer::metal::Renderer::GetInstance()
+#define METAL_RENDERER_INSTANCE                                                \
+    hw::tegra_x1::gpu::renderer::metal::Renderer::GetInstance()
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 

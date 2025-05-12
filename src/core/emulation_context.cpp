@@ -15,31 +15,34 @@
 namespace hydra {
 
 EmulationContext::EmulationContext() {
-    // Emulation
-    switch (Config::GetInstance().GetCpuBackend()) {
+    // Random
+    srand(time(0));
+
+    // Initialize
+    switch (config.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-        cpu = new hydra::hw::tegra_x1::cpu::hypervisor::CPU();
+        cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
         break;
     case CpuBackend::Dynarmic:
-        cpu = new hydra::hw::tegra_x1::cpu::dynarmic::CPU();
+        cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
         break;
     default:
         LOG_FATAL(Other, "Unknown CPU backend");
         break;
     }
 
-    gpu = new hydra::hw::tegra_x1::gpu::GPU(cpu->GetMMU());
+    gpu = new hw::tegra_x1::gpu::GPU(cpu->GetMMU());
 
-    builtin_display = new hydra::hw::Display::Display();
+    builtin_display = new hw::display::Display();
 
-    bus = new hydra::hw::Bus();
+    bus = new hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    os = new hydra::horizon::OS(*bus, cpu->GetMMU());
+    os = new horizon::OS(*bus, cpu->GetMMU());
 
     // Filesystem
     /*
-    for (const auto& root_path : Config::GetInstance().GetRootPaths()) {
+    for (const auto& root_path : CONFIG_INSTANCE.GetRootPaths()) {
         const auto res =
             horizon::Filesystem::Filesystem::GetInstance().AddEntry(
                 root_path.guest_path, root_path.host_path, true);
@@ -58,7 +61,7 @@ EmulationContext::~EmulationContext() {
 void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Load ROM
     usize size;
-    auto ifs = hydra::open_file(rom_filename, size);
+    auto ifs = open_file(rom_filename, size);
 
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
@@ -84,8 +87,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
-    for (const auto& patch_directory :
-         Config::GetInstance().GetPatchDirectories()) {
+    for (const auto& patch_directory : CONFIG_INSTANCE.GetPatchDirectories()) {
         for (const auto& dir_entry :
              std::filesystem::directory_iterator{patch_directory}) {
             if (to_lower(dir_entry.path().filename().string()) ==
@@ -113,6 +115,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
 void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Run --------");
+    config.Log();
 
     // Enter focus
     auto& state_manager = horizon::StateManager::GetInstance();
@@ -120,9 +123,22 @@ void EmulationContext::Run() {
     state_manager.SendMessage(horizon::AppletMessage::Resume);
     state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
 
-    // Select user account
-    // HACK
-    state_manager.PushPreselectedUser(0x01234567);
+    // Preselected user
+    auto user_id = config.GetUserID();
+    if (user_id == horizon::services::account::INVALID_USER_ID) {
+        // If there is just a single user, use that
+        if (USER_MANAGER_INSTANCE.GetCount() == 1) {
+            user_id = *USER_MANAGER_INSTANCE.Begin();
+        } else {
+            // TODO: launch a select user applet in case the game requires it
+            LOG_FATAL(Other, "Multiple user accounts");
+        }
+    }
+
+    if (user_id != horizon::services::account::INVALID_USER_ID) {
+        state_manager.PushPreselectedUser(user_id);
+        LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
+    }
 
     process->Run();
     is_running = true;

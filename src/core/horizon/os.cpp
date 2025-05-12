@@ -5,11 +5,11 @@
 
 namespace hydra::horizon {
 
-SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon, "horizon OS")
+SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon)
 
 OS::OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_)
     : mmu{mmu_}, kernel(bus, mmu_) {
-    SINGLETON_SET_INSTANCE(Horizon, "horizon OS");
+    SINGLETON_SET_INSTANCE(OS, Horizon);
 
     // Services
     sm_user_interface = new services::sm::IUserInterface();

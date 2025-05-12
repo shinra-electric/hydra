@@ -3,13 +3,14 @@
 namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
-                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01, ZCullGetCtxSize, 0x02,
-                                            ZCullGetInfo, 0x05,
-                                            GetCharacteristics, 0x06,
+                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01,
+                                            ZCullGetCtxSize, 0x02, ZCullGetInfo,
+                                            0x05, GetCharacteristics, 0x06,
                                             GetTpcMasks, 0x14,
                                             ZbcGetActiveSlotMask))
 
-NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) {
+NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
+                                   handle_id_t& out_handle_id) {
     switch (event_id_u32) {
     case 0x01:
         out_handle_id = error_event.id;
@@ -53,7 +54,10 @@ NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size, gpu_vaddr_t buffer_addr, GpuCharacteristics* out_characteristics) {
+NvResult
+NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size,
+                                  gpu_vaddr_t buffer_addr,
+                                  GpuCharacteristics* out_characteristics) {
     ASSERT_DEBUG(inout_buffer_size != 0x0, Services,
                  "Invalid buffer size 0x{:08x}", *inout_buffer_size.data);
     inout_buffer_size = 0xa0;
@@ -103,7 +107,9 @@ NvResult NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size, g
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved, u64* out_mask_buffer) {
+NvResult NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size,
+                                    std::array<u32, 3> reserved,
+                                    u64* out_mask_buffer) {
     LOG_FUNC_STUBBED(Services);
 
     ASSERT_DEBUG(mask_buffer_size != 0x0, Services,

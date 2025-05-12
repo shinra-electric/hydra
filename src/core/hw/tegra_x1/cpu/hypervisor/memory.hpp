@@ -6,7 +6,8 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Memory : public MemoryBase {
   public:
-    Memory(paddr_t base_pa_, usize size) : MemoryBase(size), base_pa{base_pa_} {}
+    Memory(paddr_t base_pa_, usize size)
+        : MemoryBase(size), base_pa{base_pa_} {}
 
     // Getters
     paddr_t GetBasePa() const { return base_pa; }

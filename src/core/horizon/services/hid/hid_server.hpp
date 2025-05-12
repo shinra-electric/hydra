@@ -53,7 +53,8 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
-    result_t GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set);
+    result_t
+    GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     result_t AcquireNpadStyleSetUpdateEventHandle(

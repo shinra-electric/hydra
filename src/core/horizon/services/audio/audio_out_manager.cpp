@@ -12,8 +12,8 @@ result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
                                         u32* out_sample_rate,
                                         u32* out_channel_count,
                                         u32* out_pcm_format, u32* out_state) {
-    LOG_DEBUG(Services, "Sample rate: {}, channel count: {}",
-              sample_rate, channel_count);
+    LOG_DEBUG(Services, "Sample rate: {}, channel count: {}", sample_rate,
+              channel_count);
 
     // TODO: name in and out
 

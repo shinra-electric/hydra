@@ -16,8 +16,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle_id = KERNEL.AddHandle(
-        new kernel::SharedMemory(SHARED_MEMORY_SIZE));
+    shared_memory_handle_id =
+        KERNEL.AddHandle(new kernel::SharedMemory(SHARED_MEMORY_SIZE));
 }
 
 result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {

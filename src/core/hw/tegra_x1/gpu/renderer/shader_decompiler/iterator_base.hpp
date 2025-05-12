@@ -49,6 +49,6 @@ class IteratorBase {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ResultCode, None,
-    "none", Branch, "branch", BranchConditional, "branch conditional",
-    SyncPoint, "sync point", EndBlock, "end block", Error, "error")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ResultCode, None, "none",
+    Branch, "branch", BranchConditional, "branch conditional", SyncPoint,
+    "sync point", EndBlock, "end block", Error, "error")

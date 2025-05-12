@@ -2,10 +2,10 @@
 
 namespace hydra::horizon {
 
-SINGLETON_DEFINE_GET_INSTANCE(StateManager, Horizon, "State manager")
+SINGLETON_DEFINE_GET_INSTANCE(StateManager, Horizon)
 
 StateManager::StateManager() : msg_event(new kernel::Event()) {
-    SINGLETON_SET_INSTANCE(Horizon, "State manager");
+    SINGLETON_SET_INSTANCE(StateManager, Horizon);
 }
 
 StateManager::~StateManager() { SINGLETON_UNSET_INSTANCE(); }

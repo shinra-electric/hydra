@@ -48,8 +48,8 @@ struct CfgBlockEdge {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType,
-    Branch, "branch", BranchConditional, "branch conditional", Exit, "exit")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType, Branch,
+    "branch", BranchConditional, "branch conditional", Exit, "exit")
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 

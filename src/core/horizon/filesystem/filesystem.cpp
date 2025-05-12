@@ -23,19 +23,18 @@
     auto& device = it->second;
 
 #define VERIFY_MOUNT(mount)                                                    \
-    ASSERT(mount.find("/") == std::string::npos, Filesystem,            \
+    ASSERT(mount.find("/") == std::string::npos, Filesystem,                   \
            "Invalid mount point \"{}\"", mount);
 
 namespace hydra::horizon::filesystem {
 
-SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem, "filesystem")
+SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem)
 
 filesystem::filesystem() {
-    SINGLETON_SET_INSTANCE(Filesystem, "filesystem");
+    SINGLETON_SET_INSTANCE(Filesystem, Filesystem);
 
     // SD card
-    MountImpl(FS_SD_MOUNT,
-              new Directory(Config::GetInstance().GetSdCardPath()));
+    MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
 }
 
 filesystem::~filesystem() { SINGLETON_UNSET_INSTANCE(); }
@@ -72,8 +71,8 @@ FsResult filesystem::CreateFile(const std::string& path,
 
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
-        const auto host_path = fmt::format(
-            "{}{}", Config::GetInstance().GetSdCardPath(), entry_path);
+        const auto host_path =
+            fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
         LOG_WARN(Filesystem,

@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/display/layer.hpp"
 
-namespace hydra::hw::Display {
+namespace hydra::hw::display {
 
 // TODO: let a different class manage the event
 
@@ -47,4 +47,4 @@ class Display {
     std::vector<Layer*> layers;
 };
 
-} // namespace hydra::hw::Display
+} // namespace hydra::hw::display

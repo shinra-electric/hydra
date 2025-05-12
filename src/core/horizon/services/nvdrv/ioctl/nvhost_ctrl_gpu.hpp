@@ -74,8 +74,11 @@ class NvHostCtrlGpu : public FdBase {
     NvResult ZCullGetCtxSize(u32* out_size);
     NvResult ZCullGetInfo(ZCullInfo* out_info);
     // TODO: is buffer_addr in GPU virtual address space?
-    NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size, gpu_vaddr_t buffer_addr, GpuCharacteristics* out_characteristics);
-    NvResult GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved, u64* out_mask_buffer);
+    NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size,
+                                gpu_vaddr_t buffer_addr,
+                                GpuCharacteristics* out_characteristics);
+    NvResult GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved,
+                         u64* out_mask_buffer);
     NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
 };
 

@@ -139,7 +139,8 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         return index_buffer;
 
     usize index_size = get_index_type_size(out_type);
-    index_buffer = RENDERER_INSTANCE->AllocateTemporaryBuffer(out_count * index_size);
+    index_buffer =
+        RENDERER_INSTANCE->AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0;
     if (descriptor.src_index_buffer)
         in_ptr = descriptor.src_index_buffer->GetDescriptor().ptr;

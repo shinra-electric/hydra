@@ -124,8 +124,7 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
     const auto res =
         filesystem::filesystem::GetInstance().GetDirectory(path, directory);
     if (res != filesystem::FsResult::Success) {
-        LOG_WARN(Services, "Error opening directory \"{}\": {}", path,
-                 res);
+        LOG_WARN(Services, "Error opening directory \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 

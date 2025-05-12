@@ -396,7 +396,7 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
                 ImageSwizzle::Zero};
 
 #define SWIZZLE(r, g, b, a)                                                    \
-    {ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a}
+    { ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a }
 
     // TODO: implement all formats
     switch (format) {

@@ -27,9 +27,9 @@ Process::Process()
 
 Process::~Process() {
     hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(ALIAS_REGION_BASE,
-                                                   stack_mem->GetSize());
+                                                    stack_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(STACK_REGION_BASE,
-                                                   stack_mem->GetSize());
+                                                    stack_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(stack_mem);
 }
 
