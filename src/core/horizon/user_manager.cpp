@@ -38,11 +38,8 @@ uuid_t UserManager::Create() {
     }
 
     // Create
-    auto& user_pair = users[user_id];
-    user_pair.first = {
-        .name = DEFAULT_USER_NAME,
-    };
-    user_pair.second = true;
+    User new_user(DEFAULT_USER_NAME);
+    users.insert({user_id, {new_user, new_user.last_edit_timestamp}});
 
     return user_id;
 }
@@ -53,23 +50,32 @@ void UserManager::Flush() {
 }
 
 void UserManager::Serialize(uuid_t user_id) {
-    auto& user_pair = users[user_id];
-    if (!user_pair.second)
+    auto& user_pair = GetPair(user_id);
+    if (!user_pair.first.EditedSince(user_pair.second))
         return;
 
+    // TODO
     LOG_FUNC_NOT_IMPLEMENTED(Horizon);
 
-    user_pair.second = false;
+    user_pair.second = get_absolute_time();
 }
 
 void UserManager::Deserialize(uuid_t user_id) {
-    auto& user_pair = users[user_id];
-    if (user_pair.second)
-        LOG_WARN(Horizon, "Overwriting user 0x{:08x}", user_id);
+    {
+        auto it = users.find(user_id);
+        if (it != users.end()) {
+            auto& user_pair = it->second;
+            if (!user_pair.first.EditedSince(user_pair.second))
+                LOG_WARN(Horizon, "Overwriting user 0x{:08x}", user_id);
+        }
+    }
 
+    // TODO
+    std::string nickname = "INVALID";
     LOG_FUNC_NOT_IMPLEMENTED(Horizon);
 
-    user_pair.second = false;
+    User new_user(nickname);
+    users.insert({user_id, {new_user, new_user.last_edit_timestamp}});
 }
 
 } // namespace hydra::horizon

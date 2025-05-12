@@ -5,7 +5,7 @@
 namespace hydra::horizon::services::account {
 
 struct AccountProfileBase {
-    uuid_t uid;
+    uuid_t user_id;
     u64 last_edit_timestamp;
     char nickname[0x20];
 };
