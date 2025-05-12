@@ -28,7 +28,6 @@ class RamFile : public FileBase {
         return stream.tellg();
     }
 
-  protected:
   private:
     std::stringstream stream;
 };

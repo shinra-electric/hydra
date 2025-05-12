@@ -68,16 +68,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(SendVibrationValue);
     result_t
     CreateActiveVibrationDeviceList(kernel::add_service_fn_t add_service);
-    // HACK: this command is usually called from a separate thread which
-    // randomly throws InvalidCmifOutHeader error 0x1a80a (probably some sort of
-    // memory corruption), therefore we let the thread sleep
-    // STUB_REQUEST_COMMAND(SendVibrationValues);
-    result_t SendVibrationValues() {
-        LOG_WARN(Services, "Infinite sleep");
-        std::this_thread::sleep_for(std::chrono::seconds(0xffffffff));
-
-        return RESULT_SUCCESS;
-    }
+    STUB_REQUEST_COMMAND(SendVibrationValues);
 };
 
 } // namespace hydra::horizon::services::hid

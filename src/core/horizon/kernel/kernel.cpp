@@ -680,12 +680,18 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     hipc::ParsedRequest hipc_in = hipc::parse_request(tls_ptr);
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
-    // Dispatch
+    // Scratch memory
+    u8 scratch_buffer[0x200];
+    u8 scratch_buffer_objects[0x100];
+    u8 scratch_buffer_move_handles[0x100];
+    u8 scratch_buffer_copy_handles[0x100];
+
     hipc::Readers readers(mmu, hipc_in);
-    hipc::Writers writers(mmu, hipc_in, service_scratch_buffer,
-                          service_scratch_buffer_objects,
-                          service_scratch_buffer_move_handles,
-                          service_scratch_buffer_copy_handles);
+    hipc::Writers writers(mmu, hipc_in, scratch_buffer, scratch_buffer_objects,
+                          scratch_buffer_move_handles,
+                          scratch_buffer_copy_handles);
+
+    // Dispatch
     auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
     switch (command_type) {
     case cmif::CommandType::Close:

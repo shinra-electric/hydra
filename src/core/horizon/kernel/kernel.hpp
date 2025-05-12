@@ -217,10 +217,6 @@ class Kernel {
 
     // Services
     std::map<std::string, ServiceBase*> service_ports;
-    u8 service_scratch_buffer[0x200];
-    u8 service_scratch_buffer_objects[0x100];
-    u8 service_scratch_buffer_move_handles[0x100];
-    u8 service_scratch_buffer_copy_handles[0x100];
 };
 
 template <typename T> struct HandleWithId {
