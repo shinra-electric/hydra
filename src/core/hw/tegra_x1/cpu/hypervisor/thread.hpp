@@ -96,6 +96,7 @@ class Thread : public ThreadBase {
 
     u64 interrupt_time_delta_ticks;
 
+    void InstructionTrap(u32 esr);
     void DataAbort(u32 instruction, u64 far, u64 elr);
 };
 

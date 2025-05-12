@@ -5,7 +5,7 @@
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
+constexpr uptr KERNEL_REGION_BASE = (long)-(1l << 39); // TODO: wht
 constexpr usize KERNEL_REGION_SIZE = 0x10000000;
 constexpr usize KERNEL_MEM_SIZE = 0x1000;
 

@@ -4,11 +4,88 @@
 #include <thread>
 
 #include "common/functions.hpp"
+#include "common/time.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
+namespace {
+
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
+
+enum class ExceptionClass {
+    Unknown = 0b000000,
+    TrappedWfeWfiWfetWfit = 0b000001,
+    TrappedMcrMrcCp15 = 0b000011,
+    TrappedMcrrMrrcCp15 = 0b000100,
+    TrappedMcrMrcCp14 = 0b000101,
+    TrappedLdcStc = 0b000110,
+    TrappedSveFpSimd = 0b000111,
+    TrappedVmrs = 0b001000,
+    TrappedPAuth = 0b001001,
+    TrappedLd64bSt64bSt64bvSt64bv0 = 0b001010,
+    TrappedMrrcCp14 = 0b001100,
+    IllegalExecutionState = 0b001110,
+    SvcAarch32 = 0b010001,
+    HvcAarch32 = 0b010010,
+    SmcAarch32 = 0b010011,
+    SvcAarch64 = 0b010101,
+    HvcAarch64 = 0b010110,
+    SmcAarch64 = 0b010111,
+    TrappedMsrMrsSystem = 0b011000,
+    TrappedSve = 0b011001,
+    TrappedEretEretaaEretab = 0b011010,
+    PointerAuthenticationFailure = 0b011100,
+    ImplementationDefinedEl3 = 0b011111,
+    InstructionAbortLowerEl = 0b100000,
+    InstructionAbortSameEl = 0b100001,
+    PcAlignmentFault = 0b100010,
+    DataAbortLowerEl = 0b100100,
+    DataAbortSameEl = 0b100101,
+    SpAlignmentFault = 0b100110,
+    TrappedFpExceptionAarch32 = 0b101000,
+    TrappedFpExceptionAarch64 = 0b101100,
+    SErrorInterrupt = 0b101111,
+    BreakpointLowerEl = 0b110000,
+    BreakpointSameEl = 0b110001,
+    SoftwareStepLowerEl = 0b110010,
+    SoftwareStepSameEl = 0b110011,
+    WatchpointLowerEl = 0b110100,
+    WatchpointSameEl = 0b110101,
+    BkptAarch32 = 0b111000,
+    VectorCatchAarch32 = 0b111010,
+    BrkAarch64 = 0b111100,
+};
+
+} // namespace
+
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::cpu::hypervisor::ExceptionClass, Unknown, "unknown",
+    TrappedWfeWfiWfetWfit, "trapped WFE WFI WFET WFIT", TrappedMrrcCp14,
+    "trapped MRRC CP14", IllegalExecutionState, "illegal execution state",
+    SvcAarch32, "svc AArch32", HvcAarch32, "hvc AArch32", SmcAarch32,
+    "smc AArch32", SvcAarch64, "svc AArch64", HvcAarch64, "hvc AArch64",
+    SmcAarch64, "smc AArch64", TrappedMsrMrsSystem, "trapped MSR/MRS system",
+    TrappedSve, "trapped SVE", TrappedEretEretaaEretab,
+    "trapped ERET/ERETAA/ERETAB", PointerAuthenticationFailure,
+    "pointer authentication failure", ImplementationDefinedEl3,
+    "implementation defined EL3", InstructionAbortLowerEl,
+    "instruction abort lower EL", InstructionAbortSameEl,
+    "instruction abort same EL", PcAlignmentFault, "PC alignment fault",
+    DataAbortLowerEl, "data abort lower EL", DataAbortSameEl,
+    "data abort same EL", SpAlignmentFault, "SP alignment fault",
+    TrappedFpExceptionAarch32, "trapped FP exception AArch32",
+    TrappedFpExceptionAarch64, "trapped FP exception AArch64", SErrorInterrupt,
+    "SError interrupt", BreakpointLowerEl, "breakpoint lower EL",
+    BreakpointSameEl, "breakpoint same EL", SoftwareStepLowerEl,
+    "software step lower EL", SoftwareStepSameEl, "software step same EL",
+    WatchpointLowerEl, "watchpoint lower EL", WatchpointSameEl,
+    "watchpoint same EL", BkptAarch32, "BKPT AArch32", VectorCatchAarch32,
+    "vector catch AArch32", BrkAarch64, "BRK AArch64")
+
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
@@ -22,7 +99,7 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
     // TODO: find out what this does
-    SetReg(HV_REG_CPSR, 0x3c4);
+    SetReg(HV_REG_CPSR, 0x3c0);
 
     SetSysReg(HV_SYS_REG_MAIR_EL1, 0xfful);
     SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519ul);
@@ -69,12 +146,14 @@ void Thread::Run() {
             LogStackTrace();
 
             u64 syndrome = exit->exception.syndrome;
-            u8 hvEc = (syndrome >> 26) & 0x3f;
+            const auto hv_ec =
+                static_cast<ExceptionClass>((syndrome >> 26) & 0x3f);
             u64 pc = GetReg(HV_REG_PC);
 
-            if (hvEc == 0x16) { // HVC
+            switch (hv_ec) {
+            case ExceptionClass::HvcAarch64: {
                 u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
-                u8 ec = (esr >> 26) & 0x3f;
+                const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
 
                 u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
 
@@ -83,26 +162,27 @@ void Thread::Run() {
                 u32 instruction = mmu->Load<u32>(elr);
 
                 switch (ec) {
-                case 0x15:
+                case ExceptionClass::SvcAarch64:
                     running = svc_handler(this, esr & 0xffff);
                     break;
-                case 0x18:
-                    LOG_DEBUG(Hypervisor, "MSR MSR");
-                    // TODO: implement
-                    throw;
+                case ExceptionClass::TrappedMsrMrsSystem: {
+                    InstructionTrap(esr);
+
+                    u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
+                    SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
                     break;
-                case 0x25: {
+                }
+                case ExceptionClass::DataAbortLowerEl: {
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT(far_valid, Hypervisor, "FAR not valid");
 
                     DataAbort(instruction, far, elr);
-
                     break;
                 }
                 default:
                     LOG_FATAL(
                         Hypervisor,
-                        "Unknown HVC code (EC: 0x{:08x}, ESR: 0x{:08x}, PC: "
+                        "Unknown HVC code (EC: {}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
                         "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x}, instruction: "
                         "0x{:08x})",
@@ -110,7 +190,6 @@ void Thread::Run() {
                         GetSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
                         exit->exception.physical_address, instruction);
-
                     break;
                 }
 
@@ -118,69 +197,32 @@ void Thread::Run() {
                 // TODO: most of the time we can skip msr, find out when
                 SetReg(HV_REG_PC,
                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET);
-            } else if (hvEc == 0x17) { // SMC
-                LOG_WARN(Hypervisor, "SMC instruction");
-
-                AdvancePC();
-            } else if (hvEc == 0x18) {
-                // TODO: this should not happen
-
-                LOG_DEBUG(Hypervisor, "MSR MRS instruction");
-
-                // Manually execute the instruction
-                u32 instruction = mmu->Load<u32>(pc);
-
-                u8 opcode = extract_bits<u8, 24, 8>(instruction);
-                u8 rt = extract_bits<u8, 0, 5>(instruction);
-
-                u8 op0 = extract_bits<u8, 20, 2>(instruction);
-                u8 op1 = extract_bits<u8, 16, 3>(instruction);
-                u8 crn = extract_bits<u8, 12, 4>(instruction);
-                u8 crm = extract_bits<u8, 8, 4>(instruction);
-                u8 op2 = extract_bits<u8, 5, 3>(instruction);
-
-                u64 value = 0;
-                if (op0 == 3 && op1 == 3 && crn == 14 && crm == 0 &&
-                    op2 == 1) { // cntpct_el0
-                    value = mach_absolute_time();
-                } else {
-                    LOG_FATAL(Hypervisor,
-                              "Unknown MSR instruction (opcode: 0x{:08x}, "
-                              "rt: {}, op0: {}, op1: {}, crn: {}, crm: {}, "
-                              "op2: {})",
-                              opcode, rt, op0, op1, crn, crm, op2);
-                }
-
-                SetReg((hv_reg_t)(HV_REG_X0 + rt), value);
-
-                // Set the return address
-                // TODO: correct?
-                // u64 elr = cpu->GetSysReg(HV_SYS_REG_ELR_EL1);
-                // cpu->SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
-                AdvancePC();
-            } else if (hvEc == 0x3C) { // BRK
+                break;
+            }
+            case ExceptionClass::SmcAarch64:
+                LOG_FATAL(Hypervisor, "SMC");
+                break;
+            case ExceptionClass::BrkAarch64:
                 LogRegisters(true);
 
                 LOG_FATAL(Hypervisor, "BRK instruction");
-
+                running = false;
                 break;
-            } else {
+            default:
                 // Debug
                 LogRegisters();
 
-                LOG_FATAL(
-                    Hypervisor,
-                    "Unexpected VM exception 0x{:08x} (EC: 0x{:08x}, ESR: "
-                    "0x{:08x}, PC: 0x{:08x}, "
-                    "VA: "
-                    "0x{:08x}, PA: 0x{:08x}, ELR: 0x{:08x}, "
-                    "instruction: "
-                    "0x{:08x})",
-                    syndrome, hvEc, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
-                    GetSysReg(HV_SYS_REG_ELR_EL1),
-                    exit->exception.virtual_address,
-                    exit->exception.physical_address, mmu->Load<u32>(pc));
-
+                LOG_FATAL(Hypervisor,
+                          "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
+                          "0x{:08x}, PC: 0x{:08x}, "
+                          "VA: "
+                          "0x{:08x}, PA: 0x{:08x}, ELR: 0x{:08x}, "
+                          "instruction: "
+                          "0x{:08x})",
+                          syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
+                          GetSysReg(HV_SYS_REG_ELR_EL1),
+                          exit->exception.virtual_address,
+                          exit->exception.physical_address, mmu->Load<u32>(pc));
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
@@ -251,6 +293,32 @@ void Thread::LogStackTraceImpl() {
         lr = mmu->Load<u64>(fp + 8);
 
         fp = new_fp;
+    }
+}
+
+void Thread::InstructionTrap(u32 esr) {
+    bool read = (esr & 1) != 0;
+    uint rt = (esr >> 5) & 0x1f;
+
+    if (read) {
+        // Op0 Op2 Op1 CRn 00000 CRm
+        switch ((esr >> 1) & 0x1ffe0f) {
+        case 0b11'000'011'1110'00000'0000: // CNTFRQ_EL0
+            LOG_FATAL(Hypervisor, "Frequence");
+            // TODO:
+            // SetRegX(rt, );
+            break;
+        case 0b11'001'011'1110'00000'0000:    // CNTPCT_EL0
+            SetRegX(rt, get_absolute_time()); // TODO: correct?
+            break;
+        default:
+            LOG_FATAL(Hypervisor,
+                      "Unhandled system register read (ESR: 0x{:08x})", esr);
+            break;
+        }
+    } else {
+        LOG_FATAL(Hypervisor, "Unhandled system register write (ESR: 0x{:08x})",
+                  esr);
     }
 }
 

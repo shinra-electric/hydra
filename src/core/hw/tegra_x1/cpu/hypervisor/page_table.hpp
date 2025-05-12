@@ -82,7 +82,7 @@ class PageTable {
     ~PageTable();
 
     void Map(vaddr_t va, paddr_t pa, usize size,
-             const horizon::kernel::MemoryState state);
+             const horizon::kernel::MemoryState state, ApFlags flags);
     void Unmap(vaddr_t va, usize size);
 
     PageRegion QueryRegion(vaddr_t va) const;
@@ -96,9 +96,9 @@ class PageTable {
     PageTableLevel top_level;
 
     void MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
-                  const horizon::kernel::MemoryState state);
+                  const horizon::kernel::MemoryState state, ApFlags flags);
     void MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
-                      const horizon::kernel::MemoryState state);
+                      const horizon::kernel::MemoryState state, ApFlags flags);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

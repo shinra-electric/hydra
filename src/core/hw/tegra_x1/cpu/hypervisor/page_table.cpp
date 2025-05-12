@@ -21,73 +21,6 @@ namespace {
 
 constexpr u64 ENTRY_ADDR_MASK = 0x0000fffffffff000; // TODO: correct?
 
-// From Ryujinx
-enum class ApFlags : u64 {
-    ApShift = 6,
-    PxnShift = 53,
-    UxnShift = 54,
-
-    UserExecuteKernelReadWriteExecute = (0UL << (int)ApShift),
-    UserReadWriteExecuteKernelReadWrite = (1UL << (int)ApShift),
-    UserExecuteKernelReadExecute = (2UL << (int)ApShift),
-    UserReadExecuteKernelReadExecute = (3UL << (int)ApShift),
-
-    UserExecuteKernelReadWrite = (1UL << (int)PxnShift) | (0UL << (int)ApShift),
-    UserExecuteKernelRead = (1UL << (int)PxnShift) | (2UL << (int)ApShift),
-    UserReadExecuteKernelRead = (1UL << (int)PxnShift) | (3UL << (int)ApShift),
-
-    UserNoneKernelReadWriteExecute =
-        (1UL << (int)UxnShift) | (0UL << (int)ApShift),
-    UserReadWriteKernelReadWrite =
-        (1UL << (int)UxnShift) | (1UL << (int)ApShift),
-    UserNoneKernelReadExecute = (1UL << (int)UxnShift) | (2UL << (int)ApShift),
-    UserReadKernelReadExecute = (1UL << (int)UxnShift) | (3UL << (int)ApShift),
-
-    UserNoneKernelReadWrite =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (0UL << (int)ApShift),
-    UserNoneKernelRead =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (2UL << (int)ApShift),
-    UserReadKernelRead =
-        (1UL << (int)PxnShift) | (1UL << (int)UxnShift) | (3UL << (int)ApShift),
-};
-
-/*
-inline ApFlags PermisionToAP(horizon::Permission permission) {
-    return ApFlags::UserNoneKernelReadWriteExecute; // HACK: wtf why does this
-                                                    // work
-
-    if (any(permission & horizon::Permission::Read)) {
-        if (any(permission & horizon::Permission::Write)) {
-            if (any(permission & horizon::Permission::Execute)) {
-                return ApFlags::UserReadWriteExecuteKernelReadWrite;
-            } else {
-                return ApFlags::UserReadWriteKernelReadWrite;
-            }
-        } else {
-            if (any(permission & horizon::Permission::Execute)) {
-                return ApFlags::UserReadExecuteKernelReadExecute;
-            } else {
-                return ApFlags::UserReadKernelReadExecute;
-            }
-        }
-    } else {
-        if (any(permission & horizon::Permission::Write)) {
-            if (any(permission & horizon::Permission::Execute)) {
-                return ApFlags::UserReadWriteExecuteKernelReadWrite;
-            } else {
-                return ApFlags::UserReadWriteKernelReadWrite;
-            }
-        } else {
-            if (any(permission & horizon::Permission::Execute)) {
-                return ApFlags::UserExecuteKernelRead;
-            } else {
-                return ApFlags::UserNoneKernelReadWrite;
-            }
-        }
-    }
-}
-*/
-
 } // namespace
 
 PageTableLevel::PageTableLevel(u32 level_, const Page page_,
@@ -118,7 +51,7 @@ PageTable::PageTable(paddr_t base_pa)
 PageTable::~PageTable() = default;
 
 void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
-                    const horizon::kernel::MemoryState state) {
+                    const horizon::kernel::MemoryState state, ApFlags flags) {
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
 
@@ -126,7 +59,7 @@ void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
     ASSERT_ALIGNMENT(pa, PAGE_SIZE, Hypervisor, "pa");
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
 
-    MapLevel(top_level, va, pa, size, state);
+    MapLevel(top_level, va, pa, size, state, flags);
 }
 
 void PageTable::Unmap(vaddr_t va, usize size) {
@@ -174,13 +107,14 @@ paddr_t PageTable::UnmapAddr(vaddr_t va) const {
 }
 
 void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
-                         usize size, const horizon::kernel::MemoryState state) {
+                         usize size, const horizon::kernel::MemoryState state,
+                         ApFlags flags) {
     vaddr_t end_va = va + size;
     do {
         MapLevelNext(
             level, va, pa,
             std::min(align(va + 1, level.GetBlockSize()) - va, end_va - va),
-            state);
+            state, flags);
 
         vaddr_t old_va = va;
         va = align_down(va + level.GetBlockSize(), level.GetBlockSize());
@@ -190,7 +124,8 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
                              usize size,
-                             const horizon::kernel::MemoryState state) {
+                             const horizon::kernel::MemoryState state,
+                             ApFlags flags) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
     //           level.GetLevel(), va, pa, size);
@@ -198,17 +133,11 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
     u32 index = level.VaToIndex(va);
     // TODO: uncomment
     if (/*size == level.GetBlockSize()*/ level.GetLevel() == 2) {
-        // TODO: use proper permissions
-        ApFlags ap = ApFlags::UserNoneKernelReadWriteExecute;
-        // if (va >= 0x10000000 && va < 0x20000000)
-        //     ap = ApFlags::UserReadWriteKernelReadWrite;
-        // else
-        //     ap = ApFlags::UserNoneKernelReadWriteExecute;
         level.WriteEntry(index, pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
-                                    PTE_INNER_SHEREABLE | (u64)ap);
+                                    PTE_INNER_SHEREABLE | (u64)flags);
         level.SetLevelState(index, state);
     } else {
-        MapLevel(level.GetNext(allocator, index), va, pa, size, state);
+        MapLevel(level.GetNext(allocator, index), va, pa, size, state, flags);
     }
 }
 

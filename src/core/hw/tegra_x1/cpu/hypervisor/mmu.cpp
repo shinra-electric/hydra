@@ -39,9 +39,46 @@ const u32 exception_trampoline[] = {
     0xd4200000u, // brk #0
 };
 
+inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
+    // HACK
+    return ApFlags::UserReadWriteExecuteKernelReadWrite;
+
+    if (any(perm & horizon::kernel::MemoryPermission::Read)) {
+        if (any(perm & horizon::kernel::MemoryPermission::Write)) {
+            if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
+                return ApFlags::UserReadWriteExecuteKernelReadWrite;
+            } else {
+                return ApFlags::UserReadWriteKernelReadWrite;
+            }
+        } else {
+            if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
+                return ApFlags::UserReadExecuteKernelRead;
+            } else {
+                return ApFlags::UserReadKernelRead;
+            }
+        }
+    } else {
+        if (any(perm & horizon::kernel::MemoryPermission::Write)) {
+            if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
+                return ApFlags::UserReadWriteExecuteKernelReadWrite; // TODO
+            } else {
+                return ApFlags::UserReadWriteKernelReadWrite; // TODO
+            }
+        } else {
+            if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
+                return ApFlags::UserExecuteKernelRead; // TODO
+            } else {
+                return ApFlags::UserNoneKernelRead; // TODO
+            }
+        }
+    }
+}
+
 } // namespace
 
-MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
+MMU::MMU()
+    : user_page_table(PHYSICAL_MEMORY_SIZE),
+      kernel_page_table(PHYSICAL_MEMORY_SIZE + 0x20000000) {
     physical_memory_ptr = allocate_vm_memory(PHYSICAL_MEMORY_SIZE);
     HV_ASSERT_SUCCESS(hv_vm_map(
         reinterpret_cast<void*>(physical_memory_ptr), 0x0, PHYSICAL_MEMORY_SIZE,
@@ -49,12 +86,11 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
 
     // kernel memory
     uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
-    // TODO: map to kernel page table instead
-    user_page_table.Map(KERNEL_REGION_BASE, physical_memory_cur,
-                        KERNEL_MEM_SIZE,
-                        {horizon::kernel::MemoryType::kernel,
-                         horizon::kernel::MemoryAttribute::None,
-                         horizon::kernel::MemoryPermission::Execute});
+    kernel_page_table.Map(0x0, physical_memory_cur, KERNEL_MEM_SIZE,
+                          {horizon::kernel::MemoryType::Kernel,
+                           horizon::kernel::MemoryAttribute::None,
+                           horizon::kernel::MemoryPermission::Execute},
+                          ApFlags::UserNoneKernelReadExecute);
     physical_memory_cur += KERNEL_MEM_SIZE;
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -71,8 +107,7 @@ MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 MemoryBase* MMU::AllocateMemory(usize size) {
     size = align(size, PAGE_SIZE);
     auto memory = new Memory(physical_memory_cur, size);
-    physical_memory_cur +=
-        size + 16u * 1024u * PAGE_SIZE; // HACK: prevents memory corruption
+    physical_memory_cur += size;
 
     return memory;
 }
@@ -91,7 +126,7 @@ void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
     user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
-                        state);
+                        state, to_ap_flags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
@@ -99,7 +134,8 @@ void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
 void MMU::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
     const auto region = user_page_table.QueryRegion(src_va);
     paddr_t pa = region.UnmapAddr(src_va);
-    user_page_table.Map(dst_va, pa, size, region.state);
+    user_page_table.Map(dst_va, pa, size, region.state,
+                        to_ap_flags(region.state.perm));
 }
 
 void MMU::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
@@ -108,7 +144,8 @@ void MMU::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
 void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr_t va, usize size) {
     const auto region = user_page_table.QueryRegion(va);
     paddr_t pa = region.UnmapAddr(va);
-    user_page_table.Map(va, pa, size, region.state);
+    user_page_table.Map(va, pa, size, region.state,
+                        to_ap_flags(region.state.perm));
 }
 
 uptr MMU::UnmapAddr(vaddr_t va) const {

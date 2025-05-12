@@ -324,7 +324,7 @@ enum class MemoryType : u32 {
     Inaccessible = 0x00000010,
     NonSecureIpc = 0x005c3811,
     NonDeviceIpc = 0x004c2812,
-    kernel = 0x00002013,
+    Kernel = 0x00002013,
     GeneratedCode = 0x00402214,
     CodeOut = 0x00402015,
     Coverage = 0x00002016,
@@ -533,7 +533,7 @@ ENABLE_ENUM_FORMATTING(
     "thread local", Transfered, "transfered", SharedTransfered,
     "shared transfered", SharedCode, "shared code", Inaccessible,
     "inaccessible", NonSecureIpc, "non secure ipc", NonDeviceIpc,
-    "non device ipc", kernel, "kernel", GeneratedCode, "generated code",
+    "non device ipc", Kernel, "kernel", GeneratedCode, "generated code",
     CodeOut, "code out", Coverage, "coverage", Insecure, "insecure")
 
 ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::kernel::MemoryPermission, Read,
