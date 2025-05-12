@@ -3,7 +3,7 @@
 #include "core/horizon/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IApplicationFunctions : public ServiceBase {
   protected:
@@ -19,4 +19,4 @@ class IApplicationFunctions : public ServiceBase {
     STUB_REQUEST_COMMAND(NotifyRunning);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

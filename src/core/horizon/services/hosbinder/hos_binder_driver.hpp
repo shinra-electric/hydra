@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::HosBinder {
+namespace hydra::horizon::services::hosbinder {
 
 class ParcelReader;
 class ParcelWriter;
@@ -53,9 +53,9 @@ class IHOSBinderDriver : public ServiceBase {
                             ParcelWriter& parcel_writer);
 };
 
-} // namespace Hydra::Horizon::Services::HosBinder
+} // namespace hydra::horizon::services::hosbinder
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::HosBinder::TransactCode,
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::hosbinder::TransactCode,
                        RequestBuffer, "request buffer", SetBufferCount,
                        "set buffer count", DequeueBuffer, "dequeue buffer",
                        DetachBuffer, "detach buffer", DetachNextBuffer,

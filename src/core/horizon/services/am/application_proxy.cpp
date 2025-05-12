@@ -9,7 +9,7 @@
 #include "core/horizon/services/am/self_controller.hpp"
 #include "core/horizon/services/am/window_controller.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxy, 0, GetCommonStateGetter, 1,
                              GetSelfController, 2, GetWindowController, 3,
@@ -59,4 +59,4 @@ result_t IApplicationProxy::GetDebugFunctions(add_service_fn_t add_service) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

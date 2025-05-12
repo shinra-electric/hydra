@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "common/logging/log.hpp"
 
-namespace Hydra::Allocators {
+namespace hydra::allocators {
 
 template <typename T> class DynamicPool {
   public:
@@ -61,4 +61,4 @@ template <typename T> class DynamicPool {
     }
 };
 
-} // namespace Hydra::Allocators
+} // namespace hydra::allocators

@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 class NvHostCtrl : public FdBase {
   public:
@@ -14,4 +14,4 @@ class NvHostCtrl : public FdBase {
     NvResult SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout, u32* out_value);
 };
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

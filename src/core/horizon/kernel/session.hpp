@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 class Session : public Handle {
   public:
@@ -10,7 +10,7 @@ class Session : public Handle {
 
     void Close();
     void Request(RequestContext& context);
-    void Control(Hipc::Readers& readers, Hipc::Writers& writers);
+    void Control(hipc::Readers& readers, hipc::Writers& writers);
 
     // Getters
     ServiceBase* GetService() const { return service; }
@@ -24,4 +24,4 @@ class Session : public Handle {
     handle_id_t handle_id{invalid<handle_id_t>()};
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

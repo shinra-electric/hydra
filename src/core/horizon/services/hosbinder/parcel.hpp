@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Services::HosBinder {
+namespace hydra::horizon::services::hosbinder {
 
 struct ParcelHeader {
     u32 data_size;
@@ -39,9 +39,9 @@ class ParcelReader {
         auto len = Read<i32>();      // len
         auto fd_count = Read<i32>(); // fd count
 
-        ASSERT_DEBUG(len == sizeof(T), HorizonServices,
+        ASSERT_DEBUG(len == sizeof(T), Services,
                      "Invalid flattened object length {}", len);
-        ASSERT_DEBUG(fd_count == 0, HorizonServices,
+        ASSERT_DEBUG(fd_count == 0, Services,
                      "Non-zero FD count ({}) not supported", fd_count);
 
         return ReadPtr<T>();
@@ -68,7 +68,7 @@ class ParcelReader {
 
     std::string ReadInterfaceToken() {
         const auto unknown = Read<i32>();
-        ASSERT_DEBUG(unknown == 0x100, HorizonServices,
+        ASSERT_DEBUG(unknown == 0x100, Services,
                      "Invalid interface token unknown 0x{:x}", unknown);
 
         return ReadString16();
@@ -116,7 +116,7 @@ class ParcelWriter {
     }
 
     void WriteString16(const std::string& str) {
-        ASSERT_DEBUG(str.size() != 0, HorizonServices, "Invalid string size");
+        ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
         Write<i32>(str.size());
         auto ptr = WritePtr<u16>(nullptr, str.size() + 1);
 
@@ -135,4 +135,4 @@ class ParcelWriter {
     ParcelHeader* header;
 };
 
-} // namespace Hydra::Horizon::Services::HosBinder
+} // namespace hydra::horizon::services::hosbinder

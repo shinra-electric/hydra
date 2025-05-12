@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 enum class SystemClockType {
     StandardUser,
@@ -25,4 +25,4 @@ class ISystemClock : public ServiceBase {
     STUB_REQUEST_COMMAND(GetCurrentTime);
 };
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

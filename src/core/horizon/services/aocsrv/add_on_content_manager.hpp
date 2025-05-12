@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::AocSrv {
+namespace hydra::horizon::services::aocsrv {
 
 class IAddOnContentManager : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class IAddOnContentManager : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::AocSrv
+} // namespace hydra::horizon::services::aocsrv

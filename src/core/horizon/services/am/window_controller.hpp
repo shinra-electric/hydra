@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IWindowController : public ServiceBase {
   protected:
@@ -14,4 +14,4 @@ class IWindowController : public ServiceBase {
     STUB_REQUEST_COMMAND(AcquireForegroundRights);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

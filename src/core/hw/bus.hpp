@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW {
+namespace hydra::hw {
 
 namespace Display {
 class Display;
@@ -24,4 +24,4 @@ class Bus {
         displays[2]; // TODO: what's the maximum number of displays?
 };
 
-} // namespace Hydra::HW
+} // namespace hydra::hw

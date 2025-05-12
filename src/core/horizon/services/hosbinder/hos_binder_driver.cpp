@@ -5,7 +5,7 @@
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-namespace Hydra::Horizon::Services::HosBinder {
+namespace hydra::horizon::services::hosbinder {
 
 namespace {
 
@@ -22,10 +22,10 @@ enum class NativeWindowAttribute : u32 {
 
 } // namespace
 
-} // namespace Hydra::Horizon::Services::HosBinder
+} // namespace hydra::horizon::services::hosbinder
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::HosBinder::NativeWindowAttribute, Width, "width",
+    hydra::horizon::services::hosbinder::NativeWindowAttribute, Width, "width",
     Height, "height", Format, "format", MinUnqueuedBuffers,
     "min unqueued buffers", ConsumerRunningBehind, "consumer running behind",
     ConsumerUsageBits, "consumer usage bits", MaxBufferCountAsync,
@@ -33,7 +33,7 @@ ENABLE_ENUM_FORMATTING(
 
 #include "common/logging/log.hpp"
 
-namespace Hydra::Horizon::Services::HosBinder {
+namespace hydra::horizon::services::hosbinder {
 
 namespace {
 
@@ -96,7 +96,7 @@ result_t IHOSBinderDriver::TransactParcel(
     i32 binder_id, TransactCode code, u32 flags,
     InBuffer<BufferAttr::MapAlias> in_parcel_buffer,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
-    LOG_DEBUG(HorizonServices, "Code: {}", code);
+    LOG_DEBUG(Services, "Code: {}", code);
 
     ParcelReader parcel_reader(*in_parcel_buffer.reader);
     ParcelWriter parcel_writer(*out_parcel_buffer.writer);
@@ -134,7 +134,7 @@ result_t IHOSBinderDriver::TransactParcelAuto(
     i32 binder_id, TransactCode code, u32 flags,
     InBuffer<BufferAttr::AutoSelect> in_parcel_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer) {
-    LOG_DEBUG(HorizonServices, "Code: {}", code);
+    LOG_DEBUG(Services, "Code: {}", code);
 
     ParcelReader parcel_reader(*in_parcel_buffer.reader);
     ParcelWriter parcel_writer(*out_parcel_buffer.writer);
@@ -157,11 +157,11 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     switch (code) {
     case TransactCode::RequestBuffer: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
+        LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         i32 slot = parcel_reader.Read<i32>();
         if (slot > MAX_BINDER_BUFFER_COUNT) {
-            LOG_WARN(HorizonServices, "Invalid slot: {}", slot);
+            LOG_WARN(Services, "Invalid slot: {}", slot);
             parcel_writer.Write<u32>(0x0);
             break;
         }
@@ -187,7 +187,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     }
     case TransactCode::QueueBuffer: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
+        LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         // Slot
         i32 slot = parcel_reader.Read<i32>();
@@ -209,10 +209,10 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     }
     case TransactCode::Query: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
+        LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         const auto what = parcel_reader.Read<NativeWindowAttribute>();
-        LOG_DEBUG(HorizonServices, "what: {}", what);
+        LOG_DEBUG(Services, "what: {}", what);
 
         u32 value = 0;
         switch (what) {
@@ -226,7 +226,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
             value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
             break;
         default:
-            LOG_NOT_IMPLEMENTED(HorizonServices, "Native window attribute {}",
+            LOG_NOT_IMPLEMENTED(Services, "Native window attribute {}",
                                 what);
             break;
         }
@@ -237,7 +237,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     }
     case TransactCode::Connect: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
+        LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         parcel_writer.Write<BqBufferOutput>({
             .width = 1280,       // TODO: don't hardcode
@@ -250,7 +250,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     }
     case TransactCode::SetPreallocatedBuffer: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(HorizonServices, "Interface token: {}", interface_token);
+        LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         // Slot
         i32 slot = parcel_reader.Read<i32>();
@@ -258,13 +258,13 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         // Input buffer
         auto buffer = parcel_reader.ReadStrongPointer<GraphicBuffer>();
         if (!buffer) {
-            LOG_ERROR(HorizonServices, "No graphic buffer");
+            LOG_ERROR(Services, "No graphic buffer");
             break;
         }
 
         // Debug
         const auto& plane = buffer->nv_buffer.planes[0];
-        LOG_DEBUG(HorizonServices,
+        LOG_DEBUG(Services,
                   "width: {}, height: {}, color_format: {}, "
                   "layout: {}, pitch: 0x{:08x}, "
                   "unused: 0x{:08x}, offset: 0x{:08x}, kind: "
@@ -278,7 +278,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     default:
-        LOG_WARN(HorizonServices, "Unknown code {}", code);
+        LOG_WARN(Services, "Unknown code {}", code);
         break;
     }
 
@@ -286,4 +286,4 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     parcel_writer.Write(b_result);
 }
 
-} // namespace Hydra::Horizon::Services::HosBinder
+} // namespace hydra::horizon::services::hosbinder

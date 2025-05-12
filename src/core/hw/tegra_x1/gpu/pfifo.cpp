@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
@@ -29,9 +29,9 @@ enum class TertiaryOpcode : u32 {
 
 } // namespace
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::SecondaryOpcode, Grp0UseTert,
                        "GRP0 use tertiary opcode", IncMethod,
                        "incrementing method", Grp2UseTert,
                        "GRP2 use tertiary opcode", NonIncMethod,
@@ -39,7 +39,7 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::SecondaryOpcode, Grp0UseTert,
                        "immediate data method", OneInc, "one increment",
                        Reserved, "reserved", EndPbSegment, "End PB segment")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::TertiaryOpcode, Grp0IncMethod,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::TertiaryOpcode, Grp0IncMethod,
                        "GRP0 increment method / GRP2 non-increment method",
                        Grp0SetSubDevMask, "GRP0 set subdevice mask",
                        Grp0StoreSubDevMask, "GRP0 store subdevice mask",
@@ -47,7 +47,7 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::TertiaryOpcode, Grp0IncMethod,
 
 #include "common/logging/log.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
@@ -64,12 +64,12 @@ struct CommandHeader {
 void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
                           GpfifoFlags flags) {
     LOG_DEBUG(GPU, "Flags: {}", flags);
-    RENDERER->LockMutex();
+    RENDERER_INSTANCE->LockMutex();
     for (const auto& entry : entries) {
         SubmitEntry(entry);
     }
-    RENDERER->EndCommandBuffer();
-    RENDERER->UnlockMutex();
+    RENDERER_INSTANCE->EndCommandBuffer();
+    RENDERER_INSTANCE->UnlockMutex();
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {
@@ -168,4 +168,4 @@ void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
         method++;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu

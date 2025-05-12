@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class ISelfController : public ServiceBase {
   public:
@@ -13,7 +13,7 @@ class ISelfController : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    Kernel::HandleWithId<Kernel::Event> library_applet_launchable_event;
+    kernel::HandleWithId<kernel::Event> library_applet_launchable_event;
 
     // Commands
     result_t LockExit();
@@ -28,4 +28,4 @@ class ISelfController : public ServiceBase {
     result_t CreateManagedDisplayLayer(u64* out_layer_id);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

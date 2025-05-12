@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 
 class MemoryBase {
   public:
@@ -15,4 +15,4 @@ class MemoryBase {
     usize size;
 };
 
-} // namespace Hydra::HW::TegraX1::CPU
+} // namespace hydra::hw::tegra_x1::cpu

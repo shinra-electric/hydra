@@ -2,11 +2,11 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 struct GuestShaderState;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 class ObserverBase;
 class BuilderBase;
@@ -22,4 +22,4 @@ class Decompiler final {
                    ResourceMapping& out_resource_mapping);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

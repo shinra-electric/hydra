@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/domain_service.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 void Session::Close() {
     // TODO: correct?
@@ -14,16 +14,16 @@ void Session::Close() {
 
 void Session::Request(RequestContext& context) { service->Request(context); }
 
-void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
-    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
+void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
+    auto cmif_in = readers.reader.Read<cmif::InHeader>();
 
-    result_t* result = Cmif::write_out_header(writers.writer);
+    result_t* result = cmif::write_out_header(writers.writer);
 
     const auto command =
-        static_cast<Cmif::ControlCommandType>(cmif_in.command_id);
-    LOG_DEBUG(HorizonServices, "Control request {}", command);
+        static_cast<cmif::ControlCommandType>(cmif_in.command_id);
+    LOG_DEBUG(Services, "Control request {}", command);
     switch (command) {
-    case Cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
+    case cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         auto domain_service = new DomainService();
         handle_id = domain_service->AddSubservice(service);
         service = domain_service;
@@ -33,29 +33,29 @@ void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
 
         break;
     }
-    case Cmif::ControlCommandType::CloneCurrentObject: { // clone current object
+    case cmif::ControlCommandType::CloneCurrentObject: { // clone current object
         auto clone = new Session(service);
-        handle_id_t handle_id = Kernel::Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = KERNEL.AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
     }
-    case Cmif::ControlCommandType::QueryPointerBufferSize: // query pointer
+    case cmif::ControlCommandType::QueryPointerBufferSize: // query pointer
                                                            // buffer size
         writers.writer.Write(service->GetPointerBufferSize());
         break;
-    case Cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
+    case cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = new Session(service);
-        handle_id_t handle_id = Kernel::Kernel::GetInstance().AddHandle(clone);
+        handle_id_t handle_id = KERNEL.AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
     }
     default:
-        LOG_ERROR(HorizonServices, "Unimplemented control request {}", command);
+        LOG_ERROR(Services, "Unimplemented control request {}", command);
         break;
     }
 }
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

@@ -3,7 +3,7 @@
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 0, GetEventHandle, 1,
                              ReceiveMessage, 4, DisallowToEnterSleep, 5,
@@ -20,7 +20,7 @@ result_t ICommonStateGetter::ReceiveMessage(AppletMessage* out_message) {
     const auto msg = StateManager::GetInstance().ReceiveMessage();
     if (msg == AppletMessage::None)
         return MAKE_RESULT(Am, 0x3);
-    LOG_DEBUG(HorizonServices, "MESSAGE: {}", msg);
+    LOG_DEBUG(Services, "MESSAGE: {}", msg);
 
     *out_message = msg;
     return RESULT_SUCCESS;
@@ -37,4 +37,4 @@ result_t ICommonStateGetter::GetCurrentFocusState(AppletFocusState* out_state) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

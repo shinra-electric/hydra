@@ -2,25 +2,25 @@
 
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 SharedMemory::SharedMemory(usize size) {
-    memory = HW::TegraX1::CPU::MMUBase::GetInstance().AllocateMemory(size);
+    memory = hw::tegra_x1::cpu::MMUBase::GetInstance().AllocateMemory(size);
 }
 
 SharedMemory::~SharedMemory() {
-    HW::TegraX1::CPU::MMUBase::GetInstance().FreeMemory(memory);
+    hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(memory);
 }
 
 void SharedMemory::MapToRange(
-    const ::Hydra::range<uptr> range,
-    MemoryPermission perm) { // TODO: why ::Hydra::range?
-    HW::TegraX1::CPU::MMUBase::GetInstance().Map(
+    const ::hydra::range<uptr> range,
+    MemoryPermission perm) { // TODO: why ::hydra::range?
+    hw::tegra_x1::cpu::MMUBase::GetInstance().Map(
         range.begin, memory, {MemoryType::Shared, MemoryAttribute::None, perm});
 }
 
 uptr SharedMemory::GetPtr() const {
-    return HW::TegraX1::CPU::MMUBase::GetInstance().GetMemoryPtr(memory);
+    return hw::tegra_x1::cpu::MMUBase::GetInstance().GetMemoryPtr(memory);
 }
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

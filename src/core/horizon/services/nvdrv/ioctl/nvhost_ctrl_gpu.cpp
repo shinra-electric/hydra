@@ -1,6 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01, ZCullGetCtxSize, 0x02,
@@ -18,7 +18,7 @@ NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id)
         out_handle_id = unknown_event.id;
         break;
     default:
-        LOG_WARN(HorizonServices, "Unknown event ID: {:02x}", event_id_u32);
+        LOG_WARN(Services, "Unknown event ID: {:02x}", event_id_u32);
         out_handle_id = INVALID_HANDLE_ID;
         return NvResult::BadParameter;
     }
@@ -27,7 +27,7 @@ NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id)
 }
 
 NvResult NvHostCtrlGpu::ZCullGetCtxSize(u32* out_size) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_size = 0x20000;
@@ -35,7 +35,7 @@ NvResult NvHostCtrlGpu::ZCullGetCtxSize(u32* out_size) {
 }
 
 NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // From Ryujinx
     *out_info = ZCullInfo{
@@ -54,11 +54,11 @@ NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
 }
 
 NvResult NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size, gpu_vaddr_t buffer_addr, GpuCharacteristics* out_characteristics) {
-    ASSERT_DEBUG(inout_buffer_size != 0x0, HorizonServices,
+    ASSERT_DEBUG(inout_buffer_size != 0x0, Services,
                  "Invalid buffer size 0x{:08x}", *inout_buffer_size.data);
     inout_buffer_size = 0xa0;
 
-    ASSERT_DEBUG(buffer_addr != 0x0, HorizonServices,
+    ASSERT_DEBUG(buffer_addr != 0x0, Services,
                  "Invalid buffer address 0x{:08x}", buffer_addr);
 
     // Write the characteristics
@@ -104,9 +104,9 @@ NvResult NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size, g
 }
 
 NvResult NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved, u64* out_mask_buffer) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
-    ASSERT_DEBUG(mask_buffer_size != 0x0, HorizonServices,
+    ASSERT_DEBUG(mask_buffer_size != 0x0, Services,
                  "Mask buffer size cannot be 0x0");
 
     // TODO: correct?
@@ -115,7 +115,7 @@ NvResult NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> res
 }
 
 NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // TODO: correct?
     *out_slot = 0x07;
@@ -123,4 +123,4 @@ NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
     return NvResult::Success;
 }
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

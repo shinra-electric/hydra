@@ -1,6 +1,6 @@
 #include "frontend/sdl3/window.hpp"
 
-namespace Hydra::Frontend::SDL3 {
+namespace hydra::frontend::sdl3 {
 
 Window::Window(int argc, const char* argv[]) {
     // Parse arguments
@@ -30,10 +30,10 @@ Window::Window(int argc, const char* argv[]) {
     emulation_context.Run();
 
     // Configure input
-    Horizon::OS::GetInstance().GetInputManager().ConnectNpad(
-        Horizon::HID::NpadIdType::Handheld,
-        Horizon::HID::NpadStyleSet::Handheld,
-        Horizon::HID::NpadAttributes::IsConnected);
+    horizon::OS::GetInstance().GetInputManager().ConnectNpad(
+        horizon::hid::NpadIdType::Handheld,
+        horizon::hid::NpadStyleSet::Handheld,
+        horizon::hid::NpadAttributes::IsConnected);
 }
 
 Window::~Window() {
@@ -44,7 +44,7 @@ Window::~Window() {
 void Window::Run() {
     bool running = true;
     while (running) {
-        auto& input_manager = Horizon::OS::GetInstance().GetInputManager();
+        auto& input_manager = horizon::OS::GetInstance().GetInputManager();
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -65,7 +65,7 @@ void Window::Run() {
 
 #define KEY_CASE(sdl_key, button)                                              \
     case SDLK_##sdl_key:                                                       \
-        buttons |= Horizon::HID::NpadButtons::button;                          \
+        buttons |= horizon::hid::NpadButtons::button;                          \
         break;
 
             // Key down
@@ -81,7 +81,7 @@ void Window::Run() {
 
 #define KEY_CASE(sdl_key, button)                                              \
     case SDLK_##sdl_key:                                                       \
-        buttons &= ~Horizon::HID::NpadButtons::button;                         \
+        buttons &= ~horizon::hid::NpadButtons::button;                         \
         break;
 
             // Key up
@@ -129,7 +129,7 @@ void Window::Run() {
             // Input
 
             // Npad
-            input_manager.SetNpadButtons(Horizon::HID::NpadIdType::Handheld,
+            input_manager.SetNpadButtons(horizon::hid::NpadIdType::Handheld,
                                          buttons);
 
             // Touch
@@ -150,4 +150,4 @@ void Window::Run() {
     }
 }
 
-} // namespace Hydra::Frontend::SDL3
+} // namespace hydra::frontend::sdl3

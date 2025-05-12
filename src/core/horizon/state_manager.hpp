@@ -3,7 +3,7 @@
 #include "core/horizon/const.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
 struct Account {
     u32 magic;
@@ -107,7 +107,7 @@ class StateManager {
     }
 
     // Getters
-    const Kernel::HandleWithId<Kernel::Event>& GetMsgEvent() {
+    const kernel::HandleWithId<kernel::Event>& GetMsgEvent() {
         return msg_event;
     }
 
@@ -121,7 +121,7 @@ class StateManager {
     std::stack<u128> account_uids;
 
     // Events
-    Kernel::HandleWithId<Kernel::Event> msg_event;
+    kernel::HandleWithId<kernel::Event> msg_event;
 };
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

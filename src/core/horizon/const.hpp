@@ -2,9 +2,9 @@
 
 #include "core/horizon/kernel/const.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
-using result_t = Kernel::result_t;
+using result_t = kernel::result_t;
 
 struct FirmwareVersion {
     u8 major;
@@ -30,7 +30,7 @@ constexpr FirmwareVersion FIRMWARE_VERSION = {
     .platform = "NX",
     .version_hash = "voyp5gq7m551zuqgspcgobbmo74rg6yydpalt72l",
     .display_version = "1.0.0",
-    .display_title = "Hydra firmware 1.0.0",
+    .display_title = "hydra firmware 1.0.0",
 };
 
 enum class ConfigEntryType : u32 {
@@ -54,7 +54,7 @@ enum class ConfigEntryType : u32 {
                      ///< number generator.
     UserIdStorage =
         15, ///< Provides persistent storage for the preselected user id.
-    HosVersion = 16, ///< Provides the currently running Horizon OS version.
+    HosVersion = 16, ///< Provides the currently running horizon OS version.
     SyscallAvailableHint2 =
         17, ///< Provides syscall availability hints (SVCs 0x80..0xBF).
 };
@@ -233,10 +233,10 @@ enum class LibraryAppletMode : u32 {
     AllForegroundInitiallyHidden,
 };
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::AppletMessage, None, "none", ChangeIntoForeground,
+    hydra::horizon::AppletMessage, None, "none", ChangeIntoForeground,
     "change into foreground", ChangeIntoBackground, "change into background",
     Exit, "exit", ApplicationExited, "application exited", FocusStateChanged,
     "focus state changed", Resume, "resume", DetectShortPressingHomeButton,
@@ -264,12 +264,12 @@ ENABLE_ENUM_FORMATTING(
     DetectLongPressingCaptureButtonForApplet,
     "detect long pressing capture button for applet")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::LaunchParameterKind, UserChannel,
+ENABLE_ENUM_FORMATTING(hydra::horizon::LaunchParameterKind, UserChannel,
                        "user channel", PreselectedUser, "preselected user",
                        Unknown0, "unknown0")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::AppletId, None, "none", Application, "application",
+    hydra::horizon::AppletId, None, "none", Application, "application",
     LibraryAppletAuth, "library applet auth", LibraryAppletCabinet,
     "library applet cabinet", LibraryAppletController,
     "library applet controller", LibraryAppletDataErase,
@@ -308,7 +308,7 @@ ENABLE_ENUM_FORMATTING(
     Applet700000F2, "applet 700000f2", Applet700000F3, "applet 700000f3",
     Applet700000F4, "applet 700000f4")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::LibraryAppletMode, AllForeground,
+ENABLE_ENUM_FORMATTING(hydra::horizon::LibraryAppletMode, AllForeground,
                        "all foreground", PartialForeground,
                        "partial foreground", NoUi, "no UI",
                        PartialForegroundWithIndirectDisplay,

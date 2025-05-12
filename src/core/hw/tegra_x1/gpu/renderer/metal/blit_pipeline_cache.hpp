@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 struct BlitPipelineDescriptor {
     MTL::PixelFormat pixel_format;
@@ -26,4 +26,4 @@ class BlitPipelineCache
     MTL::RenderPipelineDescriptor* pipeline_descriptor;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/thread.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Dynarmic {
+namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 CPU::CPU() {
     // TODO
@@ -25,4 +25,4 @@ ThreadBase* CPU::CreateThread(MemoryBase* tls_mem) {
 
 MMUBase* CPU::GetMMU() const { return mmu; }
 
-} // namespace Hydra::HW::TegraX1::CPU::Dynarmic
+} // namespace hydra::hw::tegra_x1::cpu::dynarmic

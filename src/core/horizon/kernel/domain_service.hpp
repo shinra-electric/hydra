@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 class DomainService : public ServiceBase {
   public:
@@ -22,4 +22,4 @@ class DomainService : public ServiceBase {
     DynamicHandlePool<ServiceBase> subservice_pool;
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

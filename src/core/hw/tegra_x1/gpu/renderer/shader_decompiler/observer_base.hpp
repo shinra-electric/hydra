@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 class ObserverBase {
   public:
@@ -45,4 +45,4 @@ class ObserverBase {
     u32 pc{0};
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

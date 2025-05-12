@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IStorage : public ServiceBase {
   public:
@@ -19,4 +19,4 @@ class IStorage : public ServiceBase {
     result_t Open(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

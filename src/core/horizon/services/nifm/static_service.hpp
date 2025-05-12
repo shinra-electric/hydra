@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 class IStaticService : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IStaticService : public ServiceBase {
     result_t CreateGeneralServiceOld(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

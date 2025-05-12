@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Services::Settings {
+namespace hydra::horizon::services::settings {
 
 enum class SettingDataType {
     String,
@@ -33,4 +33,4 @@ struct SettingValue {
 
 extern std::map<std::string, SettingValue> nx_settings;
 
-} // namespace Hydra::Horizon::Services::Settings
+} // namespace hydra::horizon::services::settings

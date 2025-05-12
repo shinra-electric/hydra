@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 class IApplicationRootService : public ServiceBase {
   protected:
@@ -15,4 +15,4 @@ class IApplicationRootService : public ServiceBase {
     GetDisplayServiceWithProxyNameExchange(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

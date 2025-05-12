@@ -4,7 +4,7 @@
 #include "core/horizon/services/audio/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 class IAudioRendererManager : public ServiceBase {
   protected:
@@ -18,4 +18,4 @@ class IAudioRendererManager : public ServiceBase {
     result_t GetWorkBufferSize(AudioRendererParameters params, u64* out_size);
 };
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

@@ -3,7 +3,7 @@
 #include "core/horizon/services/hid/active_vibration_device_list.hpp"
 #include "core/horizon/services/hid/applet_resource.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 namespace {} // namespace
 
@@ -17,18 +17,18 @@ DEFINE_SERVICE_COMMAND_TABLE(
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
     CreateActiveVibrationDeviceList, 206, SendVibrationValues)
 
-IHidServer::IHidServer() : npad_style_set_update_event(new Kernel::Event()) {}
+IHidServer::IHidServer() : npad_style_set_update_event(new kernel::Event()) {}
 
-result_t IHidServer::CreateAppletResource(Kernel::add_service_fn_t add_service,
+result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
                                           u64 aruid) {
     add_service(new IAppletResource());
 
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetSupportedNpadStyleSet(HID::NpadStyleSet* style_set) {
+result_t IHidServer::GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set) {
     // TODO: make this configurable?
-    *style_set = HID::NpadStyleSet::Standard;
+    *style_set = ::hydra::horizon::hid::NpadStyleSet::Standard;
 
     return RESULT_SUCCESS;
 }
@@ -44,7 +44,7 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
 
 result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
                                             VibrationDeviceInfo* info) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *info = {
@@ -56,10 +56,10 @@ result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
 }
 
 result_t IHidServer::CreateActiveVibrationDeviceList(
-    Kernel::add_service_fn_t add_service) {
+    kernel::add_service_fn_t add_service) {
     add_service(new IActiveVibrationDeviceList());
 
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

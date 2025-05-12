@@ -2,11 +2,11 @@
 
 #include "core/hw/generic_mmu.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
 }
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 struct AddressSpace {
     uptr addr; // CPU address, 0x0 for private memory
@@ -15,7 +15,7 @@ struct AddressSpace {
 
 class GPUMMU : public GenericMMU<GPUMMU, AddressSpace> {
   public:
-    GPUMMU(CPU::MMUBase* mmu_) : mmu{mmu_} {}
+    GPUMMU(cpu::MMUBase* mmu_) : mmu{mmu_} {}
 
     usize ImplGetSize(const AddressSpace& as) const { return as.size; }
 
@@ -36,7 +36,7 @@ class GPUMMU : public GenericMMU<GPUMMU, AddressSpace> {
     void UnmapImpl(uptr base, AddressSpace as) {}
 
   private:
-    CPU::MMUBase* mmu;
+    cpu::MMUBase* mmu;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu

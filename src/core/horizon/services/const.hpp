@@ -4,7 +4,7 @@
 
 #define SERVICE_COMMAND_CASE(service, id, func)                                \
     case id:                                                                   \
-        LOG_DEBUG(HorizonServices, #func);                                     \
+        LOG_DEBUG(Services, #func);                                     \
         return invoke_command(context, *this, &service::func);
 
 #define DEFINE_SERVICE_COMMAND_TABLE(service, ...)                             \
@@ -12,24 +12,24 @@
         switch (id) {                                                          \
             FOR_EACH_1_2(SERVICE_COMMAND_CASE, service, __VA_ARGS__)           \
         default:                                                               \
-            LOG_WARN(HorizonServices, "Unknown request {}", id);               \
+            LOG_WARN(Services, "Unknown request {}", id);               \
             return MAKE_RESULT(Svc, 0); /* TODO */                             \
         }                                                                      \
     }
 
 #define STUB_REQUEST_COMMAND(name)                                             \
     result_t name() {                                                          \
-        LOG_FUNC_STUBBED(HorizonServices);                                     \
+        LOG_FUNC_STUBBED(Services);                                     \
         return RESULT_SUCCESS;                                                 \
     }
 
-namespace Hydra::Horizon::Services {
+namespace hydra::horizon::services {
 
-using result_t = Kernel::result_t;
-using add_service_fn_t = Kernel::add_service_fn_t;
-using get_service_fn_t = Kernel::get_service_fn_t;
-using RequestContext = Kernel::RequestContext;
-using ServiceBase = Kernel::ServiceBase;
+using result_t = kernel::result_t;
+using add_service_fn_t = kernel::add_service_fn_t;
+using get_service_fn_t = kernel::get_service_fn_t;
+using RequestContext = kernel::RequestContext;
+using ServiceBase = kernel::ServiceBase;
 
 enum class BufferAttr {
     AutoSelect,
@@ -227,7 +227,7 @@ void read_arg(RequestContext& context, CommandArguments& args) {
                      arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::Service)*/ {
-            ASSERT_DEBUG(context.readers.objects_reader, HorizonServices,
+            ASSERT_DEBUG(context.readers.objects_reader, Services,
                          "Objects reader is null");
             auto service_handle_id =
                 context.readers.objects_reader->Read<handle_id_t>();
@@ -267,4 +267,4 @@ result_t invoke_command(RequestContext& context, Class& instance,
     return invoke_command_with_args(context, instance, func, indices);
 }
 
-} // namespace Hydra::Horizon::Services
+} // namespace hydra::horizon::services

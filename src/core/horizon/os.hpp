@@ -4,13 +4,13 @@
 #include "core/horizon/input_manager.hpp"
 #include "core/horizon/state_manager.hpp"
 
-namespace Hydra::HW::Display {
+namespace hydra::hw::Display {
 class DisplayBase;
 }
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
-namespace Services::Sm {
+namespace services::sm {
 class IUserInterface;
 }
 
@@ -18,11 +18,11 @@ class OS {
   public:
     static OS& GetInstance();
 
-    OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_);
+    OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_);
     ~OS();
 
     // Getters
-    Kernel::Kernel& GetKernel() { return kernel; }
+    kernel::Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
     DisplayDriver& GetDisplayDriver() { return display_driver; }
     InputManager& GetInputManager() { return input_manager; }
@@ -33,12 +33,12 @@ class OS {
     }
 
   private:
-    HW::TegraX1::CPU::MMUBase* mmu;
+    hw::tegra_x1::cpu::MMUBase* mmu;
 
-    Kernel::Kernel kernel;
+    kernel::Kernel kernel;
 
     // Services
-    Services::Sm::IUserInterface* sm_user_interface;
+    services::sm::IUserInterface* sm_user_interface;
 
     // Managers
     StateManager state_manager;
@@ -46,4 +46,4 @@ class OS {
     InputManager input_manager;
 };
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

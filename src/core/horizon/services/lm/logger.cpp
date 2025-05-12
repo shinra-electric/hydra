@@ -1,6 +1,6 @@
 #include "core/horizon/services/lm/logger.hpp"
 
-namespace Hydra::Horizon::Services::Lm {
+namespace hydra::horizon::services::lm {
 
 namespace {
 
@@ -12,7 +12,7 @@ enum class PacketFlags : u8 {
     LittleEndian = BIT(2),
 };
 
-ENABLE_ENUM_BITMASK_OPERATORS(Hydra::Horizon::Services::Lm::PacketFlags)
+ENABLE_ENUM_BITMASK_OPERATORS(hydra::horizon::services::lm::PacketFlags)
 
 enum class Severity : u8 {
     Trace,
@@ -66,17 +66,17 @@ bool try_read_uleb128(Reader& reader, u32& result) {
 
 } // namespace
 
-} // namespace Hydra::Horizon::Services::Lm
+} // namespace hydra::horizon::services::lm
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Lm::Severity, Trace, "trace",
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::lm::Severity, Trace, "trace",
                        Info, "info", Warn, "warn", Error, "error", Fatal,
                        "fatal")
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Services::Lm::PacketFlags, Head,
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::services::lm::PacketFlags, Head,
                              "head", Tail, "tail", LittleEndian,
                              "little endian")
 
-namespace Hydra::Horizon::Services::Lm {
+namespace hydra::horizon::services::lm {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
@@ -94,7 +94,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::MapAlias> buffer) {
         u32 size;
         if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size))
             return MAKE_RESULT(
-                Svc, Kernel::Error::InvalidCombination); // TODO: module
+                Svc, kernel::Error::InvalidCombination); // TODO: module
 
         const auto data = reader.ReadPtr<u8>(size);
 
@@ -135,7 +135,7 @@ result_t ILogger::Log(InBuffer<BufferAttr::MapAlias> buffer) {
             packet.time = GET_DATA(u64);
             break;
         case LogDataChunkKey::ProcessName:
-            LOG_NOT_IMPLEMENTED(HorizonServices, "ProcessName");
+            LOG_NOT_IMPLEMENTED(Services, "ProcessName");
             break;
         }
 
@@ -164,11 +164,11 @@ result_t ILogger::Log(InBuffer<BufferAttr::MapAlias> buffer) {
         if (!packet.message.empty()) {
             msg += fmt::format("- Message: \"{}\"\n", packet.message);
         }
-        LOG_INFO(HorizonServices, "Log:\n{}", msg);
+        LOG_INFO(Services, "Log:\n{}", msg);
         packet = {};
     }
 
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Lm
+} // namespace hydra::horizon::services::lm

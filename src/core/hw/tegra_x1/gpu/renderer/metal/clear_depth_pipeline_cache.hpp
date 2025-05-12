@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class ClearDepthPipelineCache
     : public CacheBase<ClearDepthPipelineCache, MTL::RenderPipelineState*,
@@ -22,4 +22,4 @@ class ClearDepthPipelineCache
     MTL::RenderPipelineDescriptor* pipeline_descriptor;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

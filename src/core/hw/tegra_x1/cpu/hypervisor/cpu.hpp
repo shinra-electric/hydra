@@ -3,11 +3,11 @@
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 class OS;
 }
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class MMU;
 class Thread;
@@ -26,4 +26,4 @@ class CPU : public CPUBase {
     MMU* mmu;
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

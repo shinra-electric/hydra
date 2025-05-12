@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/texture_util.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureDecoder::TextureDecoder() {}
 TextureDecoder::~TextureDecoder() {}
@@ -26,4 +26,4 @@ void TextureDecoder::Decode(const TextureDescriptor& descriptor,
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

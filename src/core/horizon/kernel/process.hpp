@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 class Process : public Handle {
   public:
@@ -18,7 +18,7 @@ class Process : public Handle {
 
   private:
     HandleWithId<Thread> main_thread;
-    HW::TegraX1::CPU::MemoryBase* stack_mem;
+    hw::tegra_x1::cpu::MemoryBase* stack_mem;
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

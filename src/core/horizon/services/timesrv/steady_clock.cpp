@@ -1,7 +1,7 @@
 #include "core/horizon/services/timesrv/steady_clock.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISteadyClock)
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

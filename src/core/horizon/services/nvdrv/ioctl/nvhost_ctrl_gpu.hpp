@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 // From switchbrew
 struct GpuCharacteristics {
@@ -60,15 +60,15 @@ struct ZCullInfo {
 class NvHostCtrlGpu : public FdBase {
   public:
     NvHostCtrlGpu()
-        : error_event(new Kernel::Event()), unknown_event(new Kernel::Event()) {
+        : error_event(new kernel::Event()), unknown_event(new kernel::Event()) {
     }
 
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;
 
   private:
-    Kernel::HandleWithId<Kernel::Event> error_event;
-    Kernel::HandleWithId<Kernel::Event> unknown_event;
+    kernel::HandleWithId<kernel::Event> error_event;
+    kernel::HandleWithId<kernel::Event> unknown_event;
 
     // Ioctls
     NvResult ZCullGetCtxSize(u32* out_size);
@@ -79,4 +79,4 @@ class NvHostCtrlGpu : public FdBase {
     NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
 };
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

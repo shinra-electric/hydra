@@ -1,6 +1,6 @@
 #pragma once
 
-#define APP_NAME "Hydra"
+#define APP_NAME "hydra"
 
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 

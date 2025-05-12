@@ -3,7 +3,7 @@
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 struct ParcelData {
     u32 unknown0;
@@ -18,8 +18,8 @@ class DisplayServiceBase : public ServiceBase {
   protected:
     result_t CreateStrayLayerImpl(u32 flags, u64 display_id, u64* out_layer_id,
                                   u64* out_native_window_size,
-                                  HosBinder::ParcelWriter& out_parcel_writer);
+                                  hosbinder::ParcelWriter& out_parcel_writer);
     result_t SetLayerVisibilityImpl(u64 layer_id, bool visible);
 };
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

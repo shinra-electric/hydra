@@ -2,12 +2,12 @@
 
 #include "core/horizon/loader/loader_base.hpp"
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 class NROLoader : public LoaderBase {
   public:
-    Kernel::Process* LoadRom(StreamReader& reader,
+    kernel::Process* LoadRom(StreamReader& reader,
                              const std::string& rom_filename) override;
 };
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader

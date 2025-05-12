@@ -5,7 +5,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/hw/tegra_x1/gpu/texture_util.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 
@@ -84,17 +84,17 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     }
 }
 
-Renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize size) {
-    const Renderer::BufferDescriptor descriptor{
+renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize size) {
+    const renderer::BufferDescriptor descriptor{
         .ptr = UNMAP_ADDR(addr),
         .size = size,
     };
 
-    return RENDERER->GetBufferCache().Find(descriptor);
+    return RENDERER_INSTANCE->GetBufferCache().Find(descriptor);
 }
 
 /*
-Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
+renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
                                         const u32 gpu_addr_hi,
                                         const TextureCopyInfo& info) {
     const auto gpu_addr = make_addr(gpu_addr_lo, gpu_addr_hi);
@@ -102,10 +102,10 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
     i32 block_size_log2 = get_block_size_log2(info.block_size.height);
     LOG_DEBUG(Engines, "Block size: {}", 1 << block_size_log2);
 
-    const Renderer::TextureDescriptor descriptor{
+    const renderer::TextureDescriptor descriptor{
         .ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr),
         .format =
-            Renderer::TextureFormat::RGBA8Unorm, // TODO: choose based on bpp
+            renderer::TextureFormat::RGBA8Unorm, // TODO: choose based on bpp
         .kind = NvKind::Pitch,                   // TODO: correct?
         .width = info.stride,                    // HACK
         .height = info.height,                   // HACK
@@ -114,8 +114,8 @@ Renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
     };
     LOG_DEBUG(Engines, "COPYING: {}x{}", descriptor.width, descriptor.height);
 
-    return RENDERER->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 */
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

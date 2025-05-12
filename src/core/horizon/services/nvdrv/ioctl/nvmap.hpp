@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/nvdrv/ioctl/fd_base.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 class NvMap : public FdBase {
   public:
@@ -17,4 +17,4 @@ class NvMap : public FdBase {
     NvResult GetId(u32* out_id, handle_id_t handle_id);
 };
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

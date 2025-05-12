@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "common/macros.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 enum class NvLayout : u32 {
     Pitch = 1,
@@ -759,16 +759,16 @@ constexpr usize STORAGE_BUFFER_BINDING_COUNT = 16;
 constexpr usize TEXTURE_BINDING_COUNT = 32;
 constexpr usize IMAGE_BINDING_COUNT = 8;
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::NvLayout, Pitch, "pitch", Tiled,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::NvLayout, Pitch, "pitch", Tiled,
                        "tiled", BlockLinear, "block linear")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::NvDisplayScanFormat,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::NvDisplayScanFormat,
                        Progressive, "progressive", Interlaced, "interlaced")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::NvKind, Pitch, "pitch", Z16, "z16", Z16_2C,
+    hydra::hw::tegra_x1::gpu::NvKind, Pitch, "pitch", Z16, "z16", Z16_2C,
     "z16_2c", Z16_MS2_2C, "z16_ms2_2c", Z16_MS4_2C, "z16_ms4_2c", Z16_MS8_2C,
     "z16_ms8_2c", Z16_MS16_2C, "z16_ms16_2c", Z16_2Z, "z16_2z", Z16_MS2_2Z,
     "z16_ms2_2z", Z16_MS4_2Z, "z16_ms4_2z", Z16_MS8_2Z, "z16_ms8_2z",
@@ -905,7 +905,7 @@ ENABLE_ENUM_FORMATTING(
     Generic_16BX2, "generic_16bx2", Invalid, "invalid")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::NvColorFormat, NonColor8, "noncolor8", NonColor16,
+    hydra::hw::tegra_x1::gpu::NvColorFormat, NonColor8, "noncolor8", NonColor16,
     "noncolor16", NonColor24, "noncolor24", NonColor32, "noncolor32", X4C4,
     "x4c4", A4L4, "a4l4", A8L8, "a8l8", Float_A16L16, "float_a16l16", A1B5G5R5,
     "a1b5g5r5", A4B4G4R4, "a4b4g4r4", A5B5G5R1, "a5b5g5r1", A2B10G10R10,
@@ -991,7 +991,7 @@ ENABLE_ENUM_FORMATTING(
     X4Bayer12GBRG, "x4bayer12gbrg", X6Bayer10GBRG, "x6bayer10gbrg", XYZ, "xyz")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::ImageFormat, Invalid, "invalid", RGBA32, "rgba32",
+    hydra::hw::tegra_x1::gpu::ImageFormat, Invalid, "invalid", RGBA32, "rgba32",
     RGB32, "rgb32", RGBA16, "rgba16", R32G32, "r32g32", R32B24G8, "r32b24g8",
     ETC2_RGB, "etc2_rgb", XBGR8, "xbgr8", ARGB8, "argb8", A2BGR10, "a2bgr10",
     ETC2_RGB_PTA, "etc2_rgb_pta", ETC2_RGBA, "etc2_rgba", RG16, "rg16", G8R24,
@@ -1020,17 +1020,17 @@ ENABLE_ENUM_FORMATTING(
     "astc_2d_12x10", ASTC_2D_8X5, "astc_2d_8x5", ASTC_2D_10X5, "astc_2d_10x5",
     ASTC_2D_10X6, "astc_2d_10x6")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ImageComponent, Snorm, "snorm",
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::ImageComponent, Snorm, "snorm",
                        Unorm, "unorm", Sint, "sint", Uint, "uint",
                        SnormForceFp16, "snorm force fp16", UnormForceFp16,
                        "unorm force fp16", Float, "float")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::ImageSwizzle, Zero, "zero", R,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::ImageSwizzle, Zero, "zero", R,
                        "r", G, "g", B, "b", A, "a", OneInt, "one int", OneFloat,
                        "one float")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::ColorSurfaceFormat, Invalid, "invalid", Bitmap,
+    hydra::hw::tegra_x1::gpu::ColorSurfaceFormat, Invalid, "invalid", Bitmap,
     "bitmap", RGBA32Float, "rgba32float", RGBA32Sint, "rgba32sint", RGBA32Uint,
     "rgba32uint", RGBX32Float, "rgbx32float", RGBX32Sint, "rgbx32sint",
     RGBX32Uint, "rgbx32uint", RGBA16Unorm, "rgba16unorm", RGBA16Snorm,
@@ -1056,7 +1056,7 @@ ENABLE_ENUM_FORMATTING(
     BGRX8UnormUnknownFE, "bgrx8unormunknownfe", Y32UintUnknownFF,
     "y32uintunknownff")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::DepthSurfaceFormat, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::DepthSurfaceFormat, Invalid,
                        "invalid", Z32Float, "z32float", Z16Unorm, "z16unorm",
                        S8Z24Unorm, "s8z24unorm", Z24X8Unorm, "z24x8unorm",
                        Z24S8Unorm, "z24s8unorm", S8Uint, "s8uint", Z24C8Unorm,
@@ -1064,7 +1064,7 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::DepthSurfaceFormat, Invalid,
                        Z24X8S8C8X16Unorm, "z24x8s8c8x16unorm", Z32X8C8X16Float,
                        "z32x8c8x16float", Z32S8C8X16Float, "z32s8c8x16float")
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::HW::TegraX1::GPU::GpfifoFlags, FenceWait,
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::hw::tegra_x1::gpu::GpfifoFlags, FenceWait,
                              "fence wait", FenceGet, "fence get", HwFormat,
                              "hw format", SyncFence, "sync fence", SuppressWfi,
                              "suppress WFI", SkipBufferRefcounting,

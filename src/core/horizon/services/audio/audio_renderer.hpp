@@ -4,7 +4,7 @@
 #include "core/horizon/services/audio/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 class IAudioRenderer : public ServiceBase {
   public:
@@ -18,7 +18,7 @@ class IAudioRenderer : public ServiceBase {
     AudioRendererParameters params;
     usize work_buffer_size;
 
-    Kernel::HandleWithId<Kernel::Event> event;
+    kernel::HandleWithId<kernel::Event> event;
 
     // Commands
     result_t RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer);
@@ -27,4 +27,4 @@ class IAudioRenderer : public ServiceBase {
     result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
 };
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Texture::Texture(const TextureDescriptor& descriptor)
     : TextureBase(descriptor) {
@@ -16,7 +16,7 @@ Texture::Texture(const TextureDescriptor& descriptor)
     pixel_format = to_mtl_pixel_format(descriptor.format);
     desc->setPixelFormat(pixel_format);
 
-    mtl_texture = Renderer::GetInstance().GetDevice()->newTexture(desc);
+    mtl_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
 }
 
 Texture::Texture(const TextureDescriptor& descriptor,
@@ -48,11 +48,11 @@ void Texture::CopyFrom(const uptr data) {
     usize size = descriptor.stride * descriptor.height * 1;
 
     // TODO: get the buffer from a buffer allocator instead
-    auto tmp_buffer = Renderer::GetInstance().GetDevice()->newBuffer(
+    auto tmp_buffer = METAL_RENDERER_INSTANCE.GetDevice()->newBuffer(
         size, MTL::ResourceStorageModeShared);
     memcpy(tmp_buffer->contents(), reinterpret_cast<void*>(data), size);
 
-    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
     // TODO: bytes per image
     encoder->copyFromBuffer(tmp_buffer, 0, descriptor.stride, 0,
@@ -67,7 +67,7 @@ void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
                        const usize3 size) {
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
-    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
     // TODO: bytes per image
     encoder->copyFromBuffer(
@@ -81,7 +81,7 @@ void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
                        const uint3 dst_origin, const usize3 size) {
     const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
 
-    auto encoder = Renderer::GetInstance().GetBlitCommandEncoder();
+    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
     // TODO: bytes per image
     encoder->copyFromTexture(
@@ -96,9 +96,9 @@ void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
                        const u32 dst_layer, const float3 dst_origin,
                        const usize3 dst_size) {
     // TODO: src layer
-    Renderer::GetInstance().BlitTexture(
+    METAL_RENDERER_INSTANCE.BlitTexture(
         static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
         mtl_texture, dst_layer, dst_origin, dst_size);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

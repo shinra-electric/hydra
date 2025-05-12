@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL {
 
 class Builder final : public LangBuilderBase {
   public:
@@ -28,4 +28,4 @@ class Builder final : public LangBuilderBase {
     std::string GetSvQualifierName(const Sv& sv, bool output);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL

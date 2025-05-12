@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Ssl::Sf {
+namespace hydra::horizon::services::ssl::sf {
 
 class ISslService : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class ISslService : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Ssl::Sf
+} // namespace hydra::horizon::services::ssl::sf

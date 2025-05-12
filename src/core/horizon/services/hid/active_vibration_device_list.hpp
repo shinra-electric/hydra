@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 class IActiveVibrationDeviceList : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IActiveVibrationDeviceList : public ServiceBase {
     STUB_REQUEST_COMMAND(ActivateVibrationDevice);
 };
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

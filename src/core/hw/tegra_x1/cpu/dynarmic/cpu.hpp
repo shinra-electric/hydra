@@ -3,11 +3,11 @@
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/const.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 class OS;
 }
 
-namespace Hydra::HW::TegraX1::CPU::Dynarmic {
+namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 class MMU;
 class Thread;
@@ -26,4 +26,4 @@ class CPU : public CPUBase {
     MMU* mmu;
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Dynarmic
+} // namespace hydra::hw::tegra_x1::cpu::dynarmic

@@ -3,20 +3,20 @@
 #include "core/horizon/services/sm/user_interface.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
-SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon, "Horizon OS")
+SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon, "horizon OS")
 
-OS::OS(HW::Bus& bus, HW::TegraX1::CPU::MMUBase* mmu_)
+OS::OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_)
     : mmu{mmu_}, kernel(bus, mmu_) {
-    SINGLETON_SET_INSTANCE(Horizon, "Horizon OS");
+    SINGLETON_SET_INSTANCE(Horizon, "horizon OS");
 
     // Services
-    sm_user_interface = new Services::Sm::IUserInterface();
+    sm_user_interface = new services::sm::IUserInterface();
 
     kernel.ConnectServiceToPort("sm:", sm_user_interface);
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

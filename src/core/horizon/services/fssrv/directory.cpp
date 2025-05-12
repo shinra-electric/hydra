@@ -3,7 +3,7 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 namespace {
 
@@ -43,7 +43,7 @@ result_t IDirectory::Read(i64* out_total_entries,
         e.type =
             (entry->IsDirectory() ? EntryType::Directory : EntryType::File);
         if (!entry->IsDirectory())
-            e.file_size = static_cast<Filesystem::FileBase*>(entry)->GetSize();
+            e.file_size = static_cast<filesystem::FileBase*>(entry)->GetSize();
         else
             e.file_size = 0;
 
@@ -59,4 +59,4 @@ result_t IDirectory::Read(i64* out_total_entries,
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv

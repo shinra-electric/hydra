@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 
 class MemoryBase;
 class MMUBase;
@@ -20,4 +20,4 @@ class CPUBase {
     virtual MMUBase* GetMMU() const = 0;
 };
 
-} // namespace Hydra::HW::TegraX1::CPU
+} // namespace hydra::hw::tegra_x1::cpu

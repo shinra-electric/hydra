@@ -2,11 +2,11 @@
 
 #include "core/horizon/kernel/const.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
 }
 
-namespace Hydra::Horizon::Kernel::Hipc {
+namespace hydra::horizon::kernel::hipc {
 
 #define HIPC_AUTO_RECV_STATIC UINT8_MAX
 #define HIPC_RESPONSE_NO_PID UINT32_MAX
@@ -261,13 +261,13 @@ inline Request make_request(void* base, Metadata meta) {
     return calc_request_layout(meta, base);
 }
 
-u8* get_buffer_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+u8* get_buffer_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
                    const BufferDescriptor& descriptor, usize& size);
 
-u8* get_static_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+u8* get_static_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
                    const StaticDescriptor& descriptor, usize& size);
 
-u8* get_list_entry_ptr(const HW::TegraX1::CPU::MMUBase* mmu,
+u8* get_list_entry_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
                        const RecvListEntry& descriptor, usize& size);
 
 #define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
@@ -296,7 +296,7 @@ struct Readers {
     std::vector<Reader> send_buffers_readers;
     std::vector<Reader> exch_buffers_readers;
 
-    Readers(const HW::TegraX1::CPU::MMUBase* mmu, ParsedRequest hipc_in)
+    Readers(const hw::tegra_x1::cpu::MMUBase* mmu, ParsedRequest hipc_in)
         : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10),
                  hipc_in.meta.num_data_words * sizeof(u32)),
           objects_reader{nullptr} {
@@ -320,7 +320,7 @@ struct Writers {
     std::vector<Writer> recv_buffers_writers;
     std::vector<Writer> exch_buffers_writers;
 
-    Writers(const HW::TegraX1::CPU::MMUBase* mmu, ParsedRequest hipc_in,
+    Writers(const hw::tegra_x1::cpu::MMUBase* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
             u8* scratch_buffer_move_handles, u8* scratch_buffer_copy_handles)
         : writer(scratch_buffer, 0x1000),
@@ -342,4 +342,4 @@ struct Writers {
 
 #undef CREATE_READERS_OR_WRITERS
 
-} // namespace Hydra::Horizon::Kernel::Hipc
+} // namespace hydra::horizon::kernel::hipc

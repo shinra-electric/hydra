@@ -23,50 +23,50 @@
     auto& device = it->second;
 
 #define VERIFY_MOUNT(mount)                                                    \
-    ASSERT(mount.find("/") == std::string::npos, HorizonFilesystem,            \
+    ASSERT(mount.find("/") == std::string::npos, Filesystem,            \
            "Invalid mount point \"{}\"", mount);
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
-SINGLETON_DEFINE_GET_INSTANCE(Filesystem, HorizonFilesystem, "Filesystem")
+SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem, "filesystem")
 
-Filesystem::Filesystem() {
-    SINGLETON_SET_INSTANCE(HorizonFilesystem, "Filesystem");
+filesystem::filesystem() {
+    SINGLETON_SET_INSTANCE(Filesystem, "filesystem");
 
     // SD card
     MountImpl(FS_SD_MOUNT,
               new Directory(Config::GetInstance().GetSdCardPath()));
 }
 
-Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
+filesystem::~filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
-void Filesystem::Mount(const std::string& mount) {
+void filesystem::Mount(const std::string& mount) {
     MountImpl(mount, new Directory());
 }
 
-void Filesystem::Mount(const std::string& mount, const std::string& root_path) {
+void filesystem::Mount(const std::string& mount, const std::string& root_path) {
     Directory* root;
     auto res = GetDirectory(root_path, root);
-    ASSERT(res == FsResult::Success, HorizonFilesystem,
+    ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root directory \"{}\" for mount \"{}\"", root_path,
            mount);
     MountImpl(mount, root);
 }
 
-FsResult Filesystem::AddEntry(const std::string& path, EntryBase* entry,
+FsResult filesystem::AddEntry(const std::string& path, EntryBase* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, entry, add_intermediate);
 }
 
-FsResult Filesystem::AddEntry(const std::string& path,
+FsResult filesystem::AddEntry(const std::string& path,
                               const std::string& host_path,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult Filesystem::CreateFile(const std::string& path,
+FsResult filesystem::CreateFile(const std::string& path,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 
@@ -76,7 +76,7 @@ FsResult Filesystem::CreateFile(const std::string& path,
             "{}{}", Config::GetInstance().GetSdCardPath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
-        LOG_WARN(HorizonFilesystem,
+        LOG_WARN(Filesystem,
                  "Could not find host path for path \"{}\", falling back to "
                  "RAM backed file",
                  path);
@@ -84,17 +84,17 @@ FsResult Filesystem::CreateFile(const std::string& path,
     }
 }
 
-FsResult Filesystem::CreateDirectory(const std::string& path,
+FsResult filesystem::CreateDirectory(const std::string& path,
                                      bool add_intermediate) {
     return AddEntry(path, new Directory(), add_intermediate);
 }
 
-FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
+FsResult filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
+FsResult filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
@@ -107,7 +107,7 @@ FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     return res;
 }
 
-FsResult Filesystem::GetDirectory(const std::string& path,
+FsResult filesystem::GetDirectory(const std::string& path,
                                   Directory*& out_directory) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
@@ -121,10 +121,10 @@ FsResult Filesystem::GetDirectory(const std::string& path,
     return res;
 }
 
-void Filesystem::MountImpl(const std::string& mount, Directory* root) {
+void filesystem::MountImpl(const std::string& mount, Directory* root) {
     VERIFY_MOUNT(mount);
     devices.emplace(std::make_pair(mount, root));
-    LOG_INFO(HorizonFilesystem, "Mounted \"{}\"", mount);
+    LOG_INFO(Filesystem, "Mounted \"{}\"", mount);
 }
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

@@ -2,7 +2,7 @@
 
 // TODO: make all of this configurable
 
-namespace Hydra::Horizon::Services::Account {
+namespace hydra::horizon::services::account {
 
 namespace {
 
@@ -43,10 +43,10 @@ result_t IProfile::GetBase(AccountProfileBase* out_base) {
     *out_base = {
         .uid = user_id,
         .last_edit_timestamp = 0,
-        .nickname = "Hydra user",
+        .nickname = "hydra user",
     };
 
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Account
+} // namespace hydra::horizon::services::account

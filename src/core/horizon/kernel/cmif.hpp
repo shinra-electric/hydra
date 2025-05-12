@@ -4,7 +4,7 @@
 #include "common/macros.hpp"
 #include "core/horizon/kernel/hipc.hpp"
 
-namespace Hydra::Horizon::Kernel::Cmif {
+namespace hydra::horizon::kernel::cmif {
 
 #define CMIF_IN_HEADER_MAGIC 0x49434653  // "SFCI"
 #define CMIF_OUT_HEADER_MAGIC 0x4F434653 // "SFCO"
@@ -81,19 +81,19 @@ inline void write_domain_out_header(Writer& writer) {
     });
 }
 
-} // namespace Hydra::Horizon::Kernel::Cmif
+} // namespace hydra::horizon::kernel::cmif
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Kernel::Cmif::DomainCommandType, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::DomainCommandType, Invalid,
                        "invalid", SendMessage, "send message", Close, "close")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Kernel::Cmif::CommandType, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::CommandType, Invalid,
                        "invalid", LegacyRequest, "legacy request", Close,
                        "close", LegacyControl, "legacy control", Request,
                        "request", Control, "control", RequestWithContext,
                        "request with context", ControlWithContext,
                        "control with context")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Kernel::Cmif::ControlCommandType,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::ControlCommandType,
                        ConvertCurrentObjectToDomain,
                        "convert current object to domain",
                        CopyFromCurrentDomain, "copy from current domain",

@@ -17,7 +17,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR {
 
 class Builder final : public BuilderBase {
   public:
@@ -211,4 +211,4 @@ class Builder final : public BuilderBase {
     }
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR

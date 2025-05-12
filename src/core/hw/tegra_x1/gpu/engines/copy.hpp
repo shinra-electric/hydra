@@ -2,12 +2,12 @@
 
 #include "core/hw/tegra_x1/gpu/engines/engine_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 class BufferBase;
 class TextureBase;
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 enum class TransferType : u32 {
     None,
@@ -143,15 +143,15 @@ class Copy : public EngineWithRegsBase<RegsCopy> {
     void LaunchDMA(const u32 index, const LaunchDMAData data);
 
     // Helpers
-    static Renderer::BufferBase* GetBuffer(const Iova addr, const usize size);
-    // static Renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
+    static renderer::BufferBase* GetBuffer(const Iova addr, const usize size);
+    // static renderer::TextureBase* GetTexture(const u32 gpu_addr_lo,
     //                                          const u32 gpu_addr_hi,
     //                                          const TextureCopyInfo& info);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::BlockDim, OneGob,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::BlockDim, OneGob,
                        "1 gob", TwoGobs, "2 gobs", FourGobs, "4 gobs",
                        EightGobs, "8 gobs", SixteenGobs, "16 gobs",
                        ThirtyTwoGobs, "32 gobs", QuarterGob, "quarter gob")

@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     : RenderPassBase(descriptor) {
@@ -73,4 +73,4 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
 
 RenderPass::~RenderPass() { render_pass_descriptor->release(); }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

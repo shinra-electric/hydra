@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 result_t IteratorBase::ParseNextInstruction(ObserverBase* observer) {
     const auto inst = code_reader.Read<instruction_t>();
@@ -982,4 +982,4 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     return {ResultCode::None};
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

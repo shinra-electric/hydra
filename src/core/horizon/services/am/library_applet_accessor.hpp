@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IStorage;
 
@@ -16,7 +16,7 @@ class ILibraryAppletAccessor : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    Kernel::HandleWithId<Kernel::Event> state_changed_event;
+    kernel::HandleWithId<kernel::Event> state_changed_event;
 
     AppletId id;
     LibraryAppletMode mode;
@@ -29,4 +29,4 @@ class ILibraryAppletAccessor : public ServiceBase {
     result_t PushInData(ServiceBase* storage_);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

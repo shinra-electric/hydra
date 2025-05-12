@@ -2,7 +2,7 @@
 
 #include "core/horizon/filesystem/const.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class Directory;
 
@@ -19,4 +19,4 @@ class EntryBase {
     Directory* parent;
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

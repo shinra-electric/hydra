@@ -5,7 +5,7 @@
 #include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr usize APPLE_PAGE_SIZE = 0x4000;
 
@@ -27,4 +27,4 @@ inline uptr allocate_vm_memory(usize size) {
     return reinterpret_cast<uptr>(ptr);
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

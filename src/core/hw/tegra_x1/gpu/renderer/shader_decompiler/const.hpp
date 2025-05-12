@@ -6,7 +6,7 @@
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 typedef u64 instruction_t;
 typedef u8 reg_t;
@@ -22,7 +22,7 @@ enum class DataType {
     Float,
 };
 
-DataType to_data_type(Engines::VertexAttribType vertex_attrib_type);
+DataType to_data_type(engines::VertexAttribType vertex_attrib_type);
 
 inline DataType to_data_type(TextureFormat format) {
     // TODO: implement
@@ -202,32 +202,32 @@ enum class BinaryOperator {
     Xor,
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::OperandType, Register,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::OperandType, Register,
     "register", Immediate, "immediate", AttributeMemory, "attribute memory",
     ConstMemory, "const memory")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::DataType, Int, "int",
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Int, "int",
     UInt, "uint", Float, "float")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::SvSemantic, Invalid,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::SvSemantic, Invalid,
     "invalid", Position, "position", UserInOut, "user in out")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::LoadStoreMode, Invalid,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::LoadStoreMode, Invalid,
     "invalid", B32, "b32", B64, "b64", B96, "b96", B128, "b128")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::MathFunc, Invalid,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MathFunc, Invalid,
     "invalid", Cos, "cos", Sin, "sin", Ex2, "ex2", Lg2, "lg2", Rcp, "rcp", Rsq,
     "rsq", Rcp64h, "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::ComparisonOperator,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComparisonOperator,
     Invalid, "invalid", F, "f", Less, "less", Equal, "equal", Greater,
     "greater", LessEqual, "less equal", NotEqual, "not equal", GreaterEqual,
     "greater equal", Num, "num", Nan, "nan", LessU, "less U", EqualU, "equal U",
@@ -235,7 +235,7 @@ ENABLE_ENUM_FORMATTING(
     GreaterEqualU, "greater equal U", T, "t")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::BinaryOperator,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BinaryOperator,
     Invalid, "invalid", And, "and", Or, "or", Xor, "xor")
 
 #include "common/logging/log.hpp"

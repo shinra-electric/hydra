@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "common/logging/log.hpp"
 
-namespace Hydra::Allocators {
+namespace hydra::allocators {
 
 #define FREE_SIZE (size + 7) / 8
 
@@ -70,4 +70,4 @@ template <typename T, u32 size> class StaticPool {
     void Take(u32 index) { FREE_SLOT(index) &= ~MASK(index); }
 };
 
-} // namespace Hydra::Allocators
+} // namespace hydra::allocators

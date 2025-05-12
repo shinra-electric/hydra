@@ -11,7 +11,7 @@
 #define KERNEL_RANGE_MEM_SIZE 0x1000000
 */
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
@@ -47,14 +47,14 @@ MMU::MMU() : user_page_table(0x100000000), kernel_page_table(0x120000000) {
         reinterpret_cast<void*>(physical_memory_ptr), 0x0, PHYSICAL_MEMORY_SIZE,
         HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
 
-    // Kernel memory
+    // kernel memory
     uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
     // TODO: map to kernel page table instead
     user_page_table.Map(KERNEL_REGION_BASE, physical_memory_cur,
                         KERNEL_MEM_SIZE,
-                        {Horizon::Kernel::MemoryType::Kernel,
-                         Horizon::Kernel::MemoryAttribute::None,
-                         Horizon::Kernel::MemoryPermission::Execute});
+                        {horizon::kernel::MemoryType::kernel,
+                         horizon::kernel::MemoryAttribute::None,
+                         horizon::kernel::MemoryPermission::Execute});
     physical_memory_cur += KERNEL_MEM_SIZE;
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
@@ -88,7 +88,7 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
 }
 
 void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
-              const Horizon::Kernel::MemoryState state) {
+              const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
     user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
                         state);
@@ -125,4 +125,4 @@ MemoryRegion MMU::QueryRegion(vaddr_t va) const {
     };
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

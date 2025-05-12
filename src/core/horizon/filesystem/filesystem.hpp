@@ -2,16 +2,16 @@
 
 #include "core/horizon/filesystem/device.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class FileBase;
 
-class Filesystem {
+class filesystem {
   public:
-    static Filesystem& GetInstance();
+    static filesystem& GetInstance();
 
-    Filesystem();
-    ~Filesystem();
+    filesystem();
+    ~filesystem();
 
     void Mount(const std::string& mount);
     void Mount(const std::string& mount, const std::string& root_path);
@@ -39,4 +39,4 @@ class Filesystem {
     void MountImpl(const std::string& mount, Directory* root);
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

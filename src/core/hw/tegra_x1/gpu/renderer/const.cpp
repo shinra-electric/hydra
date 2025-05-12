@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureFormat to_texture_format(NvColorFormat color_format) {
 #define NV_COLOR_FORMAT_CASE(color_format, texture_format)                     \
@@ -414,4 +414,4 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
 #undef SWIZZLE
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

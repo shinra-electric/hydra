@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 enum class RequestState {
     Invalid,
@@ -21,7 +21,7 @@ class IRequest : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    Kernel::HandleWithId<Kernel::Event> events[2];
+    kernel::HandleWithId<kernel::Event> events[2];
 
     // Commands
     result_t GetRequestState(RequestState* out_state);
@@ -31,4 +31,4 @@ class IRequest : public ServiceBase {
                                   OutHandle<HandleAttr::Copy> out_handle1);
 };
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

@@ -3,7 +3,7 @@
 #include "core/horizon/services/const.hpp"
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
-namespace Hydra::Horizon::Services::Pcv {
+namespace hydra::horizon::services::pcv {
 
 enum class ModuleId : u32 {
     Cpu = 0,
@@ -104,7 +104,7 @@ class IPcvService : public ServiceBase {
 
   private:
     // TODO: other clock rates
-    u32 clock_rates[(u32)ModuleId::Count] = {HW::TegraX1::CPU::CLOCK_RATE_HZ,
+    u32 clock_rates[(u32)ModuleId::Count] = {hw::tegra_x1::cpu::CLOCK_RATE_HZ,
                                              0};
 
     // Commands
@@ -112,4 +112,4 @@ class IPcvService : public ServiceBase {
     result_t GetClockRate(ModuleId module_id, u32* out_rate);
 };
 
-} // namespace Hydra::Horizon::Services::Pcv
+} // namespace hydra::horizon::services::pcv

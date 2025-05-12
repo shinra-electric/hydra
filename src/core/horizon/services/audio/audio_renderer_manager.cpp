@@ -1,6 +1,6 @@
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
                              GetWorkBufferSize)
@@ -15,11 +15,11 @@ result_t IAudioRendererManager::OpenAudioRenderer(
 result_t
 IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                                          u64* out_size) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_size = 0x8000;
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

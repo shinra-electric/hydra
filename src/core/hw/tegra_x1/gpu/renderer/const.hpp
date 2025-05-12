@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/engines/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class TextureBase;
 class ShaderBase;
@@ -227,7 +227,7 @@ struct TextureDescriptor {
 };
 
 struct TextureViewDescriptor {
-    Renderer::TextureFormat format;
+    renderer::TextureFormat format;
     SwizzleChannels swizzle_channels;
 
     u32 GetHash() const {
@@ -293,7 +293,7 @@ struct VertexArray {
 };
 
 struct VertexState {
-    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
     VertexArray vertex_arrays[VERTEX_ARRAY_COUNT];
 };
 
@@ -314,10 +314,10 @@ struct PipelineDescriptor {
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::TextureFormat, Invalid, "invalid",
+    hydra::hw::tegra_x1::gpu::renderer::TextureFormat, Invalid, "invalid",
     R8Unorm, "r8unorm", R8Snorm, "r8snorm", R8Uint, "r8uint", R8Sint, "r8sint",
     R16Float, "r16float", R16Unorm, "r16unorm", R16Snorm, "r16snorm", R16Uint,
     "r16uint", R16Sint, "r16sint", R32Float, "r32float", R32Uint, "r32uint",
@@ -374,7 +374,7 @@ ENABLE_ENUM_FORMATTING(
     ETC2_RGBA, "etc2_rgba", ETC2_RGB_sRGB, "etc2_rgb_srgb", PTA_ETC2_RGB_sRGB,
     "pta_etc2_rgb_srgb", ETC2_RGBA_sRGB, "etc2_rgba_srgb")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Renderer::ShaderType, Vertex,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::ShaderType, Vertex,
                        "vertex", Fragment, "fragment", Count, "invalid")
 
 #include "common/logging/log.hpp"

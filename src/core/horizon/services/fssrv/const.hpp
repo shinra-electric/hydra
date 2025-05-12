@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 constexpr usize MAX_PATH_SIZE = 0x301;
 
@@ -18,8 +18,8 @@ enum class DirectoryFilterFlags {
 };
 ENABLE_ENUM_BITMASK_OPERATORS(DirectoryFilterFlags)
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv
 
 ENABLE_ENUM_FLAGS_FORMATTING(
-    Hydra::Horizon::Services::Fssrv::DirectoryFilterFlags, Directories,
+    hydra::horizon::services::fssrv::DirectoryFilterFlags, Directories,
     "directories", Files, "files")

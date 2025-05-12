@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/hipc.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 class ServiceBase;
 
@@ -10,8 +10,8 @@ typedef std::function<void(ServiceBase*)> add_service_fn_t;
 typedef std::function<ServiceBase*(handle_id_t)> get_service_fn_t;
 
 struct RequestContext {
-    Hipc::Readers& readers;
-    Hipc::Writers& writers;
+    hipc::Readers& readers;
+    hipc::Writers& writers;
     const add_service_fn_t& add_service;
     const get_service_fn_t& get_service;
 };
@@ -25,4 +25,4 @@ class ServiceBase : public Handle {
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

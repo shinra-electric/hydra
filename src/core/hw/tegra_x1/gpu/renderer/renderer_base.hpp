@@ -8,7 +8,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class BufferBase;
 class TextureBase;
@@ -18,9 +18,9 @@ class PipelineBase;
 struct Info {
     bool supports_quads_primitive;
 
-    bool IsPrimitiveSupported(Engines::PrimitiveType primitive_type) const {
+    bool IsPrimitiveSupported(engines::PrimitiveType primitive_type) const {
         switch (primitive_type) {
-        case Engines::PrimitiveType::Quads:
+        case engines::PrimitiveType::Quads:
             return supports_quads_primitive;
         default:
             return true;
@@ -73,7 +73,7 @@ class RendererBase {
     // Resource binding
     virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
     virtual void BindIndexBuffer(BufferBase* index_buffer,
-                                 Engines::IndexType index_type) = 0;
+                                 engines::IndexType index_type) = 0;
     virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                    u32 index) = 0;
     // TODO: storage buffers
@@ -86,7 +86,7 @@ class RendererBase {
     virtual void UnbindTextures(ShaderType shader_type) = 0;
 
     // Draw
-    virtual void Draw(const Engines::PrimitiveType primitive_type,
+    virtual void Draw(const engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count,
                       bool indexed = false) = 0;
 
@@ -118,4 +118,4 @@ class RendererBase {
     IndexCache index_cache;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

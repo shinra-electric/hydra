@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Pctl {
+namespace hydra::horizon::services::pctl {
 
 class IParentalControlServiceFactory : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IParentalControlServiceFactory : public ServiceBase {
     result_t CreateParentalControlService(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Pctl
+} // namespace hydra::horizon::services::pctl

@@ -4,20 +4,20 @@
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     u32 flags, u64 display_id, u64* out_layer_id, u64* out_native_window_size,
-    HosBinder::ParcelWriter& out_parcel_writer) {
+    hosbinder::ParcelWriter& out_parcel_writer) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // Out
-    *out_layer_id = Kernel::Kernel::GetInstance()
+    *out_layer_id = KERNEL
                         .GetBus()
                         .GetDisplay(display_id)
                         ->CreateLayer(binder_id);
     *out_native_window_size =
-        sizeof(HosBinder::ParcelHeader) + sizeof(ParcelData);
+        sizeof(hosbinder::ParcelHeader) + sizeof(ParcelData);
 
     // TODO: correct?
     out_parcel_writer.Write<ParcelData>({
@@ -34,10 +34,10 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
 
 result_t DisplayServiceBase::SetLayerVisibilityImpl(u64 layer_id,
                                                     bool visible) {
-    LOG_DEBUG(HorizonServices, "Layer ID: {}, visible: {}", layer_id, visible);
+    LOG_DEBUG(Services, "Layer ID: {}, visible: {}", layer_id, visible);
 
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

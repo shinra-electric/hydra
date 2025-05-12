@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/am/application_proxy.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxyService, 0, OpenApplicationProxy)
 
@@ -13,4 +13,4 @@ IApplicationProxyService::OpenApplicationProxy(add_service_fn_t add_service) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

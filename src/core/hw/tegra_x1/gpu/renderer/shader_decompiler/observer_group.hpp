@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 template <usize N> class ObserverGroup : public ObserverBase {
   public:
@@ -82,4 +82,4 @@ template <usize N> class ObserverGroup : public ObserverBase {
     std::array<ObserverBase*, N> observers;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

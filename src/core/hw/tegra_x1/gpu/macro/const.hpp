@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Macro {
+namespace hydra::hw::tegra_x1::gpu::macro {
 
 enum class Operation : int32_t {
     Alu = 0,
@@ -47,18 +47,18 @@ enum class ResultOperation : int32_t {
 constexpr usize REG_COUNT = 8;
 constexpr u32 EXIT_BIT = BIT(7);
 
-} // namespace Hydra::HW::TegraX1::GPU::Macro
+} // namespace hydra::hw::tegra_x1::gpu::macro
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::AluOperation, Add, "add",
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::AluOperation, Add, "add",
                        AddWithCarry, "add with carry", Subtract, "subtract",
                        SubtractWithBorrow, "subtract with borrow", Xor, "xor",
                        Or, "or", And, "and", AndNot, "and not", Nand, "nand")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::BranchCondition, Zero,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::BranchCondition, Zero,
                        "zero", NotZero, "not zero", ZeroAnnul, "zero annul",
                        NotZeroAnnul, "not zero annul")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Macro::ResultOperation,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::ResultOperation,
                        IgnoreAndFetch, "ignore and fetch", Move, "move",
                        MoveAndSetMethod, "move and set method", FetchAndSend,
                        "fetch and send", MoveAndSend, "move and send",

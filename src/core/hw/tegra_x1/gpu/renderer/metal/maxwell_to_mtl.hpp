@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 struct PixelFormatInfo {
     MTL::PixelFormat pixel_format;
@@ -18,16 +18,16 @@ inline MTL::PixelFormat to_mtl_pixel_format(TextureFormat format) {
 }
 
 MTL::PrimitiveType
-to_mtl_primitive_type(const Engines::PrimitiveType primitive_type);
+to_mtl_primitive_type(const engines::PrimitiveType primitive_type);
 
-MTL::IndexType to_mtl_index_type(Engines::IndexType index_type);
+MTL::IndexType to_mtl_index_type(engines::IndexType index_type);
 
-const MTL::VertexFormat to_mtl_vertex_format(Engines::VertexAttribType type,
-                                             Engines::VertexAttribSize size,
+const MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
+                                             engines::VertexAttribSize size,
                                              bool bgra);
 
 MTL::CompareFunction
-to_mtl_compare_func(Engines::DepthTestFunc depth_test_func);
+to_mtl_compare_func(engines::DepthTestFunc depth_test_func);
 
 MTL::TextureSwizzle to_mtl_swizzle(const ImageSwizzle swizzle);
 
@@ -35,4 +35,4 @@ MTL::BlendOperation to_mtl_blend_operation(const BlendOperation blend_op);
 
 MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor);
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

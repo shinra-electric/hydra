@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Psm {
+namespace hydra::horizon::services::psm {
 
 enum class ChargerType {
     Unconnected,
@@ -24,4 +24,4 @@ class IPsmServer : public ServiceBase {
     result_t GetBatteryAgePercentage(f64* out_percentage);
 };
 
-} // namespace Hydra::Horizon::Services::Psm
+} // namespace hydra::horizon::services::psm

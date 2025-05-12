@@ -2,7 +2,7 @@
 
 #include "core/horizon/os.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAppletResource, 0, GetSharedMemoryHandle)
 
@@ -13,4 +13,4 @@ IAppletResource::GetSharedMemoryHandle(OutHandle<HandleAttr::Copy> out_handle) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

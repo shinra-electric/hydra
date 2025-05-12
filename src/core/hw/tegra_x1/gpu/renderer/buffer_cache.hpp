@@ -2,11 +2,11 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class BufferBase;
 
@@ -24,4 +24,4 @@ class BufferCache
   private:
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

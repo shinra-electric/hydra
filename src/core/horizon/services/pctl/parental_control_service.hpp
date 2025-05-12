@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Pctl {
+namespace hydra::horizon::services::pctl {
 
 class IParentalControlService : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class IParentalControlService : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Pctl
+} // namespace hydra::horizon::services::pctl

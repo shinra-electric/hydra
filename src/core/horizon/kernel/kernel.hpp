@@ -6,16 +6,18 @@
 #include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+#define KERNEL hydra::horizon::kernel::Kernel::GetInstance()
+
+namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
 class ThreadBase;
-} // namespace Hydra::HW::TegraX1::CPU
+} // namespace hydra::hw::tegra_x1::cpu
 
-namespace Hydra::HW {
+namespace hydra::hw {
 class Bus;
 }
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 class ServiceBase;
 class Thread;
@@ -107,7 +109,7 @@ class Kernel {
   public:
     static Kernel& GetInstance();
 
-    Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_);
+    Kernel(hw::Bus& bus_, hw::tegra_x1::cpu::MMUBase* mmu_);
     ~Kernel();
 
     // Loading
@@ -122,7 +124,7 @@ class Kernel {
         service_ports[port_name] = service;
     }
 
-    bool SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id);
+    bool SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id);
 
     // SVCs
     result_t svcSetHeapSize(usize size, uptr& out_base);
@@ -166,7 +168,7 @@ class Kernel {
     void svcGetSystemTick(u64& out_tick);
     result_t svcConnectToNamedPort(const std::string& name,
                                    handle_id_t& out_session_handle_id);
-    result_t svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
+    result_t svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
                                 handle_id_t session_handle_id);
     result_t svcGetThreadId(handle_id_t thread_handle_id, u64& out_thread_id);
     result_t svcBreak(BreakReason reason, uptr buffer_ptr, usize buffer_size);
@@ -181,12 +183,12 @@ class Kernel {
     handle_id_t AddHandle(Handle* handle) { return handle_pool.Add(handle); }
     void FreeHandle(handle_id_t handle_id) { handle_pool.Free(handle_id); }
 
-    HW::TegraX1::CPU::MemoryBase* CreateTlsMemory(vaddr_t& base);
+    hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
     // Getters
-    HW::Bus& GetBus() const { return bus; }
+    hw::Bus& GetBus() const { return bus; }
 
-    Filesystem::Filesystem& GetFilesystem() { return filesystem; }
+    filesystem::filesystem& GetFilesystem() { return filesystem; }
 
     u64 GetTitleID() const { return title_id; }
 
@@ -194,16 +196,16 @@ class Kernel {
     void SetTitleId(const u64 title_id_) { title_id = title_id_; }
 
   private:
-    HW::Bus& bus;
-    HW::TegraX1::CPU::MMUBase* mmu;
+    hw::Bus& bus;
+    hw::tegra_x1::cpu::MMUBase* mmu;
 
-    Filesystem::Filesystem filesystem;
+    filesystem::filesystem filesystem;
 
     u64 title_id{invalid<u64>()};
 
     // Memory
-    HW::TegraX1::CPU::MemoryBase* heap_mem;
-    std::vector<HW::TegraX1::CPU::MemoryBase*> executable_mems;
+    hw::tegra_x1::cpu::MemoryBase* heap_mem;
+    std::vector<hw::tegra_x1::cpu::MemoryBase*> executable_mems;
 
     vaddr_t executable_mem_base{0x40000000};
     vaddr_t tls_mem_base{TLS_REGION_BASE};
@@ -231,10 +233,10 @@ template <typename T> struct HandleWithId {
     handle_id_t id;
 
     HandleWithId(T* handle_) : handle{handle_} {
-        id = Kernel::Kernel::GetInstance().AddHandle(handle);
+        id = KERNEL.AddHandle(handle);
     }
 
-    ~HandleWithId() { Kernel::GetInstance().FreeHandle(id); }
+    ~HandleWithId() { KERNEL.FreeHandle(id); }
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

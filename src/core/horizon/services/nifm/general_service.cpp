@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/nifm/request.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 namespace {
 
@@ -71,7 +71,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
 
 result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
                                         i32 requirement_preset) {
-    LOG_DEBUG(HorizonServices, "Requirement preset: {}", requirement_preset);
+    LOG_DEBUG(Services, "Requirement preset: {}", requirement_preset);
 
     add_service(new IRequest());
     return RESULT_SUCCESS;
@@ -79,7 +79,7 @@ result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
 
 result_t IGeneralService::GetCurrentNetworkProfile(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
-    LOG_NOT_IMPLEMENTED(HorizonServices, "GetCurrentNetworkProfile");
+    LOG_NOT_IMPLEMENTED(Services, "GetCurrentNetworkProfile");
 
     // HACK
     out_buffer.writer->Write<SfNetworkProfileData>(
@@ -109,7 +109,7 @@ result_t IGeneralService::GetCurrentNetworkProfile(
                      },
              },
          .uuid = 0x76543210,
-         .network_name = "Hydra-network",
+         .network_name = "hydra-network",
          .wireless_setting_data = {
              .ssid = {0x7},
              .passphrase = {0x13},
@@ -117,4 +117,4 @@ result_t IGeneralService::GetCurrentNetworkProfile(
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

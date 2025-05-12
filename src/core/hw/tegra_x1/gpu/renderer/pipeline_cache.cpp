@@ -3,10 +3,10 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 PipelineBase* PipelineCache::Create(const PipelineDescriptor& descriptor) {
-    return RENDERER->CreatePipeline(descriptor);
+    return RENDERER_INSTANCE->CreatePipeline(descriptor);
 }
 
 u64 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
@@ -75,4 +75,4 @@ u64 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
 
 void PipelineCache::DestroyElement(PipelineBase* pipeline) { delete pipeline; }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

@@ -1,6 +1,6 @@
 #include "core/horizon/filesystem/host_file.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
     : FileBase(offset), host_path{host_path_}, size_limit{size_limit_} {
@@ -35,7 +35,7 @@ FileStream HostFile::Open(FileOpenFlags flags) {
 
 void HostFile::Close(FileStream& stream) {
     auto fs = dynamic_cast<std::fstream*>(stream.GetStream());
-    ASSERT(fs, HorizonFilesystem, "Invalid stream type");
+    ASSERT(fs, Filesystem, "Invalid stream type");
     fs->close();
     delete fs;
 }
@@ -45,4 +45,4 @@ usize HostFile::GetSize() {
     return std::min(static_cast<usize>(file_size) - offset, size_limit);
 }
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

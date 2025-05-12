@@ -7,7 +7,7 @@
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 #define INVALID_VALUE "INVALID"
 
@@ -293,7 +293,7 @@ class LangBuilderBase : public BuilderBase {
     void EmitWriteFromTemp(reg_t dst, u32 offset = 0, u32 count = 4);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
 
 #undef FMT
 #undef WRITE_ARGS

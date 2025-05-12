@@ -1,8 +1,8 @@
 #include "common/logging/log.hpp"
 
-namespace Hydra::Logging {
+namespace hydra::logging {
 
 Output g_output = Output::Stdout;
 std::mutex g_log_mutex;
 
-} // namespace Hydra::Logging
+} // namespace hydra::logging

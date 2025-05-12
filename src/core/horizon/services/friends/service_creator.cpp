@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/friends/friend_service.hpp"
 
-namespace Hydra::Horizon::Services::Friends {
+namespace hydra::horizon::services::friends {
 
 DEFINE_SERVICE_COMMAND_TABLE(IServiceCreator, 0, CreateFriendService)
 
@@ -11,4 +11,4 @@ result_t IServiceCreator::CreateFriendService(add_service_fn_t add_service) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Friends
+} // namespace hydra::horizon::services::friend

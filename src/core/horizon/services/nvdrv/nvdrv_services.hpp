@@ -4,9 +4,9 @@
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv {
+namespace hydra::horizon::services::nvdrv {
 
-namespace Ioctl {
+namespace ioctl {
 class FdBase;
 }
 
@@ -31,7 +31,7 @@ class INvDrvServices : public ServiceBase {
     STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 
     // TODO: what should be the max number of fds?
-    static Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+    static allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
 };
 
-} // namespace Hydra::Horizon::Services::NvDrv
+} // namespace hydra::horizon::services::nvdrv

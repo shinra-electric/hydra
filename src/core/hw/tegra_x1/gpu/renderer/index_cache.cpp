@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 namespace {
 
@@ -11,28 +11,28 @@ inline usize get_index_count_quads_to_triangles(usize count) {
     return count / 4 * 6;
 }
 
-inline Engines::PrimitiveType get_primitive_type_quads_to_triangles() {
-    return Engines::PrimitiveType::Triangles;
+inline engines::PrimitiveType get_primitive_type_quads_to_triangles() {
+    return engines::PrimitiveType::Triangles;
 }
 
 inline usize get_index_count_triangle_fan_to_triangle_strip(usize count) {
     return count;
 }
 
-inline Engines::PrimitiveType
+inline engines::PrimitiveType
 get_primitive_type_triangle_fan_to_triangle_strip() {
-    return Engines::PrimitiveType::TriangleStrip;
+    return engines::PrimitiveType::TriangleStrip;
 }
 
 #define GET_INDEX(idx, index)                                                  \
     switch (index_type) {                                                      \
-    case Engines::IndexType::UInt8:                                            \
+    case engines::IndexType::UInt8:                                            \
         idx = GET_INDEX_IMPL(u8, index);                                       \
         break;                                                                 \
-    case Engines::IndexType::UInt16:                                           \
+    case engines::IndexType::UInt16:                                           \
         idx = GET_INDEX_IMPL(u16, index);                                      \
         break;                                                                 \
-    case Engines::IndexType::UInt32:                                           \
+    case engines::IndexType::UInt32:                                           \
         idx = GET_INDEX_IMPL(u32, index);                                      \
         break;                                                                 \
     default:                                                                   \
@@ -41,15 +41,15 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 #define ADD_INDEX(index)                                                       \
     switch (index_type) {                                                      \
-    case Engines::IndexType::UInt8:                                            \
+    case engines::IndexType::UInt8:                                            \
         *reinterpret_cast<u8*>(out) = index;                                   \
         out += sizeof(u16);                                                    \
         break;                                                                 \
-    case Engines::IndexType::UInt16:                                           \
+    case engines::IndexType::UInt16:                                           \
         *reinterpret_cast<u16*>(out) = index;                                  \
         out += sizeof(u16);                                                    \
         break;                                                                 \
-    case Engines::IndexType::UInt32:                                           \
+    case engines::IndexType::UInt32:                                           \
         *reinterpret_cast<u32*>(out) = index;                                  \
         out += sizeof(u32);                                                    \
         break;                                                                 \
@@ -66,7 +66,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
     void decode_##name##_auto(uptr in_unused, uptr out,                        \
-                              Engines::IndexType index_type, usize count)
+                              engines::IndexType index_type, usize count)
 #define GET_INDEX_IMPL(type, index) (index)
 
 #include "core/hw/tegra_x1/gpu/renderer/index_decoders.inc"
@@ -75,7 +75,7 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 #undef DEFINE_DECODER_PROTOTYPE
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
-    void decode_##name(uptr in, uptr out, Engines::IndexType index_type,       \
+    void decode_##name(uptr in, uptr out, engines::IndexType index_type,       \
                        usize count)
 #define GET_INDEX_IMPL(type, index) reinterpret_cast<type*>(in)[index]
 
@@ -88,20 +88,20 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
 
 IndexCache::~IndexCache() {
     for (auto& [key, index_buffer] : cache)
-        RENDERER->FreeTemporaryBuffer(index_buffer);
+        RENDERER_INSTANCE->FreeTemporaryBuffer(index_buffer);
 }
 
 BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
-                               Engines::IndexType& out_type,
-                               Engines::PrimitiveType& out_primitive_type,
+                               engines::IndexType& out_type,
+                               engines::PrimitiveType& out_primitive_type,
                                u32& out_count) {
 #define PRIMITIVE_TYPE_SWITCH(macro)                                           \
     switch (descriptor.primitive_type) {                                       \
-    case Engines::PrimitiveType::Quads:                                        \
+    case engines::PrimitiveType::Quads:                                        \
         /* TODO: check for quads support */                                    \
         macro(quads_to_triangles);                                             \
         break;                                                                 \
-    case Engines::PrimitiveType::TriangleFan:                                  \
+    case engines::PrimitiveType::TriangleFan:                                  \
         /* TODO: check for triangle fan support */                             \
         macro(triangle_fan_to_triangle_strip);                                 \
         break;                                                                 \
@@ -123,13 +123,13 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     switch (out_count) {
     case 0 ... 0xff:
         // TODO: check for u8 support
-        out_type = Engines::IndexType::UInt16;
+        out_type = engines::IndexType::UInt16;
         break;
     case 0x100 ... 0xffff:
-        out_type = Engines::IndexType::UInt16;
+        out_type = engines::IndexType::UInt16;
         break;
     case 0x10000 ... 0xffffffff:
-        out_type = Engines::IndexType::UInt32;
+        out_type = engines::IndexType::UInt32;
         break;
     }
 
@@ -139,7 +139,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         return index_buffer;
 
     usize index_size = get_index_type_size(out_type);
-    index_buffer = RENDERER->AllocateTemporaryBuffer(out_count * index_size);
+    index_buffer = RENDERER_INSTANCE->AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0;
     if (descriptor.src_index_buffer)
         in_ptr = descriptor.src_index_buffer->GetDescriptor().ptr;
@@ -157,7 +157,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     }
 
     return index_buffer;
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer
 
 u64 IndexCache::Hash(const IndexDescriptor& descriptor) {
     u64 hash = 0;
@@ -173,4 +173,4 @@ u64 IndexCache::Hash(const IndexDescriptor& descriptor) {
     return hash;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

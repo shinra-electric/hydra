@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Account {
+namespace hydra::horizon::services::account {
 
 struct AccountProfileBase {
     u128 uid;
@@ -26,4 +26,4 @@ class IProfile : public ServiceBase {
     result_t GetBase(AccountProfileBase* out_base);
 };
 
-} // namespace Hydra::Horizon::Services::Account
+} // namespace hydra::horizon::services::account

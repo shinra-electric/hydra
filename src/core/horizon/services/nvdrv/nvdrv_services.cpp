@@ -8,9 +8,9 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvmap.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv {
+namespace hydra::horizon::services::nvdrv {
 
-Allocators::StaticPool<Ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
+allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
                              4, QueryEvent, 8, SetAruid, 13,
@@ -21,17 +21,17 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
     auto path = path_buffer.reader->ReadString();
     handle_id_t fd_id = fd_pool.AllocateForIndex();
     if (path == "/dev/nvhost-ctrl") {
-        fd_pool.GetRef(fd_id) = new Ioctl::NvHostCtrl();
+        fd_pool.GetRef(fd_id) = new ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
-        fd_pool.GetRef(fd_id) = new Ioctl::NvMap();
+        fd_pool.GetRef(fd_id) = new ioctl::NvMap();
     } else if (path == "/dev/nvhost-as-gpu") {
-        fd_pool.GetRef(fd_id) = new Ioctl::NvHostAsGpu();
+        fd_pool.GetRef(fd_id) = new ioctl::NvHostAsGpu();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
-        fd_pool.GetRef(fd_id) = new Ioctl::NvHostCtrlGpu();
+        fd_pool.GetRef(fd_id) = new ioctl::NvHostCtrlGpu();
     } else if (path == "/dev/nvhost-gpu") {
-        fd_pool.GetRef(fd_id) = new Ioctl::NvHostGpu();
+        fd_pool.GetRef(fd_id) = new ioctl::NvHostGpu();
     } else {
-        LOG_WARN(HorizonServices, "Unknown path \"{}\"", path);
+        LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO
         return MAKE_RESULT(Svc, 0);       // TODO
     }
@@ -51,7 +51,7 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
     u32 type = (code >> 8) & 0xff;
     u32 nr = code & 0xff;
 
-    Ioctl::IoctlContext context{
+    ioctl::IoctlContext context{
         .reader = in_buffer.reader,
         .writer = out_buffer.writer,
     };
@@ -63,14 +63,14 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
     if (result != NvResult::Success)
         return MAKE_RESULT(
             Svc,
-            Kernel::Error::NotFound); // TODO: what should this be?
+            kernel::Error::NotFound); // TODO: what should this be?
     else
         return RESULT_SUCCESS;
 }
 
 result_t INvDrvServices::Initialize(u32 transfer_mem_size,
                                     NvResult* out_result) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // TODO: read process and transfer mem handle IDs
 
@@ -94,9 +94,9 @@ result_t INvDrvServices::QueryEvent(handle_id_t fd_id, u32 event_id,
     if (result != NvResult::Success)
         return MAKE_RESULT(
             Svc,
-            Kernel::Error::NotFound); // TODO: what should this be?
+            kernel::Error::NotFound); // TODO: what should this be?
     else
         return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::NvDrv
+} // namespace hydra::horizon::services::nvdrv

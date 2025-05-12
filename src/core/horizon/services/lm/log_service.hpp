@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Lm {
+namespace hydra::horizon::services::lm {
 
 class ILogService : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class ILogService : public ServiceBase {
     result_t OpenLogger(add_service_fn_t add_service, u64 process_id);
 };
 
-} // namespace Hydra::Horizon::Services::Lm
+} // namespace hydra::horizon::services::lm

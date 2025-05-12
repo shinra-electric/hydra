@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Apm {
+namespace hydra::horizon::services::apm {
 
 class ISession : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class ISession : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Apm
+} // namespace hydra::horizon::services::apm

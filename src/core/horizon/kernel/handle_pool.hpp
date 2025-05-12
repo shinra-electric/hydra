@@ -4,7 +4,7 @@
 #include "common/allocators/static_pool.hpp"
 #include "core/horizon/kernel/const.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 template <typename T, typename Pool> class HandlePool {
     static_assert(std::is_convertible_v<T*, Handle*>,
@@ -32,7 +32,7 @@ template <typename T, typename Pool> class HandlePool {
 
     // Helpers
     static u32 HandleIdToIndex(handle_id_t handle_id) {
-        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, HorizonKernel,
+        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
                      "Invalid handle ID");
         return handle_id - 1;
     }
@@ -42,9 +42,9 @@ template <typename T, typename Pool> class HandlePool {
 
 template <typename T, usize size>
 class StaticHandlePool
-    : public HandlePool<T, Allocators::StaticPool<T*, size>> {};
+    : public HandlePool<T, allocators::StaticPool<T*, size>> {};
 
 template <typename T>
-class DynamicHandlePool : public HandlePool<T, Allocators::DynamicPool<T*>> {};
+class DynamicHandlePool : public HandlePool<T, allocators::DynamicPool<T*>> {};
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

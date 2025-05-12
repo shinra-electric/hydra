@@ -22,7 +22,7 @@
         }                                                                      \
     }
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 class EngineBase {
   public:
@@ -67,4 +67,4 @@ template <typename RegsT> class EngineWithRegsBase : public EngineBase {
 #undef REG_COUNT
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

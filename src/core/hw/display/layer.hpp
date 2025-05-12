@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW::Display {
+namespace hydra::hw::Display {
 
 class Layer {
   public:
@@ -19,4 +19,4 @@ class Layer {
     u32 binder_id;
 };
 
-} // namespace Hydra::HW::Display
+} // namespace hydra::hw::Display

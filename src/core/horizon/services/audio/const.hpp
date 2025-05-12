@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 struct AudioRendererParameters {
     i32 sample_rate;
@@ -21,4 +21,4 @@ struct AudioRendererParameters {
     u32 revision;
 };
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

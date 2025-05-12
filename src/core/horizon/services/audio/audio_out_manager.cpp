@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/audio/audio_out.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 1, OpenAudioOut)
 
@@ -12,7 +12,7 @@ result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
                                         u32* out_sample_rate,
                                         u32* out_channel_count,
                                         u32* out_pcm_format, u32* out_state) {
-    LOG_DEBUG(HorizonServices, "Sample rate: {}, channel count: {}",
+    LOG_DEBUG(Services, "Sample rate: {}, channel count: {}",
               sample_rate, channel_count);
 
     // TODO: name in and out
@@ -29,4 +29,4 @@ result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

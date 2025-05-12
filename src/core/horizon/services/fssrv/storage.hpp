@@ -3,12 +3,12 @@
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 // TODO: does IStorage always need to be backed by a file?
 class IStorage : public ServiceBase {
   public:
-    IStorage(Filesystem::FileBase* file_, Filesystem::FileOpenFlags flags);
+    IStorage(filesystem::FileBase* file_, filesystem::FileOpenFlags flags);
     ~IStorage() override;
 
   protected:
@@ -24,8 +24,8 @@ class IStorage : public ServiceBase {
     result_t GetSize(i64* out_size);
 
   private:
-    Filesystem::FileBase* file;
-    Filesystem::FileStream stream;
+    filesystem::FileBase* file;
+    filesystem::FileStream stream;
 };
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv

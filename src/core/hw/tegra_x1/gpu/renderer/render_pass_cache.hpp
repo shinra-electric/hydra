@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class RenderPassBase;
 
@@ -18,4 +18,4 @@ class RenderPassCache
     void DestroyElement(RenderPassBase* render_pass);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

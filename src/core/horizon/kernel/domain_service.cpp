@@ -3,14 +3,14 @@
 #include "core/horizon/kernel/cmif.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 void DomainService::Request(RequestContext& context) {
-    LOG_DEBUG(HorizonServices, "Domain service request");
+    LOG_DEBUG(Services, "Domain service request");
 
     // Domain in
-    auto cmif_in = context.readers.reader.Read<Cmif::DomainInHeader>();
-    LOG_DEBUG(HorizonServices, "Object ID: 0x{:08x}", cmif_in.object_id);
+    auto cmif_in = context.readers.reader.Read<cmif::DomainInHeader>();
+    LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
     auto subservice = subservice_pool.Get(cmif_in.object_id);
 
     if (cmif_in.num_in_objects != 0) {
@@ -19,10 +19,10 @@ void DomainService::Request(RequestContext& context) {
             new Reader(objects, cmif_in.num_in_objects * sizeof(handle_id_t));
     }
 
-    Cmif::write_domain_out_header(context.writers.writer);
+    cmif::write_domain_out_header(context.writers.writer);
 
     switch (cmif_in.type) {
-    case Cmif::DomainCommandType::SendMessage: {
+    case cmif::DomainCommandType::SendMessage: {
         RequestContext subcontext{
             context.readers,
             context.writers,
@@ -37,14 +37,14 @@ void DomainService::Request(RequestContext& context) {
         subservice->Request(subcontext);
         break;
     }
-    case Cmif::DomainCommandType::Close:
+    case cmif::DomainCommandType::Close:
         subservice_pool.Free(cmif_in.object_id);
-        LOG_DEBUG(HorizonKernel, "Closed subservice");
+        LOG_DEBUG(Kernel, "Closed subservice");
         break;
     default:
-        LOG_WARN(HorizonKernel, "Unknown domain request type {}", cmif_in.type);
+        LOG_WARN(Kernel, "Unknown domain request type {}", cmif_in.type);
         break;
     }
 }
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

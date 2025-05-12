@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 class IGeneralService : public ServiceBase {
   protected:
@@ -16,4 +16,4 @@ class IGeneralService : public ServiceBase {
     GetCurrentNetworkProfile(OutBuffer<BufferAttr::HipcPointer> out_buffer);
 };
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

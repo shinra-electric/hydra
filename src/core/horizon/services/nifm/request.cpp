@@ -1,14 +1,14 @@
 #include "core/horizon/services/nifm/request.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles)
 
-IRequest::IRequest() : events{{new Kernel::Event()}, {new Kernel::Event()}} {}
+IRequest::IRequest() : events{{new kernel::Event()}, {new kernel::Event()}} {}
 
 result_t IRequest::GetRequestState(RequestState* out_state) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_state = RequestState::Accepted;
@@ -23,4 +23,4 @@ result_t IRequest::GetSystemEventReadableHandles(
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

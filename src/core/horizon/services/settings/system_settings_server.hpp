@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Settings {
+namespace hydra::horizon::services::settings {
 
 enum class ColorSetId : i32 {
     BasicWhite,
@@ -19,4 +19,4 @@ class ISystemSettingsServer : public ServiceBase {
     result_t GetColorSetId(ColorSetId* out_id);
 };
 
-} // namespace Hydra::Horizon::Services::Settings
+} // namespace hydra::horizon::services::settings

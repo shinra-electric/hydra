@@ -7,7 +7,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
 
@@ -26,34 +26,34 @@ constexpr u32 D3D11_BLEND_OP_REV_SUB = 3;
 constexpr u32 D3D11_BLEND_OP_MIN = 4;
 constexpr u32 D3D11_BLEND_OP_MAX = 5;
 
-Renderer::BlendOperation get_blend_operation(u32 blend_op) {
+renderer::BlendOperation get_blend_operation(u32 blend_op) {
     switch (blend_op) {
         // GL
     case GL_MIN:
-        return Renderer::BlendOperation::Min;
+        return renderer::BlendOperation::Min;
     case GL_MAX:
-        return Renderer::BlendOperation::Max;
+        return renderer::BlendOperation::Max;
     case GL_FUNC_ADD:
-        return Renderer::BlendOperation::Add;
+        return renderer::BlendOperation::Add;
     case GL_FUNC_SUBTRACT:
-        return Renderer::BlendOperation::Sub;
+        return renderer::BlendOperation::Sub;
     case GL_FUNC_REVERSE_SUBTRACT:
-        return Renderer::BlendOperation::RevSub;
+        return renderer::BlendOperation::RevSub;
 
     // DX11
     case D3D11_BLEND_OP_ADD:
-        return Renderer::BlendOperation::Add;
+        return renderer::BlendOperation::Add;
     case D3D11_BLEND_OP_SUB:
-        return Renderer::BlendOperation::Sub;
+        return renderer::BlendOperation::Sub;
     case D3D11_BLEND_OP_REV_SUB:
-        return Renderer::BlendOperation::RevSub;
+        return renderer::BlendOperation::RevSub;
     case D3D11_BLEND_OP_MIN:
-        return Renderer::BlendOperation::Min;
+        return renderer::BlendOperation::Min;
     case D3D11_BLEND_OP_MAX:
-        return Renderer::BlendOperation::Max;
+        return renderer::BlendOperation::Max;
     default:
         LOG_ERROR(Engines, "Unknown blend operation 0x{:04x}", blend_op);
-        return Renderer::BlendOperation::Add;
+        return renderer::BlendOperation::Add;
     }
 }
 
@@ -89,72 +89,72 @@ constexpr u32 D3D11_BLEND_FACTOR_INV_SRC1_ALPHA = 19;
 
 constexpr u32 GL_BLEND_FACTOR_BIT = 0x4000;
 
-Renderer::BlendFactor get_blend_factor(u32 blend_factor) {
+renderer::BlendFactor get_blend_factor(u32 blend_factor) {
     if (blend_factor & GL_BLEND_FACTOR_BIT) { // GL
         u32 gl_blend_factor = blend_factor & ~GL_BLEND_FACTOR_BIT;
         switch (gl_blend_factor) {
         case GL_ZERO:
-            return Renderer::BlendFactor::Zero;
+            return renderer::BlendFactor::Zero;
         case GL_ONE:
-            return Renderer::BlendFactor::One;
+            return renderer::BlendFactor::One;
         case GL_SRC_COLOR:
-            return Renderer::BlendFactor::SrcColor;
+            return renderer::BlendFactor::SrcColor;
         case GL_ONE_MINUS_SRC_COLOR:
-            return Renderer::BlendFactor::InvSrcColor;
+            return renderer::BlendFactor::InvSrcColor;
         case GL_SRC_ALPHA:
-            return Renderer::BlendFactor::SrcAlpha;
+            return renderer::BlendFactor::SrcAlpha;
         case GL_ONE_MINUS_SRC_ALPHA:
-            return Renderer::BlendFactor::InvSrcAlpha;
+            return renderer::BlendFactor::InvSrcAlpha;
         case GL_DST_ALPHA:
-            return Renderer::BlendFactor::DstAlpha;
+            return renderer::BlendFactor::DstAlpha;
         case GL_ONE_MINUS_DST_ALPHA:
-            return Renderer::BlendFactor::InvDstAlpha;
+            return renderer::BlendFactor::InvDstAlpha;
         case GL_DST_COLOR:
-            return Renderer::BlendFactor::DstColor;
+            return renderer::BlendFactor::DstColor;
         case GL_ONE_MINUS_DST_COLOR:
-            return Renderer::BlendFactor::InvDstColor;
+            return renderer::BlendFactor::InvDstColor;
         case GL_SRC_ALPHA_SATURATE:
-            return Renderer::BlendFactor::SrcAlphaSaturate;
+            return renderer::BlendFactor::SrcAlphaSaturate;
         default:
             LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
                       gl_blend_factor);
-            return Renderer::BlendFactor::Zero;
+            return renderer::BlendFactor::Zero;
         }
     } else { // D3D11
         switch (blend_factor) {
         case D3D11_BLEND_FACTOR_ZERO:
-            return Renderer::BlendFactor::Zero;
+            return renderer::BlendFactor::Zero;
         case D3D11_BLEND_FACTOR_ONE:
-            return Renderer::BlendFactor::One;
+            return renderer::BlendFactor::One;
         case D3D11_BLEND_FACTOR_SRC_COLOR:
-            return Renderer::BlendFactor::SrcColor;
+            return renderer::BlendFactor::SrcColor;
         case D3D11_BLEND_FACTOR_INV_SRC_COLOR:
-            return Renderer::BlendFactor::InvSrcColor;
+            return renderer::BlendFactor::InvSrcColor;
         case D3D11_BLEND_FACTOR_SRC_ALPHA:
-            return Renderer::BlendFactor::SrcAlpha;
+            return renderer::BlendFactor::SrcAlpha;
         case D3D11_BLEND_FACTOR_INV_SRC_ALPHA:
-            return Renderer::BlendFactor::InvSrcAlpha;
+            return renderer::BlendFactor::InvSrcAlpha;
         case D3D11_BLEND_FACTOR_DST_ALPHA:
-            return Renderer::BlendFactor::DstAlpha;
+            return renderer::BlendFactor::DstAlpha;
         case D3D11_BLEND_FACTOR_INV_DST_ALPHA:
-            return Renderer::BlendFactor::InvDstAlpha;
+            return renderer::BlendFactor::InvDstAlpha;
         case D3D11_BLEND_FACTOR_DST_COLOR:
-            return Renderer::BlendFactor::DstColor;
+            return renderer::BlendFactor::DstColor;
         case D3D11_BLEND_FACTOR_INV_DST_COLOR:
-            return Renderer::BlendFactor::InvDstColor;
+            return renderer::BlendFactor::InvDstColor;
         case D3D11_BLEND_FACTOR_SRC_ALPHA_SATURATE:
-            return Renderer::BlendFactor::SrcAlphaSaturate;
+            return renderer::BlendFactor::SrcAlphaSaturate;
         case D3D11_BLEND_FACTOR_SRC1_COLOR:
-            return Renderer::BlendFactor::Src1Color;
+            return renderer::BlendFactor::Src1Color;
         case D3D11_BLEND_FACTOR_INV_SRC1_COLOR:
-            return Renderer::BlendFactor::InvSrc1Color;
+            return renderer::BlendFactor::InvSrc1Color;
         case D3D11_BLEND_FACTOR_SRC1_ALPHA:
-            return Renderer::BlendFactor::Src1Alpha;
+            return renderer::BlendFactor::Src1Alpha;
         case D3D11_BLEND_FACTOR_INV_SRC1_ALPHA:
-            return Renderer::BlendFactor::InvSrc1Alpha;
+            return renderer::BlendFactor::InvSrc1Alpha;
         default:
             LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
-            return Renderer::BlendFactor::Zero;
+            return renderer::BlendFactor::Zero;
         }
     }
 }
@@ -177,7 +177,7 @@ ThreeD::ThreeD() {
     SINGLETON_SET_INSTANCE(Engines, "3D engine");
 
     // TODO: choose based on Macro backend
-    { macro_driver = new Macro::Interpreter::Driver(this); }
+    { macro_driver = new macro::interpreter::Driver(this); }
 
     // HACK
     regs.shader_programs[(u32)ShaderStage::VertexB].config.enable = true;
@@ -226,16 +226,16 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    Renderer::BufferBase* index_buffer =
-        RENDERER->GetIndexCache().Decode({.type = index_type,
+    renderer::BufferBase* index_buffer =
+        RENDERER_INSTANCE->GetIndexCache().Decode({.type = index_type,
                                           .primitive_type = primitive_type,
                                           .count = count,
                                           .src_index_buffer = nullptr},
                                          index_type, primitive_type, count);
     if (index_buffer)
-        RENDERER->BindIndexBuffer(index_buffer, index_type);
+        RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
-    RENDERER->Draw(primitive_type, regs.vertex_array_start, count,
+    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_array_start, count,
                    index_buffer != nullptr);
 }
 
@@ -251,23 +251,23 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
                     regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr)
                                       // - MAKE_ADDR(regs.index_buffer_addr);
     auto index_buffer =
-        RENDERER->GetBufferCache().Find({index_buffer_ptr, index_buffer_size});
+        RENDERER_INSTANCE->GetBufferCache().Find({index_buffer_ptr, index_buffer_size});
 
-    RENDERER->BindIndexBuffer(index_buffer, regs.index_type);
+    RENDERER_INSTANCE->BindIndexBuffer(index_buffer, regs.index_type);
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
     index_buffer =
-        RENDERER->GetIndexCache().Decode({.type = index_type,
+        RENDERER_INSTANCE->GetIndexCache().Decode({.type = index_type,
                                           .primitive_type = primitive_type,
                                           .count = count,
                                           .src_index_buffer = index_buffer},
                                          index_type, primitive_type, count);
     ASSERT_DEBUG(index_buffer, GPU, "Index buffer not found");
-    RENDERER->BindIndexBuffer(index_buffer, index_type);
+    RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
     // Draw
-    RENDERER->Draw(primitive_type, regs.vertex_elements_start, count, true);
+    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_elements_start, count, true);
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
@@ -281,17 +281,17 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     // TODO: implement
 
     // Regular clear
-    RENDERER->BindRenderPass(GetRenderPass());
+    RENDERER_INSTANCE->BindRenderPass(GetRenderPass());
 
     if (data.color_mask != 0x0)
-        RENDERER->ClearColor(data.target_id, data.layer_id, data.color_mask,
+        RENDERER_INSTANCE->ClearColor(data.target_id, data.layer_id, data.color_mask,
                              regs.clear_color);
 
     if (data.depth)
-        RENDERER->ClearDepth(data.layer_id, regs.clear_depth);
+        RENDERER_INSTANCE->ClearDepth(data.layer_id, regs.clear_depth);
 
     if (data.stencil)
-        RENDERER->ClearStencil(data.layer_id, regs.clear_stencil);
+        RENDERER_INSTANCE->ClearStencil(data.layer_id, regs.clear_stencil);
 }
 
 void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
@@ -334,15 +334,15 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
             const uptr const_buffer_gpu_ptr =
                 UNMAP_ADDR(regs.const_buffer_selector);
 
-            const auto buffer = RENDERER->GetBufferCache().Find(
+            const auto buffer = RENDERER_INSTANCE->GetBufferCache().Find(
                 {const_buffer_gpu_ptr, regs.const_buffer_selector_size});
 
             bound_const_buffers[index] = const_buffer_gpu_ptr;
-            RENDERER->BindUniformBuffer(
+            RENDERER_INSTANCE->BindUniformBuffer(
                 buffer, to_renderer_shader_type(shader_stage), index);
         } else {
             bound_const_buffers[index] = 0x0;
-            RENDERER->BindUniformBuffer(
+            RENDERER_INSTANCE->BindUniformBuffer(
                 nullptr, to_renderer_shader_type(shader_stage), index);
         }
         break;
@@ -353,19 +353,19 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
     }
 }
 
-Renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
+renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
-    const Renderer::BufferDescriptor descriptor{
+    const renderer::BufferDescriptor descriptor{
         .ptr = UNMAP_ADDR(vertex_array.addr),
         .size = MAKE_ADDR(regs.vertex_array_limits[vertex_array_index]) -
                 MAKE_ADDR(vertex_array.addr),
     };
 
-    return RENDERER->GetBufferCache().Find(descriptor);
+    return RENDERER_INSTANCE->GetBufferCache().Find(descriptor);
 }
 
-Renderer::TextureBase*
+renderer::TextureBase*
 ThreeD::GetTexture(const TextureImageControl& tic) const {
     // HACK
     if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
@@ -393,8 +393,8 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         break;
     }
 
-    const auto format = Renderer::to_texture_format(tic.format_word);
-    const Renderer::TextureDescriptor descriptor(
+    const auto format = renderer::to_texture_format(tic.format_word);
+    const renderer::TextureDescriptor descriptor(
         GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format, kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
@@ -403,10 +403,10 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         {tic.format_word.swizzle_x, tic.format_word.swizzle_y,
          tic.format_word.swizzle_z, tic.format_word.swizzle_w});
 
-    return RENDERER->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 
-Renderer::TextureBase*
+renderer::TextureBase*
 ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
@@ -418,18 +418,18 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
         return nullptr;
     }
 
-    const auto format = Renderer::to_texture_format(render_target.format);
-    const Renderer::TextureDescriptor descriptor(
+    const auto format = renderer::to_texture_format(render_target.format);
+    const renderer::TextureDescriptor descriptor(
         GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         render_target.width, render_target.height,
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
-    return RENDERER->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 
-Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
+renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
     const auto gpu_addr = MAKE_ADDR(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
@@ -437,19 +437,19 @@ Renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
         return nullptr;
     }
 
-    const auto format = Renderer::to_texture_format(regs.depth_target_format);
-    const Renderer::TextureDescriptor descriptor(
+    const auto format = renderer::to_texture_format(regs.depth_target_format);
+    const renderer::TextureDescriptor descriptor(
         GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         regs.depth_target_width, regs.depth_target_height,
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 
-    return RENDERER->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 
-Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
-    Renderer::RenderPassDescriptor descriptor{};
+renderer::RenderPassBase* ThreeD::GetRenderPass() const {
+    renderer::RenderPassDescriptor descriptor{};
 
     // Color targets
     for (u32 i = 0; i < regs.color_target_control.count; i++) {
@@ -465,14 +465,14 @@ Renderer::RenderPassBase* ThreeD::GetRenderPass() const {
                                               : nullptr),
     };
 
-    return RENDERER->GetRenderPassCache().Find(descriptor);
+    return RENDERER_INSTANCE->GetRenderPassCache().Find(descriptor);
 }
 
-Renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
+renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
     return active_shaders[u32(to_renderer_shader_type(stage))];
 }
 
-Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
+renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     const auto& program = regs.shader_programs[usize(stage)];
     if (!program.config.enable)
         return nullptr;
@@ -480,7 +480,7 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     uptr gpu_addr = MAKE_ADDR(regs.shader_program_region) + program.offset;
     uptr ptr = GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr);
 
-    Renderer::GuestShaderDescriptor descriptor{
+    renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
         .code_ptr = ptr,
     };
@@ -498,23 +498,23 @@ Renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
             continue;
 
         descriptor.state.color_target_formats[i] =
-            Renderer::to_texture_format(regs.color_targets[i].format);
+            renderer::to_texture_format(regs.color_targets[i].format);
     }
 
     auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];
-    active_shader = RENDERER->GetShaderCache().Find(descriptor);
+    active_shader = RENDERER_INSTANCE->GetShaderCache().Find(descriptor);
 
     return active_shader;
 }
 
-Renderer::PipelineBase* ThreeD::GetPipeline() {
-    Renderer::PipelineDescriptor descriptor{};
+renderer::PipelineBase* ThreeD::GetPipeline() {
+    renderer::PipelineDescriptor descriptor{};
 
     // Shaders
     // TODO: add all shaders
-    descriptor.shaders[u32(Renderer::ShaderType::Vertex)] =
+    descriptor.shaders[u32(renderer::ShaderType::Vertex)] =
         GetShader(ShaderStage::VertexB);
-    descriptor.shaders[u32(Renderer::ShaderType::Fragment)] =
+    descriptor.shaders[u32(renderer::ShaderType::Fragment)] =
         GetShader(ShaderStage::Fragment);
 
     // Vertex state
@@ -544,7 +544,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
         auto& color_target = descriptor.color_target_states[i];
         color_target.format =
-            Renderer::to_texture_format(regs.color_targets[i].format);
+            renderer::to_texture_format(regs.color_targets[i].format);
         color_target.blend_enabled =
             static_cast<bool>(regs.color_blend_enabled[i]);
         if (color_target.blend_enabled) {
@@ -578,7 +578,7 @@ Renderer::PipelineBase* ThreeD::GetPipeline() {
         }
     }
 
-    return RENDERER->GetPipelineCache().Find(descriptor);
+    return RENDERER_INSTANCE->GetPipelineCache().Find(descriptor);
 }
 
 void ThreeD::ConfigureShaderStage(const ShaderStage stage,
@@ -593,7 +593,7 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
     // TODO: storage buffers
 
     // Textures
-    RENDERER->UnbindTextures(to_renderer_shader_type(stage));
+    RENDERER_INSTANCE->UnbindTextures(to_renderer_shader_type(stage));
     auto tex_const_buffer = reinterpret_cast<const u32*>(
         bound_const_buffers[regs.bindless_texture_const_buffer_slot]);
     for (const auto [const_buffer_index, renderer_index] :
@@ -605,7 +605,7 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
         if (texture)
-            RENDERER->BindTexture(texture, to_renderer_shader_type(stage),
+            RENDERER_INSTANCE->BindTexture(texture, to_renderer_shader_type(stage),
                                   renderer_index);
         // TODO: else bind null texture
 
@@ -622,9 +622,9 @@ bool ThreeD::DrawInternal() {
         return false;
     }
 
-    RENDERER->BindRenderPass(GetRenderPass());
+    RENDERER_INSTANCE->BindRenderPass(GetRenderPass());
 
-    RENDERER->BindPipeline(GetPipeline());
+    RENDERER_INSTANCE->BindPipeline(GetPipeline());
     // TODO: viewport and scissor
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
@@ -636,7 +636,7 @@ bool ThreeD::DrawInternal() {
         if (!buffer)
             continue;
 
-        RENDERER->BindVertexBuffer(buffer, i);
+        RENDERER_INSTANCE->BindVertexBuffer(buffer, i);
     }
 
     // Configure stages
@@ -653,4 +653,4 @@ bool ThreeD::DrawInternal() {
     return true;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

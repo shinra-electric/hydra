@@ -3,11 +3,11 @@
 #include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/gpu/macro/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 class ThreeD;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Macro {
+namespace hydra::hw::tegra_x1::gpu::macro {
 
 struct result_t {
     ResultOperation op;
@@ -16,7 +16,7 @@ struct result_t {
 
 class DriverBase {
   public:
-    DriverBase(Engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
+    DriverBase(engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
     virtual ~DriverBase() = default;
 
     void Execute();
@@ -59,7 +59,7 @@ class DriverBase {
     void Send(u32 arg);
 
   private:
-    Engines::ThreeD* engine_3d;
+    engines::ThreeD* engine_3d;
 
     // Memory
     u32 instruction_ram[0x1000] = {0}; // TODO: what should be the size?
@@ -80,4 +80,4 @@ class DriverBase {
     u32 increment = 0;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Macro
+} // namespace hydra::hw::tegra_x1::gpu::macro

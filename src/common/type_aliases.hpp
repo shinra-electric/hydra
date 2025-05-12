@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace Hydra {
+namespace hydra {
 
 using i8 = int8_t;
 using i16 = int16_t;
@@ -28,4 +28,4 @@ using handle_id_t = u32;
 
 constexpr handle_id_t INVALID_HANDLE_ID = 0;
 
-} // namespace Hydra
+} // namespace hydra

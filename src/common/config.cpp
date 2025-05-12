@@ -43,17 +43,17 @@
     ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, CpuBackend, cpu_backend,
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, CpuBackend, cpu_backend,
                                           AppleHypervisor, "Apple Hypervisor",
                                           Dynarmic, "dynarmic")
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, GpuRenderer, gpu_renderer,
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, GpuRenderer, gpu_renderer,
                                           Metal, "Metal")
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(Hydra, ShaderBackend, shader_backend,
+ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, ShaderBackend, shader_backend,
                                           Msl, "MSL", Air, "AIR")
 
-namespace Hydra {
+namespace hydra {
 
 SINGLETON_DEFINE_GET_INSTANCE(Config, Other, "Config")
 
@@ -232,4 +232,4 @@ void Config::Deserialize() {
     changed = false;
 }
 
-} // namespace Hydra
+} // namespace hydra

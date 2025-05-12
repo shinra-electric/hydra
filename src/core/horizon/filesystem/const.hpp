@@ -10,7 +10,7 @@
     fmt::format(FS_SD_MOUNT "/Nintendo/save/{:08x}/{:08x}", title_id,          \
                 account_uid)
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 enum class FsResult {
     Success,
@@ -30,14 +30,14 @@ enum class FileOpenFlags {
 };
 ENABLE_ENUM_BITMASK_OPERATORS(FileOpenFlags)
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Filesystem::FsResult, Success, "success",
+ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::FsResult, Success, "success",
                        NotMounted, "not mounted", DoesNotExist,
                        "does not exist", IntermediateDirectoryDoesNotExist,
                        "intermediate directory does not exist", NotAFile,
                        "not a file", NotADirectory, "not a directory",
                        AlreadyExists, "already exists")
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Filesystem::FileOpenFlags, Read,
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::filesystem::FileOpenFlags, Read,
                              "read", Write, "write", Append, "append")

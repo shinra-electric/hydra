@@ -2,15 +2,15 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 class GuestShaderState;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
 class MemoryAnalyzer;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 class BuilderBase : public ObserverBase {
   public:
@@ -35,4 +35,4 @@ class BuilderBase : public ObserverBase {
     ResourceMapping& out_resource_mapping;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

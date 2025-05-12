@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 class IAppletResource : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IAppletResource : public ServiceBase {
     result_t GetSharedMemoryHandle(OutHandle<HandleAttr::Copy> out_handle);
 };
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

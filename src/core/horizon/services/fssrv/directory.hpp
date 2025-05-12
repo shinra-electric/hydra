@@ -4,15 +4,15 @@
 
 #include "core/horizon/services/fssrv/const.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 class Directory;
 }
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 class IDirectory : public ServiceBase {
   public:
-    IDirectory(Filesystem::Directory* directory_,
+    IDirectory(filesystem::Directory* directory_,
                DirectoryFilterFlags filter_flags_)
         : directory{directory_}, filter_flags{filter_flags_} {}
 
@@ -20,7 +20,7 @@ class IDirectory : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    Filesystem::Directory* directory;
+    filesystem::Directory* directory;
     DirectoryFilterFlags filter_flags;
 
     u32 entry_index{0};
@@ -30,4 +30,4 @@ class IDirectory : public ServiceBase {
                   OutBuffer<BufferAttr::MapAlias> out_entries);
 };
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv

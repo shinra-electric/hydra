@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 enum class PerformanceMode : i32 {
     Invalid = -1,
@@ -19,7 +19,7 @@ class ISession : public ServiceBase {
     result_t SetPerformanceConfiguration(PerformanceMode mode, u32 config);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Am::PerformanceMode, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::am::PerformanceMode, Invalid,
                        "invalid", Normal, "normal", Boost, "boost");

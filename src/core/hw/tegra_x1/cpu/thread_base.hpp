@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 
 class MemoryBase;
 
@@ -44,4 +44,4 @@ class ThreadBase {
     MemoryBase* tls_mem;
 };
 
-} // namespace Hydra::HW::TegraX1::CPU
+} // namespace hydra::hw::tegra_x1::cpu

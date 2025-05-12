@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Apm {
+namespace hydra::horizon::services::apm {
 
 class IManagerPrivileged : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IManagerPrivileged : public ServiceBase {
     result_t OpenSession(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Apm
+} // namespace hydra::horizon::services::apm

@@ -3,18 +3,18 @@
 #include "core/hw/tegra_x1/gpu/engines/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ShaderBase;
 
 struct GuestShaderState {
-    Engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
+    engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
     TextureFormat color_target_formats[COLOR_TARGET_COUNT] = {
         TextureFormat::Invalid};
 };
 
 struct GuestShaderDescriptor {
-    Engines::ShaderStage stage;
+    engines::ShaderStage stage;
     uptr code_ptr;
     GuestShaderState state;
 };
@@ -31,4 +31,4 @@ class ShaderCache
     void DestroyElement(ShaderBase* shader);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

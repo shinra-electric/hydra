@@ -1,6 +1,6 @@
 #include "core/horizon/display_driver.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
 void DisplayBinder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
     buffers[slot].initialized = true;
@@ -68,4 +68,4 @@ i32 DisplayBinder::ConsumeBuffer() {
     return slot;
 }
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

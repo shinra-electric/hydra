@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
 
@@ -48,15 +48,15 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
         {pixels.dst_width, pixels.dst_height, 1});
 }
 
-Renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
-    const Renderer::TextureDescriptor descriptor(
-        UNMAP_ADDR(info.addr), Renderer::to_texture_format(info.format),
+renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
+    const renderer::TextureDescriptor descriptor(
+        UNMAP_ADDR(info.addr), renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
         static_cast<usize>(info.width), static_cast<usize>(info.height),
         0, // HACK
         static_cast<usize>(info.stride));
 
-    return RENDERER->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

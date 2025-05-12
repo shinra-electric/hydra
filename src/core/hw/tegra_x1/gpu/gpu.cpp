@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
@@ -17,13 +17,13 @@ struct SetObjectArg {
 
 SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU, "GPU")
 
-GPU::GPU(CPU::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
+GPU::GPU(cpu::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
     SINGLETON_SET_INSTANCE(GPU, "GPU");
 
     const auto renderer_type = Config::GetInstance().GetGpuRenderer();
     switch (renderer_type) {
     case GpuRenderer::Metal:
-        renderer = new Renderer::Metal::Renderer();
+        renderer = new renderer::metal::Renderer();
         break;
     default:
         // TODO: log the renderer
@@ -50,7 +50,7 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
 
         const auto set_object_arg = std::bit_cast<SetObjectArg>(arg);
         // TODO: what is engine ID?
-        Engines::EngineBase* engine = nullptr;
+        engines::EngineBase* engine = nullptr;
         switch (set_object_arg.class_id) {
         case 0xb197:
             engine = &three_d_engine;
@@ -85,20 +85,20 @@ void GPU::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-Renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
+renderer::TextureBase* GPU::GetTexture(const NvGraphicsBuffer& buff) {
     LOG_DEBUG(GPU,
               "Map id: {}, width: {}, "
               "height: {}",
               buff.nvmap_id, buff.planes[0].width, buff.planes[0].height);
 
     // TODO: why are there more planes?
-    Renderer::TextureDescriptor descriptor(
+    renderer::TextureDescriptor descriptor(
         mmu->UnmapAddr(GetMapById(buff.nvmap_id).addr + buff.planes[0].offset),
-        Renderer::to_texture_format(buff.planes[0].color_format),
+        renderer::to_texture_format(buff.planes[0].color_format),
         buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height,
         buff.planes[0].block_height_log2, buff.planes[0].pitch);
 
     return renderer->GetTextureCache().GetTextureView(descriptor);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu

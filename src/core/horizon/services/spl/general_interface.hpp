@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Spl {
+namespace hydra::horizon::services::spl {
 
 enum class ConfigItem : u32 {
     DisableProgramVerification = 1,
@@ -33,10 +33,10 @@ class IGeneralInterface : public ServiceBase {
     result_t GetConfig(ConfigItem item, u64* out_config);
 };
 
-} // namespace Hydra::Horizon::Services::Spl
+} // namespace hydra::horizon::services::spl
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::Spl::ConfigItem, DisableProgramVerification,
+    hydra::horizon::services::spl::ConfigItem, DisableProgramVerification,
     "disable program verification", DramId, "DRAM ID",
     SecurityEngineInterruptNumber, "security engine interrupt number",
     FuseVersion, "fuse version", HardwareType, "hardware type", HardwareState,

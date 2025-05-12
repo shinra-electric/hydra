@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 enum class FileSystemProxyType {
     Code,
@@ -133,16 +133,16 @@ class IFileSystemProxy : public ServiceBase {
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
 };
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::FileSystemProxyType,
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::fssrv::FileSystemProxyType,
                        Code, "code", Rom, "rom", Logo, "logo", Control,
                        "control", Manual, "manual", Meta, "meta", Data, "data",
                        Package, "package", RegisteredUpdate,
                        "registered update")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::Fssrv::BisPartitionId, BootPartition1Root,
+    hydra::horizon::services::fssrv::BisPartitionId, BootPartition1Root,
     "boot partition 1 root", BootPartition2Root, "boot partition 2 root",
     UserDataRoot, "user data root", BootConfigAndPackage2Part1,
     "boot config and package 2 part 1", BootConfigAndPackage2Part2,
@@ -157,7 +157,7 @@ ENABLE_ENUM_FORMATTING(
     SignedSystemPartitionOnSafeMode, "signed system partition on safe mode",
     DeviceTreeBlob, "device tree blob", System0, "system 0")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Fssrv::SaveDataType, System,
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::fssrv::SaveDataType, System,
                        "system", Account, "account", Bcat, "bcat", Device,
                        "device", Temporary, "temporary", Cache, "cache",
                        SystemBcat, "system bcat")

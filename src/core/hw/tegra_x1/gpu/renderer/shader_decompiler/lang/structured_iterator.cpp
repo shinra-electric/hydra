@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 void StructuredIterator::Iterate(ObserverBase* observer) {
     auto builder = dynamic_cast<LangBuilderBase*>(observer);
@@ -57,4 +57,4 @@ void StructuredIterator::IterateImpl(LangBuilderBase* builder,
 #undef PARSE_NEXT_INSTRUCTION
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang

@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 class IHidDebugServer : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class IHidDebugServer : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

@@ -16,7 +16,7 @@
     storage.sampling_number = get_absolute_time(); /* TODO: correct? */        \
     auto& out_state = storage.state;
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
 namespace {
 
@@ -25,8 +25,8 @@ constexpr usize MAX_FINGER_COUNT = 10;
 }
 
 InputManager::InputManager() {
-    shared_memory_id = Kernel::Kernel::GetInstance().AddHandle(
-        new Kernel::SharedMemory(0x40000));
+    shared_memory_id = KERNEL.AddHandle(
+        new kernel::SharedMemory(0x40000));
 }
 
 #define UPDATE_NPAD_LIFO(type, style_lower)                                    \
@@ -36,7 +36,7 @@ InputManager::InputManager() {
     if (any(GetHidSharedMemory()                                               \
                 ->npad.entries[u32(type)]                                      \
                 .internal_state.style_set &                                    \
-            HID::NpadStyleSet::style_upper)) {                                 \
+            hid::NpadStyleSet::style_upper)) {                                 \
         UPDATE_NPAD_LIFO(type, style_lower);                                   \
         out_state.entry_dst = entry_src;                                       \
     }
@@ -51,34 +51,34 @@ InputManager::InputManager() {
 #define SET_NPAD_ENTRIES(type, entry)                                          \
     SET_NPAD_ENTRIES_SEPARATE(type, entry, entry)
 
-void InputManager::ConnectNpad(HID::NpadIdType type,
-                               HID::NpadStyleSet style_set,
-                               HID::NpadAttributes attributes) {
+void InputManager::ConnectNpad(hid::NpadIdType type,
+                               hid::NpadStyleSet style_set,
+                               hid::NpadAttributes attributes) {
     GetHidSharedMemory()->npad.entries[u32(type)].internal_state.style_set =
         style_set;
     SET_NPAD_ENTRIES(type, attributes);
 }
 
-void InputManager::SetNpadButtons(HID::NpadIdType type,
-                                  HID::NpadButtons buttons) {
+void InputManager::SetNpadButtons(hid::NpadIdType type,
+                                  hid::NpadButtons buttons) {
     SET_NPAD_ENTRIES(type, buttons);
 }
 
 void InputManager::SetNpadAnalogStickStateL(
-    HID::NpadIdType type, HID::AnalogStickState analog_stick) {
+    hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_l, analog_stick);
 }
 
 void InputManager::SetNpadAnalogStickStateR(
-    HID::NpadIdType type, HID::AnalogStickState analog_stick) {
+    hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_r, analog_stick);
 }
 
-HID::SharedMemory* InputManager::GetHidSharedMemory() const {
-    auto shared_mem = dynamic_cast<Kernel::SharedMemory*>(
-        Kernel::Kernel::GetInstance().GetHandle(shared_memory_id));
+hid::SharedMemory* InputManager::GetHidSharedMemory() const {
+    auto shared_mem = dynamic_cast<kernel::SharedMemory*>(
+        KERNEL.GetHandle(shared_memory_id));
     ASSERT_DEBUG(shared_mem, Horizon, "Failed to get shared memory");
-    return reinterpret_cast<HID::SharedMemory*>(shared_mem->GetPtr());
+    return reinterpret_cast<hid::SharedMemory*>(shared_mem->GetPtr());
 }
 
 void InputManager::UpdateTouchStates() {
@@ -98,7 +98,7 @@ u32 InputManager::BeginTouch() {
     return invalid<u32>();
 }
 
-void InputManager::SetTouchState(HID::TouchState state) {
+void InputManager::SetTouchState(hid::TouchState state) {
     GET_LIFO(touch_screen.lifo);
     out_state.touches[out_state.count++] = state;
 }
@@ -111,4 +111,4 @@ void InputManager::EndTouch(u32 finger_id) {
     touch_count--;
 }
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

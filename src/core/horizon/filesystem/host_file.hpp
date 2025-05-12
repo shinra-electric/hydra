@@ -2,7 +2,7 @@
 
 #include "core/horizon/filesystem/file_base.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class HostFile : public FileBase {
   public:
@@ -23,4 +23,4 @@ class HostFile : public FileBase {
     usize size_limit;
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

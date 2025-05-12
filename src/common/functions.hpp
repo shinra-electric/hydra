@@ -9,7 +9,7 @@
 
 #include "common/type_aliases.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 [[noreturn]] inline void unreachable() {
 #if defined(_MSC_VER) && !defined(__clang__) // MSVC
@@ -127,4 +127,4 @@ template <typename T> T rotl(T v, u64 shift) {
     return (v << shift) | (v >> (32 - shift));
 }
 
-} // namespace Hydra
+} // namespace hydra

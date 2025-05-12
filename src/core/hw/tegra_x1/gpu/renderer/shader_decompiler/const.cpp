@@ -1,24 +1,24 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-DataType to_data_type(Engines::VertexAttribType vertex_attrib_type) {
+DataType to_data_type(engines::VertexAttribType vertex_attrib_type) {
     switch (vertex_attrib_type) {
-    case Engines::VertexAttribType::Snorm:
+    case engines::VertexAttribType::Snorm:
         return DataType::Float;
-    case Engines::VertexAttribType::Unorm:
+    case engines::VertexAttribType::Unorm:
         return DataType::Float;
-    case Engines::VertexAttribType::Sint:
+    case engines::VertexAttribType::Sint:
         return DataType::Int;
-    case Engines::VertexAttribType::Uint:
+    case engines::VertexAttribType::Uint:
         return DataType::UInt;
-    case Engines::VertexAttribType::Sscaled:
+    case engines::VertexAttribType::Sscaled:
         return DataType::Int; // TODO: use float if the Rendered backend
                               // supports scaled attributes
-    case Engines::VertexAttribType::Uscaled:
+    case engines::VertexAttribType::Uscaled:
         return DataType::UInt; // TODO: use float if the Rendered backend
                                // supports scaled attributes
-    case Engines::VertexAttribType::Float:
+    case engines::VertexAttribType::Float:
         return DataType::Float;
     default:
         LOG_WARN(ShaderDecompiler, "Unknown vertex attrib type {}",
@@ -69,4 +69,4 @@ u32 get_load_store_count(LoadStoreMode mode) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

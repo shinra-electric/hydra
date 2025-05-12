@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
     MTL::Library* library;
@@ -12,7 +12,7 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         std::string source;
         source.assign(descriptor.code.begin(), descriptor.code.end());
 
-        library = CreateLibraryFromSource(Renderer::GetInstance().GetDevice(),
+        library = CreateLibraryFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
                                           source);
         break;
     }
@@ -24,7 +24,7 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
                                  });
 
         NS::Error* error;
-        library = Renderer::GetInstance().GetDevice()->newLibrary(dispatch_data,
+        library = METAL_RENDERER_INSTANCE.GetDevice()->newLibrary(dispatch_data,
                                                                   &error);
         if (error) {
             LOG_ERROR(MetalRenderer, "Failed to create Metal library: {}",
@@ -46,4 +46,4 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
 
 Shader::~Shader() { function->release(); }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

@@ -17,7 +17,7 @@ using namespace metal;
 )";
 */
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 namespace {
 
@@ -275,7 +275,7 @@ void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
 }
 
 void Renderer::BindIndexBuffer(BufferBase* index_buffer,
-                               Engines::IndexType index_type) {
+                               engines::IndexType index_type) {
     state.index_buffer = static_cast<Buffer*>(index_buffer);
     state.index_type = index_type;
 }
@@ -308,7 +308,7 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
         state.textures[u32(shader_type)][i] = nullptr;
 }
 
-void Renderer::Draw(const Engines::PrimitiveType primitive_type,
+void Renderer::Draw(const engines::PrimitiveType primitive_type,
                     const u32 start, const u32 count, bool indexed) {
     auto encoder = GetRenderCommandEncoder();
 
@@ -650,4 +650,4 @@ void Renderer::EndCapture() {
     capturing = false;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::Renderer::metal

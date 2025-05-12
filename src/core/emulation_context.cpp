@@ -12,38 +12,38 @@
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 EmulationContext::EmulationContext() {
     // Emulation
     switch (Config::GetInstance().GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-        cpu = new Hydra::HW::TegraX1::CPU::Hypervisor::CPU();
+        cpu = new hydra::hw::tegra_x1::cpu::hypervisor::CPU();
         break;
     case CpuBackend::Dynarmic:
-        cpu = new Hydra::HW::TegraX1::CPU::Dynarmic::CPU();
+        cpu = new hydra::hw::tegra_x1::cpu::dynarmic::CPU();
         break;
     default:
         LOG_FATAL(Other, "Unknown CPU backend");
         break;
     }
 
-    gpu = new Hydra::HW::TegraX1::GPU::GPU(cpu->GetMMU());
+    gpu = new hydra::hw::tegra_x1::gpu::GPU(cpu->GetMMU());
 
-    builtin_display = new Hydra::HW::Display::Display();
+    builtin_display = new hydra::hw::Display::Display();
 
-    bus = new Hydra::HW::Bus();
+    bus = new hydra::hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    os = new Hydra::Horizon::OS(*bus, cpu->GetMMU());
+    os = new hydra::horizon::OS(*bus, cpu->GetMMU());
 
     // Filesystem
     /*
     for (const auto& root_path : Config::GetInstance().GetRootPaths()) {
         const auto res =
-            Horizon::Filesystem::Filesystem::GetInstance().AddEntry(
+            horizon::Filesystem::Filesystem::GetInstance().AddEntry(
                 root_path.guest_path, root_path.host_path, true);
-        ASSERT(res == Horizon::Filesystem::FsResult::Success, HorizonServices,
+        ASSERT(res == horizon::Filesystem::FsResult::Success, Services,
                "Failed to get root path: {}", res);
         LOG_INFO(Other, "Mapped {} to {}", root_path.guest_path,
                  root_path.host_path);
@@ -58,17 +58,17 @@ EmulationContext::~EmulationContext() {
 void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Load ROM
     usize size;
-    auto ifs = Hydra::open_file(rom_filename, size);
+    auto ifs = hydra::open_file(rom_filename, size);
 
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
-    Horizon::Loader::LoaderBase* loader{nullptr};
+    horizon::loader::LoaderBase* loader{nullptr};
     if (extension == "nro")
-        loader = new Horizon::Loader::NROLoader();
+        loader = new horizon::loader::NROLoader();
     else if (extension == "nso")
-        loader = new Horizon::Loader::NSOLoader(true);
+        loader = new horizon::loader::NSOLoader(true);
     else if (extension == "nca")
-        loader = new Horizon::Loader::NCALoader();
+        loader = new horizon::loader::NCALoader();
     else
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
 
@@ -115,10 +115,10 @@ void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Run --------");
 
     // Enter focus
-    auto& state_manager = Horizon::StateManager::GetInstance();
+    auto& state_manager = horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(Horizon::AppletMessage::Resume);
-    state_manager.SetFocusState(Horizon::AppletFocusState::InFocus);
+    state_manager.SendMessage(horizon::AppletMessage::Resume);
+    state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
 
     // Select user account
     // HACK
@@ -155,4 +155,4 @@ void EmulationContext::Present() {
     renderer->UnlockMutex();
 }
 
-} // namespace Hydra
+} // namespace hydra

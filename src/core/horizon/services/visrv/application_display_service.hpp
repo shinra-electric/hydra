@@ -2,11 +2,11 @@
 
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
-namespace Hydra::Horizon::Services::HosBinder {
+namespace hydra::horizon::services::hosbinder {
 class IHOSBinderDriver;
 }
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 class IApplicationDisplayService : public DisplayServiceBase {
   protected:
@@ -31,4 +31,4 @@ class IApplicationDisplayService : public DisplayServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

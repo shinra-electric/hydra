@@ -6,7 +6,7 @@
     if (path.empty() || path[0] != '/')                                        \
         return FsResult::DoesNotExist;
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 Device::~Device() { delete root; }
 
@@ -27,4 +27,4 @@ FsResult Device::GetEntry(const std::string& path, EntryBase*& out_entry) {
     return root->GetEntry(path.substr(1), out_entry);
 }
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

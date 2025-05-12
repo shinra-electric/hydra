@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 
 struct GraphicBufferHeader {
     u32 magic;
@@ -22,7 +22,7 @@ struct GraphicBufferHeader {
 
 struct GraphicBuffer {
     GraphicBufferHeader header;
-    HW::TegraX1::GPU::NvGraphicsBuffer nv_buffer;
+    hw::tegra_x1::gpu::NvGraphicsBuffer nv_buffer;
 };
 
 struct DisplayBuffer {
@@ -39,7 +39,7 @@ struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    DisplayBinder() : event(new Kernel::Event(true)) {}
+    DisplayBinder() : event(new kernel::Event(true)) {}
 
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
@@ -51,12 +51,12 @@ struct DisplayBinder {
         return buffers[slot].buffer;
     }
 
-    const Kernel::HandleWithId<Kernel::Event>& GetEvent() const {
+    const kernel::HandleWithId<kernel::Event>& GetEvent() const {
         return event;
     }
 
   private:
-    Kernel::HandleWithId<Kernel::Event> event;
+    kernel::HandleWithId<kernel::Event> event;
 
     DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                                     // max number of buffers?
@@ -82,4 +82,4 @@ class DisplayDriver {
     std::vector<DisplayBinder*> binders;
 };
 
-} // namespace Hydra::Horizon
+} // namespace hydra::horizon

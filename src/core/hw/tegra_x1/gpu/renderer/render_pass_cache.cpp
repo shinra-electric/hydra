@@ -3,11 +3,11 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 RenderPassBase*
 RenderPassCache::Create(const RenderPassDescriptor& descriptor) {
-    return RENDERER->CreateRenderPass(descriptor);
+    return RENDERER_INSTANCE->CreateRenderPass(descriptor);
 }
 
 u64 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {
@@ -25,4 +25,4 @@ void RenderPassCache::DestroyElement(RenderPassBase* render_pass) {
     delete render_pass;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

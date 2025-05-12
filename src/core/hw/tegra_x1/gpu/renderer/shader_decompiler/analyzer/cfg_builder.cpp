@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
 
 CfgBuilder::CfgBuilder() {
     entry_point_block = &VisitBlock(0);
@@ -48,4 +48,4 @@ void CfgBuilder::OpExit() {
     EndBlock(edge);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer

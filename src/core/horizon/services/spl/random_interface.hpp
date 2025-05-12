@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Spl {
+namespace hydra::horizon::services::spl {
 
 class IRandomInterface : public ServiceBase {
   protected:
@@ -11,4 +11,4 @@ class IRandomInterface : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::Spl
+} // namespace hydra::horizon::services::spl

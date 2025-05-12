@@ -2,7 +2,7 @@
 
 #include "core/horizon/const.hpp"
 
-namespace Hydra::Horizon::Services::Settings {
+namespace hydra::horizon::services::settings {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
                              GetColorSetId)
@@ -19,4 +19,4 @@ result_t ISystemSettingsServer::GetColorSetId(ColorSetId* out_id) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Settings
+} // namespace hydra::horizon::services::settings

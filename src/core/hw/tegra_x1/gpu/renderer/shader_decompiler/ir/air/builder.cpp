@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR {
 
 // TODO: make this configurable
 static constexpr bool FAST_MATH_ENABLED = true;
@@ -130,7 +130,7 @@ void Builder::Start() {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
-            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+            if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
 
             // HACK: how are attributes disabled?
@@ -140,9 +140,9 @@ void Builder::Start() {
             // TODO: only set if the Rendered backend doesn't support scaled
             // attributes
             bool needs_scaling = (vertex_attrib_state.type ==
-                                      Engines::VertexAttribType::Sscaled ||
+                                      engines::VertexAttribType::Sscaled ||
                                   vertex_attrib_state.type ==
-                                      Engines::VertexAttribType::Uscaled);
+                                      engines::VertexAttribType::Uscaled);
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
@@ -384,7 +384,7 @@ void Builder::InitializeSignature(
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
-            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+            if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
 
             // HACK: how are attributes disabled?
@@ -661,4 +661,4 @@ void Builder::RunOptimizationPasses(llvm::OptimizationLevel opt) {
     MPM.run(*m, MAM);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::IR::AIR
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR

@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
 // TODO: how does this work?
 constexpr uptr ADDRESS_SPACE_START = 0x10000000;
@@ -291,11 +291,11 @@ enum class Error {
 typedef u32 result_t;
 
 #define MAKE_RESULT(module, description)                                       \
-    (((static_cast<u32>(::Hydra::Horizon::Kernel::Module::module) & 0x1ff)) |  \
+    (((static_cast<u32>(::hydra::horizon::kernel::Module::module) & 0x1ff)) |  \
      (static_cast<u32>(description) & 0x1fff) << 9)
 
 #define GET_RESULT_MODULE(result)                                              \
-    static_cast<::Hydra::Horizon::Kernel::Module>((result)&0x1ff)
+    static_cast<::hydra::horizon::kernel::Module>((result)&0x1ff)
 
 #define GET_RESULT_DESCRIPTION(result) ((result) >> 9)
 
@@ -324,7 +324,7 @@ enum class MemoryType : u32 {
     Inaccessible = 0x00000010,
     NonSecureIpc = 0x005c3811,
     NonDeviceIpc = 0x004c2812,
-    Kernel = 0x00002013,
+    kernel = 0x00002013,
     GeneratedCode = 0x00402214,
     CodeOut = 0x00402015,
     Coverage = 0x00002016,
@@ -467,10 +467,10 @@ class Handle {
     virtual ~Handle() = default;
 };
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Kernel::Module, Svc, "svc", Fs, "fs", Os, "os", Htcs,
+    hydra::horizon::kernel::Module, Svc, "svc", Fs, "fs", Os, "os", Htcs,
     "htcs", Ncm, "ncm", Dd, "dd", Osdbg, "osdbg", Lr, "lr", Ldr, "ldr", Sf,
     "sf", SfHipc, "sf hipc", Tma, "tma", Dmnt, "dmnt", Gds, "gds", Pm, "pm", Ns,
     "ns", Bsdsockets, "bsd sockets", Htc, "htc", Tsc, "tsc", Kvdb, "kvdb", Sm,
@@ -524,7 +524,7 @@ ENABLE_ENUM_FORMATTING(
     Unknown321, "unknown 321", Npln, "npln", Tspm, "tspm", Devmenu, "devmenu")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Kernel::MemoryType, Free, "free", Io, "io", Static,
+    hydra::horizon::kernel::MemoryType, Free, "free", Io, "io", Static,
     "static", Code, "code", CodeData_1_0_0, "code data 1.0.0", CodeData_4_0_0,
     "code data 4.0.0", Normal_1_0_0, "normal 1.0.0", Normal_4_0_0,
     "normal 4.0.0", Shared, "shared", Alias, "alias", AliasCode, "alias code",
@@ -533,21 +533,21 @@ ENABLE_ENUM_FORMATTING(
     "thread local", Transfered, "transfered", SharedTransfered,
     "shared transfered", SharedCode, "shared code", Inaccessible,
     "inaccessible", NonSecureIpc, "non secure ipc", NonDeviceIpc,
-    "non device ipc", Kernel, "kernel", GeneratedCode, "generated code",
+    "non device ipc", kernel, "kernel", GeneratedCode, "generated code",
     CodeOut, "code out", Coverage, "coverage", Insecure, "insecure")
 
-ENABLE_ENUM_FLAGS_FORMATTING(Hydra::Horizon::Kernel::MemoryPermission, Read,
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::kernel::MemoryPermission, Read,
                              "read", Write, "write", Execute, "execute",
                              DontCare, "don't care")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Kernel::BreakReasonType, Panic, "panic",
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::BreakReasonType, Panic, "panic",
                        Assert, "assert", User, "user", PreLoadDll,
                        "pre load dll", PostLoadDll, "post load dll",
                        PreUnloadDll, "pre unload dll", PostUnloadDll,
                        "post unload dll", CppException, "cpp exception")
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Kernel::InfoType, CoreMask, "core mask", PriorityMask,
+    hydra::horizon::kernel::InfoType, CoreMask, "core mask", PriorityMask,
     "priority mask", AliasRegionAddress, "alias region address",
     AliasRegionSize, "alias region size", HeapRegionAddress,
     "heap region address", HeapRegionSize, "heap region size", TotalMemorySize,
@@ -568,7 +568,7 @@ ENABLE_ENUM_FORMATTING(
     TransferMemoryHint, "transfer memory hint", ThreadTickCountDeprecated,
     "thread tick count deprecated")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Kernel::SystemInfoType,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::SystemInfoType,
                        TotalPhysicalMemorySize, "total physical memory size",
                        UsedPhysicalMemorySize, "used physical memory size",
                        InitialProcessIdRange, "initial process id range")

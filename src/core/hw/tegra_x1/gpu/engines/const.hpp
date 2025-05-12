@@ -6,7 +6,7 @@
 #define UNMAP_ADDR(addr)                                                       \
     GPU::GetInstance().GetGPUMMU().UnmapAddr(MAKE_ADDR(addr))
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 struct Iova {
     u32 hi;
@@ -140,9 +140,9 @@ inline i32 get_block_size_log2(const BlockDim dim) {
     return sign_extend<i32, 4>(static_cast<i32>(dim));
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::PrimitiveType, Points,
                        "points", Lines, "lines", LineLoop, "line loop",
                        LineStrip, "line strip", Triangles, "triangles",
                        TriangleStrip, "triangle strip", TriangleFan,
@@ -153,28 +153,28 @@ ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::PrimitiveType, Points,
                        TriangleStripAdjacency, "triangle strip adjacency",
                        Patches, "patches")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::IndexType, None,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::IndexType, None,
                        "none", UInt8, "u8", UInt16, "u16", UInt32, "u32")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribType, None,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::VertexAttribType, None,
                        "none", Snorm, "snorm", Unorm, "unorm", Sint, "sint",
                        Uint, "uint", Uscaled, "uscaled", Sscaled, "sscaled",
                        Float, "float")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::VertexAttribSize,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::VertexAttribSize,
                        _1x32, "1x32", _2x32, "2x32", _3x32, "3x32", _4x32,
                        "4x32", _1x16, "1x16", _2x16, "2x16", _3x16, "3x16",
                        _4x16, "4x16", _1x8, "1x8", _2x8, "2x8", _3x8, "3x8",
                        _4x8, "4x8", _10_10_10_2, "10_10_10_2", _11_11_10,
                        "11_11_10")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::ShaderStage, VertexA,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::ShaderStage, VertexA,
                        "vertex A", VertexB, "vertex B", TessCtrl,
                        "tessellation control", TessEval,
                        "tessellation evaluation", Geometry, "geometry",
                        Fragment, "fragment")
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::DepthTestFunc, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::DepthTestFunc, Invalid,
                        "invalid", Never, "never", Less, "less", Equal, "equal",
                        LessEqual, "less equal", Greater, "greater", NotEqual,
                        "not equal", GreaterEqual, "greater equal", Always,

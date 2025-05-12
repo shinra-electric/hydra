@@ -1,7 +1,7 @@
 #include "core/horizon/services/pcv/pcv_service.hpp"
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::Pcv::ModuleId, Cpu, "CPU", Gpu, "GPU", I2s1,
+    hydra::horizon::services::pcv::ModuleId, Cpu, "CPU", Gpu, "GPU", I2s1,
     "I2S1", I2s2, "I2S2", I2s3, "I2S3", Pwm, "PWM", I2c1, "I2C1", I2c2, "I2C2",
     I2c3, "I2C3", I2c4, "I2C4", I2c5, "I2C5", I2c6, "I2C6", Spi1, "SPI1", Spi2,
     "SPI2", Spi3, "SPI3", Spi4, "SPI4", Disp1, "DISP1", Disp2, "DISP2", Isp,
@@ -26,15 +26,15 @@ ENABLE_ENUM_FORMATTING(
     "XUSB_IO_PLL", XUsbIoPllHwSeq, "XUSB_IO_PLL_HW_SEQ", Cec, "CEC", Extperiph2,
     "EXTPERIPH2", OscClk, "OSC_CLK")
 
-namespace Hydra::Horizon::Services::Pcv {
+namespace hydra::horizon::services::pcv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IPcvService, 2, SetClockRate, 3, GetClockRate)
 
 result_t IPcvService::SetClockRate(ModuleId module_id, u32 rate) {
     if (module_id >= ModuleId::Count) {
-        LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
+        LOG_ERROR(Services, "Invalid module ID {}", (u32)module_id);
         return MAKE_RESULT(Svc,
-                           Kernel::Error::InvalidEnumValue); // TODO: module
+                           kernel::Error::InvalidEnumValue); // TODO: module
     }
 
     clock_rates[(u32)module_id] = rate;
@@ -43,13 +43,13 @@ result_t IPcvService::SetClockRate(ModuleId module_id, u32 rate) {
 
 result_t IPcvService::GetClockRate(ModuleId module_id, u32* out_rate) {
     if (module_id >= ModuleId::Count) {
-        LOG_ERROR(HorizonServices, "Invalid module ID {}", (u32)module_id);
+        LOG_ERROR(Services, "Invalid module ID {}", (u32)module_id);
         return MAKE_RESULT(Svc,
-                           Kernel::Error::InvalidEnumValue); // TODO: module
+                           kernel::Error::InvalidEnumValue); // TODO: module
     }
 
     *out_rate = clock_rates[(u32)module_id];
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Pcv
+} // namespace hydra::horizon::services::pcv

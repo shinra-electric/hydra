@@ -1,6 +1,6 @@
 #include "core/horizon/services/settings/settings_server.hpp"
 
-namespace Hydra::Horizon::Services::Settings {
+namespace hydra::horizon::services::settings {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISettingsServer, 0, GetLanguageCode, 1,
                              GetAvailableLanguageCodes, 3,
@@ -25,4 +25,4 @@ result_t ISettingsServer::GetAvailableLanguageCodeCount(i32* out_count) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Settings
+} // namespace hydra::horizon::services::settings

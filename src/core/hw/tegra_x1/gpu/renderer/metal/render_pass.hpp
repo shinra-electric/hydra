@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class RenderPass final : public RenderPassBase {
   public:
@@ -19,4 +19,4 @@ class RenderPass final : public RenderPassBase {
     MTL::RenderPassDescriptor* render_pass_descriptor;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

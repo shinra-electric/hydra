@@ -8,7 +8,7 @@
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 template <typename T> struct range {
   public:
@@ -246,12 +246,12 @@ class CacheBase {
     std::map<u64, T> cache;
 };
 
-} // namespace Hydra
+} // namespace hydra
 
 template <typename T>
-struct fmt::formatter<Hydra::range<T>> : formatter<string_view> {
+struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
     template <typename FormatContext>
-    auto format(Hydra::range<T> range, FormatContext& ctx) const {
+    auto format(hydra::range<T> range, FormatContext& ctx) const {
         return formatter<string_view>::format(
             fmt::format("<{}...{})", range.begin, range.end), ctx);
     }

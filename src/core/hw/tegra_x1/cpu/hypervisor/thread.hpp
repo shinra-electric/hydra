@@ -3,15 +3,15 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
-namespace Hydra::Horizon {
+namespace hydra::horizon {
 class OS;
 }
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 class Memory;
 }
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class MMU;
 class CPU;
@@ -99,4 +99,4 @@ class Thread : public ThreadBase {
     void DataAbort(u32 instruction, u64 far, u64 elr);
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

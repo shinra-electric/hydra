@@ -2,18 +2,18 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 class Process;
 }
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 class LoaderBase {
   public:
     virtual ~LoaderBase() = default;
 
-    virtual Kernel::Process* LoadRom(StreamReader& reader,
+    virtual kernel::Process* LoadRom(StreamReader& reader,
                                      const std::string& rom_filename) = 0;
 };
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader

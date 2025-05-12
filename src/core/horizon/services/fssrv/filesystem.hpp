@@ -4,7 +4,7 @@
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/fssrv/const.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 enum class CreateOption {
     None = 0,
@@ -38,7 +38,7 @@ class IFileSystem : public ServiceBase {
     result_t GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
                           EntryType* out_entry_type);
     result_t OpenFile(add_service_fn_t add_service,
-                      Filesystem::FileOpenFlags flags,
+                      filesystem::FileOpenFlags flags,
                       InBuffer<BufferAttr::HipcPointer> path_buffer);
     result_t OpenDirectory(add_service_fn_t add_service,
                            DirectoryFilterFlags filter_flags,
@@ -46,4 +46,4 @@ class IFileSystem : public ServiceBase {
     STUB_REQUEST_COMMAND(Commit);
 };
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv

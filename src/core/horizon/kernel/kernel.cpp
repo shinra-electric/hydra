@@ -7,13 +7,13 @@
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
-namespace Hydra::Horizon::Kernel {
+namespace hydra::horizon::kernel {
 
-SINGLETON_DEFINE_GET_INSTANCE(Kernel, HorizonKernel, "Kernel")
+SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel, "kernel")
 
-Kernel::Kernel(HW::Bus& bus_, HW::TegraX1::CPU::MMUBase* mmu_)
+Kernel::Kernel(hw::Bus& bus_, hw::tegra_x1::cpu::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
-    SINGLETON_SET_INSTANCE(HorizonKernel, "Kernel");
+    SINGLETON_SET_INSTANCE(Kernel, "kernel");
 
     // Heap memory
     // TODO: is this necessary? The app should call svcSetHeapSize anyway
@@ -34,14 +34,14 @@ Kernel::~Kernel() {
 
 uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
                              bool add_guard_page, vaddr_t& out_base) {
-    size = align(size, HW::TegraX1::CPU::PAGE_SIZE);
+    size = align(size, hw::tegra_x1::cpu::PAGE_SIZE);
     auto mem = mmu->AllocateMemory(size);
     mmu->Map(executable_mem_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
     out_base = executable_mem_base;
     if (add_guard_page)
-        size += HW::TegraX1::CPU::PAGE_SIZE; // One guard page
+        size += hw::tegra_x1::cpu::PAGE_SIZE; // One guard page
     executable_mem_base += size;
 
     return mmu->GetMemoryPtr(mem);
@@ -54,7 +54,7 @@ uptr Kernel::CreateExecutableMemory(usize size, MemoryPermission perm,
                            add_guard_page, out_base);
 }
 
-bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
+bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
     result_t res;
     i32 tmp_i32;
     u32 tmp_u32;
@@ -236,7 +236,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
         thread->SetRegX(1, tmp_u64);
         break;
     default:
-        LOG_NOT_IMPLEMENTED(HorizonKernel, "SVC 0x{:08x}", id);
+        LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:08x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
         thread->SetRegW(0, res);
         break;
@@ -246,7 +246,7 @@ bool Kernel::SupervisorCall(HW::TegraX1::CPU::ThreadBase* thread, u64 id) {
 }
 
 result_t Kernel::svcSetHeapSize(usize size, uptr& out_base) {
-    LOG_DEBUG(HorizonKernel, "svcSetHeapSize called (size: 0x{:08x})", size);
+    LOG_DEBUG(Kernel, "svcSetHeapSize called (size: 0x{:08x})", size);
 
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
@@ -261,13 +261,13 @@ result_t Kernel::svcSetHeapSize(usize size, uptr& out_base) {
 result_t Kernel::svcSetMemoryPermission(uptr addr, usize size,
                                         MemoryPermission perm) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcSetMemoryPermission called (addr: 0x{:08x}, size: 0x{:08x}, perm: "
         "{})",
         addr, size, perm);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     return RESULT_SUCCESS;
 }
@@ -275,20 +275,20 @@ result_t Kernel::svcSetMemoryPermission(uptr addr, usize size,
 result_t Kernel::svcSetMemoryAttribute(uptr addr, usize size, u32 mask,
                                        u32 value) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcSetMemoryAttribute called (addr: 0x{:08x}, size: 0x{:08x}, mask: "
         "0x{:08x}, value: 0x{:08x})",
         addr, size, mask, value);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcMapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
         "0x{:08x})",
         dst_addr, src_addr, size);
@@ -300,7 +300,7 @@ result_t Kernel::svcMapMemory(uptr dst_addr, uptr src_addr, usize size) {
 
 result_t Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcUnmapMemory called (dst_addr: 0x{:08x}, src_addr: 0x{:08x}, size: "
         "0x{:08x})",
         dst_addr, src_addr, size);
@@ -314,7 +314,7 @@ result_t Kernel::svcUnmapMemory(uptr dst_addr, uptr src_addr, usize size) {
 
 result_t Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
                                 u32& out_page_info) {
-    LOG_DEBUG(HorizonKernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
+    LOG_DEBUG(Kernel, "svcQueryMemory called (addr: 0x{:08x})", addr);
 
     out_mem_info = mmu->QueryMemory(addr);
 
@@ -325,14 +325,14 @@ result_t Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
 }
 
 void Kernel::svcExitProcess() {
-    LOG_DEBUG(HorizonKernel, "svcExitProcess called");
+    LOG_DEBUG(Kernel, "svcExitProcess called");
 }
 
 result_t Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
                                  vaddr_t stack_top_addr, i32 priority,
                                  i32 processor_id,
                                  handle_id_t& out_thread_handle_id) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcCreateThread called (entry_point: 0x{:08x}, args_addr: "
               "0x{:08x}, stack_top_addr: 0x{:08x}, priority: {}, "
               "processor_id: {})",
@@ -349,12 +349,12 @@ result_t Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
 }
 
 result_t Kernel::svcStartThread(handle_id_t thread_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcStartThread called (thread: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcStartThread called (thread: 0x{:08x})",
               thread_handle_id);
 
     // Start thread
     auto thread = dynamic_cast<Thread*>(GetHandle(thread_handle_id));
-    ASSERT_DEBUG(thread, HorizonKernel, "Handle 0x{:x} is not a Thread",
+    ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
                  thread_handle_id);
     thread->Run();
 
@@ -362,22 +362,22 @@ result_t Kernel::svcStartThread(handle_id_t thread_handle_id) {
 }
 
 void Kernel::svcExitThread() {
-    LOG_DEBUG(HorizonKernel, "svcExitThread called");
+    LOG_DEBUG(Kernel, "svcExitThread called");
 }
 
 void Kernel::svcSleepThread(i64 nano) {
-    LOG_DEBUG(HorizonKernel, "svcSleepThread called (nano: {})", nano);
+    LOG_DEBUG(Kernel, "svcSleepThread called (nano: {})", nano);
 
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
 result_t Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
                                       i32& out_priority) {
-    LOG_DEBUG(HorizonKernel, "svcGetThreadPriority called (thread: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcGetThreadPriority called (thread: 0x{:08x})",
               thread_handle_id);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     // HACK
     out_priority = 0x20; // 0x0 - 0x3f, lower is higher priority
@@ -388,35 +388,35 @@ result_t Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
 result_t Kernel::svcSetThreadPriority(handle_id_t thread_handle_id,
                                       i32 priority) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcSetThreadPriority called (thread: 0x{:08x}, priority: 0x{:x})",
         thread_handle_id, priority);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::svcSetThreadCoreMask(handle_id_t thread_handle_id,
                                       i32 core_mask0, u64 core_mask1) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcSetThreadCoreMask called (thread: 0x{:08x}, core_mask0: "
               "0x{:08x}, core_mask1: 0x{:08x})",
               thread_handle_id, core_mask0, core_mask1);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::svcSignalEvent(handle_id_t event_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcSignalEvent called (event: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcSignalEvent called (event: 0x{:08x})",
               event_handle_id);
 
     auto handle = dynamic_cast<Event*>(GetHandle(event_handle_id));
-    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+    ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle",
                  event_handle_id);
 
     handle->Signal();
@@ -425,11 +425,11 @@ result_t Kernel::svcSignalEvent(handle_id_t event_handle_id) {
 }
 
 result_t Kernel::svcClearEvent(handle_id_t event_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcClearEvent called (event: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcClearEvent called (event: 0x{:08x})",
               event_handle_id);
 
     auto event = dynamic_cast<Event*>(GetHandle(event_handle_id));
-    ASSERT_DEBUG(event, HorizonKernel, "Handle {} is not an event handle",
+    ASSERT_DEBUG(event, Kernel, "Handle {} is not an event handle",
                  event_handle_id);
 
     if (!event->Clear())
@@ -441,7 +441,7 @@ result_t Kernel::svcClearEvent(handle_id_t event_handle_id) {
 result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
                                     usize size, MemoryPermission perm) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcMapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x}, perm: {})",
         shared_mem_handle_id, addr, size, perm);
@@ -449,7 +449,7 @@ result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
     // Map
     auto shared_mem =
         dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
-    ASSERT_DEBUG(shared_mem, HorizonKernel,
+    ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
     shared_mem->MapToRange(range(addr, addr + size), perm);
@@ -460,7 +460,7 @@ result_t Kernel::svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
 result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
                                       uptr addr, usize size) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcUnmapSharedMemory called (handle: 0x{:08x}, addr: 0x{:08x}, size: "
         "0x{:08x})",
         shared_mem_handle_id, addr, size);
@@ -468,11 +468,11 @@ result_t Kernel::svcUnmapSharedMemory(handle_id_t shared_mem_handle_id,
     // Map
     auto shared_mem =
         dynamic_cast<SharedMemory*>(handle_pool.Get(shared_mem_handle_id));
-    ASSERT_DEBUG(shared_mem, HorizonKernel,
+    ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
     // TODO: unmap
-    LOG_FUNC_STUBBED(HorizonKernel);
+    LOG_FUNC_STUBBED(Kernel);
 
     return RESULT_SUCCESS;
 }
@@ -481,7 +481,7 @@ result_t
 Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                 handle_id_t& out_transfer_mem_handle_id) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcCreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
         "perm: {})",
         addr, size, perm);
@@ -493,7 +493,7 @@ Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
 }
 
 result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcCloseHandle called (handle: 0x{:x})",
+    LOG_DEBUG(Kernel, "svcCloseHandle called (handle: 0x{:x})",
               handle_id);
 
     // TODO: uncomment
@@ -503,12 +503,12 @@ result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
 }
 
 result_t Kernel::svcResetSignal(handle_id_t handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcResetSignal called (handle: 0x{:x})",
+    LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})",
               handle_id);
 
     // TODO: correct?
     auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
-    ASSERT_DEBUG(handle, HorizonKernel, "Handle {} is not an event handle",
+    ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle",
                  handle_id);
 
     if (!handle->Clear())
@@ -521,19 +521,19 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
                                         i32 handle_count, i64 timeout,
                                         u64& out_handle_index) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcWaitSynchronization called (handles: 0x{}, count: {}, timeout: "
         "{})",
         (void*)handle_ids, handle_count, timeout);
 
     // TODO: implement multiple handles
-    ASSERT_DEBUG(handle_count <= 1, HorizonKernel,
+    ASSERT_DEBUG(handle_count <= 1, Kernel,
                  "Multiple handles not "
                  "implemented");
 
     if (handle_count == 0) {
         // TODO: allow waiting forever
-        ASSERT(timeout != INFINITE_TIMEOUT, HorizonKernel,
+        ASSERT(timeout != INFINITE_TIMEOUT, Kernel,
                "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0;
@@ -545,16 +545,16 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
 
         // HACK
         if (!event) {
-            LOG_WARN(HorizonKernel, "Handle 0x{:x} is not an event handle",
+            LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle",
                      handle_id);
             std::this_thread::sleep_for(std::chrono::seconds(5));
             return RESULT_SUCCESS;
         }
 
-        ASSERT_DEBUG(event, HorizonKernel,
+        ASSERT_DEBUG(event, Kernel,
                      "Handle 0x{:x} is not an event handle", handle_id);
 
-        LOG_DEBUG(HorizonKernel, "Synchronizing with handle 0x{:x}", handle_id);
+        LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}", handle_id);
 
         if (!event->Wait(timeout))
             return MAKE_RESULT(Svc, Error::TimedOut);
@@ -564,7 +564,7 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
 }
 
 result_t Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
               "0x{:08x})",
               wait_tag, mutex_addr, self_tag);
@@ -576,7 +576,7 @@ result_t Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
 }
 
 result_t Kernel::svcArbitrateUnlock(uptr mutex_addr) {
-    LOG_DEBUG(HorizonKernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
               mutex_addr);
 
     auto& mutex = mutex_map[mutex_addr];
@@ -599,7 +599,7 @@ result_t Kernel::svcArbitrateUnlock(uptr mutex_addr) {
 result_t Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
                                              u32 self_tag, i64 timeout) {
     LOG_DEBUG(
-        HorizonKernel,
+        Kernel,
         "svcWaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
         "self: 0x{:08x}, timeout: {})",
         mutex_addr, var_addr, self_tag, timeout);
@@ -625,7 +625,7 @@ result_t Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
 }
 
 result_t Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcSignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
@@ -633,7 +633,7 @@ result_t Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
     if (count == -1) {
         cond_var.notify_all();
     } else {
-        ASSERT_DEBUG(count > 0, HorizonKernel, "Invalid signal count {}",
+        ASSERT_DEBUG(count > 0, Kernel, "Invalid signal count {}",
                      count);
 
         // TODO: correct?
@@ -645,18 +645,18 @@ result_t Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
 }
 
 void Kernel::svcGetSystemTick(u64& out_tick) {
-    LOG_DEBUG(HorizonKernel, "svcGetSystemTick called");
+    LOG_DEBUG(Kernel, "svcGetSystemTick called");
 
     out_tick = get_absolute_time();
 }
 
 result_t Kernel::svcConnectToNamedPort(const std::string& name,
                                        handle_id_t& out_session_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcConnectToNamedPort called (name: {})", name);
+    LOG_DEBUG(Kernel, "svcConnectToNamedPort called (name: {})", name);
 
     auto it = service_ports.find(name);
     if (it == service_ports.end()) {
-        LOG_ERROR(HorizonKernel, "Unknown service name \"{}\"", name);
+        LOG_ERROR(Kernel, "Unknown service name \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
 
@@ -665,44 +665,44 @@ result_t Kernel::svcConnectToNamedPort(const std::string& name,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
+result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
                                     handle_id_t session_handle_id) {
-    LOG_DEBUG(HorizonKernel, "svcSendSyncRequest called (handle: 0x{:x})",
+    LOG_DEBUG(Kernel, "svcSendSyncRequest called (handle: 0x{:x})",
               session_handle_id);
 
     auto session = dynamic_cast<Session*>(GetHandle(session_handle_id));
 
     // HACK
     if (!session) {
-        LOG_WARN(HorizonKernel, "Handle 0x{:x} is not a session handle",
+        LOG_WARN(Kernel, "Handle 0x{:x} is not a session handle",
                  session_handle_id);
         return RESULT_SUCCESS;
     }
 
-    ASSERT_DEBUG(session, HorizonKernel,
+    ASSERT_DEBUG(session, Kernel,
                  "Handle 0x{:x} is not a session handle", session_handle_id);
     auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
 
     // Request
 
     // HIPC header
-    Hipc::ParsedRequest hipc_in = Hipc::parse_request(tls_ptr);
+    hipc::ParsedRequest hipc_in = hipc::parse_request(tls_ptr);
     u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
 
     // Dispatch
-    Hipc::Readers readers(mmu, hipc_in);
-    Hipc::Writers writers(mmu, hipc_in, service_scratch_buffer,
+    hipc::Readers readers(mmu, hipc_in);
+    hipc::Writers writers(mmu, hipc_in, service_scratch_buffer,
                           service_scratch_buffer_objects,
                           service_scratch_buffer_move_handles,
                           service_scratch_buffer_copy_handles);
-    auto command_type = static_cast<Cmif::CommandType>(hipc_in.meta.type);
+    auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
     switch (command_type) {
-    case Cmif::CommandType::Close:
-        LOG_DEBUG(HorizonKernel, "COMMAND: Close");
+    case cmif::CommandType::Close:
+        LOG_DEBUG(Kernel, "COMMAND: Close");
         session->Close();
         break;
-    case Cmif::CommandType::Request: {
-        LOG_DEBUG(HorizonKernel, "COMMAND: Request");
+    case cmif::CommandType::Request: {
+        LOG_DEBUG(Kernel, "COMMAND: Request");
         RequestContext context{
             readers,
             writers,
@@ -720,12 +720,12 @@ result_t Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
         session->Request(context);
         break;
     }
-    case Cmif::CommandType::Control:
-        LOG_DEBUG(HorizonKernel, "COMMAND: Control");
+    case cmif::CommandType::Control:
+        LOG_DEBUG(Kernel, "COMMAND: Control");
         session->Control(readers, writers);
         break;
     default:
-        LOG_WARN(HorizonKernel, "Unknown command {}", command_type);
+        LOG_WARN(Kernel, "Unknown command {}", command_type);
         break;
     }
 
@@ -742,12 +742,12 @@ result_t Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
                writers.writer.GetWrittenSize());                               \
     }
 
-    Hipc::Metadata meta{.num_data_words = GET_ARRAY_SIZE(writer) +
+    hipc::Metadata meta{.num_data_words = GET_ARRAY_SIZE(writer) +
                                           GET_ARRAY_SIZE(objects_writer),
                         .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
                         .num_move_handles =
                             GET_ARRAY_SIZE(move_handles_writer)};
-    auto response = Hipc::make_request(tls_ptr, meta);
+    auto response = hipc::make_request(tls_ptr, meta);
 
     u8* data_start =
         reinterpret_cast<u8*>(align_ptr(response.data_words, 0x10));
@@ -768,11 +768,11 @@ result_t Kernel::svcSendSyncRequest(HW::TegraX1::CPU::MemoryBase* tls_mem,
 
 result_t Kernel::svcGetThreadId(handle_id_t thread_handle_id,
                                 u64& out_thread_id) {
-    LOG_DEBUG(HorizonKernel, "svcGetThreadId called (thread: 0x{:08x})",
+    LOG_DEBUG(Kernel, "svcGetThreadId called (thread: 0x{:08x})",
               thread_handle_id);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     out_thread_id = 0x0000000f;
@@ -782,7 +782,7 @@ result_t Kernel::svcGetThreadId(handle_id_t thread_handle_id,
 
 result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
                           usize buffer_size) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcBreak called (reason: {}, buffer ptr: 0x{:08x}, buffer "
               "size: 0x{:08x})",
               reason.type, buffer_ptr, buffer_size);
@@ -792,12 +792,12 @@ result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
             const u32 result = *reinterpret_cast<u32*>(buffer_ptr);
             const auto module = GET_RESULT_MODULE(result);
             const auto description = GET_RESULT_DESCRIPTION(result);
-            LOG_INFO(HorizonKernel, "Module: {}, description: 0x{:x}", module,
+            LOG_INFO(Kernel, "Module: {}, description: 0x{:x}", module,
                      description);
         } else {
             for (u32 i = 0; i < buffer_size / sizeof(u32); i++) {
                 const u32 value = reinterpret_cast<u32*>(buffer_ptr)[i];
-                LOG_INFO(HorizonKernel, "0x{:08x}", value);
+                LOG_INFO(Kernel, "0x{:08x}", value);
             }
         }
     }
@@ -809,10 +809,10 @@ result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
 }
 
 result_t Kernel::svcOutputDebugString(const char* str, usize len) {
-    LOG_DEBUG(HorizonKernel, "svcOutputDebugString called");
+    LOG_DEBUG(Kernel, "svcOutputDebugString called");
     if (len != 0) {
         // TODO: handle differently
-        LOG_INFO(HorizonKernel, "{}", std::string(str, len));
+        LOG_INFO(Kernel, "{}", std::string(str, len));
     }
 
     return RESULT_SUCCESS;
@@ -820,13 +820,13 @@ result_t Kernel::svcOutputDebugString(const char* str, usize len) {
 
 result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
                             u64 info_sub_type, u64& out_info) {
-    LOG_DEBUG(HorizonKernel,
+    LOG_DEBUG(Kernel,
               "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
               info_type, handle_id, info_sub_type);
 
     switch (info_type) {
     case InfoType::CoreMask:
-        LOG_NOT_IMPLEMENTED(HorizonKernel, "CoreMask");
+        LOG_NOT_IMPLEMENTED(Kernel, "CoreMask");
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
@@ -880,17 +880,17 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = rand();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
-        LOG_NOT_IMPLEMENTED(HorizonKernel, "AliasRegionExtraSize");
+        LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");
         // HACK
         out_info = 0;
         return RESULT_SUCCESS;
     default:
-        LOG_WARN(HorizonKernel, "Unimplemented info type {}", info_type);
+        LOG_WARN(Kernel, "Unimplemented info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
 }
 
-HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
+hw::tegra_x1::cpu::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
     constexpr usize TLS_MEM_SIZE = 0x20000;
 
     auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
@@ -903,4 +903,4 @@ HW::TegraX1::CPU::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {
     return mem;
 }
 
-} // namespace Hydra::Horizon::Kernel
+} // namespace hydra::horizon::kernel

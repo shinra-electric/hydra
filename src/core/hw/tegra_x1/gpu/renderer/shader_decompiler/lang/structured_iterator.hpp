@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 class LangBuilderBase;
 
@@ -20,4 +20,4 @@ class StructuredIterator : public IteratorBase {
     void IterateImpl(LangBuilderBase* builder, const CfgNode* node);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang

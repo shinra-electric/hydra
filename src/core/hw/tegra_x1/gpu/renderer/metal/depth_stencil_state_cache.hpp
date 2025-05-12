@@ -2,12 +2,12 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 struct DepthStencilStateDescriptor {
     bool depth_test_enabled;
     bool depth_write_enabled;
-    Engines::DepthTestFunc depth_test_func;
+    engines::DepthTestFunc depth_test_func;
     // TODO: stencil
 };
 
@@ -27,4 +27,4 @@ class DepthStencilStateCache
   private:
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 class ITimeZoneService : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class ITimeZoneService : public ServiceBase {
     STUB_REQUEST_COMMAND(ToCalendarTimeWithMyRule);
 };
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

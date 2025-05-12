@@ -2,7 +2,7 @@
 
 #include "core/horizon/filesystem/file_base.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class RamFile : public FileBase {
   public:
@@ -10,7 +10,7 @@ class RamFile : public FileBase {
     ~RamFile() override = default;
 
     void Resize(usize new_size) override {
-        LOG_NOT_IMPLEMENTED(HorizonFilesystem,
+        LOG_NOT_IMPLEMENTED(Filesystem,
                             "RAM file resizing (size: 0x{:x})", new_size);
     }
 
@@ -33,4 +33,4 @@ class RamFile : public FileBase {
     std::stringstream stream;
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

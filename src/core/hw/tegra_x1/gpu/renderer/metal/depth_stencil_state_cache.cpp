@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 MTL::DepthStencilState*
 DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
@@ -16,7 +16,7 @@ DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
     if (descriptor.depth_write_enabled)
         desc->setDepthWriteEnabled(true);
 
-    return Renderer::GetInstance().GetDevice()->newDepthStencilState(desc);
+    return METAL_RENDERER_INSTANCE.GetDevice()->newDepthStencilState(desc);
 }
 
 u64 DepthStencilStateCache::Hash(
@@ -37,4 +37,4 @@ void DepthStencilStateCache::DestroyElement(
     depth_stencil_state->release();
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

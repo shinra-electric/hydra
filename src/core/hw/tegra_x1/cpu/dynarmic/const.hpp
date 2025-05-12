@@ -5,11 +5,8 @@
 
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
-namespace Dyn = ::Dynarmic;
-namespace DynA64 = Dyn::A64;
-
-namespace Hydra::HW::TegraX1::CPU::Dynarmic {
+namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 ;
 
-} // namespace Hydra::HW::TegraX1::CPU::Dynarmic
+} // namespace hydra::hw::tegra_x1::cpu::dynarmic

@@ -11,13 +11,14 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
-#define RENDERER GPU::GetInstance().GetRenderer()
+#define GPU_INSTANCE hydra::hw::tegra_x1::gpu::GPU::GetInstance()
+#define RENDERER_INSTANCE GPU_INSTANCE.GetRenderer()
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
 }
 
-namespace Hydra::HW::TegraX1::GPU {
+namespace hydra::hw::tegra_x1::gpu {
 
 struct MemoryMap {
     uptr addr = 0;
@@ -35,7 +36,7 @@ class GPU {
   public:
     static GPU& GetInstance();
 
-    GPU(CPU::MMUBase* mmu_);
+    GPU(cpu::MMUBase* mmu_);
     ~GPU();
 
     // Memory map
@@ -91,7 +92,7 @@ class GPU {
     }
 
     // Engines
-    Engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
+    engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,
                      "Invalid subchannel {}", subchannel);
 
@@ -109,19 +110,19 @@ class GPU {
     }
 
     // Texture
-    Renderer::TextureBase* GetTexture(const NvGraphicsBuffer& buff);
+    renderer::TextureBase* GetTexture(const NvGraphicsBuffer& buff);
 
     // Getters
-    CPU::MMUBase* GetMMU() const { return mmu; }
+    cpu::MMUBase* GetMMU() const { return mmu; }
 
     GPUMMU& GetGPUMMU() { return gpu_mmu; }
 
     Pfifo& GetPfifo() { return pfifo; }
 
-    Renderer::RendererBase* GetRenderer() const { return renderer; }
+    renderer::RendererBase* GetRenderer() const { return renderer; }
 
   private:
-    CPU::MMUBase* mmu;
+    cpu::MMUBase* mmu;
 
     // Address space
     GPUMMU gpu_mmu;
@@ -131,18 +132,18 @@ class GPU {
     Pfifo pfifo;
 
     // Engines
-    Engines::ThreeD three_d_engine;
-    Engines::Compute compute_engine;
-    Engines::Inline inline_engine;
-    Engines::TwoD two_d_engine;
-    Engines::Copy copy_engine;
-    Engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
+    engines::ThreeD three_d_engine;
+    engines::Compute compute_engine;
+    engines::Inline inline_engine;
+    engines::TwoD two_d_engine;
+    engines::Copy copy_engine;
+    engines::EngineBase* subchannels[SUBCHANNEL_COUNT] = {nullptr};
 
     // Renderer
-    Renderer::RendererBase* renderer;
+    renderer::RendererBase* renderer;
 
     // Memory
-    Allocators::DynamicPool<MemoryMap> memory_maps;
+    allocators::DynamicPool<MemoryMap> memory_maps;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU
+} // namespace hydra::hw::tegra_x1::gpu

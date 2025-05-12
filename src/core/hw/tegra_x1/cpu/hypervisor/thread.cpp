@@ -6,7 +6,7 @@
 #include "common/functions.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
@@ -263,4 +263,4 @@ void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
     SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

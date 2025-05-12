@@ -4,7 +4,7 @@
 #include "core/horizon/services/timesrv/system_clock.hpp"
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetStandardNetworkSystemClock, 2,
@@ -46,4 +46,4 @@ IStaticService::GetEphemeralNetworkSystemClock(add_service_fn_t add_service) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

@@ -2,11 +2,11 @@
 
 #include "core/hw/tegra_x1/gpu/engines/engine_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 class TextureBase;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 struct Texture2DInfo {
     ColorSurfaceFormat format;
@@ -62,7 +62,7 @@ class TwoD : public EngineWithRegsBase<Regs2D> {
     void Copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
 
     // Helpers
-    static Renderer::TextureBase* GetTexture(const Texture2DInfo& info);
+    static renderer::TextureBase* GetTexture(const Texture2DInfo& info);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

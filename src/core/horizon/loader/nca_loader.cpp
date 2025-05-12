@@ -5,7 +5,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 namespace {
 
@@ -214,9 +214,9 @@ struct PartitionEntry {
 
 } // namespace
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Loader::HashType, Auto, "auto", None,
+ENABLE_ENUM_FORMATTING(hydra::horizon::loader::HashType, Auto, "auto", None,
                        "none", HierarchicalSha256Hash,
                        "hierarchical SHA 256 hash", HierarchicalIntegrityHash,
                        "hierarchical integrity hash", AutoSha3, "auto SHA3",
@@ -224,15 +224,15 @@ ENABLE_ENUM_FORMATTING(Hydra::Horizon::Loader::HashType, Auto, "auto", None,
                        HierarchicalIntegritySha3Hash,
                        "hierarchical integrity SHA3 hash")
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 namespace {
 
 void load_pfs0(StreamReader& reader, const std::string& rom_filename,
-               Kernel::Process*& out_process) {
+               kernel::Process*& out_process) {
     // Header
     const auto header = reader.Read<Pfs0Header>();
-    ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), HorizonLoader,
+    ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Loader,
            "Invalid PFS0 magic");
 
     // Entries
@@ -248,7 +248,7 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
     for (u32 i = 0; i < header.entry_count; i++) {
         const auto& entry = entries[i];
         const std::string entry_name(string_table + entry.string_offset);
-        LOG_DEBUG(HorizonLoader, "{} -> offset: 0x{:08x}, size: 0x{:08x}",
+        LOG_DEBUG(Loader, "{} -> offset: 0x{:08x}, size: 0x{:08x}",
                   entry_name, entry.offset, entry.size);
 
         // TODO: it doesn't always need to be ExeFS
@@ -262,7 +262,7 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
         auto nso_reader = reader.CreateSubReader(entry.size);
         auto process = loader.LoadRom(nso_reader, rom_filename);
         if (process) {
-            ASSERT(!out_process, HorizonLoader,
+            ASSERT(!out_process, Loader,
                    "Cannot load multiple processes");
             out_process = process;
         }
@@ -271,11 +271,11 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
 
 void load_section(StreamReader& reader, const std::string& rom_filename,
                   SectionType type, const FsHeader& header,
-                  Kernel::Process*& out_process) {
+                  kernel::Process*& out_process) {
     switch (type) {
     case SectionType::Code: {
         ASSERT(header.hash_type == HashType::HierarchicalSha256Hash,
-               HorizonLoader, "Invalid hash type \"{}\" for Code section",
+               Loader, "Invalid hash type \"{}\" for Code section",
                header.hash_type);
         const auto& layer_region = header.hierarchical_sha_256_data.pfs0_region;
 
@@ -292,7 +292,7 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
     case SectionType::Data: {
         // TODO: can other hash types be used as well?
         ASSERT(header.hash_type == HashType::HierarchicalIntegrityHash,
-               HorizonLoader, "Invalid hash type \"{}\" for Data section",
+               Loader, "Invalid hash type \"{}\" for Data section",
                header.hash_type);
         // TODO: correct?
         const auto& level = header.integrity_meta_info.info_level_hash
@@ -305,38 +305,38 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
         // The Binding of Isaac: 0x00124000
         reader.Seek(level.logical_offset);
         auto romfs_reader = reader.CreateSubReader(level.hash_data_size);
-        const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+        const auto res = filesystem::filesystem::GetInstance().AddEntry(
             FS_SD_MOUNT "/rom/romFS",
-            new Filesystem::HostFile(rom_filename, romfs_reader.GetOffset(),
+            new filesystem::HostFile(rom_filename, romfs_reader.GetOffset(),
                                      romfs_reader.GetSize()),
             true);
-        ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
+        ASSERT(res == filesystem::FsResult::Success, Loader,
                "Failed to add romFS entry: {}", res);
         break;
     }
     case SectionType::Logo:
-        LOG_NOT_IMPLEMENTED(HorizonLoader, "Logo loading");
+        LOG_NOT_IMPLEMENTED(Loader, "Logo loading");
         break;
     case SectionType::Invalid:
-        LOG_ERROR(HorizonLoader, "Invalid section type");
+        LOG_ERROR(Loader, "Invalid section type");
         break;
     }
 }
 
 } // namespace
 
-Kernel::Process* NCALoader::LoadRom(StreamReader& reader,
+kernel::Process* NCALoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NcaHeader>();
     // TODO: allow other NCA versions as well
-    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), HorizonLoader,
+    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Loader,
            "Invalid NCA magic");
 
     // Title ID
-    Kernel::Kernel::GetInstance().SetTitleId(header.program_id);
+    KERNEL.SetTitleId(header.program_id);
 
-    Kernel::Process* process = nullptr;
+    kernel::Process* process = nullptr;
 
     // FS entries
     // TODO: don't iterate over all entries?
@@ -352,9 +352,9 @@ Kernel::Process* NCALoader::LoadRom(StreamReader& reader,
                      header.fs_headers[i], process);
     }
 
-    ASSERT(process, HorizonLoader, "Failed to load process");
+    ASSERT(process, Loader, "Failed to load process");
 
     return process;
 }
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader

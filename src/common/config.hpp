@@ -5,7 +5,7 @@
 #include "common/logging/log.hpp"
 #include "common/types.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 enum class CpuBackend {
     Invalid,
@@ -164,4 +164,4 @@ class Config {
     bool GetDefaultLogStackTrace() const { return false; }
 };
 
-} // namespace Hydra
+} // namespace hydra

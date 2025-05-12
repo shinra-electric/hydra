@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Lm {
+namespace hydra::horizon::services::lm {
 
 struct Packet {
     std::string message;
@@ -27,4 +27,4 @@ class ILogger : public ServiceBase {
     result_t Log(InBuffer<BufferAttr::MapAlias> buffer); // TODO: MapAlias?
 };
 
-} // namespace Hydra::Horizon::Services::Lm
+} // namespace hydra::horizon::services::lm

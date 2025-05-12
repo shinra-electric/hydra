@@ -6,7 +6,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 static const std::string ROM_VIRTUAL_PATH =
     FS_SD_MOUNT "/rom.nro"; // TODO: what should this be?
@@ -50,20 +50,20 @@ struct NroHeader {
 
 } // namespace
 
-Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
+kernel::Process* NROLoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NroHeader>();
 
     // Validate
-    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), HorizonLoader,
+    ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
            "Invalid NRO magic \"{}\"", header.magic);
 
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto ptr = Kernel::Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, Kernel::MemoryPermission::ReadWriteExecute, true,
+    auto ptr = KERNEL.CreateExecutableMemory(
+        executable_size, kernel::MemoryPermission::ReadWriteExecute, true,
         base); // TODO: is the permission correct?
     reader.Seek(0);
     reader.ReadPtr(reinterpret_cast<u8*>(ptr), reader.GetSize());
@@ -110,16 +110,16 @@ Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
 #undef ADD_ENTRY_MANDATORY
 #undef ADD_ENTRY
 
-    // Filesystem
-    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
+    // filesystem
+    const auto res = filesystem::filesystem::GetInstance().AddEntry(
         ROM_VIRTUAL_PATH,
-        new Filesystem::HostFile(rom_filename, reader.GetOffset(),
+        new filesystem::HostFile(rom_filename, reader.GetOffset(),
                                  reader.GetSize()));
-    ASSERT(res == Filesystem::FsResult::Success, HorizonLoader,
+    ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS entry: {}", res);
 
     // Process
-    Kernel::Process* process = new Kernel::Process();
+    kernel::Process* process = new kernel::Process();
     auto& main_thread = process->GetMainThread();
     main_thread.handle->SetEntryPoint(
         base + sizeof(NroHeader) +
@@ -130,4 +130,4 @@ Kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     return process;
 }
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader

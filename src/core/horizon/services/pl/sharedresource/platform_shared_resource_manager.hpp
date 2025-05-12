@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Pl::SharedResource {
+namespace hydra::horizon::services::pl::shared_resource {
 
 enum class SharedFontType : u32 {
     JapanUsEurope,
@@ -39,14 +39,14 @@ class IPlatformSharedResourceManager : public ServiceBase {
     result_t GetSharedFontInOrderOfPriority();
 };
 
-} // namespace Hydra::Horizon::Services::Pl::SharedResource
+} // namespace hydra::horizon::services::pl::shared_resource
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::Horizon::Services::Pl::SharedResource::SharedFontType, JapanUsEurope,
+    hydra::horizon::services::pl::shared_resource::SharedFontType, JapanUsEurope,
     "Japan/US/Europe", ChineseSimplified, "Chinese Simplified",
     ExtendedChineseSimplified, "Extended Chinese Simplified",
     ChineseTraditional, "Chinese Traditional", Korean, "Korean",
     NintendoExtended, "Nintendo Extended")
 
-ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Pl::SharedResource::LoadState,
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::pl::shared_resource::LoadState,
                        Loading, "Loading", Loaded, "Loaded")

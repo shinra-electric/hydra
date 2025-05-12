@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IApplicationProxyService : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IApplicationProxyService : public ServiceBase {
     result_t OpenApplicationProxy(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

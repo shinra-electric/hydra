@@ -1,7 +1,7 @@
 #include "core/horizon/services/hid/hid_system_server.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 DEFINE_SERVICE_COMMAND_TABLE(IHidSystemServer)
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

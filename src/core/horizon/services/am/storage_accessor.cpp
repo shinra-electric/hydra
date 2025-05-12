@@ -1,6 +1,6 @@
 #include "core/horizon/services/am/storage_accessor.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStorageAccessor, 0, GetSize, 10, Write, 11, Read)
 
@@ -11,7 +11,7 @@ result_t IStorageAccessor::GetSize(i64* out_size) {
 
 result_t IStorageAccessor::Write(i64 offset,
                                  InBuffer<BufferAttr::AutoSelect> buffer) {
-    ASSERT_DEBUG(offset >= 0, HorizonServices, "Offset must be >= 0");
+    ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
     const usize size = data.GetSize() - offset;
@@ -23,7 +23,7 @@ result_t IStorageAccessor::Write(i64 offset,
 
 result_t IStorageAccessor::Read(i64 offset,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    ASSERT_DEBUG(offset >= 0, HorizonServices, "Offset must be >= 0");
+    ASSERT_DEBUG(offset >= 0, Services, "Offset must be >= 0");
 
     // TODO: correct?
     const usize size = data.GetSize() - offset;
@@ -32,4 +32,4 @@ result_t IStorageAccessor::Read(i64 offset,
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

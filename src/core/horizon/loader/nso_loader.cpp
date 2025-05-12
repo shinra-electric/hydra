@@ -4,7 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 
-namespace Hydra::Horizon::Loader {
+namespace hydra::horizon::loader {
 
 namespace {
 
@@ -77,11 +77,11 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
+kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
                                     const std::string& rom_filename) {
     // Header
     const auto header = reader.Read<NsoHeader>();
-    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), HorizonLoader,
+    ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
            "Invalid NSO magic");
 
     // Determine executable memory size
@@ -96,7 +96,7 @@ Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
         std::max(executable_size, static_cast<usize>(header.data.memory_offset +
                                                      header.data.size));
     executable_size += header.bss_size;
-    LOG_DEBUG(HorizonLoader,
+    LOG_DEBUG(Loader,
               "NSO: 0x{:08x} + 0x{:08x}, 0x{:08x} + 0x{:08x}, 0x{:08x} + "
               "0x{:08x}, 0x{:08x}",
               header.text.memory_offset, header.text.size,
@@ -105,9 +105,9 @@ Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
 
     // Create executable memory
     vaddr_t base;
-    auto ptr = Kernel::Kernel::GetInstance().CreateExecutableMemory(
-        executable_size, Kernel::MemoryPermission::ReadExecute, false, base);
-    LOG_DEBUG(HorizonLoader, "Base: 0x{:08x}, size: 0x{:08x}", base,
+    auto ptr = KERNEL.CreateExecutableMemory(
+        executable_size, kernel::MemoryPermission::ReadExecute, false, base);
+    LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base,
               executable_size);
 
     // Segments
@@ -125,9 +125,9 @@ Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
     vaddr_t arg_data_base;
     // TODO: memory type
     auto arg_data_ptr = reinterpret_cast<ArgData*>(
-        Kernel::Kernel::GetInstance().CreateRomMemory(
-            ARG_DATA_SIZE, static_cast<Kernel::MemoryType>(4),
-            Kernel::MemoryPermission::ReadWrite, true, arg_data_base));
+        KERNEL.CreateRomMemory(
+            ARG_DATA_SIZE, static_cast<kernel::MemoryType>(4),
+            kernel::MemoryPermission::ReadWrite, true, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
     arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
@@ -144,7 +144,7 @@ Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
 
     // Process
     if (is_entry_point) {
-        Kernel::Process* process = new Kernel::Process();
+        kernel::Process* process = new kernel::Process();
         auto& main_thread = process->GetMainThread();
         main_thread.handle->SetEntryPoint(base + header.text.memory_offset);
         main_thread.handle->SetArg(0, 0x0);
@@ -156,4 +156,4 @@ Kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
     }
 }
 
-} // namespace Hydra::Horizon::Loader
+} // namespace hydra::horizon::loader

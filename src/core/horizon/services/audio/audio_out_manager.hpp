@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 class IAudioOutManager : public ServiceBase {
   protected:
@@ -16,4 +16,4 @@ class IAudioOutManager : public ServiceBase {
                           u32* out_pcm_format, u32* out_state);
 };
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

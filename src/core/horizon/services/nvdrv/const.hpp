@@ -2,7 +2,7 @@
 
 #include "core/horizon/const.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv {
+namespace hydra::horizon::services::nvdrv {
 
 enum class NvResult : u32 {
     Success,
@@ -60,4 +60,4 @@ enum class NvInternalResult : i32 {
     Unknown0x72 = -114,
 };
 
-} // namespace Hydra::Horizon::Services::NvDrv
+} // namespace hydra::horizon::services::nvdrv

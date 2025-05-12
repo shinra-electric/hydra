@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Sm {
+namespace hydra::horizon::services::sm {
 
 class IUserInterface : public ServiceBase {
   protected:
@@ -14,4 +14,4 @@ class IUserInterface : public ServiceBase {
     result_t GetServiceHandle(add_service_fn_t add_service, u64 name);
 };
 
-} // namespace Hydra::Horizon::Services::Sm
+} // namespace hydra::horizon::services::sm

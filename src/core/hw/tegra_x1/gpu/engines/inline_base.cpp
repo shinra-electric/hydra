@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 void InlineBase::LaunchDMAImpl(RegsInline& regs, const u32 index,
                                const u32 data) {
@@ -26,7 +26,7 @@ void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
         memcpy(reinterpret_cast<void*>(dst_ptr), inline_data.data(),
                inline_data.size() * sizeof(u32));
         /*
-        auto dst = RENDERER->GetBufferCache().Find(
+        auto dst = RENDERER_INSTANCE->GetBufferCache().Find(
             {dst_ptr, inline_data.size() * sizeof(u32)});
 
         dst->CopyFrom(inline_data.data());
@@ -35,4 +35,4 @@ void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

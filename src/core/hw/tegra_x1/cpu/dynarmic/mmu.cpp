@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/cpu/dynarmic/memory.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Dynarmic {
+namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 MMU::MMU() {}
 
@@ -22,7 +22,7 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
 }
 
 void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
-              const Horizon::Kernel::MemoryState state) {
+              const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, PAGE_SIZE, Dynarmic, "size");
 
     auto memory_ptr = static_cast<Memory*>(memory)->GetPtr();
@@ -57,7 +57,7 @@ void MMU::Unmap(vaddr_t va, usize size) {
     auto va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
         pages[page] = 0x0;
-        states[page] = {.type = Horizon::Kernel::MemoryType::Free};
+        states[page] = {.type = horizon::kernel::MemoryType::Free};
     }
 }
 
@@ -110,4 +110,4 @@ MemoryRegion MMU::QueryRegion(vaddr_t va) const {
     };
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Dynarmic
+} // namespace hydra::hw::tegra_x1::cpu::dynarmic

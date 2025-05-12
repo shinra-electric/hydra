@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 class IStaticService : public ServiceBase {
   protected:
@@ -17,4 +17,4 @@ class IStaticService : public ServiceBase {
     result_t GetEphemeralNetworkSystemClock(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

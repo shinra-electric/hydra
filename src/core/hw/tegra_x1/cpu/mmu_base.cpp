@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::HW::TegraX1::CPU {
+namespace hydra::hw::tegra_x1::cpu {
 
 SINGLETON_DEFINE_GET_INSTANCE(MMUBase, MMU, "MMU")
 
@@ -8,8 +8,8 @@ MMUBase::MMUBase() { SINGLETON_SET_INSTANCE(MMU, "MMU"); }
 
 MMUBase::~MMUBase() { SINGLETON_UNSET_INSTANCE(); }
 
-Horizon::Kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
-    Horizon::Kernel::MemoryInfo info;
+horizon::kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
+    horizon::kernel::MemoryInfo info;
     info.size = 0x0;
 
     auto region = QueryRegion(va);
@@ -28,7 +28,7 @@ Horizon::Kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
     // Resize to the right
     do {
         vaddr_t addr = info.addr + info.size;
-        if (addr >= Horizon::Kernel::ADDRESS_SPACE_END)
+        if (addr >= horizon::kernel::ADDRESS_SPACE_END)
             break;
 
         region = QueryRegion(addr);
@@ -38,4 +38,4 @@ Horizon::Kernel::MemoryInfo MMUBase::QueryMemory(vaddr_t va) const {
     return info;
 }
 
-} // namespace Hydra::HW::TegraX1::CPU
+} // namespace hydra::hw::tegra_x1::cpu

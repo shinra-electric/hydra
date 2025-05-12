@@ -3,20 +3,20 @@
 #include "core/hw/tegra_x1/gpu/engines/inline_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-#define REGS_3D Engines::ThreeD::GetInstance().GetRegs()
+#define REGS_3D engines::ThreeD::GetInstance().GetRegs()
 
-namespace Hydra::HW::TegraX1::GPU::Macro {
+namespace hydra::hw::tegra_x1::gpu::macro {
 class DriverBase;
 }
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 class BufferBase;
 class TextureBase;
 class RenderPassBase;
 class PipelineBase;
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 enum class TicHdrVersion : u32 {
     _1DBuffer = 0,
@@ -131,15 +131,15 @@ enum class ViewportZClip : u32 {
 };
 
 // TODO: handle this differently
-inline Renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
+inline renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
     switch (stage) {
     case ShaderStage::VertexB:
-        return Renderer::ShaderType::Vertex;
+        return renderer::ShaderType::Vertex;
     case ShaderStage::Fragment:
-        return Renderer::ShaderType::Fragment;
+        return renderer::ShaderType::Fragment;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "Shader stage {}", stage);
-        return Renderer::ShaderType::Count;
+        return renderer::ShaderType::Count;
     }
 }
 
@@ -441,10 +441,10 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
 
   private:
     // Macros
-    Macro::DriverBase* macro_driver;
+    macro::DriverBase* macro_driver;
 
     // Active state (for quick access)
-    Renderer::ShaderBase* active_shaders[u32(Renderer::ShaderType::Count)] = {
+    renderer::ShaderBase* active_shaders[u32(renderer::ShaderType::Count)] = {
         nullptr};
 
     // State
@@ -480,14 +480,14 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void BindGroup(const u32 index, const u32 data);
 
     // Helpers
-    Renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index) const;
-    Renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
-    Renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
-    Renderer::TextureBase* GetDepthStencilTargetTexture() const;
-    Renderer::RenderPassBase* GetRenderPass() const;
-    Renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
-    Renderer::ShaderBase* GetShader(ShaderStage stage);
-    Renderer::PipelineBase* GetPipeline();
+    renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index) const;
+    renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
+    renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
+    renderer::TextureBase* GetDepthStencilTargetTexture() const;
+    renderer::RenderPassBase* GetRenderPass() const;
+    renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
+    renderer::ShaderBase* GetShader(ShaderStage stage);
+    renderer::PipelineBase* GetPipeline();
 
     void ConfigureShaderStage(const ShaderStage stage,
                               const TextureImageControl* tex_header_pool);
@@ -495,9 +495,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     bool DrawInternal();
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines
 
-ENABLE_ENUM_FORMATTING(Hydra::HW::TegraX1::GPU::Engines::TicHdrVersion,
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::TicHdrVersion,
                        _1DBuffer, "1D buffer", PitchColorKey, "pitch color key",
                        Pitch, "pitch", BlockLinear, "block linear",
                        BlockLinearColorKey, "block linear color key")

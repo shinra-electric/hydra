@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/engines/inline_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 struct RegsCompute {
     RegsInline regs_inline;
@@ -19,4 +19,4 @@ class Compute : public EngineWithRegsBase<RegsCompute>, public InlineBase {
     DEFINE_INLINE_ENGINE_METHODS;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/nifm/general_service.hpp"
 
-namespace Hydra::Horizon::Services::Nifm {
+namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 4, CreateGeneralServiceOld)
 
@@ -11,4 +11,4 @@ result_t IStaticService::CreateGeneralServiceOld(add_service_fn_t add_service) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Nifm
+} // namespace hydra::horizon::services::nifm

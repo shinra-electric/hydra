@@ -12,7 +12,7 @@
         LoadInlineDataImpl(regs.regs_inline, index, data);                     \
     }
 
-namespace Hydra::HW::TegraX1::GPU::Engines {
+namespace hydra::hw::tegra_x1::gpu::engines {
 
 struct RegsInline {
     u32 padding_0x0[0x60];
@@ -43,4 +43,4 @@ class InlineBase {
     std::vector<u32> inline_data;
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Engines
+} // namespace hydra::hw::tegra_x1::gpu::engines

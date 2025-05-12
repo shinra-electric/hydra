@@ -6,8 +6,8 @@
 
 #include "common/types.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 inline u64 get_absolute_time() { return mach_absolute_time(); }
 
-} // namespace Hydra
+} // namespace hydra

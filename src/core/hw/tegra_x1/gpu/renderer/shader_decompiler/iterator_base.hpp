@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 enum class ResultCode {
     None,
@@ -46,9 +46,9 @@ class IteratorBase {
                                       const instruction_t inst);
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::ResultCode, None,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ResultCode, None,
     "none", Branch, "branch", BranchConditional, "branch conditional",
     SyncPoint, "sync point", EndBlock, "end block", Error, "error")

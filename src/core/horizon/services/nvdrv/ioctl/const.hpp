@@ -4,7 +4,7 @@
 
 #define IOCTL_CASE(fd, nr, func)                                             \
     case nr: {                                                                 \
-        LOG_DEBUG(HorizonServices, #func);                                     \
+        LOG_DEBUG(Services, #func);                                     \
         return invoke_ioctl(context, *this, &fd::func);                      \
     }
 
@@ -13,7 +13,7 @@
         switch (nr) {                                                          \
             FOR_EACH_1_2(IOCTL_CASE, fd, __VA_ARGS__)                        \
         default:                                                               \
-            LOG_WARN(HorizonServices,                                          \
+            LOG_WARN(Services,                                          \
                      "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
             return NvResult::NotImplemented;                                    \
         }
@@ -23,13 +23,13 @@
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
-            LOG_WARN(HorizonServices,                                          \
+            LOG_WARN(Services,                                          \
                      "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
             return NvResult::NotImplemented;  \
         }                                                                      \
     }
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct IoctlContext {
     Reader* reader;
@@ -108,7 +108,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
         auto& arg = std::get<arg_index>(args);
 
         if constexpr (traits::type == ArgumentType::In) {
-            ASSERT_DEBUG(context.reader, HorizonServices, "No reader");
+            ASSERT_DEBUG(context.reader, Services, "No reader");
             arg = context.reader->Read<Arg>();
             if (context.writer)
                 context.writer->Skip(sizeof(Arg));
@@ -117,7 +117,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::Out) {
-            ASSERT_DEBUG(context.writer, HorizonServices, "No writer");
+            ASSERT_DEBUG(context.writer, Services, "No writer");
             arg = context.writer->WritePtr<typename traits::BaseType>();
             if (context.reader)
                 context.reader->Skip(sizeof(typename traits::BaseType));
@@ -126,8 +126,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOut) {
-            ASSERT_DEBUG(context.reader, HorizonServices, "No reader");
-            ASSERT_DEBUG(context.writer, HorizonServices, "No writer");
+            ASSERT_DEBUG(context.reader, Services, "No reader");
+            ASSERT_DEBUG(context.writer, Services, "No writer");
             arg.in = context.reader->Read<typename traits::In>();
             arg.out = context.writer->WritePtr<typename traits::Out>();
 
@@ -135,8 +135,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOutSingle) {
-            ASSERT_DEBUG(context.reader, HorizonServices, "No reader");
-            ASSERT_DEBUG(context.writer, HorizonServices, "No writer");
+            ASSERT_DEBUG(context.reader, Services, "No reader");
+            ASSERT_DEBUG(context.writer, Services, "No writer");
             arg.data = context.writer->WritePtr<typename traits::BaseType>();
             *arg.data = context.reader->Read<typename traits::BaseType>();
 
@@ -144,7 +144,7 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
-            ASSERT_DEBUG(context.reader, HorizonServices, "No reader");
+            ASSERT_DEBUG(context.reader, Services, "No reader");
             arg = context.reader->ReadPtr<typename traits::BaseType>();
 
             static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1, "InArray must be the last argument");
@@ -182,4 +182,4 @@ NvResult invoke_ioctl(IoctlContext& context, Class& instance,
     return invoke_command_with_args(context, instance, func, indices);
 }
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

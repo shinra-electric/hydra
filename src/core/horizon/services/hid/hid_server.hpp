@@ -4,12 +4,12 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Hid {
+namespace hydra::horizon::services::hid {
 
 struct VibrationDeviceHandle {
     u32 type_value;
     u8 npad_style_index;
-    HID::NpadIdType player_number;
+    ::hydra::horizon::hid::NpadIdType player_number;
     u8 device_index;
     u8 pad;
 };
@@ -43,17 +43,17 @@ class IHidServer : public ServiceBase {
 
   private:
     // TODO: one event for each style set
-    Kernel::HandleWithId<Kernel::Event> npad_style_set_update_event;
+    kernel::HandleWithId<kernel::Event> npad_style_set_update_event;
 
     // Commands
-    result_t CreateAppletResource(Kernel::add_service_fn_t add_service,
+    result_t CreateAppletResource(kernel::add_service_fn_t add_service,
                                   u64 aruid);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
-    result_t GetSupportedNpadStyleSet(HID::NpadStyleSet* style_set);
+    result_t GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     result_t AcquireNpadStyleSetUpdateEventHandle(
@@ -66,17 +66,17 @@ class IHidServer : public ServiceBase {
                                     VibrationDeviceInfo* info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
     result_t
-    CreateActiveVibrationDeviceList(Kernel::add_service_fn_t add_service);
+    CreateActiveVibrationDeviceList(kernel::add_service_fn_t add_service);
     // HACK: this command is usually called from a separate thread which
     // randomly throws InvalidCmifOutHeader error 0x1a80a (probably some sort of
     // memory corruption), therefore we let the thread sleep
     // STUB_REQUEST_COMMAND(SendVibrationValues);
     result_t SendVibrationValues() {
-        LOG_WARN(HorizonServices, "Infinite sleep");
+        LOG_WARN(Services, "Infinite sleep");
         std::this_thread::sleep_for(std::chrono::seconds(0xffffffff));
 
         return RESULT_SUCCESS;
     }
 };
 
-} // namespace Hydra::Horizon::Services::Hid
+} // namespace hydra::horizon::services::hid

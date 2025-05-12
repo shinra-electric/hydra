@@ -1,6 +1,6 @@
 #include "core/horizon/services/audio/audio_renderer.hpp"
 
-namespace Hydra::Horizon::Services::Audio {
+namespace hydra::horizon::services::audio {
 
 namespace {
 
@@ -47,11 +47,11 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
     : params{params_}, work_buffer_size{work_buffer_size_},
-      event(new Kernel::Event()) {}
+      event(new kernel::Event()) {}
 
 result_t
 IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     auto& writer = *out_buffer.writer;
 
@@ -100,4 +100,4 @@ IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Audio
+} // namespace hydra::horizon::services::audio

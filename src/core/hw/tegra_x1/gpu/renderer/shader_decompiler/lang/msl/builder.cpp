@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL {
 
 void Builder::InitializeResourceMapping() {
     for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
@@ -44,7 +44,7 @@ void Builder::EmitDeclarations() {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
-            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+            if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
 
             // HACK: how are attributes disabled?
@@ -218,4 +218,4 @@ std::string Builder::EmitTextureSample(u32 const_buffer_index,
                        const_buffer_index, coords);
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang::MSL
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL

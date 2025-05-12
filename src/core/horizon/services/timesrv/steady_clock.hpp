@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::TimeSrv {
+namespace hydra::horizon::services::timesrv {
 
 class ISteadyClock : public ServiceBase {
   protected:
@@ -11,4 +11,4 @@ class ISteadyClock : public ServiceBase {
   private:
 };
 
-} // namespace Hydra::Horizon::Services::TimeSrv
+} // namespace hydra::horizon::services::timesrv

@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/kernel.hpp"
 
-namespace Hydra::Horizon::Services::Pl::SharedResource {
+namespace hydra::horizon::services::pl::shared_resource {
 
 namespace {
 
@@ -16,22 +16,22 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedMemoryNativeHandle)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle_id = Kernel::Kernel::GetInstance().AddHandle(
-        new Kernel::SharedMemory(SHARED_MEMORY_SIZE));
+    shared_memory_handle_id = KERNEL.AddHandle(
+        new kernel::SharedMemory(SHARED_MEMORY_SIZE));
 }
 
 result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {
-    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
+    LOG_DEBUG(Services, "Font type: {}", font_type);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 
 result_t IPlatformSharedResourceManager::GetLoadState(SharedFontType font_type,
                                                       LoadState* out_state) {
-    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
+    LOG_DEBUG(Services, "Font type: {}", font_type);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_state = LoadState::Loaded;
@@ -40,9 +40,9 @@ result_t IPlatformSharedResourceManager::GetLoadState(SharedFontType font_type,
 
 result_t IPlatformSharedResourceManager::GetSize(SharedFontType font_type,
                                                  u32* out_size) {
-    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
+    LOG_DEBUG(Services, "Font type: {}", font_type);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_size = SHARED_MEMORY_SIZE;
@@ -51,9 +51,9 @@ result_t IPlatformSharedResourceManager::GetSize(SharedFontType font_type,
 
 result_t IPlatformSharedResourceManager::GetSharedMemoryAddressOffset(
     SharedFontType font_type, u32* out_address_offset) {
-    LOG_DEBUG(HorizonServices, "Font type: {}", font_type);
+    LOG_DEBUG(Services, "Font type: {}", font_type);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_address_offset = 0;
@@ -67,8 +67,8 @@ result_t IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
 }
 
 result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority() {
-    LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Pl::SharedResource
+} // namespace hydra::horizon::services::pl::shared_resource

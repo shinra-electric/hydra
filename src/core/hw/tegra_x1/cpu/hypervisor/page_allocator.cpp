@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/page_allocator.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 PageAllocator::PageAllocator(paddr_t base_pa_, usize page_count)
     : base_pa{base_pa_} {
@@ -40,4 +40,4 @@ void PageAllocator::Allocate(usize page_count) {
     allocations.push_back({ptr, page_count});
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

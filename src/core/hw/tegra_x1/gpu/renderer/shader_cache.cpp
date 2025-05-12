@@ -5,21 +5,21 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     ShaderDescriptor host_descriptor{};
-    host_descriptor.type = Engines::to_renderer_shader_type(descriptor.stage);
+    host_descriptor.type = engines::to_renderer_shader_type(descriptor.stage);
 
     // Decompile
     Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr),
                        0x1000); // TODO: size
-    ShaderDecompiler::Decompiler decompiler;
+    shader_decomp::Decompiler decompiler;
     decompiler.Decompile(code_reader, host_descriptor.type, descriptor.state,
                          host_descriptor.backend, host_descriptor.code,
                          host_descriptor.resource_mapping);
 
-    return RENDERER->CreateShader(host_descriptor);
+    return RENDERER_INSTANCE->CreateShader(host_descriptor);
 }
 
 u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
@@ -36,4 +36,4 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
 
 void ShaderCache::DestroyElement(ShaderBase* shader) { delete shader; }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

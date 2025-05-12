@@ -3,7 +3,7 @@
 #include "core/horizon/const.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/page_allocator.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class PageAllocator;
 
@@ -50,12 +50,12 @@ struct PageTableLevel {
 
     u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
-    const Horizon::Kernel::MemoryState GetLevelState(u32 index) const {
+    const horizon::kernel::MemoryState GetLevelState(u32 index) const {
         return level_states[index];
     }
 
     // Setters
-    void SetLevelState(u32 index, const Horizon::Kernel::MemoryState state) {
+    void SetLevelState(u32 index, const horizon::kernel::MemoryState state) {
         level_states[index] = state;
     }
 
@@ -64,14 +64,14 @@ struct PageTableLevel {
     const Page page;
     const vaddr_t base_va;
     PageTableLevel* next_levels[ENTRY_COUNT] = {nullptr};
-    Horizon::Kernel::MemoryState level_states[ENTRY_COUNT] = {};
+    horizon::kernel::MemoryState level_states[ENTRY_COUNT] = {};
 };
 
 struct PageRegion {
     vaddr_t va;
     paddr_t pa;
     usize size;
-    Horizon::Kernel::MemoryState state;
+    horizon::kernel::MemoryState state;
 
     paddr_t UnmapAddr(vaddr_t va_) const { return pa + (va_ - va); }
 };
@@ -82,7 +82,7 @@ class PageTable {
     ~PageTable();
 
     void Map(vaddr_t va, paddr_t pa, usize size,
-             const Horizon::Kernel::MemoryState state);
+             const horizon::kernel::MemoryState state);
     void Unmap(vaddr_t va, usize size);
 
     PageRegion QueryRegion(vaddr_t va) const;
@@ -96,9 +96,9 @@ class PageTable {
     PageTableLevel top_level;
 
     void MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
-                  const Horizon::Kernel::MemoryState state);
+                  const horizon::kernel::MemoryState state);
     void MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
-                      const Horizon::Kernel::MemoryState state);
+                      const horizon::kernel::MemoryState state);
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

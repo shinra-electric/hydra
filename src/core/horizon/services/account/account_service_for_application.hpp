@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Account {
+namespace hydra::horizon::services::account {
 
 class IAccountServiceForApplication : public ServiceBase {
   protected:
@@ -17,4 +17,4 @@ class IAccountServiceForApplication : public ServiceBase {
                                                  u128 user_id);
 };
 
-} // namespace Hydra::Horizon::Services::Account
+} // namespace hydra::horizon::services::account

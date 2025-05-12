@@ -6,7 +6,7 @@
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
-namespace Hydra::Horizon::Services::Fssrv {
+namespace hydra::horizon::services::fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
@@ -15,19 +15,19 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
 
 #define READ_PATH()                                                            \
     const auto path = mount + path_buffer.reader->ReadString();                \
-    LOG_DEBUG(HorizonServices, "Path: {}", path);
+    LOG_DEBUG(Services, "Path: {}", path);
 
 result_t
 IFileSystem::CreateFile(CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = Filesystem::Filesystem::GetInstance().CreateFile(
+    const auto res = filesystem::filesystem::GetInstance().CreateFile(
         path, true); // TODO: should create_intermediate be true?
-    if (res == Filesystem::FsResult::AlreadyExists)
-        LOG_WARN(HorizonServices, "File \"{}\" already exists", path);
+    if (res == filesystem::FsResult::AlreadyExists)
+        LOG_WARN(Services, "File \"{}\" already exists", path);
     else
-        ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+        ASSERT(res == filesystem::FsResult::Success, Services,
                "Failed to create file \"{}\": {}", path, res);
 
     return RESULT_SUCCESS;
@@ -37,7 +37,7 @@ result_t
 IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     return RESULT_SUCCESS;
 }
@@ -46,13 +46,13 @@ result_t
 IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
-        path, new Filesystem::Directory(),
+    const auto res = filesystem::filesystem::GetInstance().AddEntry(
+        path, new filesystem::Directory(),
         true); // TODO: should create_intermediate be true?
-    if (res == Filesystem::FsResult::AlreadyExists)
-        LOG_WARN(HorizonServices, "Directory \"{}\" already exists", path);
+    if (res == filesystem::FsResult::AlreadyExists)
+        LOG_WARN(Services, "Directory \"{}\" already exists", path);
     else
-        ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
+        ASSERT(res == filesystem::FsResult::Success, Services,
                "Failed to create directory \"{}\": {}", path, res);
 
     return RESULT_SUCCESS;
@@ -62,7 +62,7 @@ result_t
 IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     return RESULT_SUCCESS;
 }
@@ -71,7 +71,7 @@ result_t IFileSystem::DeleteDirectoryRecursively(
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     return RESULT_SUCCESS;
 }
@@ -81,11 +81,11 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
                           EntryType* out_entry_type) {
     READ_PATH();
 
-    Filesystem::EntryBase* entry;
+    filesystem::EntryBase* entry;
     const auto res =
-        Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
-    if (res != Filesystem::FsResult::Success) {
-        LOG_WARN(HorizonServices, "Error getting entry \"{}\": {}", path, res);
+        filesystem::filesystem::GetInstance().GetEntry(path, entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Error getting entry \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 
@@ -95,16 +95,16 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
 }
 
 result_t IFileSystem::OpenFile(add_service_fn_t add_service,
-                               Filesystem::FileOpenFlags flags,
+                               filesystem::FileOpenFlags flags,
                                InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    LOG_DEBUG(HorizonServices, "Flags: {}", flags);
+    LOG_DEBUG(Services, "Flags: {}", flags);
 
-    Filesystem::FileBase* file;
-    const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
-    if (res != Filesystem::FsResult::Success) {
-        LOG_WARN(HorizonServices, "Error opening file \"{}\": {}", path, res);
+    filesystem::FileBase* file;
+    const auto res = filesystem::filesystem::GetInstance().GetFile(path, file);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
     }
 
@@ -118,13 +118,13 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
                            InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    LOG_DEBUG(HorizonServices, "Filter flags: {}", filter_flags);
+    LOG_DEBUG(Services, "Filter flags: {}", filter_flags);
 
-    Filesystem::Directory* directory;
+    filesystem::Directory* directory;
     const auto res =
-        Filesystem::Filesystem::GetInstance().GetDirectory(path, directory);
-    if (res != Filesystem::FsResult::Success) {
-        LOG_WARN(HorizonServices, "Error opening directory \"{}\": {}", path,
+        filesystem::filesystem::GetInstance().GetDirectory(path, directory);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Error opening directory \"{}\": {}", path,
                  res);
         return MAKE_RESULT(Fs, 1);
     }
@@ -133,4 +133,4 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Fssrv
+} // namespace hydra::horizon::services::fssrv

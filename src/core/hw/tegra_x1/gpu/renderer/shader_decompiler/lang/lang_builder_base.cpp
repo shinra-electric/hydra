@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 namespace {
 
@@ -105,7 +105,7 @@ void LangBuilderBase::Start() {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
-            if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+            if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
 
             // HACK: how are attributes disabled?
@@ -115,9 +115,9 @@ void LangBuilderBase::Start() {
             // TODO: only set if the Rendered backend doesn't support scaled
             // attributes
             bool needs_scaling = (vertex_attrib_state.type ==
-                                      Engines::VertexAttribType::Sscaled ||
+                                      engines::VertexAttribType::Sscaled ||
                                   vertex_attrib_state.type ==
-                                      Engines::VertexAttribType::Uscaled);
+                                      engines::VertexAttribType::Uscaled);
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
@@ -314,4 +314,4 @@ void LangBuilderBase::EmitWriteFromTemp(reg_t dst, u32 offset, u32 count) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang

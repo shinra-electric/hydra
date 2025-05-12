@@ -2,10 +2,10 @@
 
 #include "core/horizon/filesystem/host_file.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 Directory::Directory(const std::string& host_path) {
-    ASSERT(std::filesystem::is_directory(host_path), HorizonFilesystem,
+    ASSERT(std::filesystem::is_directory(host_path), Filesystem,
            "\"{}\" is not a directory", host_path);
 
     for (const auto& entry : std::filesystem::directory_iterator(host_path)) {
@@ -28,7 +28,7 @@ Directory::~Directory() {
 
 FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
                              bool add_intermediate) {
-    ASSERT(rel_path.size() != 0, HorizonFilesystem,
+    ASSERT(rel_path.size() != 0, Filesystem,
            "Relative path cannot be empty");
 
     const auto slash_pos = rel_path.find('/');
@@ -90,7 +90,7 @@ FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
 FsResult Directory::AddEntry(const std::string& rel_path,
                              const std::string& host_path,
                              bool add_intermediate) {
-    ASSERT(std::filesystem::exists(host_path), HorizonFilesystem,
+    ASSERT(std::filesystem::exists(host_path), Filesystem,
            "Host path \"{}\" does not exist", host_path);
 
     EntryBase* entry{nullptr};
@@ -99,7 +99,7 @@ FsResult Directory::AddEntry(const std::string& rel_path,
     } else if (std::filesystem::is_regular_file(host_path)) {
         entry = new HostFile(host_path);
     } else {
-        LOG_ERROR(HorizonFilesystem, "Invalid host path \"{}\"", host_path);
+        LOG_ERROR(Filesystem, "Invalid host path \"{}\"", host_path);
     }
 
     return AddEntry(rel_path, entry, add_intermediate);
@@ -167,4 +167,4 @@ EntryBase* Directory::GetEntryImpl(const std::string& name) {
     return it->second;
 }
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

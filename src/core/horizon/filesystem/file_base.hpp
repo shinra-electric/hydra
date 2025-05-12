@@ -3,7 +3,7 @@
 #include "common/logging/log.hpp"
 #include "core/horizon/filesystem/entry_base.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class FileStream {
   public:
@@ -13,13 +13,13 @@ class FileStream {
     virtual ~FileStream() = default;
 
     StreamReader CreateReader() {
-        ASSERT(any(flags & FileOpenFlags::Read), HorizonFilesystem,
+        ASSERT(any(flags & FileOpenFlags::Read), Filesystem,
                "No read permission");
         return StreamReader(*stream, offset, size);
     }
 
     StreamWriter CreateWriter() {
-        ASSERT(any(flags & FileOpenFlags::Write), HorizonFilesystem,
+        ASSERT(any(flags & FileOpenFlags::Write), Filesystem,
                "No write permission");
         return StreamWriter(*stream, offset, size);
     }
@@ -53,4 +53,4 @@ class FileBase : public EntryBase {
     u32 offset;
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

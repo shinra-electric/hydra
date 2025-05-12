@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
 
 namespace {
 
@@ -106,4 +106,4 @@ void MemoryAnalyzer::HandleStore(const Operand operand) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer

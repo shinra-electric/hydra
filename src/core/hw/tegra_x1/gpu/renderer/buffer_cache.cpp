@@ -3,10 +3,10 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 BufferBase* BufferCache::Create(const BufferDescriptor& descriptor) {
-    auto texture = RENDERER->CreateBuffer(descriptor);
+    auto texture = RENDERER_INSTANCE->CreateBuffer(descriptor);
     // TODO: upload buffer
 
     return texture;
@@ -29,4 +29,4 @@ u64 BufferCache::Hash(const BufferDescriptor& descriptor) {
 
 void BufferCache::DestroyElement(BufferBase* buffer) { delete buffer; }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Friends {
+namespace hydra::horizon::services::friends {
 
 class IServiceCreator : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IServiceCreator : public ServiceBase {
     result_t CreateFriendService(add_service_fn_t add_service);
 };
 
-} // namespace Hydra::Horizon::Services::Friends
+} // namespace hydra::horizon::services::friend

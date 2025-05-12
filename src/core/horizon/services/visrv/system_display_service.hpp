@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 class ISystemDisplayService : public DisplayServiceBase {
   protected:
@@ -19,4 +19,4 @@ class ISystemDisplayService : public DisplayServiceBase {
                             float* out_refresh_rate, i32* out_unknown);
 };
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

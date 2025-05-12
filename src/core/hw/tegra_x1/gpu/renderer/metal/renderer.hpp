@@ -7,7 +7,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/depth_stencil_state_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+#define METAL_RENDERER_INSTANCE hydra::hw::tegra_x1::gpu::renderer::metal::Renderer::GetInstance()
+
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Buffer;
 class Texture;
@@ -25,7 +27,7 @@ struct State {
     const RenderPass* render_pass{nullptr};
     const Pipeline* pipeline{nullptr};
     const Buffer* index_buffer{nullptr};
-    Engines::IndexType index_type{Engines::IndexType::None};
+    engines::IndexType index_type{engines::IndexType::None};
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [CONST_BUFFER_BINDING_COUNT];
@@ -87,7 +89,7 @@ class Renderer : public RendererBase {
     // Resource binding
     void BindVertexBuffer(BufferBase* buffer, u32 index) override;
     void BindIndexBuffer(BufferBase* index_buffer,
-                         Engines::IndexType index_type) override;
+                         engines::IndexType index_type) override;
     void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                            u32 index) override;
     void BindTexture(TextureBase* texture, ShaderType shader_type,
@@ -97,7 +99,7 @@ class Renderer : public RendererBase {
     void UnbindTextures(ShaderType shader_type) override;
 
     // Draw
-    void Draw(const Engines::PrimitiveType primitive_type, const u32 start,
+    void Draw(const engines::PrimitiveType primitive_type, const u32 start,
               const u32 count, bool indexed) override;
 
     // Helpers
@@ -195,4 +197,4 @@ class Renderer : public RendererBase {
     void EndCapture();
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

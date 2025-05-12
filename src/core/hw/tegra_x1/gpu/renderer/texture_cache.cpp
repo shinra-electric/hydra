@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer {
+namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     auto& tex = Find(descriptor);
@@ -33,7 +33,7 @@ Tex TextureCache::Create(const TextureDescriptor& descriptor) {
     auto desc = descriptor;
     desc.swizzle_channels =
         get_texture_format_default_swizzle_channels(desc.format);
-    auto texture = RENDERER->CreateTexture(desc);
+    auto texture = RENDERER_INSTANCE->CreateTexture(desc);
     DecodeTexture(texture);
 
     return {texture};
@@ -71,4 +71,4 @@ void TextureCache::DecodeTexture(TextureBase* texture) {
     texture->CopyFrom(reinterpret_cast<uptr>(out_data));
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer
+} // namespace hydra::hw::tegra_x1::gpu::renderer

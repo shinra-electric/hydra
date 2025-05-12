@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-namespace Hydra::Horizon::HID {
+namespace hydra::horizon::hid {
 
 enum class DebugPadButton {
     A = BIT(0),
@@ -1163,4 +1163,4 @@ struct SharedMemory {
     u8 unk_x3C220[0x3DE0];
 };
 
-} // namespace Hydra::Horizon::HID
+} // namespace hydra::horizon::hid

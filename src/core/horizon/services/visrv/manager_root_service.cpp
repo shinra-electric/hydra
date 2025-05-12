@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 // TODO: is this really correct?
 DEFINE_SERVICE_COMMAND_TABLE(IManagerRootService, 0, GetDisplayService, 2,
@@ -20,4 +20,4 @@ result_t IManagerRootService::GetDisplayServiceWithProxyNameExchange(
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

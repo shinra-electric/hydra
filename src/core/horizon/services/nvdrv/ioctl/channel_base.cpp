@@ -1,6 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/channel_base.hpp"
 
-namespace Hydra::Horizon::Services::NvDrv::Ioctl {
+namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(
     ChannelBase,
@@ -22,9 +22,9 @@ NvResult ChannelBase::GetUserData(u64* out_data) {
 }
 
 NvResult ChannelBase::SetNvMapFd(u32 fd_id) {
-    LOG_DEBUG(HorizonServices, "FD: {}", fd_id);
+    LOG_DEBUG(Services, "FD: {}", fd_id);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
 
     // TODO: what's the purpose of knowing the nvmap fd?
 
@@ -32,10 +32,10 @@ NvResult ChannelBase::SetNvMapFd(u32 fd_id) {
 }
 
 NvResult ChannelBase::SetPriority(u32 priority) {
-    LOG_DEBUG(HorizonServices, "Priority: {}", priority);
+    LOG_DEBUG(Services, "Priority: {}", priority);
 
-    LOG_FUNC_STUBBED(HorizonServices);
+    LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }
 
-} // namespace Hydra::Horizon::Services::NvDrv::Ioctl
+} // namespace hydra::horizon::services::nvdrv::ioctl

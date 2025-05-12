@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 ClearDepthPipelineCache::ClearDepthPipelineCache() {
     // Source
@@ -37,7 +37,7 @@ ClearDepthPipelineCache::ClearDepthPipelineCache() {
 
     // Function
     auto vertex_clear_depth =
-        CreateFunctionFromSource(Renderer::GetInstance().GetDevice(),
+        CreateFunctionFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
                                  shader_source, "vertex_clear_depth");
 
     // Pipeline descriptor
@@ -55,7 +55,7 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
     pipeline_descriptor->setDepthAttachmentPixelFormat(pixel_format);
 
     NS::Error* error;
-    auto pipeline = Renderer::GetInstance().GetDevice()->newRenderPipelineState(
+    auto pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
         pipeline_descriptor, &error);
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create clear depth pipeline: {}",
@@ -75,4 +75,4 @@ void ClearDepthPipelineCache::DestroyElement(
     pipeline->release();
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

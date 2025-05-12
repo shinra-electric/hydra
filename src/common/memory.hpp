@@ -5,7 +5,7 @@
 
 #include "common/types.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 class Reader {
   public:
@@ -163,4 +163,4 @@ class StreamWriter {
     usize size;
 };
 
-} // namespace Hydra
+} // namespace hydra

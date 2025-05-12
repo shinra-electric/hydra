@@ -32,14 +32,14 @@
 #include "core/horizon/services/visrv/manager_root_service.hpp"
 #include "core/horizon/services/visrv/system_root_service.hpp"
 
-namespace Hydra::Horizon::Services::Sm {
+namespace hydra::horizon::services::sm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
                              GetServiceHandle)
 
 result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
                                           u64 name) {
-    LOG_DEBUG(HorizonServices, "Service name: \"{}\"", u64_to_str(name));
+    LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
 // TODO: don't instantiate the services?
@@ -49,45 +49,45 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
     break;
 
     switch (name) {
-        SERVICE_CASE(Hid::IHidServer, "hid")
-        SERVICE_CASE(Hid::IHidDebugServer, "hid:dbg")
-        SERVICE_CASE(Hid::IHidSystemServer, "hid:sys")
-        SERVICE_CASE(Fssrv::IFileSystemProxy, "fsp-srv")
-        SERVICE_CASE(TimeSrv::IStaticService, "time:u", "time:a", "time:s")
-        SERVICE_CASE(NvDrv::INvDrvServices, "nvdrv")
-        SERVICE_CASE(Settings::ISystemSettingsServer, "set:sys")
-        SERVICE_CASE(Am::IApmManager, "apm", "apm:am")
-        SERVICE_CASE(Am::IApplicationProxyService, "appletOE")
-        SERVICE_CASE(ViSrv::IApplicationRootService, "vi:u")
-        SERVICE_CASE(ViSrv::ISystemRootService, "vi:s")
-        SERVICE_CASE(ViSrv::IManagerRootService, "vi:m")
-        SERVICE_CASE(Pl::SharedResource::IPlatformSharedResourceManager, "pl:u")
-        SERVICE_CASE(Psm::IPsmServer, "psm")
-        SERVICE_CASE(Lm::ILogService, "lm")
-        SERVICE_CASE(AocSrv::IAddOnContentManager, "aoc:u")
-        SERVICE_CASE(Pctl::IParentalControlServiceFactory, "pctl:s", "pctl:r",
+        SERVICE_CASE(hid::IHidServer, "hid")
+        SERVICE_CASE(hid::IHidDebugServer, "hid:dbg")
+        SERVICE_CASE(hid::IHidSystemServer, "hid:sys")
+        SERVICE_CASE(fssrv::IFileSystemProxy, "fsp-srv")
+        SERVICE_CASE(timesrv::IStaticService, "time:u", "time:a", "time:s")
+        SERVICE_CASE(nvdrv::INvDrvServices, "nvdrv")
+        SERVICE_CASE(settings::ISystemSettingsServer, "set:sys")
+        SERVICE_CASE(am::IApmManager, "apm", "apm:am")
+        SERVICE_CASE(am::IApplicationProxyService, "appletOE")
+        SERVICE_CASE(visrv::IApplicationRootService, "vi:u")
+        SERVICE_CASE(visrv::ISystemRootService, "vi:s")
+        SERVICE_CASE(visrv::IManagerRootService, "vi:m")
+        SERVICE_CASE(pl::shared_resource::IPlatformSharedResourceManager, "pl:u")
+        SERVICE_CASE(psm::IPsmServer, "psm")
+        SERVICE_CASE(lm::ILogService, "lm")
+        SERVICE_CASE(aocsrv::IAddOnContentManager, "aoc:u")
+        SERVICE_CASE(pctl::IParentalControlServiceFactory, "pctl:s", "pctl:r",
                      "pctl:a", "pctl")
-        SERVICE_CASE(Account::IAccountServiceForApplication, "acc:u0")
-        SERVICE_CASE(Apm::IManagerPrivileged, "apm:p")
-        SERVICE_CASE(Socket::IClient, "bsd:u", "bsd:s", "bsd:a")
-        SERVICE_CASE(Settings::ISettingsServer, "set")
-        SERVICE_CASE(Account::IAccountServiceForSystemService, "acc:u1")
-        SERVICE_CASE(Audio::IAudioOutManager, "audout:u")
-        SERVICE_CASE(Audio::IAudioRendererManager, "audren:u")
-        SERVICE_CASE(Ssl::Sf::ISslService, "ssl")
-        SERVICE_CASE(Spl::IRandomInterface, "csrng")
-        SERVICE_CASE(Nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
-        SERVICE_CASE(Pcv::IPcvService, "pcv")
-        SERVICE_CASE(Socket::Resolver::IResolver, "sfdnsres")
-        SERVICE_CASE(Spl::IGeneralInterface, "spl:")
-        SERVICE_CASE(Friends::IServiceCreator, "friend:a")
+        SERVICE_CASE(account::IAccountServiceForApplication, "acc:u0")
+        SERVICE_CASE(account::IAccountServiceForSystemService, "acc:u1")
+        SERVICE_CASE(apm::IManagerPrivileged, "apm:p")
+        SERVICE_CASE(socket::IClient, "bsd:u", "bsd:s", "bsd:a")
+        SERVICE_CASE(settings::ISettingsServer, "set")
+        SERVICE_CASE(audio::IAudioOutManager, "audout:u")
+        SERVICE_CASE(audio::IAudioRendererManager, "audren:u")
+        SERVICE_CASE(ssl::sf::ISslService, "ssl")
+        SERVICE_CASE(spl::IRandomInterface, "csrng")
+        SERVICE_CASE(nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u")
+        SERVICE_CASE(pcv::IPcvService, "pcv")
+        SERVICE_CASE(socket::Resolver::IResolver, "sfdnsres")
+        SERVICE_CASE(spl::IGeneralInterface, "spl:")
+        SERVICE_CASE(friends::IServiceCreator, "friend:a")
     default:
-        LOG_WARN(HorizonServices, "Unknown service name \"{}\"",
+        LOG_WARN(Services, "Unknown service name \"{}\"",
                  u64_to_str(name));
-        return MAKE_RESULT(Svc, Kernel::Error::NotFound); // TODO: module
+        return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Sm
+} // namespace hydra::horizon::services::sm

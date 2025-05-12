@@ -9,8 +9,8 @@
 #include "common/type_aliases.hpp"
 
 #define LOG(level, c, ...)                                                     \
-    Logging::log(Logging::Level::level, Logging::Class::c,                     \
-                 Logging::trim_source_path(__FILE__), __LINE__, __func__,      \
+    logging::log(logging::Level::level, logging::Class::c,                     \
+                 logging::trim_source_path(__FILE__), __LINE__, __func__,      \
                  __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
@@ -61,7 +61,7 @@
 #define INDENT_FMT "{:{}}"
 #define PASS_INDENT(indent) "", ((indent)*4)
 
-namespace Hydra::Logging {
+namespace hydra::logging {
 
 // From yuzu
 constexpr const char* trim_source_path(std::string_view source) {
@@ -100,32 +100,32 @@ enum class Class {
     MetalRenderer,
     SDL3Window,
     Horizon,
-    HorizonKernel,
-    HorizonFilesystem,
-    HorizonLoader,
-    HorizonServices,
+    Kernel,
+    Filesystem,
+    Loader,
+    Services,
     Hypervisor,
     Dynarmic,
     Other,
 };
 
-} // namespace Hydra::Logging
+} // namespace hydra::logging
 
-ENABLE_ENUM_FORMATTING(Hydra::Logging::Level, Debug, "debug", Info, "info",
+ENABLE_ENUM_FORMATTING(hydra::logging::Level, Debug, "debug", Info, "info",
                        Stubbed, "stubbed", Warning, "warning", Error, "error",
                        Fatal, "fatal")
 
-ENABLE_ENUM_FORMATTING(Hydra::Logging::Class, Common, "Common", MMU, "MMU", CPU,
+ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
-                       "Horizon", HorizonKernel, "Horizon::Kernel",
-                       HorizonFilesystem, "Horizon::Filesystem", HorizonLoader,
-                       "Horizon::Loader", HorizonServices, "Horizon::Services",
+                       "Horizon", Kernel, "Kernel",
+                       Filesystem, "Filesystem", Loader,
+                       "Loader", Services, "Services",
                        Hypervisor, "Hypervisor", Dynarmic, "Dynarmic", Other,
                        "")
 
-namespace Hydra::Logging {
+namespace hydra::logging {
 
 extern Output g_output;
 extern std::mutex g_log_mutex;
@@ -184,4 +184,4 @@ void log(Level level, Class c, const std::string& file, u32 line,
     g_log_mutex.unlock();
 }
 
-} // namespace Hydra::Logging
+} // namespace hydra::logging

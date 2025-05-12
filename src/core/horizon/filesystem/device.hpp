@@ -2,7 +2,7 @@
 
 #include "core/horizon/filesystem/directory.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class Directory;
 
@@ -23,4 +23,4 @@ class Device {
     Directory* root;
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

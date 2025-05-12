@@ -15,7 +15,7 @@
 #define KERNEL_RANGE_MEM_SIZE 0x1000000
 */
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
@@ -52,33 +52,33 @@ enum class ApFlags : u64 {
 };
 
 /*
-inline ApFlags PermisionToAP(Horizon::Permission permission) {
+inline ApFlags PermisionToAP(horizon::Permission permission) {
     return ApFlags::UserNoneKernelReadWriteExecute; // HACK: wtf why does this
                                                     // work
 
-    if (any(permission & Horizon::Permission::Read)) {
-        if (any(permission & Horizon::Permission::Write)) {
-            if (any(permission & Horizon::Permission::Execute)) {
+    if (any(permission & horizon::Permission::Read)) {
+        if (any(permission & horizon::Permission::Write)) {
+            if (any(permission & horizon::Permission::Execute)) {
                 return ApFlags::UserReadWriteExecuteKernelReadWrite;
             } else {
                 return ApFlags::UserReadWriteKernelReadWrite;
             }
         } else {
-            if (any(permission & Horizon::Permission::Execute)) {
+            if (any(permission & horizon::Permission::Execute)) {
                 return ApFlags::UserReadExecuteKernelReadExecute;
             } else {
                 return ApFlags::UserReadKernelReadExecute;
             }
         }
     } else {
-        if (any(permission & Horizon::Permission::Write)) {
-            if (any(permission & Horizon::Permission::Execute)) {
+        if (any(permission & horizon::Permission::Write)) {
+            if (any(permission & horizon::Permission::Execute)) {
                 return ApFlags::UserReadWriteExecuteKernelReadWrite;
             } else {
                 return ApFlags::UserReadWriteKernelReadWrite;
             }
         } else {
-            if (any(permission & Horizon::Permission::Execute)) {
+            if (any(permission & horizon::Permission::Execute)) {
                 return ApFlags::UserExecuteKernelRead;
             } else {
                 return ApFlags::UserNoneKernelReadWrite;
@@ -118,7 +118,7 @@ PageTable::PageTable(paddr_t base_pa)
 PageTable::~PageTable() = default;
 
 void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
-                    const Horizon::Kernel::MemoryState state) {
+                    const horizon::kernel::MemoryState state) {
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
 
@@ -144,9 +144,9 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
             region.va = va & ~(level->GetBlockSize() - 1);
             region.pa = 0x0;
             region.size = level->GetBlockSize();
-            region.state = {Horizon::Kernel::MemoryType::Free,
-                            Horizon::Kernel::MemoryAttribute::None,
-                            Horizon::Kernel::MemoryPermission::None};
+            region.state = {horizon::kernel::MemoryType::Free,
+                            horizon::kernel::MemoryAttribute::None,
+                            horizon::kernel::MemoryPermission::None};
 
             return region;
         }
@@ -167,14 +167,14 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
-    ASSERT(region.state.type != Horizon::Kernel::MemoryType::Free, Hypervisor,
+    ASSERT(region.state.type != horizon::kernel::MemoryType::Free, Hypervisor,
            "Failed to unmap va 0x{:08x}", va);
 
     return region.UnmapAddr(va);
 }
 
 void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
-                         usize size, const Horizon::Kernel::MemoryState state) {
+                         usize size, const horizon::kernel::MemoryState state) {
     vaddr_t end_va = va + size;
     do {
         MapLevelNext(
@@ -190,7 +190,7 @@ void PageTable::MapLevel(PageTableLevel& level, vaddr_t va, paddr_t pa,
 
 void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
                              usize size,
-                             const Horizon::Kernel::MemoryState state) {
+                             const horizon::kernel::MemoryState state) {
     // LOG_DEBUG(Hypervisor,
     //           "Level: {}, va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}",
     //           level.GetLevel(), va, pa, size);
@@ -212,4 +212,4 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
     }
 }
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

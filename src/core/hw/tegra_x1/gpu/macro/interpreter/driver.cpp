@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Macro::Interpreter {
+namespace hydra::hw::tegra_x1::gpu::macro::interpreter {
 
 void Driver::ExecuteImpl(u32 pc_, u32 param1) {
     pc = pc_;
@@ -171,4 +171,4 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Macro::Interpreter
+} // namespace hydra::hw::tegra_x1::gpu::macro::interpreter

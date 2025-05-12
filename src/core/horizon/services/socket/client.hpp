@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Socket {
+namespace hydra::horizon::services::socket {
 
 class IClient : public ServiceBase {
   protected:
@@ -17,4 +17,4 @@ class IClient : public ServiceBase {
     STUB_REQUEST_COMMAND(Close);
 };
 
-} // namespace Hydra::Horizon::Services::Socket
+} // namespace hydra::horizon::services::socket

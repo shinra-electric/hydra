@@ -3,7 +3,7 @@
 #include "core/horizon/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Settings {
+namespace hydra::horizon::services::settings {
 
 class ISettingsServer : public ServiceBase {
   public:
@@ -21,4 +21,4 @@ class ISettingsServer : public ServiceBase {
     result_t GetAvailableLanguageCodeCount(i32* out_count);
 };
 
-} // namespace Hydra::Horizon::Services::Settings
+} // namespace hydra::horizon::services::settings

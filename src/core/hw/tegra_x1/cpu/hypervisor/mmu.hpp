@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr uptr KERNEL_REGION_BASE = 0xF0000000;
 constexpr usize KERNEL_REGION_SIZE = 0x10000000;
@@ -21,7 +21,7 @@ class MMU : public MMUBase {
     uptr GetMemoryPtr(MemoryBase* memory) const override;
 
     void Map(vaddr_t va, usize size, MemoryBase* memory,
-             const Horizon::Kernel::MemoryState state) override;
+             const horizon::kernel::MemoryState state) override;
     void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
     void Unmap(vaddr_t va, usize size) override;
 
@@ -44,4 +44,4 @@ class MMU : public MMUBase {
     u64 physical_memory_cur{0};
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

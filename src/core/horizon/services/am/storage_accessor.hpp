@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IStorageAccessor : public ServiceBase {
   public:
@@ -20,4 +20,4 @@ class IStorageAccessor : public ServiceBase {
     result_t Read(i64 offset, OutBuffer<BufferAttr::AutoSelect> out_buffer);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

@@ -4,7 +4,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/shader.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Pipeline::Pipeline(const PipelineDescriptor& descriptor)
     : PipelineBase(descriptor) {
@@ -26,7 +26,7 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
     for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
         const auto& vertex_attrib_state =
             descriptor.vertex_state.vertex_attrib_states[i];
-        if (vertex_attrib_state.type == Engines::VertexAttribType::None)
+        if (vertex_attrib_state.type == engines::VertexAttribType::None)
             continue;
 
         // HACK: how are attributes disabled?
@@ -125,7 +125,7 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
 
     // Pipeline
     NS::Error* error;
-    pipeline = Renderer::GetInstance().GetDevice()->newRenderPipelineState(
+    pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
         pipeline_descriptor, &error);
     pipeline_descriptor->release();
     if (error) {
@@ -138,4 +138,4 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
 
 Pipeline::~Pipeline() { pipeline->release(); }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

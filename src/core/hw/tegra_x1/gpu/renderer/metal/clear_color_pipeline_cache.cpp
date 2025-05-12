@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::Metal {
+namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 ClearColorPipelineCache::ClearColorPipelineCache() {
     // Source
@@ -32,7 +32,7 @@ ClearColorPipelineCache::ClearColorPipelineCache() {
 
     // Function
     auto vertex_clear_color =
-        CreateFunctionFromSource(Renderer::GetInstance().GetDevice(),
+        CreateFunctionFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
                                  shader_source, "vertex_clear_color");
 
     // Pipeline descriptor
@@ -64,7 +64,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
 
     // Function
     auto fragment_clear_color =
-        CreateFunctionFromSource(Renderer::GetInstance().GetDevice(),
+        CreateFunctionFromSource(METAL_RENDERER_INSTANCE.GetDevice(),
                                  shader_source, "fragment_clear_color");
 
     // Pipeline
@@ -87,7 +87,7 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     fragment_clear_color->release();
 
     NS::Error* error;
-    auto pipeline = Renderer::GetInstance().GetDevice()->newRenderPipelineState(
+    auto pipeline = METAL_RENDERER_INSTANCE.GetDevice()->newRenderPipelineState(
         pipeline_descriptor, &error);
     if (error) {
         LOG_ERROR(MetalRenderer, "Failed to create clear color pipeline: {}",
@@ -109,4 +109,4 @@ void ClearColorPipelineCache::DestroyElement(
     pipeline->release();
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::Metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

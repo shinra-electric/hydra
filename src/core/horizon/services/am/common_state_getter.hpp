@@ -3,7 +3,7 @@
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/state_manager.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 enum class OperationMode {
     Handheld,
@@ -24,4 +24,4 @@ class ICommonStateGetter : public ServiceBase {
     result_t GetCurrentFocusState(AppletFocusState* out_state);
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

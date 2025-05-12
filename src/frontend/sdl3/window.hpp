@@ -3,7 +3,7 @@
 #include "core/emulation_context.hpp"
 #include "frontend/sdl3/const.hpp"
 
-namespace Hydra::Frontend::SDL3 {
+namespace hydra::frontend::sdl3 {
 
 class Window {
   public:
@@ -19,8 +19,8 @@ class Window {
     EmulationContext emulation_context;
 
     // Inputs
-    Horizon::HID::NpadButtons buttons{Horizon::HID::NpadButtons::None};
+    horizon::hid::NpadButtons buttons{horizon::hid::NpadButtons::None};
     u32 finger_id{invalid<u32>()};
 };
 
-} // namespace Hydra::Frontend::SDL3
+} // namespace hydra::frontend::sdl3

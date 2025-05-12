@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
-namespace Hydra::Horizon::Services::ViSrv {
+namespace hydra::horizon::services::visrv {
 
 class IManagerDisplayService : public DisplayServiceBase {
   protected:
@@ -17,4 +17,4 @@ class IManagerDisplayService : public DisplayServiceBase {
     result_t SetLayerVisibility(u64 layer_id, bool visible);
 };
 
-} // namespace Hydra::Horizon::Services::ViSrv
+} // namespace hydra::horizon::services::visrv

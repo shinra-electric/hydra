@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 
-namespace Hydra::HW::TegraX1::CPU::Hypervisor {
+namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 struct Page {
     uptr ptr;
@@ -36,4 +36,4 @@ class PageAllocator {
     void Allocate(usize page_count = PAGE_COUNT_ALIGNMENT);
 };
 
-} // namespace Hydra::HW::TegraX1::CPU::Hypervisor
+} // namespace hydra::hw::tegra_x1::cpu::hypervisor

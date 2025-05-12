@@ -4,7 +4,7 @@
 #include "core/hw/bus.hpp"
 #include "core/hw/display/display.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
                              GetLibraryAppletLaunchableEvent, 10,
@@ -16,7 +16,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
                              CreateManagedDisplayLayer)
 
 ISelfController::ISelfController()
-    : library_applet_launchable_event(new Kernel::Event(true)) {}
+    : library_applet_launchable_event(new kernel::Event(true)) {}
 
 result_t ISelfController::LockExit() {
     StateManager::GetInstance().LockExit();
@@ -39,9 +39,9 @@ result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
 
     // TODO: what display ID should be used?
     *out_layer_id =
-        Kernel::Kernel::GetInstance().GetBus().GetDisplay(0)->CreateLayer(
+        KERNEL.GetBus().GetDisplay(0)->CreateLayer(
             binder_id);
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

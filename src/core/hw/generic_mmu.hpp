@@ -3,7 +3,7 @@
 #include "common/common.hpp"
 #include "common/logging/log.hpp"
 
-namespace Hydra::HW {
+namespace hydra::hw {
 
 template <typename SubclassT, typename Impl> class GenericMMU {
   public:
@@ -59,4 +59,4 @@ template <typename SubclassT, typename Impl> class GenericMMU {
     std::map<uptr, Impl> mapped_ranges;
 };
 
-} // namespace Hydra::HW
+} // namespace hydra::hw

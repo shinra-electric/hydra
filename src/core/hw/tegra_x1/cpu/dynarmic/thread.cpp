@@ -6,10 +6,10 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 #include "dynarmic/interface/optimization_flags.h"
 
-namespace Hydra::HW::TegraX1::CPU::Dynarmic {
+namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 // HACK
-static Dyn::ExclusiveMonitor
+static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
 Thread::~Thread() { delete jit; }
@@ -21,7 +21,7 @@ void Thread::Initialize(
     tpidrro_el0 = tls_mem_base;
 
     // Create JIT
-    DynA64::UserConfig config{};
+    Dynarmic::A64::UserConfig config{};
     config.callbacks = this;
 
     // Multi-process state
@@ -49,7 +49,7 @@ void Thread::Initialize(
     // TODO: make this configurable
     // config.optimizations = Dyn::no_optimizations;
 
-    jit = new DynA64::Jit(config);
+    jit = new Dynarmic::A64::Jit(config);
 
     jit->SetSP(stack_mem_end);
 }
@@ -98,8 +98,8 @@ u32 Thread::MemoryRead32(u64 addr) { return mmu->Load<u32>(addr); }
 
 u64 Thread::MemoryRead64(u64 addr) { return mmu->Load<u64>(addr); }
 
-DynA64::Vector Thread::MemoryRead128(u64 addr) {
-    return mmu->Load<DynA64::Vector>(addr);
+Dynarmic::A64::Vector Thread::MemoryRead128(u64 addr) {
+    return mmu->Load<Dynarmic::A64::Vector>(addr);
 }
 
 std::optional<u32> Thread::MemoryReadCode(u64 addr) {
@@ -114,7 +114,7 @@ void Thread::MemoryWrite32(u64 addr, u32 value) { mmu->Store(addr, value); }
 
 void Thread::MemoryWrite64(u64 addr, u64 value) { mmu->Store(addr, value); }
 
-void Thread::MemoryWrite128(u64 addr, DynA64::Vector value) {
+void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
     mmu->Store(addr, value);
 }
 
@@ -138,8 +138,8 @@ bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
     return true;
 }
 
-bool Thread::MemoryWriteExclusive128(u64 addr, DynA64::Vector value,
-                                     DynA64::Vector expected) {
+bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
+                                     Dynarmic::A64::Vector expected) {
     mmu->StoreExclusive(addr, value);
     return true;
 }
@@ -151,7 +151,7 @@ void Thread::CallSVC(u32 svc) {
         jit->HaltExecution();
 }
 
-void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
+void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
     LogStackTrace();
 
     // TODO: handle the exception
@@ -160,4 +160,4 @@ void Thread::ExceptionRaised(u64 pc, DynA64::Exception exception) {
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }
 
-} // namespace Hydra::HW::TegraX1::CPU::Dynarmic
+} // namespace hydra::hw::tegra_x1::cpu::dynarmic

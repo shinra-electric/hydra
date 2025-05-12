@@ -2,7 +2,7 @@
 
 // TODO: report real data on devices with batteries + make this configurable
 
-namespace Hydra::Horizon::Services::Psm {
+namespace hydra::horizon::services::psm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IPsmServer, 0, GetBatteryChargePercentage, 1,
                              GetChargerType, 13, GetRawBatteryChargePercentage,
@@ -34,4 +34,4 @@ result_t IPsmServer::GetBatteryAgePercentage(f64* out_percentage) {
     return RESULT_SUCCESS;
 }
 
-} // namespace Hydra::Horizon::Services::Psm
+} // namespace hydra::horizon::services::psm

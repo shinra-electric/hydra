@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Am {
+namespace hydra::horizon::services::am {
 
 class IAudioController : public ServiceBase {
   protected:
@@ -12,4 +12,4 @@ class IAudioController : public ServiceBase {
     // Commands
 };
 
-} // namespace Hydra::Horizon::Services::Am
+} // namespace hydra::horizon::services::am

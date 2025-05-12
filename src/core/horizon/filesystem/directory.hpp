@@ -3,7 +3,7 @@
 #include "common/logging/log.hpp"
 #include "core/horizon/filesystem/entry_base.hpp"
 
-namespace Hydra::Horizon::Filesystem {
+namespace hydra::horizon::filesystem {
 
 class Directory : public EntryBase {
   public:
@@ -31,4 +31,4 @@ class Directory : public EntryBase {
     EntryBase* GetEntryImpl(const std::string& name);
 };
 
-} // namespace Hydra::Horizon::Filesystem
+} // namespace hydra::horizon::filesystem

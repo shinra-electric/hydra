@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 void AllPathsIterator::Iterate(ObserverBase* observer) {
     while (true) {
@@ -32,4 +32,4 @@ void AllPathsIterator::Iterate(ObserverBase* observer) {
     }
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

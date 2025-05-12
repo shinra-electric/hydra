@@ -2,7 +2,7 @@
 
 #include "common/type_aliases.hpp"
 
-namespace Hydra {
+namespace hydra {
 
 template <typename T> struct function_traits;
 
@@ -31,4 +31,4 @@ template <typename R, typename... Args>
 struct function_traits<std::function<R(Args...)>>
     : function_traits<R(Args...)> {};
 
-} // namespace Hydra
+} // namespace hydra

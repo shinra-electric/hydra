@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 enum class CfgBlockEdgeType {
     Branch,
@@ -45,13 +45,13 @@ struct CfgBlockEdge {
     }
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::CfgBlockEdgeType,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType,
     Branch, "branch", BranchConditional, "branch conditional", Exit, "exit")
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 enum class CfgBlockStatus {
     Unvisited,
@@ -110,4 +110,4 @@ struct CfgBasicBlock {
     }
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

@@ -3,7 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
 
 class CfgBuilder : public ObserverBase {
   public:
@@ -73,4 +73,4 @@ class CfgBuilder : public ObserverBase {
     }
 };
 
-} // namespace Hydra::HW::TegraX1::GPU::Renderer::ShaderDecompiler::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer

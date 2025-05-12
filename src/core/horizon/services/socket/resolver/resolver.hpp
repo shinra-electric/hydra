@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace Hydra::Horizon::Services::Socket::Resolver {
+namespace hydra::horizon::services::socket::Resolver {
 
 class IResolver : public ServiceBase {
   protected:
@@ -13,4 +13,4 @@ class IResolver : public ServiceBase {
     result_t GetAddrInfoRequest();
 };
 
-} // namespace Hydra::Horizon::Services::Socket::Resolver
+} // namespace hydra::horizon::services::socket::Resolver

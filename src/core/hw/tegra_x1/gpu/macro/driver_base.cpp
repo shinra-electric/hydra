@@ -2,7 +2,7 @@
 #include "core/hw/tegra_x1/gpu/engines/3d.hpp"
 #include "core/hw/tegra_x1/gpu/macro/const.hpp"
 
-namespace Hydra::HW::TegraX1::GPU::Macro {
+namespace hydra::hw::tegra_x1::gpu::macro {
 
 void DriverBase::Execute() {
     ExecuteImpl(start_address_ram[index], param1);
@@ -133,4 +133,4 @@ void DriverBase::Send(u32 arg) {
     method += increment;
 }
 
-} // namespace Hydra::HW::TegraX1::GPU::Macro
+} // namespace hydra::hw::tegra_x1::gpu::macro
