@@ -105,7 +105,7 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
     SetSysReg(HV_SYS_REG_TCR_EL1, 0x00000011B5193519ul);
     SetSysReg(HV_SYS_REG_SCTLR_EL1, 0x0000000034D5D925ul);
 
-    // Enable FP and SIMD instructions.
+    // Enable FP and SIMD instructions
     SetSysReg(HV_SYS_REG_CPACR_EL1, 0b11 << 20);
 
     // Trampoline
@@ -119,7 +119,6 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
     // TODO: set SP_EL1 as well?
 
     // Setup TLS pointer
-    // TODO: offset by thread id * some alignment?
     SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
 
     // Trap debug access

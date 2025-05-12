@@ -63,7 +63,7 @@ void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
 }
 
 void PageTable::Unmap(vaddr_t va, usize size) {
-    LOG_NOT_IMPLEMENTED(Hypervisor, "Memory unmapping");
+    LOG_FUNC_NOT_IMPLEMENTED(Hypervisor);
 }
 
 // TODO: find out if there is a cheaper way
