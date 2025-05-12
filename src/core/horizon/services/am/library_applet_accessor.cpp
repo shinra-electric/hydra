@@ -12,23 +12,24 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(AppletId id_,
                                                LibraryAppletMode mode_)
     : id{id_}, mode{mode_}, state_changed_event(new Kernel::Event()) {}
 
-void ILibraryAppletAccessor::GetAppletStateChangedEvent(
-    REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(state_changed_event.id);
+result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = state_changed_event.id;
+    return RESULT_SUCCESS;
 }
 
-void ILibraryAppletAccessor::Start(REQUEST_COMMAND_PARAMS) {
+result_t ILibraryAppletAccessor::Start() {
     // TODO: implement
     LOG_FUNC_NOT_IMPLEMENTED(HorizonServices);
+    return RESULT_SUCCESS;
 }
 
-void ILibraryAppletAccessor::PushInData(REQUEST_COMMAND_PARAMS) {
-    const auto storage_handle = readers.objects_reader->Read<handle_id_t>();
-    auto storage = dynamic_cast<IStorage*>(get_service(storage_handle));
-    ASSERT_DEBUG(storage, HorizonServices,
-                 "Storage handle (0x{:x}) is invalid ", storage_handle);
+result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
+    auto storage = dynamic_cast<IStorage*>(storage_);
+    ASSERT_DEBUG(storage, HorizonServices, "Storage is not of type IStorage");
 
     in_data.push(storage);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

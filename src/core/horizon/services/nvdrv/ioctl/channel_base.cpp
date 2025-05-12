@@ -4,25 +4,38 @@ namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
 DEFINE_IOCTL_TABLE(
     ChannelBase,
-    DEFINE_IOCTL_TABLE_ENTRY(0x47, 0x14, SetUserData, 0x15, GetUserData)
-        DEFINE_IOCTL_TABLE_ENTRY(0x48, 0x01, SetNvMapFd, 0x08, SubmitGpfifo,
+    DEFINE_IOCTL_TABLE_ENTRY(ChannelBase, 0x47, 0x14, SetUserData, 0x15, GetUserData)
+        DEFINE_IOCTL_TABLE_ENTRY(ChannelBase, 0x48, 0x01, SetNvMapFd, 0x08, SubmitGpfifo,
                                  0x09, AllocObjCtx, 0x0b, ZCullBind, 0x0c,
                                  SetErrorNotifier, 0x0d, SetPriority, 0x17,
                                  GetErrorNotification, 0x18, AllocGpfifoEx,
                                  0x1a, AllocGpfifoEx))
 
-void ChannelBase::SetUserData(SetUserDataData& data, NvResult& result) {
-    user_data = data.data;
+NvResult ChannelBase::SetUserData(u64 data) {
+    user_data = data;
+    return NvResult::Success;
 }
 
-void ChannelBase::GetUserData(GetUserDataData& data, NvResult& result) {
-    data.data = user_data;
+NvResult ChannelBase::GetUserData(u64* out_data) {
+    *out_data = user_data;
+    return NvResult::Success;
 }
 
-void ChannelBase::SetNvMapFd(SetNvMapFdData& data, NvResult& result) {
+NvResult ChannelBase::SetNvMapFd(u32 fd_id) {
+    LOG_DEBUG(HorizonServices, "FD: {}", fd_id);
+
     LOG_FUNC_STUBBED(HorizonServices);
 
     // TODO: what's the purpose of knowing the nvmap fd?
+
+    return NvResult::Success;
+}
+
+NvResult ChannelBase::SetPriority(u32 priority) {
+    LOG_DEBUG(HorizonServices, "Priority: {}", priority);
+
+    LOG_FUNC_STUBBED(HorizonServices);
+    return NvResult::Success;
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

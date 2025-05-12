@@ -4,18 +4,14 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-typedef writeonly_array<u8, 0x101> writeonly_array_u8_0x101;
-
 class NvHostCtrl : public FdBase {
   public:
-    void Ioctl(IOCTL_PARAMS) override;
+    NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
 
   private:
     // Ioctls
-    DECLARE_IOCTL(GetConfig, char name[0x41]; char key[0x41];
-                  writeonly_array_u8_0x101 value;, value);
-    DECLARE_IOCTL(SyncptWaitEvent, readonly<u32> id; readonly<u32> tresh;
-                  writeonly<i32> timeout; writeonly<u32> value;, value);
+    NvResult GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key, std::array<u8, 0x101>* out_value);
+    NvResult SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout, u32* out_value);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

@@ -1,10 +1,8 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Lm {
-
-namespace {
 
 struct Packet {
     std::string message;
@@ -18,20 +16,15 @@ struct Packet {
     std::string program_name;
 };
 
-} // namespace
-
-class ILogger : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ILogger)
-
+class ILogger : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     Packet packet{};
 
     // Commands
-    void Log(REQUEST_COMMAND_PARAMS);
+    result_t Log(InBuffer<BufferAttr::MapAlias> buffer); // TODO: MapAlias?
 };
 
 } // namespace Hydra::Horizon::Services::Lm

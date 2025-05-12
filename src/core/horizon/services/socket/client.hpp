@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Socket {
 
-class IClient : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IClient)
-
+class IClient : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void RegisterClient(REQUEST_COMMAND_PARAMS);
+    result_t RegisterClient(u64* out_unknown);
     STUB_REQUEST_COMMAND(StartMonitoring);
     STUB_REQUEST_COMMAND(Socket);
     STUB_REQUEST_COMMAND(Connect);

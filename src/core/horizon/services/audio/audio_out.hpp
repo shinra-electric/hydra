@@ -1,18 +1,16 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Audio {
 
-class IAudioOut : public Kernel::ServiceBase {
+class IAudioOut : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAudioOut)
-
     IAudioOut();
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     Kernel::HandleWithId<Kernel::Event> buffer_event;
@@ -20,7 +18,7 @@ class IAudioOut : public Kernel::ServiceBase {
     // Commands
     STUB_REQUEST_COMMAND(Start);
     STUB_REQUEST_COMMAND(AppendAudioOutBuffer);
-    void RegisterBufferEvent(REQUEST_COMMAND_PARAMS);
+    result_t RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace Hydra::Horizon::Services::Audio

@@ -11,4 +11,15 @@ enum class EntryType : u32 {
     File,
 };
 
+enum class DirectoryFilterFlags {
+    None = 0,
+    Directories = BIT(0),
+    Files = BIT(1),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(DirectoryFilterFlags)
+
 } // namespace Hydra::Horizon::Services::Fssrv
+
+ENABLE_ENUM_FLAGS_FORMATTING(
+    Hydra::Horizon::Services::Fssrv::DirectoryFilterFlags, Directories,
+    "directories", Files, "files")

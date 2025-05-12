@@ -6,8 +6,9 @@ namespace Hydra::Horizon::Services::Am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStorage, 0, Open)
 
-void IStorage::Open(REQUEST_COMMAND_PARAMS) {
+result_t IStorage::Open(add_service_fn_t add_service) {
     add_service(new IStorageAccessor(data));
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

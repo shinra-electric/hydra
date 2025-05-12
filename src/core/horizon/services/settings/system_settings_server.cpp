@@ -4,25 +4,19 @@
 
 namespace Hydra::Horizon::Services::Settings {
 
-namespace {
-
-enum class ColorSetId : i32 {
-    BasicWhite,
-    BasicBlack,
-};
-
-}
-
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
                              GetColorSetId)
 
-void ISystemSettingsServer::GetFirmwareVersion(REQUEST_COMMAND_PARAMS) {
-    writers.recv_list_writers[0].Write(FIRMWARE_VERSION);
+result_t ISystemSettingsServer::GetFirmwareVersion(
+    OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    out_buffer.writer->Write(FIRMWARE_VERSION);
+    return RESULT_SUCCESS;
 }
 
-void ISystemSettingsServer::GetColorSetId(REQUEST_COMMAND_PARAMS) {
+result_t ISystemSettingsServer::GetColorSetId(ColorSetId* out_id) {
     // TODO: make this configurable
-    writers.writer.Write(ColorSetId::BasicWhite);
+    *out_id = ColorSetId::BasicWhite;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Settings

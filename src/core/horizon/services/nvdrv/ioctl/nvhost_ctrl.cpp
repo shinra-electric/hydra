@@ -4,26 +4,23 @@
 
 namespace Hydra::Horizon::Services::NvDrv::Ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostCtrl, DEFINE_IOCTL_TABLE_ENTRY(0x00, 0x1b, GetConfig,
+DEFINE_IOCTL_TABLE(NvHostCtrl, DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, GetConfig,
                                                         0x1d, SyncptWaitEvent))
 
-void NvHostCtrl::GetConfig(GetConfigData& data, NvResult& result) {
-    LOG_FUNC_STUBBED(HorizonServices);
-
+NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key, std::array<u8, 0x101>* out_value) {
     // TODO: use a different connecting char?
-    const auto key = to_lower(fmt::format("{}:{}", data.name, data.key));
-    LOG_DEBUG(HorizonServices, "Key: {}", key);
+    const auto key_str = to_lower(fmt::format("{}:{}", name.data(), key.data()));
+    LOG_DEBUG(HorizonServices, "Key: {}", key_str);
 
-    auto it = Settings::nx_settings.find(key);
+    auto it = Settings::nx_settings.find(key_str);
     if (it == Settings::nx_settings.end()) {
-        LOG_WARN(HorizonServices, "Key not found: {}", key);
+        LOG_WARN(HorizonServices, "Key not found: {}", key_str);
         // TODO: return NvInternalResult::InvalidInput?
-        result = NvResult::NotAvailableInProduction;
-        return;
+        return NvResult::NotAvailableInProduction;
     }
 
     const auto& value = it->second;
-    auto ptr = data.value.Get().data();
+    auto ptr = out_value->data();
     switch (value.type) {
     case Settings::SettingDataType::String:
         std::strcpy(reinterpret_cast<char*>(ptr), value.s);
@@ -35,13 +32,16 @@ void NvHostCtrl::GetConfig(GetConfigData& data, NvResult& result) {
         *reinterpret_cast<bool*>(ptr) = value.b;
         break;
     }
+
+    return NvResult::Success;
 }
 
-void NvHostCtrl::SyncptWaitEvent(SyncptWaitEventData& data, NvResult& result) {
+NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout, u32* out_value) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
-    data.value = 0;
+    *out_value = 0;
+    return NvResult::Success;
 }
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

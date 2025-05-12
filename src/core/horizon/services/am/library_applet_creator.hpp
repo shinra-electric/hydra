@@ -1,20 +1,19 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/am/library_applet_accessor.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class ILibraryAppletCreator : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ILibraryAppletCreator)
-
+class ILibraryAppletCreator : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void CreateLibraryApplet(REQUEST_COMMAND_PARAMS);
-    void CreateStorage(REQUEST_COMMAND_PARAMS);
+    result_t CreateLibraryApplet(add_service_fn_t add_service, AppletId id,
+                                 LibraryAppletMode mode);
+    result_t CreateStorage(add_service_fn_t add_service, i64 size);
 };
 
 } // namespace Hydra::Horizon::Services::Am

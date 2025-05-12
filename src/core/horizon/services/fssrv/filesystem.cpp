@@ -3,26 +3,10 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/kernel/const.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
 namespace Hydra::Horizon::Services::Fssrv {
-
-namespace {
-
-enum class CreateOption {
-    None = 0,
-    BigFile = BIT(0),
-};
-ENABLE_ENUM_BITMASK_OPERATORS(CreateOption)
-
-struct CreateFileIn {
-    CreateOption flags;
-    u64 size;
-};
-
-} // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
@@ -30,12 +14,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              OpenFile, 9, OpenDirectory, 10, Commit)
 
 #define READ_PATH()                                                            \
-    const auto path = mount + readers.send_statics_readers[0].ReadString();    \
+    const auto path = mount + path_buffer.reader->ReadString();                \
     LOG_DEBUG(HorizonServices, "Path: {}", path);
 
-void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
-    const auto in = readers.reader.Read<CreateFileIn>();
-
+result_t
+IFileSystem::CreateFile(CreateOption flags, u64 size,
+                        InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
     const auto res = Filesystem::Filesystem::GetInstance().CreateFile(
@@ -45,15 +29,21 @@ void IFileSystem::CreateFile(REQUEST_COMMAND_PARAMS) {
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
                "Failed to create file \"{}\": {}", path, res);
+
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::DeleteFile(REQUEST_COMMAND_PARAMS) {
+result_t
+IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
     LOG_FUNC_STUBBED(HorizonServices);
+
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
+result_t
+IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
     const auto res = Filesystem::Filesystem::GetInstance().AddEntry(
@@ -64,21 +54,31 @@ void IFileSystem::CreateDirectory(REQUEST_COMMAND_PARAMS) {
     else
         ASSERT(res == Filesystem::FsResult::Success, HorizonServices,
                "Failed to create directory \"{}\": {}", path, res);
+
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::DeleteDirectory(REQUEST_COMMAND_PARAMS) {
+result_t
+IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
     LOG_FUNC_STUBBED(HorizonServices);
+
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::DeleteDirectoryRecursively(REQUEST_COMMAND_PARAMS) {
+result_t IFileSystem::DeleteDirectoryRecursively(
+    InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
     LOG_FUNC_STUBBED(HorizonServices);
+
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
+result_t
+IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
+                          EntryType* out_entry_type) {
     READ_PATH();
 
     Filesystem::EntryBase* entry;
@@ -86,36 +86,38 @@ void IFileSystem::GetEntryType(REQUEST_COMMAND_PARAMS) {
         Filesystem::Filesystem::GetInstance().GetEntry(path, entry);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARN(HorizonServices, "Error getting entry \"{}\": {}", path, res);
-        result = MAKE_RESULT(Fs, 1);
-        return;
+        return MAKE_RESULT(Fs, 1);
     }
 
-    const auto entry_type =
+    *out_entry_type =
         entry->IsDirectory() ? EntryType::Directory : EntryType::File;
-    writers.writer.Write(entry_type);
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::OpenFile(REQUEST_COMMAND_PARAMS) {
+result_t IFileSystem::OpenFile(add_service_fn_t add_service,
+                               Filesystem::FileOpenFlags flags,
+                               InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto flags = readers.reader.Read<Filesystem::FileOpenFlags>();
     LOG_DEBUG(HorizonServices, "Flags: {}", flags);
 
     Filesystem::FileBase* file;
     const auto res = Filesystem::Filesystem::GetInstance().GetFile(path, file);
     if (res != Filesystem::FsResult::Success) {
         LOG_WARN(HorizonServices, "Error opening file \"{}\": {}", path, res);
-        result = MAKE_RESULT(Fs, 1);
-        return;
+        return MAKE_RESULT(Fs, 1);
     }
 
     add_service(new IFile(file, flags));
+    return RESULT_SUCCESS;
 }
 
-void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
+result_t
+IFileSystem::OpenDirectory(add_service_fn_t add_service,
+                           DirectoryFilterFlags filter_flags,
+                           InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto filter_flags = readers.reader.Read<DirectoryFilterFlags>();
     LOG_DEBUG(HorizonServices, "Filter flags: {}", filter_flags);
 
     Filesystem::Directory* directory;
@@ -124,11 +126,11 @@ void IFileSystem::OpenDirectory(REQUEST_COMMAND_PARAMS) {
     if (res != Filesystem::FsResult::Success) {
         LOG_WARN(HorizonServices, "Error opening directory \"{}\": {}", path,
                  res);
-        result = MAKE_RESULT(Fs, 1);
-        return;
+        return MAKE_RESULT(Fs, 1);
     }
 
     add_service(new IDirectory(directory, filter_flags));
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv

@@ -1,29 +1,25 @@
 #pragma once
 
-#include "common/allocators/dynamic_pool.hpp"
-#include "common/macros.hpp"
+#include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
 namespace Hydra::Horizon::Kernel {
 
 class DomainService : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(DomainService)
+    void Request(RequestContext& context) override;
 
-    void Request(REQUEST_PARAMS) override;
-
-    handle_id_t AddObject(ServiceBase* object) {
-        handle_id_t handle_id = object_pool.AllocateForIndex();
-        object_pool.GetObjectRef(handle_id) = object;
-
-        return handle_id;
+    handle_id_t AddSubservice(ServiceBase* service) {
+        return subservice_pool.Add(service);
     }
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override { unreachable(); }
+    result_t RequestImpl(RequestContext& context, u32 id) override {
+        unreachable();
+    }
 
   private:
-    Allocators::DynamicPool<ServiceBase*> object_pool;
+    DynamicHandlePool<ServiceBase> subservice_pool;
 };
 
 } // namespace Hydra::Horizon::Kernel

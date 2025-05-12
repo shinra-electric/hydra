@@ -9,7 +9,7 @@ class ThreeD;
 
 namespace Hydra::HW::TegraX1::GPU::Macro {
 
-struct Result {
+struct result_t {
     ResultOperation op;
     u8 rD;
 };

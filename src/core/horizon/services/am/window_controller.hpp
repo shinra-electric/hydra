@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class IWindowController : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IWindowController)
-
+class IWindowController : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void GetAppletResourceUserId(REQUEST_COMMAND_PARAMS);
+    result_t GetAppletResourceUserId(u64* out_aruid);
     STUB_REQUEST_COMMAND(AcquireForegroundRights);
 };
 

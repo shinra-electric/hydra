@@ -4,12 +4,12 @@
 
 namespace Hydra::Horizon::Kernel {
 
-void ServiceBase::Request(REQUEST_PARAMS) {
-    auto cmif_in = readers.reader.Read<Cmif::InHeader>();
+void ServiceBase::Request(RequestContext& context) {
+    auto cmif_in = context.readers.reader.Read<Cmif::InHeader>();
 
-    Result* result = Cmif::write_out_header(writers.writer);
+    result_t* result = Cmif::write_out_header(context.writers.writer);
 
-    RequestImpl(PASS_REQUEST_PARAMS, *result, cmif_in.command_id);
+    *result = RequestImpl(context, cmif_in.command_id);
 }
 
 } // namespace Hydra::Horizon::Kernel

@@ -8,16 +8,16 @@ namespace Hydra::Horizon::Kernel {
 
 void Session::Close() {
     // TODO: correct?
-    // delete service;
+    delete service;
     service = nullptr;
 }
 
-void Session::Request(REQUEST_PARAMS) { service->Request(PASS_REQUEST_PARAMS); }
+void Session::Request(RequestContext& context) { service->Request(context); }
 
 void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<Cmif::InHeader>();
 
-    Result* result = Cmif::write_out_header(writers.writer);
+    result_t* result = Cmif::write_out_header(writers.writer);
 
     const auto command =
         static_cast<Cmif::ControlCommandType>(cmif_in.command_id);
@@ -25,7 +25,7 @@ void Session::Control(Hipc::Readers& readers, Hipc::Writers& writers) {
     switch (command) {
     case Cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         auto domain_service = new DomainService();
-        handle_id = domain_service->AddObject(service);
+        handle_id = domain_service->AddSubservice(service);
         service = domain_service;
 
         // Out

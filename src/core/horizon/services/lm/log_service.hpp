@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Lm {
 
-class ILogService : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ILogService)
-
+class ILogService : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void OpenLogger(REQUEST_COMMAND_PARAMS);
+    result_t OpenLogger(add_service_fn_t add_service, u64 process_id);
 };
 
 } // namespace Hydra::Horizon::Services::Lm

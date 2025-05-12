@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
@@ -11,14 +11,12 @@ enum class SystemClockType {
     EphemeralNetwork,
 };
 
-class ISystemClock : public Kernel::ServiceBase {
+class ISystemClock : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ISystemClock)
-
     ISystemClock(SystemClockType type_) : type{type_} {}
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     SystemClockType type;

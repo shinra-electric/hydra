@@ -2,33 +2,25 @@
 
 namespace Hydra::Horizon::Services::Nifm {
 
-namespace {
-
-enum class RequestState {
-    Invalid,
-    Free,
-    OnHold,
-    Accepted,
-    Blocking,
-};
-
-}
-
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles)
 
 IRequest::IRequest() : events{{new Kernel::Event()}, {new Kernel::Event()}} {}
 
-void IRequest::GetRequestState(REQUEST_COMMAND_PARAMS) {
+result_t IRequest::GetRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
-    writers.writer.Write(RequestState::Accepted);
+    *out_state = RequestState::Accepted;
+    return RESULT_SUCCESS;
 }
 
-void IRequest::GetSystemEventReadableHandles(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(events[0].id);
-    writers.copy_handles_writer.Write(events[1].id);
+result_t IRequest::GetSystemEventReadableHandles(
+    OutHandle<HandleAttr::Copy> out_handle0,
+    OutHandle<HandleAttr::Copy> out_handle1) {
+    out_handle0 = events[0].id;
+    out_handle1 = events[1].id;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Nifm

@@ -6,8 +6,9 @@ namespace Hydra::Horizon::Services::Friends {
 
 DEFINE_SERVICE_COMMAND_TABLE(IServiceCreator, 0, CreateFriendService)
 
-void IServiceCreator::CreateFriendService(REQUEST_COMMAND_PARAMS) {
+result_t IServiceCreator::CreateFriendService(add_service_fn_t add_service) {
     add_service(new IFriendService());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Friends

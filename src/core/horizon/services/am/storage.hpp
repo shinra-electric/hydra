@@ -1,24 +1,22 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class IStorage : public Kernel::ServiceBase {
+class IStorage : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStorage)
-
     IStorage(const sized_ptr data_) : data{data_} {}
     ~IStorage() override { free(data.GetPtrU8()); }
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     const sized_ptr data;
 
     // Commands
-    void Open(REQUEST_COMMAND_PARAMS);
+    result_t Open(add_service_fn_t add_service);
 };
 
 } // namespace Hydra::Horizon::Services::Am

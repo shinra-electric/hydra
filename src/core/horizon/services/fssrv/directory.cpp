@@ -19,20 +19,19 @@ struct FsDirectoryEntry {
 
 DEFINE_SERVICE_COMMAND_TABLE(IDirectory, 0, Read)
 
-void IDirectory::Read(REQUEST_COMMAND_PARAMS) {
+result_t IDirectory::Read(i64* out_total_entries,
+                          OutBuffer<BufferAttr::MapAlias> out_entries) {
     if (entry_index >= directory->GetEntries().size()) {
-        writers.writer.Write<i32>(0);
-        return;
+        *out_total_entries = 0;
+        return RESULT_SUCCESS;
     }
-
-    auto& writer = writers.recv_buffers_writers[0];
 
     // TODO: respect filter flags
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
         // Check if the writer has enough space to write the entry
-        if (writer.GetWrittenSize() + sizeof(FsDirectoryEntry) >
-            writer.GetSize())
+        if (out_entries.writer->GetWrittenSize() + sizeof(FsDirectoryEntry) >
+            out_entries.writer->GetSize())
             break;
 
         // TODO: find a better way to index
@@ -48,14 +47,16 @@ void IDirectory::Read(REQUEST_COMMAND_PARAMS) {
         else
             e.file_size = 0;
 
-        writer.Write(e);
+        out_entries.writer->Write(e);
 
         entry_index++;
         i++;
     }
 
-    writers.writer.Write<i32>(writer.GetWrittenSize() /
-                              sizeof(FsDirectoryEntry));
+    *out_total_entries =
+        out_entries.writer->GetWrittenSize() / sizeof(FsDirectoryEntry);
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Fssrv

@@ -1,49 +1,40 @@
 #include "core/horizon/services/am/common_state_getter.hpp"
 
-#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/os.hpp"
-#include "core/horizon/state_manager.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
-
-namespace {
-
-enum class OperationMode {
-    Handheld,
-    Console,
-};
-
-}
 
 DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 0, GetEventHandle, 1,
                              ReceiveMessage, 4, DisallowToEnterSleep, 5,
                              GetOperationMode, 6, GetPerformanceMode, 9,
                              GetCurrentFocusState)
 
-void ICommonStateGetter::GetEventHandle(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(
-        StateManager::GetInstance().GetMsgEvent().id);
+result_t
+ICommonStateGetter::GetEventHandle(OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = StateManager::GetInstance().GetMsgEvent().id;
+    return RESULT_SUCCESS;
 }
 
-void ICommonStateGetter::ReceiveMessage(REQUEST_COMMAND_PARAMS) {
+result_t ICommonStateGetter::ReceiveMessage(AppletMessage* out_message) {
     const auto msg = StateManager::GetInstance().ReceiveMessage();
-    if (msg == AppletMessage::None) {
-        result = MAKE_RESULT(Am, 0x3);
-        return;
-    }
+    if (msg == AppletMessage::None)
+        return MAKE_RESULT(Am, 0x3);
     LOG_DEBUG(HorizonServices, "MESSAGE: {}", msg);
 
-    writers.writer.Write(msg);
+    *out_message = msg;
+    return RESULT_SUCCESS;
 }
 
-void ICommonStateGetter::GetOperationMode(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(OS::GetInstance().IsInHandheldMode()
-                             ? OperationMode::Handheld
-                             : OperationMode::Console);
+result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
+    *out_mode = OS::GetInstance().IsInHandheldMode() ? OperationMode::Handheld
+                                                     : OperationMode::Console;
+    return RESULT_SUCCESS;
 }
 
-void ICommonStateGetter::GetCurrentFocusState(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write(StateManager::GetInstance().GetFocusState());
+result_t ICommonStateGetter::GetCurrentFocusState(AppletFocusState* out_state) {
+    *out_state = StateManager::GetInstance().GetFocusState();
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Am

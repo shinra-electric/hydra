@@ -1,21 +1,21 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/audio/audio_renderer.hpp"
 #include "core/horizon/services/audio/const.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Audio {
 
-class IAudioRendererManager : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAudioRendererManager)
-
+class IAudioRendererManager : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void OpenAudioRenderer(REQUEST_COMMAND_PARAMS);
-    void GetWorkBufferSize(REQUEST_COMMAND_PARAMS);
+    result_t OpenAudioRenderer(add_service_fn_t add_service,
+                               aligned<AudioRendererParameters, 56> params,
+                               u64 work_buffer_size, u64 aruid);
+    result_t GetWorkBufferSize(AudioRendererParameters params, u64* out_size);
 };
 
 } // namespace Hydra::Horizon::Services::Audio

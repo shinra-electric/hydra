@@ -1,19 +1,25 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class ISession : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(ISession)
+enum class PerformanceMode : i32 {
+    Invalid = -1,
+    Normal = 0,
+    Boost = 1,
+};
 
+class ISession : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void SetPerformanceConfiguration(REQUEST_COMMAND_PARAMS);
+    result_t SetPerformanceConfiguration(PerformanceMode mode, u32 config);
 };
 
 } // namespace Hydra::Horizon::Services::Am
+
+ENABLE_ENUM_FORMATTING(Hydra::Horizon::Services::Am::PerformanceMode, Invalid,
+                       "invalid", Normal, "normal", Boost, "boost");

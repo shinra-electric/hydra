@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/allocators/static_pool.hpp"
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
 
 namespace Hydra::Horizon::Services::NvDrv {
@@ -12,19 +12,21 @@ class FdBase;
 
 constexpr usize MAX_FD_COUNT = 256;
 
-class INvDrvServices : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(INvDrvServices)
-
+class INvDrvServices : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void Open(REQUEST_COMMAND_PARAMS);
-    void Ioctl(REQUEST_COMMAND_PARAMS);
-    void Initialize(REQUEST_COMMAND_PARAMS);
-    void QueryEvent(REQUEST_COMMAND_PARAMS);
+    result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd,
+                  u32* out_error);
+    result_t Ioctl(handle_id_t fd_id, u32 code,
+                   InBuffer<BufferAttr::AutoSelect> in_buffer,
+                   NvResult* out_result,
+                   OutBuffer<BufferAttr::AutoSelect> out_buffer);
+    result_t Initialize(u32 transfer_mem_size, NvResult* out_result);
+    result_t QueryEvent(handle_id_t fd_id, u32 event_id, NvResult* out_result,
+                        OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
     STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 

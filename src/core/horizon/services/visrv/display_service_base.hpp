@@ -1,6 +1,7 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
+#include "core/horizon/services/hosbinder/parcel.hpp"
 
 namespace Hydra::Horizon::Services::ViSrv {
 
@@ -13,11 +14,12 @@ struct ParcelData {
     u64 unknown3;
 };
 
-class DisplayServiceBase : public Kernel::ServiceBase {
+class DisplayServiceBase : public ServiceBase {
   protected:
-    // Commands
-    void CreateStrayLayer(REQUEST_COMMAND_PARAMS);
-    void SetLayerVisibility(REQUEST_COMMAND_PARAMS);
+    result_t CreateStrayLayerImpl(u32 flags, u64 display_id, u64* out_layer_id,
+                                  u64* out_native_window_size,
+                                  HosBinder::ParcelWriter& out_parcel_writer);
+    result_t SetLayerVisibilityImpl(u64 layer_id, bool visible);
 };
 
 } // namespace Hydra::Horizon::Services::ViSrv

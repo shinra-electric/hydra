@@ -49,10 +49,11 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
     : params{params_}, work_buffer_size{work_buffer_size_},
       event(new Kernel::Event()) {}
 
-void IAudioRenderer::RequestUpdate(REQUEST_COMMAND_PARAMS) {
+result_t
+IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_FUNC_STUBBED(HorizonServices);
 
-    auto& writer = writers.recv_buffers_writers[0];
+    auto& writer = *out_buffer.writer;
 
     // Header
     // TODO: correct?
@@ -89,10 +90,14 @@ void IAudioRenderer::RequestUpdate(REQUEST_COMMAND_PARAMS) {
         };
         writer.Write(voice);
     }
+
+    return RESULT_SUCCESS;
 }
 
-void IAudioRenderer::QuerySystemEvent(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(event.id);
+result_t
+IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = event.id;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Audio

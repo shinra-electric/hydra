@@ -6,8 +6,9 @@ namespace Hydra::Horizon::Services::Nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 4, CreateGeneralServiceOld)
 
-void IStaticService::CreateGeneralServiceOld(REQUEST_COMMAND_PARAMS) {
+result_t IStaticService::CreateGeneralServiceOld(add_service_fn_t add_service) {
     add_service(new IGeneralService());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Nifm

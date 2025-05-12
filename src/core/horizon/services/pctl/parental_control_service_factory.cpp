@@ -7,9 +7,10 @@ namespace Hydra::Horizon::Services::Pctl {
 DEFINE_SERVICE_COMMAND_TABLE(IParentalControlServiceFactory, 0,
                              CreateParentalControlService)
 
-void IParentalControlServiceFactory::CreateParentalControlService(
-    REQUEST_COMMAND_PARAMS) {
+result_t IParentalControlServiceFactory::CreateParentalControlService(
+    add_service_fn_t add_service) {
     add_service(new IParentalControlService());
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Pctl

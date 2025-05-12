@@ -7,8 +7,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 3, AppendAudioOutBuffer, 4,
 
 IAudioOut::IAudioOut() : buffer_event(new Kernel::Event()) {}
 
-void IAudioOut::RegisterBufferEvent(REQUEST_COMMAND_PARAMS) {
-    writers.copy_handles_writer.Write(buffer_event.id);
+result_t IAudioOut::RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = buffer_event.id;
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Audio

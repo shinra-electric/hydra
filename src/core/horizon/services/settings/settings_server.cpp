@@ -1,26 +1,28 @@
 #include "core/horizon/services/settings/settings_server.hpp"
 
-#include "core/horizon/const.hpp"
-
 namespace Hydra::Horizon::Services::Settings {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISettingsServer, 0, GetLanguageCode, 1,
                              GetAvailableLanguageCodes, 3,
                              GetAvailableLanguageCodeCount)
 
-void ISettingsServer::GetLanguageCode(REQUEST_COMMAND_PARAMS) {
+result_t ISettingsServer::GetLanguageCode(LanguageCode* out_language_code) {
     // TODO: make this configurable
-    writers.writer.Write(LanguageCode::AmericanEnglish);
+    *out_language_code = LanguageCode::AmericanEnglish;
+    return RESULT_SUCCESS;
 }
 
-void ISettingsServer::GetAvailableLanguageCodes(REQUEST_COMMAND_PARAMS) {
-    writers.recv_list_writers[0].WritePtr(available_languages,
-                                          sizeof_array(available_languages));
-    writers.writer.Write<i32>(sizeof_array(available_languages));
+result_t ISettingsServer::GetAvailableLanguageCodes(
+    i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    out_buffer.writer->WritePtr(available_languages,
+                                sizeof_array(available_languages));
+    *out_count = sizeof_array(available_languages);
+    return RESULT_SUCCESS;
 }
 
-void ISettingsServer::GetAvailableLanguageCodeCount(REQUEST_COMMAND_PARAMS) {
-    writers.writer.Write<i32>(sizeof_array(available_languages));
+result_t ISettingsServer::GetAvailableLanguageCodeCount(i32* out_count) {
+    *out_count = sizeof_array(available_languages);
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Settings

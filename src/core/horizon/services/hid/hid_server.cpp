@@ -1,47 +1,11 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 
-#include "core/horizon/hid.hpp"
 #include "core/horizon/services/hid/active_vibration_device_list.hpp"
 #include "core/horizon/services/hid/applet_resource.hpp"
 
 namespace Hydra::Horizon::Services::Hid {
 
-namespace {
-
-struct VibrationDeviceHandle {
-    u32 type_value;
-    u8 npad_style_index;
-    HID::NpadIdType player_number;
-    u8 device_index;
-    u8 pad;
-};
-
-enum class VibrationDeviceType : u32 {
-    Unknown,
-    LinearResonantActuator,
-    GcErm,
-    Erm,
-};
-
-enum class VibrationDevicePosition : u32 {
-    None,
-    Left,
-    Right,
-};
-
-struct VibrationDeviceInfo {
-    VibrationDeviceType device_type;
-    VibrationDevicePosition position;
-};
-
-struct AcquireNpadStyleSetUpdateEventHandleIn {
-    u32 id;
-    u32 pad;
-    u64 aruid;
-    u64 event_ptr; // Unused
-};
-
-} // namespace
+namespace {} // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 11, ActivateTouchScreen, 21,
@@ -55,40 +19,47 @@ DEFINE_SERVICE_COMMAND_TABLE(
 
 IHidServer::IHidServer() : npad_style_set_update_event(new Kernel::Event()) {}
 
-void IHidServer::CreateAppletResource(REQUEST_COMMAND_PARAMS) {
-    u64 aruid = readers.reader.Read<u64>();
-
+result_t IHidServer::CreateAppletResource(Kernel::add_service_fn_t add_service,
+                                          u64 aruid) {
     add_service(new IAppletResource());
+
+    return RESULT_SUCCESS;
 }
 
-void IHidServer::GetSupportedNpadStyleSet(REQUEST_COMMAND_PARAMS) {
+result_t IHidServer::GetSupportedNpadStyleSet(HID::NpadStyleSet* style_set) {
     // TODO: make this configurable?
-    writers.writer.Write(HID::NpadStyleSet::Standard);
+    *style_set = HID::NpadStyleSet::Standard;
+
+    return RESULT_SUCCESS;
 }
 
-void IHidServer::AcquireNpadStyleSetUpdateEventHandle(REQUEST_COMMAND_PARAMS) {
-    const auto in =
-        readers.reader.Read<AcquireNpadStyleSetUpdateEventHandleIn>();
-
+result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
+    u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+    OutHandle<HandleAttr::Copy> out_handle) {
     // TODO: params
+    out_handle = npad_style_set_update_event.id;
 
-    writers.copy_handles_writer.Write(npad_style_set_update_event.id);
+    return RESULT_SUCCESS;
 }
 
-void IHidServer::GetVibrationDeviceInfo(REQUEST_COMMAND_PARAMS) {
-    const auto handle = readers.reader.Read<VibrationDeviceHandle>();
-
+result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
+                                            VibrationDeviceInfo* info) {
     LOG_FUNC_STUBBED(HorizonServices);
 
     // HACK
-    writers.writer.Write<VibrationDeviceInfo>({
+    *info = {
         .device_type = VibrationDeviceType::LinearResonantActuator,
         .position = VibrationDevicePosition::Left,
-    });
+    };
+
+    return RESULT_SUCCESS;
 }
 
-void IHidServer::CreateActiveVibrationDeviceList(REQUEST_COMMAND_PARAMS) {
+result_t IHidServer::CreateActiveVibrationDeviceList(
+    Kernel::add_service_fn_t add_service) {
     add_service(new IActiveVibrationDeviceList());
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace Hydra::Horizon::Services::Hid

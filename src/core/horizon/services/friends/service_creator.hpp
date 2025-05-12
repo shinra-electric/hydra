@@ -1,19 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Friends {
 
-class IServiceCreator : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IServiceCreator)
-
+class IServiceCreator : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void CreateFriendService(REQUEST_COMMAND_PARAMS);
+    result_t CreateFriendService(add_service_fn_t add_service);
 };
 
 } // namespace Hydra::Horizon::Services::Friends

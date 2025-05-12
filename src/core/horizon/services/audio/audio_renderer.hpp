@@ -1,20 +1,18 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/kernel/service_base.hpp"
 #include "core/horizon/services/audio/const.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Audio {
 
-class IAudioRenderer : public Kernel::ServiceBase {
+class IAudioRenderer : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IAudioRenderer)
-
     IAudioRenderer(const AudioRendererParameters& params_,
                    const usize work_buffer_size_);
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     AudioRendererParameters params;
@@ -23,10 +21,10 @@ class IAudioRenderer : public Kernel::ServiceBase {
     Kernel::HandleWithId<Kernel::Event> event;
 
     // Commands
-    void RequestUpdate(REQUEST_COMMAND_PARAMS);
+    result_t RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer);
     STUB_REQUEST_COMMAND(Start);
     STUB_REQUEST_COMMAND(Stop);
-    void QuerySystemEvent(REQUEST_COMMAND_PARAMS);
+    result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace Hydra::Horizon::Services::Audio

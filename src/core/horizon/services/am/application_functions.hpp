@@ -1,22 +1,21 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/const.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Am {
 
-class IApplicationFunctions : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IApplicationFunctions)
-
+class IApplicationFunctions : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    void PopLaunchParameter(REQUEST_COMMAND_PARAMS);
-    void EnsureSaveData(REQUEST_COMMAND_PARAMS);
-    void GetDesiredLanguage(REQUEST_COMMAND_PARAMS);
-    void SetTerminateResult(REQUEST_COMMAND_PARAMS);
+    result_t PopLaunchParameter(add_service_fn_t add_service,
+                                LaunchParameterKind kind);
+    result_t EnsureSaveData(u128 user_id, u64* out_unknown);
+    result_t GetDesiredLanguage(LanguageCode* out_language_code);
+    result_t SetTerminateResult(result_t result);
     STUB_REQUEST_COMMAND(NotifyRunning);
 };
 

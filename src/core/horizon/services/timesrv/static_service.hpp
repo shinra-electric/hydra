@@ -1,23 +1,20 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::TimeSrv {
 
-class IStaticService : public Kernel::ServiceBase {
-  public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IStaticService)
-
+class IStaticService : public ServiceBase {
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    void GetStandardUserSystemClock(REQUEST_COMMAND_PARAMS);
-    void GetStandardNetworkSystemClock(REQUEST_COMMAND_PARAMS);
-    void GetStandardSteadyClock(REQUEST_COMMAND_PARAMS);
-    void GetTimeZoneService(REQUEST_COMMAND_PARAMS);
-    void GetStandardLocalSystemClock(REQUEST_COMMAND_PARAMS);
-    void GetEphemeralNetworkSystemClock(REQUEST_COMMAND_PARAMS);
+    result_t GetStandardUserSystemClock(add_service_fn_t add_service);
+    result_t GetStandardNetworkSystemClock(add_service_fn_t add_service);
+    result_t GetStandardSteadyClock(add_service_fn_t add_service);
+    result_t GetTimeZoneService(add_service_fn_t add_service);
+    result_t GetStandardLocalSystemClock(add_service_fn_t add_service);
+    result_t GetEphemeralNetworkSystemClock(add_service_fn_t add_service);
 };
 
 } // namespace Hydra::Horizon::Services::TimeSrv

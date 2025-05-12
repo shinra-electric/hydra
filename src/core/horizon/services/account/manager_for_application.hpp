@@ -1,24 +1,22 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/const.hpp"
 
 namespace Hydra::Horizon::Services::Account {
 
-class IManagerForApplication : public Kernel::ServiceBase {
+class IManagerForApplication : public ServiceBase {
   public:
-    DEFINE_SERVICE_VIRTUAL_FUNCTIONS(IManagerForApplication)
-
     IManagerForApplication(u128 user_id_) : user_id{user_id_} {}
 
   protected:
-    void RequestImpl(REQUEST_IMPL_PARAMS) override;
+    result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     u128 user_id;
 
     // Commands
-    void CheckAvailability(REQUEST_COMMAND_PARAMS);
-    void GetAccountId(REQUEST_COMMAND_PARAMS);
+    result_t CheckAvailability();
+    result_t GetAccountId();
 };
 
 } // namespace Hydra::Horizon::Services::Account

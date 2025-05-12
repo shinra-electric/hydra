@@ -63,26 +63,20 @@ class NvHostCtrlGpu : public FdBase {
         : error_event(new Kernel::Event()), unknown_event(new Kernel::Event()) {
     }
 
-    void Ioctl(IOCTL_PARAMS) override;
-    void QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id,
-                    NvResult& result) override;
+    NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
+    NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;
 
   private:
     Kernel::HandleWithId<Kernel::Event> error_event;
     Kernel::HandleWithId<Kernel::Event> unknown_event;
 
     // Ioctls
-    DECLARE_IOCTL(ZCullGetCtxSize, writeonly<u32> size, size);
-    DECLARE_IOCTL(ZCullGetInfo, writeonly<ZCullInfo> info, info);
-    DECLARE_IOCTL(GetCharacteristics, readwrite<u64> buf_size;
-                  readonly<uptr> buf_addr;
-                  writeonly<GpuCharacteristics> characteristics;
-                  , buf_size, characteristics);
-    DECLARE_IOCTL(GetTpcMasks, readonly<u32> mask_buffer_size;
-                  readonly<u32> reserved[3]; writeonly<u64> mask_buffer;
-                  , mask_buffer);
-    DECLARE_IOCTL(ZbcGetActiveSlotMask, writeonly<u32> slot;
-                  writeonly<u32> mask;, slot, mask);
+    NvResult ZCullGetCtxSize(u32* out_size);
+    NvResult ZCullGetInfo(ZCullInfo* out_info);
+    // TODO: is buffer_addr in GPU virtual address space?
+    NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size, gpu_vaddr_t buffer_addr, GpuCharacteristics* out_characteristics);
+    NvResult GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved, u64* out_mask_buffer);
+    NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
 };
 
 } // namespace Hydra::Horizon::Services::NvDrv::Ioctl

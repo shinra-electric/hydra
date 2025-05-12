@@ -4,6 +4,8 @@
 
 namespace Hydra::Horizon {
 
+using result_t = Kernel::result_t;
+
 struct FirmwareVersion {
     u8 major;
     u8 minor;
