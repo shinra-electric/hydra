@@ -31,11 +31,11 @@ enum class PrimitiveType {
     Patches,
 };
 
-enum class IndexType {
-    None,
+enum class IndexType : u32 {
     UInt8,
     UInt16,
     UInt32,
+    None,
 };
 
 inline usize get_index_type_size(IndexType type) {

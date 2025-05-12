@@ -7,6 +7,11 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 namespace {
 
+inline void decode_u8_indices(uptr in, uptr out, usize count) {
+    for (u32 i = 0; i < count; i++)
+        reinterpret_cast<u16*>(out)[i] = reinterpret_cast<u8*>(in)[i];
+}
+
 inline usize get_index_count_quads_to_triangles(usize count) {
     return count / 4 * 6;
 }
@@ -95,7 +100,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
                                engines::IndexType& out_type,
                                engines::PrimitiveType& out_primitive_type,
                                u32& out_count) {
-#define PRIMITIVE_TYPE_SWITCH(macro)                                           \
+#define PRIMITIVE_TYPE_SWITCH(macro, u8_index_macro)                           \
     switch (descriptor.primitive_type) {                                       \
     case engines::PrimitiveType::Quads:                                        \
         /* TODO: check for quads support */                                    \
@@ -106,7 +111,13 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         macro(triangle_fan_to_triangle_strip);                                 \
         break;                                                                 \
     default:                                                                   \
-        return descriptor.src_index_buffer;                                    \
+        /* TODO: check for U8 support */                                       \
+        if (descriptor.type == engines::IndexType::UInt8) {                    \
+            u8_index_macro();                                                  \
+            break;                                                             \
+        } else {                                                               \
+            return descriptor.src_index_buffer;                                \
+        }                                                                      \
     }
 
     out_type = descriptor.type;
@@ -117,8 +128,10 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     out_primitive_type = get_primitive_type_##name();                          \
     out_count = get_index_count_##name(descriptor.count)
 
+#define GET_PARAMS_U8_INDEX() out_type = engines::IndexType::UInt16;
+
     // Returns src index buffer if no decoding is needed
-    PRIMITIVE_TYPE_SWITCH(GET_PARAMS)
+    PRIMITIVE_TYPE_SWITCH(GET_PARAMS, GET_PARAMS_U8_INDEX)
 
     switch (out_count) {
     case 0 ... 0xff:
@@ -141,7 +154,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     usize index_size = get_index_type_size(out_type);
     index_buffer =
         RENDERER_INSTANCE->AllocateTemporaryBuffer(out_count * index_size);
-    uptr in_ptr = 0;
+    uptr in_ptr = 0x0;
     if (descriptor.src_index_buffer)
         in_ptr = descriptor.src_index_buffer->GetDescriptor().ptr;
     auto out_ptr = index_buffer->GetDescriptor().ptr;
@@ -151,10 +164,14 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
 #define DECODE_MACRO_AUTO(name) DECODE(name##_auto);
 #define DECODE_MACRO(name) DECODE(name);
 
+#define DECODE_MACRO_AUTO_U8_INDEX() unreachable();
+#define DECODE_MACRO_U8_INDEX()                                                \
+    decode_u8_indices(in_ptr, out_ptr, descriptor.count);
+
     if (descriptor.src_index_buffer == nullptr) {
-        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO)
+        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
     } else {
-        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO)
+        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO, DECODE_MACRO_U8_INDEX)
     }
 
     return index_buffer;
@@ -164,6 +181,7 @@ u64 IndexCache::Hash(const IndexDescriptor& descriptor) {
     u64 hash = 0;
     hash += (u64)descriptor.type;
     hash = std::rotl(hash, 3);
+    // TODO: don't always hash primitive type
     hash += (u64)descriptor.primitive_type;
     hash = std::rotl(hash, 5);
     hash += (u64)descriptor.src_index_buffer; // TODO: don't hash it like this
