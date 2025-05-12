@@ -227,16 +227,17 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
     renderer::BufferBase* index_buffer =
-        RENDERER_INSTANCE->GetIndexCache().Decode({.type = index_type,
-                                          .primitive_type = primitive_type,
-                                          .count = count,
-                                          .src_index_buffer = nullptr},
-                                         index_type, primitive_type, count);
+        RENDERER_INSTANCE->GetIndexCache().Decode(
+            {.type = index_type,
+             .primitive_type = primitive_type,
+             .count = count,
+             .src_index_buffer = nullptr},
+            index_type, primitive_type, count);
     if (index_buffer)
         RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
     RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_array_start, count,
-                   index_buffer != nullptr);
+                            index_buffer != nullptr);
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
@@ -250,24 +251,25 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
         count * get_index_type_size(
                     regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr)
                                       // - MAKE_ADDR(regs.index_buffer_addr);
-    auto index_buffer =
-        RENDERER_INSTANCE->GetBufferCache().Find({index_buffer_ptr, index_buffer_size});
+    auto index_buffer = RENDERER_INSTANCE->GetBufferCache().Find(
+        {index_buffer_ptr, index_buffer_size});
 
     RENDERER_INSTANCE->BindIndexBuffer(index_buffer, regs.index_type);
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
-    index_buffer =
-        RENDERER_INSTANCE->GetIndexCache().Decode({.type = index_type,
-                                          .primitive_type = primitive_type,
-                                          .count = count,
-                                          .src_index_buffer = index_buffer},
-                                         index_type, primitive_type, count);
+    index_buffer = RENDERER_INSTANCE->GetIndexCache().Decode(
+        {.type = index_type,
+         .primitive_type = primitive_type,
+         .count = count,
+         .src_index_buffer = index_buffer},
+        index_type, primitive_type, count);
     ASSERT_DEBUG(index_buffer, GPU, "Index buffer not found");
     RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
     // Draw
-    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_elements_start, count, true);
+    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_elements_start, count,
+                            true);
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
@@ -284,8 +286,8 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     RENDERER_INSTANCE->BindRenderPass(GetRenderPass());
 
     if (data.color_mask != 0x0)
-        RENDERER_INSTANCE->ClearColor(data.target_id, data.layer_id, data.color_mask,
-                             regs.clear_color);
+        RENDERER_INSTANCE->ClearColor(data.target_id, data.layer_id,
+                                      data.color_mask, regs.clear_color);
 
     if (data.depth)
         RENDERER_INSTANCE->ClearDepth(data.layer_id, regs.clear_depth);
@@ -605,8 +607,8 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
         if (texture)
-            RENDERER_INSTANCE->BindTexture(texture, to_renderer_shader_type(stage),
-                                  renderer_index);
+            RENDERER_INSTANCE->BindTexture(
+                texture, to_renderer_shader_type(stage), renderer_index);
         // TODO: else bind null texture
 
         // Sampler

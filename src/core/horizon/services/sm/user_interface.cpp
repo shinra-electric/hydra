@@ -61,7 +61,8 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(visrv::IApplicationRootService, "vi:u")
         SERVICE_CASE(visrv::ISystemRootService, "vi:s")
         SERVICE_CASE(visrv::IManagerRootService, "vi:m")
-        SERVICE_CASE(pl::shared_resource::IPlatformSharedResourceManager, "pl:u")
+        SERVICE_CASE(pl::shared_resource::IPlatformSharedResourceManager,
+                     "pl:u")
         SERVICE_CASE(psm::IPsmServer, "psm")
         SERVICE_CASE(lm::ILogService, "lm")
         SERVICE_CASE(aocsrv::IAddOnContentManager, "aoc:u")
@@ -82,8 +83,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(spl::IGeneralInterface, "spl:")
         SERVICE_CASE(friends::IServiceCreator, "friend:a")
     default:
-        LOG_WARN(Services, "Unknown service name \"{}\"",
-                 u64_to_str(name));
+        LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
 

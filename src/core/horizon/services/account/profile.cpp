@@ -44,7 +44,8 @@ result_t IProfile::GetBase(AccountProfileBase* out_base) {
         .user_id = user_id,
         .last_edit_timestamp = user.GetLastEditTimestamp(),
     };
-    std::memcpy(out_base->nickname, user.GetNickname().data(), user.GetNickname().size());
+    std::memcpy(out_base->nickname, user.GetNickname().data(),
+                user.GetNickname().size());
 
     return RESULT_SUCCESS;
 }

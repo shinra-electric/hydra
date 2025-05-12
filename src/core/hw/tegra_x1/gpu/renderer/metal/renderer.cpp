@@ -650,4 +650,4 @@ void Renderer::EndCapture() {
     capturing = false;
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::Renderer::metal
+} // namespace hydra::hw::tegra_x1::gpu::renderer::metal

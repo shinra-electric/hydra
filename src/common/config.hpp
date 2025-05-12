@@ -44,6 +44,8 @@ class Config {
     void Log();
 
     // Paths
+    const std::string& GetAppDataPath() const { return app_data_path; }
+
     std::string GetConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);
     }
@@ -113,9 +115,7 @@ class Config {
         SET_CONFIG_VALUE(shader_backend);
     }
 
-    void SetUserID(uuid_t user_id_) {
-        SET_CONFIG_VALUE(user_id);
-    }
+    void SetUserID(uuid_t user_id_) { SET_CONFIG_VALUE(user_id); }
 
     void AddProcessArg(const std::string& arg) {
         process_args.push_back(arg);

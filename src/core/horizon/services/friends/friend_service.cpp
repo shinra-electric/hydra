@@ -4,4 +4,4 @@ namespace hydra::horizon::services::friends {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFriendService)
 
-} // namespace hydra::horizon::services::friend
+} // namespace hydra::horizon::services::friends

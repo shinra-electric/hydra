@@ -7,7 +7,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 3, AppendAudioOutBuffer, 4,
 
 IAudioOut::IAudioOut() : buffer_event(new kernel::Event()) {}
 
-result_t IAudioOut::RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle) {
+result_t
+IAudioOut::RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle) {
     out_handle = buffer_event.id;
     return RESULT_SUCCESS;
 }

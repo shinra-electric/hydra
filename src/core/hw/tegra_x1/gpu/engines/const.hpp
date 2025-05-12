@@ -156,10 +156,10 @@ ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::PrimitiveType, Points,
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::IndexType, None,
                        "none", UInt8, "u8", UInt16, "u16", UInt32, "u32")
 
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::VertexAttribType, None,
-                       "none", Snorm, "snorm", Unorm, "unorm", Sint, "sint",
-                       Uint, "uint", Uscaled, "uscaled", Sscaled, "sscaled",
-                       Float, "float")
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::VertexAttribType,
+                       None, "none", Snorm, "snorm", Unorm, "unorm", Sint,
+                       "sint", Uint, "uint", Uscaled, "uscaled", Sscaled,
+                       "sscaled", Float, "float")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::VertexAttribSize,
                        _1x32, "1x32", _2x32, "2x32", _3x32, "3x32", _4x32,
@@ -174,8 +174,8 @@ ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::ShaderStage, VertexA,
                        "tessellation evaluation", Geometry, "geometry",
                        Fragment, "fragment")
 
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::DepthTestFunc, Invalid,
-                       "invalid", Never, "never", Less, "less", Equal, "equal",
-                       LessEqual, "less equal", Greater, "greater", NotEqual,
-                       "not equal", GreaterEqual, "greater equal", Always,
-                       "always")
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::DepthTestFunc,
+                       Invalid, "invalid", Never, "never", Less, "less", Equal,
+                       "equal", LessEqual, "less equal", Greater, "greater",
+                       NotEqual, "not equal", GreaterEqual, "greater equal",
+                       Always, "always")

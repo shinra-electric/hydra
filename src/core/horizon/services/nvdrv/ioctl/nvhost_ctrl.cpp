@@ -4,12 +4,16 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostCtrl, DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, GetConfig,
-                                                        0x1d, SyncptWaitEvent))
+DEFINE_IOCTL_TABLE(NvHostCtrl,
+                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, GetConfig,
+                                            0x1d, SyncptWaitEvent))
 
-NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key, std::array<u8, 0x101>* out_value) {
+NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
+                               std::array<char, 0x41> key,
+                               std::array<u8, 0x101>* out_value) {
     // TODO: use a different connecting char?
-    const auto key_str = to_lower(fmt::format("{}:{}", name.data(), key.data()));
+    const auto key_str =
+        to_lower(fmt::format("{}:{}", name.data(), key.data()));
     LOG_DEBUG(Services, "Key: {}", key_str);
 
     auto it = settings::nx_settings.find(key_str);
@@ -36,7 +40,8 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name, std::array<char, 0x4
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout, u32* out_value) {
+NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout,
+                                     u32* out_value) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

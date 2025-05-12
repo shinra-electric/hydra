@@ -19,7 +19,7 @@ Thread::~Thread() {
     }
 
     hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(tls_addr,
-                                                   tls_mem->GetSize());
+                                                    tls_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(tls_mem);
 }
 

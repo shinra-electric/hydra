@@ -25,8 +25,7 @@ constexpr usize MAX_FINGER_COUNT = 10;
 }
 
 InputManager::InputManager() {
-    shared_memory_id = KERNEL.AddHandle(
-        new kernel::SharedMemory(0x40000));
+    shared_memory_id = KERNEL.AddHandle(new kernel::SharedMemory(0x40000));
 }
 
 #define UPDATE_NPAD_LIFO(type, style_lower)                                    \
@@ -75,8 +74,8 @@ void InputManager::SetNpadAnalogStickStateR(
 }
 
 hid::SharedMemory* InputManager::GetHidSharedMemory() const {
-    auto shared_mem = dynamic_cast<kernel::SharedMemory*>(
-        KERNEL.GetHandle(shared_memory_id));
+    auto shared_mem =
+        dynamic_cast<kernel::SharedMemory*>(KERNEL.GetHandle(shared_memory_id));
     ASSERT_DEBUG(shared_mem, Horizon, "Failed to get shared memory");
     return reinterpret_cast<hid::SharedMemory*>(shared_mem->GetPtr());
 }

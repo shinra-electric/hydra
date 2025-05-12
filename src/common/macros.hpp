@@ -8,18 +8,19 @@
 
 #define PASS_VA_ARGS(...) , ##__VA_ARGS__
 
-#define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class)               \
+#define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class)                     \
     static type* g_instance = nullptr;                                         \
     type& type::GetInstance() {                                                \
         ASSERT_DEBUG(g_instance, logging_class,                                \
-                     #type " hasn't been instantiated");                        \
+                     #type " hasn't been instantiated");                       \
         return *g_instance;                                                    \
     }
 
-#define SINGLETON_SET_INSTANCE(type, logging_class) {                            \
-    ASSERT(!g_instance, logging_class, #type " already exists");                \
-    g_instance = this; \
-}
+#define SINGLETON_SET_INSTANCE(type, logging_class)                            \
+    {                                                                          \
+        ASSERT(!g_instance, logging_class, #type " already exists");           \
+        g_instance = this;                                                     \
+    }
 
 #define SINGLETON_UNSET_INSTANCE() g_instance = nullptr
 

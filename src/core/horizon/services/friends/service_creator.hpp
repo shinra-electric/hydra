@@ -13,4 +13,4 @@ class IServiceCreator : public ServiceBase {
     result_t CreateFriendService(add_service_fn_t add_service);
 };
 
-} // namespace hydra::horizon::services::friend
+} // namespace hydra::horizon::services::friends

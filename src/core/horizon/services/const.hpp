@@ -4,7 +4,7 @@
 
 #define SERVICE_COMMAND_CASE(service, id, func)                                \
     case id:                                                                   \
-        LOG_DEBUG(Services, #func);                                     \
+        LOG_DEBUG(Services, #func);                                            \
         return invoke_command(context, *this, &service::func);
 
 #define DEFINE_SERVICE_COMMAND_TABLE(service, ...)                             \
@@ -12,14 +12,14 @@
         switch (id) {                                                          \
             FOR_EACH_1_2(SERVICE_COMMAND_CASE, service, __VA_ARGS__)           \
         default:                                                               \
-            LOG_WARN(Services, "Unknown request {}", id);               \
+            LOG_WARN(Services, "Unknown request {}", id);                      \
             return MAKE_RESULT(Svc, 0); /* TODO */                             \
         }                                                                      \
     }
 
 #define STUB_REQUEST_COMMAND(name)                                             \
     result_t name() {                                                          \
-        LOG_FUNC_STUBBED(Services);                                     \
+        LOG_FUNC_STUBBED(Services);                                            \
         return RESULT_SUCCESS;                                                 \
     }
 

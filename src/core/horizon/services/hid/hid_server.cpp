@@ -26,7 +26,8 @@ result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set) {
+result_t IHidServer::GetSupportedNpadStyleSet(
+    ::hydra::horizon::hid::NpadStyleSet* style_set) {
     // TODO: make this configurable?
     *style_set = ::hydra::horizon::hid::NpadStyleSet::Standard;
 

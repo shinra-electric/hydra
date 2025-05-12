@@ -87,8 +87,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
-    for (const auto& patch_directory :
-         CONFIG_INSTANCE.GetPatchDirectories()) {
+    for (const auto& patch_directory : CONFIG_INSTANCE.GetPatchDirectories()) {
         for (const auto& dir_entry :
              std::filesystem::directory_iterator{patch_directory}) {
             if (to_lower(dir_entry.path().filename().string()) ==

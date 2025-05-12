@@ -42,8 +42,8 @@ class IPlatformSharedResourceManager : public ServiceBase {
 } // namespace hydra::horizon::services::pl::shared_resource
 
 ENABLE_ENUM_FORMATTING(
-    hydra::horizon::services::pl::shared_resource::SharedFontType, JapanUsEurope,
-    "Japan/US/Europe", ChineseSimplified, "Chinese Simplified",
+    hydra::horizon::services::pl::shared_resource::SharedFontType,
+    JapanUsEurope, "Japan/US/Europe", ChineseSimplified, "Chinese Simplified",
     ExtendedChineseSimplified, "Extended Chinese Simplified",
     ChineseTraditional, "Chinese Traditional", Korean, "Korean",
     NintendoExtended, "Nintendo Extended")

@@ -28,8 +28,7 @@ Directory::~Directory() {
 
 FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
                              bool add_intermediate) {
-    ASSERT(rel_path.size() != 0, Filesystem,
-           "Relative path cannot be empty");
+    ASSERT(rel_path.size() != 0, Filesystem, "Relative path cannot be empty");
 
     const auto slash_pos = rel_path.find('/');
     if (slash_pos == 0)

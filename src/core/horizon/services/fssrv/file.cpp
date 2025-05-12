@@ -17,18 +17,15 @@ IFile::~IFile() { file->Close(stream); }
 result_t IFile::Read(u32 option, u32 _pad, i64 offset, u64 size,
                      u64* out_written_size,
                      OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
-              size);
+    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0",
-                 offset);
+    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
     auto reader = stream.CreateReader();
     const auto max_size = reader.GetSize() - offset;
     if (size > max_size) {
-        LOG_WARN(Services,
-                 "Reading {} bytes, but maximum readable size is {}", size,
-                 max_size);
+        LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
+                 size, max_size);
         size = max_size;
     }
 
@@ -42,11 +39,9 @@ result_t IFile::Read(u32 option, u32 _pad, i64 offset, u64 size,
 // TODO: option
 result_t IFile::Write(u32 option, u32 _pad, i64 offset, u64 size,
                       InBuffer<BufferAttr::MapAlias> in_buffer) {
-    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset,
-              size);
+    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0",
-                 offset);
+    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
     auto writer = stream.CreateWriter();
     writer.Seek(offset);

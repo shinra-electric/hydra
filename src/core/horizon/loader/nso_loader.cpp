@@ -107,8 +107,7 @@ kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
     vaddr_t base;
     auto ptr = KERNEL.CreateExecutableMemory(
         executable_size, kernel::MemoryPermission::ReadExecute, false, base);
-    LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base,
-              executable_size);
+    LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
     read_segment(reader, ptr, header.text, header.text_file_size,
@@ -124,10 +123,9 @@ kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
 
     vaddr_t arg_data_base;
     // TODO: memory type
-    auto arg_data_ptr = reinterpret_cast<ArgData*>(
-        KERNEL.CreateRomMemory(
-            ARG_DATA_SIZE, static_cast<kernel::MemoryType>(4),
-            kernel::MemoryPermission::ReadWrite, true, arg_data_base));
+    auto arg_data_ptr = reinterpret_cast<ArgData*>(KERNEL.CreateRomMemory(
+        ARG_DATA_SIZE, static_cast<kernel::MemoryType>(4),
+        kernel::MemoryPermission::ReadWrite, true, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
     arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());

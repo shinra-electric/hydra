@@ -324,9 +324,7 @@ result_t Kernel::svcQueryMemory(uptr addr, MemoryInfo& out_mem_info,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitProcess() {
-    LOG_DEBUG(Kernel, "svcExitProcess called");
-}
+void Kernel::svcExitProcess() { LOG_DEBUG(Kernel, "svcExitProcess called"); }
 
 result_t Kernel::svcCreateThread(vaddr_t entry_point, vaddr_t args_addr,
                                  vaddr_t stack_top_addr, i32 priority,
@@ -361,9 +359,7 @@ result_t Kernel::svcStartThread(handle_id_t thread_handle_id) {
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitThread() {
-    LOG_DEBUG(Kernel, "svcExitThread called");
-}
+void Kernel::svcExitThread() { LOG_DEBUG(Kernel, "svcExitThread called"); }
 
 void Kernel::svcSleepThread(i64 nano) {
     LOG_DEBUG(Kernel, "svcSleepThread called (nano: {})", nano);
@@ -493,8 +489,7 @@ Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
 }
 
 result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
-    LOG_DEBUG(Kernel, "svcCloseHandle called (handle: 0x{:x})",
-              handle_id);
+    LOG_DEBUG(Kernel, "svcCloseHandle called (handle: 0x{:x})", handle_id);
 
     // TODO: uncomment
     // FreeHandle(handle_id);
@@ -503,13 +498,11 @@ result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
 }
 
 result_t Kernel::svcResetSignal(handle_id_t handle_id) {
-    LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})",
-              handle_id);
+    LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})", handle_id);
 
     // TODO: correct?
     auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
-    ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle",
-                 handle_id);
+    ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle", handle_id);
 
     if (!handle->Clear())
         return MAKE_RESULT(Svc, Error::InvalidState);
@@ -545,14 +538,13 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
 
         // HACK
         if (!event) {
-            LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle",
-                     handle_id);
+            LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle", handle_id);
             std::this_thread::sleep_for(std::chrono::seconds(5));
             return RESULT_SUCCESS;
         }
 
-        ASSERT_DEBUG(event, Kernel,
-                     "Handle 0x{:x} is not an event handle", handle_id);
+        ASSERT_DEBUG(event, Kernel, "Handle 0x{:x} is not an event handle",
+                     handle_id);
 
         LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}", handle_id);
 
@@ -633,8 +625,7 @@ result_t Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
     if (count == -1) {
         cond_var.notify_all();
     } else {
-        ASSERT_DEBUG(count > 0, Kernel, "Invalid signal count {}",
-                     count);
+        ASSERT_DEBUG(count > 0, Kernel, "Invalid signal count {}", count);
 
         // TODO: correct?
         for (u32 i = 0; i < count; i++)
@@ -679,8 +670,8 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
         return RESULT_SUCCESS;
     }
 
-    ASSERT_DEBUG(session, Kernel,
-                 "Handle 0x{:x} is not a session handle", session_handle_id);
+    ASSERT_DEBUG(session, Kernel, "Handle 0x{:x} is not a session handle",
+                 session_handle_id);
     auto tls_ptr = reinterpret_cast<void*>(mmu->GetMemoryPtr(tls_mem));
 
     // Request

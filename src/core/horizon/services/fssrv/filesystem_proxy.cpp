@@ -46,8 +46,7 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
         unknown_buffer.reader->ReadString(); // TODO: what is this for?
-    LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id,
-              unknown);
+    LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id, unknown);
 
     LOG_FUNC_STUBBED(Services);
 
@@ -143,8 +142,7 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
 
 result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
     add_service_fn_t add_service) {
-    LOG_NOT_IMPLEMENTED(Services,
-                        "OpenPatchDataStorageByCurrentProcess");
+    LOG_NOT_IMPLEMENTED(Services, "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
     filesystem::FileBase* file = nullptr;

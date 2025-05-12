@@ -2,20 +2,20 @@
 
 #include "core/horizon/services/nvdrv/const.hpp"
 
-#define IOCTL_CASE(fd, nr, func)                                             \
+#define IOCTL_CASE(fd, nr, func)                                               \
     case nr: {                                                                 \
-        LOG_DEBUG(Services, #func);                                     \
-        return invoke_ioctl(context, *this, &fd::func);                      \
+        LOG_DEBUG(Services, #func);                                            \
+        return invoke_ioctl(context, *this, &fd::func);                        \
     }
 
-#define DEFINE_IOCTL_TABLE_ENTRY(fd, type, ...)                                    \
+#define DEFINE_IOCTL_TABLE_ENTRY(fd, type, ...)                                \
     case type:                                                                 \
         switch (nr) {                                                          \
-            FOR_EACH_1_2(IOCTL_CASE, fd, __VA_ARGS__)                        \
+            FOR_EACH_1_2(IOCTL_CASE, fd, __VA_ARGS__)                          \
         default:                                                               \
-            LOG_WARN(Services,                                          \
-                     "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
-            return NvResult::NotImplemented;                                    \
+            LOG_WARN(Services, "Unknown ioctl nr 0x{:02x} for type 0x{:02x}",  \
+                     nr, type);                                                \
+            return NvResult::NotImplemented;                                   \
         }
 
 #define DEFINE_IOCTL_TABLE(fd, ...)                                            \
@@ -23,9 +23,9 @@
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
-            LOG_WARN(Services,                                          \
-                     "Unknown ioctl nr 0x{:02x} for type 0x{:02x}", nr, type); \
-            return NvResult::NotImplemented;  \
+            LOG_WARN(Services, "Unknown ioctl nr 0x{:02x} for type 0x{:02x}",  \
+                     nr, type);                                                \
+            return NvResult::NotImplemented;                                   \
         }                                                                      \
     }
 
@@ -36,30 +36,20 @@ struct IoctlContext {
     Writer* writer;
 };
 
-template<typename In, typename Out>
-struct InOut {
+template <typename In, typename Out> struct InOut {
     static_assert(sizeof(In) == sizeof(Out));
     In in;
     Out* out;
 
-    operator In() const {
-        return in;
-    }
-    void operator=(const Out& other) {
-        *out = other;
-    }
+    operator In() const { return in; }
+    void operator=(const Out& other) { *out = other; }
 };
 
-template<typename T>
-struct InOutSingle {
+template <typename T> struct InOutSingle {
     T* data;
 
-    operator T() const {
-        return *data;
-    }
-    void operator=(const T& other) {
-        *data = other;
-    }
+    operator T() const { return *data; }
+    void operator=(const T& other) { *data = other; }
 };
 
 enum class ArgumentType {
@@ -147,7 +137,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             ASSERT_DEBUG(context.reader, Services, "No reader");
             arg = context.reader->ReadPtr<typename traits::BaseType>();
 
-            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1, "InArray must be the last argument");
+            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,
+                          "InArray must be the last argument");
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);

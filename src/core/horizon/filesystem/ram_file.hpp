@@ -10,8 +10,8 @@ class RamFile : public FileBase {
     ~RamFile() override = default;
 
     void Resize(usize new_size) override {
-        LOG_NOT_IMPLEMENTED(Filesystem,
-                            "RAM file resizing (size: 0x{:x})", new_size);
+        LOG_NOT_IMPLEMENTED(Filesystem, "RAM file resizing (size: 0x{:x})",
+                            new_size);
     }
 
     FileStream Open(FileOpenFlags flags) override {

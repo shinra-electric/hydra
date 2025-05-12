@@ -47,4 +47,4 @@ class Display {
     std::vector<Layer*> layers;
 };
 
-} // namespace hydra::hw::Display
+} // namespace hydra::hw::display

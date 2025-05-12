@@ -235,7 +235,7 @@ ENABLE_ENUM_FORMATTING(
     GreaterEqualU, "greater equal U", T, "t")
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BinaryOperator,
-    Invalid, "invalid", And, "and", Or, "or", Xor, "xor")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BinaryOperator, Invalid,
+    "invalid", And, "and", Or, "or", Xor, "xor")
 
 #include "common/logging/log.hpp"

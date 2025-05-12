@@ -38,9 +38,7 @@ result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
 
     // TODO: what display ID should be used?
-    *out_layer_id =
-        KERNEL.GetBus().GetDisplay(0)->CreateLayer(
-            binder_id);
+    *out_layer_id = KERNEL.GetBus().GetDisplay(0)->CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 

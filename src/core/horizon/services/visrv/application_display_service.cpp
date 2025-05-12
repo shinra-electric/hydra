@@ -63,10 +63,7 @@ result_t IApplicationDisplayService::OpenLayer(
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
     u64 display_id = 0; // TODO: get based on the name
 
-    auto layer = KERNEL
-                     .GetBus()
-                     .GetDisplay(display_id)
-                     ->GetLayer(layer_id);
+    auto layer = KERNEL.GetBus().GetDisplay(display_id)->GetLayer(layer_id);
     layer->Open();
 
     // Out
@@ -93,21 +90,13 @@ result_t IApplicationDisplayService::OpenLayer(
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     u64 display_id = 0; // TODO: get from layer ID
 
-    KERNEL
-        .GetBus()
-        .GetDisplay(display_id)
-        ->GetLayer(layer_id)
-        ->Close();
+    KERNEL.GetBus().GetDisplay(display_id)->GetLayer(layer_id)->Close();
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationDisplayService::GetDisplayVsyncEvent(
     u64 display_id, OutHandle<HandleAttr::Move> out_handle) {
-    out_handle = KERNEL
-                     .GetBus()
-                     .GetDisplay(display_id)
-                     ->GetVSyncEvent()
-                     .id;
+    out_handle = KERNEL.GetBus().GetDisplay(display_id)->GetVSyncEvent().id;
     return RESULT_SUCCESS;
 }
 

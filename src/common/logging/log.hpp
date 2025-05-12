@@ -16,7 +16,7 @@
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
     {                                                                          \
-        if (CONFIG_INSTANCE.IsDebugLoggingEnabled())                     \
+        if (CONFIG_INSTANCE.IsDebugLoggingEnabled())                           \
             LOG(Debug, c, __VA_ARGS__);                                        \
     }
 #else
@@ -119,11 +119,9 @@ ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
-                       "Horizon", Kernel, "Kernel",
-                       Filesystem, "Filesystem", Loader,
-                       "Loader", Services, "Services",
-                       Hypervisor, "Hypervisor", Dynarmic, "Dynarmic", Other,
-                       "")
+                       "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
+                       Loader, "Loader", Services, "Services", Hypervisor,
+                       "Hypervisor", Dynarmic, "Dynarmic", Other, "")
 
 namespace hydra::logging {
 

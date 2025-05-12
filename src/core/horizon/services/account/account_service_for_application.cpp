@@ -10,7 +10,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 1, GetUserExistence,
                              5, GetProfile, 100, InitializeApplicationInfoV0,
                              101, GetBaasAccountManagerForApplication)
 
-result_t IAccountServiceForApplication::GetUserExistence(uuid_t user_id, bool* out_exists) {
+result_t IAccountServiceForApplication::GetUserExistence(uuid_t user_id,
+                                                         bool* out_exists) {
     LOG_DEBUG(Services, "User ID: 0x{:08x}", user_id);
 
     *out_exists = USER_MANAGER_INSTANCE.Exists(user_id);

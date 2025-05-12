@@ -248,8 +248,8 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
     for (u32 i = 0; i < header.entry_count; i++) {
         const auto& entry = entries[i];
         const std::string entry_name(string_table + entry.string_offset);
-        LOG_DEBUG(Loader, "{} -> offset: 0x{:08x}, size: 0x{:08x}",
-                  entry_name, entry.offset, entry.size);
+        LOG_DEBUG(Loader, "{} -> offset: 0x{:08x}, size: 0x{:08x}", entry_name,
+                  entry.offset, entry.size);
 
         // TODO: it doesn't always need to be ExeFS
 
@@ -262,8 +262,7 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
         auto nso_reader = reader.CreateSubReader(entry.size);
         auto process = loader.LoadRom(nso_reader, rom_filename);
         if (process) {
-            ASSERT(!out_process, Loader,
-                   "Cannot load multiple processes");
+            ASSERT(!out_process, Loader, "Cannot load multiple processes");
             out_process = process;
         }
     }
@@ -274,9 +273,8 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
                   kernel::Process*& out_process) {
     switch (type) {
     case SectionType::Code: {
-        ASSERT(header.hash_type == HashType::HierarchicalSha256Hash,
-               Loader, "Invalid hash type \"{}\" for Code section",
-               header.hash_type);
+        ASSERT(header.hash_type == HashType::HierarchicalSha256Hash, Loader,
+               "Invalid hash type \"{}\" for Code section", header.hash_type);
         const auto& layer_region = header.hierarchical_sha_256_data.pfs0_region;
 
         // Sonic Mania: 0x00004000
@@ -291,9 +289,8 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
     }
     case SectionType::Data: {
         // TODO: can other hash types be used as well?
-        ASSERT(header.hash_type == HashType::HierarchicalIntegrityHash,
-               Loader, "Invalid hash type \"{}\" for Data section",
-               header.hash_type);
+        ASSERT(header.hash_type == HashType::HierarchicalIntegrityHash, Loader,
+               "Invalid hash type \"{}\" for Data section", header.hash_type);
         // TODO: correct?
         const auto& level = header.integrity_meta_info.info_level_hash
                                 .levels[IVFC_MAX_LEVEL - 1];

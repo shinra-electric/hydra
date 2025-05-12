@@ -49,10 +49,11 @@ constexpr u32 EXIT_BIT = BIT(7);
 
 } // namespace hydra::hw::tegra_x1::gpu::macro
 
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::AluOperation, Add, "add",
-                       AddWithCarry, "add with carry", Subtract, "subtract",
-                       SubtractWithBorrow, "subtract with borrow", Xor, "xor",
-                       Or, "or", And, "and", AndNot, "and not", Nand, "nand")
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::AluOperation, Add,
+                       "add", AddWithCarry, "add with carry", Subtract,
+                       "subtract", SubtractWithBorrow, "subtract with borrow",
+                       Xor, "xor", Or, "or", And, "and", AndNot, "and not",
+                       Nand, "nand")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::macro::BranchCondition, Zero,
                        "zero", NotZero, "not zero", ZeroAnnul, "zero annul",

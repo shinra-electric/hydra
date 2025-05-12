@@ -761,8 +761,8 @@ constexpr usize IMAGE_BINDING_COUNT = 8;
 
 } // namespace hydra::hw::tegra_x1::gpu
 
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::NvLayout, Pitch, "pitch", Tiled,
-                       "tiled", BlockLinear, "block linear")
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::NvLayout, Pitch, "pitch",
+                       Tiled, "tiled", BlockLinear, "block linear")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::NvDisplayScanFormat,
                        Progressive, "progressive", Interlaced, "interlaced")

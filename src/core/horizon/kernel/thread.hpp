@@ -15,8 +15,8 @@ class Thread : public Handle {
     // Setters
     void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
     void SetArg(u32 index, u64 value) {
-        ASSERT(index < sizeof_array(args), Kernel,
-               "Invalid argument index {}", index);
+        ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
+               index);
         args[index] = value;
     }
 
