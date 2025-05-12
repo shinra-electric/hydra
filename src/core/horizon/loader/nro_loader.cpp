@@ -62,7 +62,7 @@ kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     // Create executable memory
     usize executable_size = reader.GetSize() + header.bss_size;
     uptr base;
-    auto ptr = KERNEL.CreateExecutableMemory(
+    auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
         executable_size, kernel::MemoryPermission::ReadWriteExecute, true,
         base); // TODO: is the permission correct?
     reader.Seek(0);
@@ -111,7 +111,7 @@ kernel::Process* NROLoader::LoadRom(StreamReader& reader,
 #undef ADD_ENTRY
 
     // filesystem
-    const auto res = filesystem::filesystem::GetInstance().AddEntry(
+    const auto res = FILESYSTEM_INSTANCE.AddEntry(
         ROM_VIRTUAL_PATH,
         new filesystem::HostFile(rom_filename, reader.GetOffset(),
                                  reader.GetSize()));

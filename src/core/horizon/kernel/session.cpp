@@ -35,7 +35,7 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     }
     case cmif::ControlCommandType::CloneCurrentObject: { // clone current object
         auto clone = new Session(service);
-        handle_id_t handle_id = KERNEL.AddHandle(clone);
+        handle_id_t handle_id = KERNEL_INSTANCE.AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;
@@ -47,7 +47,7 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     case cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag
         auto clone = new Session(service);
-        handle_id_t handle_id = KERNEL.AddHandle(clone);
+        handle_id_t handle_id = KERNEL_INSTANCE.AddHandle(clone);
         clone->SetHandleId(handle_id);
         writers.move_handles_writer.Write(handle_id);
         break;

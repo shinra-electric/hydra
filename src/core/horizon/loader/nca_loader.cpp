@@ -302,7 +302,7 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
         // The Binding of Isaac: 0x00124000
         reader.Seek(level.logical_offset);
         auto romfs_reader = reader.CreateSubReader(level.hash_data_size);
-        const auto res = filesystem::filesystem::GetInstance().AddEntry(
+        const auto res = FILESYSTEM_INSTANCE.AddEntry(
             FS_SD_MOUNT "/rom/romFS",
             new filesystem::HostFile(rom_filename, romfs_reader.GetOffset(),
                                      romfs_reader.GetSize()),
@@ -331,7 +331,7 @@ kernel::Process* NCALoader::LoadRom(StreamReader& reader,
            "Invalid NCA magic");
 
     // Title ID
-    KERNEL.SetTitleId(header.program_id);
+    KERNEL_INSTANCE.SetTitleId(header.program_id);
 
     kernel::Process* process = nullptr;
 

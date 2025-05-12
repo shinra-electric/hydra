@@ -58,6 +58,7 @@ class Config {
         return patch_directories;
     }
     const std::string& GetSdCardPath() const { return sd_card_path; }
+    const std::string& GetSavePath() const { return save_path; }
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
     ShaderBackend GetShaderBackend() const { return shader_backend; }
@@ -101,6 +102,10 @@ class Config {
 
     void SetSdCardPath(const std::string& sd_card_path_) {
         SET_CONFIG_VALUE(sd_card_path);
+    }
+
+    void SetSavePath(const std::string& save_path_) {
+        SET_CONFIG_VALUE(save_path);
     }
 
     void SetCpuBackend(CpuBackend cpu_backend_) {
@@ -148,6 +153,7 @@ class Config {
     std::vector<std::string> game_directories;
     std::vector<std::string> patch_directories;
     std::string sd_card_path;
+    std::string save_path;
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
     ShaderBackend shader_backend;
@@ -160,7 +166,10 @@ class Config {
     std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
     std::vector<std::string> GetDefaultPatchDirectories() const { return {}; }
     std::string GetDefaultSdCardPath() const {
-        return fmt::format("{}/sd_card", app_data_path);
+        return fmt::format("{}/sdmc", app_data_path);
+    }
+    std::string GetDefaultSavePath() const {
+        return fmt::format("{}/save", app_data_path);
     }
     CpuBackend GetDefaultCpuBackend() const {
         // TODO: use Dynarmic by default on all platforms except for Apple

@@ -66,14 +66,12 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
     LOG_FUNC_STUBBED(Services);
 
     std::string mount = "INVALID";
-    std::string root_path = "INVALID";
     switch (attr.type) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
-            title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
+            title_id = KERNEL_INSTANCE.GetTitleID();
+        mount = FS_SAVE_DATA_PATH(title_id, attr.user_id);
         break;
     }
     default:
@@ -81,11 +79,8 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
         break;
     }
 
-    // TODO: mount here?
-    // const auto res =
-    //    filesystem::filesystem::GetInstance().CreateDirectory(root_path,
-    //    true);
-    // filesystem::filesystem::GetInstance().Mount(mount, root_path);
+    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount);
+    // TODO: check res
 
     return RESULT_SUCCESS;
 }
@@ -94,26 +89,18 @@ result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
                                                   aligned<u8, 8> space_id,
                                                   SaveDataAttribute attr) {
     std::string mount = "INVALID";
-    std::string root_path = "INVALID";
     switch (attr.type) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
-            title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
+            title_id = KERNEL_INSTANCE.GetTitleID();
+        mount = FS_SAVE_DATA_PATH(title_id, attr.user_id);
         break;
     }
     default:
         LOG_NOT_IMPLEMENTED(Services, "Save data type {}", attr.type);
         break;
     }
-
-    // Mount
-    const auto res =
-        filesystem::filesystem::GetInstance().CreateDirectory(root_path, true);
-    // TODO: check res
-    filesystem::filesystem::GetInstance().Mount(mount, root_path);
 
     add_service(new IFileSystem(mount));
 
@@ -128,8 +115,8 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
     // TODO: what to do with program ID?
 
     filesystem::FileBase* file = nullptr;
-    const auto res = filesystem::filesystem::GetInstance().GetFile(
-        FS_SD_MOUNT "/rom/romFS", file);
+    const auto res =
+        FILESYSTEM_INSTANCE.GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);
@@ -146,8 +133,8 @@ result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
 
     // HACK
     filesystem::FileBase* file = nullptr;
-    const auto res = filesystem::filesystem::GetInstance().GetFile(
-        FS_SD_MOUNT "/rom/romFS", file);
+    const auto res =
+        FILESYSTEM_INSTANCE.GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);

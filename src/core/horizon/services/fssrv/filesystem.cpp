@@ -22,7 +22,7 @@ IFileSystem::CreateFile(CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = filesystem::filesystem::GetInstance().CreateFile(
+    const auto res = FILESYSTEM_INSTANCE.CreateFile(
         path, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
         LOG_WARN(Services, "File \"{}\" already exists", path);
@@ -46,7 +46,7 @@ result_t
 IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = filesystem::filesystem::GetInstance().AddEntry(
+    const auto res = FILESYSTEM_INSTANCE.AddEntry(
         path, new filesystem::Directory(),
         true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
@@ -82,8 +82,7 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
     READ_PATH();
 
     filesystem::EntryBase* entry;
-    const auto res =
-        filesystem::filesystem::GetInstance().GetEntry(path, entry);
+    const auto res = FILESYSTEM_INSTANCE.GetEntry(path, entry);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error getting entry \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -102,7 +101,7 @@ result_t IFileSystem::OpenFile(add_service_fn_t add_service,
     LOG_DEBUG(Services, "Flags: {}", flags);
 
     filesystem::FileBase* file;
-    const auto res = filesystem::filesystem::GetInstance().GetFile(path, file);
+    const auto res = FILESYSTEM_INSTANCE.GetFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -121,8 +120,7 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
     LOG_DEBUG(Services, "Filter flags: {}", filter_flags);
 
     filesystem::Directory* directory;
-    const auto res =
-        filesystem::filesystem::GetInstance().GetDirectory(path, directory);
+    const auto res = FILESYSTEM_INSTANCE.GetDirectory(path, directory);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening directory \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);

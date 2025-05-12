@@ -102,6 +102,7 @@ void Config::LoadDefaults() {
     game_directories = GetDefaultGameDirectories();
     patch_directories = GetDefaultPatchDirectories();
     sd_card_path = GetDefaultSdCardPath();
+    save_path = GetDefaultSavePath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
@@ -138,6 +139,7 @@ void Config::Serialize() {
                                                     patch_directories.end());
 
             general["sd_card_path"] = sd_card_path;
+            general["save_path"] = save_path;
         }
 
         {
@@ -181,6 +183,8 @@ void Config::Deserialize() {
             general, "patch_directories", GetDefaultPatchDirectories());
         sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
                                                   GetDefaultSdCardPath());
+        save_path = toml::find_or<std::string>(general, "save_path",
+                                               GetDefaultSavePath());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
@@ -235,6 +239,7 @@ void Config::Log() {
     LOG_INFO(Other, "Patch directories: [{}]",
              fmt::join(patch_directories, ", "));
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
+    LOG_INFO(Other, "Save path: {}", save_path);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);

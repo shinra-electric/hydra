@@ -3,11 +3,10 @@
 #include "common/common.hpp"
 
 #define FS_SD_MOUNT "sdmc:"
-#define FS_SAVE_DATA_MOUNT(title_id, user_id)                                  \
-    fmt::format("save-{:08x}-{:08x}:", title_id, user_id)
+#define FS_SAVE_MOUNT "save:"
 
 #define FS_SAVE_DATA_PATH(title_id, user_id)                                   \
-    fmt::format(FS_SD_MOUNT "/Nintendo/save/{:08x}/{:08x}", title_id, user_id)
+    fmt::format(FS_SAVE_MOUNT "/{:016x}/{:032x}", title_id, user_id)
 
 namespace hydra::horizon::filesystem {
 

@@ -71,7 +71,7 @@ enum class SaveDataMetaType : u8 {
 #pragma pack(push, 1)
 struct SaveDataAttribute {
     u64 title_id;
-    uuid_t account_user_id;
+    uuid_t user_id;
     u64 system_save_data_id;
     SaveDataType type;
     SaveDataRank rank;

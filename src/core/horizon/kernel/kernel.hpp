@@ -6,7 +6,7 @@
 #include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 
-#define KERNEL hydra::horizon::kernel::Kernel::GetInstance()
+#define KERNEL_INSTANCE hydra::horizon::kernel::Kernel::GetInstance()
 
 namespace hydra::hw::tegra_x1::cpu {
 class MMUBase;
@@ -188,8 +188,6 @@ class Kernel {
     // Getters
     hw::Bus& GetBus() const { return bus; }
 
-    filesystem::filesystem& GetFilesystem() { return filesystem; }
-
     u64 GetTitleID() const { return title_id; }
 
     // Setters
@@ -199,7 +197,7 @@ class Kernel {
     hw::Bus& bus;
     hw::tegra_x1::cpu::MMUBase* mmu;
 
-    filesystem::filesystem filesystem;
+    filesystem::Filesystem filesystem;
 
     u64 title_id{invalid<u64>()};
 
@@ -233,10 +231,10 @@ template <typename T> struct HandleWithId {
     handle_id_t id;
 
     HandleWithId(T* handle_) : handle{handle_} {
-        id = KERNEL.AddHandle(handle);
+        id = KERNEL_INSTANCE.AddHandle(handle);
     }
 
-    ~HandleWithId() { KERNEL.FreeHandle(id); }
+    ~HandleWithId() { KERNEL_INSTANCE.FreeHandle(id); }
 };
 
 } // namespace hydra::horizon::kernel

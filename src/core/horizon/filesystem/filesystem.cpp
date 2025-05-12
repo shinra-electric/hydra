@@ -28,22 +28,27 @@
 
 namespace hydra::horizon::filesystem {
 
-SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem)
+SINGLETON_DEFINE_GET_INSTANCE(Filesystem, Filesystem)
 
-filesystem::filesystem() {
+Filesystem::Filesystem() {
     SINGLETON_SET_INSTANCE(Filesystem, Filesystem);
 
     // SD card
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath());
     MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
+
+    // Save
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath());
+    MountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
 }
 
-filesystem::~filesystem() { SINGLETON_UNSET_INSTANCE(); }
+Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
-void filesystem::Mount(const std::string& mount) {
+void Filesystem::Mount(const std::string& mount) {
     MountImpl(mount, new Directory());
 }
 
-void filesystem::Mount(const std::string& mount, const std::string& root_path) {
+void Filesystem::Mount(const std::string& mount, const std::string& root_path) {
     Directory* root;
     auto res = GetDirectory(root_path, root);
     ASSERT(res == FsResult::Success, Filesystem,
@@ -52,20 +57,20 @@ void filesystem::Mount(const std::string& mount, const std::string& root_path) {
     MountImpl(mount, root);
 }
 
-FsResult filesystem::AddEntry(const std::string& path, EntryBase* entry,
+FsResult Filesystem::AddEntry(const std::string& path, EntryBase* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, entry, add_intermediate);
 }
 
-FsResult filesystem::AddEntry(const std::string& path,
+FsResult Filesystem::AddEntry(const std::string& path,
                               const std::string& host_path,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult filesystem::CreateFile(const std::string& path,
+FsResult Filesystem::CreateFile(const std::string& path,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 
@@ -73,6 +78,10 @@ FsResult filesystem::CreateFile(const std::string& path,
     if (mount == FS_SD_MOUNT) {
         const auto host_path =
             fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
+        return AddEntry(path, new HostFile(host_path), add_intermediate);
+    } else if (mount == FS_SAVE_MOUNT) {
+        const auto host_path =
+            fmt::format("{}{}", CONFIG_INSTANCE.GetSavePath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
         LOG_WARN(Filesystem,
@@ -83,17 +92,17 @@ FsResult filesystem::CreateFile(const std::string& path,
     }
 }
 
-FsResult filesystem::CreateDirectory(const std::string& path,
+FsResult Filesystem::CreateDirectory(const std::string& path,
                                      bool add_intermediate) {
     return AddEntry(path, new Directory(), add_intermediate);
 }
 
-FsResult filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
+FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult filesystem::GetFile(const std::string& path, FileBase*& out_file) {
+FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
@@ -106,7 +115,7 @@ FsResult filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     return res;
 }
 
-FsResult filesystem::GetDirectory(const std::string& path,
+FsResult Filesystem::GetDirectory(const std::string& path,
                                   Directory*& out_directory) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
@@ -120,7 +129,7 @@ FsResult filesystem::GetDirectory(const std::string& path,
     return res;
 }
 
-void filesystem::MountImpl(const std::string& mount, Directory* root) {
+void Filesystem::MountImpl(const std::string& mount, Directory* root) {
     VERIFY_MOUNT(mount);
     devices.emplace(std::make_pair(mount, root));
     LOG_INFO(Filesystem, "Mounted \"{}\"", mount);
