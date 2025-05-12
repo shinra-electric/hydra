@@ -2,8 +2,8 @@
 
 #include "core/horizon/display_driver.hpp"
 #include "core/horizon/input_manager.hpp"
+#include "core/horizon/services/account/user_manager.hpp"
 #include "core/horizon/state_manager.hpp"
-#include "core/horizon/user_manager.hpp"
 
 namespace hydra::hw::display {
 class DisplayBase;
@@ -45,7 +45,7 @@ class OS {
     StateManager state_manager;
     DisplayDriver display_driver;
     InputManager input_manager;
-    UserManager user_manager;
+    services::account::UserManager user_manager;
 };
 
 } // namespace hydra::horizon

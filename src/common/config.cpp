@@ -238,7 +238,7 @@ void Config::Log() {
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
-    LOG_INFO(Other, "User ID: 0x{:032x}", user_id);
+    LOG_INFO(Other, "User ID: {:032x}", user_id);
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);

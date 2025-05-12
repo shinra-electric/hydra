@@ -1,14 +1,8 @@
 #pragma once
 
-#include "core/horizon/services/const.hpp"
+#include "core/horizon/services/account/const.hpp"
 
 namespace hydra::horizon::services::account {
-
-struct AccountProfileBase {
-    uuid_t user_id;
-    u64 last_edit_timestamp;
-    char nickname[0x20];
-};
 
 class IProfile : public ServiceBase {
   public:
@@ -21,9 +15,9 @@ class IProfile : public ServiceBase {
     uuid_t user_id;
 
     // Commands
-    result_t Get(AccountProfileBase* out_base,
+    result_t Get(ProfileBase* out_base,
                  OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer);
-    result_t GetBase(AccountProfileBase* out_base);
+    result_t GetBase(ProfileBase* out_base);
 };
 
 } // namespace hydra::horizon::services::account

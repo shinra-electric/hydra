@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/account/manager_for_application.hpp"
 #include "core/horizon/services/account/profile.hpp"
-#include "core/horizon/user_manager.hpp"
+#include "core/horizon/services/account/user_manager.hpp"
 
 namespace hydra::horizon::services::account {
 

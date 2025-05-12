@@ -125,15 +125,19 @@ void EmulationContext::Run() {
 
     // Preselected user
     auto user_id = config.GetUserID();
-    if (user_id == horizon::INVALID_USER_ID) {
+    if (user_id == horizon::services::account::INVALID_USER_ID) {
         // If there is just a single user, use that
-        if (USER_MANAGER_INSTANCE.GetCount() == 1)
+        if (USER_MANAGER_INSTANCE.GetCount() == 1) {
             user_id = *USER_MANAGER_INSTANCE.Begin();
+        } else {
+            // TODO: launch a select user applet in case the game requires it
+            LOG_FATAL(Other, "Multiple user accounts");
+        }
     }
 
-    if (user_id != horizon::INVALID_USER_ID) {
+    if (user_id != horizon::services::account::INVALID_USER_ID) {
         state_manager.PushPreselectedUser(user_id);
-        LOG_INFO(Other, "Preselected user ID 0x{:032x}", user_id);
+        LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
     process->Run();
