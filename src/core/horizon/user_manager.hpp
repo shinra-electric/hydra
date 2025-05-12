@@ -2,7 +2,13 @@
 
 #include "core/horizon/const.hpp"
 
+#define USER_MANAGER_INSTANCE horizon::UserManager::GetInstance()
+
 namespace hydra::horizon {
+
+constexpr uuid_t USER_ID_START = 0x80000000;
+constexpr uuid_t INVALID_USER_ID = USER_ID_START;
+constexpr uuid_t FIRST_USER_ID = USER_ID_START + 1;
 
 class User {
     friend class UserManager;
@@ -53,9 +59,21 @@ class UserManager {
 
     void Flush();
 
+    const uuid_t* Begin() {
+        return &users.begin()->first;
+    }
+
+    const uuid_t* End() {
+        return &users.end()->first;
+    }
+
     // Getters
     User& Get(uuid_t user_id) {
         return GetPair(user_id).first;
+    }
+
+    usize GetCount() const {
+        return users.size();
     }
 
   private:

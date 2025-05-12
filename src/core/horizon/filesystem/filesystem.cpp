@@ -35,7 +35,7 @@ filesystem::filesystem() {
 
     // SD card
     MountImpl(FS_SD_MOUNT,
-              new Directory(Config::GetInstance().GetSdCardPath()));
+              new Directory(CONFIG_INSTANCE.GetSdCardPath()));
 }
 
 filesystem::~filesystem() { SINGLETON_UNSET_INSTANCE(); }
@@ -73,7 +73,7 @@ FsResult filesystem::CreateFile(const std::string& path,
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
         const auto host_path = fmt::format(
-            "{}{}", Config::GetInstance().GetSdCardPath(), entry_path);
+            "{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
         LOG_WARN(Filesystem,

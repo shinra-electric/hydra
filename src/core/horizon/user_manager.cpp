@@ -4,14 +4,6 @@
 
 namespace hydra::horizon {
 
-namespace {
-
-constexpr uuid_t USER_ID_START = 0x80000000;
-constexpr uuid_t INVALID_USER_ID = USER_ID_START;
-constexpr uuid_t FIRST_USER_ID = USER_ID_START + 1;
-
-}
-
 SINGLETON_DEFINE_GET_INSTANCE(UserManager, Horizon)
 
 UserManager::UserManager() {

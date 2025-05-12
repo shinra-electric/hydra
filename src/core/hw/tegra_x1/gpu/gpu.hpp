@@ -11,7 +11,7 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
-#define GPU_INSTANCE hydra::hw::tegra_x1::gpu::GPU::GetInstance()
+#define GPU_INSTANCE hw::tegra_x1::gpu::GPU::GetInstance()
 #define RENDERER_INSTANCE GPU_INSTANCE.GetRenderer()
 
 namespace hydra::hw::tegra_x1::cpu {

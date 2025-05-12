@@ -16,7 +16,7 @@
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
     {                                                                          \
-        if (Config::GetInstance().IsDebugLoggingEnabled())                     \
+        if (CONFIG_INSTANCE.IsDebugLoggingEnabled())                     \
             LOG(Debug, c, __VA_ARGS__);                                        \
     }
 #else

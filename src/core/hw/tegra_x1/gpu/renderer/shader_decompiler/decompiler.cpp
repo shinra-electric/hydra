@@ -107,7 +107,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     // Decompile
     BuilderBase* builder;
     IteratorBase* iterator;
-    out_backend = Config::GetInstance().GetShaderBackend();
+    out_backend = CONFIG_INSTANCE.GetShaderBackend();
     switch (out_backend) {
     case ShaderBackend::Msl: {
         builder = new Lang::MSL::Builder(memory_analyzer, type, state, out_code,

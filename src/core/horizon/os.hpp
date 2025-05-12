@@ -5,7 +5,7 @@
 #include "core/horizon/state_manager.hpp"
 #include "core/horizon/user_manager.hpp"
 
-namespace hydra::hw::Display {
+namespace hydra::hw::display {
 class DisplayBase;
 }
 

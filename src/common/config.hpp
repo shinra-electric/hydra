@@ -5,6 +5,8 @@
 #include "common/logging/log.hpp"
 #include "common/types.hpp"
 
+#define CONFIG_INSTANCE Config::GetInstance()
+
 namespace hydra {
 
 enum class CpuBackend {
@@ -39,6 +41,8 @@ class Config {
     void Serialize();
     void Deserialize();
 
+    void Log();
+
     // Paths
     std::string GetConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);
@@ -55,6 +59,7 @@ class Config {
     CpuBackend GetCpuBackend() const { return cpu_backend; }
     GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
     ShaderBackend GetShaderBackend() const { return shader_backend; }
+    uuid_t GetUserID() const { return user_id; }
     const std::vector<std::string>& GetProcessArgs() const {
         return process_args;
     }
@@ -108,6 +113,10 @@ class Config {
         SET_CONFIG_VALUE(shader_backend);
     }
 
+    void SetUserID(uuid_t user_id_) {
+        SET_CONFIG_VALUE(user_id);
+    }
+
     void AddProcessArg(const std::string& arg) {
         process_args.push_back(arg);
         changed = true;
@@ -142,6 +151,7 @@ class Config {
     CpuBackend cpu_backend;
     GpuRenderer gpu_renderer;
     ShaderBackend shader_backend;
+    uuid_t user_id;
     std::vector<std::string> process_args;
     bool debug_logging;
     bool log_stack_trace;
@@ -159,6 +169,9 @@ class Config {
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
+    uuid_t GetDefaultUserID() const {
+        return 0x80000000; // TODO: INVALID_USER_ID
+    }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }
     bool GetDefaultLogStackTrace() const { return false; }

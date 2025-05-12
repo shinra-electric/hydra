@@ -21,21 +21,23 @@ class EmulationContext {
     void Present();
 
     // Getters
-    hydra::hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }
-    hydra::hw::tegra_x1::gpu::GPU* GetGPU() const { return gpu; }
-    hydra::hw::Bus* GetBus() const { return bus; }
-    hydra::horizon::OS* GetOS() const { return os; }
+    hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }
+    hw::tegra_x1::gpu::GPU* GetGPU() const { return gpu; }
+    hw::Bus* GetBus() const { return bus; }
+    horizon::OS* GetOS() const { return os; }
 
     bool IsRunning() const { return is_running; }
 
   private:
-    hydra::hw::tegra_x1::cpu::CPUBase* cpu;
-    hydra::hw::tegra_x1::gpu::GPU* gpu;
-    hydra::hw::Display::Display* builtin_display;
-    hydra::hw::Bus* bus;
-    hydra::horizon::OS* os;
+    Config config;
 
-    hydra::horizon::kernel::Process* process;
+    hw::tegra_x1::cpu::CPUBase* cpu;
+    hw::tegra_x1::gpu::GPU* gpu;
+    hw::display::Display* builtin_display;
+    hw::Bus* bus;
+    horizon::OS* os;
+
+    horizon::kernel::Process* process;
 
     std::atomic_bool is_running = false;
 };

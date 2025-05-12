@@ -94,19 +94,6 @@ Config::Config() {
     bool config_exists = std::filesystem::exists(config_path);
     if (config_exists)
         Deserialize();
-
-    // Log
-    LOG_INFO(Other, "Game directories: [{}]",
-             fmt::join(game_directories, ", "));
-    LOG_INFO(Other, "Patch directories: [{}]",
-             fmt::join(patch_directories, ", "));
-    LOG_INFO(Other, "SD card path: {}", sd_card_path);
-    LOG_INFO(Other, "CPU backend: {}", cpu_backend);
-    LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
-    LOG_INFO(Other, "Shader backend: {}", shader_backend);
-    LOG_INFO(Other, "Process arguments: {}", process_args);
-    LOG_INFO(Other, "Debug logging: {}", debug_logging);
-    LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);
 }
 
 Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
@@ -118,6 +105,7 @@ void Config::LoadDefaults() {
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
+    user_id = GetDefaultUserID();
     process_args = GetDefaultProcessArgs();
     debug_logging = GetDefaultDebugLogging();
     log_stack_trace = GetDefaultLogStackTrace();
@@ -164,6 +152,11 @@ void Config::Serialize() {
         }
 
         {
+            auto& user = data.at("User");
+            user["user_id"] = user_id;
+        }
+
+        {
             auto& debug = data.at("Debug");
             debug["process_args"] = process_args;
             debug["debug_logging"] = debug_logging;
@@ -201,6 +194,10 @@ void Config::Deserialize() {
         shader_backend = toml::find_or<ShaderBackend>(
             graphics, "shader_backend", GetDefaultShaderBackend());
     }
+    if (data.contains("User")) {
+        const auto& user = data.at("User");
+        user_id = toml::find_or<uuid_t>(user, "user_id", GetDefaultUserID());
+    }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
         process_args = toml::find_or<std::vector<std::string>>(
@@ -230,6 +227,21 @@ void Config::Deserialize() {
     }
 
     changed = false;
+}
+
+void Config::Log() {
+    LOG_INFO(Other, "Game directories: [{}]",
+             fmt::join(game_directories, ", "));
+    LOG_INFO(Other, "Patch directories: [{}]",
+             fmt::join(patch_directories, ", "));
+    LOG_INFO(Other, "SD card path: {}", sd_card_path);
+    LOG_INFO(Other, "CPU backend: {}", cpu_backend);
+    LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
+    LOG_INFO(Other, "Shader backend: {}", shader_backend);
+    LOG_INFO(Other, "User ID: {}", user_id);
+    LOG_INFO(Other, "Process arguments: {}", process_args);
+    LOG_INFO(Other, "Debug logging: {}", debug_logging);
+    LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);
 }
 
 } // namespace hydra
