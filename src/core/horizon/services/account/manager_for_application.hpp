@@ -15,8 +15,8 @@ class IManagerForApplication : public ServiceBase {
     uuid_t user_id;
 
     // Commands
-    result_t CheckAvailability();
-    result_t GetAccountId();
+    STUB_REQUEST_COMMAND(CheckAvailability);
+    result_t GetAccountId(uuid_t* out_id);
 };
 
 } // namespace hydra::horizon::services::account

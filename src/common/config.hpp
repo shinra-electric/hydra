@@ -170,7 +170,7 @@ class Config {
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     uuid_t GetDefaultUserID() const {
-        return 0x80000000; // TODO: INVALID_USER_ID
+        return 0x0; // TODO: INVALID_USER_ID
     }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultDebugLogging() const { return true; }

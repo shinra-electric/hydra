@@ -5,13 +5,14 @@
 
 namespace hydra::horizon {
 
+#pragma pack(push, 1)
 struct AccountHeader {
     u32 magic;
-    u8 unk_x4;
-    u8 pad[3];
+    aligned<u8, 4> unk_x4;
     uuid_t user_id;
     u8 unk_x18[0x70]; // Unused
 };
+#pragma pack(pop)
 
 class StateManager {
   public:

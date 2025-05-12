@@ -21,13 +21,9 @@ UserManager::~UserManager() { SINGLETON_UNSET_INSTANCE(); }
 
 uuid_t UserManager::Create() {
     // First, find an available ID
-    uuid_t user_id = FIRST_USER_ID;
-    while (true) {
-        if (!users.contains(user_id))
-            break;
-
-        user_id++;
-    }
+    uuid_t user_id = random128();
+    while (user_id == 0x0 || users.contains(user_id))
+        user_id = random128();
 
     // Create
     User new_user(DEFAULT_USER_NAME);

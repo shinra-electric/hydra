@@ -6,9 +6,7 @@
 
 namespace hydra::horizon {
 
-constexpr uuid_t USER_ID_START = 0x80000000;
-constexpr uuid_t INVALID_USER_ID = USER_ID_START;
-constexpr uuid_t FIRST_USER_ID = USER_ID_START + 1;
+constexpr uuid_t INVALID_USER_ID = 0x0;
 
 class User {
     friend class UserManager;
@@ -70,6 +68,10 @@ class UserManager {
     // Getters
     User& Get(uuid_t user_id) {
         return GetPair(user_id).first;
+    }
+
+    bool Exists(uuid_t user_id) const {
+        return users.contains(user_id);
     }
 
     usize GetCount() const {

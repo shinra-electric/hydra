@@ -15,6 +15,9 @@
 namespace hydra {
 
 EmulationContext::EmulationContext() {
+    // Random
+    srand(time(0));
+
     // Initialize
     switch (config.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
@@ -129,8 +132,10 @@ void EmulationContext::Run() {
             user_id = *USER_MANAGER_INSTANCE.Begin();
     }
 
-    if (user_id != horizon::INVALID_USER_ID)
+    if (user_id != horizon::INVALID_USER_ID) {
         state_manager.PushPreselectedUser(user_id);
+        LOG_INFO(Other, "Preselected user ID 0x{:032x}", user_id);
+    }
 
     process->Run();
     is_running = true;
