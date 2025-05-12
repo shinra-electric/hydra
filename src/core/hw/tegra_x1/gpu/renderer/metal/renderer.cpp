@@ -28,10 +28,10 @@ struct BlitParams {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer, "Metal renderer")
+SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer)
 
 Renderer::Renderer() {
-    SINGLETON_SET_INSTANCE(MetalRenderer, "Metal renderer");
+    SINGLETON_SET_INSTANCE(Renderer, MetalRenderer);
 
     // Device
     device = MTL::CreateSystemDefaultDevice();

@@ -55,10 +55,10 @@ ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, ShaderBackend, shader_backend,
 
 namespace hydra {
 
-SINGLETON_DEFINE_GET_INSTANCE(Config, Other, "Config")
+SINGLETON_DEFINE_GET_INSTANCE(Config, Other)
 
 Config::Config() {
-    SINGLETON_SET_INSTANCE(Other, "Config");
+    SINGLETON_SET_INSTANCE(Config, Other);
 
 #ifdef __APPLE__
     // macOS

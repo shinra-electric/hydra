@@ -53,7 +53,7 @@ struct SfWirelessSettingData {
 
 struct SfNetworkProfileData {
     IpSettingData ip_setting_data;
-    u128 uuid;
+    uuid_t uuid;
     char network_name[0x40];
     u8 unk_x112;
     u8 unk_x113;

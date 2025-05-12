@@ -171,10 +171,10 @@ DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
                     1, FirmwareCall4, u32, 0x8e4, 16, LoadConstBuffer, u32,
                     0x900, 5 * 8, BindGroup, u32)
 
-SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines, "3D engine")
+SINGLETON_DEFINE_GET_INSTANCE(ThreeD, Engines)
 
 ThreeD::ThreeD() {
-    SINGLETON_SET_INSTANCE(Engines, "3D engine");
+    SINGLETON_SET_INSTANCE(ThreeD, Engines);
 
     // TODO: choose based on Macro backend
     { macro_driver = new macro::interpreter::Driver(this); }

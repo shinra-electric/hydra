@@ -18,13 +18,13 @@ result_t IAccountServiceForApplication::GetUserExistence(bool* out_exists) {
 }
 
 result_t IAccountServiceForApplication::GetProfile(add_service_fn_t add_service,
-                                                   u128 user_id) {
+                                                   uuid_t user_id) {
     add_service(new IProfile(user_id));
     return RESULT_SUCCESS;
 }
 
 result_t IAccountServiceForApplication::GetBaasAccountManagerForApplication(
-    add_service_fn_t add_service, u128 user_id) {
+    add_service_fn_t add_service, uuid_t user_id) {
     add_service(new IManagerForApplication(user_id));
     return RESULT_SUCCESS;
 }

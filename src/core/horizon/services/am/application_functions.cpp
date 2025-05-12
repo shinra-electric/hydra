@@ -18,7 +18,7 @@ result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationFunctions::EnsureSaveData(u128 user_id, u64* out_unknown) {
+result_t IApplicationFunctions::EnsureSaveData(uuid_t user_id, u64* out_unknown) {
     LOG_DEBUG(Services, "User ID: {}", user_id);
 
     LOG_FUNC_STUBBED(Services);

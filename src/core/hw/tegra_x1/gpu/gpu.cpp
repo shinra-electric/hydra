@@ -15,10 +15,10 @@ struct SetObjectArg {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU, "GPU")
+SINGLETON_DEFINE_GET_INSTANCE(GPU, GPU)
 
 GPU::GPU(cpu::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
-    SINGLETON_SET_INSTANCE(GPU, "GPU");
+    SINGLETON_SET_INSTANCE(GPU, GPU);
 
     const auto renderer_type = Config::GetInstance().GetGpuRenderer();
     switch (renderer_type) {

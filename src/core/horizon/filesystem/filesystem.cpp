@@ -28,10 +28,10 @@
 
 namespace hydra::horizon::filesystem {
 
-SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem, "filesystem")
+SINGLETON_DEFINE_GET_INSTANCE(filesystem, Filesystem)
 
 filesystem::filesystem() {
-    SINGLETON_SET_INSTANCE(Filesystem, "filesystem");
+    SINGLETON_SET_INSTANCE(Filesystem, Filesystem);
 
     // SD card
     MountImpl(FS_SD_MOUNT,

@@ -73,8 +73,8 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
+        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
+        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
         break;
     }
     default:
@@ -101,8 +101,8 @@ result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
         u64 title_id = attr.title_id;
         if (title_id == 0x0)
             title_id = KERNEL.GetTitleID();
-        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_uid);
-        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_uid);
+        mount = FS_SAVE_DATA_MOUNT(title_id, attr.account_user_id);
+        root_path = FS_SAVE_DATA_PATH(title_id, attr.account_user_id);
         break;
     }
     default:

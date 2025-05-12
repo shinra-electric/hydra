@@ -9,11 +9,11 @@
 
 namespace hydra::horizon::kernel {
 
-SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel, "kernel")
+SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
 
 Kernel::Kernel(hw::Bus& bus_, hw::tegra_x1::cpu::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
-    SINGLETON_SET_INSTANCE(Kernel, "kernel");
+    SINGLETON_SET_INSTANCE(Kernel, Kernel);
 
     // Heap memory
     // TODO: is this necessary? The app should call svcSetHeapSize anyway

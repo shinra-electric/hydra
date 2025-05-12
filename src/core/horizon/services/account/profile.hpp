@@ -5,20 +5,20 @@
 namespace hydra::horizon::services::account {
 
 struct AccountProfileBase {
-    u128 uid;
+    uuid_t uid;
     u64 last_edit_timestamp;
     char nickname[0x20];
 };
 
 class IProfile : public ServiceBase {
   public:
-    IProfile(u128 user_id_) : user_id{user_id_} {}
+    IProfile(uuid_t user_id_) : user_id{user_id_} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    u128 user_id;
+    uuid_t user_id;
 
     // Commands
     result_t Get(AccountProfileBase* out_base,

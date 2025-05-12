@@ -5,11 +5,11 @@
 
 namespace hydra::horizon {
 
-struct Account {
+struct AccountHeader {
     u32 magic;
     u8 unk_x4;
     u8 pad[3];
-    u128 uid;
+    uuid_t user_id;
     u8 unk_x18[0x70]; // Unused
 };
 
@@ -47,9 +47,9 @@ class StateManager {
         exit_locked = false;
     }
 
-    void PushPreselectedUser(u128 account_uid) {
+    void PushPreselectedUser(uuid_t user_id) {
         std::unique_lock<std::mutex> lock(mutex);
-        account_uids.push(account_uid);
+        user_ids.push(user_id);
     }
 
     // Receive
@@ -85,20 +85,20 @@ class StateManager {
         std::unique_lock<std::mutex> lock(mutex);
         switch (kind) {
         case LaunchParameterKind::PreselectedUser: {
-            if (account_uids.empty()) {
+            if (user_ids.empty()) {
                 LOG_ERROR(Horizon, "No preselected user");
                 return {};
             }
 
-            const u128 account_uid = account_uids.top();
-            account_uids.pop();
+            const uuid_t user_id = user_ids.top();
+            user_ids.pop();
 
-            return {new Account{
+            return {new AccountHeader{
                         .magic = 0xc79497ca,
                         .unk_x4 = 1,
-                        .uid = account_uid,
+                        .user_id = user_id,
                     },
-                    sizeof(Account)};
+                    sizeof(AccountHeader)};
         }
         default:
             LOG_NOT_IMPLEMENTED(Horizon, "Launch parameter {}", kind);
@@ -118,7 +118,7 @@ class StateManager {
     bool exit_locked{false};
 
     // TODO: is stack correct?
-    std::stack<u128> account_uids;
+    std::stack<uuid_t> user_ids;
 
     // Events
     kernel::HandleWithId<kernel::Event> msg_event;
