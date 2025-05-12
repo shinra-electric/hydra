@@ -48,6 +48,7 @@ class IHidServer : public ServiceBase {
     // Commands
     result_t CreateAppletResource(kernel::add_service_fn_t add_service,
                                   u64 aruid);
+    STUB_REQUEST_COMMAND(ActivateDebugPad);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
