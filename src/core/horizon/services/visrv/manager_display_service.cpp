@@ -20,7 +20,7 @@ result_t IManagerDisplayService::CreateStrayLayer(
 
 result_t IManagerDisplayService::SetLayerVisibility(u64 layer_id,
                                                     bool visible) {
-    return SetLayerVisibility(layer_id, visible);
+    return SetLayerVisibilityImpl(layer_id, visible);
 }
 
 } // namespace hydra::horizon::services::visrv
