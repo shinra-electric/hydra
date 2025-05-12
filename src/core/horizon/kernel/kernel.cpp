@@ -14,13 +14,6 @@ SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
 Kernel::Kernel(hw::Bus& bus_, hw::tegra_x1::cpu::MMUBase* mmu_)
     : bus{bus_}, mmu{mmu_} {
     SINGLETON_SET_INSTANCE(Kernel, Kernel);
-
-    // Heap memory
-    // TODO: is this necessary? The app should call svcSetHeapSize anyway
-    heap_mem = mmu->AllocateMemory(0x1000000);
-    mmu->Map(HEAP_REGION_BASE, heap_mem,
-             {MemoryType::Normal_1_0_0, MemoryAttribute::None,
-              MemoryPermission::ReadWriteExecute});
 }
 
 Kernel::~Kernel() {
@@ -251,7 +244,15 @@ result_t Kernel::svcSetHeapSize(usize size, uptr& out_base) {
     if ((size % HEAP_MEM_ALIGNMENT) != 0)
         return MAKE_RESULT(Svc, Error::InvalidSize); // TODO: correct?
 
-    mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
+    // TODO: handle this more cleanly?
+    if (!heap_mem) {
+        heap_mem = mmu->AllocateMemory(size);
+        mmu->Map(HEAP_REGION_BASE, heap_mem,
+                 {MemoryType::Normal_1_0_0, MemoryAttribute::None,
+                  MemoryPermission::ReadWriteExecute});
+    } else {
+        mmu->ResizeHeap(heap_mem, HEAP_REGION_BASE, size);
+    }
 
     out_base = HEAP_REGION_BASE;
 
