@@ -27,14 +27,14 @@ Kernel::~Kernel() {
 
 uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
                              bool add_guard_page, vaddr_t& out_base) {
-    size = align(size, hw::tegra_x1::cpu::PAGE_SIZE);
+    size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
     auto mem = mmu->AllocateMemory(size);
     mmu->Map(executable_mem_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
     out_base = executable_mem_base;
     if (add_guard_page)
-        size += hw::tegra_x1::cpu::PAGE_SIZE; // One guard page
+        size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
     executable_mem_base += size;
 
     return mmu->GetMemoryPtr(mem);
@@ -227,6 +227,10 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
                          thread->GetRegX(2), thread->GetRegX(3), tmp_u64);
         thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
+        break;
+    case 0x2c:
+        res = svcMapPhysicalMemory(thread->GetRegX(0), thread->GetRegX(1));
+        thread->SetRegW(0, res);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:08x}", id);
@@ -909,6 +913,30 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         LOG_WARN(Kernel, "Unimplemented info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
+}
+
+result_t Kernel::svcMapPhysicalMemory(vaddr_t addr, usize size) {
+    LOG_DEBUG(Kernel,
+              "svcMapPhysicalMemory called (addr: 0x{:08x}, size: 0x{:08x})",
+              addr, size);
+
+    if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
+        return MAKE_RESULT(Svc, 102); // Invalid address
+
+    if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
+        return MAKE_RESULT(Svc, 101); // Invalid size
+
+    if (!(addr >= ALIAS_REGION_BASE &&
+          addr < ALIAS_REGION_BASE + ALIAS_REGION_SIZE))
+        return MAKE_RESULT(Svc, 110); // Invalid memory region
+
+    auto mem = mmu->AllocateMemory(size);
+    // TODO: keep track of the memory
+    mmu->Map(addr, mem,
+             {MemoryType::Alias, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
+
+    return RESULT_SUCCESS;
 }
 
 hw::tegra_x1::cpu::MemoryBase* Kernel::CreateTlsMemory(vaddr_t& base) {

@@ -70,7 +70,7 @@ NvResult NvHostAsGpu::GetVaRegions(gpu_vaddr_t buffer_addr,
     inout_buffer_size = 2 * sizeof(VaRegion);
     // HACK
     (*out_va_regions)[0] =
-        VaRegion{.addr = 0x0, .page_size = hw::tegra_x1::gpu::PAGE_SIZE};
+        VaRegion{.addr = 0x0, .page_size = hw::tegra_x1::gpu::GPU_PAGE_SIZE};
     (*out_va_regions)[1] = (*out_va_regions)[0];
     return NvResult::Success;
 }

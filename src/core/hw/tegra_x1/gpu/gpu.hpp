@@ -28,7 +28,7 @@ struct MemoryMap {
     // TODO: kind
 };
 
-constexpr usize PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
+constexpr usize GPU_PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
 
 constexpr usize SUBCHANNEL_COUNT = 5; // TODO: correct?
 
@@ -76,7 +76,7 @@ class GPU {
         if (gpu_addr == invalid<uptr>()) {
             gpu_addr =
                 address_space_base; // TODO: ask the MMU for a base address
-            address_space_base += align(size, PAGE_SIZE);
+            address_space_base += align(size, GPU_PAGE_SIZE);
         }
         gpu_mmu.Map(gpu_addr, as);
 
@@ -126,7 +126,7 @@ class GPU {
 
     // Address space
     GPUMMU gpu_mmu;
-    uptr address_space_base{PAGE_SIZE};
+    uptr address_space_base{GPU_PAGE_SIZE};
 
     // Pfifo
     Pfifo pfifo;

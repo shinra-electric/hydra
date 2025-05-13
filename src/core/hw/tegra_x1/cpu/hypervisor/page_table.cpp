@@ -55,9 +55,9 @@ void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
     LOG_DEBUG(Hypervisor, "va: 0x{:08x}, pa: 0x{:08x}, size: 0x{:08x}", va, pa,
               size);
 
-    ASSERT_ALIGNMENT(va, PAGE_SIZE, Hypervisor, "va");
-    ASSERT_ALIGNMENT(pa, PAGE_SIZE, Hypervisor, "pa");
-    ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
+    ASSERT_ALIGNMENT(va, GUEST_PAGE_SIZE, Hypervisor, "va");
+    ASSERT_ALIGNMENT(pa, GUEST_PAGE_SIZE, Hypervisor, "pa");
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
 
     MapLevel(top_level, va, pa, size, state, flags);
 }

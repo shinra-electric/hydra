@@ -19,15 +19,9 @@ Process::Process()
     mmu.Map(STACK_REGION_BASE, stack_mem,
             {MemoryType::Stack, MemoryAttribute::None,
              MemoryPermission::ReadWrite});
-    // TODO: correct? (I don't think so)
-    mmu.Map(ALIAS_REGION_BASE, stack_mem,
-            {MemoryType::Alias, MemoryAttribute::None,
-             MemoryPermission::ReadWrite});
 }
 
 Process::~Process() {
-    hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(ALIAS_REGION_BASE,
-                                                    stack_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(STACK_REGION_BASE,
                                                     stack_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(stack_mem);

@@ -21,8 +21,8 @@ Page PageAllocator::GetNextPage() {
 
     Page page;
     page.ptr =
-        allocations.back().ptr + current_page_in_allocation++ * PAGE_SIZE;
-    page.pa = base_pa + current_page++ * PAGE_SIZE;
+        allocations.back().ptr + current_page_in_allocation++ * GUEST_PAGE_SIZE;
+    page.pa = base_pa + current_page++ * GUEST_PAGE_SIZE;
 
     return page;
 }
@@ -30,10 +30,10 @@ Page PageAllocator::GetNextPage() {
 void PageAllocator::Allocate(usize page_count) {
     page_count = align(page_count, PAGE_COUNT_ALIGNMENT);
 
-    const usize size = page_count * PAGE_SIZE;
+    const usize size = page_count * GUEST_PAGE_SIZE;
     uptr ptr = allocate_vm_memory(size);
 
-    const paddr_t pa = base_pa + current_page * PAGE_SIZE;
+    const paddr_t pa = base_pa + current_page * GUEST_PAGE_SIZE;
     HV_ASSERT_SUCCESS(
         hv_vm_map(reinterpret_cast<void*>(ptr), pa, size, HV_MEMORY_READ));
 

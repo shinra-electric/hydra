@@ -13,7 +13,7 @@ constexpr uptr STACK_REGION_BASE = 0x10000000;
 constexpr usize STACK_REGION_SIZE = 0x10000000;
 
 constexpr uptr ALIAS_REGION_BASE = 0x30000000;
-constexpr usize ALIAS_REGION_SIZE = STACK_REGION_SIZE;
+constexpr usize ALIAS_REGION_SIZE = 0x10000000;
 
 constexpr uptr TLS_REGION_BASE = 0x20000000;
 constexpr usize TLS_REGION_SIZE = 0x10000000;

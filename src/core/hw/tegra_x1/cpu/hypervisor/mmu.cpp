@@ -105,7 +105,7 @@ MMU::MMU()
 MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
 
 MemoryBase* MMU::AllocateMemory(usize size) {
-    size = align(size, PAGE_SIZE);
+    size = align(size, GUEST_PAGE_SIZE);
     auto memory = new Memory(physical_memory_cur, size);
     physical_memory_cur += size;
 
@@ -124,7 +124,7 @@ uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
 
 void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
               const horizon::kernel::MemoryState state) {
-    ASSERT_ALIGNMENT(size, PAGE_SIZE, Hypervisor, "size");
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
     user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
                         state, to_ap_flags(state.perm));
 }

@@ -44,7 +44,7 @@
         LOG_ERROR(c, __VA_ARGS__);                                             \
     }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
-    ASSERT((value & (alignment - 1)) == 0x0, c,                                \
+    ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
            name " must be {}-byte aligned", alignment)
 
 #ifdef HYDRA_DEBUG

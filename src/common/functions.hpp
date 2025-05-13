@@ -45,6 +45,10 @@ template <typename T> T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
 
+template <typename T> bool is_aligned(T v, T alignment) {
+    return (v & (alignment - 1)) == 0x0;
+}
+
 template <typename T> T align_down(T v, T alignment) {
     return v & ~(alignment - 1);
 }
