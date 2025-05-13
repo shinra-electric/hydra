@@ -24,6 +24,7 @@ class IStaticService : public ServiceBase {
     result_t GetEphemeralNetworkSystemClock(add_service_fn_t add_service);
     result_t
     GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
+    STUB_REQUEST_COMMAND(CalculateMonotonicSystemClockBaseTimePoint);
 };
 
 } // namespace hydra::horizon::services::timesrv

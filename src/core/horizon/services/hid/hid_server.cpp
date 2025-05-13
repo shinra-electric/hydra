@@ -10,7 +10,7 @@ DEFINE_SERVICE_COMMAND_TABLE(
     ActivateTouchScreen, 21, ActivateMouse, 31, ActivateKeyboard, 66,
     StartSixAxisSensor, 100, SetSupportedNpadStyleSet, 101,
     GetSupportedNpadStyleSet, 102, SetSupportedNpadIdType, 103, ActivateNpad,
-    106, AcquireNpadStyleSetUpdateEventHandle, 120, SetNpadJoyHoldType, 124,
+    106, AcquireNpadStyleSetUpdateEventHandle, 109, ActivateNpadWithRevision, 120, SetNpadJoyHoldType, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 200,
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
     CreateActiveVibrationDeviceList, 206, SendVibrationValues)

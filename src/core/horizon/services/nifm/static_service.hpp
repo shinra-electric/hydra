@@ -11,6 +11,7 @@ class IStaticService : public ServiceBase {
   private:
     // Commands
     result_t CreateGeneralServiceOld(add_service_fn_t add_service);
+    result_t CreateGeneralService(add_service_fn_t add_service);
 };
 
 } // namespace hydra::horizon::services::nifm

@@ -17,7 +17,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetStandardSteadyClock, 3, GetTimeZoneService, 4,
                              GetStandardLocalSystemClock, 5,
                              GetEphemeralNetworkSystemClock, 20,
-                             GetSharedMemoryNativeHandle)
+                             GetSharedMemoryNativeHandle, 300,
+                             CalculateMonotonicSystemClockBaseTimePoint)
 
 IStaticService::IStaticService()
     : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}

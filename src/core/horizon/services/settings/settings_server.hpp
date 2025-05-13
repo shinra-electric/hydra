@@ -19,6 +19,9 @@ class ISettingsServer : public ServiceBase {
     GetAvailableLanguageCodes(i32* out_count,
                               OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetAvailableLanguageCodeCount(i32* out_count);
+    result_t
+    GetAvailableLanguageCodes2(i32* out_count,
+                               OutBuffer<BufferAttr::MapAlias> out_buffer);
 };
 
 } // namespace hydra::horizon::services::settings

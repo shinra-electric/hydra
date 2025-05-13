@@ -23,6 +23,7 @@ class ISystemClock : public ServiceBase {
 
     // Commands
     STUB_REQUEST_COMMAND(GetCurrentTime);
+    STUB_REQUEST_COMMAND(GetSystemClockContext);
 };
 
 } // namespace hydra::horizon::services::timesrv

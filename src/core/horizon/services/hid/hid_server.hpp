@@ -61,6 +61,7 @@ class IHidServer : public ServiceBase {
     result_t AcquireNpadStyleSetUpdateEventHandle(
         u32 id, u32 _pad, u64 aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
+    STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
     STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
