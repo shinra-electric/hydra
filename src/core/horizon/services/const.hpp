@@ -19,7 +19,7 @@
 
 #define STUB_REQUEST_COMMAND(name)                                             \
     result_t name() {                                                          \
-        LOG_FUNC_STUBBED(Services);                                            \
+        ONCE(LOG_FUNC_STUBBED(Services));                                      \
         return RESULT_SUCCESS;                                                 \
     }
 

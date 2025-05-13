@@ -4,6 +4,15 @@
 
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 
+#define ONCE(code)                                                             \
+    {                                                                          \
+        static bool executed = false;                                          \
+        if (!executed) {                                                       \
+            code;                                                              \
+            executed = true;                                                   \
+        }                                                                      \
+    }
+
 #define THIS ((SubclassT*)this)
 
 #define PASS_VA_ARGS(...) , ##__VA_ARGS__

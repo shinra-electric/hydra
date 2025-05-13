@@ -94,7 +94,7 @@ bool Pfifo::SubmitCommand(uptr& gpu_addr) {
 
     // HACK
     if (header.subchannel >= SUBCHANNEL_COUNT) {
-        LOG_WARN(GPU, "Invalid subchannel {}", header.subchannel);
+        ONCE(LOG_WARN(GPU, "Invalid subchannel {}", header.subchannel));
         return false;
     }
 

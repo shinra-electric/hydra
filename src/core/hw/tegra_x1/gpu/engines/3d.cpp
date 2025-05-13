@@ -297,7 +297,7 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
 }
 
 void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
-    LOG_FUNC_STUBBED(Engines);
+    ONCE(LOG_FUNC_STUBBED(Engines));
 
     const uptr ptr = UNMAP_ADDR(regs.report_semaphore_addr);
 
@@ -306,7 +306,7 @@ void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
 }
 
 void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
-    LOG_FUNC_STUBBED(Engines);
+    ONCE(LOG_FUNC_STUBBED(Engines));
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;

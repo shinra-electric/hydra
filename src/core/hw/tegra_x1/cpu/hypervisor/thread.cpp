@@ -173,7 +173,7 @@ void Thread::Run() {
                 }
                 case ExceptionClass::DataAbortLowerEl: {
                     bool far_valid = (esr & 0x00000400) == 0;
-                    ASSERT(far_valid, Hypervisor, "FAR not valid");
+                    ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 
                     DataAbort(instruction, far, elr);
                     break;
@@ -322,8 +322,9 @@ void Thread::InstructionTrap(u32 esr) {
 }
 
 void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
-    LOG_WARN(Hypervisor, "instruction: 0x{:08x}, FAR: 0x{:08x} ", instruction,
-             far);
+    ONCE(LOG_WARN(Hypervisor,
+                  "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}", elr,
+                  instruction, far));
 
     // Set the return address
     // TODO: correct?
