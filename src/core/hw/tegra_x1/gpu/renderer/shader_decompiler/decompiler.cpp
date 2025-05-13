@@ -92,6 +92,16 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
 
+#define DUMP_SHADERS 0
+#if DUMP_SHADERS
+    std::ofstream out(
+        fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
+                    (void*)code_reader.GetBase()),
+        std::ios::binary);
+    out.write(reinterpret_cast<const char*>(code_reader.GetPtr()), 0x1000);
+    out.close();
+#endif
+
     // Analyze
     Analyzer::MemoryAnalyzer memory_analyzer;
     Analyzer::CfgBuilder cfg_builder;
@@ -137,16 +147,6 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     builder->Finish();
     delete iterator;
     delete builder;
-
-#define DUMP_SHADERS 0
-#if DUMP_SHADERS
-    std::ofstream out(
-        fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
-                    (void*)code_reader.GetBase()),
-        std::ios::binary);
-    out.write(reinterpret_cast<const char*>(code_reader.GetPtr()), 0x1000);
-    out.close();
-#endif
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

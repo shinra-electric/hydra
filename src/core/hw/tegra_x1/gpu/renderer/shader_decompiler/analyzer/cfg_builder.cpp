@@ -13,7 +13,11 @@ void CfgBuilder::BlockChanged() {
     crnt_block = &VisitBlock(pc);
 }
 
-void CfgBuilder::OpSetSync(u32 target) { sync_point = target; }
+void CfgBuilder::OpSetSync(u32 target) {
+    ASSERT_DEBUG(crnt_block, ShaderDecompiler,
+                 "Cannot set sync point without a block");
+    crnt_block->return_sync_point = target;
+}
 
 void CfgBuilder::OpSync() {
     const auto target = crnt_block->return_sync_point;
@@ -32,12 +36,13 @@ void CfgBuilder::OpBranch(u32 target) {
         edge.type = CfgBlockEdgeType::BranchConditional;
         edge.branch_conditional.pred_cond = pred_cond;
         edge.branch_conditional.target_true =
-            &GetBranchTarget(target, sync_point);
+            &GetBranchTarget(target, crnt_block->return_sync_point);
         edge.branch_conditional.target_false =
-            &GetBranchTarget(pc + 1, sync_point);
+            &GetBranchTarget(pc + 1, crnt_block->return_sync_point);
     } else {
         edge.type = CfgBlockEdgeType::Branch;
-        edge.branch.target = &GetBranchTarget(target, sync_point);
+        edge.branch.target =
+            &GetBranchTarget(target, crnt_block->return_sync_point);
     }
     EndBlock(edge);
 }

@@ -509,8 +509,22 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lea");
     INST(0x5bc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "prmt");
-    INST(0x5bb0000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fsetp");
+    INST(0x5bb0000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto lhs = GET_REG(8);
+        const auto rhs = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} r{}", cmp, bin,
+                  dst, combine, lhs, rhs);
+
+        observer->OpSetPred(cmp, bin, dst, combine,
+                            Operand::Register(lhs, DataType::Float),
+                            Operand::Register(rhs, DataType::Float));
+    }
     INST(0x5ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
     INST(0x5b80000000000000, 0xfff0000000000000)
@@ -606,8 +620,24 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "csetp");
     INST(0x5098000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "cset");
-    INST(0x5090000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "psetp");
+    INST(0x5090000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto bin1 = get_operand_5090_0(inst);
+        const auto bin2 = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto todo1 = GET_PRED(12);
+        const auto todo2 = GET_PRED(29);
+        const auto todo3 = GET_PRED(39);
+        LOG_WARN(ShaderDecompiler, "psetp {} {} p{} p{} p{} p{} p{}", bin1,
+                 bin2, dst, combine, todo1, todo2, todo3);
+
+        // HACK
+        observer->OpSetPred(ComparisonOperator::NotEqual, bin2, dst, combine,
+                            Operand::Immediate(0x0, DataType::Float),
+                            Operand::Immediate(0x0, DataType::Float));
+    }
     INST(0x5088000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pset");
     INST(0x5080000000000000, 0xfff8000000000000) {

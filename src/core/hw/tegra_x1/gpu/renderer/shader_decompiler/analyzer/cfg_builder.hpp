@@ -36,7 +36,6 @@ class CfgBuilder : public ObserverBase {
 
     CfgBasicBlock* crnt_block;
 
-    u32 sync_point{invalid<u32>()};
     nullable<PredCond> pred_cond;
 
     CfgBasicBlock& VisitBlock(u32 label) {
