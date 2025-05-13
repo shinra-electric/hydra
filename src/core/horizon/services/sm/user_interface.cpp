@@ -28,6 +28,7 @@
 #include "core/horizon/services/spl/random_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
+#include "core/horizon/services/ts/measurement_server.hpp"
 #include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
 #include "core/horizon/services/visrv/system_root_service.hpp"
@@ -82,6 +83,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(socket::Resolver::IResolver, "sfdnsres")
         SERVICE_CASE(spl::IGeneralInterface, "spl:")
         SERVICE_CASE(friends::IServiceCreator, "friend:a")
+        SERVICE_CASE(ts::IMeasurementServer, "ts")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

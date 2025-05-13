@@ -150,6 +150,8 @@ add_library(hydra-core
     horizon/services/hosbinder/hos_binder_driver.hpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.cpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp
+    horizon/services/psm/psm_session.cpp
+    horizon/services/psm/psm_session.hpp
     horizon/services/psm/psm_server.cpp
     horizon/services/psm/psm_server.hpp
     horizon/services/lm/log_service.cpp
@@ -208,6 +210,8 @@ add_library(hydra-core
     horizon/services/friends/service_creator.hpp
     horizon/services/friends/friend_service.cpp
     horizon/services/friends/friend_service.hpp
+    horizon/services/ts/measurement_server.cpp
+    horizon/services/ts/measurement_server.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp

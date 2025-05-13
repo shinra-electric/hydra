@@ -67,7 +67,8 @@ struct SfNetworkProfileData {
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
-                             GetCurrentNetworkProfile)
+                             GetCurrentNetworkProfile, 18,
+                             GetInternetConnectionStatus)
 
 result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
                                         i32 requirement_preset) {
@@ -114,6 +115,18 @@ result_t IGeneralService::GetCurrentNetworkProfile(
              .ssid = {0x7},
              .passphrase = {0x13},
          }});
+    return RESULT_SUCCESS;
+}
+
+result_t IGeneralService::GetInternetConnectionStatus(
+    InternetConnectionType* out_type, u32* out_wifi_strength,
+    InternetConnectionStatus* out_status) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_type = InternetConnectionType::WiFi;
+    *out_wifi_strength = 0;
+    *out_status = InternetConnectionStatus::Connected;
     return RESULT_SUCCESS;
 }
 

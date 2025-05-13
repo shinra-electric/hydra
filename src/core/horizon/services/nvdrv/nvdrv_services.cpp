@@ -12,8 +12,8 @@ namespace hydra::horizon::services::nvdrv {
 
 allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
-DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 3, Initialize,
-                             4, QueryEvent, 8, SetAruid, 13,
+DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
+                             Initialize, 4, QueryEvent, 8, SetAruid, 13,
                              SetGraphicsFirmwareMemoryMarginEnabled)
 
 result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
@@ -66,6 +66,16 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
             kernel::Error::NotFound); // TODO: what should this be?
     else
         return RESULT_SUCCESS;
+}
+
+result_t INvDrvServices::Close(u32 fd_id, u32* out_err) {
+    // TODO: check if exists
+    auto fd = fd_pool.Get(fd_id);
+    delete fd;
+    fd_pool.Free(fd_id);
+
+    *out_err = 0;
+    return RESULT_SUCCESS;
 }
 
 result_t INvDrvServices::Initialize(u32 transfer_mem_size,
