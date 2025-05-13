@@ -26,27 +26,27 @@ u32 Driver::InstAlu(AluOperation op, u8 rA, u8 rB) {
     i32 valueA = GetRegI32(rA);
     i32 valueB = GetRegI32(rB);
 #define RET(v) return std::bit_cast<u32>(v)
-    // TODO: simplify the carry stuff
+    // TODO: is carry correct?
     switch (op) {
     case AluOperation::Add: {
-        i32 value = valueA + valueB;
-        carry = value < valueA;
-        RET(value);
+        i32 result = valueA + valueB;
+        carry = result < valueA;
+        RET(result);
     }
     case AluOperation::AddWithCarry: {
-        i32 value = valueA + valueB + carry;
-        carry = value < valueA;
-        RET(value);
+        i32 result = valueA + valueB + carry;
+        carry = result < valueA;
+        RET(result);
     }
     case AluOperation::Subtract: {
         i32 result = valueA - valueB;
-        carry = valueA < (valueB + carry);
-        RET(valueA - valueB - carry);
+        carry = result < 0;
+        RET(result);
     }
     case AluOperation::SubtractWithBorrow: {
         i32 result = valueA - valueB - carry;
-        carry = valueA < (valueB + carry);
-        RET(valueA - valueB - carry);
+        carry = result < 0;
+        RET(result);
     }
     case AluOperation::Xor:
         RET(valueA ^ valueB);
