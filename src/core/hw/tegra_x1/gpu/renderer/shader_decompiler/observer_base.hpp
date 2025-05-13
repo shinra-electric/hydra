@@ -21,9 +21,12 @@ class ObserverBase {
     virtual void OpShiftLeft(reg_t dst, reg_t src, u32 shift) {}
 
     // Control flow
-    virtual void OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
+    virtual void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
                            pred_t dst, pred_t combine, Operand lhs,
                            Operand rhs) {}
+    virtual void OpSetPred(BinaryOperator bin, BinaryOperator combine_bin,
+                           pred_t dst, pred_t combine, pred_t src1, pred_t src2,
+                           pred_t src3) {}
     virtual void OpSetSync(u32 target) {}
     virtual void OpSync() {}
     virtual void OpBranch(u32 target) {}

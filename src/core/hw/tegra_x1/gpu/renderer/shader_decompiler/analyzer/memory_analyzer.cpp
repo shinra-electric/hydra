@@ -31,9 +31,9 @@ void MemoryAnalyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
     HandleLoad(src3);
 }
 
-void MemoryAnalyzer::OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
-                               pred_t dst, pred_t combine, Operand lhs,
-                               Operand rhs) {
+void MemoryAnalyzer::OpSetPred(ComparisonOperator cmp,
+                               BinaryOperator combine_bin, pred_t dst,
+                               pred_t combine, Operand lhs, Operand rhs) {
     HandleLoad(lhs);
     HandleLoad(rhs);
 }

@@ -40,9 +40,11 @@ template <usize N> class ObserverGroup : public ObserverBase {
     }
 
     // Control flow
-    void OpSetPred(ComparisonOperator cmp, BinaryOperator bin, pred_t dst,
-                   pred_t combine, Operand lhs, Operand rhs) override {
-        FOR_EACH_OBSERVER()->OpSetPred(cmp, bin, dst, combine, lhs, rhs);
+    void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
+                   pred_t dst, pred_t combine, Operand lhs,
+                   Operand rhs) override {
+        FOR_EACH_OBSERVER()->OpSetPred(cmp, combine_bin, dst, combine, lhs,
+                                       rhs);
     }
     void OpSetSync(u32 target) override {
         FOR_EACH_OBSERVER()->OpSetSync(target);

@@ -513,15 +513,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto cmp = get_operand_5bb0_0(inst);
-        const auto bin = get_operand_5bb0_1(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
         const auto rhs = GET_REG(20);
-        LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} r{}", cmp, bin,
-                  dst, combine, lhs, rhs);
+        LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} r{}", cmp,
+                  combine_bin, dst, combine, lhs, rhs);
 
-        observer->OpSetPred(cmp, bin, dst, combine,
+        observer->OpSetPred(cmp, combine_bin, dst, combine,
                             Operand::Register(lhs, DataType::Float),
                             Operand::Register(rhs, DataType::Float));
     }
@@ -623,20 +623,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     INST(0x5090000000000000, 0xfff8000000000000) {
         HANDLE_PRED_COND();
 
-        const auto bin1 = get_operand_5090_0(inst);
-        const auto bin2 = get_operand_5bb0_1(inst);
+        const auto bin = get_operand_5090_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
-        const auto todo1 = GET_PRED(12);
-        const auto todo2 = GET_PRED(29);
-        const auto todo3 = GET_PRED(39);
-        LOG_WARN(ShaderDecompiler, "psetp {} {} p{} p{} p{} p{} p{}", bin1,
-                 bin2, dst, combine, todo1, todo2, todo3);
+        const auto src1 = GET_PRED(12);
+        const auto src2 = GET_PRED(29);
+        const auto src3 = GET_PRED(39);
+        LOG_DEBUG(ShaderDecompiler, "psetp {} {} p{} p{} p{} p{} p{}", bin,
+                  combine_bin, dst, combine, src1, src2, src3);
 
-        // HACK
-        observer->OpSetPred(ComparisonOperator::NotEqual, bin2, dst, combine,
-                            Operand::Immediate(0x0, DataType::Float),
-                            Operand::Immediate(0x0, DataType::Float));
+        observer->OpSetPred(bin, combine_bin, dst, combine, src1, src2, src3);
     }
     INST(0x5088000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pset");
@@ -751,15 +748,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto cmp = get_operand_5bb0_0(inst);
-        const auto bin = get_operand_5bb0_1(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
         const auto rhs = GET_CMEM(34, 14);
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp,
-                  bin, dst, combine, lhs, rhs.idx, rhs.imm);
+                  combine_bin, dst, combine, lhs, rhs.idx, rhs.imm);
 
-        observer->OpSetPred(cmp, bin, dst, combine,
+        observer->OpSetPred(cmp, combine_bin, dst, combine,
                             Operand::Register(lhs, DataType::Float),
                             Operand::ConstMemory(rhs, DataType::Float));
     }
@@ -903,15 +900,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto cmp = get_operand_5bb0_0(inst);
-        const auto bin = get_operand_5bb0_1(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto lhs = GET_REG(8);
         const auto rhs = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp,
-                  bin, dst, combine, lhs, rhs);
+                  combine_bin, dst, combine, lhs, rhs);
 
-        observer->OpSetPred(cmp, bin, dst, combine,
+        observer->OpSetPred(cmp, combine_bin, dst, combine,
                             Operand::Register(lhs, DataType::Float),
                             Operand::Immediate(rhs, DataType::Float));
     }

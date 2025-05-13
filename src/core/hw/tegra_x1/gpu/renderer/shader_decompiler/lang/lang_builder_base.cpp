@@ -262,13 +262,22 @@ void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
                    GetReg(src, false, DataType::UInt), shift);
 }
 
-void LangBuilderBase::OpSetPred(ComparisonOperator cmp, BinaryOperator bin,
-                                pred_t dst, pred_t combine, Operand lhs,
-                                Operand rhs) {
+void LangBuilderBase::OpSetPred(ComparisonOperator cmp,
+                                BinaryOperator combine_bin, pred_t dst,
+                                pred_t combine, Operand lhs, Operand rhs) {
     // TODO: is the combining correct?
     WriteStatement("{} = ({} {} {}) {} {}", GetPred(dst), GetOperand(lhs),
-                   cmp_op_to_str(cmp), GetOperand(rhs), bin_op_to_str(bin),
-                   GetPred(combine));
+                   cmp_op_to_str(cmp), GetOperand(rhs),
+                   bin_op_to_str(combine_bin), GetPred(combine));
+}
+
+void LangBuilderBase::OpSetPred(BinaryOperator bin, BinaryOperator combine_bin,
+                                pred_t dst, pred_t combine, pred_t src1,
+                                pred_t src2, pred_t src3) {
+    // TODO: is the combining correct?
+    WriteStatement("{} = ({} {} {} {} {}) {} {}", GetPred(dst), GetPred(src1),
+                   bin_op_to_str(bin), GetPred(src2), bin_op_to_str(bin),
+                   GetPred(src3), bin_op_to_str(combine_bin), GetPred(combine));
 }
 
 void LangBuilderBase::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
