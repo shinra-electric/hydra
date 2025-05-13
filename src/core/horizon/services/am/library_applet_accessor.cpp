@@ -8,6 +8,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
                              GetAppletStateChangedEvent, 10, Start, 100,
                              PushInData)
 
+// TODO: autoclear event?
 ILibraryAppletAccessor::ILibraryAppletAccessor(AppletId id_,
                                                LibraryAppletMode mode_)
     : id{id_}, mode{mode_}, state_changed_event(new kernel::Event()) {}

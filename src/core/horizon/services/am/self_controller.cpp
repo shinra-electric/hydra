@@ -13,10 +13,13 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
                              SetPerformanceModeChangedNotification, 13,
                              SetFocusHandlingMode, 16,
                              SetOutOfFocusSuspendingEnabled, 40,
-                             CreateManagedDisplayLayer)
+                             CreateManagedDisplayLayer, 91,
+                             GetAccumulatedSuspendedTickChangedEvent)
 
+// TODO: autoclear library applet launchable event?
 ISelfController::ISelfController()
-    : library_applet_launchable_event(new kernel::Event(true)) {}
+    : library_applet_launchable_event(new kernel::Event(false, true)),
+      accumulated_suspended_tick_changed_event(new kernel::Event(true)) {}
 
 result_t ISelfController::LockExit() {
     StateManager::GetInstance().LockExit();
@@ -40,6 +43,12 @@ result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     // TODO: what display ID should be used?
     *out_layer_id =
         KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+    return RESULT_SUCCESS;
+}
+
+result_t ISelfController::GetAccumulatedSuspendedTickChangedEvent(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = accumulated_suspended_tick_changed_event.id;
     return RESULT_SUCCESS;
 }
 

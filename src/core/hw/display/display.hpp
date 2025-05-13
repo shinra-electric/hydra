@@ -11,6 +11,7 @@ namespace hydra::hw::display {
 class Display {
   public:
     void Open() {
+        // TODO: autoclear event?
         vsync_event =
             new horizon::kernel::HandleWithId(new horizon::kernel::Event());
     }

@@ -59,6 +59,7 @@ struct ZCullInfo {
 
 class NvHostCtrlGpu : public FdBase {
   public:
+    // TODO: autoclear events?
     NvHostCtrlGpu()
         : error_event(new kernel::Event()), unknown_event(new kernel::Event()) {
     }

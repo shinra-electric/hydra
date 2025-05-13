@@ -5,6 +5,7 @@ namespace hydra::horizon::services::audio {
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 3, AppendAudioOutBuffer, 4,
                              RegisterBufferEvent, 5, GetReleasedAudioOutBuffers)
 
+// TODO: autoclear event?
 IAudioOut::IAudioOut() : buffer_event(new kernel::Event()) {}
 
 result_t

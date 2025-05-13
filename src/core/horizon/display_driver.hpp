@@ -39,7 +39,8 @@ struct DisplayBinder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    DisplayBinder() : event(new kernel::Event(true)) {}
+    // TODO: autoclear event?
+    DisplayBinder() : event(new kernel::Event(false, true)) {}
 
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();

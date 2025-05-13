@@ -696,11 +696,12 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
     switch (command_type) {
     case cmif::CommandType::Close:
-        LOG_DEBUG(Kernel, "COMMAND: Close");
         session->Close();
         break;
-    case cmif::CommandType::Request: {
-        LOG_DEBUG(Kernel, "COMMAND: Request");
+    case cmif::CommandType::Request:
+    case cmif::CommandType::RequestWithContext: {
+        // TODO: how is RequestWithContext different?
+
         RequestContext context{
             readers,
             writers,
@@ -719,7 +720,9 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
         break;
     }
     case cmif::CommandType::Control:
-        LOG_DEBUG(Kernel, "COMMAND: Control");
+    case cmif::CommandType::ControlWithContext:
+        // TODO: how is ControlWithContext different?
+
         session->Control(readers, writers);
         break;
     default:
@@ -790,7 +793,7 @@ result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
             const u32 result = *reinterpret_cast<u32*>(buffer_ptr);
             const auto module = GET_RESULT_MODULE(result);
             const auto description = GET_RESULT_DESCRIPTION(result);
-            LOG_INFO(Kernel, "Module: {}, description: 0x{:x}", module,
+            LOG_INFO(Kernel, "Module: {}, description: {}", module,
                      description);
         } else {
             for (u32 i = 0; i < buffer_size / sizeof(u32); i++) {
@@ -840,18 +843,6 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
     case InfoType::HeapRegionSize:
         out_info = HEAP_REGION_SIZE;
         return RESULT_SUCCESS;
-    case InfoType::AslrRegionAddress:
-        out_info = ADDRESS_SPACE_START;
-        return RESULT_SUCCESS;
-    case InfoType::AslrRegionSize:
-        out_info = ADDRESS_SPACE_SIZE;
-        return RESULT_SUCCESS;
-    case InfoType::StackRegionAddress:
-        out_info = STACK_REGION_BASE;
-        return RESULT_SUCCESS;
-    case InfoType::StackRegionSize:
-        out_info = STACK_REGION_SIZE;
-        return RESULT_SUCCESS;
     case InfoType::TotalMemorySize:
         // TODO: what should this be?
         out_info = 3u * 1024u * 1024u * 1024u;
@@ -876,6 +867,38 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         // TODO: correct?
         // TODO: subtype 0-3
         out_info = rand();
+        return RESULT_SUCCESS;
+    case InfoType::AslrRegionAddress:
+        out_info = ADDRESS_SPACE_START;
+        return RESULT_SUCCESS;
+    case InfoType::AslrRegionSize:
+        out_info = ADDRESS_SPACE_SIZE;
+        return RESULT_SUCCESS;
+    case InfoType::StackRegionAddress:
+        out_info = STACK_REGION_BASE;
+        return RESULT_SUCCESS;
+    case InfoType::StackRegionSize:
+        out_info = STACK_REGION_SIZE;
+        return RESULT_SUCCESS;
+    case InfoType::TotalSystemResourceSize:
+        LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
+        // HACK
+        out_info = 2u * 1024u * 1024u;
+        return RESULT_SUCCESS;
+    case InfoType::UsedSystemResourceSize:
+        LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
+        // HACK
+        out_info = 64 * 1024;
+        return RESULT_SUCCESS;
+    case InfoType::TotalNonSystemMemorySize:
+        LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
+        // HACK
+        out_info = 2u * 1024u * 1024u * 1024u;
+        return RESULT_SUCCESS;
+    case InfoType::UsedNonSystemMemorySize:
+        LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
+        // HACK
+        out_info = 16 * 1024;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");

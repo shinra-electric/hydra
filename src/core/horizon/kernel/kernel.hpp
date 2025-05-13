@@ -51,7 +51,8 @@ class Mutex {
 
 class Event : public Handle {
   public:
-    Event(bool signaled_ = false) : signaled{signaled_} {}
+    Event(bool autoclear_ = false, bool signaled_ = false)
+        : autoclear{autoclear_}, signaled{signaled_} {}
 
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
@@ -73,7 +74,21 @@ class Event : public Handle {
     // Returns true if the event was signaled, false on timeout
     bool Wait(i64 timeout) {
         std::unique_lock<std::mutex> lock(mutex);
+        bool was_signaled = WaitImpl(lock, timeout);
+        // TODO: correct?
+        if (autoclear)
+            signaled = false;
 
+        return was_signaled;
+    }
+
+  private:
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool autoclear;
+    bool signaled;
+
+    bool WaitImpl(std::unique_lock<std::mutex>& lock, i64 timeout) {
         // First, check if the event is already signaled
         if (signaled)
             return true;
@@ -87,11 +102,6 @@ class Event : public Handle {
             return (status == std::cv_status::no_timeout);
         }
     }
-
-  private:
-    std::mutex mutex;
-    std::condition_variable cv;
-    bool signaled{false};
 };
 
 class TransferMemory : public Handle {

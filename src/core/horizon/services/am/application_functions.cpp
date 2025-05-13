@@ -41,7 +41,7 @@ IApplicationFunctions::GetDesiredLanguage(LanguageCode* out_language_code) {
 result_t IApplicationFunctions::SetTerminateResult(result_t result) {
     const auto module = GET_RESULT_MODULE(result);
     const auto description = GET_RESULT_DESCRIPTION(result);
-    LOG_INFO(Kernel, "Module: {}, description: 0x{:x}", module, description);
+    LOG_INFO(Kernel, "Module: {}, description: {}", module, description);
 
     return RESULT_SUCCESS;
 }

@@ -14,6 +14,8 @@ class ISelfController : public ServiceBase {
 
   private:
     kernel::HandleWithId<kernel::Event> library_applet_launchable_event;
+    kernel::HandleWithId<kernel::Event>
+        accumulated_suspended_tick_changed_event;
 
     // Commands
     result_t LockExit();
@@ -26,6 +28,8 @@ class ISelfController : public ServiceBase {
     STUB_REQUEST_COMMAND(SetFocusHandlingMode);
     STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
     result_t CreateManagedDisplayLayer(u64* out_layer_id);
+    result_t GetAccumulatedSuspendedTickChangedEvent(
+        OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am

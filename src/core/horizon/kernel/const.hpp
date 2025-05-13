@@ -394,54 +394,37 @@ struct BreakReason {
 
 // From https://github.com/switchbrew/libnx
 enum class InfoType : u32 {
-    CoreMask = 0,            ///< Bitmask of allowed Core IDs.
-    PriorityMask = 1,        ///< Bitmask of allowed Thread Priorities.
-    AliasRegionAddress = 2,  ///< Base of the Alias memory region.
-    AliasRegionSize = 3,     ///< Size of the Alias memory region.
-    HeapRegionAddress = 4,   ///< Base of the Heap memory region.
-    HeapRegionSize = 5,      ///< Size of the Heap memory region.
-    TotalMemorySize = 6,     ///< Total amount of memory available for process.
-    UsedMemorySize = 7,      ///< Amount of memory currently used by process.
-    DebuggerAttached = 8,    ///< Whether current process is being debugged.
-    ResourceLimit = 9,       ///< Current process's resource limit handle.
-    IdleTickCount = 10,      ///< Number of idle ticks on CPU.
-    RandomEntropy = 11,      ///< [2.0.0+] Random entropy for current process.
-    AslrRegionAddress = 12,  ///< [2.0.0+] Base of the process's address space.
-    AslrRegionSize = 13,     ///< [2.0.0+] Size of the process's address space.
-    StackRegionAddress = 14, ///< [2.0.0+] Base of the Stack memory region.
-    StackRegionSize = 15,    ///< [2.0.0+] Size of the Stack memory region.
-    SystemResourceSizeTotal =
-        16, ///< [3.0.0+] Total memory allocated for process memory management.
-    SystemResourceSizeUsed = 17, ///< [3.0.0+] Amount of memory currently used
-                                 ///< by process memory management.
-    ProgramId = 18,              ///< [3.0.0+] Program ID for the process.
-    InitialProcessIdRange = 19,  ///< [4.0.0-4.1.0] Min/max initial process IDs.
-    UserExceptionContextAddress = 20, ///< [5.0.0+] Address of the process's
-                                      ///< exception context (for break).
-    TotalNonSystemMemorySize =
-        21, ///< [6.0.0+] Total amount of memory available for process,
-            ///< excluding that for process memory management.
-    UsedNonSystemMemorySize =
-        22, ///< [6.0.0+] Amount of memory used by process, excluding that for
-            ///< process memory management.
-    IsApplication =
-        23, ///< [9.0.0+] Whether the specified process is an Application.
-    FreeThreadCount = 24, ///< [11.0.0+] The number of free threads available to
-                          ///< the process's resource limit.
-    ThreadTickCount = 25, ///< [13.0.0+] Number of ticks spent on thread.
-    IsSvcPermitted =
-        26, ///< [14.0.0+] Does process have access to SVC (only usable with
-            ///< \ref svcSynchronizePreemptionState at present).
-    IoRegionHint =
-        27, ///< [16.0.0+] Low bits of the physical address for a KIoRegion.
-    AliasRegionExtraSize =
-        28, ///< [18.0.0+] Extra size added to the reserved region.
-
-    TransferMemoryHint = 34, ///< [19.0.0+] Low bits of the process
-                             ///< address for a KTransferMemory.
-
-    ThreadTickCountDeprecated =
-        0xF0000002, ///< [1.0.0-12.1.0] Number of ticks spent on thread.
+    CoreMask = 0,
+    PriorityMask = 1,
+    AliasRegionAddress = 2,
+    AliasRegionSize = 3,
+    HeapRegionAddress = 4,
+    HeapRegionSize = 5,
+    TotalMemorySize = 6,
+    UsedMemorySize = 7,
+    DebuggerAttached = 8,
+    ResourceLimit = 9,
+    IdleTickCount = 10,
+    RandomEntropy = 11,
+    AslrRegionAddress = 12,
+    AslrRegionSize = 13,
+    StackRegionAddress = 14,
+    StackRegionSize = 15,
+    TotalSystemResourceSize = 16,
+    UsedSystemResourceSize = 17,
+    ProgramId = 18,
+    InitialProcessIdRange = 19,
+    UserExceptionContextAddress = 20,
+    TotalNonSystemMemorySize = 21,
+    UsedNonSystemMemorySize = 22,
+    IsApplication = 23,
+    FreeThreadCount = 24,
+    ThreadTickCount = 25,
+    IsSvcPermitted = 26,
+    IoRegionHint = 27,
+    AliasRegionExtraSize = 28,
+    TransferMemoryHint = 34,
+    ThreadTickCountDeprecated = 0xF0000002,
 };
 
 // From https://github.com/switchbrew/libnx
@@ -556,8 +539,8 @@ ENABLE_ENUM_FORMATTING(
     "idle tick count", RandomEntropy, "random entropy", AslrRegionAddress,
     "aslr region address", AslrRegionSize, "aslr region size",
     StackRegionAddress, "stack region address", StackRegionSize,
-    "stack region size", SystemResourceSizeTotal, "system resource size total",
-    SystemResourceSizeUsed, "system resource size used", ProgramId,
+    "stack region size", TotalSystemResourceSize, "total system resource size",
+    UsedSystemResourceSize, "used system resource size", ProgramId,
     "program id", InitialProcessIdRange, "initial process id range",
     UserExceptionContextAddress, "user exception context address",
     TotalNonSystemMemorySize, "total non-system memory size",
