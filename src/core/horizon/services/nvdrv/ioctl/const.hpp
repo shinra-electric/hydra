@@ -33,7 +33,9 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct IoctlContext {
     Reader* reader;
+    Reader* buffer_reader;
     Writer* writer;
+    Writer* buffer_writer;
 };
 
 template <typename In, typename Out> struct InOut {
@@ -134,14 +136,19 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
-            ASSERT_DEBUG(context.reader, Services, "No reader");
-            arg = context.reader->ReadPtr<typename traits::BaseType>();
+            // TODO: correct?
+            Reader* reader;
+            if (context.buffer_reader)
+                reader = context.buffer_reader;
+            else
+                reader = context.reader;
 
-            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,
-                          "InArray must be the last argument");
+            ASSERT_DEBUG(reader, Services, "No reader");
+            arg = reader->ReadPtr<typename traits::BaseType>();
 
             // Next
-            read_arg<CommandArguments, arg_index + 1>(context, args);
+            static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,
+                          "InArray must be the last argument");
             return;
         }
     }

@@ -5,8 +5,6 @@
 
 namespace hydra::horizon::services::hid {
 
-namespace {} // namespace
-
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 1, ActivateDebugPad, 11,
     ActivateTouchScreen, 21, ActivateMouse, 31, ActivateKeyboard, 66,

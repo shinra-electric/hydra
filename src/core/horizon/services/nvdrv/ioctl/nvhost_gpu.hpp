@@ -33,7 +33,7 @@ class NvHostGpu : public ChannelBase {
                               u32 reserved) override;
     NvResult GetErrorNotification(u64* out_timestamp, u32* out_info32,
                                   u16* out_info16, u64* out_status) override;
-    NvResult AllocGpfifoEx(u32 num_entries, u32 num_jobs, u32 flags,
+    NvResult AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                            hw::tegra_x1::gpu::Fence* out_fence,
                            std::array<u32, 3> reserved) override;
 };

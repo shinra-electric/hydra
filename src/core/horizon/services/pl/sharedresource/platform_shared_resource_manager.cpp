@@ -15,10 +15,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedMemoryAddressOffset, 4,
                              GetSharedMemoryNativeHandle)
 
-IPlatformSharedResourceManager::IPlatformSharedResourceManager() {
-    shared_memory_handle_id =
-        KERNEL_INSTANCE.AddHandle(new kernel::SharedMemory(SHARED_MEMORY_SIZE));
-}
+IPlatformSharedResourceManager::IPlatformSharedResourceManager()
+    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}
 
 result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {
     LOG_DEBUG(Services, "Font type: {}", font_type);
@@ -62,7 +60,7 @@ result_t IPlatformSharedResourceManager::GetSharedMemoryAddressOffset(
 
 result_t IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
     OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = shared_memory_handle_id;
+    out_handle = shared_memory_handle.id;
     return RESULT_SUCCESS;
 }
 

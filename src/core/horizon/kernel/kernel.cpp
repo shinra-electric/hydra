@@ -126,6 +126,10 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
                                    thread->GetRegX(2));
         thread->SetRegW(0, res);
         break;
+    case 0x10:
+        svcGetCurrentProcessorNumber(tmp_u32);
+        thread->SetRegW(0, tmp_u32);
+        break;
     case 0x11:
         res = svcSignalEvent(thread->GetRegW(0));
         thread->SetRegW(0, res);
@@ -167,6 +171,10 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
             std::bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
         thread->SetRegW(0, res);
         thread->SetRegX(1, tmp_u64);
+        break;
+    case 0x19:
+        res = svcCancelSynchronization(thread->GetRegW(0));
+        thread->SetRegW(0, res);
         break;
     case 0x1a:
         res = svcArbitrateLock(thread->GetRegX(0), thread->GetRegX(1),
@@ -412,6 +420,16 @@ result_t Kernel::svcSetThreadCoreMask(handle_id_t thread_handle_id,
     return RESULT_SUCCESS;
 }
 
+void Kernel::svcGetCurrentProcessorNumber(u32& out_number) {
+    LOG_DEBUG(Kernel, "svcGetCurrentProcessorNumber called");
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(Kernel);
+
+    // HACK
+    out_number = 0;
+}
+
 result_t Kernel::svcSignalEvent(handle_id_t event_handle_id) {
     LOG_DEBUG(Kernel, "svcSignalEvent called (event: 0x{:08x})",
               event_handle_id);
@@ -556,6 +574,16 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         if (!event->Wait(timeout))
             return MAKE_RESULT(Svc, Error::TimedOut);
     }
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::svcCancelSynchronization(handle_id_t thread_handle_id) {
+    LOG_DEBUG(Kernel, "svcCancelSynchronization called (thread: 0x{:x})",
+              thread_handle_id);
+
+    // TODO: implement
+    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
 
     return RESULT_SUCCESS;
 }
@@ -833,7 +861,7 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
     case InfoType::CoreMask:
         LOG_NOT_IMPLEMENTED(Kernel, "CoreMask");
         // HACK
-        out_info = 0;
+        out_info = 0x1;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
         out_info = ALIAS_REGION_BASE;

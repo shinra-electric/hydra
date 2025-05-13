@@ -158,6 +158,7 @@ class Kernel {
     result_t svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
     result_t svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                   u64 core_mask1);
+    void svcGetCurrentProcessorNumber(u32& out_number);
     result_t svcSignalEvent(handle_id_t event_handle_id);
     result_t svcClearEvent(handle_id_t event_handle_id);
     result_t svcMapSharedMemory(handle_id_t shared_mem_handle_id, uptr addr,
@@ -170,6 +171,7 @@ class Kernel {
     result_t svcResetSignal(handle_id_t handle_id);
     result_t svcWaitSynchronization(handle_id_t* handle_ids, i32 handle_count,
                                     i64 timeout, u64& out_handle_index);
+    result_t svcCancelSynchronization(handle_id_t thread_handle_id);
     result_t svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag);
     result_t svcArbitrateUnlock(uptr mutex_addr);
     result_t svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,

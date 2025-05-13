@@ -79,7 +79,7 @@ NvResult NvHostGpu::GetErrorNotification(u64* out_timestamp, u32* out_info32,
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::AllocGpfifoEx(u32 num_entries, u32 num_jobs, u32 flags,
+NvResult NvHostGpu::AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                                   hw::tegra_x1::gpu::Fence* out_fence,
                                   std::array<u32, 3> reserved) {
     LOG_FUNC_STUBBED(Services);

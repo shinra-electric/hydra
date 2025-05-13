@@ -17,8 +17,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              GetManagerDisplayService, 103,
                              GetIndirectDisplayTransactionService, 1010,
                              OpenDisplay, 1020, CloseDisplay, 2020, OpenLayer,
-                             2021, CloseLayer, 2101, SetLayerScalingMode, 5202,
-                             GetDisplayVsyncEvent)
+                             2021, CloseLayer, 2101, SetLayerScalingMode, 2102,
+                             ConvertScalingMode, 5202, GetDisplayVsyncEvent)
 
 result_t
 IApplicationDisplayService::GetRelayService(add_service_fn_t add_service) {
@@ -95,6 +95,11 @@ result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
         .GetDisplay(display_id)
         ->GetLayer(layer_id)
         ->Close();
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::ConvertScalingMode() {
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 

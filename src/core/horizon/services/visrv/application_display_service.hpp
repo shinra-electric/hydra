@@ -25,6 +25,7 @@ class IApplicationDisplayService : public DisplayServiceBase {
                        OutBuffer<BufferAttr::MapAlias> parcel_buffer);
     result_t CloseLayer(u64 layer_id);
     STUB_REQUEST_COMMAND(SetLayerScalingMode);
+    result_t ConvertScalingMode();
     result_t GetDisplayVsyncEvent(u64 display_id,
                                   OutHandle<HandleAttr::Move> out_handle);
 

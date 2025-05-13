@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::pl::shared_resource {
@@ -26,7 +27,7 @@ class IPlatformSharedResourceManager : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    handle_id_t shared_memory_handle_id;
+    kernel::HandleWithId<kernel::SharedMemory> shared_memory_handle;
 
     // Commands
     result_t RequestLoad(SharedFontType font_type);

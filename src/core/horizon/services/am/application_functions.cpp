@@ -7,7 +7,8 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              EnsureSaveData, 21, GetDesiredLanguage, 22,
-                             SetTerminateResult, 40, NotifyRunning)
+                             SetTerminateResult, 40, NotifyRunning, 130,
+                             GetGpuErrorDetectedSystemEvent)
 
 result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
                                                    LaunchParameterKind kind) {
@@ -43,6 +44,12 @@ result_t IApplicationFunctions::SetTerminateResult(result_t result) {
     const auto description = GET_RESULT_DESCRIPTION(result);
     LOG_INFO(Kernel, "Module: {}, description: {}", module, description);
 
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationFunctions::GetGpuErrorDetectedSystemEvent(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = gpu_error_detect_event.id;
     return RESULT_SUCCESS;
 }
 

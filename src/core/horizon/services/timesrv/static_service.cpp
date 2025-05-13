@@ -6,11 +6,21 @@
 
 namespace hydra::horizon::services::timesrv {
 
+namespace {
+
+constexpr usize SHARED_MEMORY_SIZE = 0x1000;
+
+}
+
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetStandardNetworkSystemClock, 2,
                              GetStandardSteadyClock, 3, GetTimeZoneService, 4,
                              GetStandardLocalSystemClock, 5,
-                             GetEphemeralNetworkSystemClock)
+                             GetEphemeralNetworkSystemClock, 20,
+                             GetSharedMemoryNativeHandle)
+
+IStaticService::IStaticService()
+    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}
 
 result_t
 IStaticService::GetStandardUserSystemClock(add_service_fn_t add_service) {
@@ -43,6 +53,12 @@ IStaticService::GetStandardLocalSystemClock(add_service_fn_t add_service) {
 result_t
 IStaticService::GetEphemeralNetworkSystemClock(add_service_fn_t add_service) {
     add_service(new ISystemClock(SystemClockType::EphemeralNetwork));
+    return RESULT_SUCCESS;
+}
+
+result_t IStaticService::GetSharedMemoryNativeHandle(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = shared_memory_handle.id;
     return RESULT_SUCCESS;
 }
 

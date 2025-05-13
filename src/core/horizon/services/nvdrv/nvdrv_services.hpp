@@ -17,6 +17,9 @@ class INvDrvServices : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
+    // TODO: what should be the max number of fds?
+    static allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,
                   u32* out_error);
@@ -29,10 +32,21 @@ class INvDrvServices : public ServiceBase {
     result_t QueryEvent(handle_id_t fd_id, u32 event_id, NvResult* out_result,
                         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
+    result_t Ioctl2(handle_id_t fd_id, u32 code,
+                    InBuffer<BufferAttr::AutoSelect> in_buffer1,
+                    InBuffer<BufferAttr::AutoSelect> in_buffer2,
+                    NvResult* out_result,
+                    OutBuffer<BufferAttr::AutoSelect> out_buffer);
+    result_t Ioctl3(handle_id_t fd_id, u32 code,
+                    InBuffer<BufferAttr::AutoSelect> in_buffer,
+                    NvResult* out_result,
+                    OutBuffer<BufferAttr::AutoSelect> out_buffer1,
+                    OutBuffer<BufferAttr::AutoSelect> out_buffer2);
     STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 
-    // TODO: what should be the max number of fds?
-    static allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+    result_t IoctlImpl(handle_id_t fd_id, u32 code, Reader* reader,
+                       Reader* buffer_reader, Writer* writer,
+                       Writer* buffer_writer, NvResult* out_result);
 };
 
 } // namespace hydra::horizon::services::nvdrv

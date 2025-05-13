@@ -13,7 +13,8 @@ namespace hydra::horizon::services::nvdrv {
 allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
-                             Initialize, 4, QueryEvent, 8, SetAruid, 13,
+                             Initialize, 4, QueryEvent, 8, SetAruid, 11, Ioctl2,
+                             12, Ioctl3, 13,
                              SetGraphicsFirmwareMemoryMarginEnabled)
 
 result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
@@ -45,27 +46,8 @@ result_t INvDrvServices::Ioctl(handle_id_t fd_id, u32 code,
                                InBuffer<BufferAttr::AutoSelect> in_buffer,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    auto fd = fd_pool.Get(fd_id);
-
-    // Dispatch
-    u32 type = (code >> 8) & 0xff;
-    u32 nr = code & 0xff;
-
-    ioctl::IoctlContext context{
-        .reader = in_buffer.reader,
-        .writer = out_buffer.writer,
-    };
-    NvResult result = fd->Ioctl(context, type, nr);
-
-    // Write result
-    *out_result = result;
-
-    if (result != NvResult::Success)
-        return MAKE_RESULT(
-            Svc,
-            kernel::Error::NotFound); // TODO: what should this be?
-    else
-        return RESULT_SUCCESS;
+    return IoctlImpl(fd_id, code, in_buffer.reader, nullptr, out_buffer.writer,
+                     nullptr, out_result);
 }
 
 result_t INvDrvServices::Close(u32 fd_id, u32* out_err) {
@@ -100,6 +82,53 @@ result_t INvDrvServices::QueryEvent(handle_id_t fd_id, u32 event_id,
     // Write result
     *out_result = result;
     out_handle = handle_id;
+
+    if (result != NvResult::Success)
+        return MAKE_RESULT(
+            Svc,
+            kernel::Error::NotFound); // TODO: what should this be?
+    else
+        return RESULT_SUCCESS;
+}
+
+result_t INvDrvServices::Ioctl2(handle_id_t fd_id, u32 code,
+                                InBuffer<BufferAttr::AutoSelect> in_buffer1,
+                                InBuffer<BufferAttr::AutoSelect> in_buffer2,
+                                NvResult* out_result,
+                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
+    return IoctlImpl(fd_id, code, in_buffer1.reader, in_buffer2.reader,
+                     out_buffer.writer, nullptr, out_result);
+}
+
+result_t INvDrvServices::Ioctl3(handle_id_t fd_id, u32 code,
+                                InBuffer<BufferAttr::AutoSelect> in_buffer,
+                                NvResult* out_result,
+                                OutBuffer<BufferAttr::AutoSelect> out_buffer1,
+                                OutBuffer<BufferAttr::AutoSelect> out_buffer2) {
+    return IoctlImpl(fd_id, code, in_buffer.reader, nullptr, out_buffer1.writer,
+                     out_buffer2.writer, out_result);
+}
+
+result_t INvDrvServices::IoctlImpl(handle_id_t fd_id, u32 code, Reader* reader,
+                                   Reader* buffer_reader, Writer* writer,
+                                   Writer* buffer_writer,
+                                   NvResult* out_result) {
+    auto fd = fd_pool.Get(fd_id);
+
+    // Dispatch
+    u32 type = (code >> 8) & 0xff;
+    u32 nr = code & 0xff;
+
+    ioctl::IoctlContext context{
+        .reader = reader,
+        .buffer_reader = buffer_reader,
+        .writer = writer,
+        .buffer_writer = buffer_writer,
+    };
+    NvResult result = fd->Ioctl(context, type, nr);
+
+    // Write result
+    *out_result = result;
 
     if (result != NvResult::Success)
         return MAKE_RESULT(

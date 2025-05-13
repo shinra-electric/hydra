@@ -10,7 +10,8 @@ class IParentalControlServiceFactory : public ServiceBase {
 
   private:
     // Commands
-    result_t CreateParentalControlService(add_service_fn_t add_service);
+    result_t CreateService(add_service_fn_t add_service);
+    result_t CreateServiceWithoutInitialize(add_service_fn_t add_service);
 };
 
 } // namespace hydra::horizon::services::pctl

@@ -16,6 +16,7 @@ class ChannelBase : public FdBase {
     NvResult SetUserData(u64 data);
     NvResult GetUserData(u64* out_data);
     NvResult SetNvMapFd(u32 fd_id);
+    NvResult SetTimeout(u32 timeout);
     virtual NvResult
     SubmitGpfifo(u64 gpfifo, u32 num_entries,
                  InOut<hw::tegra_x1::gpu::GpfifoFlags, u32>
@@ -29,7 +30,7 @@ class ChannelBase : public FdBase {
     NvResult SetPriority(u32 priority);
     virtual NvResult GetErrorNotification(u64* out_timestamp, u32* out_info32,
                                           u16* out_info16, u64* out_status) = 0;
-    virtual NvResult AllocGpfifoEx(u32 num_entries, u32 num_jobs, u32 flags,
+    virtual NvResult AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                                    hw::tegra_x1::gpu::Fence* out_fence,
                                    std::array<u32, 3> reserved) = 0;
 };
