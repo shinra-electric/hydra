@@ -1,4 +1,4 @@
-#include "core/hw/tegra_x1/gpu/texture_util.hpp"
+#include "core/hw/tegra_x1/gpu/memory_util.hpp"
 
 namespace hydra::hw::tegra_x1::gpu {
 

@@ -1,9 +1,9 @@
 #include "core/hw/tegra_x1/gpu/engines/copy.hpp"
 
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/memory_util.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
-#include "core/hw/tegra_x1/gpu/texture_util.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
@@ -11,17 +11,37 @@ DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 
 void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     // TODO: implement component remapping
+    // HACK
+    usize src_stride = regs.src.stride;
+    usize dst_stride = regs.dst.stride;
     if (data.remap_enable) {
         const auto& c = regs.remap_components;
         ASSERT_DEBUG(
             c.dst_x == 0 && c.dst_y == 1 && c.dst_z == 2 && c.dst_w == 3,
             Engines, "Component remapping not implemented ({}, {}, {}, {})",
             c.dst_x, c.dst_y, c.dst_z, c.dst_w);
+
+        const auto component_size = c.component_size_minus_one + 1;
+        {
+            const auto component_count = c.src_component_count_minus_one + 1;
+            usize bytes_per_block = component_count * component_size;
+            src_stride *= bytes_per_block;
+        }
+        {
+            const auto component_count = c.dst_component_count_minus_one + 1;
+            usize bytes_per_block = component_count * component_size;
+            dst_stride *= bytes_per_block;
+        }
     }
 
+    const auto src_ptr = UNMAP_ADDR(regs.offset_in);
+    const auto dst_ptr = UNMAP_ADDR(regs.offset_out);
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
-            LOG_NOT_IMPLEMENTED(Engines, "Copy buffer to buffer");
+            for (u32 i = 0; i < regs.line_count; i++)
+                memcpy(reinterpret_cast<void*>(dst_ptr + regs.stride_out * i),
+                       reinterpret_cast<void*>(src_ptr + regs.stride_in * i),
+                       regs.stride_in);
         } else {
             // NOTE: a texture copy could be possible, as LineLengthIn contains
             // the width and PitchOut contains the stride, hence we could find
@@ -31,22 +51,10 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             // problematic.
 
             // Encode as Generic 16BX2
-            // HACK
-            usize stride = regs.dst.stride;
-            if (data.remap_enable) {
-                const auto& c = regs.remap_components;
-                const auto component_size = c.component_size_minus_one + 1;
-                const auto component_count =
-                    c.dst_component_count_minus_one + 1;
-                usize bytes_per_block = component_count * component_size;
-                stride *= bytes_per_block;
-            }
-
             encode_generic_16bx2(
-                stride, regs.line_count,
+                dst_stride, regs.line_count,
                 get_block_size_log2(regs.dst.block_size.height),
-                reinterpret_cast<u8*>(UNMAP_ADDR(regs.offset_in)),
-                reinterpret_cast<u8*>(UNMAP_ADDR(regs.offset_out)));
+                reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
 
             // memcpy((void*)UNMAP_ADDR(regs.offset_out),
             //        (void*)UNMAP_ADDR(regs.offset_in), stride *
@@ -77,9 +85,12 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
-            LOG_NOT_IMPLEMENTED(Engines, "Copy texture to buffer");
+            decode_generic_16bx2(
+                src_stride, regs.line_count,
+                get_block_size_log2(regs.src.block_size.height),
+                reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
         } else {
-            LOG_NOT_IMPLEMENTED(Engines, "Copy texture to texture");
+            LOG_NOT_IMPLEMENTED(Engines, "BlockLinear to BlockLinear");
         }
     }
 }
