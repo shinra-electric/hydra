@@ -3,7 +3,7 @@
 namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
-                             GetSystemEventReadableHandles)
+                             GetSystemEventReadableHandles, 4, Submit)
 
 // TODO: autoclear events?
 IRequest::IRequest() : events{{new kernel::Event()}, {new kernel::Event()}} {}

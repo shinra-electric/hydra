@@ -23,6 +23,8 @@ class IApplicationFunctions : public ServiceBase {
     result_t GetDesiredLanguage(LanguageCode* out_language_code);
     result_t SetTerminateResult(result_t result);
     STUB_REQUEST_COMMAND(NotifyRunning);
+    STUB_REQUEST_COMMAND(InitializeGamePlayRecording);
+    STUB_REQUEST_COMMAND(SetGamePlayRecordingState);
     result_t
     GetGpuErrorDetectedSystemEvent(OutHandle<HandleAttr::Copy> out_handle);
 };

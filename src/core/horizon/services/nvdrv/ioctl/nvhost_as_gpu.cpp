@@ -8,8 +8,8 @@ DEFINE_IOCTL_TABLE(NvHostAsGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostAsGpu, 0x41, 0x01,
                                             BindChannel, 0x02, AllocSpace, 0x05,
                                             UnmapBuffer, 0x06, MapBufferEX,
-                                            0x08, GetVaRegions, 0x09,
-                                            AllocAsEX))
+                                            0x08, GetVaRegions, 0x09, AllocAsEX,
+                                            0x14, Remap))
 
 NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
     LOG_FUNC_STUBBED(Services);
@@ -86,6 +86,11 @@ NvResult NvHostAsGpu::AllocAsEX(u32 big_page_size, i32 as_fd, u32 flags,
     // TODO: what is split for?
     GPU_INSTANCE.AllocatePrivateAddressSpace(va_range_end - va_range_start,
                                              va_range_start);
+    return NvResult::Success;
+}
+
+NvResult NvHostAsGpu::Remap(const RemapOp* entries) {
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return NvResult::Success;
 }
 

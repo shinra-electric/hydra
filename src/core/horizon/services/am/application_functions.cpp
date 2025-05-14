@@ -7,7 +7,9 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              EnsureSaveData, 21, GetDesiredLanguage, 22,
-                             SetTerminateResult, 40, NotifyRunning, 130,
+                             SetTerminateResult, 40, NotifyRunning, 66,
+                             InitializeGamePlayRecording, 67,
+                             SetGamePlayRecordingState, 130,
                              GetGpuErrorDetectedSystemEvent)
 
 result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,

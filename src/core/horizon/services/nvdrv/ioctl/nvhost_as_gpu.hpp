@@ -29,6 +29,15 @@ struct VaRegion {
     u64 pages;
 };
 
+struct RemapOp {
+    u16 flags;
+    u16 kind;
+    u32 mem_handle;
+    u32 mem_offset_in_pages;
+    u32 virt_offset_in_pages;
+    u32 num_pages;
+};
+
 class NvHostAsGpu : public FdBase {
   public:
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
@@ -50,6 +59,7 @@ class NvHostAsGpu : public FdBase {
     NvResult AllocAsEX(u32 big_page_size, i32 as_fd, u32 flags, u32 reserved,
                        u64 va_range_start, u64 va_range_end,
                        u64 va_range_split);
+    NvResult Remap(const RemapOp* entries);
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

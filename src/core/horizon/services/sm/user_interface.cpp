@@ -14,6 +14,7 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
@@ -82,8 +83,10 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(pcv::IPcvService, "pcv")
         SERVICE_CASE(socket::Resolver::IResolver, "sfdnsres")
         SERVICE_CASE(spl::IGeneralInterface, "spl:")
-        SERVICE_CASE(friends::IServiceCreator, "friend:a")
+        SERVICE_CASE(friends::IServiceCreator, "friend:u", "friend:v",
+                     "friend:m", "friend:s", "friend:a")
         SERVICE_CASE(ts::IMeasurementServer, "ts")
+        SERVICE_CASE(nfc::IUserManager, "nfp:user")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
