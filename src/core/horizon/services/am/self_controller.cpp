@@ -11,8 +11,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
                              SetScreenShotPermission, 11,
                              SetOperationModeChangedNotification, 12,
                              SetPerformanceModeChangedNotification, 13,
-                             SetFocusHandlingMode, 16,
-                             SetOutOfFocusSuspendingEnabled, 40,
+                             SetFocusHandlingMode, 14, SetRestartMessageEnabled,
+                             16, SetOutOfFocusSuspendingEnabled, 40,
                              CreateManagedDisplayLayer, 91,
                              GetAccumulatedSuspendedTickChangedEvent)
 

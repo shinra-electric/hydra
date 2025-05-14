@@ -26,6 +26,7 @@ class ISelfController : public ServiceBase {
     STUB_REQUEST_COMMAND(SetOperationModeChangedNotification);
     STUB_REQUEST_COMMAND(SetPerformanceModeChangedNotification);
     STUB_REQUEST_COMMAND(SetFocusHandlingMode);
+    STUB_REQUEST_COMMAND(SetRestartMessageEnabled);
     STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
     result_t CreateManagedDisplayLayer(u64* out_layer_id);
     result_t GetAccumulatedSuspendedTickChangedEvent(

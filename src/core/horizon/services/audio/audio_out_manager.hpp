@@ -10,6 +10,8 @@ class IAudioOutManager : public ServiceBase {
 
   private:
     // Commands
+    result_t ListAudioOuts(u32* out_count,
+                           OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t OpenAudioOut(add_service_fn_t add_service, u32 sample_rate,
                           u16 channel_count, u16 reserved, u64 aruid,
                           u32* out_sample_rate, u32* out_channel_count,

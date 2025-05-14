@@ -7,10 +7,6 @@ namespace hydra::horizon::services::nifm {
 namespace {
 
 #pragma pack(push, 1)
-struct IpV4Address {
-    u8 addr[4];
-};
-
 struct IpAddressSetting {
     u8 is_automatic;
     IpV4Address current_addr;
@@ -67,8 +63,8 @@ struct SfNetworkProfileData {
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
-                             GetCurrentNetworkProfile, 18,
-                             GetInternetConnectionStatus)
+                             GetCurrentNetworkProfile, 12, GetCurrentIpAddress,
+                             18, GetInternetConnectionStatus)
 
 result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
                                         i32 requirement_preset) {
@@ -115,6 +111,14 @@ result_t IGeneralService::GetCurrentNetworkProfile(
              .ssid = {0x7},
              .passphrase = {0x13},
          }});
+    return RESULT_SUCCESS;
+}
+
+result_t IGeneralService::GetCurrentIpAddress(IpV4Address* out_ip) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_ip = {0};
     return RESULT_SUCCESS;
 }
 

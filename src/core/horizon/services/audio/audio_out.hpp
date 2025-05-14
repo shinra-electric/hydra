@@ -26,6 +26,7 @@ class IAudioOut : public ServiceBase {
 
     // Commands
     STUB_REQUEST_COMMAND(Start);
+    STUB_REQUEST_COMMAND(Stop);
     result_t AppendAudioOutBuffer(u64 buffer_client_ptr,
                                   InBuffer<BufferAttr::MapAlias> buffer_buffer);
     result_t RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle);
