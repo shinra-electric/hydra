@@ -303,9 +303,9 @@ void Thread::InstructionTrap(u32 esr) {
         // Op0 Op2 Op1 CRn 00000 CRm
         switch ((esr >> 1) & 0x1ffe0f) {
         case 0b11'000'011'1110'00000'0000: // CNTFRQ_EL0
-            LOG_FATAL(Hypervisor, "Frequence");
-            // TODO:
-            // SetRegX(rt, );
+            ONCE(LOG_WARN(Hypervisor, "Frequency"));
+            // TODO: correct?
+            SetRegX(rt, CLOCK_RATE_HZ);
             break;
         case 0b11'001'011'1110'00000'0000:    // CNTPCT_EL0
             SetRegX(rt, get_absolute_time()); // TODO: correct?
