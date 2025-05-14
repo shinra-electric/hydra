@@ -14,7 +14,9 @@ struct UpdateDataHeader {
     u32 mixes_size;
     u32 sinks_size;
     u32 perfmgr_size;
-    u32 padding[6];
+    u32 _unknown;
+    u32 render_info_size;
+    u32 _reserved[4];
     u32 total_size;
 };
 
@@ -30,13 +32,46 @@ enum class MemPoolState : u32 {
 
 struct MemPoolInfoOut {
     MemPoolState new_state;
-    u32 padding2[3];
+    u32 _padding[3];
 };
 
 struct VoiceInfoOut {
     u64 played_sample_count;
     u32 num_wavebufs_consumed;
     u32 voice_drops_count;
+};
+
+enum class EffectState : u8 {
+    Enabled = 3,
+    Disabled = 4,
+};
+
+struct EffectInfoOutV1 {
+    EffectState state;
+    u8 _reserved[15];
+};
+
+struct SinkInfoOut {
+    u32 last_written_offset;
+    u32 _padding;
+    u64 _reserved[3];
+};
+
+struct ErrorInfo {
+    result_t result;
+    u32 _padding;
+    u64 extra_error_info;
+};
+
+struct BehaviorInfoOut {
+    ErrorInfo error_infos[10];
+    u32 error_info_count;
+    u32 _reserved[3];
+};
+
+struct RenderInfoOut {
+    u64 elapsed_frame_count;
+    u64 _reserved;
 };
 
 } // namespace
@@ -51,21 +86,25 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
       event(new kernel::Event()) {}
 
 result_t
-IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer) {
+IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
+                              OutBuffer<BufferAttr::MapAlias> out_buffer,
+                              OutBuffer<BufferAttr::MapAlias> out_perf_buffer) {
     LOG_FUNC_STUBBED(Services);
 
     auto& writer = *out_buffer.writer;
 
     // Header
     // TODO: correct?
-    const UpdateDataHeader header{
-        .mempools_size =
-            static_cast<u32>(params.effect_count + params.voice_count * 4),
-        .voices_size = static_cast<u32>(params.voice_count),
+    auto header = writer.WritePtr<UpdateDataHeader>();
+    *header = {
+        .revision = params.revision,
+        .total_size = sizeof(UpdateDataHeader),
     };
-    writer.Write(header);
 
     // Mempools
+    header->mempools_size =
+        (params.effect_count + params.voice_count * 4) * sizeof(MemPoolInfoOut);
+    header->total_size += header->mempools_size;
     for (u32 i = 0; i < params.effect_count; i++) {
         const MemPoolInfoOut mempool{
             .new_state = MemPoolState::Released, // HACK
@@ -83,6 +122,8 @@ IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer) {
     }
 
     // Voices
+    header->voices_size = params.voice_count * sizeof(VoiceInfoOut);
+    header->total_size += header->voices_size;
     for (u32 i = 0; i < params.voice_count; i++) {
         const VoiceInfoOut voice{
             .played_sample_count = 0,
@@ -91,6 +132,36 @@ IAudioRenderer::RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer) {
         };
         writer.Write(voice);
     }
+
+    // Effects
+    if (false) {
+        // header->effects_size = TODO;
+        // TODO
+    } else {
+        header->effects_size = params.effect_count * sizeof(EffectInfoOutV1);
+        // TODO
+    }
+    header->total_size += header->effects_size;
+
+    // Sinks
+    header->sinks_size = params.sink_count * sizeof(SinkInfoOut);
+    header->total_size += header->sinks_size;
+    // TODO
+
+    // Performance
+    header->perfmgr_size = 16; // HACK
+    header->total_size += header->perfmgr_size;
+    // TODO
+
+    // Behavior
+    header->behavior_size = sizeof(BehaviorInfoOut);
+    header->total_size += header->behavior_size;
+    // TODO
+
+    // Render info
+    header->render_info_size = sizeof(RenderInfoOut);
+    header->total_size += header->render_info_size;
+    // TODO
 
     return RESULT_SUCCESS;
 }

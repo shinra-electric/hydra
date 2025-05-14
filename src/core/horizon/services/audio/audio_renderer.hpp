@@ -21,7 +21,9 @@ class IAudioRenderer : public ServiceBase {
     kernel::HandleWithId<kernel::Event> event;
 
     // Commands
-    result_t RequestUpdate(OutBuffer<BufferAttr::MapAlias> out_buffer);
+    result_t RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
+                           OutBuffer<BufferAttr::MapAlias> out_buffer,
+                           OutBuffer<BufferAttr::MapAlias> out_perf_buffer);
     STUB_REQUEST_COMMAND(Start);
     STUB_REQUEST_COMMAND(Stop);
     result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
