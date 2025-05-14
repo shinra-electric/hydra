@@ -188,6 +188,10 @@ class Kernel {
     result_t svcGetInfo(InfoType info_type, handle_id_t handle_id,
                         u64 info_sub_type, u64& out_info);
     result_t svcMapPhysicalMemory(vaddr_t addr, usize size);
+    result_t svcSetThreadActivity(handle_id_t thread_handle_id,
+                                  ThreadActivity activity);
+    result_t svcGetThreadContext3(handle_id_t thread_handle_id,
+                                  ThreadContext& out_thread_context);
 
     // Helpers
     Handle* GetHandle(handle_id_t handle_id) const {

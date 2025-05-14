@@ -240,6 +240,18 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
         res = svcMapPhysicalMemory(thread->GetRegX(0), thread->GetRegX(1));
         thread->SetRegW(0, res);
         break;
+    case 0x32:
+        res = svcSetThreadActivity(
+            thread->GetRegW(0),
+            static_cast<ThreadActivity>(thread->GetRegW(1)));
+        thread->SetRegW(0, res);
+        break;
+    case 0x33:
+        res = svcGetThreadContext3(thread->GetRegW(1),
+                                   *reinterpret_cast<ThreadContext*>(
+                                       mmu->UnmapAddr(thread->GetRegX(0))));
+        thread->SetRegW(0, res);
+        break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:08x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
@@ -964,6 +976,31 @@ result_t Kernel::svcMapPhysicalMemory(vaddr_t addr, usize size) {
              {MemoryType::Alias, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
 
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::svcSetThreadActivity(handle_id_t thread_handle_id,
+                                      ThreadActivity activity) {
+    LOG_DEBUG(Kernel,
+              "svcSetThreadActivity called (thread: 0x{:x}, activity: {})",
+              thread_handle_id, activity);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::svcGetThreadContext3(handle_id_t thread_handle_id,
+                                      ThreadContext& out_thread_context) {
+    LOG_DEBUG(Kernel, "svcSetThreadActivity called (thread: 0x{:x})",
+              thread_handle_id);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(Kernel);
+
+    // HACK
+    out_thread_context = {};
     return RESULT_SUCCESS;
 }
 

@@ -445,6 +445,38 @@ constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE2 = 2;
 constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_CORE3 = 3;
 constexpr u32 INFO_SUB_TYPE_THREAD_TICK_COUNT_ALL = 0xFFFFFFFF;
 
+enum class ThreadActivity {
+    None = 0,
+    Runnable = 1,
+};
+
+union CpuRegister {
+    u64 x;
+    u32 w;
+    u32 r;
+};
+
+union FpuRegister {
+    u128 v;
+    double d;
+    float s;
+};
+
+struct ThreadContext {
+    CpuRegister cpu_gprs[29];
+    u64 fp;
+    u64 lr;
+    u64 sp;
+    CpuRegister pc;
+    u32 psr;
+
+    FpuRegister fpu_gprs[32];
+    u32 fpcr;
+    u32 fpsr;
+
+    u64 tpidr;
+};
+
 class Handle {
   public:
     virtual ~Handle() = default;
@@ -555,5 +587,8 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::SystemInfoType,
                        TotalPhysicalMemorySize, "total physical memory size",
                        UsedPhysicalMemorySize, "used physical memory size",
                        InitialProcessIdRange, "initial process id range")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::ThreadActivity, None, "none",
+                       Runnable, "runnable")
 
 #include "common/logging/log.hpp"
