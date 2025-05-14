@@ -29,6 +29,8 @@ class ISelfController : public ServiceBase {
     STUB_REQUEST_COMMAND(SetRestartMessageEnabled);
     STUB_REQUEST_COMMAND(SetOutOfFocusSuspendingEnabled);
     result_t CreateManagedDisplayLayer(u64* out_layer_id);
+    result_t CreateManagedDisplaySeparableLayer(u64* out_display_layer_id,
+                                                u64* out_recording_layer_id);
     result_t GetAccumulatedSuspendedTickChangedEvent(
         OutHandle<HandleAttr::Copy> out_handle);
 };

@@ -255,7 +255,7 @@ void Renderer::ClearDepth(u32 layer, const float value) {
 }
 
 void Renderer::ClearStencil(u32 layer, const u32 value) {
-    LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears");
+    ONCE(LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears"));
 }
 
 ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {

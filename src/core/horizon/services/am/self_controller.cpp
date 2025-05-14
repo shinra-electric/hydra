@@ -13,7 +13,8 @@ DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
                              SetPerformanceModeChangedNotification, 13,
                              SetFocusHandlingMode, 14, SetRestartMessageEnabled,
                              16, SetOutOfFocusSuspendingEnabled, 40,
-                             CreateManagedDisplayLayer, 91,
+                             CreateManagedDisplayLayer, 44,
+                             CreateManagedDisplaySeparableLayer, 91,
                              GetAccumulatedSuspendedTickChangedEvent)
 
 // TODO: autoclear library applet launchable event?
@@ -43,6 +44,21 @@ result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     // TODO: what display ID should be used?
     *out_layer_id =
         KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+    return RESULT_SUCCESS;
+}
+
+result_t ISelfController::CreateManagedDisplaySeparableLayer(
+    u64* out_display_layer_id, u64* out_recording_layer_id) {
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
+
+    // TODO: what display ID should be used?
+    *out_display_layer_id =
+        KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+
+    // TODO: what is a recording layer?
+    *out_recording_layer_id =
+        KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+
     return RESULT_SUCCESS;
 }
 

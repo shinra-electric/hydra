@@ -15,6 +15,8 @@ class IAccountServiceForApplication : public ServiceBase {
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV0);
     result_t GetBaasAccountManagerForApplication(add_service_fn_t add_service,
                                                  uuid_t user_id);
+    STUB_REQUEST_COMMAND(InitializeApplicationInfo);
+    STUB_REQUEST_COMMAND(IsUserAccountSwitchLocked);
 };
 
 } // namespace hydra::horizon::services::account

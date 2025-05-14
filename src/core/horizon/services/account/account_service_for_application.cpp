@@ -8,7 +8,9 @@ namespace hydra::horizon::services::account {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 1, GetUserExistence,
                              5, GetProfile, 100, InitializeApplicationInfoV0,
-                             101, GetBaasAccountManagerForApplication)
+                             101, GetBaasAccountManagerForApplication, 140,
+                             InitializeApplicationInfo, 150,
+                             IsUserAccountSwitchLocked)
 
 result_t IAccountServiceForApplication::GetUserExistence(uuid_t user_id,
                                                          bool* out_exists) {
