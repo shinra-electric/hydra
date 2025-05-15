@@ -8,17 +8,23 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-struct Segment {
-    u32 file_offset;
-    u32 memory_offset;
-    u32 size;
+enum class NsoFlags : u32 {
+    None = 0,
+
+    TextCompressed = BIT(0),
+    RoCompressed = BIT(1),
+    DataCompressed = BIT(2),
+    TextHash = BIT(3),
+    RoHash = BIT(4),
+    DataHash = BIT(5),
 };
+ENABLE_ENUM_BITMASK_OPERATORS(NsoFlags)
 
 struct NsoHeader {
     u32 magic;
     u32 version;
     u32 reserved1;
-    u32 flags;
+    NsoFlags flags;
     Segment text;
     u32 module_name_offset;
     Segment ro;
@@ -41,7 +47,7 @@ struct NsoHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(StreamReader& reader, uptr executable_mem_ptr,
+void read_segment(StreamReader reader, uptr executable_mem_ptr,
                   const Segment& segment, const usize segment_file_size,
                   bool is_compressed) {
     // Skip
@@ -77,15 +83,16 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
-                                    const std::string& rom_filename) {
+NsoLoader::NsoLoader(StreamReader reader, const bool is_entry_point_)
+    : is_entry_point{is_entry_point_} {
     // Header
     const auto header = reader.Read<NsoHeader>();
     ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
            "Invalid NSO magic");
 
+    text_offset = header.text.memory_offset;
+
     // Determine executable memory size
-    usize executable_size = 0;
     executable_size =
         std::max(executable_size, static_cast<usize>(header.text.memory_offset +
                                                      header.text.size));
@@ -103,6 +110,17 @@ kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
               header.ro.memory_offset, header.ro.size,
               header.data.memory_offset, header.data.size, header.bss_size);
 
+    // Segments
+    segments[0] = {header.text, header.text_file_size,
+                   any(header.flags & NsoFlags::TextCompressed)};
+    segments[1] = {header.ro, header.ro_file_size,
+                   any(header.flags & NsoFlags::RoCompressed)};
+    segments[2] = {header.data, header.data_file_size,
+                   any(header.flags & NsoFlags::DataCompressed)};
+}
+
+kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
+                                        const std::string& rom_filename) {
     // Create executable memory
     vaddr_t base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
@@ -110,12 +128,11 @@ kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
-    read_segment(reader, ptr, header.text, header.text_file_size,
-                 (header.flags & (1u << 0)));
-    read_segment(reader, ptr, header.ro, header.ro_file_size,
-                 (header.flags & (1u << 1)));
-    read_segment(reader, ptr, header.data, header.data_file_size,
-                 (header.flags & (1u << 2)));
+    for (u32 i = 0; i < 3; i++) {
+        const auto& segment = segments[i];
+        read_segment(reader, ptr, segment.seg, segment.file_size,
+                     segment.compressed);
+    }
 
     // Arg data
     // TODO: don't hardcode
@@ -145,7 +162,7 @@ kernel::Process* NSOLoader::LoadRom(StreamReader& reader,
     if (is_entry_point) {
         kernel::Process* process = new kernel::Process();
         auto& main_thread = process->GetMainThread();
-        main_thread.handle->SetEntryPoint(base + header.text.memory_offset);
+        main_thread.handle->SetEntryPoint(base + text_offset);
         main_thread.handle->SetArg(0, 0x0);
         main_thread.handle->SetArg(1, main_thread.id);
 

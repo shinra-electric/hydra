@@ -4,10 +4,16 @@
 
 namespace hydra::horizon::loader {
 
-class NROLoader : public LoaderBase {
+class NroLoader : public LoaderBase {
   public:
-    kernel::Process* LoadRom(StreamReader& reader,
-                             const std::string& rom_filename) override;
+    NroLoader(StreamReader reader);
+
+    kernel::Process* LoadProcess(StreamReader reader,
+                                 const std::string& rom_filename) override;
+
+  private:
+    u32 text_offset;
+    usize bss_size;
 };
 
 } // namespace hydra::horizon::loader

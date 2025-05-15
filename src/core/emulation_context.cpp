@@ -63,20 +63,21 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     usize size;
     auto ifs = open_file(rom_filename, size);
 
+    StreamReader reader(ifs, 0, size);
+
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
     horizon::loader::LoaderBase* loader{nullptr};
     if (extension == "nro")
-        loader = new horizon::loader::NROLoader();
+        loader = new horizon::loader::NroLoader(reader);
     else if (extension == "nso")
-        loader = new horizon::loader::NSOLoader(true);
+        loader = new horizon::loader::NsoLoader(reader, true);
     else if (extension == "nca")
-        loader = new horizon::loader::NCALoader();
+        loader = new horizon::loader::NcaLoader(reader);
     else
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
 
-    StreamReader reader(ifs, 0, size);
-    process = loader->LoadRom(reader, rom_filename);
+    process = loader->LoadProcess(reader, rom_filename);
     delete loader;
 
     ifs.close();

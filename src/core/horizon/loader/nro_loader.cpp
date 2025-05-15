@@ -50,8 +50,7 @@ struct NroHeader {
 
 } // namespace
 
-kernel::Process* NROLoader::LoadRom(StreamReader& reader,
-                                    const std::string& rom_filename) {
+NroLoader::NroLoader(StreamReader reader) {
     // Header
     const auto header = reader.Read<NroHeader>();
 
@@ -59,8 +58,14 @@ kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
            "Invalid NRO magic \"{}\"", header.magic);
 
+    text_offset = header.GetSection(NroSectionType::Text).offset;
+    bss_size = header.bss_size;
+}
+
+kernel::Process* NroLoader::LoadProcess(StreamReader reader,
+                                        const std::string& rom_filename) {
     // Create executable memory
-    usize executable_size = reader.GetSize() + header.bss_size;
+    usize executable_size = reader.GetSize() + bss_size;
     uptr base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
         executable_size, kernel::MemoryPermission::ReadWriteExecute, true,
@@ -121,9 +126,7 @@ kernel::Process* NROLoader::LoadRom(StreamReader& reader,
     // Process
     kernel::Process* process = new kernel::Process();
     auto& main_thread = process->GetMainThread();
-    main_thread.handle->SetEntryPoint(
-        base + sizeof(NroHeader) +
-        header.GetSection(NroSectionType::Text).offset);
+    main_thread.handle->SetEntryPoint(base + sizeof(NroHeader) + text_offset);
     main_thread.handle->SetArg(0, base + config_offset);
     main_thread.handle->SetArg(1, UINT64_MAX);
 

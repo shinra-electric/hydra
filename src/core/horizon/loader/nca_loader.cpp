@@ -58,104 +58,8 @@ enum class KeyGeneration : u8 {
 };
 
 constexpr usize FS_BLOCK_SIZE = 0x200;
-
-struct FsEntry {
-    u32 start_offset;
-    u32 end_offset;
-    u64 reserved;
-};
-
 constexpr usize FS_ENTRY_COUNT = 4;
-
-enum class SectionType {
-    Invalid,
-
-    Code,
-    Data,
-    Logo,
-};
-
-enum class FsType : u8 {
-    RomFS,
-    PartitionFS,
-};
-
-enum class HashType : u8 {
-    Auto,
-    None,
-    HierarchicalSha256Hash,
-    HierarchicalIntegrityHash,
-    AutoSha3,
-    HierarchicalSha3256Hash,
-    HierarchicalIntegritySha3Hash,
-};
-
-enum class EncryptionType : u8 {
-    Auto,
-    None,
-    AesXts,
-    AesCtr,
-    AesCtrEx,
-    AesCtrSkipLayerHash,
-    AesCtrExSkipLayerHash,
-};
-
-enum class MetaDataHashType : u8 {
-    None,
-    HierarchicalIntegrity,
-};
-
 constexpr u32 IVFC_MAX_LEVEL = 6;
-
-#pragma pack(push, 1)
-struct FsHeader {
-    u16 version;
-    FsType type;
-    HashType hash_type;
-    EncryptionType encryption_type;
-    MetaDataHashType meta_data_hash_type;
-    u8 reserved1[2];
-    union {
-        struct {
-            u8 master_hash[0x20];
-            u32 block_size;
-            u32 layer_count; // Always 2
-            struct {
-                u64 offset;
-                u64 size;
-            } hash_table_region, pfs0_region;
-            u8 reserved[0x80];
-        } hierarchical_sha_256_data;
-
-        struct {
-            u32 magic;
-            u32 version;
-            u32 master_hash_size;
-            struct {
-                u32 max_layers;
-                struct {
-                    u64 logical_offset;
-                    u64 hash_data_size;
-                    u32 block_size_log2;
-                    u32 reserved;
-                } levels[6];
-                u8 signature_salt[0x20];
-            } info_level_hash;
-        } integrity_meta_info;
-
-        // TODO: more
-
-        u8 hash_data_raw[0xf8];
-    };
-    u8 patch_info[0x40]; // TODO: struct
-    u32 generation;
-    u32 secure_value;
-    u8 sparse_info[0x30];              // TODO: struct
-    u8 compression_info[0x28];         // TODO: struct
-    u8 meta_data_hash_data_info[0x30]; // TODO: struct
-    u8 reserved2[0x30];
-};
-#pragma pack(pop)
 
 struct NcaHeader {
     u8 signature0[0x100];
@@ -258,9 +162,9 @@ void load_pfs0(StreamReader& reader, const std::string& rom_filename,
             continue;
 
         reader.Seek(nso_offset + entry.offset);
-        NSOLoader loader(entry_name == "rtld");
         auto nso_reader = reader.CreateSubReader(entry.size);
-        auto process = loader.LoadRom(nso_reader, rom_filename);
+        NsoLoader loader(nso_reader, entry_name == "rtld");
+        auto process = loader.LoadProcess(nso_reader, rom_filename);
         if (process) {
             ASSERT(!out_process, Loader, "Cannot load multiple processes");
             out_process = process;
@@ -277,11 +181,6 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
                "Invalid hash type \"{}\" for Code section", header.hash_type);
         const auto& layer_region = header.hierarchical_sha_256_data.pfs0_region;
 
-        // Sonic Mania: 0x00004000
-        // Shovel Knight: 0x00004000
-        // Puyo Puyo Tetris: 0x00004000
-        // Cave Story+: 0x00004000
-        // The Binding of Isaac: 0x00008000
         reader.Seek(layer_region.offset);
         auto pfs0_reader = reader.CreateSubReader(layer_region.size);
         load_pfs0(pfs0_reader, rom_filename, out_process);
@@ -295,11 +194,6 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
         const auto& level = header.integrity_meta_info.info_level_hash
                                 .levels[IVFC_MAX_LEVEL - 1];
 
-        // Sonic Mania: 0x00068000
-        // Shovel Knight: 0x00054000
-        // Puyo Puyo Tetris: 0x00208000
-        // Cave Story+: 0x0004c000
-        // The Binding of Isaac: 0x00124000
         reader.Seek(level.logical_offset);
         auto romfs_reader = reader.CreateSubReader(level.hash_data_size);
         const auto res = FILESYSTEM_INSTANCE.AddEntry(
@@ -322,31 +216,40 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
 
 } // namespace
 
-kernel::Process* NCALoader::LoadRom(StreamReader& reader,
-                                    const std::string& rom_filename) {
+NcaLoader::NcaLoader(StreamReader reader) {
     // Header
     const auto header = reader.Read<NcaHeader>();
     // TODO: allow other NCA versions as well
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Loader,
            "Invalid NCA magic");
 
-    // Title ID
-    KERNEL_INSTANCE.SetTitleId(header.program_id);
-
-    kernel::Process* process = nullptr;
+    title_id = header.program_id;
 
     // FS entries
     // TODO: don't iterate over all entries?
     for (u32 i = 0; i < FS_ENTRY_COUNT; i++) {
-        const auto& entry = header.fs_entries[i];
+        sections.push_back({header.get_section_type_from_index(i),
+                            header.fs_entries[i], header.fs_headers[i]});
+    }
+}
+
+kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
+                                        const std::string& rom_filename) {
+    // Title ID
+    KERNEL_INSTANCE.SetTitleId(title_id);
+
+    kernel::Process* process = nullptr;
+
+    // FS entries
+    for (const auto& section : sections) {
+        const auto& entry = section.fs_entry;
 
         reader.Seek(entry.start_offset * FS_BLOCK_SIZE);
         auto entry_reader = reader.CreateSubReader(
             (entry.end_offset - entry.start_offset) * FS_BLOCK_SIZE);
 
-        load_section(entry_reader, rom_filename,
-                     header.get_section_type_from_index(i),
-                     header.fs_headers[i], process);
+        load_section(entry_reader, rom_filename, section.type,
+                     section.fs_header, process);
     }
 
     ASSERT(process, Loader, "Failed to load process");
