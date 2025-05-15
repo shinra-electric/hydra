@@ -74,6 +74,11 @@ struct RenderInfoOut {
     u64 _reserved;
 };
 
+struct PerformanceInfoOut {
+    u32 history_size;
+    u32 _reserved[3];
+};
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
@@ -139,29 +144,46 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
         // TODO
     } else {
         header->effects_size = params.effect_count * sizeof(EffectInfoOutV1);
-        // TODO
+        for (u32 i = 0; i < params.effect_count; i++) {
+            writer.Write<EffectInfoOutV1>({
+                .state = EffectState::Enabled,
+            });
+        }
     }
     header->total_size += header->effects_size;
 
     // Sinks
     header->sinks_size = params.sink_count * sizeof(SinkInfoOut);
     header->total_size += header->sinks_size;
-    // TODO
-
-    // Performance
-    header->perfmgr_size = 16; // HACK
-    header->total_size += header->perfmgr_size;
-    // TODO
+    for (u32 i = 0; i < params.sink_count; i++) {
+        writer.Write<SinkInfoOut>({
+            .last_written_offset = 0,
+        });
+    }
 
     // Behavior
     header->behavior_size = sizeof(BehaviorInfoOut);
     header->total_size += header->behavior_size;
-    // TODO
+    writer.Write<BehaviorInfoOut>({
+        .error_info_count = 0,
+    });
 
     // Render info
     header->render_info_size = sizeof(RenderInfoOut);
     header->total_size += header->render_info_size;
-    // TODO
+    writer.Write<RenderInfoOut>({
+        .elapsed_frame_count = 0,
+    });
+
+    // Performance
+    header->perfmgr_size = sizeof(PerformanceInfoOut);
+    header->total_size += header->perfmgr_size;
+    // HACK
+    if (out_perf_buffer.writer) {
+        out_perf_buffer.writer->Write<PerformanceInfoOut>({
+            .history_size = 0,
+        });
+    }
 
     return RESULT_SUCCESS;
 }

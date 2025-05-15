@@ -207,6 +207,10 @@ void Thread::Run() {
                 LOG_FATAL(Hypervisor, "BRK instruction");
                 running = false;
                 break;
+            case ExceptionClass::DataAbortLowerEl:
+                LOG_ERROR(Hypervisor, "This should not happen");
+                AdvancePC();
+                break;
             default:
                 // Debug
                 LogRegisters();
