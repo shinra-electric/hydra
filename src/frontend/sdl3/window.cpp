@@ -17,23 +17,23 @@ Window::Window(int argc, const char* argv[]) {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 
-    if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, 0, &window,
-                                     &renderer)) {
+    if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, SDL_WINDOW_RESIZABLE,
+                                     &window, &renderer)) {
         LOG_FATAL(SDL3Window, "Failed to create SDL3 window/renderer: {}",
                   SDL_GetError());
         return;
     }
-
-    // Begin emulation
-    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    emulation_context.LoadRom(rom_filename);
-    emulation_context.Run();
 
     // Configure input
     horizon::OS::GetInstance().GetInputManager().ConnectNpad(
         horizon::hid::NpadIdType::Handheld,
         horizon::hid::NpadStyleSet::Handheld,
         horizon::hid::NpadAttributes::IsConnected);
+
+    // Begin emulation
+    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
+    emulation_context.LoadRom(rom_filename);
+    emulation_context.Run();
 }
 
 Window::~Window() {
