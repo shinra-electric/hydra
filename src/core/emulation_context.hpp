@@ -18,7 +18,7 @@ class EmulationContext {
     void LoadRom(const std::string& rom_filename);
     void Run();
 
-    void Present();
+    void Present(u32 width, u32 height);
 
     // Getters
     hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }

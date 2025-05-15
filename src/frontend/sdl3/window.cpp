@@ -145,7 +145,9 @@ void Window::Run() {
                 });
             }
 
-            emulation_context.Present();
+            i32 width, height;
+            SDL_GetWindowSize(window, &width, &height);
+            emulation_context.Present(width, height);
         }
     }
 }

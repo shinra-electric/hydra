@@ -144,7 +144,8 @@ void Renderer::SetSurface(void* surface) {
     // TODO: set pixel format
 }
 
-void Renderer::Present(TextureBase* texture) {
+void Renderer::Present(TextureBase* texture, const uint2 output_origin,
+                       const uint2 output_size) {
     auto texture_impl = static_cast<Texture*>(texture);
 
     // TODO: acquire drawable earlier?
@@ -156,9 +157,8 @@ void Renderer::Present(TextureBase* texture) {
     auto color_attachment =
         render_pass_descriptor->colorAttachments()->object(0);
     color_attachment->setTexture(dst);
-    color_attachment->setLoadAction(
-        MTL::LoadActionDontCare); // TODO: use load if not blitting to the whole
-                                  // texture
+    color_attachment->setLoadAction(MTL::LoadActionClear);
+    color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
     auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
@@ -167,6 +167,10 @@ void Renderer::Present(TextureBase* texture) {
     // Draw
     encoder->setRenderPipelineState(
         blit_pipeline_cache->Find({dst->pixelFormat()}));
+    encoder->setViewport(
+        MTL::Viewport{(f64)output_origin.x(), (f64)output_origin.y(),
+                      (f64)output_size.x(), (f64)output_size.y(), 0.0, 1.0});
+
     u32 zero = 0;
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
     BlitParams params = {

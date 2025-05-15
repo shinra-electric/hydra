@@ -144,18 +144,21 @@ void EmulationContext::Run() {
     is_running = true;
 }
 
-void EmulationContext::Present() {
+void EmulationContext::Present(u32 width, u32 height) {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     if (!display->IsOpen())
         return;
 
-    display->GetVSyncEvent().handle->Signal(); // Signal V-Sync
+    // Signal V-Sync
+    display->GetVSyncEvent().handle->Signal();
 
+    // Layer
     auto layer = display->GetPresentableLayer();
     if (!layer)
         return;
 
+    // Get the buffer to present
     u32 binder_id = layer->GetBinderId();
     auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
     i32 slot = binder.ConsumeBuffer();
@@ -163,10 +166,31 @@ void EmulationContext::Present() {
         return;
     const auto& buffer = binder.GetBuffer(slot);
 
+    // Output viewport
+    // TODO: get the size differently
+    u32 input_width = buffer.nv_buffer.planes[0].width;
+    u32 input_height = buffer.nv_buffer.planes[0].height;
+
+    uint2 origin;
+    uint2 size;
+
+    auto scale_x = (f32)width / (f32)input_width;
+    auto scale_y = (f32)height / (f32)input_height;
+    if (scale_x > scale_y) {
+        u32 output_width = static_cast<u32>(input_width * scale_y);
+        origin = uint2({(width - output_width) / 2, 0});
+        size = uint2({output_width, height});
+    } else {
+        u32 output_height = static_cast<u32>(input_height * scale_x);
+        origin = uint2({0, (height - output_height) / 2});
+        size = uint2({width, output_height});
+    }
+
+    // Present
     auto renderer = gpu->GetRenderer();
     renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer.nv_buffer);
-    renderer->Present(texture);
+    renderer->Present(texture, origin, size);
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
 }
