@@ -13,7 +13,7 @@ struct UpdateDataHeader {
     u32 effects_size;
     u32 mixes_size;
     u32 sinks_size;
-    u32 perfmgr_size;
+    u32 performance_manager_size;
     u32 _unknown;
     u32 render_info_size;
     u32 _reserved[4];
@@ -96,16 +96,35 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_perf_buffer) {
     LOG_FUNC_STUBBED(Services);
 
+    const auto in_header = in_buffer.reader->Read<UpdateDataHeader>();
+
     auto& writer = *out_buffer.writer;
 
     // Header
     // TODO: correct?
     auto header = writer.WritePtr<UpdateDataHeader>();
-    *header = {
-        .revision = params.revision,
-        .total_size = sizeof(UpdateDataHeader),
-    };
+    header->revision = in_header.revision;
+    header->behavior_size = sizeof(BehaviorInfoOut);
+    header->mempools_size =
+        in_header.mempools_size / 0x20 * sizeof(MemPoolInfoOut);
+    header->voices_size = in_header.voices_size / 0x170 * sizeof(VoiceInfoOut);
+    header->effects_size =
+        in_header.effects_size / 0xc0 * sizeof(EffectInfoOutV1);
+    header->sinks_size = in_header.sinks_size / 0x140 * sizeof(SinkInfoOut);
+    header->performance_manager_size = 0x10;
+    header->total_size = sizeof(UpdateDataHeader) + header->behavior_size +
+                         header->mempools_size + header->voices_size +
+                         header->effects_size + header->sinks_size +
+                         header->performance_manager_size;
 
+    // Mempools
+    for (u32 i = 0; i < header->mempools_size / sizeof(MemPoolInfoOut); i++) {
+        writer.Write<MemPoolInfoOut>({
+            .new_state = MemPoolState::Attached,
+        });
+    }
+
+    /*
     // Mempools
     header->mempools_size =
         (params.effect_count + params.voice_count * 4) * sizeof(MemPoolInfoOut);
@@ -184,6 +203,7 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
             .history_size = 0,
         });
     }
+    */
 
     return RESULT_SUCCESS;
 }
