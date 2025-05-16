@@ -68,9 +68,13 @@ void LangBuilderBase::Start() {
 
     // Reg type
     EnterScope("union Reg");
-    Write("int i;");
-    Write("uint u;");
-    Write("float f;");
+    Write("u8 _u8;");
+    Write("u16 _u16;");
+    Write("u32 _u32;");
+    Write("i8 _i8;");
+    Write("i16 _i16;");
+    Write("i32 _i32;");
+    Write("f32 _f32;");
     ExitScopeEmpty(true);
     WriteNewline();
 
@@ -252,14 +256,18 @@ void LangBuilderBase::OpMultiply(Operand dst, Operand src1, Operand src2) {
 
 void LangBuilderBase::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
                                  Operand src3) {
-    WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::Float),
-                   GetReg(src1, false, DataType::Float),
+    WriteStatement("{} = {} * {} + {}", GetReg(dst, true, DataType::F32),
+                   GetReg(src1, false, DataType::F32),
                    GetOperand(src2, false), GetOperand(src3, false));
 }
 
 void LangBuilderBase::OpShiftLeft(reg_t dst, reg_t src, u32 shift) {
-    WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::UInt),
-                   GetReg(src, false, DataType::UInt), shift);
+    WriteStatement("{} = {} << 0x{:x}", GetReg(dst, true, DataType::U32),
+                   GetReg(src, false, DataType::U32), shift);
+}
+
+void LangBuilderBase::OpCast(Operand dst, Operand src) {
+    WriteStatement("{} = {}", GetOperand(dst), GetOperand(src));
 }
 
 void LangBuilderBase::OpSetPred(ComparisonOperator cmp,
@@ -281,8 +289,8 @@ void LangBuilderBase::OpSetPred(BinaryOperator bin, BinaryOperator combine_bin,
 }
 
 void LangBuilderBase::OpMathFunction(MathFunc func, reg_t dst, reg_t src) {
-    WriteStatement("{} = {}({})", GetReg(dst, true, DataType::Float),
-                   GetMathFunc(func), GetReg(src, false, DataType::Float));
+    WriteStatement("{} = {}({})", GetReg(dst, true, DataType::F32),
+                   GetMathFunc(func), GetReg(src, false, DataType::F32));
 }
 
 void LangBuilderBase::OpLoad(reg_t dst, Operand src) {

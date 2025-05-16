@@ -416,8 +416,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "r2p");
     INST(0x5ce8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "p2r");
-    INST(0x5ce0000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "i2i");
+    INST(0x5ce0000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: is dst and src type correct?
+        const auto src_type = get_operand_5ce0_0(inst);
+        const auto dst_type = get_operand_5ce0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} r{}", src_type, dst_type,
+                  dst, src);
+
+        observer->OpCast(Operand::Register(dst, dst_type),
+                         Operand::Register(src, src_type));
+    }
     INST(0x5cc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
     INST(0x5cb8000000000000, 0xfff8000000000000)
@@ -454,9 +466,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto src2 = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} r{}", dst, src1, src2);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::Float),
-                             Operand::Register(src1, DataType::Float),
-                             Operand::Register(src2, DataType::Float));
+        observer->OpMultiply(Operand::Register(dst, DataType::F32),
+                             Operand::Register(src1, DataType::F32),
+                             Operand::Register(src2, DataType::F32));
     }
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -471,9 +483,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}r{}", dst,
                   neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
 
-        observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float, neg1),
-                        Operand::Register(src2, DataType::Float, neg2));
+        observer->OpAdd(Operand::Register(dst, DataType::F32),
+                        Operand::Register(src1, DataType::F32, neg1),
+                        Operand::Register(src2, DataType::F32, neg2));
     }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -522,8 +534,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   combine_bin, dst, combine, lhs, rhs);
 
         observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::Float),
-                            Operand::Register(rhs, DataType::Float));
+                            Operand::Register(lhs, DataType::F32),
+                            Operand::Register(rhs, DataType::F32));
     }
     INST(0x5ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -554,8 +566,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::Register(src2, DataType::Float),
-                             Operand::Register(src3, DataType::Float));
+                             Operand::Register(src2, DataType::F32),
+                             Operand::Register(src3, DataType::F32));
     }
     INST(0x5900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -596,8 +608,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   src2, src3.idx, src3.imm);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::Register(src2, DataType::Float),
-                             Operand::ConstMemory(src3, DataType::Float));
+                             Operand::Register(src2, DataType::F32),
+                             Operand::ConstMemory(src3, DataType::F32));
     }
     INST(0x5100000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "xmad");
@@ -695,9 +707,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:x}]", dst, src1,
                   src2.idx, src2.imm);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::Float),
-                             Operand::Register(src1, DataType::Float),
-                             Operand::ConstMemory(src2, DataType::Float));
+        observer->OpMultiply(Operand::Register(dst, DataType::F32),
+                             Operand::Register(src1, DataType::F32),
+                             Operand::ConstMemory(src2, DataType::F32));
     }
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -712,9 +724,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}c{}[0x{:x}]", dst,
                   neg1 ? "-" : "", src1, neg2 ? "-" : "", src2.idx, src2.imm);
 
-        observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float, neg1),
-                        Operand::ConstMemory(src2, DataType::Float, neg2));
+        observer->OpAdd(Operand::Register(dst, DataType::F32),
+                        Operand::Register(src1, DataType::F32, neg1),
+                        Operand::ConstMemory(src2, DataType::F32, neg2));
     }
     INST(0x4c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -757,8 +769,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   combine_bin, dst, combine, lhs, rhs.idx, rhs.imm);
 
         observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::Float),
-                            Operand::ConstMemory(rhs, DataType::Float));
+                            Operand::Register(lhs, DataType::F32),
+                            Operand::ConstMemory(rhs, DataType::F32));
     }
     INST(0x4ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -787,8 +799,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   src2.idx, src2.imm, src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::ConstMemory(src2, DataType::Float),
-                             Operand::Register(src3, DataType::Float));
+                             Operand::ConstMemory(src2, DataType::F32),
+                             Operand::Register(src3, DataType::F32));
     }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -836,9 +848,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto src2 = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, src1, src2);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::Float),
-                             Operand::Register(src1, DataType::Float),
-                             Operand::Immediate(src2, DataType::Float));
+        observer->OpMultiply(Operand::Register(dst, DataType::F32),
+                             Operand::Register(src1, DataType::F32),
+                             Operand::Immediate(src2, DataType::F32));
     }
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -853,9 +865,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}0x{:x}", dst,
                   neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
 
-        observer->OpAdd(Operand::Register(dst, DataType::Float),
-                        Operand::Register(src1, DataType::Float, neg1),
-                        Operand::Immediate(src2, DataType::Float, neg2));
+        observer->OpAdd(Operand::Register(dst, DataType::F32),
+                        Operand::Register(src1, DataType::F32, neg1),
+                        Operand::Immediate(src2, DataType::F32, neg2));
     }
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -909,8 +921,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   combine_bin, dst, combine, lhs, rhs);
 
         observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::Float),
-                            Operand::Immediate(rhs, DataType::Float));
+                            Operand::Register(lhs, DataType::F32),
+                            Operand::Immediate(rhs, DataType::F32));
     }
     INST(0x36a0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -941,8 +953,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   src2, src3);
 
         observer->OpFloatFma(dst, src1,
-                             Operand::Immediate(src2, DataType::Float),
-                             Operand::Register(src3, DataType::Float));
+                             Operand::Immediate(src2, DataType::F32),
+                             Operand::Register(src3, DataType::F32));
     }
     INST(0x3200000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -967,9 +979,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, src1,
                   src2);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::Float),
-                             Operand::Register(src1, DataType::Float),
-                             Operand::Immediate(src2, DataType::Float));
+        observer->OpMultiply(Operand::Register(dst, DataType::F32),
+                             Operand::Register(src1, DataType::F32),
+                             Operand::Immediate(src2, DataType::F32));
     }
     INST(0x1d80000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd32i");

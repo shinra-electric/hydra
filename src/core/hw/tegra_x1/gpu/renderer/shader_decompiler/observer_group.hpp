@@ -38,6 +38,9 @@ template <usize N> class ObserverGroup : public ObserverBase {
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override {
         FOR_EACH_OBSERVER()->OpShiftLeft(dst, src, shift);
     }
+    void OpCast(Operand dst, Operand src) override {
+        FOR_EACH_OBSERVER()->OpCast(dst, src);
+    }
 
     // Control flow
     void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,

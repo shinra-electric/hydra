@@ -16,17 +16,22 @@ constexpr reg_t RZ = 255;
 constexpr pred_t PT = 7;
 
 enum class DataType {
-    None,
-    Int,
-    UInt,
-    Float,
+    Invalid,
+
+    U8,
+    U16,
+    U32,
+    I8,
+    I16,
+    I32,
+    F32,
 };
 
 DataType to_data_type(engines::VertexAttribType vertex_attrib_type);
 
 inline DataType to_data_type(TextureFormat format) {
     // TODO: implement
-    return DataType::Float;
+    return DataType::F32;
 }
 
 struct AMem {
@@ -60,8 +65,7 @@ struct Operand {
     DataType data_type;
     bool neg;
 
-    static Operand Register(reg_t reg,
-                            const DataType data_type = DataType::UInt,
+    static Operand Register(reg_t reg, const DataType data_type = DataType::U32,
                             bool neg = false) {
         return Operand{.type = OperandType::Register,
                        .reg = reg,
@@ -72,11 +76,11 @@ struct Operand {
     static Operand Predicate(pred_t pred, bool neg = false) {
         return Operand{.type = OperandType::Predicate,
                        .pred = pred,
-                       .data_type = DataType::None,
+                       .data_type = DataType::Invalid,
                        .neg = neg};
     }
 
-    static Operand Immediate(u32 imm, const DataType data_type = DataType::UInt,
+    static Operand Immediate(u32 imm, const DataType data_type = DataType::U32,
                              bool neg = false) {
         return Operand{.type = OperandType::Immediate,
                        .imm = imm,
@@ -85,7 +89,7 @@ struct Operand {
     }
 
     static Operand AttributeMemory(const AMem& amem,
-                                   const DataType data_type = DataType::UInt,
+                                   const DataType data_type = DataType::U32,
                                    bool neg = false) {
         return Operand{.type = OperandType::AttributeMemory,
                        .amem = amem,
@@ -94,7 +98,7 @@ struct Operand {
     }
 
     static Operand ConstMemory(const CMem& cmem,
-                               const DataType data_type = DataType::UInt,
+                               const DataType data_type = DataType::U32,
                                bool neg = false) {
         return Operand{.type = OperandType::ConstMemory,
                        .cmem = cmem,
@@ -210,8 +214,9 @@ ENABLE_ENUM_FORMATTING(
     ConstMemory, "const memory")
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Int, "int",
-    UInt, "uint", Float, "float")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid, "invalid",
+    U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32, "i32", F32,
+    "f32")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::SvSemantic, Invalid,

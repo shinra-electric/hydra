@@ -138,7 +138,7 @@ inline renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
     case ShaderStage::Fragment:
         return renderer::ShaderType::Fragment;
     default:
-        LOG_NOT_IMPLEMENTED(Engines, "Shader stage {}", stage);
+        ONCE(LOG_NOT_IMPLEMENTED(Engines, "Shader stage {}", stage));
         return renderer::ShaderType::Count;
     }
 }

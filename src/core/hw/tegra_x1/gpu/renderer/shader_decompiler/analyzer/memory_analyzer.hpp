@@ -11,6 +11,7 @@ class MemoryAnalyzer : public ObserverBase {
     void OpAdd(Operand dst, Operand src1, Operand src2) override;
     void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
+    void OpCast(Operand dst, Operand src) override;
 
     void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
                    pred_t dst, pred_t combine, Operand lhs,

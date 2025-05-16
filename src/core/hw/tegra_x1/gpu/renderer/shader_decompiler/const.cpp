@@ -5,25 +5,25 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 DataType to_data_type(engines::VertexAttribType vertex_attrib_type) {
     switch (vertex_attrib_type) {
     case engines::VertexAttribType::Snorm:
-        return DataType::Float;
+        return DataType::F32;
     case engines::VertexAttribType::Unorm:
-        return DataType::Float;
+        return DataType::F32;
     case engines::VertexAttribType::Sint:
-        return DataType::Int;
+        return DataType::I32;
     case engines::VertexAttribType::Uint:
-        return DataType::UInt;
+        return DataType::U32;
     case engines::VertexAttribType::Sscaled:
-        return DataType::Int; // TODO: use float if the Rendered backend
+        return DataType::U32; // TODO: use float if the Rendered backend
                               // supports scaled attributes
     case engines::VertexAttribType::Uscaled:
-        return DataType::UInt; // TODO: use float if the Rendered backend
+        return DataType::U32; // TODO: use float if the Rendered backend
                                // supports scaled attributes
     case engines::VertexAttribType::Float:
-        return DataType::Float;
+        return DataType::F32;
     default:
         LOG_WARN(ShaderDecompiler, "Unknown vertex attrib type {}",
                  vertex_attrib_type);
-        return DataType::None;
+        return DataType::Invalid;
     }
 }
 

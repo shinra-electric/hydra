@@ -29,6 +29,7 @@ class LangBuilderBase : public BuilderBase {
     void OpMultiply(Operand dst, Operand src1, Operand src2) override;
     void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
     void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
+    void OpCast(Operand dst, Operand src) override;
     void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
                    pred_t dst, pred_t combine, Operand lhs,
                    Operand rhs) override;
@@ -101,7 +102,7 @@ class LangBuilderBase : public BuilderBase {
 
     // Helpers
     std::string GetReg(reg_t reg, bool write = false,
-                       DataType data_type = DataType::UInt) {
+                       DataType data_type = DataType::U32) {
         if (reg == RZ && !write)
             return GetImmediate(0, data_type);
 
@@ -115,17 +116,17 @@ class LangBuilderBase : public BuilderBase {
         return fmt::format("p[{}]", pred);
     }
 
-    std::string GetImm(u32 imm, DataType data_type = DataType::UInt) {
+    std::string GetImm(u32 imm, DataType data_type = DataType::U32) {
         return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
     }
 
-    std::string GetA(const AMem amem, DataType data_type = DataType::UInt) {
+    std::string GetA(const AMem amem, DataType data_type = DataType::U32) {
         // TODO: support indexing with reg
         return fmt::format("a[0x{:08x}].{}", amem.imm / sizeof(u32),
                            GetTypePrefix(data_type));
     }
 
-    std::string GetC(const CMem cmem, DataType data_type = DataType::UInt) {
+    std::string GetC(const CMem cmem, DataType data_type = DataType::U32) {
         return fmt::format("c[{}][{} + 0x{:08x}].{}", cmem.idx,
                            GetReg(cmem.reg), cmem.imm / sizeof(u32),
                            GetTypePrefix(data_type));
@@ -138,7 +139,7 @@ class LangBuilderBase : public BuilderBase {
             res = GetReg(operand.reg, write, operand.data_type);
             break;
         case OperandType::Predicate:
-            ASSERT_DEBUG(operand.data_type == DataType::None, ShaderDecompiler,
+            ASSERT_DEBUG(operand.data_type == DataType::Invalid, ShaderDecompiler,
                          "Predicates cannot have types (type: {})",
                          operand.data_type);
             res = GetPred(operand.pred, write);
@@ -167,17 +168,25 @@ class LangBuilderBase : public BuilderBase {
         return "xyzw"[component_index];
     }
 
-    const char GetTypePrefix(DataType data_type) {
+    const std::string GetTypePrefix(DataType data_type) {
         switch (data_type) {
-        case DataType::Int:
-            return 'i';
-        case DataType::UInt:
-            return 'u';
-        case DataType::Float:
-            return 'f';
+        case DataType::U8:
+            return "_u8";
+        case DataType::U16:
+            return "_u16";
+        case DataType::U32:
+            return "_u32";
+        case DataType::I8:
+            return "_i8";
+        case DataType::I16:
+            return "_i16";
+        case DataType::I32:
+            return "_i32";
+        case DataType::F32:
+            return "_f32";
         default:
             LOG_ERROR(ShaderDecompiler, "Invalid data type {}", data_type);
-            return 'X';
+            return INVALID_VALUE;
         }
     }
 
@@ -231,12 +240,20 @@ class LangBuilderBase : public BuilderBase {
 
     std::string GetImmediate(const u32 imm, DataType data_type) {
         switch (data_type) {
-        case DataType::Int:
-            return GetImmediate(std::bit_cast<i32>(imm));
-        case DataType::UInt:
-            return GetImmediate(imm);
-        case DataType::Float:
-            return GetImmediate(std::bit_cast<f32>(imm));
+        case DataType::U8:
+            return GetImmediate<u8>(imm & 0xff);
+        case DataType::U16:
+            return GetImmediate<u16>(imm & 0xffff);
+        case DataType::U32:
+            return GetImmediate<u32>(imm);
+        case DataType::I8:
+            return GetImmediate<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
+        case DataType::I16:
+            return GetImmediate<i16>(std::bit_cast<i16>((u16)(imm & 0xffff)));
+        case DataType::I32:
+            return GetImmediate<i32>(std::bit_cast<i32>(imm));
+        case DataType::F32:
+            return GetImmediate<f32>(std::bit_cast<f32>(imm));
         default:
             return INVALID_VALUE;
         }

@@ -118,7 +118,7 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
         default:
             LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
                       gl_blend_factor);
-            return renderer::BlendFactor::Zero;
+            return renderer::BlendFactor::One;
         }
     } else { // D3D11
         switch (blend_factor) {
@@ -153,8 +153,9 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
         case D3D11_BLEND_FACTOR_INV_SRC1_ALPHA:
             return renderer::BlendFactor::InvSrc1Alpha;
         default:
-            LOG_ERROR(Engines, "D3D11 blend factor values not implemented");
-            return renderer::BlendFactor::Zero;
+            LOG_ERROR(Engines, "Unknown D3D11 blend factor 0x{:04x}",
+                      blend_factor);
+            return renderer::BlendFactor::One;
         }
     }
 }
@@ -367,7 +368,7 @@ renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
 
     // HACK
     if (MAKE_ADDR(vertex_array.addr) == 0x0) {
-        LOG_ERROR(Engines, "Invalid vertex buffer");
+        ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
         return nullptr;
     }
 

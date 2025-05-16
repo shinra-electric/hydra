@@ -28,7 +28,13 @@ void Builder::EmitHeader() {
 }
 
 void Builder::EmitTypeAliases() {
-    // Do nothing
+    Write("using u8 = uint8_t;");
+    Write("using u16 = uint16_t;");
+    Write("using u32 = uint32_t;");
+    Write("using i8 = int8_t;");
+    Write("using i16 = int16_t;");
+    Write("using i32 = int32_t;");
+    Write("using f32 = float;");
 }
 
 void Builder::EmitDeclarations() {
@@ -52,7 +58,7 @@ void Builder::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("{}4 {} {};", to_data_type(vertex_attrib_state.type),
+            Write("vec<{}, 4> {} {};", to_data_type(vertex_attrib_state.type),
                   GetSvName(sv), GetSvQualifierName(sv, false));
         }
         break;
@@ -105,7 +111,7 @@ void Builder::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("{}4 {} {};", to_data_type(color_target_format),
+            Write("vec<{}, 4> {} {};", to_data_type(color_target_format),
                   GetSvName(sv), GetSvQualifierName(sv, true));
         }
         break;
