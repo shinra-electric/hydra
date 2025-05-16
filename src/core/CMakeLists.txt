@@ -218,6 +218,8 @@ add_library(hydra-core
     horizon/services/nfc/user_manager.hpp
     horizon/services/nfc/mifare/user.cpp
     horizon/services/nfc/mifare/user.hpp
+    horizon/services/prepo/prepo_service.cpp
+    horizon/services/prepo/prepo_service.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp

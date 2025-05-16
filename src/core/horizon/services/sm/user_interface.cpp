@@ -20,6 +20,7 @@
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
+#include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
 #include "core/horizon/services/settings/system_settings_server.hpp"
@@ -87,6 +88,8 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
                      "friend:m", "friend:s", "friend:a")
         SERVICE_CASE(ts::IMeasurementServer, "ts")
         SERVICE_CASE(nfc::IUserManager, "nfp:user")
+        SERVICE_CASE(prepo::IPrepoService, "prepo:a", "prepo:a2", "prepo:m",
+                     "prepo:u", "prepo:s")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
