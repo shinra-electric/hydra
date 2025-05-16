@@ -42,6 +42,8 @@ class Reader {
     usize GetSize() const { return size; }
     usize GetReadSize() const { return ptr - base; }
 
+    bool IsValid() const { return base != nullptr; }
+
   private:
     const u8* base;
     const u8* ptr;
@@ -79,6 +81,8 @@ class Writer {
     u8* GetBase() const { return base; }
     usize GetSize() const { return size; }
     usize GetWrittenSize() const { return ptr - base; }
+
+    bool IsValid() const { return base != nullptr; }
 
   private:
     u8* base;

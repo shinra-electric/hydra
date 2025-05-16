@@ -278,8 +278,6 @@ u8* get_list_entry_ptr(const hw::tegra_x1::cpu::MMUBase* mmu,
         usize size;                                                            \
         u8* ptr = get_##buffer_or_static##_ptr(                                \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
-        if (!ptr)                                                              \
-            continue;                                                          \
         type##_##buffer_or_static##s_##reader_or_writer##s.emplace_back(ptr,   \
                                                                         size); \
     }

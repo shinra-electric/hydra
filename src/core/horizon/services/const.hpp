@@ -161,36 +161,42 @@ void read_arg(RequestContext& context, CommandArguments& args) {
                      arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InBuffer) {
-            std::vector<Reader>* reader_group;
+            Reader* reader;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
-                // TODO: auto select
-                reader_group = &context.readers.send_buffers_readers;
+                // TODO: correct?
+                reader = &context.readers.send_buffers_readers[in_buffer_index];
+                if (!reader->IsValid())
+                    reader =
+                        &context.readers.send_statics_readers[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
-                reader_group = &context.readers.send_buffers_readers;
+                reader = &context.readers.send_buffers_readers[in_buffer_index];
             } else /*if constexpr (Arg::attr == BufferAttr::HipcPointer)*/ {
-                reader_group = &context.readers.send_statics_readers;
+                reader = &context.readers.send_statics_readers[in_buffer_index];
             }
 
-            if (in_buffer_index < reader_group->size())
-                arg = Arg((*reader_group)[in_buffer_index]);
+            arg = Arg(*reader);
 
             // Next
             read_arg<CommandArguments, in_buffer_index + 1, out_buffer_index,
                      arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
-            std::vector<Writer>* writer_group;
+            Writer* writer;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
-                // TODO: auto select
-                writer_group = &context.writers.recv_buffers_writers;
+                // TODO: correct?
+                writer =
+                    &context.writers.recv_buffers_writers[out_buffer_index];
+                if (!writer->IsValid())
+                    writer =
+                        &context.writers.recv_list_writers[out_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
-                writer_group = &context.writers.recv_buffers_writers;
+                writer =
+                    &context.writers.recv_buffers_writers[out_buffer_index];
             } else /*if constexpr (Arg::attr == BufferAttr::HipcPointer)*/ {
-                writer_group = &context.writers.recv_list_writers;
+                writer = &context.writers.recv_list_writers[out_buffer_index];
             }
 
-            if (out_buffer_index < writer_group->size())
-                arg = Arg((*writer_group)[out_buffer_index]);
+            arg = Arg(*writer);
 
             // Next
             read_arg<CommandArguments, in_buffer_index, out_buffer_index + 1,
