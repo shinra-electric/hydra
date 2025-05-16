@@ -54,7 +54,10 @@ renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
         NvKind::Pitch, // TODO: correct?
         static_cast<usize>(info.width), static_cast<usize>(info.height),
         0, // HACK
-        static_cast<usize>(info.stride));
+           /*static_cast<usize>(info.stride)*/
+        renderer::get_texture_format_stride(
+            renderer::to_texture_format(info.format), info.width) // HACK
+    );
 
     return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }

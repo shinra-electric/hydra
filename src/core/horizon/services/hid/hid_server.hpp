@@ -53,6 +53,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
+    STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     result_t
     GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set);
@@ -63,6 +64,7 @@ class IHidServer : public ServiceBase {
         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
     STUB_REQUEST_COMMAND(SetNpadJoyHoldType);
+    STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeSingleByDefault);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
     result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,

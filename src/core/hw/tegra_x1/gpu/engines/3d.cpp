@@ -241,6 +241,13 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
+    // HACK
+    if (MAKE_ADDR(regs.index_buffer_addr) == 0x0) {
+        LOG_ERROR(Engines, "Invalid index buffer address");
+        DrawVertexArray(index, count);
+        return;
+    }
+
     if (!DrawInternal())
         return;
 
@@ -357,6 +364,12 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
 
 renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
+
+    // HACK
+    if (MAKE_ADDR(vertex_array.addr) == 0x0) {
+        LOG_ERROR(Engines, "Invalid vertex buffer");
+        return nullptr;
+    }
 
     const renderer::BufferDescriptor descriptor{
         .ptr = UNMAP_ADDR(vertex_array.addr),
