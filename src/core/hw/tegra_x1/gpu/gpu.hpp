@@ -68,9 +68,15 @@ class GPU {
     MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }
 
     // Address space
-    uptr CreateAddressSpace(uptr addr, usize size, uptr gpu_addr) {
+    uptr CreateAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
         AddressSpace as;
-        as.addr = addr;
+        if (addr == 0x0) {
+            as.space = AsMemorySpace::Host;
+            as.addr = reinterpret_cast<uptr>(malloc(size));
+        } else {
+            as.space = AsMemorySpace::GuestCPU;
+            as.addr = addr;
+        }
         as.size = size;
 
         if (gpu_addr == invalid<uptr>()) {
@@ -87,7 +93,7 @@ class GPU {
         return CreateAddressSpace(0, size, gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(uptr addr, usize size, uptr gpu_addr) {
+    uptr MapBufferToAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
         return CreateAddressSpace(addr, size, gpu_addr);
     }
 
@@ -115,7 +121,7 @@ class GPU {
     // Getters
     cpu::MMUBase* GetMMU() const { return mmu; }
 
-    GPUMMU& GetGPUMMU() { return gpu_mmu; }
+    GpuMMU& GetGPUMMU() { return gpu_mmu; }
 
     Pfifo& GetPfifo() { return pfifo; }
 
@@ -125,7 +131,7 @@ class GPU {
     cpu::MMUBase* mmu;
 
     // Address space
-    GPUMMU gpu_mmu;
+    GpuMMU gpu_mmu;
     uptr address_space_base{GPU_PAGE_SIZE};
 
     // Pfifo
