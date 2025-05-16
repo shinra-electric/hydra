@@ -2,6 +2,18 @@
 
 #include "common/common.hpp"
 
+#define CHECK_AND_SET_PROCESS(dst_process, src_process)                        \
+    {                                                                          \
+        ASSERT(!dst_process, Loader, "Cannot load multiple processes");        \
+        dst_process = src_process;                                             \
+    }
+
+#define CHECK_AND_RETURN_PROCESS(process)                                      \
+    {                                                                          \
+        ASSERT(process, Loader, "Failed to load process");                     \
+        return process;                                                        \
+    }
+
 namespace hydra::horizon::kernel {
 class Process;
 }

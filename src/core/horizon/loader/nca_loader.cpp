@@ -3,7 +3,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/loader/pfs0_loader.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -102,20 +102,6 @@ struct NcaHeader {
     }
 };
 
-struct Pfs0Header {
-    u32 magic;
-    u32 entry_count;
-    u32 string_table_size;
-    u32 reserved;
-};
-
-struct PartitionEntry {
-    u64 offset;
-    u64 size;
-    u32 string_offset;
-    u32 reserved;
-};
-
 } // namespace
 
 } // namespace hydra::horizon::loader
@@ -132,47 +118,7 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-void load_pfs0(StreamReader& reader, const std::string& rom_filename,
-               kernel::Process*& out_process) {
-    // Header
-    const auto header = reader.Read<Pfs0Header>();
-    ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Loader,
-           "Invalid PFS0 magic");
-
-    // Entries
-    PartitionEntry entries[header.entry_count];
-    reader.ReadPtr(entries, header.entry_count);
-
-    // String table
-    char string_table[header.string_table_size];
-    reader.ReadPtr(string_table, header.string_table_size);
-
-    // NSOs
-    u64 nso_offset = reader.Tell();
-    for (u32 i = 0; i < header.entry_count; i++) {
-        const auto& entry = entries[i];
-        const std::string entry_name(string_table + entry.string_offset);
-        LOG_DEBUG(Loader, "{} -> offset: 0x{:08x}, size: 0x{:08x}", entry_name,
-                  entry.offset, entry.size);
-
-        // TODO: it doesn't always need to be ExeFS
-
-        // HACK: main.npdm has some weird ro section
-        if (entry_name == "main.npdm")
-            continue;
-
-        reader.Seek(nso_offset + entry.offset);
-        auto nso_reader = reader.CreateSubReader(entry.size);
-        NsoLoader loader(nso_reader, entry_name == "rtld");
-        auto process = loader.LoadProcess(nso_reader, rom_filename);
-        if (process) {
-            ASSERT(!out_process, Loader, "Cannot load multiple processes");
-            out_process = process;
-        }
-    }
-}
-
-void load_section(StreamReader& reader, const std::string& rom_filename,
+void load_section(StreamReader reader, const std::string& rom_filename,
                   SectionType type, const FsHeader& header,
                   kernel::Process*& out_process) {
     switch (type) {
@@ -183,7 +129,9 @@ void load_section(StreamReader& reader, const std::string& rom_filename,
 
         reader.Seek(layer_region.offset);
         auto pfs0_reader = reader.CreateSubReader(layer_region.size);
-        load_pfs0(pfs0_reader, rom_filename, out_process);
+        Pfs0Loader pfs0_loader(pfs0_reader);
+        auto process_ = pfs0_loader.LoadProcess(pfs0_reader, rom_filename);
+        CHECK_AND_SET_PROCESS(out_process, process_);
         break;
     }
     case SectionType::Data: {
@@ -252,9 +200,7 @@ kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
                      section.fs_header, process);
     }
 
-    ASSERT(process, Loader, "Failed to load process");
-
-    return process;
+    CHECK_AND_RETURN_PROCESS(process);
 }
 
 } // namespace hydra::horizon::loader
