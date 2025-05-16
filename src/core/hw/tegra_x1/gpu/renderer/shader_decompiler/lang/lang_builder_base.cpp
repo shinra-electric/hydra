@@ -74,6 +74,7 @@ void LangBuilderBase::Start() {
     Write("i8 _i8;");
     Write("i16 _i16;");
     Write("i32 _i32;");
+    Write("f16 _f16;");
     Write("f32 _f32;");
     ExitScopeEmpty(true);
     WriteNewline();

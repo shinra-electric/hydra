@@ -34,6 +34,7 @@ void Builder::EmitTypeAliases() {
     Write("using i8 = int8_t;");
     Write("using i16 = int16_t;");
     Write("using i32 = int32_t;");
+    Write("using f16 = half;");
     Write("using f32 = float;");
 }
 

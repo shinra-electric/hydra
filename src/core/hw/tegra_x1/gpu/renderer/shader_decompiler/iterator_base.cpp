@@ -420,11 +420,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         // TODO: is dst and src type correct?
-        const auto src_type = get_operand_5ce0_0(inst);
-        const auto dst_type = get_operand_5ce0_1(inst);
+        const auto dst_type = get_operand_5ce0_0(inst);
+        const auto src_type = get_operand_5ce0_1(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} r{}", src_type, dst_type,
+        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} r{}", dst_type, src_type,
                   dst, src);
 
         observer->OpCast(Operand::Register(dst, dst_type),
@@ -432,8 +432,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     }
     INST(0x5cc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
-    INST(0x5cb8000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "i2f");
+    INST(0x5cb8000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst_type = get_operand_5cb8_0(inst);
+        const auto src_type = get_operand_5cb8_1(inst);
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "i2f {} {} r{} r{}", dst_type, src_type,
+                  dst, src);
+
+        observer->OpCast(Operand::Register(dst, dst_type),
+                         Operand::Register(src, src_type));
+    }
     INST(0x5cb0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2i");
     INST(0x5ca8000000000000, 0xfff8000000000000)
@@ -667,8 +678,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "r2p");
     INST(0x4ce8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "p2r");
-    INST(0x4ce0000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "i2i");
+    INST(0x4ce0000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: is dst and src type correct?
+        const auto dst_type = get_operand_5ce0_0(inst);
+        const auto src_type = get_operand_5ce0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto src = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} c{}[0x{:x}]", dst_type, src_type,
+                  dst, src.idx, src.imm);
+
+        observer->OpCast(Operand::Register(dst, dst_type),
+                         Operand::ConstMemory(src, src_type));
+    }
     INST(0x4cc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
     INST(0x4cb8000000000000, 0xfff8000000000000)
@@ -818,8 +841,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "r2p");
     INST(0x38e8000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "p2r");
-    INST(0x38e0000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "i2i");
+    INST(0x38e0000000000000, 0xfef8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: is dst and src type correct?
+        const auto dst_type = get_operand_5ce0_0(inst);
+        const auto src_type = get_operand_5ce0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto src = GET_VALUE_U32(20, 19) |
+                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
+        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} 0x{:x}", dst_type, src_type,
+                  dst, src);
+
+        observer->OpCast(Operand::Register(dst, dst_type),
+                         Operand::Immediate(src, src_type));
+    }
     INST(0x38c0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
     INST(0x38b8000000000000, 0xfef8000000000000)

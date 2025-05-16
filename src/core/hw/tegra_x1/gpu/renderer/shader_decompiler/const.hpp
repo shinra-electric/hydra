@@ -24,6 +24,7 @@ enum class DataType {
     I8,
     I16,
     I32,
+    F16,
     F32,
 };
 
@@ -215,7 +216,7 @@ ENABLE_ENUM_FORMATTING(
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid, "invalid",
-    U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32, "i32", F32,
+    U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32, "i32", F16, "f16", F32,
     "f32")
 
 ENABLE_ENUM_FORMATTING(

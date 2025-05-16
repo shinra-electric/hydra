@@ -182,6 +182,8 @@ class LangBuilderBase : public BuilderBase {
             return "_i16";
         case DataType::I32:
             return "_i32";
+        case DataType::F16:
+            return "_f16";
         case DataType::F32:
             return "_f32";
         default:
@@ -252,6 +254,7 @@ class LangBuilderBase : public BuilderBase {
             return GetImmediate<i16>(std::bit_cast<i16>((u16)(imm & 0xffff)));
         case DataType::I32:
             return GetImmediate<i32>(std::bit_cast<i32>(imm));
+        // TODO: F16
         case DataType::F32:
             return GetImmediate<f32>(std::bit_cast<f32>(imm));
         default:
