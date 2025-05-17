@@ -389,6 +389,7 @@ void Kernel::svcExitThread() { LOG_DEBUG(Kernel, "svcExitThread called"); }
 void Kernel::svcSleepThread(i64 nano) {
     LOG_DEBUG(Kernel, "svcSleepThread called (nano: {})", nano);
 
+    // TODO: nano of 0, -1 and -2 is for thread yielding
     std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
