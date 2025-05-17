@@ -43,10 +43,18 @@ void DisplayBinder::QueueBuffer(i32 slot) {
     std::lock_guard<std::mutex> lock(queue_mutex);
     queued_buffers.push(slot);
     buffers[slot].queued = true;
+
+    // Time
+    const auto now = clock_t::now();
+    dt_ns_queue.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                              now - last_queue_time)
+                              .count());
+    last_queue_time = now;
+
     queue_cv.notify_all();
 }
 
-i32 DisplayBinder::ConsumeBuffer() {
+i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     // TODO: should there be a timeout?
@@ -60,6 +68,11 @@ i32 DisplayBinder::ConsumeBuffer() {
     i32 slot = queued_buffers.front();
     queued_buffers.pop();
     buffers[slot].queued = false;
+
+    // Time
+    out_dt_ns_list = dt_ns_queue;
+    dt_ns_queue.clear();
+
     queue_cv.notify_all();
 
     // Signal event

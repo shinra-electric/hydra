@@ -147,9 +147,34 @@ void Window::Run() {
 
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
-            emulation_context.Present(width, height);
+            bool dt_average_updated;
+            emulation_context.Present(width, height, dt_average_updated);
+
+            if (dt_average_updated)
+                UpdateWindowTitle();
         }
     }
+}
+
+void Window::UpdateWindowTitle() {
+    const auto dt = emulation_context.GetLastDeltaTimeAverage();
+    std::string fps_str;
+    if (dt == 0.0f)
+        fps_str = "0";
+    else
+        fps_str = std::to_string((u32)std::round(1.0f / dt));
+
+    // TODO: title name
+    // TODO: don't cast renderer to u32
+    const auto title =
+        fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
+                    emulation_context.GetTitleID(),
+                    (u32)Config::GetInstance().GetGpuRenderer(), fps_str);
+    SetWindowTitle(title);
+}
+
+void Window::SetWindowTitle(const std::string& title) {
+    SDL_SetWindowTitle(window, title.c_str());
 }
 
 } // namespace hydra::frontend::sdl3

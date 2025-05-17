@@ -34,6 +34,8 @@ struct DisplayBuffer {
 constexpr usize MAX_BINDER_BUFFER_COUNT = 3; // TODO: what should this be?
 
 struct DisplayBinder {
+    using clock_t = std::chrono::steady_clock;
+
   public:
     // TODO: make private
     u32 weak_ref_count = 0;
@@ -45,7 +47,7 @@ struct DisplayBinder {
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
     void QueueBuffer(i32 slot);
-    i32 ConsumeBuffer();
+    i32 ConsumeBuffer(std::vector<u64>& out_dt_ns_list);
 
     // Getters
     const GraphicBuffer& GetBuffer(i32 slot) const {
@@ -65,6 +67,10 @@ struct DisplayBinder {
     std::queue<i32> queued_buffers;
     std::mutex queue_mutex;
     std::condition_variable queue_cv;
+
+    // Time
+    clock_t::time_point last_queue_time{clock_t::now()};
+    std::vector<u64> dt_ns_queue{};
 };
 
 class DisplayDriver {

@@ -145,7 +145,36 @@ void EmulationContext::Run() {
     is_running = true;
 }
 
-void EmulationContext::Present(u32 width, u32 height) {
+void EmulationContext::Present(u32 width, u32 height,
+                               bool& out_dt_average_updated) {
+    std::vector<u64> dt_ns_list;
+    PresentImpl(width, height, dt_ns_list);
+
+    // Delta time
+    using namespace std::chrono_literals;
+
+    for (const auto dt_ns : dt_ns_list) {
+        accumulated_dt_ns += dt_ns;
+        dt_sample_count++;
+    }
+
+    const auto now = clock_t::now();
+    const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
+    if (time_since_last_dt_averaging > 1s) {
+        last_dt_average =
+            (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+        accumulated_dt_ns = 0;
+        dt_sample_count = 0;
+        last_dt_averaging_time = now;
+
+        out_dt_average_updated = true;
+    } else {
+        out_dt_average_updated = false;
+    }
+}
+
+void EmulationContext::PresentImpl(u32 width, u32 height,
+                                   std::vector<u64>& out_dt_ns_list) {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     if (!display->IsOpen())
@@ -162,7 +191,7 @@ void EmulationContext::Present(u32 width, u32 height) {
     // Get the buffer to present
     u32 binder_id = layer->GetBinderId();
     auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
-    i32 slot = binder.ConsumeBuffer();
+    i32 slot = binder.ConsumeBuffer(out_dt_ns_list);
     if (slot == -1)
         return;
     const auto& buffer = binder.GetBuffer(slot);

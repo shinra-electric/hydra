@@ -21,6 +21,9 @@ class Window {
     // Inputs
     horizon::hid::NpadButtons buttons{horizon::hid::NpadButtons::None};
     u32 finger_id{invalid<u32>()};
+
+    void UpdateWindowTitle();
+    void SetWindowTitle(const std::string& title);
 };
 
 } // namespace hydra::frontend::sdl3
