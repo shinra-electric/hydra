@@ -620,13 +620,16 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         const auto image_handle = get_image_handle(texture_handle);
         const auto& tic = tex_header_pool[image_handle];
         const auto texture = GetTexture(tic);
-        if (texture)
-            RENDERER_INSTANCE->BindTexture(
-                texture, to_renderer_shader_type(stage), renderer_index);
-        // TODO: else bind null texture
 
         // Sampler
-        // TODO
+        const auto sampler =
+            RENDERER_INSTANCE->GetSamplerCache().Find({}); // HACK
+
+        if (texture && sampler)
+            RENDERER_INSTANCE->BindTexture(texture, sampler,
+                                           to_renderer_shader_type(stage),
+                                           renderer_index);
+        // TODO: else bind null texture
     }
 
     // TODO: images

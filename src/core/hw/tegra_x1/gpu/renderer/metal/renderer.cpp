@@ -6,6 +6,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/pipeline.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/sampler.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/shader.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
@@ -112,7 +113,7 @@ Renderer::Renderer() {
         for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             state.uniform_buffers[shader_type][i] = nullptr;
         for (u32 i = 0; i < TEXTURE_COUNT; i++)
-            state.textures[shader_type][i] = nullptr;
+            state.textures[shader_type][i] = {nullptr, nullptr};
     }
 
     // Info
@@ -211,6 +212,10 @@ TextureBase* Renderer::CreateTexture(const TextureDescriptor& descriptor) {
     return new Texture(descriptor);
 }
 
+SamplerBase* Renderer::CreateSampler(const SamplerDescriptor& descriptor) {
+    return new Sampler(descriptor);
+}
+
 void Renderer::EndCommandBuffer() { CommitCommandBuffer(); }
 
 RenderPassBase*
@@ -294,13 +299,14 @@ void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
         static_cast<Buffer*>(buffer);
 }
 
-void Renderer::BindTexture(TextureBase* texture, ShaderType shader_type,
-                           u32 index) {
+void Renderer::BindTexture(TextureBase* texture, SamplerBase* sampler,
+                           ShaderType shader_type, u32 index) {
     // HACK
     if (shader_type == ShaderType::Count)
         return;
 
-    state.textures[u32(shader_type)][index] = static_cast<Texture*>(texture);
+    state.textures[u32(shader_type)][index] = {static_cast<Texture*>(texture),
+                                               static_cast<Sampler*>(sampler)};
 }
 
 void Renderer::UnbindTextures(ShaderType shader_type) {
@@ -309,7 +315,7 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
         return;
 
     for (u32 i = 0; i < TEXTURE_COUNT; i++)
-        state.textures[u32(shader_type)][i] = nullptr;
+        state.textures[u32(shader_type)][i] = {nullptr, nullptr};
 }
 
 void Renderer::Draw(const engines::PrimitiveType primitive_type,
@@ -543,12 +549,38 @@ void Renderer::SetTexture(MTL::Texture* texture, ShaderType shader_type,
     bound_texture = texture;
 }
 
-void Renderer::SetTexture(ShaderType shader_type, u32 index) {
-    const auto texture = state.textures[u32(shader_type)][index];
-    if (!texture)
+void Renderer::SetSampler(MTL::SamplerState* sampler, ShaderType shader_type,
+                          u32 index) {
+    ASSERT_DEBUG(index < TEXTURE_COUNT, MetalRenderer,
+                 "Invalid texture index {}", index);
+
+    auto& bound_sampler =
+        encoder_state.render.samplers[static_cast<u32>(shader_type)][index];
+    if (sampler == bound_sampler)
         return;
 
-    SetTexture(texture->GetTexture(), shader_type, index);
+    switch (shader_type) {
+    case ShaderType::Vertex:
+        GetRenderCommandEncoderUnchecked()->setVertexSamplerState(sampler,
+                                                                  index);
+        break;
+    case ShaderType::Fragment:
+        GetRenderCommandEncoderUnchecked()->setFragmentSamplerState(sampler,
+                                                                    index);
+        break;
+    default:
+        LOG_ERROR(MetalRenderer, "Invalid shader type {}", shader_type);
+        break;
+    }
+    bound_sampler = sampler;
+}
+
+void Renderer::SetTexture(ShaderType shader_type, u32 index) {
+    const auto texture = state.textures[u32(shader_type)][index];
+    if (texture.texture)
+        SetTexture(texture.texture->GetTexture(), shader_type, index);
+    if (texture.sampler)
+        SetSampler(texture.sampler->GetSampler(), shader_type, index);
 }
 
 void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,

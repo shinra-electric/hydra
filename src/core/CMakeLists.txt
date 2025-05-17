@@ -303,27 +303,30 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.cpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp
+    hw/tegra_x1/gpu/renderer/const.cpp
+    hw/tegra_x1/gpu/renderer/const.hpp
+    hw/tegra_x1/gpu/renderer/buffer_base.hpp
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
+    hw/tegra_x1/gpu/renderer/texture_base.hpp
     hw/tegra_x1/gpu/renderer/texture_decoder.cpp
     hw/tegra_x1/gpu/renderer/texture_decoder.hpp
     hw/tegra_x1/gpu/renderer/texture_cache.cpp
     hw/tegra_x1/gpu/renderer/texture_cache.hpp
+    hw/tegra_x1/gpu/renderer/sampler_base.hpp
+    hw/tegra_x1/gpu/renderer/sampler_cache.cpp
+    hw/tegra_x1/gpu/renderer/sampler_cache.hpp
+    hw/tegra_x1/gpu/renderer/render_pass_base.hpp
     hw/tegra_x1/gpu/renderer/render_pass_cache.cpp
     hw/tegra_x1/gpu/renderer/render_pass_cache.hpp
+    hw/tegra_x1/gpu/renderer/shader_base.hpp
     hw/tegra_x1/gpu/renderer/shader_cache.cpp
     hw/tegra_x1/gpu/renderer/shader_cache.hpp
+    hw/tegra_x1/gpu/renderer/pipeline_base.hpp
     hw/tegra_x1/gpu/renderer/pipeline_cache.cpp
     hw/tegra_x1/gpu/renderer/pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/index_cache.cpp
     hw/tegra_x1/gpu/renderer/index_cache.hpp
-    hw/tegra_x1/gpu/renderer/const.cpp
-    hw/tegra_x1/gpu/renderer/const.hpp
-    hw/tegra_x1/gpu/renderer/buffer_base.hpp
-    hw/tegra_x1/gpu/renderer/texture_base.hpp
-    hw/tegra_x1/gpu/renderer/render_pass_base.hpp
-    hw/tegra_x1/gpu/renderer/shader_base.hpp
-    hw/tegra_x1/gpu/renderer/pipeline_base.hpp
     hw/tegra_x1/gpu/renderer/renderer_base.hpp
     hw/tegra_x1/gpu/renderer/metal/const.hpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
@@ -333,6 +336,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/buffer.hpp
     hw/tegra_x1/gpu/renderer/metal/texture.cpp
     hw/tegra_x1/gpu/renderer/metal/texture.hpp
+    hw/tegra_x1/gpu/renderer/metal/sampler.cpp
+    hw/tegra_x1/gpu/renderer/metal/sampler.hpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.cpp
     hw/tegra_x1/gpu/renderer/metal/render_pass.hpp
     hw/tegra_x1/gpu/renderer/metal/shader.cpp

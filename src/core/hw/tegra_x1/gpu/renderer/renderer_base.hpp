@@ -5,6 +5,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/sampler_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
@@ -12,6 +13,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class BufferBase;
 class TextureBase;
+class SamplerBase;
 class RenderPassBase;
 class PipelineBase;
 
@@ -49,6 +51,9 @@ class RendererBase {
     // Texture
     virtual TextureBase* CreateTexture(const TextureDescriptor& descriptor) = 0;
 
+    // Sampler
+    virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
+
     // Command buffer
     virtual void EndCommandBuffer() = 0;
 
@@ -78,9 +83,8 @@ class RendererBase {
     virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                                    u32 index) = 0;
     // TODO: storage buffers
-    virtual void BindTexture(TextureBase* texture, ShaderType shader_type,
-                             u32 index) = 0;
-    // TODO: sampers
+    virtual void BindTexture(TextureBase* texture, SamplerBase* sampler,
+                             ShaderType shader_type, u32 index) = 0;
     // TODO: images
 
     // Resource unbinding
@@ -96,6 +100,7 @@ class RendererBase {
 
     BufferCache& GetBufferCache() { return buffer_cache; }
     TextureCache& GetTextureCache() { return texture_cache; }
+    SamplerCache& GetSamplerCache() { return sampler_cache; }
     RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
     ShaderCache& GetShaderCache() { return shader_cache; }
     PipelineCache& GetPipelineCache() { return pipeline_cache; }
@@ -113,6 +118,7 @@ class RendererBase {
     // Caches
     BufferCache buffer_cache;
     TextureCache texture_cache;
+    SamplerCache sampler_cache;
     RenderPassCache render_pass_cache;
     ShaderCache shader_cache;
     PipelineCache pipeline_cache;

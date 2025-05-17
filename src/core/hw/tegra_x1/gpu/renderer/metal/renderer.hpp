@@ -14,6 +14,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 class Buffer;
 class Texture;
+class Sampler;
 class RenderPass;
 class Pipeline;
 
@@ -32,7 +33,11 @@ struct State {
     const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
     const Buffer* uniform_buffers[usize(ShaderType::Count)]
                                  [CONST_BUFFER_BINDING_COUNT];
-    const Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
+    struct {
+        const Texture* texture;
+        const Sampler* sampler;
+    } textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT];
+    // TODO: images
 };
 
 struct EncoderRenderState {
@@ -40,6 +45,7 @@ struct EncoderRenderState {
     MTL::DepthStencilState* depth_stencil_state{nullptr};
     MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
     MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
+    MTL::SamplerState* samplers[usize(ShaderType::Count)][TEXTURE_COUNT];
 };
 
 struct EncoderState {
@@ -66,6 +72,9 @@ class Renderer : public RendererBase {
 
     // Texture
     TextureBase* CreateTexture(const TextureDescriptor& descriptor) override;
+
+    // Sampler
+    SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) override;
 
     // Command buffer
     void EndCommandBuffer() override;
@@ -94,8 +103,8 @@ class Renderer : public RendererBase {
                          engines::IndexType index_type) override;
     void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
                            u32 index) override;
-    void BindTexture(TextureBase* texture, ShaderType shader_type,
-                     u32 index) override;
+    void BindTexture(TextureBase* texture, SamplerBase* sampler,
+                     ShaderType shader_type, u32 index) override;
 
     // Resource unbinding
     void UnbindTextures(ShaderType shader_type) override;
@@ -145,6 +154,8 @@ class Renderer : public RendererBase {
     void SetVertexBuffer(u32 index);
     void SetUniformBuffer(ShaderType shader_type, u32 index);
     void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
+    void SetSampler(MTL::SamplerState* sampler, ShaderType shader_type,
+                    u32 index);
     void SetTexture(ShaderType shader_type, u32 index);
 
     // Other

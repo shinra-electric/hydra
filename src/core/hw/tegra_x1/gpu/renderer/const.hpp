@@ -238,6 +238,10 @@ struct TextureViewDescriptor {
     }
 };
 
+struct SamplerDescriptor {
+    // TODO
+};
+
 struct RenderTargetDescriptor {
     TextureBase* texture;
     bool load_action_clear = false;
