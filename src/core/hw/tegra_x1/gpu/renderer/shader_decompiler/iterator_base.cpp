@@ -466,8 +466,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         o->OpMove(o->OpRegister(false, dst), o->OpRegister(true, src));
     }
-    INST(0x5c90000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
+    INST(0x5c90000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: mode
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "rro r{} r{}", dst, src);
+
+        // TODO: is it okay to just move?
+        o->OpMove(o->OpRegister(false, dst), o->OpRegister(true, src));
+    }
     INST(0x5c88000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fchk");
     INST(0x5c80000000000000, 0xfff8000000000000)
@@ -1094,8 +1103,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "imad32i");
     INST(0x0c00000000000000, 0xfc00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ffma32i");
-    INST(0x0800000000000000, 0xfc00000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fadd32i");
+    INST(0x0800000000000000, 0xfc00000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_U32_EXTEND(32, 20);
+        LOG_DEBUG(ShaderDecompiler, "fadd32i r{} r{} 0x{:08x}", dst, srcA,
+                  srcB);
+
+        auto srcB_v =
+            o->OpCast(o->OpImmediateL(srcB, DataType::U32), DataType::F32);
+        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32), srcB_v);
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+    }
     INST(0x0400000000000000, 0xfc00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop32i");
     INST(0x0200000000000000, 0xfe00000000000000)
