@@ -12,7 +12,18 @@ SamplerBase* SamplerCache::Create(const SamplerDescriptor& descriptor) {
 
 u64 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
     u64 hash = 0;
-    // TODO
+    hash += (u64)descriptor.min_filter;
+    hash = std::rotl(hash, 2);
+    hash += (u64)descriptor.mag_filter;
+    hash = std::rotl(hash, 2);
+    hash += (u64)descriptor.mip_filter;
+    hash = std::rotl(hash, 2);
+    hash += (u64)descriptor.address_mode_r;
+    hash = std::rotl(hash, 3);
+    hash += (u64)descriptor.address_mode_s;
+    hash = std::rotl(hash, 3);
+    hash += (u64)descriptor.address_mode_t;
+    hash = std::rotl(hash, 3);
 
     return hash;
 }

@@ -4,6 +4,7 @@
 #include "core/hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/sampler_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
@@ -422,6 +423,23 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
 
+renderer::SamplerBase*
+ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
+    const renderer::SamplerDescriptor descriptor{
+        .min_filter = static_cast<renderer::SamplerFilter>(tsc.min_filter),
+        .mag_filter = static_cast<renderer::SamplerFilter>(tsc.mag_filter),
+        .mip_filter = static_cast<renderer::SamplerMipFilter>(tsc.mip_filter),
+        .address_mode_r =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_u),
+        .address_mode_s =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_v),
+        .address_mode_t =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_p),
+    };
+
+    return RENDERER_INSTANCE->GetSamplerCache().Find(descriptor);
+}
+
 renderer::TextureBase*
 ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
@@ -597,8 +615,9 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
     return RENDERER_INSTANCE->GetPipelineCache().Find(descriptor);
 }
 
-void ThreeD::ConfigureShaderStage(const ShaderStage stage,
-                                  const TextureImageControl* tex_header_pool) {
+void ThreeD::ConfigureShaderStage(
+    const ShaderStage stage, const TextureImageControl* tex_header_pool,
+    const TextureSamplerControl* tex_sampler_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
 
@@ -622,8 +641,9 @@ void ThreeD::ConfigureShaderStage(const ShaderStage stage,
         const auto texture = GetTexture(tic);
 
         // Sampler
-        const auto sampler =
-            RENDERER_INSTANCE->GetSamplerCache().Find({}); // HACK
+        const auto sampler_handle = get_sampler_handle(texture_handle);
+        const auto& tsc = tex_sampler_pool[sampler_handle];
+        const auto sampler = GetSampler(tsc);
 
         if (texture && sampler)
             RENDERER_INSTANCE->BindTexture(texture, sampler,
@@ -660,13 +680,20 @@ bool ThreeD::DrawInternal() {
 
     // Configure stages
     const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
-    if (tex_header_pool_gpu_addr != 0x0) {
+    const auto tex_sampler_pool_gpu_addr = MAKE_ADDR(regs.tex_sampler_pool);
+    // TODO: remove the condition
+    if (tex_header_pool_gpu_addr != 0x0 && tex_sampler_pool_gpu_addr != 0x0) {
         const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
             GPU::GetInstance().GetGPUMMU().UnmapAddr(tex_header_pool_gpu_addr));
+        const auto tex_sampler_pool = reinterpret_cast<TextureSamplerControl*>(
+            GPU::GetInstance().GetGPUMMU().UnmapAddr(
+                tex_sampler_pool_gpu_addr));
 
         // TODO: configure all stages
-        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool);
-        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool);
+        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
+                             tex_sampler_pool);
+        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
+                             tex_sampler_pool);
     }
 
     return true;

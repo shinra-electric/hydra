@@ -238,8 +238,36 @@ struct TextureViewDescriptor {
     }
 };
 
+enum class SamplerFilter {
+    Nearest = 1,
+    Linear = 2,
+};
+
+enum class SamplerMipFilter {
+    NotMipmapped = 1,
+    Nearest = 2,
+    Linear = 3,
+};
+
+enum class SamplerAddressMode {
+    Repeat = 0,
+    MirroredRepeat = 1,
+    ClampToEdge = 2,
+    ClampToBorder = 3,
+    Clamp = 4,
+    MirrorClampToEdge = 5,
+    MirrorClampToBorder = 6,
+    MirrorClamp = 7,
+};
+
 struct SamplerDescriptor {
-    // TODO
+    SamplerFilter min_filter;
+    SamplerFilter mag_filter;
+    SamplerMipFilter mip_filter;
+    SamplerAddressMode address_mode_r;
+    SamplerAddressMode address_mode_s;
+    SamplerAddressMode address_mode_t;
+    // TODO: more
 };
 
 struct RenderTargetDescriptor {

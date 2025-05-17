@@ -12,6 +12,7 @@ class DriverBase;
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class BufferBase;
 class TextureBase;
+class SamplerBase;
 class RenderPassBase;
 class PipelineBase;
 } // namespace hydra::hw::tegra_x1::gpu::renderer
@@ -100,6 +101,56 @@ struct TextureImageControl {
             u32 : 8;
         };
     };
+};
+
+struct TextureSamplerControl {
+    // 0x00
+    u32 address_u : 3;
+    u32 address_v : 3;
+    u32 address_p : 3;
+    u32 depth_compare : 1;
+    u32 depth_compare_op : 3;
+    u32 srgb_conversion : 1;
+    u32 font_filter_width : 3;
+    u32 font_filter_height : 3;
+    u32 max_anisotropy : 3;
+    u32 : 9;
+
+    // 0x04
+    u32 mag_filter : 2;
+    u32 : 2;
+    u32 min_filter : 2;
+    u32 mip_filter : 2;
+    u32 cubemap_anisotropy : 1;
+    u32 cubemap_interface_filtering : 1;
+    u32 reduction_filter : 2;
+    u32 mip_lod_bias : 13;
+    u32 float_coord_normalization : 1;
+    u32 trilin_opt : 5;
+    u32 : 1;
+
+    // 0x08
+    u32 min_lod_clamp : 12;
+    u32 max_lod_clamp : 12;
+    u32 srgb_border_color_r : 8;
+
+    // 0x0C
+    u32 : 12;
+    u32 srgb_border_color_g : 8;
+    u32 srgb_border_color_b : 8;
+    u32 : 4;
+
+    // 0x10
+    u32 border_color_r;
+
+    // 0x14
+    u32 border_color_g;
+
+    // 0x18
+    u32 border_color_b;
+
+    // 0x1C
+    u32 border_color_a;
 };
 
 struct RenderTarget {
@@ -312,7 +363,13 @@ struct Regs3D {
     // 0x54e
     bool32 depth_target_enabled;
 
-    u32 padding_0x54f[0xe];
+    u32 padding_0x54f[0x8];
+
+    // 0x557
+    Iova tex_sampler_pool;
+    u32 tex_sampler_pool_max_index;
+
+    u32 padding_0x55a[0x3];
 
     // 0x55d
     Iova tex_header_pool;
@@ -482,6 +539,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     // Helpers
     renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index) const;
     renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
+    renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
     renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
     renderer::TextureBase* GetDepthStencilTargetTexture() const;
     renderer::RenderPassBase* GetRenderPass() const;
@@ -490,7 +548,8 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     renderer::PipelineBase* GetPipeline();
 
     void ConfigureShaderStage(const ShaderStage stage,
-                              const TextureImageControl* tex_header_pool);
+                              const TextureImageControl* tex_header_pool,
+                              const TextureSamplerControl* tex_sampler_pool);
 
     bool DrawInternal();
 };

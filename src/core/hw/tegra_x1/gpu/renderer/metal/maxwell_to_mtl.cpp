@@ -730,4 +730,51 @@ MTL::BlendFactor to_mtl_blend_factor(const BlendFactor blend_factor) {
     }
 }
 
+MTL::SamplerMinMagFilter
+to_mtl_sampler_min_mag_filter(const SamplerFilter filter) {
+    switch (filter) {
+    case SamplerFilter::Nearest:
+        return MTL::SamplerMinMagFilterNearest;
+    case SamplerFilter::Linear:
+        return MTL::SamplerMinMagFilterLinear;
+    }
+}
+
+MTL::SamplerMipFilter to_mtl_sampler_mip_filter(const SamplerMipFilter filter) {
+    switch (filter) {
+    case SamplerMipFilter::NotMipmapped:
+        return MTL::SamplerMipFilterNotMipmapped;
+    case SamplerMipFilter::Nearest:
+        return MTL::SamplerMipFilterNearest;
+    case SamplerMipFilter::Linear:
+        return MTL::SamplerMipFilterLinear;
+    }
+}
+
+MTL::SamplerAddressMode
+to_mtl_sampler_address_mode(const SamplerAddressMode address_mode) {
+    switch (address_mode) {
+    case SamplerAddressMode::Repeat:
+        return MTL::SamplerAddressModeRepeat;
+    case SamplerAddressMode::MirroredRepeat:
+        return MTL::SamplerAddressModeMirrorRepeat;
+    case SamplerAddressMode::ClampToEdge:
+        return MTL::SamplerAddressModeClampToEdge;
+    case SamplerAddressMode::ClampToBorder:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "ClampToBorder");
+        return MTL::SamplerAddressModeClampToBorderColor;
+    case SamplerAddressMode::Clamp:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Clamp");
+        return MTL::SamplerAddressModeClampToEdge;
+    case SamplerAddressMode::MirrorClampToEdge:
+        return MTL::SamplerAddressModeMirrorClampToEdge;
+    case SamplerAddressMode::MirrorClampToBorder:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "MirrorClampToBorder");
+        return MTL::SamplerAddressModeClampToBorderColor;
+    case SamplerAddressMode::MirrorClamp:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "MirrorClamp");
+        return MTL::SamplerAddressModeMirrorClampToEdge;
+    }
+}
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal
