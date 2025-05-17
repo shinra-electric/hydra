@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 #include "common/logging/log.hpp"
 #include "common/types.hpp"
@@ -9,24 +9,73 @@
 
 namespace hydra {
 
-enum class CpuBackend {
-    Invalid,
+enum class CpuBackend : i32 {
+    Invalid = 0,
 
     AppleHypervisor,
     Dynarmic,
 };
 
-enum class GpuRenderer {
-    Invalid,
+enum class GpuRenderer : i32 {
+    Invalid = 0,
 
     Metal,
 };
 
-enum class ShaderBackend {
-    Invalid,
+enum class ShaderBackend : i32 {
+    Invalid = 0,
 
     Msl,
     Air,
+};
+
+template <typename T> class Option {
+  public:
+    operator T() { return value; }
+    operator T() const { return value; }
+    void operator=(const T& other) { value = other; }
+
+    const T& Get() const { return value; }
+    void Set(const T& other) { value = other; }
+
+  private:
+    T value;
+};
+
+template <typename T> class ArrayOption {
+  public:
+    void operator=(const std::vector<T>& other) { values = other; }
+    const T& operator[](u32 index) const {
+        VerifyIndex(index);
+        return values[index];
+    }
+    T& operator[](u32 index) {
+        VerifyIndex(index);
+        return values[index];
+    }
+
+    const std::vector<T>& Get() const { return values; }
+    const T& Get(u32 index) const { return values[index]; }
+    usize GetCount() const { return values.size(); }
+
+    void Add(const T& value) { values.push_back(value); }
+    void Set(u32 index, const T& value) {
+        VerifyIndex(index);
+        values[index] = value;
+    }
+    void Remove(u32 index) {
+        VerifyIndex(index);
+        values.erase(values.begin() + index);
+    }
+
+  private:
+    std::vector<T> values;
+
+    // Helpers
+    inline void VerifyIndex(u32 index) const {
+        ASSERT(index < values.size(), Other, "Index ({}) out of range ({})",
+               index, values.size());
+    }
 };
 
 class Config {
@@ -51,116 +100,35 @@ class Config {
     }
 
     // Getters
-    const std::vector<std::string>& GetGameDirectories() const {
-        return game_directories;
-    }
-    const std::vector<std::string>& GetPatchDirectories() const {
+    ArrayOption<std::string>& GetGameDirectories() { return game_directories; }
+    ArrayOption<std::string>& GetPatchDirectories() {
         return patch_directories;
     }
-    const std::string& GetSdCardPath() const { return sd_card_path; }
-    const std::string& GetSavePath() const { return save_path; }
-    CpuBackend GetCpuBackend() const { return cpu_backend; }
-    GpuRenderer GetGpuRenderer() const { return gpu_renderer; }
-    ShaderBackend GetShaderBackend() const { return shader_backend; }
-    uuid_t GetUserID() const { return user_id; }
-    const std::vector<std::string>& GetProcessArgs() const {
-        return process_args;
-    }
-    bool IsDebugLoggingEnabled() const { return debug_logging; }
-    bool IsLogStackTraceEnabled() const { return log_stack_trace; }
-
-    // Setters
-#define SET_CONFIG_VALUE(name)                                                 \
-    if (name##_ != name) {                                                     \
-        name = name##_;                                                        \
-        changed = true;                                                        \
-    }
-
-    void AddGameDirectory(const std::string& directory) {
-        game_directories.push_back(directory);
-        changed = true;
-    }
-
-    void RemoveGameDirectory(u32 index) {
-        ASSERT(index < game_directories.size(), Other,
-               "Index ({}) out of range ({})", index, game_directories.size());
-        game_directories.erase(game_directories.begin() + index);
-        changed = true;
-    }
-
-    void AddPatchDirectory(const std::string& directory) {
-        patch_directories.push_back(directory);
-        changed = true;
-    }
-
-    void RemovePatchDirectory(u32 index) {
-        ASSERT(index < patch_directories.size(), Other,
-               "Index ({}) out of range ({})", index, patch_directories.size());
-        patch_directories.erase(patch_directories.begin() + index);
-        changed = true;
-    }
-
-    void SetSdCardPath(const std::string& sd_card_path_) {
-        SET_CONFIG_VALUE(sd_card_path);
-    }
-
-    void SetSavePath(const std::string& save_path_) {
-        SET_CONFIG_VALUE(save_path);
-    }
-
-    void SetCpuBackend(CpuBackend cpu_backend_) {
-        SET_CONFIG_VALUE(cpu_backend);
-    }
-
-    void SetGpuRenderer(GpuRenderer gpu_renderer_) {
-        SET_CONFIG_VALUE(gpu_renderer);
-    }
-
-    void SetShaderBackend(ShaderBackend shader_backend_) {
-        SET_CONFIG_VALUE(shader_backend);
-    }
-
-    void SetUserID(uuid_t user_id_) { SET_CONFIG_VALUE(user_id); }
-
-    void AddProcessArg(const std::string& arg) {
-        process_args.push_back(arg);
-        changed = true;
-    }
-
-    void RemoveProcessArg(u32 index) {
-        ASSERT(index < process_args.size(), Other,
-               "Index ({}) out of range ({})", index, process_args.size());
-        process_args.erase(process_args.begin() + index);
-        changed = true;
-    }
-
-    void SetDebugLogging(bool debug_logging_) {
-        SET_CONFIG_VALUE(debug_logging);
-    }
-
-    void SetLogStackTrace(bool log_stack_trace_) {
-        SET_CONFIG_VALUE(log_stack_trace);
-    }
-
-#undef SET_CONFIG_VALUE
+    Option<std::string>& GetSdCardPath() { return sd_card_path; }
+    Option<std::string>& GetSavePath() { return save_path; }
+    Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
+    Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
+    Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
+    Option<uuid_t>& GetUserID() { return user_id; }
+    ArrayOption<std::string>& GetProcessArgs() { return process_args; }
+    Option<bool>& GetDebugLogging() { return debug_logging; }
+    Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
 
   private:
     std::string app_data_path;
 
-    bool changed{false};
-
     // Config
-    std::vector<std::string> game_directories;
-    std::vector<std::string> patch_directories;
-    std::string sd_card_path;
-    std::string save_path;
-    CpuBackend cpu_backend;
-    GpuRenderer gpu_renderer;
-    ShaderBackend shader_backend;
-    uuid_t user_id;
-    std::vector<std::string> process_args;
-    bool debug_logging;
-    bool log_stack_trace;
+    ArrayOption<std::string> game_directories;
+    ArrayOption<std::string> patch_directories;
+    Option<std::string> sd_card_path;
+    Option<std::string> save_path;
+    Option<CpuBackend> cpu_backend;
+    Option<GpuRenderer> gpu_renderer;
+    Option<ShaderBackend> shader_backend;
+    Option<uuid_t> user_id;
+    ArrayOption<std::string> process_args;
+    Option<bool> debug_logging;
+    Option<bool> stack_trace_logging;
 
     // Default values
     std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
@@ -182,8 +150,37 @@ class Config {
         return 0x0; // TODO: INVALID_USER_ID
     }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
-    bool GetDefaultDebugLogging() const { return true; }
-    bool GetDefaultLogStackTrace() const { return false; }
+    bool GetDefaultDebugLogging() const { return false; }
+    bool GetDefaultStackTraceLogging() const { return false; }
 };
 
 } // namespace hydra
+
+template <typename T>
+struct fmt::formatter<hydra::Option<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const hydra::Option<T>& option, FormatContext& ctx) const {
+        return formatter<string_view>::format(fmt::format("{}", option.Get()),
+                                              ctx);
+    }
+};
+
+template <typename T>
+struct fmt::formatter<hydra::ArrayOption<T>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const hydra::ArrayOption<T>& option, FormatContext& ctx) const {
+        // TODO: simplify
+        return formatter<string_view>::format(
+            fmt::format("{}", fmt::join(option.Get(), ", ")), ctx);
+    }
+};
+
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
+                                   AppleHypervisor, "Apple Hypervisor",
+                                   Dynarmic, "dynarmic")
+
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
+                                   "Metal")
+
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
+                                   "MSL", Air, "AIR")

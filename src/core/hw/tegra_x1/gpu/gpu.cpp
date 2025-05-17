@@ -26,8 +26,7 @@ GPU::GPU(cpu::MMUBase* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
         renderer = new renderer::metal::Renderer();
         break;
     default:
-        // TODO: log the renderer
-        LOG_FATAL(GPU, "Unknown GPU renderer");
+        LOG_FATAL(GPU, "Unknown GPU renderer {}", renderer_type);
         break;
     }
 }

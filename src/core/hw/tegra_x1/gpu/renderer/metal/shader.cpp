@@ -34,9 +34,9 @@ Shader::Shader(const ShaderDescriptor& descriptor) : ShaderBase(descriptor) {
         break;
     }
     default:
-        // TODO: log the backend
         LOG_FATAL(MetalRenderer,
-                  "Unsupported shader backend for the Metal renderer");
+                  "Unsupported shader backend {} for the Metal renderer",
+                  descriptor.backend);
         break;
     }
 

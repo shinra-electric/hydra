@@ -1,6 +1,5 @@
 #include "common/config.hpp"
 
-#include <fmt/ranges.h>
 #include <toml.hpp>
 
 #include "common/logging/log.hpp"
@@ -43,15 +42,12 @@
     ENABLE_STRUCT_FORMATTING(s, __VA_ARGS__)                                   \
     TOML11_DEFINE_CONVERSION_NON_INTRUSIVE(s, __VA_ARGS__)
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, CpuBackend, cpu_backend,
-                                          AppleHypervisor, "Apple Hypervisor",
-                                          Dynarmic, "dynarmic")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
+                              "Apple Hypervisor", Dynarmic, "dynarmic")
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, GpuRenderer, gpu_renderer,
-                                          Metal, "Metal")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 
-ENABLE_ENUM_FORMATTING_CASTING_AND_TOML11(hydra, ShaderBackend, shader_backend,
-                                          Msl, "MSL", Air, "AIR")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
 
 namespace hydra {
 
@@ -109,14 +105,11 @@ void Config::LoadDefaults() {
     user_id = GetDefaultUserID();
     process_args = GetDefaultProcessArgs();
     debug_logging = GetDefaultDebugLogging();
-    log_stack_trace = GetDefaultLogStackTrace();
-
-    changed = true;
+    stack_trace_logging = GetDefaultStackTraceLogging();
 }
 
 void Config::Serialize() {
-    if (!changed)
-        return;
+    // TODO: check if changed?
 
     std::ofstream config_file(GetConfigPath());
     if (config_file.is_open()) {
@@ -130,13 +123,13 @@ void Config::Serialize() {
 
             auto& game_directories_arr = general["game_directories"];
             game_directories_arr = toml::array{};
-            game_directories_arr.as_array().assign(game_directories.begin(),
-                                                   game_directories.end());
+            game_directories_arr.as_array().assign(
+                game_directories.Get().begin(), game_directories.Get().end());
 
             auto& patch_directories_arr = general["patch_directories"];
             patch_directories_arr = toml::array{};
-            patch_directories_arr.as_array().assign(patch_directories.begin(),
-                                                    patch_directories.end());
+            patch_directories_arr.as_array().assign(
+                patch_directories.Get().begin(), patch_directories.Get().end());
 
             general["sd_card_path"] = sd_card_path;
             general["save_path"] = save_path;
@@ -144,25 +137,25 @@ void Config::Serialize() {
 
         {
             auto& cpu = data.at("CPU");
-            cpu["backend"] = cpu_backend;
+            cpu["backend"] = cpu_backend.Get();
         }
 
         {
             auto& graphics = data.at("Graphics");
-            graphics["renderer"] = gpu_renderer;
-            graphics["shader_backend"] = shader_backend;
+            graphics["renderer"] = gpu_renderer.Get();
+            graphics["shader_backend"] = shader_backend.Get();
         }
 
         {
             auto& user = data.at("User");
-            user["user_id"] = user_id;
+            user["user_id"] = user_id.Get();
         }
 
         {
             auto& debug = data.at("Debug");
-            debug["process_args"] = process_args;
-            debug["debug_logging"] = debug_logging;
-            debug["log_stack_trace"] = log_stack_trace;
+            debug["process_args"] = process_args.Get();
+            debug["debug_logging"] = debug_logging.Get();
+            debug["stack_trace_logging"] = stack_trace_logging.Get();
         }
 
         config_file << toml::format(data);
@@ -208,8 +201,8 @@ void Config::Deserialize() {
             debug, "process_args", GetDefaultProcessArgs());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
-        log_stack_trace = toml::find_or<bool>(debug, "log_stack_trace",
-                                              GetDefaultLogStackTrace());
+        stack_trace_logging = toml::find_or<bool>(
+            debug, "stack_trace_logging", GetDefaultStackTraceLogging());
     }
 
     // Validate
@@ -229,24 +222,20 @@ void Config::Deserialize() {
     } else if (shader_backend == ShaderBackend::Air) {
         LOG_ERROR(Other, "AIR shader backend is not functional");
     }
-
-    changed = false;
 }
 
 void Config::Log() {
-    LOG_INFO(Other, "Game directories: [{}]",
-             fmt::join(game_directories, ", "));
-    LOG_INFO(Other, "Patch directories: [{}]",
-             fmt::join(patch_directories, ", "));
+    LOG_INFO(Other, "Game directories: [{}]", game_directories);
+    LOG_INFO(Other, "Patch directories: [{}]", patch_directories);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
-    LOG_INFO(Other, "User ID: {:032x}", user_id);
+    LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
-    LOG_INFO(Other, "Log stack trace: {}", log_stack_trace);
+    LOG_INFO(Other, "Log stack trace: {}", stack_trace_logging);
 }
 
 } // namespace hydra

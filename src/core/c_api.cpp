@@ -2,104 +2,101 @@
 
 #include "core/emulation_context.hpp"
 
+// Options
+bool hydra_bool_option_get(const void* option) {
+    return static_cast<const hydra::Option<bool>*>(option)->Get();
+}
+
+void hydra_bool_option_set(void* option, const bool value) {
+    static_cast<hydra::Option<bool>*>(option)->Set(value);
+}
+
+int32_t hydra_i32_option_get(const void* option) {
+    return static_cast<const hydra::Option<hydra::i32>*>(option)->Get();
+}
+
+void hydra_i32_option_set(void* option, const int32_t value) {
+    static_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
+}
+
+__uint128_t hydra_u128_option_get(const void* option) {
+    return static_cast<const hydra::Option<hydra::u128>*>(option)->Get();
+}
+
+void hydra_u128_option_set(void* option, const __uint128_t value) {
+    static_cast<hydra::Option<hydra::u128>*>(option)->Set(value);
+}
+
+const char* hydra_string_option_get(const void* option) {
+    return static_cast<const hydra::Option<std::string>*>(option)
+        ->Get()
+        .c_str();
+}
+
+void hydra_string_option_set(void* option, const char* value) {
+    static_cast<hydra::Option<std::string>*>(option)->Set(value);
+}
+
+const char* hydra_string_array_option_get(const void* option, uint32_t index) {
+    return static_cast<const hydra::ArrayOption<std::string>*>(option)
+        ->Get(index)
+        .c_str();
+}
+
+void hydra_string_array_option_add(void* option, const char* value) {
+    static_cast<hydra::ArrayOption<std::string>*>(option)->Add(value);
+}
+
+void hydra_string_array_option_set(void* option, uint32_t index,
+                                   const char* value) {
+    static_cast<hydra::ArrayOption<std::string>*>(option)->Set(index, value);
+}
+
+void hydra_string_array_option_remove(void* option, uint32_t index) {
+    static_cast<hydra::ArrayOption<std::string>*>(option)->Remove(index);
+}
+
 // Config
-uint32_t hydra_config_get_game_directories_count() {
-    return hydra::CONFIG_INSTANCE.GetGameDirectories().size();
+void* hydra_config_get_game_directories() {
+    return &hydra::CONFIG_INSTANCE.GetGameDirectories();
 }
 
-const char* hydra_config_get_game_directory(uint32_t index) {
-    return hydra::CONFIG_INSTANCE.GetGameDirectories()[index].c_str();
+void* hydra_config_get_patch_directories() {
+    return &hydra::CONFIG_INSTANCE.GetPatchDirectories();
 }
 
-void hydra_config_add_game_directory(const char* path) {
-    hydra::CONFIG_INSTANCE.AddGameDirectory(path);
+void* hydra_config_get_sd_card_path() {
+    return &hydra::CONFIG_INSTANCE.GetSdCardPath();
 }
 
-void hydra_config_remove_game_directory(uint32_t index) {
-    hydra::CONFIG_INSTANCE.RemoveGameDirectory(index);
+void* hydra_config_get_save_path() {
+    return &hydra::CONFIG_INSTANCE.GetSavePath();
 }
 
-uint32_t hydra_config_get_patch_directories_count() {
-    return hydra::CONFIG_INSTANCE.GetPatchDirectories().size();
+void* hydra_config_get_cpu_backend() {
+    return &hydra::CONFIG_INSTANCE.GetCpuBackend();
 }
 
-const char* hydra_config_get_patch_directory(uint32_t index) {
-    return hydra::CONFIG_INSTANCE.GetPatchDirectories()[index].c_str();
+void* hydra_config_get_gpu_renderer() {
+    return &hydra::CONFIG_INSTANCE.GetGpuRenderer();
 }
 
-void hydra_config_add_patch_directory(const char* path) {
-    hydra::CONFIG_INSTANCE.AddPatchDirectory(path);
+void* hydra_config_get_shader_backend() {
+    return &hydra::CONFIG_INSTANCE.GetShaderBackend();
 }
 
-void hydra_config_remove_patch_directory(uint32_t index) {
-    hydra::CONFIG_INSTANCE.RemovePatchDirectory(index);
+void* hydra_config_get_user_id() { return &hydra::CONFIG_INSTANCE.GetUserID(); }
+
+void* hydra_config_get_process_args() {
+    return &hydra::CONFIG_INSTANCE.GetProcessArgs();
 }
 
-const char* hydra_config_get_sd_card_path() {
-    return hydra::CONFIG_INSTANCE.GetSdCardPath().c_str();
+void* hydra_config_get_debug_logging() {
+    return &hydra::CONFIG_INSTANCE.GetDebugLogging();
 }
 
-void hydra_config_set_sd_card_path(const char* path) {
-    hydra::CONFIG_INSTANCE.SetSdCardPath(path);
-}
-
-int hydra_config_get_cpu_backend() {
-    return static_cast<int>(hydra::CONFIG_INSTANCE.GetCpuBackend());
-}
-
-void hydra_config_set_cpu_backend(int backend) {
-    hydra::CONFIG_INSTANCE.SetCpuBackend(
-        static_cast<hydra::CpuBackend>(backend));
-}
-
-int hydra_config_get_gpu_renderer() {
-    return static_cast<int>(hydra::CONFIG_INSTANCE.GetGpuRenderer());
-}
-
-void hydra_config_set_gpu_renderer(int renderer) {
-    hydra::CONFIG_INSTANCE.SetGpuRenderer(
-        static_cast<hydra::GpuRenderer>(renderer));
-}
-
-int hydra_config_get_shader_backend() {
-    return static_cast<int>(hydra::CONFIG_INSTANCE.GetShaderBackend());
-}
-
-void hydra_config_set_shader_backend(int backend) {
-    hydra::CONFIG_INSTANCE.SetShaderBackend(
-        static_cast<hydra::ShaderBackend>(backend));
-}
-
-uint32_t hydra_config_get_process_args_count() {
-    return hydra::CONFIG_INSTANCE.GetProcessArgs().size();
-}
-
-const char* hydra_config_get_process_arg(uint32_t index) {
-    return hydra::CONFIG_INSTANCE.GetProcessArgs()[index].c_str();
-}
-
-void hydra_config_add_process_arg(const char* arg) {
-    hydra::CONFIG_INSTANCE.AddProcessArg(arg);
-}
-
-void hydra_config_remove_process_arg(uint32_t index) {
-    hydra::CONFIG_INSTANCE.RemoveProcessArg(index);
-}
-
-bool hydra_config_is_debug_logging_enabled() {
-    return hydra::CONFIG_INSTANCE.IsDebugLoggingEnabled();
-}
-
-void hydra_config_set_debug_logging(bool enabled) {
-    hydra::CONFIG_INSTANCE.SetDebugLogging(enabled);
-}
-
-bool hydra_config_is_log_stack_trace_enabled() {
-    return hydra::CONFIG_INSTANCE.IsLogStackTraceEnabled();
-}
-
-void hydra_config_set_log_stack_trace(bool enabled) {
-    hydra::CONFIG_INSTANCE.SetLogStackTrace(enabled);
+void* hydra_config_get_stack_trace_logging() {
+    return &hydra::CONFIG_INSTANCE.GetStackTraceLogging();
 }
 
 // Emulation context

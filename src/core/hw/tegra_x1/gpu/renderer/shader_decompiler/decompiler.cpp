@@ -139,8 +139,8 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     //                                    out_resource_mapping);
     //     break;
     default:
-        // TODO: log the backend
-        LOG_FATAL(ShaderDecompiler, "Unsupported shader backend");
+        LOG_FATAL(ShaderDecompiler, "Unsupported shader backend {}",
+                  out_backend);
         break;
     }
 

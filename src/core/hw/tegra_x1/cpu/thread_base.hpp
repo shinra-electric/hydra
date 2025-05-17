@@ -27,7 +27,7 @@ class ThreadBase {
     // Debug
     virtual void LogRegisters(bool simd = false, u32 count = 32) = 0;
     void LogStackTrace() {
-        if (!CONFIG_INSTANCE.IsLogStackTraceEnabled())
+        if (!CONFIG_INSTANCE.GetStackTraceLogging())
             return;
 
         LogStackTraceImpl();

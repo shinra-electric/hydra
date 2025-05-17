@@ -165,11 +165,10 @@ void Window::UpdateWindowTitle() {
         fps_str = std::to_string((u32)std::round(1.0f / dt));
 
     // TODO: title name
-    // TODO: don't cast renderer to u32
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
                     emulation_context.GetTitleID(),
-                    (u32)Config::GetInstance().GetGpuRenderer(), fps_str);
+                    Config::GetInstance().GetGpuRenderer(), fps_str);
     SetWindowTitle(title);
 }
 

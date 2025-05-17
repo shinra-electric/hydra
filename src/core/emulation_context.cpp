@@ -88,7 +88,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
-    for (const auto& patch_directory : CONFIG_INSTANCE.GetPatchDirectories()) {
+    for (const auto& patch_directory :
+         CONFIG_INSTANCE.GetPatchDirectories().Get()) {
         for (const auto& dir_entry :
              std::filesystem::directory_iterator{patch_directory}) {
             if (to_lower(dir_entry.path().filename().string()) ==
@@ -125,7 +126,7 @@ void EmulationContext::Run() {
     state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
 
     // Preselected user
-    auto user_id = config.GetUserID();
+    auto user_id = config.GetUserID().Get();
     if (user_id == horizon::services::account::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (USER_MANAGER_INSTANCE.GetCount() == 1) {

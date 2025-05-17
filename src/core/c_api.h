@@ -8,39 +8,37 @@
 extern "C" {
 #endif
 
+// Options
+bool hydra_bool_option_get(const void* option);
+void hydra_bool_option_set(void* option, const bool value);
+
+int32_t hydra_i32_option_get(const void* option);
+void hydra_i32_option_set(void* option, const int32_t value);
+
+__uint128_t hydra_u128_option_get(const void* option);
+void hydra_u128_option_set(void* option, const __uint128_t value);
+
+const char* hydra_string_option_get(const void* option);
+void hydra_string_option_set(void* option, const char* value);
+
+const char* hydra_string_array_option_get(const void* option, uint32_t index);
+void hydra_string_array_option_add(void* option, const char* value);
+void hydra_string_array_option_set(void* option, uint32_t index,
+                                   const char* value);
+void hydra_string_array_option_remove(void* option, uint32_t index);
+
 // Config
-uint32_t hydra_config_get_game_directories_count();
-const char* hydra_config_get_game_directory(uint32_t index);
-void hydra_config_add_game_directory(const char* path);
-void hydra_config_remove_game_directory(uint32_t index);
-
-uint32_t hydra_config_get_patch_directories_count();
-const char* hydra_config_get_patch_directory(uint32_t index);
-void hydra_config_add_patch_directory(const char* path);
-void hydra_config_remove_patch_directory(uint32_t index);
-
-const char* hydra_config_get_sd_card_path();
-void hydra_config_set_sd_card_path(const char* path);
-
-int hydra_config_get_cpu_backend();
-void hydra_config_set_cpu_backend(int backend);
-
-int hydra_config_get_gpu_renderer();
-void hydra_config_set_gpu_renderer(int renderer);
-
-int hydra_config_get_shader_backend();
-void hydra_config_set_shader_backend(int backend);
-
-uint32_t hydra_config_get_process_args_count();
-const char* hydra_config_get_process_arg(uint32_t index);
-void hydra_config_add_process_arg(const char* arg);
-void hydra_config_remove_process_arg(uint32_t index);
-
-bool hydra_config_is_debug_logging_enabled();
-void hydra_config_set_debug_logging(bool enabled);
-
-bool hydra_config_is_log_stack_trace_enabled();
-void hydra_config_set_log_stack_trace(bool enabled);
+void* hydra_config_get_game_directories();
+void* hydra_config_get_patch_directories();
+void* hydra_config_get_sd_card_path();
+void* hydra_config_get_save_path();
+void* hydra_config_get_cpu_backend();
+void* hydra_config_get_gpu_renderer();
+void* hydra_config_get_shader_backend();
+void* hydra_config_get_user_id();
+void* hydra_config_get_process_args();
+void* hydra_config_get_debug_logging();
+void* hydra_config_get_stack_trace_logging();
 
 // Emulation context
 void* hydra_emulation_context_create();

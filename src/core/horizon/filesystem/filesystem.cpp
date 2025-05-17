@@ -34,11 +34,11 @@ Filesystem::Filesystem() {
     SINGLETON_SET_INSTANCE(Filesystem, Filesystem);
 
     // SD card
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath());
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath().Get());
     MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
 
     // Save
-    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath());
+    std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath().Get());
     MountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
 }
 
