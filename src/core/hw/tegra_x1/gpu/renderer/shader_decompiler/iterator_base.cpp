@@ -600,14 +600,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negA = GET_BIT(43);
         const auto srcB = GET_REG(20);
+        const auto negB = GET_BIT(53);
         // TODO: combine
-        LOG_DEBUG(ShaderDecompiler, "fset {} {} r{} r{} r{}", cmp, combine_bin,
-                  dst, srcA, srcB);
+        LOG_DEBUG(ShaderDecompiler, "fset {} {} r{} {}r{} {}r{}", cmp,
+                  combine_bin, dst, negA ? "-" : "", srcA, negB ? "-" : "",
+                  srcB);
 
         auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
-                         o->OpRegister(true, srcB, DataType::F32));
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
+                         o->OpRegister(true, srcB, DataType::F32, negB));
         // TODO: uncomment
         // auto bin_res = o->OpBinary(combine_bin, cmp_res,
         //                    o->OpPredicate(true, combine));
