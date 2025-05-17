@@ -2,8 +2,8 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp"
 
-#define WRITE_ARGS fmt::format_string<T...> fmt, T &&... args
-#define FMT fmt::format(fmt, std::forward<T>(args)...)
+#define WRITE_ARGS fmt::format_string<T...> f, T &&... args
+#define FMT fmt::format(f, std::forward<T>(args)...)
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
@@ -11,6 +11,16 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 #define INVALID_VALUE "INVALID"
 
+class Value : public ValueBase {
+    friend class LangBuilderBase;
+
+  private:
+    const std::string str;
+
+    Value(const std::string_view str_) : str{str_} {}
+};
+
+// TODO: keep track of created values
 class LangBuilderBase : public BuilderBase {
     friend class StructuredIterator;
 
@@ -23,25 +33,45 @@ class LangBuilderBase : public BuilderBase {
     void SetPredCond(const PredCond pred_cond) override;
 
     // Operations
+
+    // Value
+    ValueBase* OpImmediateL(u32 imm, DataType data_type = DataType::U32,
+                            bool neg = false) override;
+    ValueBase* OpRegister(bool load, reg_t reg,
+                          DataType data_type = DataType::U32,
+                          bool neg = false) override;
+    ValueBase* OpPredicate(bool load, pred_t pred, bool not_ = false) override;
+    ValueBase* OpAttributeMemory(bool load, const AMem& amem,
+                                 DataType data_type = DataType::U32,
+                                 bool neg = false) override;
+    ValueBase* OpConstMemoryL(const CMem& cmem,
+                              DataType data_type = DataType::U32,
+                              bool neg = false) override;
+
+    // Basic
+    void OpMove(ValueBase* dst, ValueBase* src) override;
+    ValueBase* OpAdd(ValueBase* srcA, ValueBase* srcB) override;
+    ValueBase* OpMultiply(ValueBase* srcA, ValueBase* srcB) override;
+    ValueBase* OpFloatFma(ValueBase* srcA, ValueBase* srcB,
+                          ValueBase* srcC) override;
+    ValueBase* OpShiftLeft(ValueBase* src, u32 shift) override;
+    ValueBase* OpCast(ValueBase* src, DataType dst_type) override;
+    ValueBase* OpCompare(ComparisonOperator cmp, ValueBase* srcA,
+                         ValueBase* srcB) override;
+    ValueBase* OpBinary(BinaryOperator bin, ValueBase* srcA,
+                        ValueBase* srcB) override;
+    ValueBase* OpSelect(ValueBase* cond, ValueBase* src_true,
+                        ValueBase* src_false) override;
+
+    // Control flow
     void OpExit() override;
-    void OpMove(reg_t dst, Operand src) override;
-    void OpAdd(Operand dst, Operand src1, Operand src2) override;
-    void OpMultiply(Operand dst, Operand src1, Operand src2) override;
-    void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
-    void OpShiftLeft(reg_t dst, reg_t src, u32 shift) override;
-    void OpCast(Operand dst, Operand src) override;
-    void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
-                   pred_t dst, pred_t combine, Operand lhs,
-                   Operand rhs) override;
-    void OpSetPred(BinaryOperator bin, BinaryOperator combine_bin, pred_t dst,
-                   pred_t combine, pred_t src1, pred_t src2,
-                   pred_t src3) override;
-    void OpMathFunction(MathFunc func, reg_t dst, reg_t src) override;
-    void OpLoad(reg_t dst, Operand src) override;
-    void OpStore(AMem dst, reg_t src) override;
-    void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
-                         reg_t coords_x, reg_t coords_y) override;
+
+    // Special
+    ValueBase* OpMathFunction(MathFunc func, ValueBase* src) override;
+    ValueBase* OpInterpolate(ValueBase* src) override;
+    void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
+                         ValueBase* dstD, u32 const_buffer_index,
+                         ValueBase* coords_x, ValueBase* coords_y) override;
 
   protected:
     virtual void EmitHeader() = 0;
@@ -101,64 +131,37 @@ class LangBuilderBase : public BuilderBase {
     }
 
     // Helpers
-    std::string GetReg(reg_t reg, bool write = false,
-                       DataType data_type = DataType::U32) {
-        if (reg == RZ && !write)
+    std::string GetImmediateL(u32 imm, DataType data_type = DataType::U32) {
+        return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
+    }
+
+    std::string GetRegister(bool load, reg_t reg,
+                            DataType data_type = DataType::U32) {
+        if (load && reg == RZ)
             return GetImmediate(0, data_type);
 
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
-    std::string GetPred(pred_t pred, bool write = false) {
-        if (pred == PT && !write)
+    std::string GetPredicate(bool load, pred_t pred) {
+        if (load && pred == PT)
             return GetImmediate(true);
 
         return fmt::format("p[{}]", pred);
     }
 
-    std::string GetImm(u32 imm, DataType data_type = DataType::U32) {
-        return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
-    }
-
-    std::string GetA(const AMem amem, DataType data_type = DataType::U32) {
+    std::string GetAttributeMemory(bool load, const AMem amem,
+                                   DataType data_type = DataType::U32) {
         // TODO: support indexing with reg
         return fmt::format("a[0x{:08x}].{}", amem.imm / sizeof(u32),
                            GetTypePrefix(data_type));
     }
 
-    std::string GetC(const CMem cmem, DataType data_type = DataType::U32) {
+    std::string GetConstMemoryL(const CMem cmem,
+                                DataType data_type = DataType::U32) {
         return fmt::format("c[{}][{} + 0x{:08x}].{}", cmem.idx,
-                           GetReg(cmem.reg), cmem.imm / sizeof(u32),
+                           GetRegister(true, cmem.reg), cmem.imm / sizeof(u32),
                            GetTypePrefix(data_type));
-    }
-
-    std::string GetOperand(Operand operand, bool write = false) {
-        std::string res;
-        switch (operand.type) {
-        case OperandType::Register:
-            res = GetReg(operand.reg, write, operand.data_type);
-            break;
-        case OperandType::Predicate:
-            ASSERT_DEBUG(operand.data_type == DataType::Invalid, ShaderDecompiler,
-                         "Predicates cannot have types (type: {})",
-                         operand.data_type);
-            res = GetPred(operand.pred, write);
-            break;
-        case OperandType::Immediate:
-            res = GetImm(operand.imm, operand.data_type);
-            break;
-        case OperandType::AttributeMemory:
-            res = GetA(operand.amem, operand.data_type);
-            break;
-        case OperandType::ConstMemory:
-            res = GetC(operand.cmem, operand.data_type);
-            break;
-        }
-
-        if (operand.neg)
-            return fmt::format("(-{})", res);
-        else
-            return res;
     }
 
     const char GetComponentFromIndex(u8 component_index) {
@@ -313,8 +316,8 @@ class LangBuilderBase : public BuilderBase {
     }
 
     // Helpers
-    void EmitReadToTemp(reg_t src, u32 offset = 0, u32 count = 4);
-    void EmitWriteFromTemp(reg_t dst, u32 offset = 0, u32 count = 4);
+    void EmitReadToTemp(ValueBase* src, u32 offset);
+    void EmitWriteFromTemp(ValueBase* dst, u32 offset);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang

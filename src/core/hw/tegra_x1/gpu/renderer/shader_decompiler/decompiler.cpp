@@ -5,7 +5,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structured_iterator.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_group.hpp"
 // #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
 
@@ -104,11 +103,15 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
     // Analyze
     Analyzer::MemoryAnalyzer memory_analyzer;
+    {
+        AllPathsIterator iterator(code_reader.CreateSubReader());
+        iterator.Iterate(&memory_analyzer);
+    }
+
     Analyzer::CfgBuilder cfg_builder;
     {
-        ObserverGroup<2> observer_group({&memory_analyzer, &cfg_builder});
         AllPathsIterator iterator(code_reader.CreateSubReader());
-        iterator.Iterate(&observer_group);
+        iterator.Iterate(&cfg_builder);
     }
 
     // Debug

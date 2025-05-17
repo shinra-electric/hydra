@@ -15,43 +15,25 @@ void push_sv(std::vector<SvSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
-void MemoryAnalyzer::OpMove(reg_t dst, Operand src) { HandleLoad(src); }
-
-void MemoryAnalyzer::OpAdd(Operand dst, Operand src1, Operand src2) {
-    HandleLoad(src2);
+ValueBase* MemoryAnalyzer::OpAttributeMemory(bool load, const AMem& amem,
+                                             DataType data_type, bool neg) {
+    if (load)
+        HandleAMemLoad(amem);
+    else
+        HandleAMemStore(amem);
+    return nullptr;
 }
 
-void MemoryAnalyzer::OpMultiply(Operand dst, Operand src1, Operand src2) {
-    HandleLoad(src2);
+ValueBase* MemoryAnalyzer::OpConstMemoryL(const CMem& cmem, DataType data_type,
+                                          bool neg) {
+    HandleCMemLoad(cmem);
+    return nullptr;
 }
 
-void MemoryAnalyzer::OpFloatFma(reg_t dst, reg_t src1, Operand src2,
-                                Operand src3) {
-    HandleLoad(src2);
-    HandleLoad(src3);
-}
-
-void MemoryAnalyzer::OpCast(Operand dst, Operand src) {
-    HandleStore(dst);
-    HandleLoad(src);
-}
-
-void MemoryAnalyzer::OpSetPred(ComparisonOperator cmp,
-                               BinaryOperator combine_bin, pred_t dst,
-                               pred_t combine, Operand lhs, Operand rhs) {
-    HandleLoad(lhs);
-    HandleLoad(rhs);
-}
-
-void MemoryAnalyzer::OpLoad(reg_t dst, Operand src) { HandleLoad(src); }
-
-void MemoryAnalyzer::OpStore(AMem dst, reg_t src) { HandleAMemStore(dst); }
-
-void MemoryAnalyzer::OpInterpolate(reg_t dst, AMem src) { HandleAMemLoad(src); }
-
-void MemoryAnalyzer::OpTextureSample(reg_t dst0, reg_t dst1,
-                                     u32 const_buffer_index, reg_t coords_x,
-                                     reg_t coords_y) {
+void MemoryAnalyzer::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
+                                     ValueBase* dstC, ValueBase* dstD,
+                                     u32 const_buffer_index,
+                                     ValueBase* coords_x, ValueBase* coords_y) {
     push_unique(textures, const_buffer_index);
 }
 
@@ -73,42 +55,11 @@ void MemoryAnalyzer::HandleCMemLoad(const CMem cmem) {
     size = std::max(size, static_cast<usize>(cmem.imm) + sizeof(u32));
 }
 
-void MemoryAnalyzer::HandleLoad(const Operand operand) {
-    switch (operand.type) {
-    case OperandType::Register:
-    case OperandType::Immediate:
-        break;
-    case OperandType::AttributeMemory:
-        HandleAMemLoad(operand.amem);
-        break;
-    case OperandType::ConstMemory:
-        HandleCMemLoad(operand.cmem);
-        break;
-    default:
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Operand type {}", operand.type);
-        break;
-    }
-}
-
 void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: r{})", amem.reg);
     push_sv(output_svs, stage_outputs, amem.imm);
-}
-
-void MemoryAnalyzer::HandleStore(const Operand operand) {
-    switch (operand.type) {
-    case OperandType::Register:
-    case OperandType::Immediate:
-        break;
-    case OperandType::AttributeMemory:
-        HandleAMemStore(operand.amem);
-        break;
-    default:
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Operand type {}", operand.type);
-        break;
-    }
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer

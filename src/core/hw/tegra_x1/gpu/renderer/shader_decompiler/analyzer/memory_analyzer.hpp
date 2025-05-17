@@ -7,21 +7,19 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
 class MemoryAnalyzer : public ObserverBase {
   public:
     // Operations
-    void OpMove(reg_t dst, Operand src) override;
-    void OpAdd(Operand dst, Operand src1, Operand src2) override;
-    void OpMultiply(Operand dst, Operand src1, Operand src2) override;
-    void OpFloatFma(reg_t dst, reg_t src1, Operand src2, Operand src3) override;
-    void OpCast(Operand dst, Operand src) override;
 
-    void OpSetPred(ComparisonOperator cmp, BinaryOperator combine_bin,
-                   pred_t dst, pred_t combine, Operand lhs,
-                   Operand rhs) override;
+    // Value
+    ValueBase* OpAttributeMemory(bool load, const AMem& amem,
+                                 DataType data_type = DataType::U32,
+                                 bool neg = false) override;
+    ValueBase* OpConstMemoryL(const CMem& cmem,
+                              DataType data_type = DataType::U32,
+                              bool neg = false) override;
 
-    void OpLoad(reg_t dst, Operand src) override;
-    void OpStore(AMem dst, reg_t src) override;
-    void OpInterpolate(reg_t dst, AMem src) override;
-    void OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
-                         reg_t coords_x, reg_t coords_y) override;
+    // Special
+    void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
+                         ValueBase* dstD, u32 const_buffer_index,
+                         ValueBase* coords_x, ValueBase* coords_y) override;
 
     // Getters
     const std::vector<SvSemantic>& GetInputSVs() const { return input_svs; }
@@ -44,10 +42,7 @@ class MemoryAnalyzer : public ObserverBase {
     // Helpers
     void HandleAMemLoad(const AMem amem);
     void HandleCMemLoad(const CMem cmem);
-    void HandleLoad(const Operand operand);
-
     void HandleAMemStore(const AMem amem);
-    void HandleStore(const Operand operand);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer

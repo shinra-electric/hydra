@@ -46,68 +46,6 @@ struct CMem {
     u64 imm;
 };
 
-enum class OperandType {
-    Register,
-    Predicate,
-    Immediate,
-    AttributeMemory,
-    ConstMemory,
-};
-
-struct Operand {
-    OperandType type;
-    union {
-        reg_t reg;
-        pred_t pred;
-        u32 imm;
-        AMem amem;
-        CMem cmem;
-    };
-    DataType data_type;
-    bool neg;
-
-    static Operand Register(reg_t reg, const DataType data_type = DataType::U32,
-                            bool neg = false) {
-        return Operand{.type = OperandType::Register,
-                       .reg = reg,
-                       .data_type = data_type,
-                       .neg = neg};
-    }
-
-    static Operand Predicate(pred_t pred, bool neg = false) {
-        return Operand{.type = OperandType::Predicate,
-                       .pred = pred,
-                       .data_type = DataType::Invalid,
-                       .neg = neg};
-    }
-
-    static Operand Immediate(u32 imm, const DataType data_type = DataType::U32,
-                             bool neg = false) {
-        return Operand{.type = OperandType::Immediate,
-                       .imm = imm,
-                       .data_type = data_type,
-                       .neg = neg};
-    }
-
-    static Operand AttributeMemory(const AMem& amem,
-                                   const DataType data_type = DataType::U32,
-                                   bool neg = false) {
-        return Operand{.type = OperandType::AttributeMemory,
-                       .amem = amem,
-                       .data_type = data_type,
-                       .neg = neg};
-    }
-
-    static Operand ConstMemory(const CMem& cmem,
-                               const DataType data_type = DataType::U32,
-                               bool neg = false) {
-        return Operand{.type = OperandType::ConstMemory,
-                       .cmem = cmem,
-                       .data_type = data_type,
-                       .neg = neg};
-    }
-};
-
 struct PredCond {
     pred_t pred;
     bool not_;
@@ -210,14 +148,9 @@ enum class BinaryOperator {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::OperandType, Register,
-    "register", Immediate, "immediate", AttributeMemory, "attribute memory",
-    ConstMemory, "const memory")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid, "invalid",
-    U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32, "i32", F16, "f16", F32,
-    "f32")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid,
+    "invalid", U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32,
+    "i32", F16, "f16", F32, "f32")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::SvSemantic, Invalid,

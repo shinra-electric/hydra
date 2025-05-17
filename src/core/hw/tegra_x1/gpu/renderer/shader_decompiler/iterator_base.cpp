@@ -4,23 +4,22 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
-result_t IteratorBase::ParseNextInstruction(ObserverBase* observer) {
+result_t IteratorBase::ParseNextInstruction(ObserverBase* o) {
     const auto inst = code_reader.Read<instruction_t>();
     const u32 pc = GetPC();
     if ((pc % 4) == 0) // Sched
         return {ResultCode::None};
 
-    observer->SetPC(pc);
+    o->SetPC(pc);
     LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
-    const auto res = ParseNextInstructionImpl(observer, pc, inst);
-    observer->ClearPredCond();
+    const auto res = ParseNextInstructionImpl(o, pc, inst);
+    o->ClearPredCond();
 
     return res;
 }
 
-result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
-                                                const u32 pc,
+result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
                                                 const instruction_t inst) {
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
@@ -76,7 +75,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto pred = GET_PRED(16);                                        \
         const bool not_ = GET_BIT(19);                                         \
         LOG_DEBUG(ShaderDecompiler, "if {}p{}", not_ ? "!" : "", pred);        \
-        observer->SetPredCond({pred, not_});                                   \
+        o->SetPredCond({pred, not_});                                          \
         conditional = true;                                                    \
     }
 
@@ -90,7 +89,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         // TODO: f0f8_0
         LOG_DEBUG(ShaderDecompiler, "sync");
 
-        observer->OpSync();
+        o->OpSync();
 
         return {ResultCode::EndBlock};
     }
@@ -115,7 +114,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   amem.reg, amem.imm, src, todo);
 
         for (u32 i = 0; i < get_load_store_count(mode); i++) {
-            observer->OpStore(amem, src + i);
+            o->OpMove(o->OpAttributeMemory(false, amem),
+                      o->OpRegister(true, src + i));
             amem.imm += sizeof(u32);
         }
     }
@@ -132,7 +132,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                   dst, amem.reg, amem.imm, todo);
 
         for (u32 i = 0; i < get_load_store_count(mode); i++) {
-            observer->OpLoad(dst + i, Operand::AttributeMemory(amem));
+            o->OpMove(o->OpRegister(false, dst + i),
+                      o->OpAttributeMemory(true, amem));
             amem.imm += sizeof(u32);
         }
     }
@@ -150,7 +151,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "ld r{} c{}[r{} + 0x{:x}]", dst, src.idx,
                   src.reg, src.imm);
 
-        observer->OpLoad(dst, Operand::ConstMemory(src));
+        o->OpMove(o->OpRegister(false, dst), o->OpConstMemoryL(src));
     }
     INST(0xef80000000000000, 0xffe0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "cctll");
@@ -222,7 +223,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         // TODO: f0f8_0
         LOG_DEBUG(ShaderDecompiler, "kil");
 
-        observer->OpDiscard();
+        o->OpDiscard();
     }
     INST(0xe320000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ret");
@@ -234,7 +235,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         // TODO: f0f8_0
         LOG_DEBUG(ShaderDecompiler, "exit");
 
-        observer->OpExit();
+        o->OpExit();
 
         return {ResultCode::EndBlock};
     }
@@ -260,7 +261,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto target = GET_BTARG();
         LOG_DEBUG(ShaderDecompiler, "ssy 0x{:x}", target);
 
-        observer->OpSetSync(target);
+        o->OpSetSync(target);
 
         return {ResultCode::SyncPoint, target};
     }
@@ -289,7 +290,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto target = GET_BTARG();
         LOG_DEBUG(ShaderDecompiler, "bra 0x{:x}", target);
 
-        observer->OpBranch(target);
+        o->OpBranch(target);
 
         return {conditional ? ResultCode::BranchConditional
                             : ResultCode::Branch,
@@ -321,7 +322,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "ipa r{} a[r{} + 0x{:08x}] r{} r{}", dst,
                   amem.reg, amem.imm, interp_param, flag1);
 
-        observer->OpInterpolate(dst, amem);
+        auto res = o->OpInterpolate(o->OpAttributeMemory(true, amem));
+        o->OpMove(o->OpRegister(false, dst), res);
     }
     INST(0xe000004000000000, 0xff00004000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ipa");
@@ -365,8 +367,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "texs r{} r{} r{} r{} 0x{:08x}", dst1, dst0,
                   coords_x, coords_y, const_buffer_index);
 
-        observer->OpTextureSample(dst0, dst1, const_buffer_index, coords_x,
-                                  coords_y);
+        o->OpTextureSample(
+            o->OpRegister(false, dst0), o->OpRegister(false, dst0 + 1),
+            o->OpRegister(false, dst1), o->OpRegister(false, dst1 + 1),
+            const_buffer_index, o->OpRegister(true, coords_x),
+            o->OpRegister(true, coords_y));
     }
     INST(0xc838000000000000, 0xfc38000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");
@@ -427,8 +432,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} r{}", dst_type, src_type,
                   dst, src);
 
-        observer->OpCast(Operand::Register(dst, dst_type),
-                         Operand::Register(src, src_type));
+        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
     INST(0x5cc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
@@ -442,8 +447,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "i2f {} {} r{} r{}", dst_type, src_type,
                   dst, src);
 
-        observer->OpCast(Operand::Register(dst, dst_type),
-                         Operand::Register(src, src_type));
+        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
     INST(0x5cb0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2i");
@@ -459,7 +464,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
         LOG_DEBUG(ShaderDecompiler, "mov r{} r{} 0x{:x}", dst, src, todo);
 
-        observer->OpMove(dst, Operand::Register(src));
+        o->OpMove(o->OpRegister(false, dst), o->OpRegister(true, src));
     }
     INST(0x5c90000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
@@ -473,13 +478,13 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_REG(20);
-        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} r{}", dst, src1, src2);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} r{}", dst, srcA, srcB);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::F32),
-                             Operand::Register(src1, DataType::F32),
-                             Operand::Register(src2, DataType::F32));
+        auto res = o->OpMultiply(o->OpRegister(true, srcA, DataType::F32),
+                                 o->OpRegister(true, srcB, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -487,16 +492,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const bool neg1 = GET_BIT(48);
-        const auto src1 = GET_REG(8);
-        const bool neg2 = GET_BIT(45);
-        const auto src2 = GET_REG(20);
+        const bool negA = GET_BIT(48);
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(45);
+        const auto srcB = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}r{}", dst,
-                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
+                  negA ? "-" : "", srcA, negB ? "-" : "", srcB);
 
-        observer->OpAdd(Operand::Register(dst, DataType::F32),
-                        Operand::Register(src1, DataType::F32, neg1),
-                        Operand::Register(src2, DataType::F32, neg2));
+        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::F32, negA),
+                            o->OpRegister(true, srcB, DataType::F32, negB));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -539,14 +544,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
-        const auto lhs = GET_REG(8);
-        const auto rhs = GET_REG(20);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} r{}", cmp,
-                  combine_bin, dst, combine, lhs, rhs);
+                  combine_bin, dst, combine, srcA, srcB);
 
-        observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::F32),
-                            Operand::Register(rhs, DataType::F32));
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
+                         o->OpRegister(true, srcB, DataType::F32));
+        auto bin_res =
+            o->OpBinary(combine_bin, cmp_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin_res);
     }
     INST(0x5ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -570,20 +578,46 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_REG(20);
-        const auto src3 = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} r{}", dst, src1, src2,
-                  src3);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        const auto srcC = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} r{}", dst, srcA, srcB,
+                  srcC);
 
-        observer->OpFloatFma(dst, src1,
-                             Operand::Register(src2, DataType::F32),
-                             Operand::Register(src3, DataType::F32));
+        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                                 o->OpRegister(true, srcB, DataType::F32),
+                                 o->OpRegister(true, srcC, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
-    INST(0x5800000000000000, 0xff00000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fset");
+    INST(0x5800000000000000, 0xff00000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: some sort of boolean flag at bit 52
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        // TODO: combine
+        LOG_DEBUG(ShaderDecompiler, "fset {} {} r{} r{} r{}", cmp, combine_bin,
+                  dst, srcA, srcB);
+
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
+                         o->OpRegister(true, srcB, DataType::F32));
+        // TODO: uncomment
+        // auto bin_res = o->OpBinary(combine_bin, cmp_res,
+        //                    o->OpPredicate(true, combine));
+        // TODO: use bin_res instead of cmp_res
+        // TODO: simplify immediate value creation
+        auto select_res = o->OpSelect(
+            cmp_res,
+            o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
+            o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), select_res);
+    }
     INST(0x5700000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vshl");
     INST(0x5600000000000000, 0xff00000000000000)
@@ -612,15 +646,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_REG(39);
-        const auto src3 = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} c{}[0x{:x}]", dst, src1,
-                  src2, src3.idx, src3.imm);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(39);
+        const auto srcC = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} c{}[0x{:x}]", dst, srcA,
+                  srcB, srcC.idx, srcC.imm);
 
-        observer->OpFloatFma(dst, src1,
-                             Operand::Register(src2, DataType::F32),
-                             Operand::ConstMemory(src3, DataType::F32));
+        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                                 o->OpRegister(true, srcB, DataType::F32),
+                                 o->OpConstMemoryL(srcC, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5100000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "xmad");
@@ -650,13 +685,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
-        const auto src1 = GET_PRED(12);
-        const auto src2 = GET_PRED(29);
-        const auto src3 = GET_PRED(39);
+        const auto srcA = GET_PRED(12);
+        const auto srcB = GET_PRED(29);
+        const auto srcC = GET_PRED(39);
         LOG_DEBUG(ShaderDecompiler, "psetp {} {} p{} p{} p{} p{} p{}", bin,
-                  combine_bin, dst, combine, src1, src2, src3);
+                  combine_bin, dst, combine, srcA, srcB, srcC);
 
-        observer->OpSetPred(bin, combine_bin, dst, combine, src1, src2, src3);
+        auto bin1_res = o->OpBinary(bin, o->OpPredicate(true, srcA),
+                                    o->OpPredicate(true, srcB));
+        auto bin2_res = o->OpBinary(bin, bin1_res, o->OpPredicate(true, srcC));
+        auto bin3_res =
+            o->OpBinary(combine_bin, bin2_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin3_res);
     }
     INST(0x5088000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "pset");
@@ -668,7 +708,9 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto src = GET_REG(8);
         LOG_DEBUG(ShaderDecompiler, "mufu {} r{} r{}", func, dst, src);
 
-        observer->OpMathFunction(func, dst, src);
+        auto res =
+            o->OpMathFunction(func, o->OpRegister(true, src, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5000000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vabsdiff4");
@@ -686,11 +728,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto src_type = get_operand_5ce0_1(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} c{}[0x{:x}]", dst_type, src_type,
-                  dst, src.idx, src.imm);
+        LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} c{}[0x{:x}]", dst_type,
+                  src_type, dst, src.idx, src.imm);
 
-        observer->OpCast(Operand::Register(dst, dst_type),
-                         Operand::ConstMemory(src, src_type));
+        auto res = o->OpCast(o->OpConstMemoryL(src, src_type), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
     INST(0x4cc0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
@@ -711,7 +753,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "mov r{} c{}[0x{:x}] 0x{:x}", dst, src.idx,
                   src.imm, todo);
 
-        observer->OpMove(dst, Operand::ConstMemory(src));
+        o->OpMove(o->OpRegister(false, dst), o->OpConstMemoryL(src));
     }
     INST(0x4c90000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "rro");
@@ -725,14 +767,14 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:x}]", dst, src1,
-                  src2.idx, src2.imm);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} c{}[0x{:x}]", dst, srcA,
+                  srcB.idx, srcB.imm);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::F32),
-                             Operand::Register(src1, DataType::F32),
-                             Operand::ConstMemory(src2, DataType::F32));
+        auto res = o->OpMultiply(o->OpRegister(false, srcA, DataType::F32),
+                                 o->OpConstMemoryL(srcB, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4c60000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -740,16 +782,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const bool neg1 = GET_BIT(48);
-        const auto src1 = GET_REG(8);
-        const bool neg2 = GET_BIT(45);
-        const auto src2 = GET_CMEM(34, 14);
+        const bool negA = GET_BIT(48);
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(45);
+        const auto srcB = GET_CMEM(34, 14);
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}c{}[0x{:x}]", dst,
-                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2.idx, src2.imm);
+                  negA ? "-" : "", srcA, negB ? "-" : "", srcB.idx, srcB.imm);
 
-        observer->OpAdd(Operand::Register(dst, DataType::F32),
-                        Operand::Register(src1, DataType::F32, neg1),
-                        Operand::ConstMemory(src2, DataType::F32, neg2));
+        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32, negA),
+                            o->OpConstMemoryL(srcB, DataType::F32, negB));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4c50000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -786,14 +828,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
-        const auto lhs = GET_REG(8);
-        const auto rhs = GET_CMEM(34, 14);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_CMEM(34, 14);
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp,
-                  combine_bin, dst, combine, lhs, rhs.idx, rhs.imm);
+                  combine_bin, dst, combine, srcA, srcB.idx, srcB.imm);
 
-        observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::F32),
-                            Operand::ConstMemory(rhs, DataType::F32));
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
+                         o->OpConstMemoryL(srcB, DataType::F32));
+        auto bin_res =
+            o->OpBinary(combine_bin, cmp_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin_res);
     }
     INST(0x4ba0000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -815,15 +860,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_CMEM(34, 14);
-        const auto src3 = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, src1,
-                  src2.idx, src2.imm, src3);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_CMEM(34, 14);
+        const auto srcC = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, srcA,
+                  srcB.idx, srcB.imm, srcC);
 
-        observer->OpFloatFma(dst, src1,
-                             Operand::ConstMemory(src2, DataType::F32),
-                             Operand::Register(src3, DataType::F32));
+        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                                 o->OpConstMemoryL(srcB, DataType::F32),
+                                 o->OpRegister(true, srcC, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4900000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -849,12 +895,12 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto src_type = get_operand_5ce0_1(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_VALUE_U32(20, 19) |
-                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
+                         (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
         LOG_DEBUG(ShaderDecompiler, "i2i {} {} r{} 0x{:x}", dst_type, src_type,
                   dst, src);
 
-        observer->OpCast(Operand::Register(dst, dst_type),
-                         Operand::Immediate(src, src_type));
+        auto res = o->OpCast(o->OpImmediateL(src, src_type), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
     INST(0x38c0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd3");
@@ -880,13 +926,13 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_VALUE_F32();
-        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, src1, src2);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_F32();
+        LOG_DEBUG(ShaderDecompiler, "fmul r{} r{} 0x{:08x}", dst, srcA, srcB);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::F32),
-                             Operand::Register(src1, DataType::F32),
-                             Operand::Immediate(src2, DataType::F32));
+        auto res = o->OpMultiply(o->OpRegister(false, srcA, DataType::F32),
+                                 o->OpImmediateL(srcB, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x3860000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
@@ -894,16 +940,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const bool neg1 = GET_BIT(48);
-        const auto src1 = GET_REG(8);
-        const bool neg2 = GET_BIT(45);
-        const auto src2 = GET_VALUE_F32();
+        const bool negA = GET_BIT(48);
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(45);
+        const auto srcB = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}0x{:x}", dst,
-                  neg1 ? "-" : "", src1, neg2 ? "-" : "", src2);
+                  negA ? "-" : "", srcA, negB ? "-" : "", srcB);
 
-        observer->OpAdd(Operand::Register(dst, DataType::F32),
-                        Operand::Register(src1, DataType::F32, neg1),
-                        Operand::Immediate(src2, DataType::F32, neg2));
+        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32, negA),
+                            o->OpImmediateL(srcB, DataType::F32, negB));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x3850000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dmnmx");
@@ -916,7 +962,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
                            (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
         LOG_DEBUG(ShaderDecompiler, "shl r{} r{} 0x{:x}", dst, src, shift);
 
-        observer->OpShiftLeft(dst, src, shift);
+        auto res = o->OpShiftLeft(o->OpRegister(true, src), shift);
+        o->OpMove(o->OpRegister(false, dst), res);
     }
     INST(0x3840000000000000, 0xfef8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "lop");
@@ -951,14 +998,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_PRED(3);
         const auto combine = GET_PRED(0); // TODO: combine?
-        const auto lhs = GET_REG(8);
-        const auto rhs = GET_VALUE_F32();
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_F32();
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} 0x{:08x}", cmp,
-                  combine_bin, dst, combine, lhs, rhs);
+                  combine_bin, dst, combine, srcA, srcB);
 
-        observer->OpSetPred(cmp, combine_bin, dst, combine,
-                            Operand::Register(lhs, DataType::F32),
-                            Operand::Immediate(rhs, DataType::F32));
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
+                         o->OpImmediateL(srcB, DataType::F32));
+        auto bin_res =
+            o->OpBinary(combine_bin, cmp_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin_res);
     }
     INST(0x36a0000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fcmp");
@@ -982,15 +1032,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_VALUE_F32();
-        const auto src3 = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, src1,
-                  src2, src3);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_F32();
+        const auto srcC = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, srcA,
+                  srcB, srcC);
 
-        observer->OpFloatFma(dst, src1,
-                             Operand::Immediate(src2, DataType::F32),
-                             Operand::Register(src3, DataType::F32));
+        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                                 o->OpImmediateL(srcB, DataType::F32),
+                                 o->OpRegister(true, srcC, DataType::F32));
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x3200000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dset");
@@ -1010,14 +1061,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         HANDLE_PRED_COND();
 
         const auto dst = GET_REG(0);
-        const auto src1 = GET_REG(8);
-        const auto src2 = GET_VALUE_U32_EXTEND(32, 20);
-        LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, src1,
-                  src2);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_U32_EXTEND(32, 20);
+        LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, srcA,
+                  srcB);
 
-        observer->OpMultiply(Operand::Register(dst, DataType::F32),
-                             Operand::Register(src1, DataType::F32),
-                             Operand::Immediate(src2, DataType::F32));
+        auto srcB_v =
+            o->OpCast(o->OpImmediateL(srcB, DataType::U32), DataType::F32);
+        auto res =
+            o->OpMultiply(o->OpRegister(false, srcA, DataType::F32), srcB_v);
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x1d80000000000000, 0xff80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iadd32i");
@@ -1047,7 +1100,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* observer,
         LOG_DEBUG(ShaderDecompiler, "mov32i {} 0x{:08x} 0x{:08x}", dst, value,
                   todo);
 
-        observer->OpMove(dst, Operand::Immediate(value));
+        o->OpMove(o->OpRegister(false, dst), o->OpImmediateL(value));
     }
     else {
         LOG_WARN(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
