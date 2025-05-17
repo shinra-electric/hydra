@@ -4,6 +4,16 @@
 
 namespace hydra::horizon::services::audio {
 
+enum class PcmFormat : u8 {
+    Invalid = 0,
+    Int8 = 1,
+    Int16 = 2,
+    Int24 = 3,
+    Int32 = 4,
+    Float = 5,
+    Adpcm = 6,
+};
+
 struct AudioRendererParameters {
     i32 sample_rate;
     i32 sample_count;

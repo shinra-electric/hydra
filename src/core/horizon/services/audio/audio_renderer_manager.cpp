@@ -1,9 +1,12 @@
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
 
+#include "core/horizon/services/audio/audio_device.hpp"
+#include "core/horizon/services/audio/audio_renderer.hpp"
+
 namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
-                             GetWorkBufferSize)
+                             GetWorkBufferSize, 2, GetAudioDeviceService)
 
 result_t IAudioRendererManager::OpenAudioRenderer(
     add_service_fn_t add_service, aligned<AudioRendererParameters, 56> params,
@@ -19,6 +22,13 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
 
     // HACK
     *out_size = 0x8000;
+    return RESULT_SUCCESS;
+}
+
+result_t
+IAudioRendererManager::GetAudioDeviceService(add_service_fn_t add_service,
+                                             u64 aruid) {
+    add_service(new IAudioDevice());
     return RESULT_SUCCESS;
 }
 

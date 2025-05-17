@@ -186,6 +186,8 @@ add_library(hydra-core
     horizon/services/socket/resolver/resolver.cpp
     horizon/services/socket/resolver/resolver.hpp
     horizon/services/audio/const.hpp
+    horizon/services/audio/audio_device.cpp
+    horizon/services/audio/audio_device.hpp
     horizon/services/audio/audio_out.cpp
     horizon/services/audio/audio_out.hpp
     horizon/services/audio/audio_out_manager.cpp

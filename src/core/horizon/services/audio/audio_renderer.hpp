@@ -6,6 +6,12 @@
 
 namespace hydra::horizon::services::audio {
 
+struct VoiceInfoOut {
+    u64 played_sample_count;
+    u32 num_wave_buffers_consumed;
+    u32 voice_drops_count;
+};
+
 class IAudioRenderer : public ServiceBase {
   public:
     IAudioRenderer(const AudioRendererParameters& params_,
@@ -19,6 +25,8 @@ class IAudioRenderer : public ServiceBase {
     usize work_buffer_size;
 
     kernel::HandleWithId<kernel::Event> event;
+
+    std::vector<VoiceInfoOut> voices;
 
     // Commands
     result_t RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
