@@ -594,7 +594,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     INST(0x5800000000000000, 0xff00000000000000) {
         HANDLE_PRED_COND();
 
-        // TODO: some sort of boolean flag at bit 52
+        // TODO: some sort of boolean flag at bit 52 to indicate whether to the
+        // result is a float or an integer
         const auto cmp = get_operand_5bb0_0(inst);
         const auto combine_bin = get_operand_5bb0_1(inst);
         const auto dst = GET_REG(0);
@@ -610,13 +611,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         // TODO: uncomment
         // auto bin_res = o->OpBinary(combine_bin, cmp_res,
         //                    o->OpPredicate(true, combine));
+        // TODO: if float flags
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
-        auto select_res = o->OpSelect(
-            cmp_res,
-            o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
-            o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), select_res);
+        if (false) {
+            auto res = o->OpSelect(
+                cmp_res,
+                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
+                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
+            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        } else {
+            auto res = o->OpCast(cmp_res, DataType::U32);
+            o->OpMove(o->OpRegister(false, dst), res);
+        }
     }
     INST(0x5700000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vshl");
