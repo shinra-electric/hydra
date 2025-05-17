@@ -17,12 +17,12 @@ IAudioOutManager::ListAudioOuts(u32* out_count,
     return RESULT_SUCCESS;
 }
 
-result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
-                                        u32 sample_rate, u16 channel_count,
-                                        u16 reserved, u64 aruid,
-                                        u32* out_sample_rate,
-                                        u32* out_channel_count,
-                                        u32* out_pcm_format, u32* out_state) {
+result_t IAudioOutManager::OpenAudioOut(
+    add_service_fn_t add_service, u32 sample_rate, u16 channel_count,
+    u16 _reserved, u64 aruid, u32* out_sample_rate, u32* out_channel_count,
+    PcmFormat* out_pcm_format, AudioOutState* out_state) {
+    LOG_FUNC_STUBBED(Services);
+
     LOG_DEBUG(Services, "Sample rate: {}, channel count: {}", sample_rate,
               channel_count);
 
@@ -31,11 +31,11 @@ result_t IAudioOutManager::OpenAudioOut(add_service_fn_t add_service,
     add_service(new IAudioOut());
 
     // Out
-    // TODO: correct?
     *out_sample_rate = sample_rate;
     *out_channel_count = channel_count;
-    // TODO: pcm_format
-    // TODO: state
+    // HACK
+    *out_pcm_format = PcmFormat::Float;
+    *out_state = AudioOutState::Started;
 
     return RESULT_SUCCESS;
 }

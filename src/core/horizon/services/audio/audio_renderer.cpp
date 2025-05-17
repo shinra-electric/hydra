@@ -75,7 +75,7 @@ struct VoiceInfoIn {
     bool is_new;
     bool is_used;
     VoicePlayState play_state;
-    PcmFormat sample_format;
+    PcmFormat sample_format : 8;
     u32 sample_rate;
     u32 priority;
     u32 sorting_order;

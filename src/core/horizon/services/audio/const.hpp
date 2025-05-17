@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::audio {
 
-enum class PcmFormat : u8 {
+enum class PcmFormat : u32 {
     Invalid = 0,
     Int8 = 1,
     Int16 = 2,
@@ -12,6 +12,11 @@ enum class PcmFormat : u8 {
     Int32 = 4,
     Float = 5,
     Adpcm = 6,
+};
+
+enum class AudioOutState : u32 {
+    Started = 0,
+    Stopped = 1,
 };
 
 struct AudioRendererParameters {

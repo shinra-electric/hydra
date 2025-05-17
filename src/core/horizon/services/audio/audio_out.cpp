@@ -6,8 +6,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
                              GetReleasedAudioOutBuffers)
 
-// TODO: autoclear event?
-IAudioOut::IAudioOut() : buffer_event(new kernel::Event()) {}
+IAudioOut::IAudioOut() : buffer_event(new kernel::Event(true)) {}
 
 result_t
 IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
