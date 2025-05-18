@@ -40,7 +40,7 @@ class RendererBase {
 
     virtual void SetSurface(void* surface) = 0;
 
-    virtual void Present(TextureBase* texture, const uint2 output_origin,
+    virtual void Present(const TextureBase* texture, const uint2 output_origin,
                          const uint2 output_size) = 0;
 
     // Buffer

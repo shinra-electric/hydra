@@ -36,7 +36,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
 
     add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
 
-    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)
+    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
 
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
     target_sources(hydra PRIVATE "${RESOURCE_FILES}")

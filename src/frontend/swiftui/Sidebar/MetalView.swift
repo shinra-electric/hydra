@@ -7,35 +7,48 @@ class MetalLayerCoordinator: NSObject {
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
 
+    private var surfaceSet = false
+
     init(emulationContext: Binding<UnsafeMutableRawPointer?>) {
         self.emulationContext = emulationContext
         super.init()
     }
 
     deinit {
-        displayLink?.invalidate()
+        self.displayLink?.invalidate()
     }
 
     func setView(_ view: NSView) {
-        displayLink?.invalidate()
+        self.displayLink?.invalidate()
 
-        var layer = view.layer as! CAMetalLayer
-        self.layer = layer
-
-        // Set surface
-        if let emulationContext = self.emulationContext.wrappedValue {
-            withUnsafeMutablePointer(to: &layer) { surface in
-                hydra_emulation_context_set_surface(emulationContext, surface)
-            }
-        }
+        self.layer = view.layer as? CAMetalLayer
+        self.surfaceSet = false
 
         // Display link
-        self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
-        self.displayLink?.add(to: .main, forMode: .common)
+        //self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
+        //self.displayLink?.add(to: .main, forMode: .common)
+
+        // TODO: probably not the best way to do this, but it works
+        let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
+        dispatchQueue.async {
+            while true {
+                self.handleDisplayLink()
+            }
+        }
     }
 
     @objc func handleDisplayLink() {
         if let emulationContext = self.emulationContext.wrappedValue {
+            // Set the surface if its not already set
+            if !self.surfaceSet {
+                guard let layer = self.layer else {
+                    return
+                }
+
+                set_layer(emulationContext, layer)
+                self.surfaceSet = true
+            }
+
             if hydra_emulation_context_is_running(emulationContext) {
                 // Present
                 var dtAverageUpdated = false
@@ -62,7 +75,9 @@ struct MetalView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
 
-        view.layer = CAMetalLayer()
+        let layer = CAMetalLayer()
+        layer.displaySyncEnabled = true
+        view.layer = layer
         //view.wantsLayer = true
 
         context.coordinator.setView(view)
