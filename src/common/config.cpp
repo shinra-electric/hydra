@@ -44,10 +44,10 @@
 
 TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
-
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
-
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::logging::Output, StdOut, "stdout", File,
+                              "file")
 
 namespace hydra {
 
@@ -58,29 +58,37 @@ Config::Config() {
 
 #ifdef __APPLE__
     // macOS
-    if (const char* home = std::getenv("HOME"))
+    if (const char* home = std::getenv("HOME")) {
         app_data_path =
             fmt::format("{}/Library/Application Support/" APP_NAME, home);
-    else
+        logs_path = fmt::format("{}/Library/Logs/" APP_NAME, home);
+    } else {
         LOG_FATAL(Other, "Failed to find HOME path");
+    }
 #elif defined(_WIN32)
     // Windows
-    if (const char* app_data = std::getenv("APPDATA"))
+    if (const char* app_data = std::getenv("APPDATA")) {
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
-    else
+        logs_path = app_data_path; // TODO
+    } else {
         LOG_FATAL(Other, "Failed to find APPDATA path");
+    }
 #else
     // Linux and other Unix-like systems
-    if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME"))
+    if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME")) {
         app_data_path = fmt::format("{}/" APP_NAME, xdg_config);
-    else if (const char* home = std::getenv("HOME"))
+        logs_path = app_data_path; // TODO
+    } else if (const char* home = std::getenv("HOME")) {
         app_data_path = fmt::format("{}/.config/" APP_NAME, home);
-    else
+        logs_path = app_data_path; // TODO
+    } else {
         LOG_FATAL(Other, "Failed to find HOME path");
+    }
 #endif
 
-    // Create the app data directory
+    // Create directories
     std::filesystem::create_directories(app_data_path);
+    std::filesystem::create_directories(logs_path);
 
     // Load defaults
     LoadDefaults();
@@ -103,9 +111,10 @@ void Config::LoadDefaults() {
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
     user_id = GetDefaultUserID();
-    process_args = GetDefaultProcessArgs();
+    logging_output = GetDefaultLoggingOutput();
     debug_logging = GetDefaultDebugLogging();
     stack_trace_logging = GetDefaultStackTraceLogging();
+    process_args = GetDefaultProcessArgs();
 }
 
 void Config::Serialize() {
@@ -153,9 +162,10 @@ void Config::Serialize() {
 
         {
             auto& debug = data.at("Debug");
-            debug["process_args"] = process_args.Get();
+            debug["logging_output"] = logging_output.Get();
             debug["debug_logging"] = debug_logging.Get();
             debug["stack_trace_logging"] = stack_trace_logging.Get();
+            debug["process_args"] = process_args.Get();
         }
 
         config_file << toml::format(data);
@@ -197,12 +207,14 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        process_args = toml::find_or<std::vector<std::string>>(
-            debug, "process_args", GetDefaultProcessArgs());
+        logging_output = toml::find_or<logging::Output>(
+            debug, "logging_output", GetDefaultLoggingOutput());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
         stack_trace_logging = toml::find_or<bool>(
             debug, "stack_trace_logging", GetDefaultStackTraceLogging());
+        process_args = toml::find_or<std::vector<std::string>>(
+            debug, "process_args", GetDefaultProcessArgs());
     }
 
     // Validate
@@ -233,9 +245,10 @@ void Config::Log() {
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
-    LOG_INFO(Other, "Process arguments: {}", process_args);
+    LOG_INFO(Other, "Logging output: {}", logging_output);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Log stack trace: {}", stack_trace_logging);
+    LOG_INFO(Other, "Process arguments: {}", process_args);
 }
 
 } // namespace hydra

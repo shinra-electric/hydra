@@ -116,8 +116,10 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 }
 
 void EmulationContext::Run() {
-    LOG_INFO(Other, "-------- Run --------");
+    LOG_INFO(Other, "-------- Config --------");
     config.Log();
+
+    LOG_INFO(Other, "-------- Run --------");
 
     // Enter focus
     auto& state_manager = horizon::StateManager::GetInstance();

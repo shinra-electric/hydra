@@ -31,6 +31,9 @@ enum class ShaderBackend : i32 {
 
 template <typename T> class Option {
   public:
+    Option() {}
+    Option(const T& value_) : value{value_} {}
+
     operator T() { return value; }
     operator T() const { return value; }
     void operator=(const T& other) { value = other; }
@@ -44,6 +47,9 @@ template <typename T> class Option {
 
 template <typename T> class ArrayOption {
   public:
+    ArrayOption() {}
+    ArrayOption(const std::vector<T>& values_) : values{values_} {}
+
     void operator=(const std::vector<T>& other) { values = other; }
     const T& operator[](u32 index) const {
         VerifyIndex(index);
@@ -94,6 +100,7 @@ class Config {
 
     // Paths
     const std::string& GetAppDataPath() const { return app_data_path; }
+    const std::string& GetLogsPath() const { return logs_path; }
 
     std::string GetConfigPath() const {
         return fmt::format("{}/config.toml", app_data_path);
@@ -110,12 +117,14 @@ class Config {
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
-    ArrayOption<std::string>& GetProcessArgs() { return process_args; }
+    Option<logging::Output> GetLoggingOutput() { return logging_output; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
+    ArrayOption<std::string>& GetProcessArgs() { return process_args; }
 
   private:
     std::string app_data_path;
+    std::string logs_path;
 
     // Config
     ArrayOption<std::string> game_directories;
@@ -126,9 +135,13 @@ class Config {
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
     Option<uuid_t> user_id;
-    ArrayOption<std::string> process_args;
+    Option<logging::Output> logging_output =
+        logging::Output::StdOut; // Set to stdout so that messages logged
+                                 // before logs path is initialized get logged
+                                 // properly
     Option<bool> debug_logging;
     Option<bool> stack_trace_logging;
+    ArrayOption<std::string> process_args;
 
     // Default values
     std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
@@ -149,9 +162,12 @@ class Config {
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
     }
-    std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
+    logging::Output GetDefaultLoggingOutput() const {
+        return logging::Output::File;
+    }
     bool GetDefaultDebugLogging() const { return false; }
     bool GetDefaultStackTraceLogging() const { return false; }
+    std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
 };
 
 } // namespace hydra
@@ -178,9 +194,9 @@ struct fmt::formatter<hydra::ArrayOption<T>> : formatter<string_view> {
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, CpuBackend, cpu_backend,
                                    AppleHypervisor, "Apple Hypervisor",
                                    Dynarmic, "dynarmic")
-
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
                                    "Metal")
-
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::logging, Output, output, StdOut,
+                                   "stdout", File, "file")

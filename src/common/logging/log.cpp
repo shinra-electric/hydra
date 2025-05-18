@@ -1,8 +1,28 @@
 #include "common/logging/log.hpp"
 
+#include "common/config.hpp"
+
 namespace hydra::logging {
 
-Output g_output = Output::Stdout;
-std::mutex g_log_mutex;
+Logger g_logger;
+
+// TODO: will the destructor ever get called?
+Logger::~Logger() {
+    if (ofs) {
+        ofs->close();
+        delete ofs;
+    }
+}
+
+void Logger::EnsureOutputStream() {
+    if (ofs)
+        return;
+
+    // TODO: include log time in the filename
+    const auto path = fmt::format("{}/log.log", CONFIG_INSTANCE.GetLogsPath());
+    ofs = new std::ofstream(path);
+}
+
+Output Logger::GetOutput() { return CONFIG_INSTANCE.GetLoggingOutput(); }
 
 } // namespace hydra::logging

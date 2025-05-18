@@ -4,14 +4,15 @@
 
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <fmt/ostream.h>
 
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
 #define LOG(level, c, ...)                                                     \
-    logging::log(logging::Level::level, logging::Class::c,                     \
-                 logging::trim_source_path(__FILE__), __LINE__, __func__,      \
-                 __VA_ARGS__)
+    logging::g_logger.Log(logging::Level::level, logging::Class::c,            \
+                          logging::trim_source_path(__FILE__), __LINE__,       \
+                          __func__, __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
@@ -75,8 +76,11 @@ constexpr const char* trim_source_path(std::string_view source) {
     return source.data() + idx;
 }
 
+// TODO: move this to config
 enum class Output {
-    Stdout,
+    Invalid = 0,
+
+    StdOut,
     File,
 };
 
@@ -111,9 +115,8 @@ enum class Class {
 
 } // namespace hydra::logging
 
-ENABLE_ENUM_FORMATTING(hydra::logging::Level, Debug, "debug", Info, "info",
-                       Stubbed, "stubbed", Warning, "warning", Error, "error",
-                       Fatal, "fatal")
+ENABLE_ENUM_FORMATTING(hydra::logging::Level, Debug, "D", Info, "I", Stubbed,
+                       "S", Warning, "W", Error, "E", Fatal, "F")
 
 ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
@@ -125,61 +128,75 @@ ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
 
 namespace hydra::logging {
 
-extern Output g_output;
-extern std::mutex g_log_mutex;
+class Logger {
+  public:
+    ~Logger();
 
-inline void initialize(Output output) { g_output = output; }
+    template <typename... T>
+    void Log(Level level, Class c, const std::string& file, u32 line,
+             const std::string& function, fmt::format_string<T...> fmt,
+             T&&... args) {
+        mutex.lock();
 
-template <typename... T>
-void log(Level level, Class c, const std::string& file, u32 line,
-         const std::string& function, fmt::format_string<T...> fmt,
-         T&&... args) {
-    g_log_mutex.lock();
+        switch (GetOutput()) {
+        case Output::StdOut:
+            // Level
+            fmt::terminal_color color;
+            switch (level) {
+            case Level::Debug:
+                color = fmt::terminal_color::cyan;
+                break;
+            case Level::Info:
+                color = fmt::terminal_color::white;
+                break;
+            case Level::Stubbed:
+                color = fmt::terminal_color::magenta;
+                break;
+            case Level::Warning:
+                color = fmt::terminal_color::bright_yellow;
+                break;
+            case Level::Error:
+                color = fmt::terminal_color::bright_red;
+                break;
+            case Level::Fatal:
+                color = fmt::terminal_color::red;
+                break;
+            }
 
-    switch (g_output) {
-    case Output::Stdout:
-        // Level
-        fmt::terminal_color color;
-        switch (level) {
-        case Level::Debug:
-            color = fmt::terminal_color::cyan;
+            // Debug info
+            fmt::print(fg(color), "{:016x} |{}| {:>17} {:>24} in {:>48}: ",
+                       std::bit_cast<u64>(std::this_thread::get_id()), level, c,
+                       function, fmt::format("{}:{}", file, line));
+
+            // Message
+            fmt::print(fmt, std::forward<T>(args)...);
+            fmt::print("\n");
             break;
-        case Level::Info:
-            color = fmt::terminal_color::white;
+        case Output::File:
+            EnsureOutputStream();
+
+            fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
+            fmt::print(*ofs, fmt, std::forward<T>(args)...);
+            fmt::print(*ofs, "\n");
             break;
-        case Level::Stubbed:
-            color = fmt::terminal_color::magenta;
-            break;
-        case Level::Warning:
-            color = fmt::terminal_color::bright_yellow;
-            break;
-        case Level::Error:
-            color = fmt::terminal_color::bright_red;
-            break;
-        case Level::Fatal:
-            color = fmt::terminal_color::red;
+        default:
+            throw std::runtime_error("Invalid logging output");
             break;
         }
 
-        fmt::print(fg(color), "[0x{:016x}]",
-                   std::bit_cast<u64>(std::this_thread::get_id()));
-        fmt::print(fg(color), "[{:<7}]", level);
-
-        // Class + debug info
-        fmt::print(fg(color), "[{:>17}, {:>24} in {:>48}] ", c, function,
-                   fmt::format("{}:{}", file, line));
-
-        // Message
-        fmt::print(fmt, std::forward<T>(args)...);
-        fmt::print("\n");
-        break;
-    case Output::File:
-        // TODO: uncomment
-        // fmt::print(file, fmt, std::forward<T>(args)...);
-        break;
+        mutex.unlock();
     }
 
-    g_log_mutex.unlock();
-}
+  private:
+    std::mutex mutex;
+    std::ofstream* ofs{nullptr};
+
+    void EnsureOutputStream();
+
+    // HACK
+    static Output GetOutput();
+};
+
+extern Logger g_logger;
 
 } // namespace hydra::logging
