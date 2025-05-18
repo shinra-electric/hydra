@@ -32,6 +32,10 @@ enum class Key {
     N,
     M,
 
+    // TODO: numbers
+
+    // TODO: other stuff
+
     ArrowLeft,
     ArrowRight,
     ArrowUp,
@@ -40,12 +44,12 @@ enum class Key {
     Enter,
     Tab,
     Backspace,
-
-    // TODO: more
+    Space,
 
     LeftShift,
     RightShift,
-    Control,
+    LeftControl,
+    RightControl,
     LeftAlt,
     RightAlt,
     LeftSuper,
