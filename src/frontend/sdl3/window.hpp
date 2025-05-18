@@ -18,10 +18,6 @@ class Window {
 
     EmulationContext emulation_context;
 
-    // Inputs
-    horizon::hid::NpadButtons buttons{horizon::hid::NpadButtons::None};
-    u32 finger_id{invalid<u32>()};
-
     void UpdateWindowTitle();
     void SetWindowTitle(const std::string& title);
 };

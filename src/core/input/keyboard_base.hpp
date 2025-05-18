@@ -5,7 +5,7 @@
 namespace hydra::input {
 
 enum class Key {
-    Q,
+    Q = 0,
     W,
     E,
     R,
@@ -56,7 +56,7 @@ constexpr u32 KEYBOARD_DEVICE_ID = 1;
 
 class KeyboardBase : public DeviceBase {
   public:
-    bool ActsAsController() const override { return true; }
+    bool ActsAsNpad() const override { return true; }
 
     bool IsPressed(code_t code) override {
         if (get_code_device_id(code) != KEYBOARD_DEVICE_ID)

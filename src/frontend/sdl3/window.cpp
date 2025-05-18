@@ -1,5 +1,7 @@
 #include "frontend/sdl3/window.hpp"
 
+#include "core/input/device_manager.hpp"
+
 namespace hydra::frontend::sdl3 {
 
 Window::Window(int argc, const char* argv[]) {
@@ -24,11 +26,8 @@ Window::Window(int argc, const char* argv[]) {
         return;
     }
 
-    // Configure input
-    INPUT_MANAGER_INSTANCE.ConnectNpad(
-        horizon::hid::NpadIdType::Handheld,
-        horizon::hid::NpadStyleSet::Handheld,
-        horizon::hid::NpadAttributes::IsConnected);
+    // Connect input devices
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
 
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
@@ -48,106 +47,19 @@ void Window::Run() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
-
-#define KEY_CASES                                                              \
-    KEY_CASE(RETURN, Plus);                                                    \
-    KEY_CASE(TAB, Minus);                                                      \
-    KEY_CASE(W, Up);                                                           \
-    KEY_CASE(A, Left);                                                         \
-    KEY_CASE(S, Down);                                                         \
-    KEY_CASE(D, Right);                                                        \
-    KEY_CASE(I, X);                                                            \
-    KEY_CASE(J, Y);                                                            \
-    KEY_CASE(K, B);                                                            \
-    KEY_CASE(L, A);
-
-#define KEY_CASE(sdl_key, button)                                              \
-    case SDLK_##sdl_key:                                                       \
-        buttons |= horizon::hid::NpadButtons::button;                          \
-        break;
-
-            // Key down
-            else if (event.type == SDL_EVENT_KEY_DOWN) {
-                switch (event.key.key) {
-                    KEY_CASES;
-                default:
-                    break;
-                }
-            }
-
-#undef KEY_CASE
-
-#define KEY_CASE(sdl_key, button)                                              \
-    case SDLK_##sdl_key:                                                       \
-        buttons &= ~horizon::hid::NpadButtons::button;                         \
-        break;
-
-            // Key up
-            else if (event.type == SDL_EVENT_KEY_UP) {
-                switch (event.key.key) {
-                    KEY_CASES;
-                default:
-                    break;
-                }
-            }
-
-#undef KEY_CASE
-
-            // Mouse down
-            else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                switch (event.button.button) {
-                case SDL_BUTTON_LEFT:
-                    finger_id = INPUT_MANAGER_INSTANCE.BeginTouch();
-                    break;
-                default:
-                    break;
-                }
-            }
-
-            // Mouse up
-            else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                switch (event.button.button) {
-                case SDL_BUTTON_LEFT:
-                    INPUT_MANAGER_INSTANCE.EndTouch(finger_id);
-                    finger_id = invalid<u32>();
-                    break;
-                default:
-                    break;
-                }
-            }
-
-#undef KEY_CASE
-
-            // Mouse move
         }
-
-#undef KEY_CASES
 
         if (emulation_context.IsRunning()) {
             // Input
+            INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 
-            // Npad
-            INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(
-                horizon::hid::NpadIdType::Handheld, buttons);
-
-            // Touch
-            INPUT_MANAGER_INSTANCE.UpdateTouchStates();
-            if (finger_id != invalid<u32>()) {
-                f32 x, y;
-                SDL_GetMouseState(&x, &y);
-                INPUT_MANAGER_INSTANCE.SetTouchState({
-                    .finger_id = finger_id,
-                    .x = static_cast<u32>(x),
-                    .y = static_cast<u32>(y),
-                    // TODO: other stuff
-                });
-            }
-
+            // Present
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
             emulation_context.Present(width, height, dt_average_updated);
 
+            // Update window title
             if (dt_average_updated)
                 UpdateWindowTitle();
         }

@@ -8,7 +8,7 @@ class DeviceBase {
   public:
     virtual ~DeviceBase() {}
 
-    virtual bool ActsAsController() const { return false; };
+    virtual bool ActsAsNpad() const { return false; };
     virtual bool ActsAsTouchScreen() const { return false; };
 
     virtual bool IsPressed(code_t code) = 0;
