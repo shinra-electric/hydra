@@ -123,6 +123,21 @@ void hydra_emulation_context_run(void* ctx) {
     static_cast<hydra::EmulationContext*>(ctx)->Run();
 }
 
+void hydra_emulation_context_present(void* ctx, uint32_t width, uint32_t height,
+                                     bool* out_dt_average_updated) {
+    static_cast<hydra::EmulationContext*>(ctx)->Present(
+        width, height, *out_dt_average_updated);
+}
+
+uint64_t hydra_emulation_context_get_title_id(void* ctx) {
+    return static_cast<hydra::EmulationContext*>(ctx)->GetTitleID();
+}
+
 bool hydra_emulation_context_is_running(void* ctx) {
     return static_cast<hydra::EmulationContext*>(ctx)->IsRunning();
+}
+
+float hydra_emulation_context_get_last_delta_time_average(void* ctx) {
+    return static_cast<hydra::EmulationContext*>(ctx)
+        ->GetLastDeltaTimeAverage();
 }

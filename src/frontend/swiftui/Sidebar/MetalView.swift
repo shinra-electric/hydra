@@ -35,7 +35,24 @@ class MetalLayerCoordinator: NSObject {
     }
 
     @objc func handleDisplayLink() {
-        print("PRESENT")
+        if let emulationContext = self.emulationContext.wrappedValue {
+            if hydra_emulation_context_is_running(emulationContext) {
+                // Present
+                var dtAverageUpdated = false
+                hydra_emulation_context_present(
+                    emulationContext, UInt32(self.layer!.drawableSize.width),
+                    UInt32(self.layer!.drawableSize.height),
+                    &dtAverageUpdated)
+
+                // Update
+                if dtAverageUpdated {
+                    // TODO
+                    print(
+                        "DT average: \(hydra_emulation_context_get_last_delta_time_average(emulationContext))"
+                    )
+                }
+            }
+        }
     }
 }
 

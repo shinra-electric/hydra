@@ -27,6 +27,7 @@ EmulationContext::EmulationContext() {
         cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
         break;
     default:
+        // TODO: return an error instead
         LOG_FATAL(Other, "Unknown CPU backend");
         break;
     }
@@ -60,6 +61,15 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Load ROM
+
+    // Check if the file exists
+    if (!std::filesystem::exists(rom_filename)) {
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Invalid ROM path {}", rom_filename);
+        return;
+    }
+
+    // Open file
     usize size;
     auto ifs = open_file(rom_filename, size);
 
@@ -68,14 +78,17 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
     horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == "nro")
+    if (extension == "nro") {
         loader = new horizon::loader::NroLoader(reader);
-    else if (extension == "nso")
+    } else if (extension == "nso") {
         loader = new horizon::loader::NsoLoader(reader, true);
-    else if (extension == "nca")
+    } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(reader);
-    else
+    } else {
+        // TODO: return an error instead
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
+        return;
+    }
 
     process = loader->LoadProcess(reader, rom_filename);
     delete loader;
@@ -165,8 +178,11 @@ void EmulationContext::Present(u32 width, u32 height,
     const auto now = clock_t::now();
     const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
     if (time_since_last_dt_averaging > 1s) {
-        last_dt_average =
-            (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+        if (dt_sample_count != 0)
+            last_dt_average =
+                (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+        else
+            last_dt_average = 0.f;
         accumulated_dt_ns = 0;
         dt_sample_count = 0;
         last_dt_averaging_time = now;

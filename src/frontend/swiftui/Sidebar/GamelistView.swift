@@ -47,6 +47,7 @@ struct GameListView: View {
             if let gameDirRaw = hydra_string_array_option_get(gameDirsOption, UInt32(i)) {
                 let gameDir = String(cString: gameDirRaw)
 
+                // TODO: do this with URLs
                 // Iterate recursively over the game directories
                 let fileManager = FileManager.default
                 guard let enumerator = fileManager.enumerator(atPath: gameDir) else {
@@ -54,13 +55,17 @@ struct GameListView: View {
                     print("Invalid game directory \(gameDir)")
                     return
                 }
-                while let gamePath = enumerator.nextObject() as? String {
+
+                while let filename = enumerator.nextObject() as? String {
                     // TODO: ask the core for supported extensions
-                    if !gamePath.hasSuffix("nro") && !gamePath.hasSuffix("nso")
-                        && !gamePath.hasSuffix("nca")
+                    if !filename.hasSuffix("nro") && !filename.hasSuffix("nso")
+                        && !filename.hasSuffix("nca")
                     {
                         continue
                     }
+
+                    // HACK: get the full path (only works for the root directory)
+                    let gamePath = "\(gameDir)/\(filename)"
 
                     self.games.append(Game(path: gamePath))
                 }
