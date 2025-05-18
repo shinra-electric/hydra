@@ -24,7 +24,9 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/Settings/GraphicsSettingsView.swift
         swiftui/Settings/DebugSettingsView.swift
         swiftui/Settings/SettingsView.swift
+        swiftui/Sidebar/Game.swift
         swiftui/Sidebar/DetailView.swift
+        swiftui/Sidebar/EmulationView.swift
         swiftui/Sidebar/GamelistView.swift
         swiftui/Sidebar/NowPlayingView.swift
         swiftui/Sidebar/SidebarSelectionState.swift
