@@ -49,8 +49,9 @@ void hydra_emulation_context_set_surface(void* ctx, void* surface);
 void hydra_emulation_context_load_rom(void* ctx, const char* rom_filename);
 void hydra_emulation_context_run(void* ctx);
 
-void hydra_emulation_context_present(void* ctx, uint32_t width, uint32_t height,
-                                     bool* out_dt_average_updated);
+void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
+                                            uint32_t height,
+                                            bool* out_dt_average_updated);
 
 uint64_t hydra_emulation_context_get_title_id(void* ctx);
 

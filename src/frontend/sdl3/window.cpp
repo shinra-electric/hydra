@@ -1,7 +1,5 @@
 #include "frontend/sdl3/window.hpp"
 
-#include "core/input/device_manager.hpp"
-
 namespace hydra::frontend::sdl3 {
 
 Window::Window(int argc, const char* argv[]) {
@@ -26,9 +24,6 @@ Window::Window(int argc, const char* argv[]) {
         return;
     }
 
-    // Connect input devices
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
-
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
     emulation_context.LoadRom(rom_filename);
@@ -50,14 +45,11 @@ void Window::Run() {
         }
 
         if (emulation_context.IsRunning()) {
-            // Input
-            INPUT_DEVICE_MANAGER_INSTANCE.Poll();
-
             // Present
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
-            emulation_context.Present(width, height, dt_average_updated);
+            emulation_context.ProgressFrame(width, height, dt_average_updated);
 
             // Update window title
             if (dt_average_updated)
