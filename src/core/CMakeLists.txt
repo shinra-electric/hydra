@@ -375,5 +375,6 @@ add_library(hydra-core
     c_api.h
 )
 
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" dynarmic hatch hydra-common)
+# TODO: only link Apple frameworks if Apple
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch hydra-common)
 # TODO: link luft if AIR shader backend is enabled
