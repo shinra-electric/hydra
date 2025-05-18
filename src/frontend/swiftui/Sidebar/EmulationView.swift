@@ -6,7 +6,7 @@ struct EmulationView: View {
     @State private var emulationContext: UnsafeMutableRawPointer? = nil
 
     var body: some View {
-        Text(game.path)
+        MetalView(emulationContext: self.$emulationContext)
             .onAppear {
                 startEmulation()
             }
