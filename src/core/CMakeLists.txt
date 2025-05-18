@@ -359,6 +359,16 @@ add_library(hydra-core
     hw/display/layer.hpp
     hw/display/display.hpp
     hw/bus.hpp
+    input/const.hpp
+    input/device_base.hpp
+    input/keyboard_base.hpp
+    input/device_list_base.hpp
+    input/device_manager.cpp
+    input/device_manager.hpp
+    input/apple_gc/keyboard.mm
+    input/apple_gc/keyboard.hpp
+    input/apple_gc/device_list.mm
+    input/apple_gc/device_list.hpp
     emulation_context.cpp
     emulation_context.hpp
     c_api.cpp

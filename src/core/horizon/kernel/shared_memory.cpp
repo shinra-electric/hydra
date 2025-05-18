@@ -6,6 +6,9 @@ namespace hydra::horizon::kernel {
 
 SharedMemory::SharedMemory(usize size) {
     memory = hw::tegra_x1::cpu::MMUBase::GetInstance().AllocateMemory(size);
+
+    // Clear
+    memset(reinterpret_cast<void*>(GetPtr()), 0, size);
 }
 
 SharedMemory::~SharedMemory() {
@@ -13,7 +16,7 @@ SharedMemory::~SharedMemory() {
 }
 
 void SharedMemory::MapToRange(
-    const ::hydra::range<uptr> range,
+    const range<uptr> range,
     MemoryPermission perm) { // TODO: why ::hydra::range?
     hw::tegra_x1::cpu::MMUBase::GetInstance().Map(
         range.begin, memory, {MemoryType::Shared, MemoryAttribute::None, perm});

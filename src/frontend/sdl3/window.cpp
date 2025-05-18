@@ -25,7 +25,7 @@ Window::Window(int argc, const char* argv[]) {
     }
 
     // Configure input
-    horizon::OS::GetInstance().GetInputManager().ConnectNpad(
+    INPUT_MANAGER_INSTANCE.ConnectNpad(
         horizon::hid::NpadIdType::Handheld,
         horizon::hid::NpadStyleSet::Handheld,
         horizon::hid::NpadAttributes::IsConnected);
@@ -44,8 +44,6 @@ Window::~Window() {
 void Window::Run() {
     bool running = true;
     while (running) {
-        auto& input_manager = horizon::OS::GetInstance().GetInputManager();
-
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT)
@@ -99,7 +97,7 @@ void Window::Run() {
             else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                 switch (event.button.button) {
                 case SDL_BUTTON_LEFT:
-                    finger_id = input_manager.BeginTouch();
+                    finger_id = INPUT_MANAGER_INSTANCE.BeginTouch();
                     break;
                 default:
                     break;
@@ -110,7 +108,7 @@ void Window::Run() {
             else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
                 switch (event.button.button) {
                 case SDL_BUTTON_LEFT:
-                    input_manager.EndTouch(finger_id);
+                    INPUT_MANAGER_INSTANCE.EndTouch(finger_id);
                     finger_id = invalid<u32>();
                     break;
                 default:
@@ -129,15 +127,15 @@ void Window::Run() {
             // Input
 
             // Npad
-            input_manager.SetNpadButtons(horizon::hid::NpadIdType::Handheld,
-                                         buttons);
+            INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(
+                horizon::hid::NpadIdType::Handheld, buttons);
 
             // Touch
-            input_manager.UpdateTouchStates();
+            INPUT_MANAGER_INSTANCE.UpdateTouchStates();
             if (finger_id != invalid<u32>()) {
                 f32 x, y;
                 SDL_GetMouseState(&x, &y);
-                input_manager.SetTouchState({
+                INPUT_MANAGER_INSTANCE.SetTouchState({
                     .finger_id = finger_id,
                     .x = static_cast<u32>(x),
                     .y = static_cast<u32>(y),

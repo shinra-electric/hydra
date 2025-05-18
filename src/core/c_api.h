@@ -57,6 +57,9 @@ uint64_t hydra_emulation_context_get_title_id(void* ctx);
 bool hydra_emulation_context_is_running(void* ctx);
 float hydra_emulation_context_get_last_delta_time_average(void* ctx);
 
+// Input
+// TODO
+
 #ifdef __cplusplus
 }
 #endif
