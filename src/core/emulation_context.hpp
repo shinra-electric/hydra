@@ -34,8 +34,6 @@ class EmulationContext {
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
-    Config config;
-
     // Objects
     hw::tegra_x1::cpu::CPUBase* cpu;
     hw::tegra_x1::gpu::GPU* gpu;

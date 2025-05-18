@@ -86,10 +86,12 @@ template <typename T> class ArrayOption {
 
 class Config {
   public:
-    static Config& GetInstance();
+    static Config& GetInstance() {
+        static Config g_config;
+        return g_config;
+    }
 
     Config();
-    ~Config();
 
     void LoadDefaults();
 

@@ -19,7 +19,7 @@ EmulationContext::EmulationContext() {
     srand(time(0));
 
     // Initialize
-    switch (config.GetCpuBackend()) {
+    switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
         cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
         break;
@@ -88,6 +88,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
+    // TODO: iterate recursively
     for (const auto& patch_directory :
          CONFIG_INSTANCE.GetPatchDirectories().Get()) {
         for (const auto& dir_entry :
@@ -117,7 +118,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
 void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Config --------");
-    config.Log();
+    CONFIG_INSTANCE.Log();
 
     LOG_INFO(Other, "-------- Run --------");
 
@@ -128,7 +129,7 @@ void EmulationContext::Run() {
     state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
 
     // Preselected user
-    auto user_id = config.GetUserID().Get();
+    auto user_id = CONFIG_INSTANCE.GetUserID().Get();
     if (user_id == horizon::services::account::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (USER_MANAGER_INSTANCE.GetCount() == 1) {

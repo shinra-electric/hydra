@@ -21,6 +21,7 @@ void hydra_u128_option_set(void* option, const __uint128_t value);
 const char* hydra_string_option_get(const void* option);
 void hydra_string_option_set(void* option, const char* value);
 
+uint32_t hydra_string_array_option_get_count(const void* option);
 const char* hydra_string_array_option_get(const void* option, uint32_t index);
 void hydra_string_array_option_add(void* option, const char* value);
 void hydra_string_array_option_set(void* option, uint32_t index,

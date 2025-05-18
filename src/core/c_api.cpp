@@ -37,6 +37,11 @@ void hydra_string_option_set(void* option, const char* value) {
     static_cast<hydra::Option<std::string>*>(option)->Set(value);
 }
 
+uint32_t hydra_string_array_option_get_count(const void* option) {
+    return static_cast<const hydra::ArrayOption<std::string>*>(option)
+        ->GetCount();
+}
+
 const char* hydra_string_array_option_get(const void* option, uint32_t index) {
     return static_cast<const hydra::ArrayOption<std::string>*>(option)
         ->Get(index)

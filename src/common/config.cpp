@@ -51,11 +51,7 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::logging::Output, StdOut, "stdout", File,
 
 namespace hydra {
 
-SINGLETON_DEFINE_GET_INSTANCE(Config, Other)
-
 Config::Config() {
-    SINGLETON_SET_INSTANCE(Config, Other);
-
 #ifdef __APPLE__
     // macOS
     if (const char* home = std::getenv("HOME")) {
@@ -99,8 +95,6 @@ Config::Config() {
     if (config_exists)
         Deserialize();
 }
-
-Config::~Config() { SINGLETON_UNSET_INSTANCE(); }
 
 void Config::LoadDefaults() {
     game_directories = GetDefaultGameDirectories();
