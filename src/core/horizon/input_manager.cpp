@@ -24,10 +24,8 @@ constexpr usize MAX_FINGER_COUNT = 10;
 
 }
 
-InputManager::InputManager() {
-    shared_memory_id =
-        KERNEL_INSTANCE.AddHandle(new kernel::SharedMemory(0x40000));
-}
+InputManager::InputManager()
+    : shared_memory(new kernel::SharedMemory(0x40000)) {}
 
 #define UPDATE_NPAD_LIFO(type, style_lower)                                    \
     UPDATE_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
@@ -59,31 +57,33 @@ void InputManager::ConnectNpad(hid::NpadIdType type,
     SET_NPAD_ENTRIES(type, attributes);
 }
 
-void InputManager::SetNpadButtons(hid::NpadIdType type,
-                                  hid::NpadButtons buttons) {
+void InputManager::UpdateAndSetNpadButtons(hid::NpadIdType type,
+                                           hid::NpadButtons buttons) {
     SET_NPAD_ENTRIES(type, buttons);
 }
 
-void InputManager::SetNpadAnalogStickStateL(
+void InputManager::UpdateAndSetNpadAnalogStickStateL(
     hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_l, analog_stick);
 }
 
-void InputManager::SetNpadAnalogStickStateR(
+void InputManager::UpdateAndSetNpadAnalogStickStateR(
     hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_r, analog_stick);
 }
 
 hid::SharedMemory* InputManager::GetHidSharedMemory() const {
-    auto shared_mem = dynamic_cast<kernel::SharedMemory*>(
-        KERNEL_INSTANCE.GetHandle(shared_memory_id));
-    ASSERT_DEBUG(shared_mem, Horizon, "Failed to get shared memory");
-    return reinterpret_cast<hid::SharedMemory*>(shared_mem->GetPtr());
+    return reinterpret_cast<hid::SharedMemory*>(shared_memory.handle->GetPtr());
 }
 
 void InputManager::UpdateTouchStates() {
     UPDATE_LIFO(touch_screen.lifo);
     out_state.count = touch_count;
+}
+
+void InputManager::SetTouchState(hid::TouchState state) {
+    GET_LIFO(touch_screen.lifo);
+    out_state.touches[out_state.count++] = state;
 }
 
 u32 InputManager::BeginTouch() {
@@ -96,11 +96,6 @@ u32 InputManager::BeginTouch() {
     }
 
     return invalid<u32>();
-}
-
-void InputManager::SetTouchState(hid::TouchState state) {
-    GET_LIFO(touch_screen.lifo);
-    out_state.touches[out_state.count++] = state;
 }
 
 void InputManager::EndTouch(u32 finger_id) {

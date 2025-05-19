@@ -4,6 +4,8 @@ if (FRONTEND STREQUAL "SDL3")
     set(SOURCE_FILES
         sdl3/main.cpp
         sdl3/const.hpp
+        sdl3/cursor.cpp
+        sdl3/cursor.hpp
         sdl3/window.cpp
         sdl3/window.hpp
     )

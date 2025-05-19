@@ -110,6 +110,7 @@ enum class Class {
     Services,
     Hypervisor,
     Dynarmic,
+    Input,
     Other,
 };
 
@@ -124,7 +125,8 @@ ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
                        Loader, "Loader", Services, "Services", Hypervisor,
-                       "Hypervisor", Dynarmic, "Dynarmic", Other, "")
+                       "Hypervisor", Dynarmic, "Dynarmic", Input, "input",
+                       Other, "")
 
 namespace hydra::logging {
 

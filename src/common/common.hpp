@@ -12,5 +12,6 @@
 #include "common/config.hpp"
 #include "common/functions.hpp"
 #include "common/memory.hpp"
+#include "common/objc.hpp"
 #include "common/time.hpp"
 #include "common/traits.hpp"

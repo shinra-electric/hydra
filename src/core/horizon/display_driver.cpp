@@ -3,6 +3,7 @@
 namespace hydra::horizon {
 
 void DisplayBinder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
+    std::lock_guard<std::mutex> lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
@@ -58,7 +59,7 @@ i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     // TODO: should there be a timeout?
-    queue_cv.wait_for(lock, std::chrono::nanoseconds(67 * 1000 * 1000),
+    queue_cv.wait_for(lock, std::chrono::milliseconds(67),
                       [&] { return !queued_buffers.empty(); });
 
     if (queued_buffers.empty())

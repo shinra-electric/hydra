@@ -52,7 +52,7 @@ class MetalLayerCoordinator: NSObject {
             if hydra_emulation_context_is_running(emulationContext) {
                 // Present
                 var dtAverageUpdated = false
-                hydra_emulation_context_present(
+                hydra_emulation_context_progress_frame(
                     emulationContext, UInt32(self.layer!.drawableSize.width),
                     UInt32(self.layer!.drawableSize.height),
                     &dtAverageUpdated)

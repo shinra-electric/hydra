@@ -1,6 +1,5 @@
 #include "core/emulation_context.hpp"
 
-#include "common/functions.hpp"
 #include "hatch/hatch.hpp"
 
 #include "core/horizon/loader/nca_loader.hpp"
@@ -11,6 +10,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/input/device_manager.hpp"
 
 namespace hydra {
 
@@ -135,6 +135,9 @@ void EmulationContext::Run() {
 
     LOG_INFO(Other, "-------- Run --------");
 
+    // Connect input devices
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
+
     // Enter focus
     auto& state_manager = horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
@@ -162,10 +165,14 @@ void EmulationContext::Run() {
     is_running = true;
 }
 
-void EmulationContext::Present(u32 width, u32 height,
-                               bool& out_dt_average_updated) {
+void EmulationContext::ProgressFrame(u32 width, u32 height,
+                                     bool& out_dt_average_updated) {
+    // Input
+    INPUT_DEVICE_MANAGER_INSTANCE.Poll();
+
+    // Present
     std::vector<u64> dt_ns_list;
-    PresentImpl(width, height, dt_ns_list);
+    Present(width, height, dt_ns_list);
 
     // Delta time
     using namespace std::chrono_literals;
@@ -193,8 +200,8 @@ void EmulationContext::Present(u32 width, u32 height,
     }
 }
 
-void EmulationContext::PresentImpl(u32 width, u32 height,
-                                   std::vector<u64>& out_dt_ns_list) {
+void EmulationContext::Present(u32 width, u32 height,
+                               std::vector<u64>& out_dt_ns_list) {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     if (!display->IsOpen())

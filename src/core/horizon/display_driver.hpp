@@ -50,7 +50,8 @@ struct DisplayBinder {
     i32 ConsumeBuffer(std::vector<u64>& out_dt_ns_list);
 
     // Getters
-    const GraphicBuffer& GetBuffer(i32 slot) const {
+    const GraphicBuffer& GetBuffer(i32 slot) {
+        std::lock_guard<std::mutex> lock(queue_mutex);
         return buffers[slot].buffer;
     }
 

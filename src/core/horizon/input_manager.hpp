@@ -2,6 +2,7 @@
 
 #include "core/horizon/const.hpp"
 #include "core/horizon/hid.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 namespace hydra::horizon {
 
@@ -20,23 +21,24 @@ class InputManager {
     // Events
 
     // Npad
-    void SetNpadButtons(hid::NpadIdType type, hid::NpadButtons buttons);
-    void SetNpadAnalogStickStateL(hid::NpadIdType type,
-                                  hid::AnalogStickState analog_stick);
-    void SetNpadAnalogStickStateR(hid::NpadIdType type,
-                                  hid::AnalogStickState analog_stick);
+    void UpdateAndSetNpadButtons(hid::NpadIdType type,
+                                 hid::NpadButtons buttons);
+    void UpdateAndSetNpadAnalogStickStateL(hid::NpadIdType type,
+                                           hid::AnalogStickState analog_stick);
+    void UpdateAndSetNpadAnalogStickStateR(hid::NpadIdType type,
+                                           hid::AnalogStickState analog_stick);
 
     // Touch
     void UpdateTouchStates();
-    u32 BeginTouch();
     void SetTouchState(hid::TouchState state);
+    u32 BeginTouch();
     void EndTouch(u32 finger_id);
 
     // Getters
-    const handle_id_t GetSharedMemoryId() const { return shared_memory_id; }
+    const handle_id_t GetSharedMemoryId() const { return shared_memory.id; }
 
   private:
-    handle_id_t shared_memory_id;
+    kernel::HandleWithId<kernel::SharedMemory> shared_memory;
 
     // State
     usize touch_count{0};

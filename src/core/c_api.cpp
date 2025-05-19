@@ -134,10 +134,9 @@ HYDRA_EXPORT void hydra_emulation_context_run(void* ctx) {
     static_cast<hydra::EmulationContext*>(ctx)->Run();
 }
 
-HYDRA_EXPORT void
-hydra_emulation_context_present(void* ctx, uint32_t width, uint32_t height,
-                                bool* out_dt_average_updated) {
-    static_cast<hydra::EmulationContext*>(ctx)->Present(
+HYDRA_EXPORT void hydra_emulation_context_progress_frame(
+    void* ctx, uint32_t width, uint32_t height, bool* out_dt_average_updated) {
+    static_cast<hydra::EmulationContext*>(ctx)->ProgressFrame(
         width, height, *out_dt_average_updated);
 }
 
