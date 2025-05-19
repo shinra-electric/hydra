@@ -46,11 +46,10 @@ void DeviceManager::Poll() {
         for (u32 i = 0; i < 1; i++) {
             const auto name = "keyboard";
 
-            auto it = device_list->GetDevices().find(name);
-            if (it == device_list->GetDevices().end())
+            auto device = GetDevice(name);
+            if (!device)
                 continue;
 
-            auto device = it->second;
             // TODO: clean up
             if (device->IsPressed(plus))
                 buttons |= hid::NpadButtons::Plus;
@@ -81,23 +80,50 @@ void DeviceManager::Poll() {
     }
 
     // Touch screen
-    // TODO
-    /*
-    touch_finger_id = INPUT_MANAGER_INSTANCE.BeginTouch();
+    {
+        INPUT_MANAGER_INSTANCE.UpdateTouchStates();
 
-    INPUT_MANAGER_INSTANCE.EndTouch(touch_finger_id);
-    touch_finger_id = invalid<u32>();
+        // TODO: get name from the config
+        const std::string name = "cursor";
 
-    if (touch_finger_id != invalid<u32>()) {
-        INPUT_MANAGER_INSTANCE.SetTouchState({
-            .finger_id = touch_finger_id,
-            .x = static_cast<u32>(x),
-            .y = static_cast<u32>(y),
-            // TODO: other stuff
-        });
+        auto device = GetDevice(name);
+        if (!device)
+            return;
+
+        // Process touches
+        u64 touch_id;
+        while ((touch_id = device->GetNextBeganTouchID()) != invalid<u64>()) {
+            active_touches.insert(
+                {touch_id, INPUT_MANAGER_INSTANCE.BeginTouch()});
+        }
+
+        while ((touch_id = device->GetNextEndedTouchID()) != invalid<u64>()) {
+            auto it = active_touches.find(touch_id);
+            ASSERT(it != active_touches.end(), Input,
+                   "Touch 0x{:016x} not active", touch_id);
+            INPUT_MANAGER_INSTANCE.EndTouch(it->second);
+            active_touches.erase(it);
+        }
+
+        // Set touch state
+        for (const auto [touch_id, finger_id] : active_touches) {
+            ASSERT_DEBUG(finger_id != invalid<u32>(), Input,
+                         "Invalid finger ID");
+
+            i32 x, y;
+            device->GetTouchPosition(touch_id, x, y);
+            // TODO: also clamp to guest screen size
+            x = std::max(x, 0);
+            y = std::max(y, 0);
+
+            INPUT_MANAGER_INSTANCE.SetTouchState({
+                .finger_id = finger_id,
+                .x = static_cast<u32>(x),
+                .y = static_cast<u32>(y),
+                // TODO: other stuff
+            });
+        }
     }
-    */
-    INPUT_MANAGER_INSTANCE.UpdateTouchStates();
 }
 
 } // namespace hydra::input

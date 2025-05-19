@@ -5,14 +5,12 @@
 namespace hydra::input {
 
 class DeviceListBase {
+    friend class DeviceManager;
+
   public:
     virtual ~DeviceListBase() {
         for (auto [name, device] : devices)
             delete device;
-    }
-
-    const std::map<std::string, DeviceBase*>& GetDevices() const {
-        return devices;
     }
 
   protected:

@@ -60,8 +60,9 @@ constexpr u32 KEYBOARD_DEVICE_ID = 1;
 
 class KeyboardBase : public DeviceBase {
   public:
-    bool ActsAsNpad() const override { return true; }
+    bool ActsAsController() const override { return true; }
 
+    // Controller
     bool IsPressed(code_t code) override {
         if (get_code_device_id(code) != KEYBOARD_DEVICE_ID)
             return false;

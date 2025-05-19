@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/emulation_context.hpp"
-#include "frontend/sdl3/const.hpp"
+#include "frontend/sdl3/cursor.hpp"
 
 namespace hydra::frontend::sdl3 {
 
@@ -15,6 +15,8 @@ class Window {
   private:
     SDL_Window* window;
     SDL_Renderer* renderer;
+
+    Cursor cursor;
 
     EmulationContext emulation_context;
 

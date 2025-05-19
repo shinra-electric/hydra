@@ -79,11 +79,22 @@ DeviceList::DeviceList() {
 DeviceList::~DeviceList() { [impl release]; }
 
 void DeviceList::_AddController(id controller) {
-    LOG_FUNC_NOT_IMPLEMENTED(Input);
+    // TODO: uncomment
+    /*
+    // TODO: don't hardcode the name
+    devices["controller"] = new Controller(controller);
+    */
 }
 
 void DeviceList::_RemoveController(id controller) {
-    LOG_FUNC_NOT_IMPLEMENTED(Input);
+    // TODO: uncomment
+    /*
+    // TODO: don't hardcode the name
+    auto it = devices.find("controller");
+    ASSERT(it != devices.end(), Input, "Controller not connected");
+    delete it->second;
+    devices.erase(it);
+    */
 }
 
 void DeviceList::_AddKeyboard(id keyboard) {
@@ -93,7 +104,10 @@ void DeviceList::_AddKeyboard(id keyboard) {
 
 void DeviceList::_RemoveKeyboard(id keyboard) {
     // TODO: don't hardcode the name
-    devices.erase("keyboard");
+    auto it = devices.find("keyboard");
+    ASSERT(it != devices.end(), Input, "Keyboard not connected");
+    delete it->second;
+    devices.erase(it);
 }
 
 } // namespace hydra::input::apple_gc

@@ -1,5 +1,7 @@
 #include "frontend/sdl3/window.hpp"
 
+#include "core/input/device_manager.hpp"
+
 namespace hydra::frontend::sdl3 {
 
 Window::Window(int argc, const char* argv[]) {
@@ -24,6 +26,9 @@ Window::Window(int argc, const char* argv[]) {
         return;
     }
 
+    // Connect cursor as a touch screen device
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
+
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
     emulation_context.LoadRom(rom_filename);
@@ -31,6 +36,8 @@ Window::Window(int argc, const char* argv[]) {
 }
 
 Window::~Window() {
+    INPUT_DEVICE_MANAGER_INSTANCE.DisconnectTouchScreenDevice("cursor");
+
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -38,10 +45,13 @@ Window::~Window() {
 void Window::Run() {
     bool running = true;
     while (running) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT)
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_EVENT_QUIT) {
                 running = false;
+            } else {
+                cursor.Poll(e);
+            }
         }
 
         if (emulation_context.IsRunning()) {
