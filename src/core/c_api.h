@@ -8,12 +8,36 @@
 extern "C" {
 #endif
 
+// Enums
+typedef enum : uint32_t {
+    HYDRA_CPU_BACKEND_INVALID = 0,
+
+    HYDRA_CPU_BACKEND_APPLE_HYPERVISOR,
+    HYDRA_CPU_BACKEND_DYNARMIC,
+} HydraCpuBackend;
+
+typedef enum : uint32_t {
+    HYDRA_GPU_RENDERER_INVALID = 0,
+
+    HYDRA_GPU_RENDERER_METAL,
+} HydraGpuRenderer;
+
+typedef enum : uint32_t {
+    HYDRA_SHADER_BACKEND_INVALID = 0,
+
+    HYDRA_SHADER_BACKEND_MSL,
+    HYDRA_SHADER_BACKEND_AIR,
+} HydraShaderBackend;
+
 // Options
 bool hydra_bool_option_get(const void* option);
 void hydra_bool_option_set(void* option, const bool value);
 
 int32_t hydra_i32_option_get(const void* option);
 void hydra_i32_option_set(void* option, const int32_t value);
+
+uint32_t hydra_u32_option_get(const void* option);
+void hydra_u32_option_set(void* option, const uint32_t value);
 
 __uint128_t hydra_u128_option_get(const void* option);
 void hydra_u128_option_set(void* option, const __uint128_t value);
@@ -29,8 +53,8 @@ void hydra_string_array_option_set(void* option, uint32_t index,
 void hydra_string_array_option_remove(void* option, uint32_t index);
 
 // Config
-void* hydra_config_get_game_directories();
-void* hydra_config_get_patch_directories();
+void* hydra_config_get_game_paths();
+void* hydra_config_get_patch_paths();
 void* hydra_config_get_sd_card_path();
 void* hydra_config_get_save_path();
 void* hydra_config_get_cpu_backend();

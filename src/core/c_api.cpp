@@ -21,6 +21,14 @@ HYDRA_EXPORT void hydra_i32_option_set(void* option, const int32_t value) {
     static_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
 }
 
+HYDRA_EXPORT uint32_t hydra_u32_option_get(const void* option) {
+    return static_cast<const hydra::Option<hydra::i32>*>(option)->Get();
+}
+
+HYDRA_EXPORT void hydra_u32_option_set(void* option, const uint32_t value) {
+    static_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
+}
+
 HYDRA_EXPORT __uint128_t hydra_u128_option_get(const void* option) {
     return static_cast<const hydra::Option<hydra::u128>*>(option)->Get();
 }
@@ -67,12 +75,12 @@ HYDRA_EXPORT void hydra_string_array_option_remove(void* option,
 }
 
 // Config
-HYDRA_EXPORT void* hydra_config_get_game_directories() {
-    return &hydra::CONFIG_INSTANCE.GetGameDirectories();
+HYDRA_EXPORT void* hydra_config_get_game_paths() {
+    return &hydra::CONFIG_INSTANCE.GetGamePaths();
 }
 
-HYDRA_EXPORT void* hydra_config_get_patch_directories() {
-    return &hydra::CONFIG_INSTANCE.GetPatchDirectories();
+HYDRA_EXPORT void* hydra_config_get_patch_paths() {
+    return &hydra::CONFIG_INSTANCE.GetPatchPaths();
 }
 
 HYDRA_EXPORT void* hydra_config_get_sd_card_path() {

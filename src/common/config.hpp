@@ -9,20 +9,20 @@
 
 namespace hydra {
 
-enum class CpuBackend : i32 {
+enum class CpuBackend : u32 {
     Invalid = 0,
 
     AppleHypervisor,
     Dynarmic,
 };
 
-enum class GpuRenderer : i32 {
+enum class GpuRenderer : u32 {
     Invalid = 0,
 
     Metal,
 };
 
-enum class ShaderBackend : i32 {
+enum class ShaderBackend : u32 {
     Invalid = 0,
 
     Msl,
@@ -109,10 +109,8 @@ class Config {
     }
 
     // Getters
-    ArrayOption<std::string>& GetGameDirectories() { return game_directories; }
-    ArrayOption<std::string>& GetPatchDirectories() {
-        return patch_directories;
-    }
+    ArrayOption<std::string>& GetGamePaths() { return game_paths; }
+    ArrayOption<std::string>& GetPatchPaths() { return patch_paths; }
     Option<std::string>& GetSdCardPath() { return sd_card_path; }
     Option<std::string>& GetSavePath() { return save_path; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
@@ -129,8 +127,8 @@ class Config {
     std::string logs_path;
 
     // Config
-    ArrayOption<std::string> game_directories;
-    ArrayOption<std::string> patch_directories;
+    ArrayOption<std::string> game_paths;
+    ArrayOption<std::string> patch_paths;
     Option<std::string> sd_card_path;
     Option<std::string> save_path;
     Option<CpuBackend> cpu_backend;
@@ -146,8 +144,8 @@ class Config {
     ArrayOption<std::string> process_args;
 
     // Default values
-    std::vector<std::string> GetDefaultGameDirectories() const { return {}; }
-    std::vector<std::string> GetDefaultPatchDirectories() const { return {}; }
+    std::vector<std::string> GetDefaultGamePaths() const { return {}; }
+    std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
     std::string GetDefaultSdCardPath() const {
         return fmt::format("{}/sdmc", app_data_path);
     }

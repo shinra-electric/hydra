@@ -97,8 +97,8 @@ Config::Config() {
 }
 
 void Config::LoadDefaults() {
-    game_directories = GetDefaultGameDirectories();
-    patch_directories = GetDefaultPatchDirectories();
+    game_paths = GetDefaultGamePaths();
+    patch_paths = GetDefaultPatchPaths();
     sd_card_path = GetDefaultSdCardPath();
     save_path = GetDefaultSavePath();
     cpu_backend = GetDefaultCpuBackend();
@@ -124,15 +124,15 @@ void Config::Serialize() {
         {
             auto& general = data.at("General");
 
-            auto& game_directories_arr = general["game_directories"];
-            game_directories_arr = toml::array{};
-            game_directories_arr.as_array().assign(
-                game_directories.Get().begin(), game_directories.Get().end());
+            auto& game_paths_arr = general["game_paths"];
+            game_paths_arr = toml::array{};
+            game_paths_arr.as_array().assign(game_paths.Get().begin(),
+                                             game_paths.Get().end());
 
-            auto& patch_directories_arr = general["patch_directories"];
-            patch_directories_arr = toml::array{};
-            patch_directories_arr.as_array().assign(
-                patch_directories.Get().begin(), patch_directories.Get().end());
+            auto& patch_paths_arr = general["patch_paths"];
+            patch_paths_arr = toml::array{};
+            patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
+                                              patch_paths.Get().end());
 
             general["sd_card_path"] = sd_card_path;
             general["save_path"] = save_path;
@@ -174,10 +174,10 @@ void Config::Deserialize() {
 
     if (data.contains("General")) {
         const auto& general = data.at("General");
-        game_directories = toml::find_or<std::vector<std::string>>(
-            general, "game_directories", GetDefaultGameDirectories());
-        patch_directories = toml::find_or<std::vector<std::string>>(
-            general, "patch_directories", GetDefaultPatchDirectories());
+        game_paths = toml::find_or<std::vector<std::string>>(
+            general, "game_paths", GetDefaultGamePaths());
+        patch_paths = toml::find_or<std::vector<std::string>>(
+            general, "patch_paths", GetDefaultPatchPaths());
         sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
                                                   GetDefaultSdCardPath());
         save_path = toml::find_or<std::string>(general, "save_path",
@@ -231,8 +231,8 @@ void Config::Deserialize() {
 }
 
 void Config::Log() {
-    LOG_INFO(Other, "Game directories: [{}]", game_directories);
-    LOG_INFO(Other, "Patch directories: [{}]", patch_directories);
+    LOG_INFO(Other, "Game paths: [{}]", game_paths);
+    LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);

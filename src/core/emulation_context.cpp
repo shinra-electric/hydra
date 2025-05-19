@@ -102,28 +102,16 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
     // TODO: iterate recursively
-    for (const auto& patch_directory :
-         CONFIG_INSTANCE.GetPatchDirectories().Get()) {
-        for (const auto& dir_entry :
-             std::filesystem::directory_iterator{patch_directory}) {
-            if (to_lower(dir_entry.path().filename().string()) ==
-                target_patch_filename) {
-                LOG_INFO(Other, "Applying patch \"{}\"",
-                         dir_entry.path().string());
-
-                std::ifstream ifs(dir_entry);
-
-                // Deserialize
-                Hatch::Deserializer deserializer;
-                deserializer.Deserialize(ifs);
-
-                const auto& hatch = deserializer.GetHatch();
-
-                // Memory patch
-                for (const auto& entry : hatch.GetMemoryPatch())
-                    cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
-
-                ifs.close();
+    for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+        if (!std::filesystem::is_directory(patch_path)) {
+            // File
+            TryApplyPatch(target_patch_filename, patch_path);
+        } else {
+            // Directory
+            // TODO: iterate recursively
+            for (const auto& dir_entry :
+                 std::filesystem::directory_iterator{patch_path}) {
+                TryApplyPatch(target_patch_filename, dir_entry.path().string());
             }
         }
     }
@@ -250,6 +238,28 @@ void EmulationContext::Present(u32 width, u32 height,
     renderer->Present(texture, origin, size);
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
+}
+
+void EmulationContext::TryApplyPatch(const std::string_view target_filename,
+                                     const std::filesystem::path path) {
+    if (to_lower(path.filename().string()) != target_filename)
+        return;
+
+    LOG_INFO(Other, "Applying patch \"{}\"", path.string());
+
+    std::ifstream ifs(path);
+
+    // Deserialize
+    Hatch::Deserializer deserializer;
+    deserializer.Deserialize(ifs);
+
+    const auto& hatch = deserializer.GetHatch();
+
+    // Memory patch
+    for (const auto& entry : hatch.GetMemoryPatch())
+        cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+
+    ifs.close();
 }
 
 } // namespace hydra

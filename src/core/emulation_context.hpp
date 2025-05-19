@@ -54,6 +54,10 @@ class EmulationContext {
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
     void Present(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
+
+    // Helpers
+    void TryApplyPatch(const std::string_view target_filename,
+                       const std::filesystem::path path);
 };
 
 } // namespace hydra
