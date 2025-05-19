@@ -27,10 +27,14 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/EmulationView.swift
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
-        swiftui/Settings/GeneralSettingsView.swift
-        swiftui/Settings/GraphicsSettingsView.swift
-        swiftui/Settings/DebugSettingsView.swift
-        swiftui/Settings/SettingsView.swift
+        swiftui/helpers/StringList.swift
+        swiftui/helpers/EditableStringList.swift
+        swiftui/helpers/EditablePathList.swift
+        swiftui/settings/GeneralSettingsView.swift
+        swiftui/settings/CpuSettingsView.swift
+        swiftui/settings/GraphicsSettingsView.swift
+        swiftui/settings/DebugSettingsView.swift
+        swiftui/settings/SettingsView.swift
     )
 
     add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})

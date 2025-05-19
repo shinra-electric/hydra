@@ -5,8 +5,7 @@ struct ToolbarItems: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-
-            Button("Open File", systemImage: "plus.app") {
+            Button("Add Game Path", systemImage: "plus") {
                 isFilePickerPresented.toggle()
             }
             // TODO: change allowedContentTypes to nsp etc

@@ -29,6 +29,13 @@ typedef enum : uint32_t {
     HYDRA_SHADER_BACKEND_AIR,
 } HydraShaderBackend;
 
+typedef enum : uint32_t {
+    HYDRA_LOGGING_OUTPUT_INVALID = 0,
+
+    HYDRA_LOGGING_OUTPUT_STD_OUT,
+    HYDRA_LOGGING_OUTPUT_FILE,
+} HydraLoggingOutput;
+
 // Options
 bool hydra_bool_option_get(const void* option);
 void hydra_bool_option_set(void* option, const bool value);
@@ -61,9 +68,10 @@ void* hydra_config_get_cpu_backend();
 void* hydra_config_get_gpu_renderer();
 void* hydra_config_get_shader_backend();
 void* hydra_config_get_user_id();
-void* hydra_config_get_process_args();
+void* hydra_config_get_logging_output();
 void* hydra_config_get_debug_logging();
 void* hydra_config_get_stack_trace_logging();
+void* hydra_config_get_process_args();
 
 // Emulation context
 void* hydra_emulation_context_create();

@@ -117,7 +117,7 @@ class Config {
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
-    Option<logging::Output> GetLoggingOutput() { return logging_output; }
+    Option<logging::Output>& GetLoggingOutput() { return logging_output; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
     ArrayOption<std::string>& GetProcessArgs() { return process_args; }

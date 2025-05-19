@@ -107,8 +107,8 @@ HYDRA_EXPORT void* hydra_config_get_user_id() {
     return &hydra::CONFIG_INSTANCE.GetUserID();
 }
 
-HYDRA_EXPORT void* hydra_config_get_process_args() {
-    return &hydra::CONFIG_INSTANCE.GetProcessArgs();
+HYDRA_EXPORT void* hydra_config_get_logging_output() {
+    return &hydra::CONFIG_INSTANCE.GetLoggingOutput();
 }
 
 HYDRA_EXPORT void* hydra_config_get_debug_logging() {
@@ -117,6 +117,10 @@ HYDRA_EXPORT void* hydra_config_get_debug_logging() {
 
 HYDRA_EXPORT void* hydra_config_get_stack_trace_logging() {
     return &hydra::CONFIG_INSTANCE.GetStackTraceLogging();
+}
+
+HYDRA_EXPORT void* hydra_config_get_process_args() {
+    return &hydra::CONFIG_INSTANCE.GetProcessArgs();
 }
 
 // Emulation context
