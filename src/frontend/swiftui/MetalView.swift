@@ -60,9 +60,11 @@ class MetalLayerCoordinator: NSObject {
                 // Update
                 if dtAverageUpdated {
                     // TODO
+                    /*
                     print(
                         "DT average: \(hydra_emulation_context_get_last_delta_time_average(emulationContext))"
                     )
+                    */
                 }
             }
         }

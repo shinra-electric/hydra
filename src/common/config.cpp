@@ -86,14 +86,7 @@ Config::Config() {
     std::filesystem::create_directories(app_data_path);
     std::filesystem::create_directories(logs_path);
 
-    // Load defaults
-    LoadDefaults();
-
-    // Open the config file
-    std::string config_path = GetConfigPath();
-    bool config_exists = std::filesystem::exists(config_path);
-    if (config_exists)
-        Deserialize();
+    Deserialize();
 }
 
 void Config::LoadDefaults() {
@@ -114,11 +107,16 @@ void Config::LoadDefaults() {
 void Config::Serialize() {
     // TODO: check if changed?
 
+    // TODO: why is the order of everything reversed in the saved config?
+
     std::ofstream config_file(GetConfigPath());
     if (config_file.is_open()) {
         toml::value data(toml::table{
             {"General", toml::table{}},
             {"CPU", toml::table{}},
+            {"Graphics", toml::table{}},
+            {"User", toml::table{}},
+            {"Debug", toml::table{}},
         });
 
         {
@@ -170,7 +168,14 @@ void Config::Serialize() {
 }
 
 void Config::Deserialize() {
-    auto data = toml::parse(GetConfigPath());
+    const std::string path = GetConfigPath();
+    bool exists = std::filesystem::exists(path);
+    if (!exists) {
+        LoadDefaults();
+        return;
+    }
+
+    auto data = toml::parse(path);
 
     if (data.contains("General")) {
         const auto& general = data.at("General");

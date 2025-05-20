@@ -75,6 +75,14 @@ HYDRA_EXPORT void hydra_string_array_option_remove(void* option,
 }
 
 // Config
+HYDRA_EXPORT void hydra_config_serialize() {
+    hydra::CONFIG_INSTANCE.Serialize();
+}
+
+HYDRA_EXPORT void hydra_config_deserialize() {
+    hydra::CONFIG_INSTANCE.Deserialize();
+}
+
 HYDRA_EXPORT void* hydra_config_get_game_paths() {
     return &hydra::CONFIG_INSTANCE.GetGamePaths();
 }
