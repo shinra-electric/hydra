@@ -1,6 +1,5 @@
 #include "core/emulation_context.hpp"
 
-#include "common/functions.hpp"
 #include "hatch/hatch.hpp"
 
 #include "core/horizon/loader/nca_loader.hpp"
@@ -11,6 +10,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/input/device_manager.hpp"
 
 namespace hydra {
 
@@ -19,7 +19,7 @@ EmulationContext::EmulationContext() {
     srand(time(0));
 
     // Initialize
-    switch (config.GetCpuBackend()) {
+    switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
         cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
         break;
@@ -27,6 +27,7 @@ EmulationContext::EmulationContext() {
         cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
         break;
     default:
+        // TODO: return an error instead
         LOG_FATAL(Other, "Unknown CPU backend");
         break;
     }
@@ -60,6 +61,15 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Load ROM
+
+    // Check if the file exists
+    if (!std::filesystem::exists(rom_filename)) {
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Invalid ROM path {}", rom_filename);
+        return;
+    }
+
+    // Open file
     usize size;
     auto ifs = open_file(rom_filename, size);
 
@@ -68,14 +78,17 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
     horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == "nro")
+    if (extension == "nro") {
         loader = new horizon::loader::NroLoader(reader);
-    else if (extension == "nso")
+    } else if (extension == "nso") {
         loader = new horizon::loader::NsoLoader(reader, true);
-    else if (extension == "nca")
+    } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(reader);
-    else
+    } else {
+        // TODO: return an error instead
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
+        return;
+    }
 
     process = loader->LoadProcess(reader, rom_filename);
     delete loader;
@@ -88,28 +101,17 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     // Patch
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
-    for (const auto& patch_directory :
-         CONFIG_INSTANCE.GetPatchDirectories().Get()) {
-        for (const auto& dir_entry :
-             std::filesystem::directory_iterator{patch_directory}) {
-            if (to_lower(dir_entry.path().filename().string()) ==
-                target_patch_filename) {
-                LOG_INFO(Other, "Applying patch \"{}\"",
-                         dir_entry.path().string());
-
-                std::ifstream ifs(dir_entry);
-
-                // Deserialize
-                Hatch::Deserializer deserializer;
-                deserializer.Deserialize(ifs);
-
-                const auto& hatch = deserializer.GetHatch();
-
-                // Memory patch
-                for (const auto& entry : hatch.GetMemoryPatch())
-                    cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
-
-                ifs.close();
+    // TODO: iterate recursively
+    for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+        if (!std::filesystem::is_directory(patch_path)) {
+            // File
+            TryApplyPatch(target_patch_filename, patch_path);
+        } else {
+            // Directory
+            // TODO: iterate recursively
+            for (const auto& dir_entry :
+                 std::filesystem::directory_iterator{patch_path}) {
+                TryApplyPatch(target_patch_filename, dir_entry.path().string());
             }
         }
     }
@@ -117,9 +119,12 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
 
 void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Config --------");
-    config.Log();
+    CONFIG_INSTANCE.Log();
 
     LOG_INFO(Other, "-------- Run --------");
+
+    // Connect input devices
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
 
     // Enter focus
     auto& state_manager = horizon::StateManager::GetInstance();
@@ -128,7 +133,7 @@ void EmulationContext::Run() {
     state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
 
     // Preselected user
-    auto user_id = config.GetUserID().Get();
+    auto user_id = CONFIG_INSTANCE.GetUserID().Get();
     if (user_id == horizon::services::account::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (USER_MANAGER_INSTANCE.GetCount() == 1) {
@@ -148,10 +153,14 @@ void EmulationContext::Run() {
     is_running = true;
 }
 
-void EmulationContext::Present(u32 width, u32 height,
-                               bool& out_dt_average_updated) {
+void EmulationContext::ProgressFrame(u32 width, u32 height,
+                                     bool& out_dt_average_updated) {
+    // Input
+    INPUT_DEVICE_MANAGER_INSTANCE.Poll();
+
+    // Present
     std::vector<u64> dt_ns_list;
-    PresentImpl(width, height, dt_ns_list);
+    Present(width, height, dt_ns_list);
 
     // Delta time
     using namespace std::chrono_literals;
@@ -164,8 +173,11 @@ void EmulationContext::Present(u32 width, u32 height,
     const auto now = clock_t::now();
     const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
     if (time_since_last_dt_averaging > 1s) {
-        last_dt_average =
-            (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+        if (dt_sample_count != 0)
+            last_dt_average =
+                (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+        else
+            last_dt_average = 0.f;
         accumulated_dt_ns = 0;
         dt_sample_count = 0;
         last_dt_averaging_time = now;
@@ -176,8 +188,8 @@ void EmulationContext::Present(u32 width, u32 height,
     }
 }
 
-void EmulationContext::PresentImpl(u32 width, u32 height,
-                                   std::vector<u64>& out_dt_ns_list) {
+void EmulationContext::Present(u32 width, u32 height,
+                               std::vector<u64>& out_dt_ns_list) {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     if (!display->IsOpen())
@@ -226,6 +238,28 @@ void EmulationContext::PresentImpl(u32 width, u32 height,
     renderer->Present(texture, origin, size);
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
+}
+
+void EmulationContext::TryApplyPatch(const std::string_view target_filename,
+                                     const std::filesystem::path path) {
+    if (to_lower(path.filename().string()) != target_filename)
+        return;
+
+    LOG_INFO(Other, "Applying patch \"{}\"", path.string());
+
+    std::ifstream ifs(path);
+
+    // Deserialize
+    Hatch::Deserializer deserializer;
+    deserializer.Deserialize(ifs);
+
+    const auto& hatch = deserializer.GetHatch();
+
+    // Memory patch
+    for (const auto& entry : hatch.GetMemoryPatch())
+        cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+
+    ifs.close();
 }
 
 } // namespace hydra

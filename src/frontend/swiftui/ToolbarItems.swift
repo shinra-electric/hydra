@@ -5,12 +5,14 @@ struct ToolbarItems: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-
-            Button("Open File", systemImage: "plus.app") {
+            Button("Add Game Path", systemImage: "plus") {
                 isFilePickerPresented.toggle()
             }
             // TODO: change allowedContentTypes to nsp etc
-            .fileImporter(isPresented: $isFilePickerPresented, allowedContentTypes: [.data], allowsMultipleSelection: false) { result in
+            .fileImporter(
+                isPresented: $isFilePickerPresented, allowedContentTypes: [.data],
+                allowsMultipleSelection: false
+            ) { result in
                 switch result {
                 case .success(let fileurls):
                     print(fileurls.count)
@@ -23,15 +25,6 @@ struct ToolbarItems: ToolbarContent {
                     print(error)
                 }
             }
-
-            Button("Reset", systemImage: "power") { }
-
-            Button("Save States", systemImage: "photo.on.rectangle.angled") { }
-
-            Button("Controller 1", systemImage: "gamecontroller") { }
-
-            Button("Controller 2", systemImage: "gamecontroller") { }
-
         }
     }
 

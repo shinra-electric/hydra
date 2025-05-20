@@ -145,12 +145,15 @@ void Renderer::SetSurface(void* surface) {
     // TODO: set pixel format
 }
 
-void Renderer::Present(TextureBase* texture, const uint2 output_origin,
+void Renderer::Present(const TextureBase* texture, const uint2 output_origin,
                        const uint2 output_size) {
-    auto texture_impl = static_cast<Texture*>(texture);
+    auto texture_impl = static_cast<const Texture*>(texture);
 
     // TODO: acquire drawable earlier?
     auto drawable = layer->nextDrawable();
+    if (!drawable)
+        return;
+
     auto dst = drawable->texture();
 
     // Render pass

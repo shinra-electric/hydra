@@ -20,7 +20,8 @@ class EmulationContext {
     void LoadRom(const std::string& rom_filename);
     void Run();
 
-    void Present(u32 width, u32 height, bool& out_dt_average_updated);
+    // TODO: rename?
+    void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
     // Getters
     hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }
@@ -34,8 +35,6 @@ class EmulationContext {
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
-    Config config;
-
     // Objects
     hw::tegra_x1::cpu::CPUBase* cpu;
     hw::tegra_x1::gpu::GPU* gpu;
@@ -54,7 +53,11 @@ class EmulationContext {
     u32 dt_sample_count{0};
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
-    void PresentImpl(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
+    void Present(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
+
+    // Helpers
+    void TryApplyPatch(const std::string_view target_filename,
+                       const std::filesystem::path path);
 };
 
 } // namespace hydra

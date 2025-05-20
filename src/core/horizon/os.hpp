@@ -5,6 +5,9 @@
 #include "core/horizon/services/account/user_manager.hpp"
 #include "core/horizon/state_manager.hpp"
 
+#define OS_INSTANCE horizon::OS::GetInstance()
+#define INPUT_MANAGER_INSTANCE OS_INSTANCE.GetInputManager()
+
 namespace hydra::hw::display {
 class DisplayBase;
 }

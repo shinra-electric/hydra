@@ -4,6 +4,8 @@ if (FRONTEND STREQUAL "SDL3")
     set(SOURCE_FILES
         sdl3/main.cpp
         sdl3/const.hpp
+        sdl3/cursor.cpp
+        sdl3/cursor.hpp
         sdl3/window.cpp
         sdl3/window.hpp
     )
@@ -20,18 +22,24 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
         swiftui/ToolbarItems.swift
-        swiftui/Settings/GeneralSettingsView.swift
-        swiftui/Settings/GraphicsSettingsView.swift
-        swiftui/Settings/DebugSettingsView.swift
-        swiftui/Settings/SettingsView.swift
-        swiftui/Sidebar/DetailView.swift
-        swiftui/Sidebar/GamelistView.swift
-        swiftui/Sidebar/NowPlayingView.swift
-        swiftui/Sidebar/SidebarSelectionState.swift
-        swiftui/Sidebar/SidebarView.swift
+        swiftui/Game.swift
+        swiftui/MetalView.swift
+        swiftui/EmulationView.swift
+        swiftui/GamePreview.swift
+        swiftui/GameListView.swift
+        swiftui/helpers/StringList.swift
+        swiftui/helpers/EditableStringList.swift
+        swiftui/helpers/EditablePathList.swift
+        swiftui/settings/GeneralSettingsView.swift
+        swiftui/settings/CpuSettingsView.swift
+        swiftui/settings/GraphicsSettingsView.swift
+        swiftui/settings/DebugSettingsView.swift
+        swiftui/settings/SettingsView.swift
     )
 
     add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
+
+    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
 
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
     target_sources(hydra PRIVATE "${RESOURCE_FILES}")

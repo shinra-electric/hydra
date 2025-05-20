@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/emulation_context.hpp"
-#include "frontend/sdl3/const.hpp"
+#include "frontend/sdl3/cursor.hpp"
 
 namespace hydra::frontend::sdl3 {
 
@@ -16,11 +16,9 @@ class Window {
     SDL_Window* window;
     SDL_Renderer* renderer;
 
-    EmulationContext emulation_context;
+    Cursor cursor;
 
-    // Inputs
-    horizon::hid::NpadButtons buttons{horizon::hid::NpadButtons::None};
-    u32 finger_id{invalid<u32>()};
+    EmulationContext emulation_context;
 
     void UpdateWindowTitle();
     void SetWindowTitle(const std::string& title);
