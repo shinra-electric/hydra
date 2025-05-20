@@ -341,8 +341,24 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4s");
     INST(0xdef8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tld4");
-    INST(0xdeb8000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "tex");
+    INST(0xdeb8000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: more stuff
+        // TOOD: correct?
+        const auto dst = GET_REG(0);
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
+        const auto const_buffer_index = GET_VALUE_U32(31, 4);
+        LOG_DEBUG(ShaderDecompiler, "tex r{} r{} r{} 0x{:08x}", dst, coords_x,
+                  coords_y, const_buffer_index);
+
+        o->OpTextureSample(
+            o->OpRegister(false, dst), o->OpRegister(false, dst + 1),
+            o->OpRegister(false, dst + 2), o->OpRegister(false, dst + 3),
+            const_buffer_index, o->OpRegister(true, coords_x),
+            o->OpRegister(true, coords_y));
+    }
     INST(0xde78000000000000, 0xfffc000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "txd");
     INST(0xde38000000000000, 0xfffc000000000000)
