@@ -319,6 +319,14 @@ void LangBuilderBase::OpExit() {
     EmitExit();
 }
 
+ValueBase* LangBuilderBase::OpMin(ValueBase* srcA, ValueBase* srcB) {
+    RET_V("min({}, {})", V(srcA), V(srcB));
+}
+
+ValueBase* LangBuilderBase::OpMax(ValueBase* srcA, ValueBase* srcB) {
+    RET_V("max({}, {})", V(srcA), V(srcB));
+}
+
 ValueBase* LangBuilderBase::OpMathFunction(MathFunc func, ValueBase* src) {
     RET_V("({}({}))", GetMathFunc(func), V(src));
 }

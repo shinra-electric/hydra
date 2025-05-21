@@ -246,7 +246,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     // HACK
     if (MAKE_ADDR(regs.index_buffer_addr) == 0x0) {
         LOG_ERROR(Engines, "Invalid index buffer address");
-        DrawVertexArray(index, count);
+        DrawVertexArray(index, 6);
         return;
     }
 

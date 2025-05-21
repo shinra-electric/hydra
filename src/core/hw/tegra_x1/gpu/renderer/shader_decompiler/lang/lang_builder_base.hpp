@@ -66,8 +66,12 @@ class LangBuilderBase : public BuilderBase {
     // Control flow
     void OpExit() override;
 
-    // Special
+    // Math
+    ValueBase* OpMin(ValueBase* srcA, ValueBase* srcB) override;
+    ValueBase* OpMax(ValueBase* srcA, ValueBase* srcB) override;
     ValueBase* OpMathFunction(MathFunc func, ValueBase* src) override;
+
+    // Special
     ValueBase* OpInterpolate(ValueBase* src) override;
     void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
                          ValueBase* dstD, u32 const_buffer_index,

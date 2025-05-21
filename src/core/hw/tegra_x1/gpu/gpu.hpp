@@ -97,6 +97,16 @@ class GPU {
         return CreateAddressSpace(addr, size, gpu_addr);
     }
 
+    // TODO: correct?
+    void ModifyAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
+        auto& as = gpu_mmu.UnmapAddrToAddressSpace(gpu_addr);
+        ASSERT_DEBUG(size == as.size, GPU, "Size mismatch: {} != {}", size,
+                     as.size)
+
+        as.addr = addr;
+        as.space = AsMemorySpace::GuestCPU;
+    }
+
     // Engines
     engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,

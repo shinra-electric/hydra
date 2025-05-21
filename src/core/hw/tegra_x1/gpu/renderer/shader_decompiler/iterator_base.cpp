@@ -458,6 +458,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst_type = get_operand_5cb8_0(inst);
         const auto src_type = get_operand_5cb8_1(inst);
+        // TODO: 5cb8_2
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
         LOG_DEBUG(ShaderDecompiler, "i2f {} {} r{} r{}", dst_type, src_type,
@@ -468,8 +469,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     }
     INST(0x5cb0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2i");
-    INST(0x5ca8000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2f");
+    INST(0x5ca8000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst_type = get_operand_5cb0_0(inst);
+        const auto src_type = get_operand_5cb8_0(inst);
+        // TODO: 5ca8_0
+        const auto dst = GET_REG(0);
+        const auto src = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "f2f {} {} r{} r{}", dst_type, src_type,
+                  dst, src);
+
+        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+    }
     INST(0x5ca0000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "sel");
     INST(0x5c98000000000000, 0xfff8000000000000) {
@@ -969,8 +982,24 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
                                  o->OpImmediateL(srcB, DataType::F32));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
-    INST(0x3860000000000000, 0xfef8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
+    INST(0x3860000000000000, 0xfef8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_F32();
+        const auto pred = GET_PRED(39);
+        LOG_DEBUG(ShaderDecompiler, "fmnmx r{} r{} 0x{:08x} p{}", dst, srcA,
+                  srcB, pred);
+
+        auto srcA_v = o->OpRegister(false, srcA, DataType::F32);
+        auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
+        auto min_v = o->OpMin(srcA_v, srcB_v);
+        auto max_v = o->OpMax(srcA_v, srcB_v);
+        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
+                               min_v); // TODO: correct?
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+    }
     INST(0x3858000000000000, 0xfef8000000000000) {
         HANDLE_PRED_COND();
 

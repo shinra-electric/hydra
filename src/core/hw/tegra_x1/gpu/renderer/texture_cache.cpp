@@ -3,6 +3,9 @@
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
+// TODO: remove
+#include "core/horizon/kernel/kernel.hpp"
+
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
@@ -44,12 +47,20 @@ void TextureCache::Update(Tex& texture) {
     // if (texture.base->GetDescriptor().width == 1280 &&
     //    texture.base->GetDescriptor().height == 720) // HACK
     //    DecodeTexture(texture.base);
+    // HACK: if Sonic Mania
+    if (KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 &&
+        texture.base->GetDescriptor().width == 512 &&
+        texture.base->GetDescriptor().height == 256)
+        DecodeTexture(texture.base);
 }
 
 u64 TextureCache::Hash(const TextureDescriptor& descriptor) {
     u64 hash = 0;
-    hash += descriptor.ptr;
-    hash = rotl(hash, 7);
+    // HACK: if not Sonic Mania
+    if (KERNEL_INSTANCE.GetTitleID() != 0x01009aa000faa000) {
+        hash += descriptor.ptr;
+        hash = rotl(hash, 7);
+    }
     hash += descriptor.width;
     hash = rotl(hash, 11);
     hash += descriptor.height;

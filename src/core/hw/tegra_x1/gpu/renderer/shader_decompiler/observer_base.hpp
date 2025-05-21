@@ -75,10 +75,18 @@ class ObserverBase {
     virtual void OpBranch(u32 target) {}
     virtual void OpExit() {}
 
-    // Special
+    // Math
+    virtual ValueBase* OpMin(ValueBase* srcA, ValueBase* srcB) {
+        return nullptr;
+    }
+    virtual ValueBase* OpMax(ValueBase* srcA, ValueBase* srcB) {
+        return nullptr;
+    }
     virtual ValueBase* OpMathFunction(MathFunc func, ValueBase* src) {
         return nullptr;
     }
+
+    // Special
     // TODO: remove this
     virtual ValueBase* OpInterpolate(ValueBase* src) { return nullptr; }
     virtual void OpTextureSample(ValueBase* dstA, ValueBase* dstB,
