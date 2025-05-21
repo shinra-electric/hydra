@@ -17,7 +17,7 @@ DataType to_data_type(engines::VertexAttribType vertex_attrib_type) {
                               // supports scaled attributes
     case engines::VertexAttribType::Uscaled:
         return DataType::U32; // TODO: use float if the Rendered backend
-                               // supports scaled attributes
+                              // supports scaled attributes
     case engines::VertexAttribType::Float:
         return DataType::F32;
     default:

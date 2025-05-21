@@ -2,6 +2,7 @@
 
 namespace hydra::horizon::services::timesrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISystemClock, 0, GetCurrentTime, 2, GetSystemClockContext)
+DEFINE_SERVICE_COMMAND_TABLE(ISystemClock, 0, GetCurrentTime, 2,
+                             GetSystemClockContext)
 
 } // namespace hydra::horizon::services::timesrv

@@ -1,5 +1,11 @@
 #include "core/horizon/filesystem/host_file.hpp"
 
+#define LOG_FS_ACCESS(entry_type, access, host_path)                           \
+    if (CONFIG_INSTANCE.GetLogFsAccess()) {                                    \
+        LOG_INFO(Filesystem, "{} {} at \"{}\"", entry_type, access,            \
+                 host_path);                                                   \
+    }
+
 namespace hydra::horizon::filesystem {
 
 HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
@@ -13,11 +19,15 @@ HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
         // TODO: is there a better way to create an empty file?
         std::ofstream ofs(host_path);
         ofs.close();
+
+        LOG_FS_ACCESS("File", "created", host_path);
     }
 }
 
 void HostFile::Resize(usize new_size) {
     std::filesystem::resize_file(host_path, new_size);
+
+    LOG_FS_ACCESS("File", "resized", host_path);
 }
 
 FileStream HostFile::Open(FileOpenFlags flags) {
@@ -30,6 +40,8 @@ FileStream HostFile::Open(FileOpenFlags flags) {
         std_flags |= std::ios::app;
     auto stream = new std::fstream(host_path, std_flags);
 
+    LOG_FS_ACCESS("File", "opened", host_path);
+
     return FileStream(stream, offset, GetSize(), flags);
 }
 
@@ -38,6 +50,8 @@ void HostFile::Close(FileStream& stream) {
     ASSERT(fs, Filesystem, "Invalid stream type");
     fs->close();
     delete fs;
+
+    LOG_FS_ACCESS("File", "closed", host_path);
 }
 
 usize HostFile::GetSize() {

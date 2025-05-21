@@ -99,6 +99,7 @@ void Config::LoadDefaults() {
     shader_backend = GetDefaultShaderBackend();
     user_id = GetDefaultUserID();
     logging_output = GetDefaultLoggingOutput();
+    log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
     stack_trace_logging = GetDefaultStackTraceLogging();
     process_args = GetDefaultProcessArgs();
@@ -155,6 +156,7 @@ void Config::Serialize() {
         {
             auto& debug = data.at("Debug");
             debug["logging_output"] = logging_output.Get();
+            debug["log_fs_access"] = log_fs_access.Get();
             debug["debug_logging"] = debug_logging.Get();
             debug["stack_trace_logging"] = stack_trace_logging.Get();
             debug["process_args"] = process_args.Get();
@@ -208,6 +210,8 @@ void Config::Deserialize() {
         const auto& debug = data.at("Debug");
         logging_output = toml::find_or<logging::Output>(
             debug, "logging_output", GetDefaultLoggingOutput());
+        log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
+                                            GetDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
         stack_trace_logging = toml::find_or<bool>(
@@ -245,6 +249,7 @@ void Config::Log() {
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Logging output: {}", logging_output);
+    LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Log stack trace: {}", stack_trace_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);

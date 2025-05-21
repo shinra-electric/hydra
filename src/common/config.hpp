@@ -118,6 +118,7 @@ class Config {
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
     Option<logging::Output>& GetLoggingOutput() { return logging_output; }
+    Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
     ArrayOption<std::string>& GetProcessArgs() { return process_args; }
@@ -139,6 +140,7 @@ class Config {
         logging::Output::StdOut; // Set to stdout so that messages logged
                                  // before logs path is initialized get logged
                                  // properly
+    Option<bool> log_fs_access;
     Option<bool> debug_logging;
     Option<bool> stack_trace_logging;
     ArrayOption<std::string> process_args;
@@ -165,6 +167,7 @@ class Config {
     logging::Output GetDefaultLoggingOutput() const {
         return logging::Output::File;
     }
+    bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
     bool GetDefaultStackTraceLogging() const { return false; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
