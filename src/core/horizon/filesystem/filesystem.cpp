@@ -97,6 +97,30 @@ FsResult Filesystem::CreateDirectory(const std::string& path,
     return AddEntry(path, new Directory(), add_intermediate);
 }
 
+FsResult Filesystem::DeleteFile(const std::string& path) {
+    FileBase* file;
+    const auto res = GetFile(path, file);
+    if (res != FsResult::Success)
+        return res;
+
+    file->Delete();
+    delete file;
+
+    return FsResult::Success;
+}
+
+FsResult Filesystem::DeleteDirectory(const std::string& path, bool recursive) {
+    Directory* dir;
+    const auto res = GetDirectory(path, dir);
+    if (res != FsResult::Success)
+        return res;
+
+    dir->Delete(recursive);
+    delete dir;
+
+    return FsResult::Success;
+}
+
 FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);

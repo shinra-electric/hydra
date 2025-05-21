@@ -26,6 +26,32 @@ Directory::~Directory() {
         delete entry;
 }
 
+FsResult Directory::Delete(bool recursive) {
+    if (!recursive) {
+        for (const auto& entry : entries) {
+            if (entry.second->IsDirectory())
+                return FsResult::DirectoryNotEmpty;
+        }
+    }
+
+    for (const auto& entry : entries) {
+        if (entry.second->IsDirectory()) {
+            auto dir = dynamic_cast<Directory*>(entry.second);
+            ASSERT_DEBUG(dir, Filesystem, "This should not happen");
+            dir->Delete(true);
+            delete dir;
+        } else {
+            auto file = dynamic_cast<FileBase*>(entry.second);
+            ASSERT_DEBUG(file, Filesystem, "This should not happen");
+            file->Delete();
+            delete file;
+        }
+    }
+
+    entries.clear();
+    return FsResult::Success;
+}
+
 FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
                              bool add_intermediate) {
     ASSERT(rel_path.size() != 0, Filesystem, "Relative path cannot be empty");

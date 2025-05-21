@@ -24,6 +24,12 @@ HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
     }
 }
 
+void HostFile::Delete() {
+    std::filesystem::remove(host_path);
+
+    LOG_FS_ACCESS("File", "deleted", host_path);
+}
+
 void HostFile::Resize(usize new_size) {
     std::filesystem::resize_file(host_path, new_size);
 

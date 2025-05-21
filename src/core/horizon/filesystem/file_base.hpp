@@ -41,6 +41,8 @@ class FileBase : public EntryBase {
 
     bool IsDirectory() const override { return false; }
 
+    virtual void Delete() = 0;
+
     virtual void Resize(usize new_size) = 0;
 
     virtual FileStream Open(FileOpenFlags flags) = 0;

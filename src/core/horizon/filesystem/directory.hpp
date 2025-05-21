@@ -13,6 +13,8 @@ class Directory : public EntryBase {
 
     bool IsDirectory() const override { return true; }
 
+    FsResult Delete(bool recursive = false);
+
     FsResult AddEntry(const std::string& rel_path, EntryBase* entry,
                       bool add_intermediate = false);
     FsResult AddEntry(const std::string& rel_path, const std::string& host_path,

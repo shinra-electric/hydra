@@ -28,6 +28,10 @@ class Filesystem {
     [[nodiscard]] FsResult CreateDirectory(const std::string& path,
                                            bool add_intermediate = false);
 
+    [[nodiscard]] FsResult DeleteFile(const std::string& path);
+    [[nodiscard]] FsResult DeleteDirectory(const std::string& path,
+                                           bool recursive = false);
+
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
     [[nodiscard]] FsResult GetFile(const std::string& path,

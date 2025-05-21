@@ -10,6 +10,8 @@ class HostFile : public FileBase {
              usize size_limit_ = invalid<usize>());
     ~HostFile() override = default;
 
+    void Delete() override;
+
     void Resize(usize new_size) override;
 
     FileStream Open(FileOpenFlags flags) override;

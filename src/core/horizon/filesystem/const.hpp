@@ -18,6 +18,7 @@ enum class FsResult {
     NotAFile,
     NotADirectory,
     AlreadyExists,
+    DirectoryNotEmpty,
 };
 
 enum class FileOpenFlags {
@@ -35,7 +36,8 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::FsResult, Success, "success",
                        "does not exist", IntermediateDirectoryDoesNotExist,
                        "intermediate directory does not exist", NotAFile,
                        "not a file", NotADirectory, "not a directory",
-                       AlreadyExists, "already exists")
+                       AlreadyExists, "already exists", DirectoryNotEmpty,
+                       "directory not empty")
 
 ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::filesystem::FileOpenFlags, Read,
                              "read", Write, "write", Append, "append")
