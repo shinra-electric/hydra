@@ -29,12 +29,15 @@ Directory::~Directory() {
 FsResult Directory::Delete(bool recursive) {
     if (!recursive) {
         for (const auto& entry : entries) {
-            if (entry.second->IsDirectory())
+            if (entry.second && entry.second->IsDirectory())
                 return FsResult::DirectoryNotEmpty;
         }
     }
 
     for (const auto& entry : entries) {
+        if (!entry.second)
+            continue;
+
         if (entry.second->IsDirectory()) {
             auto dir = dynamic_cast<Directory*>(entry.second);
             ASSERT_DEBUG(dir, Filesystem, "This should not happen");
@@ -54,62 +57,17 @@ FsResult Directory::Delete(bool recursive) {
 
 FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
                              bool add_intermediate) {
-    ASSERT(rel_path.size() != 0, Filesystem, "Relative path cannot be empty");
-
-    const auto slash_pos = rel_path.find('/');
-    if (slash_pos == 0)
-        return AddEntry(rel_path.substr(1), entry, add_intermediate);
-
-    if (slash_pos == std::string::npos) {
-        auto& e = entries[rel_path];
-        if (e)
-            return FsResult::AlreadyExists;
-
-        e = entry;
-        entry->SetParent(this);
-    } else {
-        const auto sub_dir_name = rel_path.substr(0, slash_pos);
-        const auto next_entry_name = rel_path.substr(slash_pos + 1);
-
-        // Handle special names
-        if (sub_dir_name == ".") {
-            return AddEntry(next_entry_name, entry, add_intermediate);
-        } else if (sub_dir_name == "..") {
-            if (parent) {
-                return parent->AddEntry(next_entry_name, entry,
-                                        add_intermediate);
-            } else {
-                return FsResult::DoesNotExist;
-            }
-        }
-
-        // Regular subdirectory
-        auto& e = entries[sub_dir_name];
-        if (next_entry_name.empty()) {
-            if (e)
+    return Find(
+        rel_path,
+        [entry, add_intermediate](Directory* dir, EntryBase*& out_entry) {
+            if (out_entry)
                 return FsResult::AlreadyExists;
 
-            e = entry;
-            entry->SetParent(this);
-        } else {
-            if (!e) {
-                if (add_intermediate) {
-                    e = new Directory();
-                    e->SetParent(this);
-                } else {
-                    return FsResult::IntermediateDirectoryDoesNotExist;
-                }
-            }
-
-            auto sub_dir = dynamic_cast<Directory*>(e);
-            if (!sub_dir)
-                return FsResult::NotADirectory;
-
-            return sub_dir->AddEntry(next_entry_name, entry, add_intermediate);
-        }
-    }
-
-    return FsResult::Success;
+            out_entry = entry;
+            entry->SetParent(dir);
+            return FsResult::Success;
+        },
+        add_intermediate);
 }
 
 FsResult Directory::AddEntry(const std::string& rel_path,
@@ -130,66 +88,30 @@ FsResult Directory::AddEntry(const std::string& rel_path,
     return AddEntry(rel_path, entry, add_intermediate);
 }
 
-FsResult Directory::GetEntry(const std::string& rel_path,
-                             EntryBase*& out_entry) {
-    if (rel_path.empty()) {
-        out_entry = this;
-        return FsResult::Success;
-    }
-
-    const auto slash_pos = rel_path.find('/');
-    if (slash_pos == 0)
-        return GetEntry(rel_path.substr(1), out_entry);
-
-    // If there is no slash, or the slash is at the end of the string,
-    // return the entry directly
-    if (slash_pos == std::string::npos) {
-        out_entry = GetEntryImpl(rel_path);
-        if (!out_entry) {
-            out_entry = nullptr;
+FsResult Directory::DeleteEntry(const std::string& rel_path, bool recursive) {
+    return Find(rel_path, [recursive](Directory* dir, EntryBase*& entry) {
+        if (!entry)
             return FsResult::DoesNotExist;
-        }
-    } else {
-        const auto sub_dir_name = rel_path.substr(0, slash_pos);
-        const auto next_entry_name = rel_path.substr(slash_pos + 1);
 
-        // Handle special names
-        if (sub_dir_name == ".") {
-            return GetEntry(next_entry_name, out_entry);
-        } else if (sub_dir_name == "..") {
-            if (parent) {
-                return parent->GetEntry(next_entry_name, out_entry);
-            } else {
-                out_entry = nullptr;
-                return FsResult::DoesNotExist;
-            }
-        }
+        auto res = entry->Delete(recursive);
+        delete entry;
+        entry = nullptr;
 
-        // Regular subdirectory
-        EntryBase* sub_dir = GetEntryImpl(sub_dir_name);
-        if (!sub_dir) {
-            out_entry = nullptr;
-            return FsResult::DoesNotExist;
-        }
-
-        auto sub_dir_impl = dynamic_cast<Directory*>(sub_dir);
-        if (!sub_dir_impl) {
-            out_entry = nullptr;
-            return FsResult::NotADirectory;
-        }
-
-        return sub_dir_impl->GetEntry(next_entry_name, out_entry);
-    }
-
-    return FsResult::Success;
+        return res;
+    });
 }
 
-EntryBase* Directory::GetEntryImpl(const std::string& name) {
-    auto it = entries.find(name);
-    if (it == entries.end())
-        return nullptr;
+FsResult Directory::GetEntry(const std::string& rel_path,
+                             EntryBase*& out_entry) {
+    return Find(rel_path, [&out_entry](Directory* dir, EntryBase*& entry) {
+        if (!entry) {
+            out_entry = nullptr;
+            return FsResult::DoesNotExist;
+        }
 
-    return it->second;
+        out_entry = entry;
+        return FsResult::Success;
+    });
 }
 
 } // namespace hydra::horizon::filesystem

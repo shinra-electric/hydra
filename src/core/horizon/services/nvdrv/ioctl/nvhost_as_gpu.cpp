@@ -38,6 +38,14 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
                                   handle_id_t nvmap_handle_id, u32 reserved,
                                   u64 buffer_offset, u64 mapping_size,
                                   InOutSingle<gpu_vaddr_t> inout_addr) {
+    if (any(flags & MapBufferFlags::Modify)) {
+        LOG_NOT_IMPLEMENTED(
+            Services,
+            "Address space modifying (GPU addr: 0x{:08x}, size: 0x{:08x})",
+            *inout_addr.data, mapping_size);
+        return NvResult::BadParameter;
+    }
+
     const auto& map = GPU_INSTANCE.GetMap(nvmap_handle_id);
 
     usize size = mapping_size;
@@ -45,14 +53,11 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
         size = map.size; // TODO: correct?
 
     gpu_vaddr_t addr = invalid<uptr>();
-    if (any(flags & MapBufferFlags::FixedOffset) || any(flags & MapBufferFlags::Modify))
+    if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
-    if (any(flags & MapBufferFlags::Modify))
-        GPU_INSTANCE.ModifyAddressSpace(map.addr + buffer_offset, size, addr);
-    else
-        inout_addr = GPU_INSTANCE.MapBufferToAddressSpace(
-            map.addr + buffer_offset, size, addr);
+    inout_addr = GPU_INSTANCE.MapBufferToAddressSpace(map.addr + buffer_offset,
+                                                      size, addr);
     return NvResult::Success;
 }
 

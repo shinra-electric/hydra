@@ -22,6 +22,11 @@ FsResult Device::AddEntry(const std::string& path, const std::string& host_path,
     return root->AddEntry(path.substr(1), host_path, add_intermediate);
 }
 
+FsResult Device::DeleteEntry(const std::string& path, bool recursive) {
+    VERIFY_PATH(path);
+    return root->DeleteEntry(path.substr(1), recursive);
+}
+
 FsResult Device::GetEntry(const std::string& path, EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return root->GetEntry(path.substr(1), out_entry);

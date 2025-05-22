@@ -41,7 +41,11 @@ class FileBase : public EntryBase {
 
     bool IsDirectory() const override { return false; }
 
-    virtual void Delete() = 0;
+    FsResult Delete(bool recursive = false) override {
+        ASSERT(!recursive, Filesystem, "Cannot recursively delete file");
+        DeleteImpl();
+        return FsResult::Success;
+    }
 
     virtual void Resize(usize new_size) = 0;
 
@@ -53,6 +57,8 @@ class FileBase : public EntryBase {
 
   protected:
     u32 offset;
+
+    virtual void DeleteImpl() = 0;
 };
 
 } // namespace hydra::horizon::filesystem

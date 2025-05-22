@@ -37,7 +37,7 @@ result_t
 IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteFile(path);
+    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete file \"{}\": {}", path, res);
 
@@ -64,7 +64,7 @@ result_t
 IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteDirectory(path);
+    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory \"{}\": {}", path, res);
 
@@ -75,7 +75,7 @@ result_t IFileSystem::DeleteDirectoryRecursively(
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteDirectory(path, true);
+    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path, true);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory recursively \"{}\": {}", path, res);
 

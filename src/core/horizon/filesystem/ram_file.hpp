@@ -9,10 +9,6 @@ class RamFile : public FileBase {
     RamFile() : FileBase(0) {}
     ~RamFile() override = default;
 
-    void Delete() override {
-        // Do nothing
-    }
-
     void Resize(usize new_size) override {
         LOG_NOT_IMPLEMENTED(Filesystem, "RAM file resizing (size: 0x{:x})",
                             new_size);
@@ -34,6 +30,10 @@ class RamFile : public FileBase {
 
   private:
     std::stringstream stream;
+
+    void DeleteImpl() override {
+        // Do nothing
+    }
 };
 
 } // namespace hydra::horizon::filesystem

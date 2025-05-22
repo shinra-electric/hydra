@@ -12,6 +12,8 @@ class EntryBase {
 
     virtual bool IsDirectory() const = 0;
 
+    virtual FsResult Delete(bool recursive = false) = 0;
+
     // Setters
     void SetParent(Directory* parent_) { parent = parent_; }
 

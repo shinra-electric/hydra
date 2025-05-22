@@ -8,9 +8,7 @@ class HostFile : public FileBase {
   public:
     HostFile(const std::string& host_path_, u64 offset = 0,
              usize size_limit_ = invalid<usize>());
-    ~HostFile() override = default;
-
-    void Delete() override;
+    ~HostFile() override;
 
     void Resize(usize new_size) override;
 
@@ -23,6 +21,9 @@ class HostFile : public FileBase {
   private:
     std::string host_path;
     usize size_limit;
+    usize size;
+
+    void DeleteImpl() override;
 };
 
 } // namespace hydra::horizon::filesystem

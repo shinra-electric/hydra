@@ -16,6 +16,8 @@ class Device {
     [[nodiscard]] FsResult AddEntry(const std::string& path,
                                     const std::string& host_path,
                                     bool add_intermediate = false);
+    [[nodiscard]] FsResult DeleteEntry(const std::string& path,
+                                       bool recursive = false);
     [[nodiscard]] FsResult GetEntry(const std::string& path,
                                     EntryBase*& out_entry);
 
