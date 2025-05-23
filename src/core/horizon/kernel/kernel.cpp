@@ -389,8 +389,10 @@ void Kernel::svcExitThread() { LOG_DEBUG(Kernel, "svcExitThread called"); }
 void Kernel::svcSleepThread(i64 nano) {
     LOG_DEBUG(Kernel, "svcSleepThread called (nano: {})", nano);
 
-    // TODO: nano of 0, -1 and -2 is for thread yielding
-    std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
+    if (nano == 0 || nano == -1 || nano == -2)
+        std::this_thread::yield();
+    else
+        std::this_thread::sleep_for(std::chrono::nanoseconds(nano));
 }
 
 result_t Kernel::svcGetThreadPriority(handle_id_t thread_handle_id,
@@ -732,35 +734,37 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     u8 scratch_buffer_move_handles[0x100];
     u8 scratch_buffer_copy_handles[0x100];
 
+    // Request context
     hipc::Readers readers(mmu, hipc_in);
     hipc::Writers writers(mmu, hipc_in, scratch_buffer, scratch_buffer_objects,
                           scratch_buffer_move_handles,
                           scratch_buffer_copy_handles);
+    RequestContext context{
+        readers,
+        writers,
+        [&](ServiceBase* service) {
+            auto session = new Session(service);
+            handle_id_t handle_id = AddHandle(session);
+            session->SetHandleId(handle_id);
+            writers.move_handles_writer.Write(handle_id);
+        },
+        [&](handle_id_t handle_id) {
+            return static_cast<Session*>(GetHandle(handle_id))
+                ->GetService();
+        },
+    };
 
     // Dispatch
     auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
     switch (command_type) {
     case cmif::CommandType::Close:
+    case cmif::CommandType::TipcClose:
         session->Close();
         break;
     case cmif::CommandType::Request:
     case cmif::CommandType::RequestWithContext: {
         // TODO: how is RequestWithContext different?
 
-        RequestContext context{
-            readers,
-            writers,
-            [&](ServiceBase* service) {
-                auto session = new Session(service);
-                handle_id_t handle_id = AddHandle(session);
-                session->SetHandleId(handle_id);
-                writers.move_handles_writer.Write(handle_id);
-            },
-            [&](handle_id_t handle_id) {
-                return static_cast<Session*>(GetHandle(handle_id))
-                    ->GetService();
-            },
-        };
         session->Request(context);
         break;
     }
@@ -771,6 +775,13 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
         session->Control(readers, writers);
         break;
     default:
+        if (command_type >= cmif::CommandType::TipcCommandRegion) {
+            const auto tipc_command = (u32)command_type - (u32)cmif::CommandType::TipcCommandRegion;
+            LOG_ERROR(Kernel, "TIPC command {}", tipc_command);
+            session->Request(context);
+            break;
+        }
+
         LOG_WARN(Kernel, "Unknown command {}", command_type);
         break;
     }
@@ -926,12 +937,12 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = STACK_REGION_SIZE;
         return RESULT_SUCCESS;
     case InfoType::TotalSystemResourceSize:
-        LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
+        LOG_NOT_IMPLEMENTED(Kernel, "TotalSystemResourceSize");
         // HACK
         out_info = 2u * 1024u * 1024u;
         return RESULT_SUCCESS;
     case InfoType::UsedSystemResourceSize:
-        LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
+        LOG_NOT_IMPLEMENTED(Kernel, "UsedSystemResourceSize");
         // HACK
         out_info = 64 * 1024;
         return RESULT_SUCCESS;
@@ -943,7 +954,7 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
     case InfoType::UsedNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
         // HACK
-        out_info = 16 * 1024;
+        out_info = 16u * 1024u * 1024u;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");

@@ -16,14 +16,17 @@ enum class DomainCommandType : u8 {
 };
 
 enum class CommandType {
-    Invalid,
-    LegacyRequest,
-    Close,
-    LegacyControl,
-    Request,
-    Control,
-    RequestWithContext,
-    ControlWithContext,
+    Invalid = 0,
+    LegacyRequest = 1,
+    Close = 2,
+    LegacyControl = 3,
+    Request = 4,
+    Control = 5,
+    RequestWithContext = 6,
+    ControlWithContext = 7,
+
+    TipcClose = 15,
+    TipcCommandRegion = 16,
 };
 
 enum class ControlCommandType {

@@ -157,16 +157,14 @@ void Driver::InstResult(ResultOperation op, u8 rD, u32 value) {
         SetMethod(value);
         break;
     case ResultOperation::MoveAndSetMethodFetchAndSend:
-        // TODO: is this correct?
         SetRegU32(rD, value);
         SetMethod(value);
-        SetRegU32(rD, FetchParam());
-        Send(GetRegU32(rD));
+        Send(FetchParam());
         break;
     case ResultOperation::MoveAndSetMethodSend:
         SetRegU32(rD, value);
         SetMethod(value);
-        Send(value);
+        Send((value >> 12) & 0x3f);
         break;
     }
 }
