@@ -348,10 +348,10 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
         auto index_buffer_mtl = state.index_buffer->GetBuffer();
 
         // TODO: is start used correctly?
-        encoder->drawIndexedPrimitives(
-            to_mtl_primitive_type(primitive_type), NS::UInteger(count),
-            to_mtl_index_type(state.index_type), index_buffer_mtl,
-            NS::UInteger(0), 1);
+        encoder->drawIndexedPrimitives(to_mtl_primitive_type(primitive_type),
+                                       NS::UInteger(count),
+                                       to_mtl_index_type(state.index_type),
+                                       index_buffer_mtl, NS::UInteger(0), 1);
     } else {
         encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
                                 NS::UInteger(start), NS::UInteger(count));

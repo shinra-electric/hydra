@@ -31,11 +31,20 @@ class Directory : public EntryBase {
     std::map<std::string, EntryBase*> entries;
 
     // Helpers
-    FsResult
-    Find(const std::string& rel_path,
-         const std::function<FsResult(Directory*, EntryBase*&)>& found_callback,
-         bool add_intermediate = false) {
-        ASSERT(!rel_path.empty(), Filesystem, "Relative path cannot be empty");
+    template <typename CallbackEntry>
+    FsResult Find(const std::string& rel_path,
+                  const std::function<FsResult(Directory*, CallbackEntry)>&
+                      found_callback,
+                  bool add_intermediate = false) {
+        if (rel_path.empty()) {
+            if constexpr (std::is_same_v<CallbackEntry, EntryBase*>) {
+                return found_callback(parent, this);
+            } else {
+                // TODO: could be implemented through the parent
+                LOG_NOT_IMPLEMENTED(Filesystem, "Empty relative path");
+                return FsResult::NotImplemented;
+            }
+        }
 
         const auto slash_pos = rel_path.find('/');
         if (slash_pos == 0)
@@ -49,7 +58,7 @@ class Directory : public EntryBase {
             const auto next_entry_name = rel_path.substr(slash_pos + 1);
 
             // Handle special names
-            if (sub_dir_name == ".") {
+            if (sub_dir_name == "." || sub_dir_name.empty()) {
                 return Find(next_entry_name, found_callback, add_intermediate);
             } else if (sub_dir_name == "..") {
                 if (parent) {

@@ -749,8 +749,7 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
             writers.move_handles_writer.Write(handle_id);
         },
         [&](handle_id_t handle_id) {
-            return static_cast<Session*>(GetHandle(handle_id))
-                ->GetService();
+            return static_cast<Session*>(GetHandle(handle_id))->GetService();
         },
     };
 
@@ -776,7 +775,8 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
         break;
     default:
         if (command_type >= cmif::CommandType::TipcCommandRegion) {
-            const auto tipc_command = (u32)command_type - (u32)cmif::CommandType::TipcCommandRegion;
+            const auto tipc_command =
+                (u32)command_type - (u32)cmif::CommandType::TipcCommandRegion;
             LOG_ERROR(Kernel, "TIPC command {}", tipc_command);
             session->Request(context);
             break;

@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 #include "core/horizon/services/fssrv/filesystem.hpp"
+#include "core/horizon/services/fssrv/save_data_info_reader.hpp"
 #include "core/horizon/services/fssrv/storage.hpp"
 
 namespace hydra::horizon::services::fssrv {
@@ -12,7 +13,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
                              SetCurrentProcess, 8, OpenFileSystemWithIdObsolete,
                              11, OpenBisFileSystem, 18, OpenSdCardFileSystem,
                              22, CreateSaveDataFileSystem, 51,
-                             OpenSaveDataFileSystem, 200,
+                             OpenSaveDataFileSystem, 61,
+                             OpenSaveDataInfoReaderBySaveDataSpaceId, 200,
                              OpenDataStorageByProgramId, 203,
                              OpenPatchDataStorageByCurrentProcess, 1005,
                              GetGlobalAccessLogMode)
@@ -86,7 +88,7 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
 }
 
 result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
-                                                  aligned<u8, 8> space_id,
+                                                  SaveDataSpaceId space_id,
                                                   SaveDataAttribute attr) {
     std::string mount = "INVALID";
     switch (attr.type) {
@@ -104,6 +106,13 @@ result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
 
     add_service(new IFileSystem(mount));
 
+    return RESULT_SUCCESS;
+}
+
+result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
+    add_service_fn_t add_service, SaveDataSpaceId space_id) {
+    // TODO: space ID
+    add_service(new ISaveDataInfoReader());
     return RESULT_SUCCESS;
 }
 

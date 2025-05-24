@@ -57,7 +57,7 @@ FsResult Directory::Delete(bool recursive) {
 
 FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
                              bool add_intermediate) {
-    return Find(
+    return Find<EntryBase*&>(
         rel_path,
         [entry, add_intermediate](Directory* dir, EntryBase*& out_entry) {
             if (out_entry)
@@ -89,29 +89,31 @@ FsResult Directory::AddEntry(const std::string& rel_path,
 }
 
 FsResult Directory::DeleteEntry(const std::string& rel_path, bool recursive) {
-    return Find(rel_path, [recursive](Directory* dir, EntryBase*& entry) {
-        if (!entry)
-            return FsResult::DoesNotExist;
+    return Find<EntryBase*&>(rel_path,
+                             [recursive](Directory* dir, EntryBase*& entry) {
+                                 if (!entry)
+                                     return FsResult::DoesNotExist;
 
-        auto res = entry->Delete(recursive);
-        delete entry;
-        entry = nullptr;
+                                 auto res = entry->Delete(recursive);
+                                 delete entry;
+                                 entry = nullptr;
 
-        return res;
-    });
+                                 return res;
+                             });
 }
 
 FsResult Directory::GetEntry(const std::string& rel_path,
                              EntryBase*& out_entry) {
-    return Find(rel_path, [&out_entry](Directory* dir, EntryBase*& entry) {
-        if (!entry) {
-            out_entry = nullptr;
-            return FsResult::DoesNotExist;
-        }
+    return Find<EntryBase*>(rel_path,
+                            [&out_entry](Directory* dir, EntryBase* entry) {
+                                if (!entry) {
+                                    out_entry = nullptr;
+                                    return FsResult::DoesNotExist;
+                                }
 
-        out_entry = entry;
-        return FsResult::Success;
-    });
+                                out_entry = entry;
+                                return FsResult::Success;
+                            });
 }
 
 } // namespace hydra::horizon::filesystem

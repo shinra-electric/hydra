@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/fssrv/const.hpp"
 
 namespace hydra::horizon::services::fssrv {
 
@@ -40,21 +41,6 @@ enum BisPartitionId : u32 {
     System0 = 36,
 };
 
-enum class SaveDataType : u8 {
-    System = 0,
-    Account = 1,
-    Bcat = 2,
-    Device = 3,
-    Temporary = 4,
-    Cache = 5,
-    SystemBcat = 6,
-};
-
-enum class SaveDataRank : u8 {
-    Primary = 0,
-    Secondary = 1,
-};
-
 enum class SaveDataFlags : u32 {
     KeepAfterResettingSystemSaveData = BIT(0),
     KeepAfterRefurbishment = BIT(1),
@@ -88,7 +74,7 @@ struct SaveDataCreationInfo {
     u64 available_size;
     u64 owner_id;
     SaveDataFlags flags;
-    u8 space_id;
+    SaveDataSpaceId space_id;
     u8 unk;
     u8 padding[0x1a];
 };
@@ -125,8 +111,11 @@ class IFileSystemProxy : public ServiceBase {
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t OpenSaveDataFileSystem(add_service_fn_t add_service,
-                                    aligned<u8, 8> space_id,
+                                    SaveDataSpaceId space_id,
                                     SaveDataAttribute attr);
+    result_t
+    OpenSaveDataInfoReaderBySaveDataSpaceId(add_service_fn_t add_service,
+                                            SaveDataSpaceId space_id);
     result_t OpenDataStorageByProgramId(add_service_fn_t add_service,
                                         u64 program_id);
     result_t OpenPatchDataStorageByCurrentProcess(add_service_fn_t add_service);
