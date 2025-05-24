@@ -22,7 +22,7 @@ class ISystemClock : public ServiceBase {
     SystemClockType type;
 
     // Commands
-    STUB_REQUEST_COMMAND(GetCurrentTime);
+    result_t GetCurrentTime(i64* out_posix_time);
     STUB_REQUEST_COMMAND(GetSystemClockContext);
 };
 

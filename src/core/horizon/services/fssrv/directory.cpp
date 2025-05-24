@@ -38,6 +38,9 @@ result_t IDirectory::Read(i64* out_total_entries,
         if (i < entry_index)
             continue;
 
+        if (!entry)
+            continue;
+
         FsDirectoryEntry e{};
         memcpy(e.name, path.c_str(), path.size());
         e.type =

@@ -44,9 +44,17 @@ Tex TextureCache::Create(const TextureDescriptor& descriptor) {
 
 void TextureCache::Update(Tex& texture) {
     // TODO: if data changed
-    // if (texture.base->GetDescriptor().width == 1280 &&
-    //    texture.base->GetDescriptor().height == 720) // HACK
-    //    DecodeTexture(texture.base);
+
+    // HACK: guess if the app is using GPU
+    static bool uses_gpu = false;
+    if (!uses_gpu && texture.base->GetDescriptor().width != 1280 &&
+        texture.base->GetDescriptor().width != 1920)
+        uses_gpu = true;
+
+    // HACK: if homebrew
+    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !uses_gpu) // HACK
+        DecodeTexture(texture.base);
+
     // HACK: if Sonic Mania
     if (KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 &&
         texture.base->GetDescriptor().width == 512 &&
