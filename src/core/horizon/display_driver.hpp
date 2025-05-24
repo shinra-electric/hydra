@@ -44,10 +44,12 @@ struct DisplayBinder {
     // TODO: autoclear event?
     DisplayBinder() : event(new kernel::Event(false, true)) {}
 
+    // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
     void QueueBuffer(i32 slot);
     i32 ConsumeBuffer(std::vector<u64>& out_dt_ns_list);
+    void UnqueueAllBuffers();
 
     // Getters
     const GraphicBuffer& GetBuffer(i32 slot) {

@@ -247,6 +247,16 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
 
         break;
     }
+    case TransactCode::Disconnect: {
+        auto interface_token = parcel_reader.ReadInterfaceToken();
+        auto api = parcel_reader.Read<i32>(); // TODO: enum
+        LOG_DEBUG(Services, "Interface token: {}, API: {}", interface_token,
+                  api);
+
+        binder.UnqueueAllBuffers();
+
+        break;
+    }
     case TransactCode::SetPreallocatedBuffer: {
         auto interface_token = parcel_reader.ReadInterfaceToken();
         LOG_DEBUG(Services, "Interface token: {}", interface_token);

@@ -7,8 +7,8 @@
 namespace hydra::horizon::kernel {
 
 void Session::Close() {
-    // TODO: correct?
-    delete service;
+    // TODO: ref counting?
+    // delete service;
     service = nullptr;
 }
 

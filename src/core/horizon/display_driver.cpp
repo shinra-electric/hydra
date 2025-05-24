@@ -66,7 +66,7 @@ i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
         return -1;
 
     // Get the first queued buffer
-    i32 slot = queued_buffers.front();
+    const auto slot = queued_buffers.front();
     queued_buffers.pop();
     buffers[slot].queued = false;
 
@@ -80,6 +80,23 @@ i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
     event.handle->Signal();
 
     return slot;
+}
+
+void DisplayBinder::UnqueueAllBuffers() {
+    // Wait for a buffer to become available
+    std::unique_lock<std::mutex> lock(queue_mutex);
+
+    // Unqueue all
+    while (!queued_buffers.empty()) {
+        const auto slot = queued_buffers.front();
+        queued_buffers.pop();
+        buffers[slot].queued = false;
+    }
+
+    queue_cv.notify_all();
+
+    // Signal event
+    event.handle->Signal();
 }
 
 } // namespace hydra::horizon
