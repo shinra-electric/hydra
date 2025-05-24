@@ -5,11 +5,6 @@
 namespace hydra::frontend::sdl3 {
 
 Window::Window(int argc, const char* argv[]) {
-    // Parse arguments
-    // TODO: use a parser library
-    ASSERT(argc == 2, SDL3Window, "Expected 1 argument, got {}", argc - 1);
-    const char* rom_filename = argv[1];
-
     // SLD3 initialization
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
@@ -26,13 +21,13 @@ Window::Window(int argc, const char* argv[]) {
         return;
     }
 
-    // Connect cursor as a touch screen device
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
-
-    // Begin emulation
-    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    emulation_context.LoadRom(rom_filename);
-    emulation_context.Run();
+    // Parse arguments
+    // TODO: use a parser library
+    argv++;
+    argc--;
+    ASSERT(argc <= 1, SDL3Window, "Expected at most 1 argument, got {}", argc);
+    if (argc >= 1)
+        BeginEmulation(argv[0]);
 }
 
 Window::~Window() {
@@ -47,10 +42,16 @@ void Window::Run() {
     while (running) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_EVENT_QUIT) {
+            switch (e.type) {
+            case SDL_EVENT_QUIT:
                 running = false;
-            } else {
+                break;
+            case SDL_EVENT_DROP_FILE:
+                BeginEmulation(e.drop.data);
+                break;
+            default:
                 cursor.Poll(e);
+                break;
             }
         }
 
@@ -66,6 +67,16 @@ void Window::Run() {
                 UpdateWindowTitle();
         }
     }
+}
+
+void Window::BeginEmulation(const std::string_view rom_filename) {
+    // Connect cursor as a touch screen device
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
+
+    // Begin emulation
+    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
+    emulation_context.LoadRom(std::string(rom_filename)); // HACK
+    emulation_context.Run();
 }
 
 void Window::UpdateWindowTitle() {

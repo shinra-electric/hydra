@@ -524,8 +524,24 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
                                  o->OpRegister(true, srcB, DataType::F32));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
-    INST(0x5c60000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "fmnmx");
+    INST(0x5c60000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        const auto pred = GET_PRED(39);
+        LOG_DEBUG(ShaderDecompiler, "fmnmx r{} r{} r{} p{}", dst, srcA,
+                  srcB, pred);
+
+        auto srcA_v = o->OpRegister(false, srcA, DataType::F32);
+        auto srcB_v = o->OpRegister(false, srcB, DataType::F32);
+        auto min_v = o->OpMin(srcA_v, srcB_v);
+        auto max_v = o->OpMax(srcA_v, srcB_v);
+        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
+                               min_v); // TODO: correct?
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+    }
     INST(0x5c58000000000000, 0xfff8000000000000) {
         HANDLE_PRED_COND();
 

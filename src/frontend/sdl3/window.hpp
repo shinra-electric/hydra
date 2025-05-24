@@ -20,6 +20,8 @@ class Window {
 
     EmulationContext emulation_context;
 
+    void BeginEmulation(const std::string_view rom_filename);
+
     void UpdateWindowTitle();
     void SetWindowTitle(const std::string& title);
 };
