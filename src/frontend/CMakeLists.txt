@@ -37,31 +37,33 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/SettingsView.swift
     )
 
-    add_executable(hydra MACOSX_BUNDLE ${SOURCE_FILES})
+    add_executable(hydra ${SOURCE_FILES})
 
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
+else ()
+    message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
+endif ()
 
+target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
+
+if (MACOS_BUNDLE)
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
-    target_sources(hydra PRIVATE "${RESOURCE_FILES}")
+    target_sources(hydra PRIVATE ${RESOURCE_FILES})
     set_target_properties(${PROJECT_NAME} PROPERTIES
-        RESOURCE "${RESOURCE_FILES}"
+        RESOURCE ${RESOURCE_FILES}
         OUTPUT_NAME "Hydra"
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.github.${PROJECT_NAME}
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.${PROJECT_NAME}"
         MACOSX_BUNDLE_ICON_FILE "hydra.icns"
-        #MACOSX_BUNDLE_BUNDLE_VERSION "${BUILD_HASH}"
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+        #MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_HASH}
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
     set(MACOSX_MINIMUM_SYSTEM_VERSION "12.0")
     set(MACOSX_BUNDLE_CATEGORY "public.app-category.games")
     set(MACOSX_BUNDLE_BUNDLE_NAME "Hydra")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
-
-else ()
-    message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
-
-target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
 
 # Signing
 set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")

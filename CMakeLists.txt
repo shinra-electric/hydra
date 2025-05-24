@@ -2,17 +2,15 @@ cmake_minimum_required(VERSION 3.15...3.31)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
+option(MACOS_BUNDLE "Build a macOS app bundle" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# TODO: only enable Objective-C if Apple
-# TODO: only enable Swift if SwiftUI is enabled
-project(hydra VERSION 0.1.0 LANGUAGES CXX OBJCXX Swift)
+project(hydra VERSION 0.1.0 LANGUAGES CXX)
 
-# This is used when bundling the app.
 # TODO: Change the build hash based on github
 set(BUILD_HASH "Hash")
 
@@ -21,19 +19,23 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+# Enable Objective-C and Swift on Apple platforms
 if (APPLE)
-    enable_language(OBJC OBJCXX)
+    enable_language(OBJC OBJCXX Swift)
 endif()
 
+# Set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# Packages
 find_package(fmt CONFIG REQUIRED)
 
-#add_subdirectory(externals/fmt)
+# Externals
 #add_subdirectory(externals/toml11) # Hatch already uses toml11
 add_subdirectory(externals/dynarmic)
 #add_subdirectory(externals/luft)
 add_subdirectory(externals/hatch)
 
-#include_directories(externals/fmt/include)
 include_directories(externals/metal-cpp dynarmic)
 
 # TODO: find out why release builds are broken
