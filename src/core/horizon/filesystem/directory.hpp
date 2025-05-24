@@ -8,19 +8,21 @@ namespace hydra::horizon::filesystem {
 class Directory : public EntryBase {
   public:
     Directory() = default;
-    Directory(const std::string& host_path);
+    Directory(const std::string_view host_path);
     ~Directory() override;
 
     bool IsDirectory() const override { return true; }
 
     FsResult Delete(bool recursive = false) override;
 
-    FsResult AddEntry(const std::string& rel_path, EntryBase* entry,
+    FsResult AddEntry(const std::string_view rel_path, EntryBase* entry,
                       bool add_intermediate = false);
-    FsResult AddEntry(const std::string& rel_path, const std::string& host_path,
+    FsResult AddEntry(const std::string_view rel_path,
+                      const std::string_view host_path,
                       bool add_intermediate = false);
-    FsResult DeleteEntry(const std::string& rel_path, bool recursive = false);
-    FsResult GetEntry(const std::string& rel_path, EntryBase*& out_entry);
+    FsResult DeleteEntry(const std::string_view rel_path,
+                         bool recursive = false);
+    FsResult GetEntry(const std::string_view rel_path, EntryBase*& out_entry);
 
     // Getters
     const std::map<std::string, EntryBase*>& GetEntries() const {
@@ -32,7 +34,7 @@ class Directory : public EntryBase {
 
     // Helpers
     template <typename CallbackEntry>
-    FsResult Find(const std::string& rel_path,
+    FsResult Find(const std::string_view rel_path,
                   const std::function<FsResult(Directory*, CallbackEntry)>&
                       found_callback,
                   bool add_intermediate = false) {
@@ -51,7 +53,7 @@ class Directory : public EntryBase {
             return Find(rel_path.substr(1), found_callback, add_intermediate);
 
         if (slash_pos == std::string::npos) {
-            auto& e = entries[rel_path];
+            auto& e = entries[std::string(rel_path)];
             return found_callback(this, e);
         } else {
             const auto sub_dir_name = rel_path.substr(0, slash_pos);
@@ -70,7 +72,7 @@ class Directory : public EntryBase {
             }
 
             // Regular subdirectory
-            auto& e = entries[sub_dir_name];
+            auto& e = entries[std::string(sub_dir_name)];
             if (next_entry_name.empty()) {
                 return found_callback(this, e);
             } else {

@@ -16,7 +16,7 @@ class Pfs0Loader : public LoaderBase {
     Pfs0Loader(StreamReader reader);
 
     kernel::Process* LoadProcess(StreamReader reader,
-                                 const std::string& rom_filename) override;
+                                 const std::string_view rom_filename) override;
 
   private:
     std::vector<PartitionEntry> entries;

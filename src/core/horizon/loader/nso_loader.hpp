@@ -15,7 +15,7 @@ class NsoLoader : public LoaderBase {
     NsoLoader(StreamReader reader, const bool is_entry_point_);
 
     kernel::Process* LoadProcess(StreamReader reader,
-                                 const std::string& rom_filename) override;
+                                 const std::string_view rom_filename) override;
 
   private:
     const bool is_entry_point;

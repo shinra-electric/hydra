@@ -36,7 +36,7 @@ Pfs0Loader::Pfs0Loader(StreamReader reader) {
 }
 
 kernel::Process* Pfs0Loader::LoadProcess(StreamReader reader,
-                                         const std::string& rom_filename) {
+                                         const std::string_view rom_filename) {
     kernel::Process* process = nullptr;
 
     // NSOs

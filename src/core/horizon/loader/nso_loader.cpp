@@ -120,7 +120,7 @@ NsoLoader::NsoLoader(StreamReader reader, const bool is_entry_point_)
 }
 
 kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
-                                        const std::string& rom_filename) {
+                                        const std::string_view rom_filename) {
     // Create executable memory
     vaddr_t base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(

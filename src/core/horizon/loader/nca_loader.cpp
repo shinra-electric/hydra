@@ -118,7 +118,7 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-void load_section(StreamReader reader, const std::string& rom_filename,
+void load_section(StreamReader reader, const std::string_view rom_filename,
                   SectionType type, const FsHeader& header,
                   kernel::Process*& out_process) {
     switch (type) {
@@ -182,7 +182,7 @@ NcaLoader::NcaLoader(StreamReader reader) {
 }
 
 kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
-                                        const std::string& rom_filename) {
+                                        const std::string_view rom_filename) {
     // Title ID
     KERNEL_INSTANCE.SetTitleId(title_id);
 

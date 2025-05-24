@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::filesystem {
 
-Directory::Directory(const std::string& host_path) {
+Directory::Directory(const std::string_view host_path) {
     ASSERT(std::filesystem::is_directory(host_path), Filesystem,
            "\"{}\" is not a directory", host_path);
 
@@ -55,7 +55,7 @@ FsResult Directory::Delete(bool recursive) {
     return FsResult::Success;
 }
 
-FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
+FsResult Directory::AddEntry(const std::string_view rel_path, EntryBase* entry,
                              bool add_intermediate) {
     return Find<EntryBase*&>(
         rel_path,
@@ -70,8 +70,8 @@ FsResult Directory::AddEntry(const std::string& rel_path, EntryBase* entry,
         add_intermediate);
 }
 
-FsResult Directory::AddEntry(const std::string& rel_path,
-                             const std::string& host_path,
+FsResult Directory::AddEntry(const std::string_view rel_path,
+                             const std::string_view host_path,
                              bool add_intermediate) {
     ASSERT(std::filesystem::exists(host_path), Filesystem,
            "Host path \"{}\" does not exist", host_path);
@@ -88,7 +88,8 @@ FsResult Directory::AddEntry(const std::string& rel_path,
     return AddEntry(rel_path, entry, add_intermediate);
 }
 
-FsResult Directory::DeleteEntry(const std::string& rel_path, bool recursive) {
+FsResult Directory::DeleteEntry(const std::string_view rel_path,
+                                bool recursive) {
     return Find<EntryBase*&>(rel_path,
                              [recursive](Directory* dir, EntryBase*& entry) {
                                  if (!entry)
@@ -102,7 +103,7 @@ FsResult Directory::DeleteEntry(const std::string& rel_path, bool recursive) {
                              });
 }
 
-FsResult Directory::GetEntry(const std::string& rel_path,
+FsResult Directory::GetEntry(const std::string_view rel_path,
                              EntryBase*& out_entry) {
     return Find<EntryBase*>(rel_path,
                             [&out_entry](Directory* dir, EntryBase* entry) {

@@ -17,7 +17,7 @@
 
 #define VERIFY_PATH(path)                                                      \
     GET_MOUNT(path)                                                            \
-    auto it = devices.find(mount);                                             \
+    auto it = devices.find(std::string(mount));                                \
     if (it == devices.end())                                                   \
         return FsResult::NotMounted;                                           \
     auto& device = it->second;
@@ -35,20 +35,23 @@ Filesystem::Filesystem() {
 
     // SD card
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath().Get());
-    MountImpl(FS_SD_MOUNT, new Directory(CONFIG_INSTANCE.GetSdCardPath()));
+    MountImpl(FS_SD_MOUNT,
+              new Directory(CONFIG_INSTANCE.GetSdCardPath().Get()));
 
     // Save
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath().Get());
-    MountImpl(FS_SAVE_MOUNT, new Directory(CONFIG_INSTANCE.GetSavePath()));
+    MountImpl(FS_SAVE_MOUNT,
+              new Directory(CONFIG_INSTANCE.GetSavePath().Get()));
 }
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
-void Filesystem::Mount(const std::string& mount) {
+void Filesystem::Mount(const std::string_view mount) {
     MountImpl(mount, new Directory());
 }
 
-void Filesystem::Mount(const std::string& mount, const std::string& root_path) {
+void Filesystem::Mount(const std::string_view mount,
+                       const std::string_view root_path) {
     Directory* root;
     auto res = GetDirectory(root_path, root);
     ASSERT(res == FsResult::Success, Filesystem,
@@ -57,31 +60,31 @@ void Filesystem::Mount(const std::string& mount, const std::string& root_path) {
     MountImpl(mount, root);
 }
 
-FsResult Filesystem::AddEntry(const std::string& path, EntryBase* entry,
+FsResult Filesystem::AddEntry(const std::string_view path, EntryBase* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, entry, add_intermediate);
 }
 
-FsResult Filesystem::AddEntry(const std::string& path,
-                              const std::string& host_path,
+FsResult Filesystem::AddEntry(const std::string_view path,
+                              const std::string_view host_path,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult Filesystem::CreateFile(const std::string& path,
+FsResult Filesystem::CreateFile(const std::string_view path,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 
     // TODO: keep a list of host paths for each mount point instead
     if (mount == FS_SD_MOUNT) {
-        const auto host_path =
-            fmt::format("{}{}", CONFIG_INSTANCE.GetSdCardPath(), entry_path);
+        const auto host_path = fmt::format(
+            "{}{}", CONFIG_INSTANCE.GetSdCardPath().Get(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
-        const auto host_path =
-            fmt::format("{}{}", CONFIG_INSTANCE.GetSavePath(), entry_path);
+        const auto host_path = fmt::format(
+            "{}{}", CONFIG_INSTANCE.GetSavePath().Get(), entry_path);
         return AddEntry(path, new HostFile(host_path), add_intermediate);
     } else {
         LOG_WARN(Filesystem,
@@ -92,22 +95,23 @@ FsResult Filesystem::CreateFile(const std::string& path,
     }
 }
 
-FsResult Filesystem::CreateDirectory(const std::string& path,
+FsResult Filesystem::CreateDirectory(const std::string_view path,
                                      bool add_intermediate) {
     return AddEntry(path, new Directory(), add_intermediate);
 }
 
-FsResult Filesystem::DeleteEntry(const std::string& path, bool recursive) {
+FsResult Filesystem::DeleteEntry(const std::string_view path, bool recursive) {
     VERIFY_PATH(path);
     return device.DeleteEntry(entry_path, recursive);
 }
 
-FsResult Filesystem::GetEntry(const std::string& path, EntryBase*& out_entry) {
+FsResult Filesystem::GetEntry(const std::string_view path,
+                              EntryBase*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
+FsResult Filesystem::GetFile(const std::string_view path, FileBase*& out_file) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
@@ -120,7 +124,7 @@ FsResult Filesystem::GetFile(const std::string& path, FileBase*& out_file) {
     return res;
 }
 
-FsResult Filesystem::GetDirectory(const std::string& path,
+FsResult Filesystem::GetDirectory(const std::string_view path,
                                   Directory*& out_directory) {
     EntryBase* entry;
     const auto res = GetEntry(path, entry);
@@ -134,7 +138,7 @@ FsResult Filesystem::GetDirectory(const std::string& path,
     return res;
 }
 
-void Filesystem::MountImpl(const std::string& mount, Directory* root) {
+void Filesystem::MountImpl(const std::string_view mount, Directory* root) {
     VERIFY_MOUNT(mount);
     devices.emplace(std::make_pair(mount, root));
     LOG_INFO(Filesystem, "Mounted \"{}\"", mount);

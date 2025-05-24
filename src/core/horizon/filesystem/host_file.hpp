@@ -6,7 +6,7 @@ namespace hydra::horizon::filesystem {
 
 class HostFile : public FileBase {
   public:
-    HostFile(const std::string& host_path_, u64 offset = 0,
+    HostFile(const std::string_view host_path_, u64 offset = 0,
              usize size_limit_ = invalid<usize>());
     ~HostFile() override;
 

@@ -63,7 +63,7 @@ NroLoader::NroLoader(StreamReader reader) {
 }
 
 kernel::Process* NroLoader::LoadProcess(StreamReader reader,
-                                        const std::string& rom_filename) {
+                                        const std::string_view rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + bss_size;
     uptr base;

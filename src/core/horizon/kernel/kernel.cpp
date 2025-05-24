@@ -693,7 +693,8 @@ result_t Kernel::svcConnectToNamedPort(const std::string& name,
                                        handle_id_t& out_session_handle_id) {
     LOG_DEBUG(Kernel, "svcConnectToNamedPort called (name: {})", name);
 
-    auto it = service_ports.find(name);
+    // TODO: don't construct a new string?
+    auto it = service_ports.find(std::string(name));
     if (it == service_ports.end()) {
         LOG_ERROR(Kernel, "Unknown service name \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);

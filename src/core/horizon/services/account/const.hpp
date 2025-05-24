@@ -28,7 +28,7 @@ class User {
 
   public:
     User() {}
-    User(const std::string& nickname) {
+    User(const std::string_view nickname) {
         // TODO: don't use the setters?
         SetNickname(nickname);
     }
@@ -46,7 +46,7 @@ class User {
     std::string_view GetNickname() const { return base.nickname; }
 
     // Setters
-    void SetNickname(const std::string& nickname) {
+    void SetNickname(const std::string_view nickname) {
         ASSERT(nickname.size() < NICKNAME_SIZE, Services,
                "Nickname size ({}) too big", nickname.size());
         std::memcpy(base.nickname, nickname.data(), nickname.size());

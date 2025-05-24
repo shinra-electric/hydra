@@ -135,8 +135,8 @@ class Logger {
     ~Logger();
 
     template <typename... T>
-    void Log(Level level, Class c, const std::string& file, u32 line,
-             const std::string& function, fmt::format_string<T...> fmt,
+    void Log(Level level, Class c, const std::string_view file, u32 line,
+             const std::string_view function, fmt::format_string<T...> fmt,
              T&&... args) {
         mutex.lock();
 

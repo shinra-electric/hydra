@@ -25,8 +25,8 @@ class LoaderBase {
     virtual ~LoaderBase() = default;
 
     // TODO: remove the filename arg
-    virtual kernel::Process* LoadProcess(StreamReader reader,
-                                         const std::string& rom_filename) = 0;
+    virtual kernel::Process*
+    LoadProcess(StreamReader reader, const std::string_view rom_filename) = 0;
     // TODO: load logo
 };
 

@@ -131,7 +131,7 @@ class Kernel {
 
     void ConnectServiceToPort(const std::string& port_name,
                               ServiceBase* service) {
-        service_ports[port_name] = service;
+        service_ports[std::string(port_name)] = service;
     }
 
     bool SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id);

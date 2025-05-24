@@ -115,7 +115,7 @@ class ParcelWriter {
             WriteFlattenedObject(*ptr);
     }
 
-    void WriteString16(const std::string& str) {
+    void WriteString16(const std::string_view str) {
         ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
         Write<i32>(str.size());
         auto ptr = WritePtr<u16>(nullptr, str.size() + 1);
@@ -124,7 +124,7 @@ class ParcelWriter {
             ptr[i] = str[i];
     }
 
-    void WriteInterfaceToken(const std::string& token) {
+    void WriteInterfaceToken(const std::string_view token) {
         Write<i32>(0x100);
         WriteString16(token);
     }

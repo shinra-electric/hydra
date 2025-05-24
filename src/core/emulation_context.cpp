@@ -70,8 +70,10 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     }
 
     // Open file
-    usize size;
-    auto ifs = open_file(rom_filename, size);
+    std::ifstream ifs{std::string(rom_filename),
+                      std::ios::in | std::ios::binary | std::ios::ate};
+    usize size = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
 
     StreamReader reader(ifs, 0, size);
 

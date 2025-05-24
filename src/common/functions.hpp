@@ -81,7 +81,7 @@ inline constexpr u32 make_magic4(const char c0, const char c1, const char c2,
     return (u32)c0 | (u32)c1 << 8 | (u32)c2 << 16 | (u32)c3 << 24;
 }
 
-inline std::string to_lower(const std::string& str) {
+inline std::string to_lower(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
     std::transform(str.begin(), str.end(), std::back_inserter(result),
@@ -90,7 +90,7 @@ inline std::string to_lower(const std::string& str) {
     return result;
 }
 
-inline std::string to_upper(const std::string& str) {
+inline std::string to_upper(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
     std::transform(str.begin(), str.end(), std::back_inserter(result),
@@ -118,23 +118,6 @@ template <typename T> void push_unique(std::vector<T>& vec, T value) {
                            [&](const T v) { return v == value; });
     if (it == vec.end())
         vec.push_back(value);
-}
-
-inline std::ifstream open_file(const std::string& path, usize& out_size) {
-    const auto iflags = std::ios::in | std::ios::binary | std::ios::ate;
-    auto ifs = std::ifstream{path, iflags};
-    out_size = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    return ifs;
-}
-
-inline usize get_file_size(const std::string& path) {
-    usize size = 0;
-    auto ifs = open_file(path, size);
-    ifs.close();
-
-    return size;
 }
 
 // HACK

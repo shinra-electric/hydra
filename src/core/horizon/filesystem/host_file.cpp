@@ -8,7 +8,8 @@
 
 namespace hydra::horizon::filesystem {
 
-HostFile::HostFile(const std::string& host_path_, u64 offset, usize size_limit_)
+HostFile::HostFile(const std::string_view host_path_, u64 offset,
+                   usize size_limit_)
     : FileBase(offset), host_path{host_path_}, size_limit{size_limit_} {
     if (!std::filesystem::exists(host_path)) {
         // Intermediate directories

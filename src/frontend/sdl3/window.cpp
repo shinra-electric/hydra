@@ -69,13 +69,13 @@ void Window::Run() {
     }
 }
 
-void Window::BeginEmulation(const std::string_view rom_filename) {
+void Window::BeginEmulation(const std::string& rom_filename) {
     // Connect cursor as a touch screen device
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
 
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    emulation_context.LoadRom(std::string(rom_filename)); // HACK
+    emulation_context.LoadRom(rom_filename);
     emulation_context.Run();
 }
 

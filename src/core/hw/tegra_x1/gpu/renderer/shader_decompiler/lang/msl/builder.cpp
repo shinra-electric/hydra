@@ -220,7 +220,7 @@ std::string Builder::GetSvQualifierName(const Sv& sv, bool output) {
 }
 
 std::string Builder::EmitTextureSample(u32 const_buffer_index,
-                                       const std::string& coords) {
+                                       const std::string_view coords) {
     return fmt::format("tex{}.sample(samplr{}, {})", const_buffer_index,
                        const_buffer_index, coords);
 }

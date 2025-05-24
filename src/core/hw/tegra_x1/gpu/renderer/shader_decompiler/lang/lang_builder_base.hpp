@@ -85,7 +85,7 @@ class LangBuilderBase : public BuilderBase {
     virtual void EmitExit() = 0;
 
     virtual std::string EmitTextureSample(u32 const_buffer_index,
-                                          const std::string& coords) = 0;
+                                          const std::string_view coords) = 0;
 
     template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
 

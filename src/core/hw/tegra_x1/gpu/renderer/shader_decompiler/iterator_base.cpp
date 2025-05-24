@@ -531,8 +531,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         const auto pred = GET_PRED(39);
-        LOG_DEBUG(ShaderDecompiler, "fmnmx r{} r{} r{} p{}", dst, srcA,
-                  srcB, pred);
+        LOG_DEBUG(ShaderDecompiler, "fmnmx r{} r{} r{} p{}", dst, srcA, srcB,
+                  pred);
 
         auto srcA_v = o->OpRegister(false, srcA, DataType::F32);
         auto srcB_v = o->OpRegister(false, srcB, DataType::F32);

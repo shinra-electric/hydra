@@ -14,7 +14,7 @@ ENABLE_ENUM_BITMASK_OPERATORS(CreateOption)
 
 class IFileSystem : public ServiceBase {
   public:
-    IFileSystem(const std::string& mount_) : mount{mount_} {}
+    IFileSystem(const std::string_view mount_) : mount{mount_} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
