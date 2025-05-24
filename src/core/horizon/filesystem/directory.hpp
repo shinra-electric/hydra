@@ -49,49 +49,54 @@ class Directory : public EntryBase {
         }
 
         const auto slash_pos = rel_path.find('/');
-        if (slash_pos == 0)
-            return Find(rel_path.substr(1), found_callback, add_intermediate);
+        const auto entry_name = rel_path.substr(0, slash_pos);
+
+        // TODO: scrap the whole entry_ref thing
+
+        // Get the entry
+        EntryBase* entry;
+        EntryBase** entry_ref = nullptr;
+        Directory* p;
+        if (entry_name == "." || entry_name.empty()) {
+            entry = this;
+            p = parent;
+        } else if (entry_name == "..") {
+            if (parent) {
+                entry = parent;
+                p = entry->GetParent();
+            } else {
+                return FsResult::DoesNotExist;
+            }
+        } else {
+            entry_ref = &entries[std::string(entry_name)];
+            entry = *entry_ref;
+            p = this;
+        }
 
         if (slash_pos == std::string::npos) {
-            auto& e = entries[std::string(rel_path)];
-            return found_callback(this, e);
+            // TODO: ugh
+            return found_callback(p, entry_ref ? *entry_ref : entry);
         } else {
-            const auto sub_dir_name = rel_path.substr(0, slash_pos);
             const auto next_entry_name = rel_path.substr(slash_pos + 1);
 
-            // Handle special names
-            if (sub_dir_name == "." || sub_dir_name.empty()) {
-                return Find(next_entry_name, found_callback, add_intermediate);
-            } else if (sub_dir_name == "..") {
-                if (parent) {
-                    return parent->Find(next_entry_name, found_callback,
-                                        add_intermediate);
-                } else {
-                    return FsResult::DoesNotExist;
-                }
-            }
-
             // Regular subdirectory
-            auto& e = entries[std::string(sub_dir_name)];
-            if (next_entry_name.empty()) {
-                return found_callback(this, e);
-            } else {
-                if (!e) {
-                    if (add_intermediate) {
-                        e = new Directory();
-                        e->SetParent(this);
-                    } else {
-                        return FsResult::IntermediateDirectoryDoesNotExist;
-                    }
+            if (!entry) {
+                if (add_intermediate) {
+                    // TODO: ugh
+                    *entry_ref = new Directory();
+                    entry = *entry_ref;
+                    entry->SetParent(this);
+                } else {
+                    return FsResult::IntermediateDirectoryDoesNotExist;
                 }
-
-                auto sub_dir = dynamic_cast<Directory*>(e);
-                if (!sub_dir)
-                    return FsResult::NotADirectory;
-
-                return sub_dir->Find(next_entry_name, found_callback,
-                                     add_intermediate);
             }
+
+            auto sub_dir = dynamic_cast<Directory*>(entry);
+            if (!sub_dir)
+                return FsResult::NotADirectory;
+
+            return sub_dir->Find(next_entry_name, found_callback,
+                                 add_intermediate);
         }
     }
 };

@@ -8,8 +8,8 @@ namespace hydra::horizon::services::hid {
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 1, ActivateDebugPad, 11,
     ActivateTouchScreen, 21, ActivateMouse, 31, ActivateKeyboard, 66,
-    StartSixAxisSensor, 79, SetGyroscopeZeroDriftMode, 100,
-    SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
+    StartSixAxisSensor, 67, StopSixAxisSensor, 79, SetGyroscopeZeroDriftMode,
+    100, SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
     SetSupportedNpadIdType, 103, ActivateNpad, 106,
     AcquireNpadStyleSetUpdateEventHandle, 109, ActivateNpadWithRevision, 120,
     SetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,

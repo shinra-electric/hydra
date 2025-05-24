@@ -53,6 +53,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(ActivateMouse);
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
+    STUB_REQUEST_COMMAND(StopSixAxisSensor);
     STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     result_t

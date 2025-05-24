@@ -14,7 +14,7 @@ class EntryBase {
 
     virtual FsResult Delete(bool recursive = false) = 0;
 
-    // Setters
+    Directory* GetParent() const { return parent; }
     void SetParent(Directory* parent_) { parent = parent_; }
 
   protected:

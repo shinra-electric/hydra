@@ -59,12 +59,12 @@ FsResult Directory::AddEntry(const std::string_view rel_path, EntryBase* entry,
                              bool add_intermediate) {
     return Find<EntryBase*&>(
         rel_path,
-        [entry, add_intermediate](Directory* dir, EntryBase*& out_entry) {
+        [entry, add_intermediate](Directory* parent, EntryBase*& out_entry) {
             if (out_entry)
                 return FsResult::AlreadyExists;
 
             out_entry = entry;
-            entry->SetParent(dir);
+            entry->SetParent(parent);
             return FsResult::Success;
         },
         add_intermediate);
@@ -91,7 +91,7 @@ FsResult Directory::AddEntry(const std::string_view rel_path,
 FsResult Directory::DeleteEntry(const std::string_view rel_path,
                                 bool recursive) {
     return Find<EntryBase*&>(rel_path,
-                             [recursive](Directory* dir, EntryBase*& entry) {
+                             [recursive](Directory* parent, EntryBase*& entry) {
                                  if (!entry)
                                      return FsResult::DoesNotExist;
 
@@ -106,7 +106,7 @@ FsResult Directory::DeleteEntry(const std::string_view rel_path,
 FsResult Directory::GetEntry(const std::string_view rel_path,
                              EntryBase*& out_entry) {
     return Find<EntryBase*>(rel_path,
-                            [&out_entry](Directory* dir, EntryBase* entry) {
+                            [&out_entry](Directory* parent, EntryBase* entry) {
                                 if (!entry) {
                                     out_entry = nullptr;
                                     return FsResult::DoesNotExist;
