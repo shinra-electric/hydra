@@ -87,9 +87,10 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
-                                                  SaveDataSpaceId space_id,
-                                                  SaveDataAttribute attr) {
+result_t
+IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
+                                         aligned<SaveDataSpaceId, 8> space_id,
+                                         SaveDataAttribute attr) {
     std::string mount = "INVALID";
     switch (attr.type) {
     case SaveDataType::Account: {

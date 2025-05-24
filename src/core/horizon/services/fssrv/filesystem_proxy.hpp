@@ -111,7 +111,7 @@ class IFileSystemProxy : public ServiceBase {
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t OpenSaveDataFileSystem(add_service_fn_t add_service,
-                                    SaveDataSpaceId space_id,
+                                    aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
     result_t
     OpenSaveDataInfoReaderBySaveDataSpaceId(add_service_fn_t add_service,
