@@ -174,6 +174,7 @@ void Config::Deserialize() {
     bool exists = std::filesystem::exists(path);
     if (!exists) {
         LoadDefaults();
+        Serialize();
         return;
     }
 
