@@ -202,7 +202,7 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
         default:
             ONCE(LOG_NOT_IMPLEMENTED(Services, "Memory pool state {}",
                                      mempool_in.state));
-            mempool.new_state = MemPoolState::Invalid;
+            mempool.new_state = mempool_in.state;
             break;
         }
         writer.Write(mempool);
@@ -219,10 +219,10 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
             voice->played_sample_count = 0;
             voice->num_wave_buffers_consumed = 0;
         } else if (voice_in.play_state == VoicePlayState::Started) {
-            for (u32 i = 0; i < voice_in.wave_buffer_count; i++) {
+            for (u32 j = 0; j < voice_in.wave_buffer_count; j++) {
                 voice->played_sample_count +=
-                    (voice_in.wave_buffers[i].end_sample_offset -
-                     voice_in.wave_buffers[i].start_sample_offset) /
+                    (voice_in.wave_buffers[j].end_sample_offset -
+                     voice_in.wave_buffers[j].start_sample_offset) /
                     2;
                 voice->num_wave_buffers_consumed++;
             }

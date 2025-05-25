@@ -8,6 +8,7 @@
 #include "core/horizon/services/apm/manager_privileged.hpp"
 #include "core/horizon/services/audio/audio_out_manager.hpp"
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
+#include "core/horizon/services/codec/hardware_opus_decoder_manager.hpp"
 #include "core/horizon/services/friends/service_creator.hpp"
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 #include "core/horizon/services/hid/hid_debug_server.hpp"
@@ -90,6 +91,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(nfc::IUserManager, "nfp:user")
         SERVICE_CASE(prepo::IPrepoService, "prepo:a", "prepo:a2", "prepo:m",
                      "prepo:u", "prepo:s")
+        SERVICE_CASE(codec::IHardwareOpusDecoderManager, "hwopus")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

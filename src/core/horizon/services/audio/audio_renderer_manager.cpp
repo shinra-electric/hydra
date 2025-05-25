@@ -22,7 +22,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *out_size = 0x8000;
+    *out_size = 0x20000;
     return RESULT_SUCCESS;
 }
 

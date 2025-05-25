@@ -224,6 +224,10 @@ add_library(hydra-core
     horizon/services/nfc/mifare/user.hpp
     horizon/services/prepo/prepo_service.cpp
     horizon/services/prepo/prepo_service.hpp
+    horizon/services/codec/hardware_opus_decoder.cpp
+    horizon/services/codec/hardware_opus_decoder.hpp
+    horizon/services/codec/hardware_opus_decoder_manager.cpp
+    horizon/services/codec/hardware_opus_decoder_manager.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp
