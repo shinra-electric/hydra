@@ -333,19 +333,33 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
     // TODO: only if changed
     // TODO: active color attachment count
     MTL::Viewport viewports[VIEWPORT_COUNT];
+    // TODO: move this out of the renderer
     for (u32 i = 0; i < sizeof_array(viewports); i++) {
         const auto& src = REGS_3D.viewports[i];
         const auto& t = REGS_3D.viewport_transforms[i];
         auto& dst = viewports[i];
         // TODO: correct?
-        dst.originX = src.horizontal.x * t.scale_x + t.offset_x;
-        dst.originY = src.vertical.y * t.scale_y + t.offset_y;
-        dst.width = src.horizontal.width * t.scale_x;
-        dst.height = src.vertical.height * t.scale_y;
-        dst.znear = src.near * t.scale_z + t.offset_z;
-        dst.zfar = src.far * t.scale_z + t.offset_z;
+        if (REGS_3D.viewport_transform_enabled) {
+            // TODO: render target scale
+
+            dst.originX = t.offset_x - t.scale_x;
+            dst.originY = t.offset_y - t.scale_y;
+            dst.width = t.scale_x * 2.f;
+            dst.height = t.scale_y * 2.f;
+            // TODO: Z scale and offset
+            dst.znear = src.near;
+            dst.zfar = src.far;
+        } else {
+            dst.originX = src.horizontal.x;
+            dst.originY = src.vertical.y;
+            dst.width = src.horizontal.width;
+            dst.height = src.vertical.height;
+            dst.znear = src.near;
+            dst.zfar = src.far;
+        }
     }
-    encoder->setViewports(viewports, sizeof_array(viewports));
+    // encoder->setViewports(viewports, sizeof_array(viewports));
+    encoder->setViewport(viewports[0]);
 
     // TODO: active color attachment count
     MTL::ScissorRect scissors[SCISSOR_COUNT];
@@ -356,7 +370,8 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
                              (u32)(src.horizontal.max - src.horizontal.min),
                              (u32)(src.vertical.max - src.vertical.min)};
     }
-    encoder->setScissorRects(scissors, sizeof_array(scissors));
+    // encoder->setScissorRects(scissors, sizeof_array(scissors));
+    encoder->setScissorRect(scissors[0]);
 
     // Resources
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)

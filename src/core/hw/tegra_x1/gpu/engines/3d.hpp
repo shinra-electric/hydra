@@ -204,12 +204,12 @@ struct Regs3D {
 
     // 0x280 Viewport transforms
     struct {
-        float scale_x;
-        float scale_y;
-        float scale_z;
-        float offset_x;
-        float offset_y;
-        float offset_z;
+        f32 scale_x;
+        f32 scale_y;
+        f32 scale_z;
+        f32 offset_x;
+        f32 offset_y;
+        f32 offset_z;
         struct {
             u32 x : 3;
             u32 y : 3;
@@ -228,12 +228,12 @@ struct Regs3D {
     // 0x300 Viewports
     struct {
         struct {
-            u16 x;
-            u16 width;
+            i16 x;
+            i16 width;
         } horizontal;
         struct {
-            u16 y;
-            u16 height;
+            i16 y;
+            i16 height;
         } vertical;
         float near;
         float far;
@@ -422,7 +422,12 @@ struct Regs3D {
     // 0x620
     bool32 is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-    u32 padding_0x630[0x90];
+    u32 padding_0x630[0x1b];
+
+    // 0x64b
+    bool32 viewport_transform_enabled;
+
+    u32 padding_0x64c[0x74];
 
     // 0x6c0 report semaphore
     Iova report_semaphore_addr;
