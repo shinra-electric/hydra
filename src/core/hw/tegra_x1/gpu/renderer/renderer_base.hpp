@@ -109,9 +109,6 @@ class RendererBase {
   protected:
     Info info{};
 
-    // State getters
-    // TODO
-
   private:
     std::mutex mutex;
 

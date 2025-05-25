@@ -276,7 +276,23 @@ struct Regs3D {
     // 0x374
     bool32 advanced_blend_enabled;
 
-    u32 padding_0x375[0x7b];
+    u32 padding_0x375[0xb];
+
+    // 0x380 scissor
+    struct {
+        bool32 enabled;
+        struct {
+            u16 min;
+            u16 max;
+        } horizontal;
+        struct {
+            u16 min;
+            u16 max;
+        } vertical;
+        u32 _padding;
+    } scissors[SCISSOR_COUNT];
+
+    u32 padding_0x3c0[0x30];
     u32 padding_0x3f0[0x8];
 
     // 0x3f8 depth target

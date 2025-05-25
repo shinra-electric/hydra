@@ -325,10 +325,40 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
                     const u32 start, const u32 count, bool indexed) {
     auto encoder = GetRenderCommandEncoder();
 
-    // State
+    // States
     SetRenderPipelineState();
     SetDepthStencilState();
-    // TODO: viewport and scissor
+
+    // Viewport and scissor
+    // TODO: only if changed
+    // TODO: active color attachment count
+    MTL::Viewport viewports[VIEWPORT_COUNT];
+    for (u32 i = 0; i < sizeof_array(viewports); i++) {
+        const auto& src = REGS_3D.viewports[i];
+        const auto& t = REGS_3D.viewport_transforms[i];
+        auto& dst = viewports[i];
+        // TODO: correct?
+        dst.originX = src.horizontal.x * t.scale_x + t.offset_x;
+        dst.originY = src.vertical.y * t.scale_y + t.offset_y;
+        dst.width = src.horizontal.width * t.scale_x;
+        dst.height = src.vertical.height * t.scale_y;
+        dst.znear = src.near * t.scale_z + t.offset_z;
+        dst.zfar = src.far * t.scale_z + t.offset_z;
+    }
+    encoder->setViewports(viewports, sizeof_array(viewports));
+
+    // TODO: active color attachment count
+    MTL::ScissorRect scissors[SCISSOR_COUNT];
+    for (u32 i = 0; i < sizeof_array(scissors); i++) {
+        const auto& src = REGS_3D.scissors[i];
+        scissors[i] =
+            MTL::ScissorRect{src.horizontal.min, src.vertical.min,
+                             (u32)(src.horizontal.max - src.horizontal.min),
+                             (u32)(src.vertical.max - src.vertical.min)};
+    }
+    encoder->setScissorRects(scissors, sizeof_array(scissors));
+
+    // Resources
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
         SetVertexBuffer(i);
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
