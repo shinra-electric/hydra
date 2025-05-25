@@ -74,7 +74,7 @@ void HostFile::Close(FileStream& stream) {
     LOG_FS_ACCESS(host_path, "file closed");
 }
 
-usize HostFile::GetSize() { return size - offset; }
+usize HostFile::GetSize() { return size; }
 
 void HostFile::DeleteImpl() {
     std::filesystem::remove(host_path);

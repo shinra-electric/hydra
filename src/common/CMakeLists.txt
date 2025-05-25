@@ -6,6 +6,7 @@ add_library(hydra-common
     types.hpp
     traits.hpp
     functions.hpp
+    literals.hpp
     memory.hpp
     time.hpp
     config.cpp

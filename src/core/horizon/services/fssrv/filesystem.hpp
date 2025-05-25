@@ -6,7 +6,7 @@
 
 namespace hydra::horizon::services::fssrv {
 
-enum class CreateOption {
+enum class CreateOption : u32 {
     None = 0,
     BigFile = BIT(0),
 };

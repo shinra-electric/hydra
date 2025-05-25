@@ -22,6 +22,12 @@ IFileSystem::CreateFile(CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
+    // HACK
+    if (size > 256_MiB) {
+        LOG_WARN(Services, "File too large (size: 0x{:08x})", size);
+        size = 16_MiB;
+    }
+
     const auto res = FILESYSTEM_INSTANCE.CreateFile(
         path, size, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
