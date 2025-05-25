@@ -64,12 +64,8 @@ void TextureCache::Update(Tex& texture) {
 
 u64 TextureCache::Hash(const TextureDescriptor& descriptor) {
     u64 hash = 0;
-    // HACK: if not Sonic Mania or Stardew Valley
-    if (!(KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 ||
-          (KERNEL_INSTANCE.GetTitleID() == 0x0100e65002bb8000 && descriptor.format == TextureFormat::RGBA8Unorm))) {
-        hash += descriptor.ptr;
-        hash = rotl(hash, 7);
-    }
+    hash += descriptor.ptr;
+    hash = rotl(hash, 7);
     hash += descriptor.width;
     hash = rotl(hash, 11);
     hash += descriptor.height;

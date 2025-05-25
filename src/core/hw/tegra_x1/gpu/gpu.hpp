@@ -46,6 +46,10 @@ class GPU {
         memory_map = {};
         memory_map.size = size;
 
+        // HACK: allocate one more index. Games are probably confused with
+        // handle IDs and IDs
+        memory_maps.AllocateForIndex();
+
         return handle_id;
     }
 
@@ -130,11 +134,8 @@ class GPU {
 
     // Getters
     cpu::MMUBase* GetMMU() const { return mmu; }
-
     GpuMMU& GetGPUMMU() { return gpu_mmu; }
-
     Pfifo& GetPfifo() { return pfifo; }
-
     renderer::RendererBase* GetRenderer() const { return renderer; }
 
   private:

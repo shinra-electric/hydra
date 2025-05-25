@@ -331,6 +331,7 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
 
     // Viewport and scissor
     // TODO: only if changed
+#if 0
     // TODO: active color attachment count
     MTL::Viewport viewports[VIEWPORT_COUNT];
     // TODO: move this out of the renderer
@@ -358,8 +359,8 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
             dst.zfar = src.far;
         }
     }
-    // encoder->setViewports(viewports, sizeof_array(viewports));
-    encoder->setViewport(viewports[0]);
+    encoder->setViewports(viewports, sizeof_array(viewports));
+#endif
 
     // TODO: active color attachment count
     MTL::ScissorRect scissors[SCISSOR_COUNT];
@@ -370,8 +371,7 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
                              (u32)(src.horizontal.max - src.horizontal.min),
                              (u32)(src.vertical.max - src.vertical.min)};
     }
-    // encoder->setScissorRects(scissors, sizeof_array(scissors));
-    encoder->setScissorRect(scissors[0]);
+    encoder->setScissorRects(scissors, sizeof_array(scissors));
 
     // Resources
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++)
