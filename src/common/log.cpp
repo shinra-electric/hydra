@@ -1,8 +1,8 @@
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
 
 #include "common/config.hpp"
 
-namespace hydra::logging {
+namespace hydra {
 
 Logger g_logger;
 
@@ -25,4 +25,4 @@ void Logger::EnsureOutputStream() {
 
 Output Logger::GetOutput() { return CONFIG_INSTANCE.GetLoggingOutput(); }
 
-} // namespace hydra::logging
+} // namespace hydra

@@ -10,7 +10,7 @@
 
 namespace hydra::horizon::services::nvdrv {
 
-allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
+StaticPool<ioctl::FdBase*, MAX_FD_COUNT> INvDrvServices::fd_pool;
 
 DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
                              Initialize, 4, QueryEvent, 8, SetAruid, 11, Ioctl2,

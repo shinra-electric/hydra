@@ -408,5 +408,3 @@ ENABLE_ENUM_FORMATTING(
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::ShaderType, Vertex,
                        "vertex", Fragment, "fragment", Count, "invalid")
-
-#include "common/logging/log.hpp"

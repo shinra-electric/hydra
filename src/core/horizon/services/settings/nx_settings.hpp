@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 namespace hydra::horizon::services::settings {
 
 enum class SettingDataType {

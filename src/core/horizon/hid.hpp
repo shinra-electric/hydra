@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 namespace hydra::horizon::hid {
 
 enum class DebugPadButton {

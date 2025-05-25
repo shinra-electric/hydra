@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/allocators/dynamic_pool.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/engines/2d.hpp"
 #include "core/hw/tegra_x1/gpu/engines/3d.hpp"
@@ -160,7 +159,7 @@ class GPU {
     renderer::RendererBase* renderer;
 
     // Memory
-    allocators::DynamicPool<MemoryMap> memory_maps;
+    DynamicPool<MemoryMap> memory_maps;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 namespace hydra::hw::tegra_x1::cpu {
 
 constexpr usize GUEST_PAGE_SIZE = 0x1000;

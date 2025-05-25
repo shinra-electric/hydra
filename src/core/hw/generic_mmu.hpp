@@ -1,8 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-#include "common/logging/log.hpp"
-
 namespace hydra::hw {
 
 template <typename SubclassT, typename Impl> class GenericMMU {

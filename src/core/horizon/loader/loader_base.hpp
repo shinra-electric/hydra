@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 #define CHECK_AND_SET_PROCESS(dst_process, src_process)                        \
     {                                                                          \
         ASSERT(!dst_process, Loader, "Cannot load multiple processes");        \

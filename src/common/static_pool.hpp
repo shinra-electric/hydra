@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/common.hpp"
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
+#include "common/type_aliases.hpp"
 
-namespace hydra::allocators {
+namespace hydra {
 
 #define FREE_SIZE (size + 7) / 8
 
@@ -70,4 +70,4 @@ template <typename T, u32 size> class StaticPool {
     void Take(u32 index) { FREE_SLOT(index) &= ~MASK(index); }
 };
 
-} // namespace hydra::allocators
+} // namespace hydra

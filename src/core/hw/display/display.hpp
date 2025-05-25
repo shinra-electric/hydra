@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/display/layer.hpp"
 

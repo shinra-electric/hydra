@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/common.hpp"
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
+#include "common/type_aliases.hpp"
 
-namespace hydra::allocators {
+namespace hydra {
 
 template <typename T> class DynamicPool {
   public:
@@ -61,4 +61,4 @@ template <typename T> class DynamicPool {
     }
 };
 
-} // namespace hydra::allocators
+} // namespace hydra

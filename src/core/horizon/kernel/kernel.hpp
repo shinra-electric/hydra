@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/allocators/dynamic_pool.hpp"
-#include "common/allocators/static_pool.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"

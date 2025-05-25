@@ -2,7 +2,6 @@
 
 #include <Hypervisor/Hypervisor.h>
 
-#include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/cpu/const.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {

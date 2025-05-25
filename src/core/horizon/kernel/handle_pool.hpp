@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/allocators/dynamic_pool.hpp"
-#include "common/allocators/static_pool.hpp"
 #include "core/horizon/kernel/const.hpp"
 
 namespace hydra::horizon::kernel {
@@ -41,10 +39,9 @@ template <typename T, typename Pool> class HandlePool {
 };
 
 template <typename T, usize size>
-class StaticHandlePool
-    : public HandlePool<T, allocators::StaticPool<T*, size>> {};
+class StaticHandlePool : public HandlePool<T, StaticPool<T*, size>> {};
 
 template <typename T>
-class DynamicHandlePool : public HandlePool<T, allocators::DynamicPool<T*>> {};
+class DynamicHandlePool : public HandlePool<T, DynamicPool<T*>> {};
 
 } // namespace hydra::horizon::kernel

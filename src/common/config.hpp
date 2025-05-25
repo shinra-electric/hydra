@@ -2,7 +2,7 @@
 
 #include <fmt/ranges.h>
 
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
 #include "common/types.hpp"
 
 #define CONFIG_INSTANCE Config::GetInstance()
@@ -117,7 +117,7 @@ class Config {
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
-    Option<logging::Output>& GetLoggingOutput() { return logging_output; }
+    Option<Output>& GetLoggingOutput() { return logging_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
@@ -136,10 +136,10 @@ class Config {
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
     Option<uuid_t> user_id;
-    Option<logging::Output> logging_output =
-        logging::Output::StdOut; // Set to stdout so that messages logged
-                                 // before logs path is initialized get logged
-                                 // properly
+    Option<Output> logging_output =
+        Output::StdOut; // Set to stdout so that messages logged
+                        // before logs path is initialized get logged
+                        // properly
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
     Option<bool> stack_trace_logging;
@@ -164,9 +164,7 @@ class Config {
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
     }
-    logging::Output GetDefaultLoggingOutput() const {
-        return logging::Output::File;
-    }
+    Output GetDefaultLoggingOutput() const { return Output::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
     bool GetDefaultStackTraceLogging() const { return false; }
@@ -201,5 +199,5 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
                                    "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::logging, Output, output, StdOut,
-                                   "stdout", File, "file")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Output, output, StdOut, "stdout",
+                                   File, "file")

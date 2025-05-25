@@ -3,8 +3,6 @@
 #include <mach/mach_time.h>
 #include <thread>
 
-#include "common/functions.hpp"
-#include "common/time.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {

@@ -4,7 +4,7 @@
 #include <string>
 
 #include "common/functions.hpp"
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 

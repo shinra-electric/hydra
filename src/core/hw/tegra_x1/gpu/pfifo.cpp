@@ -45,8 +45,6 @@ ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::TertiaryOpcode, Grp0IncMethod,
                        Grp0StoreSubDevMask, "GRP0 store subdevice mask",
                        Grp0UseSubDevMask, "GRP0 use subdevice mask")
 
-#include "common/logging/log.hpp"
-
 namespace hydra::hw::tegra_x1::gpu {
 
 namespace {

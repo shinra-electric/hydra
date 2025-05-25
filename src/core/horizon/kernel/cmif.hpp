@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-#include "common/macros.hpp"
 #include "core/horizon/kernel/hipc.hpp"
 
 namespace hydra::horizon::kernel::cmif {

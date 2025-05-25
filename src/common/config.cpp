@@ -2,7 +2,7 @@
 
 #include <toml.hpp>
 
-#include "common/logging/log.hpp"
+#include "common/log.hpp"
 
 #define TOML11_CONVERSION_TOML_TO_ENUM_CASE(e, val, n)                         \
     if (v.as_string() == n)                                                    \
@@ -46,8 +46,7 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
-TOML11_DEFINE_CONVERSION_ENUM(hydra::logging::Output, StdOut, "stdout", File,
-                              "file")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::Output, StdOut, "stdout", File, "file")
 
 namespace hydra {
 
@@ -209,8 +208,8 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        logging_output = toml::find_or<logging::Output>(
-            debug, "logging_output", GetDefaultLoggingOutput());
+        logging_output = toml::find_or<Output>(debug, "logging_output",
+                                               GetDefaultLoggingOutput());
         log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
                                             GetDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",

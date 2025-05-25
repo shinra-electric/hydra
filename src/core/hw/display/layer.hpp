@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 namespace hydra::hw::display {
 
 class Layer {

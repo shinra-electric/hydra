@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/logging/log.hpp"
 #include "core/horizon/filesystem/entry_base.hpp"
 
 namespace hydra::horizon::filesystem {

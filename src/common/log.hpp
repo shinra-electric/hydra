@@ -10,9 +10,8 @@
 #include "common/type_aliases.hpp"
 
 #define LOG(level, c, ...)                                                     \
-    logging::g_logger.Log(logging::Level::level, logging::Class::c,            \
-                          logging::trim_source_path(__FILE__), __LINE__,       \
-                          __func__, __VA_ARGS__)
+    g_logger.Log(Level::level, Class::c, trim_source_path(__FILE__), __LINE__, \
+                 __func__, __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
@@ -62,7 +61,7 @@
 #define INDENT_FMT "{:{}}"
 #define PASS_INDENT(indent) "", ((indent)*4)
 
-namespace hydra::logging {
+namespace hydra {
 
 // From yuzu
 constexpr const char* trim_source_path(std::string_view source) {
@@ -114,13 +113,13 @@ enum class Class {
     Other,
 };
 
-} // namespace hydra::logging
+} // namespace hydra
 
-ENABLE_ENUM_FORMATTING(hydra::logging::Level, Debug, "D", Info, "I", Stubbed,
-                       "S", Warning, "W", Error, "E", Fatal, "F")
+ENABLE_ENUM_FORMATTING(hydra::Level, Debug, "D", Info, "I", Stubbed, "S",
+                       Warning, "W", Error, "E", Fatal, "F")
 
-ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
-                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
+ENABLE_ENUM_FORMATTING(hydra::Class, Common, "Common", MMU, "MMU", CPU, "CPU",
+                       GPU, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
@@ -128,7 +127,7 @@ ENABLE_ENUM_FORMATTING(hydra::logging::Class, Common, "Common", MMU, "MMU", CPU,
                        "Hypervisor", Dynarmic, "Dynarmic", Input, "input",
                        Other, "")
 
-namespace hydra::logging {
+namespace hydra {
 
 class Logger {
   public:
@@ -201,4 +200,4 @@ class Logger {
 
 extern Logger g_logger;
 
-} // namespace hydra::logging
+} // namespace hydra

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/allocators/static_pool.hpp"
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
 
@@ -18,7 +17,7 @@ class INvDrvServices : public ServiceBase {
 
   private:
     // TODO: what should be the max number of fds?
-    static allocators::StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
+    static StaticPool<ioctl::FdBase*, MAX_FD_COUNT> fd_pool;
 
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,

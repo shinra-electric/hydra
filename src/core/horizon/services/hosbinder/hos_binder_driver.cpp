@@ -31,8 +31,6 @@ ENABLE_ENUM_FORMATTING(
     ConsumerUsageBits, "consumer usage bits", MaxBufferCountAsync,
     "max buffer count async")
 
-#include "common/logging/log.hpp"
-
 namespace hydra::horizon::services::hosbinder {
 
 namespace {

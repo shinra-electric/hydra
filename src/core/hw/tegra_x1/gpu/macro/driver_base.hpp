@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/logging/log.hpp"
 #include "core/hw/tegra_x1/gpu/macro/const.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::engines {

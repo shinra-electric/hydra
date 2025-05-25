@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 #define FS_SD_MOUNT "sdmc:"
 #define FS_SAVE_MOUNT "save:"
 

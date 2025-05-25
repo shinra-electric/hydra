@@ -176,5 +176,3 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BinaryOperator, Invalid,
     "invalid", And, "and", Or, "or", Xor, "xor")
-
-#include "common/logging/log.hpp"

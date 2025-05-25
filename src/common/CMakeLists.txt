@@ -1,22 +1,22 @@
 # TODO: make a precompiled header
 add_library(hydra-common
-    common.hpp
     macros.hpp
     type_aliases.hpp
     types.hpp
     traits.hpp
     functions.hpp
     literals.hpp
-    memory.hpp
     time.hpp
-    config.cpp
-    config.hpp
+    memory.hpp
+    static_pool.hpp
+    dynamic_pool.hpp
+    log.cpp
+    log.hpp
     lz4.cpp
     lz4.hpp
-    logging/log.cpp
-    logging/log.hpp
-    allocators/static_pool.hpp
-    allocators/dynamic_pool.hpp
+    config.cpp
+    config.hpp
+    common.hpp
 )
 target_precompile_headers(hydra-common PUBLIC common.hpp)
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/common.hpp"
-
 namespace hydra::horizon::kernel {
 
 // TODO: how does this work?
@@ -590,5 +588,3 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::SystemInfoType,
 
 ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::ThreadActivity, None, "none",
                        Runnable, "runnable")
-
-#include "common/logging/log.hpp"
