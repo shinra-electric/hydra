@@ -23,7 +23,7 @@ IFileSystem::CreateFile(CreateOption flags, u64 size,
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.CreateFile(
-        path, true); // TODO: should create_intermediate be true?
+        path, size, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
         LOG_WARN(Services, "File \"{}\" already exists", path);
     else

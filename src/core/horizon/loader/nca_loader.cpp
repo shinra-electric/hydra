@@ -146,8 +146,8 @@ void load_section(StreamReader reader, const std::string_view rom_filename,
         auto romfs_reader = reader.CreateSubReader(level.hash_data_size);
         const auto res = FILESYSTEM_INSTANCE.AddEntry(
             FS_SD_MOUNT "/rom/romFS",
-            new filesystem::HostFile(rom_filename, romfs_reader.GetOffset(),
-                                     romfs_reader.GetSize()),
+            new filesystem::HostFile(rom_filename, romfs_reader.GetSize(),
+                                     romfs_reader.GetOffset(), false),
             true);
         ASSERT(res == filesystem::FsResult::Success, Loader,
                "Failed to add romFS entry: {}", res);

@@ -8,10 +8,20 @@
 
 namespace hydra::horizon::filesystem {
 
-HostFile::HostFile(const std::string_view host_path_, u64 offset,
-                   usize size_limit_)
-    : FileBase(offset), host_path{host_path_}, size_limit{size_limit_} {
-    if (!std::filesystem::exists(host_path)) {
+HostFile::HostFile(const std::string_view host_path_, usize size_, u64 offset,
+                   bool is_mutable_)
+    : FileBase(offset), host_path{host_path_}, size{size_}, is_mutable{
+                                                                is_mutable_} {
+    ASSERT(!(is_mutable && offset != 0), Filesystem,
+           "Mutable files cannot start at offset (offset: 0x{:08x})", offset);
+
+    if (std::filesystem::exists(host_path)) {
+        if (size == invalid<usize>())
+            size = std::filesystem::file_size(host_path);
+    } else {
+        ASSERT(is_mutable, Filesystem, "Immutable file \"{}\" does not exist",
+               host_path);
+
         // Intermediate directories
         std::filesystem::create_directories(
             std::filesystem::path(host_path).parent_path());
@@ -20,16 +30,15 @@ HostFile::HostFile(const std::string_view host_path_, u64 offset,
         // TODO: is there a better way to create an empty file?
         std::ofstream ofs(host_path);
         ofs.close();
+        std::filesystem::resize_file(host_path, size);
 
         LOG_FS_ACCESS(host_path, "file created");
     }
-
-    size = std::filesystem::file_size(host_path);
 }
 
 HostFile::~HostFile() {
     // Resize the file to the requested size
-    if (std::filesystem::exists(host_path)) {
+    if (is_mutable && std::filesystem::exists(host_path)) {
         if (std::filesystem::file_size(host_path) != size)
             std::filesystem::resize_file(host_path, size);
     }
@@ -65,9 +74,7 @@ void HostFile::Close(FileStream& stream) {
     LOG_FS_ACCESS(host_path, "file closed");
 }
 
-usize HostFile::GetSize() {
-    return std::min(static_cast<usize>(size) - offset, size_limit);
-}
+usize HostFile::GetSize() { return size - offset; }
 
 void HostFile::DeleteImpl() {
     std::filesystem::remove(host_path);

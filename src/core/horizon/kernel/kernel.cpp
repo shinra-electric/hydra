@@ -577,7 +577,7 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         // HACK
         if (!event) {
             LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle", handle_id);
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            std::this_thread::sleep_for(std::chrono::milliseconds(33));
             return RESULT_SUCCESS;
         }
 

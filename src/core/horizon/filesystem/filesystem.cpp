@@ -73,7 +73,7 @@ FsResult Filesystem::AddEntry(const std::string_view path,
     return device.AddEntry(entry_path, host_path, add_intermediate);
 }
 
-FsResult Filesystem::CreateFile(const std::string_view path,
+FsResult Filesystem::CreateFile(const std::string_view path, usize size,
                                 bool add_intermediate) {
     GET_MOUNT(path);
 
@@ -81,17 +81,17 @@ FsResult Filesystem::CreateFile(const std::string_view path,
     if (mount == FS_SD_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSdCardPath().Get(), entry_path);
-        return AddEntry(path, new HostFile(host_path), add_intermediate);
+        return AddEntry(path, new HostFile(host_path, size), add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSavePath().Get(), entry_path);
-        return AddEntry(path, new HostFile(host_path), add_intermediate);
+        return AddEntry(path, new HostFile(host_path, size), add_intermediate);
     } else {
         LOG_WARN(Filesystem,
                  "Could not find host path for path \"{}\", falling back to "
                  "RAM backed file",
                  path);
-        return AddEntry(path, new RamFile(), add_intermediate);
+        return AddEntry(path, new RamFile(size), add_intermediate);
     }
 }
 

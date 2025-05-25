@@ -118,8 +118,8 @@ kernel::Process* NroLoader::LoadProcess(StreamReader reader,
     // filesystem
     const auto res = FILESYSTEM_INSTANCE.AddEntry(
         ROM_VIRTUAL_PATH,
-        new filesystem::HostFile(rom_filename, reader.GetOffset(),
-                                 reader.GetSize()));
+        new filesystem::HostFile(rom_filename, reader.GetSize(),
+                                 reader.GetOffset(), false));
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS entry: {}", res);
 

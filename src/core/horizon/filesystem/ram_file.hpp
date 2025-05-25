@@ -6,7 +6,13 @@ namespace hydra::horizon::filesystem {
 
 class RamFile : public FileBase {
   public:
-    RamFile() : FileBase(0) {}
+    RamFile(usize size = invalid<usize>()) : FileBase(0) {
+        if (size == invalid<usize>()) {
+            size = 0;
+        } else {
+            LOG_NOT_IMPLEMENTED(Filesystem, "Size (0x{:08x})", size);
+        }
+    }
     ~RamFile() override = default;
 
     void Resize(usize new_size) override {
