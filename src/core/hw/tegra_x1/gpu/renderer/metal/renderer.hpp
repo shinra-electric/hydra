@@ -123,6 +123,8 @@ class Renderer : public RendererBase {
             EndEncoding();
 
             command_buffer->commit();
+            // HACK: wait until completed so as to avoid sync issues
+            command_buffer->waitUntilCompleted();
             command_buffer = nullptr;
         }
     }
