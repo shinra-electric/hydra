@@ -18,7 +18,14 @@ class AppletBase {
     }
 
     void PushInData(const sized_ptr data) { in_data.push(data); }
-    // TODO: pop out data
+
+    sized_ptr PopOutData() {
+        ASSERT(!out_data.empty(), Services, "No output data");
+        const auto data = out_data.front();
+        out_data.pop();
+
+        return data;
+    }
 
     void Start();
 
@@ -30,13 +37,6 @@ class AppletBase {
 
   protected:
     LibraryAppletMode mode;
-
-    kernel::HandleWithId<kernel::Event> state_changed_event;
-    std::thread* thread{nullptr};
-
-    std::queue<sized_ptr> in_data;
-
-    result_t result{RESULT_SUCCESS};
 
     virtual result_t Run() = 0;
 
@@ -50,6 +50,21 @@ class AppletBase {
 
         return *reinterpret_cast<T*>(data.GetPtr());
     }
+
+    template <typename T> void PushOutData(const T& data) {
+        auto ptr = malloc(sizeof(T));
+        memcpy(ptr, data.GetPtrU8(), sizeof(T));
+        out_data.push(sized_ptr(ptr, sizeof(T)));
+    }
+
+  private:
+    kernel::HandleWithId<kernel::Event> state_changed_event;
+    std::thread* thread{nullptr};
+
+    std::queue<sized_ptr> in_data;
+    std::queue<sized_ptr> out_data;
+
+    result_t result{RESULT_SUCCESS};
 };
 
 } // namespace hydra::horizon::applets

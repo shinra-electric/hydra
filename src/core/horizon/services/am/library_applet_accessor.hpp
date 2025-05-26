@@ -27,6 +27,7 @@ class ILibraryAppletAccessor : public ServiceBase {
     result_t Start();
     result_t GetResult();
     result_t PushInData(ServiceBase* storage_);
+    result_t PopOutData(add_service_fn_t add_service);
 };
 
 } // namespace hydra::horizon::services::am

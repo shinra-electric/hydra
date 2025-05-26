@@ -7,7 +7,7 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
                              GetAppletStateChangedEvent, 10, Start, 30,
-                             GetResult, 100, PushInData)
+                             GetResult, 100, PushInData, 101, PopOutData)
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
                                                const LibraryAppletMode mode) {
@@ -43,6 +43,11 @@ result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
     applet->PushInData(storage->GetData());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletAccessor::PopOutData(add_service_fn_t add_service) {
+    add_service(new IStorage(applet->PopOutData()));
     return RESULT_SUCCESS;
 }
 
