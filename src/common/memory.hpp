@@ -77,6 +77,13 @@ class Writer {
         return result;
     }
 
+    void WriteString(const std::string_view str) {
+        char* result = reinterpret_cast<char*>(ptr);
+        memcpy(result, str.data(), str.size());
+        result[str.size()] = '\0';
+        ptr += str.size() + 1;
+    }
+
     // Getters
     u8* GetBase() const { return base; }
     usize GetSize() const { return size; }

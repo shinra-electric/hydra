@@ -21,12 +21,23 @@ class ILibraryAppletAccessor : public ServiceBase {
     AppletId id;
     LibraryAppletMode mode;
 
-    std::stack<IStorage*> in_data;
+    std::queue<sized_ptr> in_data;
 
     // Commands
     result_t GetAppletStateChangedEvent(OutHandle<HandleAttr::Copy> out_handle);
     result_t Start();
     result_t PushInData(ServiceBase* storage_);
+
+    // Helpers
+    template <typename T> T PopInData() {
+        ASSERT(!in_data.empty(), Services, "No input data");
+        const auto data = in_data.front();
+        ASSERT(data.GetSize() >= sizeof(T), Services,
+               "Not enough space ({} < {})", data.GetSize(), sizeof(T));
+        in_data.pop();
+
+        return *reinterpret_cast<T*>(data.GetPtr());
+    }
 };
 
 } // namespace hydra::horizon::services::am

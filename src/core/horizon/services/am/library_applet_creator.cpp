@@ -17,7 +17,8 @@ result_t ILibraryAppletCreator::CreateLibraryApplet(
 
 result_t ILibraryAppletCreator::CreateStorage(add_service_fn_t add_service,
                                               i64 size) {
-    // TODO: ensure that the memory gets released
+    LOG_DEBUG(Services, "Size: {}", size);
+
     add_service(new IStorage(sized_ptr(malloc(size), size)));
     return RESULT_SUCCESS;
 }
