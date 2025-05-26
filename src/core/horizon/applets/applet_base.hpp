@@ -20,7 +20,7 @@ class AppletBase {
     void PushInData(const sized_ptr data) { in_data.push(data); }
 
     sized_ptr PopOutData() {
-        ASSERT(!out_data.empty(), Services, "No output data");
+        ASSERT(!out_data.empty(), Applets, "No output data");
         const auto data = out_data.front();
         out_data.pop();
 
@@ -41,19 +41,25 @@ class AppletBase {
     virtual result_t Run() = 0;
 
     // Helpers
-    template <typename T> T PopInData() {
-        ASSERT(!in_data.empty(), Services, "No input data");
+    Reader PopInDataRaw() {
+        ASSERT(!in_data.empty(), Applets, "No input data");
         const auto data = in_data.front();
-        ASSERT(data.GetSize() >= sizeof(T), Services,
-               "Not enough space ({} < {})", data.GetSize(), sizeof(T));
         in_data.pop();
 
-        return *reinterpret_cast<T*>(data.GetPtr());
+        return Reader(data.GetPtrU8(), data.GetSize());
+    }
+
+    template <typename T> T PopInData() {
+        auto reader = PopInDataRaw();
+        ASSERT(reader.GetSize() >= sizeof(T), Applets,
+               "Not enough space ({} < {})", reader.GetSize(), sizeof(T));
+
+        return reader.Read<T>();
     }
 
     template <typename T> void PushOutData(const T& data) {
         auto ptr = malloc(sizeof(T));
-        memcpy(ptr, data.GetPtrU8(), sizeof(T));
+        memcpy(ptr, &data, sizeof(T));
         out_data.push(sized_ptr(ptr, sizeof(T)));
     }
 

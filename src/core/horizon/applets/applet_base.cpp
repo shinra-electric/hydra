@@ -17,9 +17,9 @@ struct CommonArguments {
 
 void AppletBase::Start() {
     const auto common_args = PopInData<CommonArguments>();
-    ASSERT(common_args.version == 1, Services, "Unsupported version {}",
+    ASSERT(common_args.version == 1, Applets, "Unsupported version {}",
            common_args.version); // TODO: support version 0
-    ASSERT(common_args.size == sizeof(CommonArguments), Services,
+    ASSERT(common_args.size == sizeof(CommonArguments), Applets,
            "Invalid struct size 0x{:x}", common_args.size);
 
     thread = new std::thread([&]() {
