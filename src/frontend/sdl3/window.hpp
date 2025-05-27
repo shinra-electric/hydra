@@ -14,9 +14,9 @@ class Window : public horizon::ui::HandlerBase {
     void Run();
 
     // UI
-    void ShowMessageBox(const horizon::ui::MessageBoxType type,
-                        const std::string& title,
-                        const std::string& message) override;
+    void ShowMessageDialog(const horizon::ui::MessageDialogType type,
+                           const std::string& title,
+                           const std::string& message) override;
 
   private:
     SDL_Window* window;

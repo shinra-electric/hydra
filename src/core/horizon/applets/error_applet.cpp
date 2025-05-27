@@ -1,5 +1,8 @@
 #include "core/horizon/applets/error_applet.hpp"
 
+#include "core/horizon/os.hpp"
+#include "core/horizon/ui/handler_base.hpp"
+
 namespace hydra::horizon::applets {
 
 namespace {
@@ -25,10 +28,10 @@ struct ParamCommon {
 struct ParamForApplicationError {
     u8 version;
     u8 _reserved[3];
-    u32 error_code_number; // TODO: is this the result code?
+    result_t error_code_number;
     u64 language_code;
     char dialog_message[0x800];
-    char full_screen_message[0x800];
+    char fullscreen_message[0x800];
 };
 
 enum class JumpDestination : u8 {
@@ -70,8 +73,13 @@ result_t ErrorApplet::Run() {
     case ErrorType::ApplicationError: {
         const auto param = param_reader.Read<ParamForApplicationError>();
 
-        // TODO: display a dialog
-        LOG_INFO(Applets, "Message: \"{}\"", param.dialog_message);
+        // TODO: handle empty messages
+        OS_INSTANCE.GetUiHandler().ShowMessageDialog(
+            ui::MessageDialogType::Error,
+            fmt::format("Error (0x{:x})", param.error_code_number),
+            fmt::format("{}\n{}", param.dialog_message,
+                        param.fullscreen_message));
+        // TODO: details
 
         if (param_common.is_jump_enabled) {
             // TODO: set

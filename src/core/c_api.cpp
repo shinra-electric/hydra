@@ -136,9 +136,9 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 // TODO: proper UI handler
 class UiHandler : public hydra::horizon::ui::HandlerBase {
   public:
-    void ShowMessageBox(const hydra::horizon::ui::MessageBoxType type,
-                        const std::string& title,
-                        const std::string& message) override {}
+    void ShowMessageDialog(const hydra::horizon::ui::MessageDialogType type,
+                           const std::string& title,
+                           const std::string& message) override {}
 };
 
 HYDRA_EXPORT void* hydra_emulation_context_create() {

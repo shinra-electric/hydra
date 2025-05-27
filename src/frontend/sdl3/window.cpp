@@ -69,22 +69,23 @@ void Window::Run() {
     }
 }
 
-void Window::ShowMessageBox(const horizon::ui::MessageBoxType type,
-                            const std::string& title,
-                            const std::string& message) {
+void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
+                               const std::string& title,
+                               const std::string& message) {
     SDL_MessageBoxFlags flags = 0;
     switch (type) {
-    case horizon::ui::MessageBoxType::Info:
+    case horizon::ui::MessageDialogType::Info:
         flags |= SDL_MESSAGEBOX_INFORMATION;
         break;
-    case horizon::ui::MessageBoxType::Warning:
+    case horizon::ui::MessageDialogType::Warning:
         flags |= SDL_MESSAGEBOX_WARNING;
         break;
-    case horizon::ui::MessageBoxType::Error:
+    case horizon::ui::MessageDialogType::Error:
         flags |= SDL_MESSAGEBOX_ERROR;
         break;
     }
 
+    // TODO: why does this crash?
     SDL_ShowSimpleMessageBox(flags, title.c_str(), message.c_str(), window);
 }
 

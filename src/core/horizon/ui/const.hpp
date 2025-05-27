@@ -2,7 +2,7 @@
 
 namespace hydra::horizon::ui {
 
-enum class MessageBoxType {
+enum class MessageDialogType {
     Info,
     Warning,
     Error,

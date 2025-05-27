@@ -6,9 +6,9 @@ namespace hydra::horizon::ui {
 
 class HandlerBase {
   public:
-    virtual void ShowMessageBox(const MessageBoxType type,
-                                const std::string& title,
-                                const std::string& message) = 0;
+    virtual void ShowMessageDialog(const MessageDialogType type,
+                                   const std::string& title,
+                                   const std::string& message) = 0;
 };
 
 } // namespace hydra::horizon::ui
