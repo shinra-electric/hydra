@@ -1,16 +1,22 @@
 #pragma once
 
 #include "core/emulation_context.hpp"
+#include "core/horizon/ui/handler_base.hpp"
 #include "frontend/sdl3/cursor.hpp"
 
 namespace hydra::frontend::sdl3 {
 
-class Window {
+class Window : public horizon::ui::HandlerBase {
   public:
     Window(int argc, const char* argv[]);
     ~Window();
 
     void Run();
+
+    // UI
+    void ShowMessageBox(const horizon::ui::MessageBoxType type,
+                        const std::string& title,
+                        const std::string& message) override;
 
   private:
     SDL_Window* window;

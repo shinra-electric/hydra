@@ -4,7 +4,7 @@
 
 namespace hydra::frontend::sdl3 {
 
-Window::Window(int argc, const char* argv[]) {
+Window::Window(int argc, const char* argv[]) : emulation_context(*this) {
     // SLD3 initialization
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         LOG_FATAL(SDL3Window, "Failed to initialize SDL3: {}", SDL_GetError());
@@ -67,6 +67,25 @@ void Window::Run() {
                 UpdateWindowTitle();
         }
     }
+}
+
+void Window::ShowMessageBox(const horizon::ui::MessageBoxType type,
+                            const std::string& title,
+                            const std::string& message) {
+    SDL_MessageBoxFlags flags = 0;
+    switch (type) {
+    case horizon::ui::MessageBoxType::Info:
+        flags |= SDL_MESSAGEBOX_INFORMATION;
+        break;
+    case horizon::ui::MessageBoxType::Warning:
+        flags |= SDL_MESSAGEBOX_WARNING;
+        break;
+    case horizon::ui::MessageBoxType::Error:
+        flags |= SDL_MESSAGEBOX_ERROR;
+        break;
+    }
+
+    SDL_ShowSimpleMessageBox(flags, title.c_str(), message.c_str(), window);
 }
 
 void Window::BeginEmulation(const std::string& rom_filename) {

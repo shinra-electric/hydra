@@ -6,8 +6,8 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 1, LockExit, 2, UnlockExit, 9,
-                             GetLibraryAppletLaunchableEvent, 10,
+DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 0, Exit, 1, LockExit, 2,
+                             UnlockExit, 9, GetLibraryAppletLaunchableEvent, 10,
                              SetScreenShotPermission, 11,
                              SetOperationModeChangedNotification, 12,
                              SetPerformanceModeChangedNotification, 13,

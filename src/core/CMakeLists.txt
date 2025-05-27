@@ -233,6 +233,8 @@ add_library(hydra-core
     horizon/applets/applet_base.hpp
     horizon/applets/error_applet.cpp
     horizon/applets/error_applet.hpp
+    horizon/ui/const.hpp
+    horizon/ui/handler_base.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp

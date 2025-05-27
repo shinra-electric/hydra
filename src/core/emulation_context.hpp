@@ -13,7 +13,7 @@ class EmulationContext {
     using clock_t = std::chrono::steady_clock;
 
   public:
-    EmulationContext();
+    EmulationContext(horizon::ui::HandlerBase& ui_handler);
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
