@@ -14,7 +14,7 @@
 
 namespace hydra {
 
-EmulationContext::EmulationContext() {
+EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     // Random
     srand(time(0));
 
@@ -39,7 +39,7 @@ EmulationContext::EmulationContext() {
     bus = new hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    os = new horizon::OS(*bus, cpu->GetMMU());
+    os = new horizon::OS(*bus, cpu->GetMMU(), ui_handler);
 
     // Filesystem
     /*

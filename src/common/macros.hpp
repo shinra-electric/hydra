@@ -108,7 +108,7 @@
             switch (c) {                                                       \
                 FOR_EACH_1_2(ENUM_FORMAT_CASE, e, __VA_ARGS__)                 \
             default:                                                           \
-                name = "unknown";                                              \
+                name = fmt::format("unknown ({})", (hydra::u64)c);             \
                 break;                                                         \
             }                                                                  \
             return formatter<string_view>::format(name, ctx);                  \

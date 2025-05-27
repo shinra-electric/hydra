@@ -18,14 +18,20 @@ namespace services::sm {
 class IUserInterface;
 }
 
+namespace ui {
+class HandlerBase;
+}
+
 class OS {
   public:
     static OS& GetInstance();
 
-    OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_);
+    OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_,
+       ui::HandlerBase& ui_handler_);
     ~OS();
 
     // Getters
+    ui::HandlerBase& GetUiHandler() { return ui_handler; }
     kernel::Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
     DisplayDriver& GetDisplayDriver() { return display_driver; }
@@ -38,6 +44,7 @@ class OS {
 
   private:
     hw::tegra_x1::cpu::MMUBase* mmu;
+    ui::HandlerBase& ui_handler;
 
     kernel::Kernel kernel;
 

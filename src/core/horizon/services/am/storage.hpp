@@ -7,7 +7,12 @@ namespace hydra::horizon::services::am {
 class IStorage : public ServiceBase {
   public:
     IStorage(const sized_ptr data_) : data{data_} {}
-    ~IStorage() override { free(data.GetPtrU8()); }
+    ~IStorage() override {
+        // TODO: uncomment
+        // free(data.GetPtrU8());
+    }
+
+    const sized_ptr GetData() const { return data; }
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;

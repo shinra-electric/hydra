@@ -1,6 +1,7 @@
 #include "core/c_api.h"
 
 #include "core/emulation_context.hpp"
+#include "core/horizon/ui/handler_base.hpp"
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
 
@@ -132,11 +133,20 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 }
 
 // Emulation context
+// TODO: proper UI handler
+class UiHandler : public hydra::horizon::ui::HandlerBase {
+  public:
+    void ShowMessageDialog(const hydra::horizon::ui::MessageDialogType type,
+                           const std::string& title,
+                           const std::string& message) override {}
+};
+
 HYDRA_EXPORT void* hydra_emulation_context_create() {
-    return new hydra::EmulationContext();
+    return new hydra::EmulationContext(*(new UiHandler()));
 }
 
 HYDRA_EXPORT void hydra_emulation_context_destroy(void* ctx) {
+    // TODO: also destroy the UI handler
     delete static_cast<hydra::EmulationContext*>(ctx);
 }
 

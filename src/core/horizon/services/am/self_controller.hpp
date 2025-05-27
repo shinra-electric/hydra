@@ -18,6 +18,7 @@ class ISelfController : public ServiceBase {
         accumulated_suspended_tick_changed_event;
 
     // Commands
+    STUB_REQUEST_COMMAND(Exit);
     result_t LockExit();
     result_t UnlockExit();
     result_t

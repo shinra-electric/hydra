@@ -1,35 +1,53 @@
 #include "core/horizon/services/am/library_applet_accessor.hpp"
 
+#include "core/horizon/applets/error_applet.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
 namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
-                             GetAppletStateChangedEvent, 10, Start, 100,
-                             PushInData)
+                             GetAppletStateChangedEvent, 10, Start, 30,
+                             GetResult, 100, PushInData, 101, PopOutData)
 
-// TODO: autoclear event?
-ILibraryAppletAccessor::ILibraryAppletAccessor(AppletId id_,
-                                               LibraryAppletMode mode_)
-    : id{id_}, mode{mode_}, state_changed_event(new kernel::Event()) {}
+ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
+                                               const LibraryAppletMode mode) {
+    switch (id) {
+    case AppletId::LibraryAppletError: {
+        applet = new applets::ErrorApplet(mode);
+        break;
+    }
+    default:
+        LOG_NOT_IMPLEMENTED(Services, "Applet ID: {}", id);
+        applet = nullptr;
+        break;
+    }
+}
+
+ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
 result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
     OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = state_changed_event.id;
+    out_handle = applet->GetStateChangedEventID();
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletAccessor::Start() {
-    // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Services);
+    applet->Start();
     return RESULT_SUCCESS;
 }
+
+result_t ILibraryAppletAccessor::GetResult() { return applet->GetResult(); }
 
 result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
-    in_data.push(storage);
+    applet->PushInData(storage->GetData());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletAccessor::PopOutData(add_service_fn_t add_service) {
+    add_service(new IStorage(applet->PopOutData()));
     return RESULT_SUCCESS;
 }
 
