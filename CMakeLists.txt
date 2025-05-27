@@ -6,7 +6,6 @@ option(MACOS_BUNDLE "Build a macOS app bundle" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(hydra VERSION 0.1.0 LANGUAGES CXX)
@@ -33,8 +32,11 @@ find_package(fmt CONFIG REQUIRED)
 # Externals
 #add_subdirectory(externals/toml11) # Hatch already uses toml11
 add_subdirectory(externals/dynarmic)
+add_subdirectory(externals/cubeb)
 #add_subdirectory(externals/luft)
 add_subdirectory(externals/hatch)
+
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 include_directories(externals/metal-cpp dynarmic)
 

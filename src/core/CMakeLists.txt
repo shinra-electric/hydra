@@ -238,6 +238,7 @@ add_library(hydra-core
     audio/const.hpp
     audio/stream_base.hpp
     audio/core_base.hpp
+    audio/cubeb/const.hpp
     audio/cubeb/stream.cpp
     audio/cubeb/stream.hpp
     audio/cubeb/core.cpp
@@ -397,5 +398,5 @@ add_library(hydra-core
 )
 
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch hydra-common)
 # TODO: link luft if AIR shader backend is enabled

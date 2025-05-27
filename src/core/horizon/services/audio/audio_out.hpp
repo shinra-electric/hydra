@@ -24,7 +24,7 @@ struct Buffer {
 
 class IAudioOut : public ServiceBase {
   public:
-    IAudioOut();
+    IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count);
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
@@ -37,8 +37,8 @@ class IAudioOut : public ServiceBase {
     std::vector<vaddr_t> released_buffers;
 
     // Commands
-    STUB_REQUEST_COMMAND(Start);
-    STUB_REQUEST_COMMAND(Stop);
+    result_t Start();
+    result_t Stop();
     result_t AppendAudioOutBuffer(u64 buffer_client_ptr,
                                   InBuffer<BufferAttr::MapAlias> buffer_buffer);
     result_t RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle);

@@ -93,7 +93,7 @@ class Event : public Handle {
 
         if (timeout == INFINITE_TIMEOUT) {
             cv.wait(lock);
-            return false;
+            return true;
         } else {
             const auto status =
                 cv.wait_for(lock, std::chrono::nanoseconds(timeout));

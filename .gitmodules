@@ -13,3 +13,6 @@
 [submodule "externals/hatch"]
 	path = externals/hatch
 	url = https://github.com/SamoZ256/hatch.git
+[submodule "externals/cubeb"]
+	path = externals/cubeb
+	url = https://github.com/mozilla/cubeb.git

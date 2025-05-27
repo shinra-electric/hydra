@@ -19,20 +19,20 @@ class IAudioOutManager : public ServiceBase {
                  u16 channel_count, u16 _reserved, u64 aruid,
                  InBuffer<BufferAttr::MapAlias> in_device_name_buffer,
                  u32* out_sample_rate, u32* out_channel_count,
-                 PcmFormat* out_pcm_format, AudioOutState* out_state,
+                 PcmFormat* out_format, AudioOutState* out_state,
                  OutBuffer<BufferAttr::MapAlias> out_device_name_buffer);
     result_t
     OpenAudioOutAuto(add_service_fn_t add_service, u32 sample_rate,
                      u16 channel_count, u16 _reserved, u64 aruid,
                      InBuffer<BufferAttr::AutoSelect> in_device_name_buffer,
                      u32* out_sample_rate, u32* out_channel_count,
-                     PcmFormat* out_pcm_format, AudioOutState* out_state,
+                     PcmFormat* out_format, AudioOutState* out_state,
                      OutBuffer<BufferAttr::AutoSelect> out_device_name_buffer);
 
     result_t OpenAudioOutImpl(add_service_fn_t add_service, u32 sample_rate,
                               u16 channel_count, u16 _reserved, u64 aruid,
                               Reader& device_name_reader, u32* out_sample_rate,
-                              u32* out_channel_count, PcmFormat* out_pcm_format,
+                              u32* out_channel_count, PcmFormat* out_format,
                               AudioOutState* out_state,
                               Writer& device_name_writer);
 };

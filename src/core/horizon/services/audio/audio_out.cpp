@@ -8,9 +8,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
                              GetReleasedAudioOutBuffers)
 
-IAudioOut::IAudioOut() : buffer_event(new kernel::Event(true)) {
-    stream =
-        OS_INSTANCE.GetAudioCore().CreateStream([&](buffer_id_t buffer_id) {
+IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
+    : buffer_event(new kernel::Event(true)) {
+    stream = OS_INSTANCE.GetAudioCore().CreateStream(
+        format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
             // Mark the buffer as released
             auto it = buffers.find(buffer_id);
             ASSERT_DEBUG(it != buffers.end(), Services,
@@ -21,6 +22,16 @@ IAudioOut::IAudioOut() : buffer_event(new kernel::Event(true)) {
             // Signal event
             buffer_event.handle->Signal();
         });
+}
+
+result_t IAudioOut::Start() {
+    stream->Start();
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioOut::Stop() {
+    stream->Stop();
+    return RESULT_SUCCESS;
 }
 
 result_t
