@@ -1,20 +1,37 @@
 #include "core/horizon/services/audio/audio_out.hpp"
 
+#include "core/horizon/os.hpp"
+
 namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
                              GetReleasedAudioOutBuffers)
 
-IAudioOut::IAudioOut() : buffer_event(new kernel::Event(true)) {}
+IAudioOut::IAudioOut() : buffer_event(new kernel::Event(true)) {
+    stream =
+        OS_INSTANCE.GetAudioCore().CreateStream([&](buffer_id_t buffer_id) {
+            // Mark the buffer as released
+            auto it = buffers.find(buffer_id);
+            ASSERT_DEBUG(it != buffers.end(), Services,
+                         "Invalid buffer ID 0x{:08x}", buffer_id);
+            released_buffers.push_back(it->second);
+            buffers.erase(it);
+
+            // Signal event
+            buffer_event.handle->Signal();
+        });
+}
 
 result_t
 IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
-    const auto buffer = buffer_buffer.reader->Read<AudioOutBuffer>();
-    // TODO: start playback
+    const auto buffer = buffer_buffer.reader->Read<Buffer>();
+    // TODO: correct?
+    const auto buffer_id = stream->EnqueueBuffer(
+        sized_ptr(buffer.sample_buffer_ptr, buffer.sample_buffer_data_size));
+    buffers[buffer_id] = buffer_client_ptr;
 
-    buffers.emplace_back(buffer, buffer_client_ptr);
     return RESULT_SUCCESS;
 }
 
@@ -32,11 +49,10 @@ result_t IAudioOut::GetReleasedAudioOutBuffers(
 
 result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,
                                                    Writer& out_buffers_writer) {
-    // HACK: pretend as if though all the buffers finished playing
-    *out_count = buffers.size();
-    for (const auto& [buffer, client_ptr] : buffers)
+    *out_count = released_buffers.size();
+    for (const auto client_ptr : released_buffers)
         out_buffers_writer.Write(client_ptr);
-    buffers.clear();
+    released_buffers.clear();
 
     return RESULT_SUCCESS;
 }

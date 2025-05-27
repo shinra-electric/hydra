@@ -12,6 +12,10 @@ namespace hydra::hw::display {
 class DisplayBase;
 }
 
+namespace hydra::audio {
+class CoreBase;
+}
+
 namespace hydra::horizon {
 
 namespace services::sm {
@@ -27,10 +31,11 @@ class OS {
     static OS& GetInstance();
 
     OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_,
-       ui::HandlerBase& ui_handler_);
+       audio::CoreBase& audio_core_, ui::HandlerBase& ui_handler_);
     ~OS();
 
     // Getters
+    audio::CoreBase& GetAudioCore() { return audio_core; }
     ui::HandlerBase& GetUiHandler() { return ui_handler; }
     kernel::Kernel& GetKernel() { return kernel; }
     StateManager& GetStateManager() { return state_manager; }
@@ -44,6 +49,7 @@ class OS {
 
   private:
     hw::tegra_x1::cpu::MMUBase* mmu;
+    audio::CoreBase& audio_core;
     ui::HandlerBase& ui_handler;
 
     kernel::Kernel kernel;

@@ -40,6 +40,7 @@ class EmulationContext {
     hw::tegra_x1::gpu::GPU* gpu;
     hw::display::Display* builtin_display;
     hw::Bus* bus;
+    audio::CoreBase* audio_core;
     horizon::OS* os;
 
     horizon::kernel::Process* process;

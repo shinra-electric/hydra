@@ -54,11 +54,11 @@ result_t IAudioOutManager::OpenAudioOutImpl(
     add_service(new IAudioOut());
 
     // Out
+    // TODO: check this
     *out_sample_rate = sample_rate;
-    *out_channel_count = channel_count;
-    // HACK
-    *out_pcm_format = PcmFormat::Float;
-    *out_state = AudioOutState::Started;
+    *out_channel_count = 2;
+    *out_pcm_format = PcmFormat::Int16;
+    *out_state = AudioOutState::Stopped;
 
     // TODO: correct?
     std::string device_name_out = "Hydra audio device";

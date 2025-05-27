@@ -1,17 +1,26 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/services/audio/const.hpp"
 #include "core/horizon/services/const.hpp"
+
+namespace hydra::audio {
+class StreamBase;
+}
 
 namespace hydra::horizon::services::audio {
 
-struct AudioOutBuffer {
+namespace {
+
+struct Buffer {
     u64 next_ptr; // Unused
     u64 sample_buffer_ptr;
     u64 sample_buffer_capacity;
     u64 sample_buffer_data_size;
     u64 sample_buffer_data_offset; // TODO: unused/ignored?
 };
+
+} // namespace
 
 class IAudioOut : public ServiceBase {
   public:
@@ -22,7 +31,10 @@ class IAudioOut : public ServiceBase {
 
   private:
     kernel::HandleWithId<kernel::Event> buffer_event;
-    std::vector<std::pair<AudioOutBuffer, u64>> buffers;
+    StreamBase* stream;
+
+    std::map<buffer_id_t, vaddr_t> buffers;
+    std::vector<vaddr_t> released_buffers;
 
     // Commands
     STUB_REQUEST_COMMAND(Start);

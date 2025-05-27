@@ -2,6 +2,7 @@
 
 #include "hatch/hatch.hpp"
 
+#include "core/audio/cubeb/core.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -39,7 +40,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     bus = new hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    os = new horizon::OS(*bus, cpu->GetMMU(), ui_handler);
+    // TODO: choose based on audio backend
+    { audio_core = new audio::cubeb::Core(); }
+
+    os = new horizon::OS(*bus, cpu->GetMMU(), *audio_core, ui_handler);
 
     // Filesystem
     /*

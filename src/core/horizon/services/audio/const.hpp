@@ -1,16 +1,10 @@
 #pragma once
 
+#include "core/audio/core_base.hpp"
+
 namespace hydra::horizon::services::audio {
 
-enum class PcmFormat : u32 {
-    Invalid = 0,
-    Int8 = 1,
-    Int16 = 2,
-    Int24 = 3,
-    Int32 = 4,
-    Float = 5,
-    Adpcm = 6,
-};
+using namespace ::hydra::audio;
 
 enum class AudioOutState : u32 {
     Started = 0,

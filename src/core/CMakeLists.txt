@@ -235,6 +235,13 @@ add_library(hydra-core
     horizon/applets/error_applet.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
+    audio/const.hpp
+    audio/stream_base.hpp
+    audio/core_base.hpp
+    audio/cubeb/stream.cpp
+    audio/cubeb/stream.hpp
+    audio/cubeb/core.cpp
+    audio/cubeb/core.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory_base.hpp
