@@ -43,7 +43,7 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
             Services,
             "Address space modifying (GPU addr: 0x{:08x}, size: 0x{:08x})",
             *inout_addr.data, mapping_size);
-        return NvResult::BadParameter;
+        return NvResult::Success;
     }
 
     const auto& map = GPU_INSTANCE.GetMap(nvmap_handle_id);
