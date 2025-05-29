@@ -238,6 +238,10 @@ add_library(hydra-core
     audio/const.hpp
     audio/stream_base.hpp
     audio/core_base.hpp
+    audio/null/stream.cpp
+    audio/null/stream.hpp
+    audio/null/core.cpp
+    audio/null/core.hpp
     audio/cubeb/const.hpp
     audio/cubeb/stream.cpp
     audio/cubeb/stream.hpp

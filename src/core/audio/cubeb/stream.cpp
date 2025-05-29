@@ -58,11 +58,9 @@ void Stream::Stop() {
     cubeb_stream_stop(stream);
 }
 
-buffer_id_t Stream::EnqueueBuffer(sized_ptr buffer) {
+void Stream::EnqueueBuffer(buffer_id_t id, sized_ptr buffer) {
     std::unique_lock lock(buffer_mutex);
-    buffer_queue.push(buffer);
-
-    return (buffer_id_t)buffer.GetPtr();
+    buffer_queue.push({id, buffer});
 }
 
 long Stream::DataCallback(cubeb_stream* stream, void* user_data,
@@ -83,7 +81,7 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
             break;
         }
 
-        const auto buffer = self->buffer_queue.front();
+        const auto [buffer_id, buffer] = self->buffer_queue.front();
         const auto sample =
             reinterpret_cast<i16*>(buffer.GetPtr())[self->pos_in_buffer++];
         if (self->pos_in_buffer * sizeof(i16) >= buffer.GetSize()) {

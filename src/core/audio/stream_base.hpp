@@ -20,13 +20,15 @@ class StreamBase {
     virtual void Start() = 0;
     virtual void Stop() = 0;
 
-    virtual buffer_id_t EnqueueBuffer(sized_ptr buffer) = 0;
+    virtual void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) = 0;
 
   protected:
     PcmFormat format;
     u32 sample_rate;
     u16 channel_count;
     buffer_finished_callback_fn_t buffer_finished_callback;
+
+    std::atomic<StreamState> state{StreamState::Stopped};
 };
 
 } // namespace hydra::audio

@@ -34,7 +34,6 @@ class IAudioOut : public ServiceBase {
     StreamBase* stream;
 
     std::mutex buffer_mutex;
-    std::map<buffer_id_t, vaddr_t> buffers;
     std::vector<vaddr_t> released_buffers;
 
     // Commands

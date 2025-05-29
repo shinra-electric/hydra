@@ -18,18 +18,15 @@ class Stream final : public StreamBase {
     void Start() override;
     void Stop() override;
 
-    buffer_id_t EnqueueBuffer(sized_ptr buffer) override;
+    void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) override;
 
   private:
     Core& core;
 
     cubeb_stream* stream;
 
-    std::mutex state_mutex;
-    std::atomic<StreamState> state{StreamState::Stopped};
-
     std::mutex buffer_mutex;
-    std::queue<sized_ptr> buffer_queue;
+    std::queue<std::pair<buffer_id_t, sized_ptr>> buffer_queue;
     u32 pos_in_buffer;
 
     static long DataCallback(cubeb_stream* stream, void* user_data,

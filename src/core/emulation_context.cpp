@@ -3,6 +3,7 @@
 #include "hatch/hatch.hpp"
 
 #include "core/audio/cubeb/core.hpp"
+#include "core/audio/null/core.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -42,6 +43,9 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     bus->ConnectDisplay(builtin_display, 0);
 
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
+    case AudioBackend::Null:
+        audio_core = new audio::null::Core();
+        break;
     case AudioBackend::Cubeb:
         audio_core = new audio::cubeb::Core();
         break;

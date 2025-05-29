@@ -13,14 +13,10 @@ IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
     : buffer_event(new kernel::Event(true)) {
     stream = OS_INSTANCE.GetAudioCore().CreateStream(
         format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
-            std::unique_lock lock(buffer_mutex);
-
-            // Mark the buffer as released
-            auto it = buffers.find(buffer_id);
-            ASSERT_DEBUG(it != buffers.end(), Services,
-                         "Invalid buffer ID 0x{:08x}", buffer_id);
-            released_buffers.push_back(it->second);
-            buffers.erase(it);
+            {
+                std::unique_lock lock(buffer_mutex);
+                released_buffers.push_back(buffer_id);
+            }
 
             // Signal event
             buffer_event.handle->Signal();
@@ -40,14 +36,12 @@ result_t IAudioOut::Stop() {
 result_t
 IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
-    std::unique_lock lock(buffer_mutex);
-
     const auto buffer = buffer_buffer.reader->Read<Buffer>();
     // TODO: correct?
-    const auto buffer_id = stream->EnqueueBuffer(
+    stream->EnqueueBuffer(
+        buffer_client_ptr,
         sized_ptr(KERNEL_INSTANCE.GetMMU()->UnmapAddr(buffer.sample_buffer_ptr),
                   buffer.sample_buffer_data_size));
-    buffers[buffer_id] = buffer_client_ptr;
 
     return RESULT_SUCCESS;
 }
