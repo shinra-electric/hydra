@@ -29,7 +29,8 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     default:
         // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown CPU backend");
+        LOG_FATAL(Other, "Unknown CPU backend {}",
+                  CONFIG_INSTANCE.GetCpuBackend());
         break;
     }
 
@@ -40,8 +41,16 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     bus = new hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    // TODO: choose based on audio backend
-    { audio_core = new audio::cubeb::Core(); }
+    switch (CONFIG_INSTANCE.GetAudioBackend()) {
+    case AudioBackend::Cubeb:
+        audio_core = new audio::cubeb::Core();
+        break;
+    default:
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Unknown audio backend {}",
+                  CONFIG_INSTANCE.GetAudioBackend());
+        break;
+    }
 
     os = new horizon::OS(*bus, cpu->GetMMU(), *audio_core, ui_handler);
 

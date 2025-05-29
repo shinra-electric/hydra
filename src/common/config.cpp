@@ -46,11 +46,12 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::Output, StdOut, "stdout", File, "file")
 
 namespace hydra {
 
-Config::Config() {
+void Config::Initialize() {
 #ifdef __APPLE__
     // macOS
     if (const char* home = std::getenv("HOME")) {
@@ -85,6 +86,7 @@ Config::Config() {
     std::filesystem::create_directories(app_data_path);
     std::filesystem::create_directories(logs_path);
 
+    LoadDefaults();
     Deserialize();
 }
 
@@ -96,6 +98,7 @@ void Config::LoadDefaults() {
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
+    audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     logging_output = GetDefaultLoggingOutput();
     log_fs_access = GetDefaultLogFsAccess();
@@ -145,6 +148,11 @@ void Config::Serialize() {
             auto& graphics = data.at("Graphics");
             graphics["renderer"] = gpu_renderer.Get();
             graphics["shader_backend"] = shader_backend.Get();
+        }
+
+        {
+            auto& audio = data.at("Audio");
+            audio["backend"] = audio_backend.Get();
         }
 
         {
@@ -202,6 +210,11 @@ void Config::Deserialize() {
         shader_backend = toml::find_or<ShaderBackend>(
             graphics, "shader_backend", GetDefaultShaderBackend());
     }
+    if (data.contains("Audio")) {
+        const auto& audio = data.at("Audio");
+        audio_backend = toml::find_or<AudioBackend>(audio, "backend",
+                                                    GetDefaultAudioBackend());
+    }
     if (data.contains("User")) {
         const auto& user = data.at("User");
         user_id = toml::find_or<uuid_t>(user, "user_id", GetDefaultUserID());
@@ -222,20 +235,28 @@ void Config::Deserialize() {
 
     // Validate
     if (cpu_backend == CpuBackend::Invalid) {
-        LOG_WARN(Other, "Invalid CPU backend, falling back to Dynarmic");
-        cpu_backend = CpuBackend::Dynarmic;
+        cpu_backend = GetDefaultCpuBackend();
+        LOG_WARN(Other, "Invalid CPU backend, falling back to {}", cpu_backend);
     }
 
     if (gpu_renderer == GpuRenderer::Invalid) {
-        LOG_WARN(Other, "Invalid GPU renderer, falling back to Metal");
-        gpu_renderer = GpuRenderer::Metal;
+        gpu_renderer = GetDefaultGpuRenderer();
+        LOG_WARN(Other, "Invalid GPU renderer, falling back to {}",
+                 gpu_renderer);
     }
 
     if (shader_backend == ShaderBackend::Invalid) {
-        LOG_WARN(Other, "Invalid shader backend, falling back to MSL");
-        shader_backend = ShaderBackend::Msl;
+        shader_backend = GetDefaultShaderBackend();
+        LOG_WARN(Other, "Invalid shader backend, falling back to {}",
+                 shader_backend);
     } else if (shader_backend == ShaderBackend::Air) {
         LOG_ERROR(Other, "AIR shader backend is not functional");
+    }
+
+    if (audio_backend == AudioBackend::Invalid) {
+        audio_backend = GetDefaultAudioBackend();
+        LOG_WARN(Other, "Invalid audio backend, falling back to {}",
+                 audio_backend);
     }
 }
 
@@ -247,6 +268,7 @@ void Config::Log() {
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
+    LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Logging output: {}", logging_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);

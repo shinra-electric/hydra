@@ -126,7 +126,7 @@ ENABLE_ENUM_FORMATTING(hydra::Class, Common, "Common", MMU, "MMU", CPU, "CPU",
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
                        Loader, "Loader", Services, "Services", Applets,
-                       "Applets", Cubeb, "CubeB", Hypervisor, "Hypervisor",
+                       "Applets", Cubeb, "Cubeb", Hypervisor, "Hypervisor",
                        Dynarmic, "Dynarmic", Input, "input", Other, "")
 
 namespace hydra {
