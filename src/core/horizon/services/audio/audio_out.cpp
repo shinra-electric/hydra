@@ -1,6 +1,7 @@
 #include "core/horizon/services/audio/audio_out.hpp"
 
 #include "core/horizon/os.hpp"
+#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace hydra::horizon::services::audio {
 
@@ -12,6 +13,8 @@ IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
     : buffer_event(new kernel::Event(true)) {
     stream = OS_INSTANCE.GetAudioCore().CreateStream(
         format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
+            std::unique_lock lock(buffer_mutex);
+
             // Mark the buffer as released
             auto it = buffers.find(buffer_id);
             ASSERT_DEBUG(it != buffers.end(), Services,
@@ -37,10 +40,13 @@ result_t IAudioOut::Stop() {
 result_t
 IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
+    std::unique_lock lock(buffer_mutex);
+
     const auto buffer = buffer_buffer.reader->Read<Buffer>();
     // TODO: correct?
     const auto buffer_id = stream->EnqueueBuffer(
-        sized_ptr(buffer.sample_buffer_ptr, buffer.sample_buffer_data_size));
+        sized_ptr(KERNEL_INSTANCE.GetMMU()->UnmapAddr(buffer.sample_buffer_ptr),
+                  buffer.sample_buffer_data_size));
     buffers[buffer_id] = buffer_client_ptr;
 
     return RESULT_SUCCESS;
@@ -60,6 +66,8 @@ result_t IAudioOut::GetReleasedAudioOutBuffers(
 
 result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,
                                                    Writer& out_buffers_writer) {
+    std::unique_lock lock(buffer_mutex);
+
     *out_count = released_buffers.size();
     for (const auto client_ptr : released_buffers)
         out_buffers_writer.Write(client_ptr);

@@ -46,7 +46,7 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
     // TODO: buffer size
     CUBEB_ASSERT_SUCCESS(cubeb_stream_init(
         core.context, &stream, "Hydra stream", nullptr, nullptr, nullptr,
-        &params, 1024, &Stream::DataCallback, &Stream::StateCallback, this));
+        &params, 512, &Stream::DataCallback, &Stream::StateCallback, this));
 }
 
 Stream::~Stream() { cubeb_stream_destroy(stream); }
@@ -62,10 +62,6 @@ buffer_id_t Stream::EnqueueBuffer(sized_ptr buffer) {
     std::unique_lock lock(buffer_mutex);
     buffer_queue.push(buffer);
 
-    // Start again if drained
-    if (state == StreamState::Drained)
-        Start();
-
     return (buffer_id_t)buffer.GetPtr();
 }
 
@@ -78,10 +74,14 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
 
     // TODO: support different formats as well
     i16* output = reinterpret_cast<i16*>(output_buffer);
-    u32 frame = 0;
-    while (frame < num_frames) {
-        if (self->buffer_queue.empty())
+    for (u32 i = 0; i < num_frames * self->channel_count; i++) {
+        if (self->buffer_queue.empty()) {
+            // Fill the rest with silence
+            memset(output, 0,
+                   (num_frames * self->channel_count - i) * sizeof(i16));
+
             break;
+        }
 
         const auto buffer = self->buffer_queue.front();
         const auto sample =
@@ -92,14 +92,10 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
             self->buffer_finished_callback((buffer_id_t)buffer.GetPtr());
         }
 
-        output[frame * 2] = sample;     // Left channel
-        output[frame * 2 + 1] = sample; // Right channel
-
-        frame++;
+        output[i] = sample;
     }
-    LOG_DEBUG(Cubeb, "Consumed {} frames", frame);
 
-    return frame;
+    return num_frames;
 }
 
 void Stream::StateCallback(cubeb_stream* stream, void* user_data,

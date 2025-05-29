@@ -53,8 +53,12 @@ result_t IAudioOutManager::OpenAudioOutImpl(
 
     // Out
     // TODO: check this
-    if (channel_count == 0)
+    if (sample_rate == 0)
+        sample_rate = 48000;
+    if (channel_count <= 2)
         channel_count = 2;
+    else
+        channel_count = 6;
     const auto format = PcmFormat::Int16;
 
     *out_sample_rate = sample_rate;
