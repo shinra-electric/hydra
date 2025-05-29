@@ -2,6 +2,8 @@
 
 #include "hatch/hatch.hpp"
 
+#include "core/audio/cubeb/core.hpp"
+#include "core/audio/null/core.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -28,7 +30,8 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     default:
         // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown CPU backend");
+        LOG_FATAL(Other, "Unknown CPU backend {}",
+                  CONFIG_INSTANCE.GetCpuBackend());
         break;
     }
 
@@ -39,7 +42,21 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     bus = new hw::Bus();
     bus->ConnectDisplay(builtin_display, 0);
 
-    os = new horizon::OS(*bus, cpu->GetMMU(), ui_handler);
+    switch (CONFIG_INSTANCE.GetAudioBackend()) {
+    case AudioBackend::Null:
+        audio_core = new audio::null::Core();
+        break;
+    case AudioBackend::Cubeb:
+        audio_core = new audio::cubeb::Core();
+        break;
+    default:
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Unknown audio backend {}",
+                  CONFIG_INSTANCE.GetAudioBackend());
+        break;
+    }
+
+    os = new horizon::OS(*bus, cpu->GetMMU(), *audio_core, ui_handler);
 
     // Filesystem
     /*

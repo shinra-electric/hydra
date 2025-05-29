@@ -70,7 +70,7 @@ class Event : public Handle {
     }
 
     // Returns true if the event was signaled, false on timeout
-    bool Wait(i64 timeout) {
+    bool Wait(i64 timeout = INFINITE_TIMEOUT) {
         std::unique_lock<std::mutex> lock(mutex);
         bool was_signaled = WaitImpl(lock, timeout);
         // TODO: correct?
@@ -93,7 +93,7 @@ class Event : public Handle {
 
         if (timeout == INFINITE_TIMEOUT) {
             cv.wait(lock);
-            return false;
+            return true;
         } else {
             const auto status =
                 cv.wait_for(lock, std::chrono::nanoseconds(timeout));
@@ -200,12 +200,10 @@ class Kernel {
 
     hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
-    // Getters
     hw::Bus& GetBus() const { return bus; }
+    hw::tegra_x1::cpu::MMUBase* GetMMU() const { return mmu; }
 
     u64 GetTitleID() const { return title_id; }
-
-    // Setters
     void SetTitleId(const u64 title_id_) { title_id = title_id_; }
 
   private:

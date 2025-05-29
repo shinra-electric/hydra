@@ -108,6 +108,7 @@ enum class Class {
     Loader,
     Services,
     Applets,
+    Cubeb,
     Hypervisor,
     Dynarmic,
     Input,
@@ -125,8 +126,8 @@ ENABLE_ENUM_FORMATTING(hydra::Class, Common, "Common", MMU, "MMU", CPU, "CPU",
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
                        Loader, "Loader", Services, "Services", Applets,
-                       "Applets", Hypervisor, "Hypervisor", Dynarmic,
-                       "Dynarmic", Input, "input", Other, "")
+                       "Applets", Cubeb, "Cubeb", Hypervisor, "Hypervisor",
+                       Dynarmic, "Dynarmic", Input, "input", Other, "")
 
 namespace hydra {
 

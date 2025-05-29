@@ -12,21 +12,28 @@ namespace hydra {
 enum class CpuBackend : u32 {
     Invalid = 0,
 
-    AppleHypervisor,
-    Dynarmic,
+    AppleHypervisor = 1,
+    Dynarmic = 2,
 };
 
 enum class GpuRenderer : u32 {
     Invalid = 0,
 
-    Metal,
+    Metal = 1,
 };
 
 enum class ShaderBackend : u32 {
     Invalid = 0,
 
-    Msl,
-    Air,
+    Msl = 1,
+    Air = 2,
+};
+
+enum class AudioBackend : u32 {
+    Invalid = 0,
+
+    Null = 1,
+    Cubeb = 2,
 };
 
 template <typename T> class Option {
@@ -91,7 +98,7 @@ class Config {
         return g_config;
     }
 
-    Config();
+    void Initialize();
 
     void LoadDefaults();
 
@@ -116,6 +123,7 @@ class Config {
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
+    Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
     Option<Output>& GetLoggingOutput() { return logging_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
@@ -135,6 +143,7 @@ class Config {
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
+    Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
     Option<Output> logging_output =
         Output::StdOut; // Set to stdout so that messages logged
@@ -161,6 +170,7 @@ class Config {
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
+    AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
     }
@@ -199,5 +209,7 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
                                    "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
+                                   "Null", Cubeb, "Cubeb")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Output, output, StdOut, "stdout",
                                    File, "file")
