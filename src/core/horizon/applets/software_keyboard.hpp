@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::applets {
 
-class ErrorApplet : public AppletBase {
+class SoftwareKeyboard : public AppletBase {
   public:
     using AppletBase::AppletBase;
 

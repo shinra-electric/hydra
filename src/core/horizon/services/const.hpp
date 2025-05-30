@@ -66,6 +66,7 @@ template <HandleAttr attr_> class InHandle {
   public:
     static constexpr HandleAttr attr = attr_;
 
+    InHandle() : handle_id{INVALID_HANDLE_ID} {}
     InHandle(handle_id_t handle_id_) : handle_id{handle_id_} {}
 
     operator handle_id_t() const { return handle_id; }
@@ -203,7 +204,16 @@ void read_arg(RequestContext& context, CommandArguments& args) {
                      arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InHandle) {
-            // TODO
+            handle_id_t handle_id;
+            if constexpr (Arg::attr == HandleAttr::Copy) {
+                handle_id =
+                    context.readers.copy_handles_reader.Read<handle_id_t>();
+            } else /*if constexpr (Arg::attr == HandleAttr::Move)*/ {
+                handle_id =
+                    context.readers.move_handles_reader.Read<handle_id_t>();
+            }
+
+            arg = Arg(handle_id);
 
             // Next
             read_arg<CommandArguments, in_buffer_index, out_buffer_index,

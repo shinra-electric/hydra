@@ -171,7 +171,7 @@ template <typename T, usize alignment> class aligned {
   private:
     T value;
     u8 _pad[alignment - sizeof(T)];
-} __attribute__((packed));
+} PACKED;
 
 template <typename KeyT, typename T, usize fast_cache_size = 4>
 class small_cache {

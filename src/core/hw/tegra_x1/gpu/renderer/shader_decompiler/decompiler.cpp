@@ -63,7 +63,7 @@ struct ShaderHeader {
             u16 omap_sysvals_c;
             u8 omap_fixed_fnc_tex[5];
             u8 omap_extra;
-        } __attribute__((packed)) vtg;
+        } PACKED vtg;
 
         struct {
             u8 imap_generic_vector[32];

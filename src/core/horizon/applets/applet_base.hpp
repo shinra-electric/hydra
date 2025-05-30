@@ -57,6 +57,8 @@ class AppletBase {
         return reader.Read<T>();
     }
 
+    void PushOutDataRaw(const sized_ptr ptr) { out_data.push(ptr); }
+
     template <typename T> void PushOutData(const T& data) {
         auto ptr = malloc(sizeof(T));
         memcpy(ptr, &data, sizeof(T));

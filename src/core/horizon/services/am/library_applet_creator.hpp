@@ -14,6 +14,9 @@ class ILibraryAppletCreator : public ServiceBase {
     result_t CreateLibraryApplet(add_service_fn_t add_service, AppletId id,
                                  LibraryAppletMode mode);
     result_t CreateStorage(add_service_fn_t add_service, i64 size);
+    result_t CreateTransferMemoryStorage(add_service_fn_t add_service,
+                                         InHandle<HandleAttr::Copy> tmem_handle,
+                                         bool writable, i64 size);
 };
 
 } // namespace hydra::horizon::services::am

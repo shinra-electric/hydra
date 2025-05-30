@@ -233,6 +233,8 @@ add_library(hydra-core
     horizon/applets/applet_base.hpp
     horizon/applets/error_applet.cpp
     horizon/applets/error_applet.hpp
+    horizon/applets/software_keyboard.cpp
+    horizon/applets/software_keyboard.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp

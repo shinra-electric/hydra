@@ -1,6 +1,7 @@
 #include "core/horizon/services/am/library_applet_accessor.hpp"
 
 #include "core/horizon/applets/error_applet.hpp"
+#include "core/horizon/applets/software_keyboard.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
 namespace hydra::horizon::services::am {
@@ -12,12 +13,14 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
 ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
                                                const LibraryAppletMode mode) {
     switch (id) {
-    case AppletId::LibraryAppletError: {
+    case AppletId::LibraryAppletError:
         applet = new applets::ErrorApplet(mode);
         break;
-    }
+    case AppletId::LibraryAppletSwkbd:
+        applet = new applets::SoftwareKeyboard(mode);
+        break;
     default:
-        LOG_NOT_IMPLEMENTED(Services, "Applet ID: {}", id);
+        LOG_NOT_IMPLEMENTED(Services, "Applet ID {}", id);
         applet = nullptr;
         break;
     }

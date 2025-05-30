@@ -696,7 +696,7 @@ struct NvSurface {
     u64 flags;
     u64 size;
     u32 unk[6]; // compression related
-} __attribute__((packed));
+} PACKED;
 
 struct NvGraphicsBuffer {
     i32 unk0;       // -1
@@ -716,7 +716,7 @@ struct NvGraphicsBuffer {
     u64 unused; // official sw writes a pointer to bookkeeping data here, but
                 // it's otherwise completely unused/overwritten during
                 // marshalling
-} __attribute__((packed));
+} PACKED;
 
 struct Fence {
     u32 id;

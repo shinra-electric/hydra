@@ -4,6 +4,8 @@
 
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 
+#define PACKED __attribute__((packed))
+
 #define ONCE(code)                                                             \
     {                                                                          \
         static bool executed = false;                                          \

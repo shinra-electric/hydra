@@ -253,7 +253,7 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
         thread->SetRegW(0, res);
         break;
     default:
-        LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:08x}", id);
+        LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
         thread->SetRegW(0, res);
         break;
@@ -732,14 +732,14 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     // Scratch memory
     u8 scratch_buffer[0x200];
     u8 scratch_buffer_objects[0x100];
-    u8 scratch_buffer_move_handles[0x100];
     u8 scratch_buffer_copy_handles[0x100];
+    u8 scratch_buffer_move_handles[0x100];
 
     // Request context
     hipc::Readers readers(mmu, hipc_in);
     hipc::Writers writers(mmu, hipc_in, scratch_buffer, scratch_buffer_objects,
-                          scratch_buffer_move_handles,
-                          scratch_buffer_copy_handles);
+                          scratch_buffer_copy_handles,
+                          scratch_buffer_move_handles);
     RequestContext context{
         readers,
         writers,

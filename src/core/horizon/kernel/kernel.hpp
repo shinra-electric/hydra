@@ -104,11 +104,15 @@ class Event : public Handle {
 
 class TransferMemory : public Handle {
   public:
-    TransferMemory(uptr addr_, u64 size_, MemoryPermission perm_)
+    TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_)
         : addr{addr_}, size{size_}, perm{perm_} {}
 
+    vaddr_t GetAddress() const { return addr; }
+    u64 GetSize() const { return size; }
+    MemoryPermission GetPermission() const { return perm; }
+
   private:
-    uptr addr;
+    vaddr_t addr;
     u64 size;
     MemoryPermission perm;
 };

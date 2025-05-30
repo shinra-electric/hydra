@@ -6,6 +6,7 @@ add_library(hydra-common
     traits.hpp
     functions.hpp
     literals.hpp
+    string.hpp
     time.hpp
     memory.hpp
     static_pool.hpp
