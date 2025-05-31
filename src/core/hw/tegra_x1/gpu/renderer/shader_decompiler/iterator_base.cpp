@@ -1164,12 +1164,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_U32_EXTEND(32, 20);
+        const auto srcB = GET_VALUE_U32_EXTEND(20, 32);
         LOG_DEBUG(ShaderDecompiler, "fmul32i r{} r{} 0x{:08x}", dst, srcA,
                   srcB);
 
-        auto srcB_v =
-            o->OpCast(o->OpImmediateL(srcB, DataType::U32), DataType::F32);
+        auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
         auto res =
             o->OpMultiply(o->OpRegister(false, srcA, DataType::F32), srcB_v);
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
@@ -1191,12 +1190,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_U32_EXTEND(32, 20);
+        const auto srcB = GET_VALUE_U32_EXTEND(20, 32);
         LOG_DEBUG(ShaderDecompiler, "fadd32i r{} r{} 0x{:08x}", dst, srcA,
                   srcB);
 
-        auto srcB_v =
-            o->OpCast(o->OpImmediateL(srcB, DataType::U32), DataType::F32);
+        auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
         auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32), srcB_v);
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
