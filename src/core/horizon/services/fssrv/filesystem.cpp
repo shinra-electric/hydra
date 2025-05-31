@@ -54,9 +54,8 @@ result_t
 IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.AddEntry(
-        path, new filesystem::Directory(),
-        true); // TODO: should create_intermediate be true?
+    const auto res = FILESYSTEM_INSTANCE.CreateDirectory(
+        path, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
         LOG_WARN(Services, "Directory \"{}\" already exists", path);
     else

@@ -42,6 +42,10 @@ Filesystem::Filesystem() {
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSavePath().Get());
     MountImpl(FS_SAVE_MOUNT,
               new Directory(CONFIG_INSTANCE.GetSavePath().Get()));
+
+    // Cache
+    // TODO: support mounting to a real host path as well
+    Mount(FS_CACHE_MOUNT);
 }
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }

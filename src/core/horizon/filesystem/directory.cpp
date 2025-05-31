@@ -2,6 +2,10 @@
 
 #include "core/horizon/filesystem/host_file.hpp"
 
+#define COMMON                                                                 \
+    std::vector<std::string_view> broken_path;                                 \
+    BreakPath(path, broken_path);
+
 namespace hydra::horizon::filesystem {
 
 Directory::Directory(const std::string_view host_path) {
@@ -55,22 +59,13 @@ FsResult Directory::Delete(bool recursive) {
     return FsResult::Success;
 }
 
-FsResult Directory::AddEntry(const std::string_view rel_path, EntryBase* entry,
+FsResult Directory::AddEntry(const std::string_view path, EntryBase* entry,
                              bool add_intermediate) {
-    return Find<EntryBase*&>(
-        rel_path,
-        [entry, add_intermediate](Directory* parent, EntryBase*& out_entry) {
-            if (out_entry)
-                return FsResult::AlreadyExists;
-
-            out_entry = entry;
-            entry->SetParent(parent);
-            return FsResult::Success;
-        },
-        add_intermediate);
+    COMMON;
+    return AddEntryImpl(broken_path, entry, add_intermediate);
 }
 
-FsResult Directory::AddEntry(const std::string_view rel_path,
+FsResult Directory::AddEntry(const std::string_view path,
                              const std::string_view host_path,
                              bool add_intermediate) {
     ASSERT(std::filesystem::exists(host_path), Filesystem,
@@ -85,36 +80,119 @@ FsResult Directory::AddEntry(const std::string_view rel_path,
         LOG_ERROR(Filesystem, "Invalid host path \"{}\"", host_path);
     }
 
-    return AddEntry(rel_path, entry, add_intermediate);
+    return AddEntry(path, entry, add_intermediate);
 }
 
-FsResult Directory::DeleteEntry(const std::string_view rel_path,
-                                bool recursive) {
-    return Find<EntryBase*&>(rel_path,
-                             [recursive](Directory* parent, EntryBase*& entry) {
-                                 if (!entry)
-                                     return FsResult::DoesNotExist;
-
-                                 auto res = entry->Delete(recursive);
-                                 delete entry;
-                                 entry = nullptr;
-
-                                 return res;
-                             });
+FsResult Directory::DeleteEntry(const std::string_view path, bool recursive) {
+    COMMON;
+    return DeleteEntryImpl(broken_path, recursive);
 }
 
-FsResult Directory::GetEntry(const std::string_view rel_path,
+FsResult Directory::GetEntry(const std::string_view path,
                              EntryBase*& out_entry) {
-    return Find<EntryBase*>(rel_path,
-                            [&out_entry](Directory* parent, EntryBase* entry) {
-                                if (!entry) {
-                                    out_entry = nullptr;
-                                    return FsResult::DoesNotExist;
-                                }
+    COMMON;
+    return GetEntryImpl(broken_path, out_entry);
+}
 
-                                out_entry = entry;
-                                return FsResult::Success;
-                            });
+FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
+                                 EntryBase* entry, bool add_intermediate) {
+    const auto entry_name = path[0];
+    auto& e = entries[std::string(entry_name)];
+    if (path.size() == 1) {
+        if (e)
+            return FsResult::AlreadyExists;
+
+        entry->SetParent(this);
+        e = entry;
+        return FsResult::Success;
+    } else {
+        if (!e) {
+            if (add_intermediate) {
+                e = new Directory();
+                e->SetParent(this);
+            } else {
+                return FsResult::IntermediateDirectoryDoesNotExist;
+            }
+        }
+
+        auto sub_dir = dynamic_cast<Directory*>(e);
+        if (!sub_dir)
+            return FsResult::NotADirectory;
+
+        return sub_dir->AddEntryImpl(path.subspan(1), entry, add_intermediate);
+    }
+}
+
+FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
+                                    bool recursive) {
+    const auto entry_name = path[0];
+    auto& e = entries[std::string(entry_name)];
+    if (path.size() == 1) {
+        if (!e)
+            return FsResult::DoesNotExist;
+
+        auto res = e->Delete(recursive);
+        delete e;
+        entries.erase(std::string(entry_name)); // TODO: find better way
+
+        return FsResult::Success;
+    } else {
+        if (!e)
+            return FsResult::IntermediateDirectoryDoesNotExist;
+
+        auto sub_dir = dynamic_cast<Directory*>(e);
+        if (!sub_dir)
+            return FsResult::NotADirectory;
+
+        return sub_dir->DeleteEntryImpl(path.subspan(1), recursive);
+    }
+}
+
+FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
+                                 EntryBase*& out_entry) {
+    const auto entry_name = path[0];
+    auto& e = entries[std::string(entry_name)];
+    if (path.size() == 1) {
+        if (!e)
+            return FsResult::DoesNotExist;
+
+        out_entry = e;
+        return FsResult::Success;
+    } else {
+        if (!e)
+            return FsResult::IntermediateDirectoryDoesNotExist;
+
+        auto sub_dir = dynamic_cast<Directory*>(e);
+        if (!sub_dir)
+            return FsResult::NotADirectory;
+
+        return sub_dir->GetEntryImpl(path.subspan(1), out_entry);
+    }
+}
+
+void Directory::BreakPath(std::string_view path,
+                          std::vector<std::string_view>& out_path) {
+    // Reserve the maximum possible count
+    out_path.reserve(std::count(path.begin(), path.end(), '/'));
+
+    while (!path.empty()) {
+        const auto slash_pos = path.find('/');
+
+        const auto entry = path.substr(0, slash_pos);
+        if (entry == "." || entry.empty()) {
+            // Do nothing
+        } else if (entry == "..") {
+            out_path.pop_back();
+        } else {
+            // TODO: verify the name doesn't contain forbidden characters
+            out_path.push_back(entry);
+        }
+
+        if (slash_pos != std::string::npos)
+            path = path.substr(slash_pos + 1);
+        else
+            break;
+    }
 }
 
 } // namespace hydra::horizon::filesystem
