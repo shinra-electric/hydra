@@ -12,10 +12,9 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
         NV_COLOR_FORMAT_CASE(A8B8G8R8, RGBA8Unorm)
         NV_COLOR_FORMAT_CASE(R5G6B5, B5G6R5Unorm)
         NV_COLOR_FORMAT_CASE(B5G6R5, B5G6R5Unorm)
+        NV_COLOR_FORMAT_CASE(A8R8G8B8, RGBA8Unorm) // TODO
     default:
         LOG_NOT_IMPLEMENTED(GPU, "NV color format {}", color_format);
-        // TODO: don't throw
-        throw;
         return TextureFormat::Invalid;
     }
 
@@ -413,6 +412,8 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
         return SWIZZLE(R, G, B, A);
     case TextureFormat::RG8Unorm:
         return SWIZZLE(R, G, OneFloat, OneFloat);
+    case TextureFormat::BGRA8Unorm:
+        return SWIZZLE(R, G, B, A);
     default:
         LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
         return SWIZZLE(R, G, B, A);

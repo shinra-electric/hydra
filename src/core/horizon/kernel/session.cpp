@@ -43,6 +43,7 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     case cmif::ControlCommandType::QueryPointerBufferSize: // query pointer
                                                            // buffer size
         writers.writer.Write(service->GetPointerBufferSize());
+        LOG_INFO(Kernel, "AAA: {}", typeid(*service).name());
         break;
     case cmif::ControlCommandType::CloneCurrentObjectEx: { // clone current ex
         // TODO: u32 tag

@@ -19,14 +19,10 @@ class UserManager {
     void Flush();
 
     const uuid_t* Begin() { return &users.begin()->first; }
-
     const uuid_t* End() { return &users.end()->first; }
 
-    // Getters
     User& Get(uuid_t user_id) { return GetPair(user_id).first; }
-
     bool Exists(uuid_t user_id) const { return users.contains(user_id); }
-
     usize GetCount() const { return users.size(); }
 
   private:

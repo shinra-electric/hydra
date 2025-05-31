@@ -6,11 +6,11 @@
 namespace hydra::horizon::services::nifm {
 
 enum class RequestState {
-    Invalid,
-    Free,
-    OnHold,
-    Accepted,
-    Blocking,
+    Invalid = 0,
+    Free = 1,
+    OnHold = 2,
+    Accepted = 3,
+    Blocking = 4,
 };
 
 class IRequest : public ServiceBase {

@@ -12,7 +12,8 @@ result_t IRequest::GetRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *out_state = RequestState::Accepted;
+    // TODO: why does Minecraft not work with RequestState::Accepted?
+    *out_state = RequestState::Invalid;
     return RESULT_SUCCESS;
 }
 
