@@ -609,7 +609,9 @@ result_t Kernel::svcArbitrateLock(u32 wait_tag, uptr mutex_addr, u32 self_tag) {
               "0x{:08x})",
               wait_tag, mutex_addr, self_tag);
 
+    sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
+    sync_mutex.unlock();
     mutex.Lock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)), self_tag);
 
     return RESULT_SUCCESS;
@@ -619,7 +621,9 @@ result_t Kernel::svcArbitrateUnlock(uptr mutex_addr) {
     LOG_DEBUG(Kernel, "svcArbitrateUnlock called (mutex: 0x{:08x})",
               mutex_addr);
 
+    sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
+    sync_mutex.unlock();
     mutex.Unlock(*reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr)));
 
     // HACK
@@ -838,7 +842,7 @@ result_t Kernel::svcGetThreadId(handle_id_t thread_handle_id,
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    out_thread_id = 0x0000000f;
+    out_thread_id = thread_handle_id;
 
     return RESULT_SUCCESS;
 }
@@ -891,7 +895,7 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
     case InfoType::CoreMask:
         LOG_NOT_IMPLEMENTED(Kernel, "CoreMask");
         // HACK
-        out_info = 0x1;
+        out_info = 0xf;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
         out_info = ALIAS_REGION_BASE;

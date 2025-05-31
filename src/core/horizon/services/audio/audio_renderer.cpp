@@ -202,7 +202,7 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
         default:
             ONCE(LOG_NOT_IMPLEMENTED(Services, "Memory pool state {}",
                                      mempool_in.state));
-            mempool.new_state = mempool_in.state;
+            mempool.new_state = MemPoolState::Released; // mempool_in.state;
             break;
         }
         writer.Write(mempool);
