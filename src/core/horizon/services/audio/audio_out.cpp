@@ -7,7 +7,9 @@ namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
-                             GetReleasedAudioOutBuffers)
+                             GetReleasedAudioOutBuffers, 7,
+                             AppendAudioOutBufferAuto, 8,
+                             GetReleasedAudioOutBuffersAuto)
 
 IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
     : buffer_event(new kernel::Event(true)) {
@@ -36,14 +38,7 @@ result_t IAudioOut::Stop() {
 result_t
 IAudioOut::AppendAudioOutBuffer(u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
-    const auto buffer = buffer_buffer.reader->Read<Buffer>();
-    // TODO: correct?
-    stream->EnqueueBuffer(
-        buffer_client_ptr,
-        sized_ptr(KERNEL_INSTANCE.GetMMU()->UnmapAddr(buffer.sample_buffer_ptr),
-                  buffer.sample_buffer_data_size));
-
-    return RESULT_SUCCESS;
+    return AppendAudioOutBufferImpl(buffer_client_ptr, *buffer_buffer.reader);
 }
 
 result_t
@@ -56,6 +51,29 @@ result_t IAudioOut::GetReleasedAudioOutBuffers(
     u32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffers_buffer) {
     return GetReleasedAudioOutBuffersImpl(out_count,
                                           *out_buffers_buffer.writer);
+}
+
+result_t IAudioOut::AppendAudioOutBufferAuto(
+    u64 buffer_client_ptr, InBuffer<BufferAttr::AutoSelect> buffer_buffer) {
+    return AppendAudioOutBufferImpl(buffer_client_ptr, *buffer_buffer.reader);
+}
+
+result_t IAudioOut::GetReleasedAudioOutBuffersAuto(
+    u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer) {
+    return GetReleasedAudioOutBuffersImpl(out_count,
+                                          *out_buffers_buffer.writer);
+}
+
+result_t IAudioOut::AppendAudioOutBufferImpl(u64 buffer_client_ptr,
+                                             Reader buffer_reader) {
+    const auto buffer = buffer_reader.Read<Buffer>();
+    // TODO: correct?
+    stream->EnqueueBuffer(
+        buffer_client_ptr,
+        sized_ptr(KERNEL_INSTANCE.GetMMU()->UnmapAddr(buffer.sample_buffer_ptr),
+                  buffer.sample_buffer_data_size));
+
+    return RESULT_SUCCESS;
 }
 
 result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,

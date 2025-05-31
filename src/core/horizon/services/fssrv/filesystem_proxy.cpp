@@ -29,15 +29,13 @@ std::string get_save_data_mount(const SaveDataAttribute& attr) {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
-                             SetCurrentProcess, 8, OpenFileSystemWithIdObsolete,
-                             11, OpenBisFileSystem, 18, OpenSdCardFileSystem,
-                             22, CreateSaveDataFileSystem, 51,
-                             OpenSaveDataFileSystem, 61,
-                             OpenSaveDataInfoReaderBySaveDataSpaceId, 200,
-                             OpenDataStorageByProgramId, 203,
-                             OpenPatchDataStorageByCurrentProcess, 1005,
-                             GetGlobalAccessLogMode)
+DEFINE_SERVICE_COMMAND_TABLE(
+    IFileSystemProxy, 0, OpenFileSystem, 1, SetCurrentProcess, 8,
+    OpenFileSystemWithIdObsolete, 11, OpenBisFileSystem, 18,
+    OpenSdCardFileSystem, 22, CreateSaveDataFileSystem, 51,
+    OpenSaveDataFileSystem, 61, OpenSaveDataInfoReaderBySaveDataSpaceId, 200,
+    OpenDataStorageByProgramId, 202, OpenDataStorageByDataId, 203,
+    OpenPatchDataStorageByCurrentProcess, 1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
     add_service_fn_t add_service, FileSystemProxyType type,
@@ -114,7 +112,7 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
                                              u64 program_id) {
     LOG_DEBUG(Services, "Program ID: {}", program_id);
 
-    // TODO: what to do with program ID?
+    // TODO: program ID
 
     filesystem::FileBase* file = nullptr;
     const auto res =
@@ -126,6 +124,19 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
 
     add_service(new IStorage(file, filesystem::FileOpenFlags::Read));
 
+    return RESULT_SUCCESS;
+}
+
+result_t
+IFileSystemProxy::OpenDataStorageByDataId(add_service_fn_t add_service,
+                                          aligned<ncm::StorageID, 8> storage_id,
+                                          u64 data_id) {
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
+
+    LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:08x}", storage_id.Get(),
+              data_id);
+
+    // TODO: implement
     return RESULT_SUCCESS;
 }
 

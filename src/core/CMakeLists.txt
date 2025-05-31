@@ -228,6 +228,7 @@ add_library(hydra-core
     horizon/services/codec/hardware_opus_decoder.hpp
     horizon/services/codec/hardware_opus_decoder_manager.cpp
     horizon/services/codec/hardware_opus_decoder_manager.hpp
+    horizon/services/ncm/const.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

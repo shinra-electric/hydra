@@ -13,6 +13,7 @@ class IParentalControlService : public ServiceBase {
   private:
     // Commands
     result_t Initialize();
+    result_t CheckFreeCommunicationPermission();
 };
 
 } // namespace hydra::horizon::services::pctl

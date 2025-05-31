@@ -2,6 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/fssrv/const.hpp"
+#include "core/horizon/services/ncm/const.hpp"
 
 namespace hydra::horizon::services::fssrv {
 
@@ -118,6 +119,9 @@ class IFileSystemProxy : public ServiceBase {
                                             SaveDataSpaceId space_id);
     result_t OpenDataStorageByProgramId(add_service_fn_t add_service,
                                         u64 program_id);
+    result_t OpenDataStorageByDataId(add_service_fn_t add_service,
+                                     aligned<ncm::StorageID, 8> storage_id,
+                                     u64 data_id);
     result_t OpenPatchDataStorageByCurrentProcess(add_service_fn_t add_service);
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
 };

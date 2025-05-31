@@ -44,7 +44,15 @@ class IAudioOut : public ServiceBase {
     result_t RegisterBufferEvent(OutHandle<HandleAttr::Copy> out_handle);
     result_t GetReleasedAudioOutBuffers(
         u32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffers_buffer);
+    result_t
+    AppendAudioOutBufferAuto(u64 buffer_client_ptr,
+                             InBuffer<BufferAttr::AutoSelect> buffer_buffer);
+    result_t GetReleasedAudioOutBuffersAuto(
+        u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer);
 
+    // Impl
+    result_t AppendAudioOutBufferImpl(u64 buffer_client_ptr,
+                                      Reader buffer_reader);
     result_t GetReleasedAudioOutBuffersImpl(u32* out_count,
                                             Writer& out_buffers_writer);
 };
