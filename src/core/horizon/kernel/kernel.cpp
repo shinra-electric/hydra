@@ -120,6 +120,12 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
         res = svcSetThreadPriority(thread->GetRegX(0), thread->GetRegX(1));
         thread->SetRegW(0, res);
         break;
+    case 0xe:
+        res = svcGetThreadCoreMask(thread->GetRegW(2), tmp_i32, tmp_u64);
+        thread->SetRegW(0, res);
+        thread->SetRegW(1, tmp_i32);
+        thread->SetRegW(2, tmp_u64);
+        break;
     case 0xf:
         res = svcSetThreadCoreMask(thread->GetRegW(0),
                                    std::bit_cast<i32>(thread->GetRegW(1)),
@@ -418,6 +424,22 @@ result_t Kernel::svcSetThreadPriority(handle_id_t thread_handle_id,
 
     // TODO: implement
     LOG_FUNC_STUBBED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::svcGetThreadCoreMask(handle_id_t thread_handle_id,
+                                      i32& out_core_mask0,
+                                      u64& out_core_mask1) {
+    LOG_DEBUG(Kernel, "svcGetThreadCoreMask called (thread: 0x{:08x})",
+              thread_handle_id);
+
+    // TODO: implement
+    LOG_FUNC_STUBBED(Kernel);
+
+    // HACK
+    out_core_mask0 = 0x1;
+    out_core_mask1 = 0x2;
 
     return RESULT_SUCCESS;
 }

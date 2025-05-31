@@ -158,6 +158,8 @@ class Kernel {
     result_t svcGetThreadPriority(handle_id_t thread_handle_id,
                                   i32& out_priority);
     result_t svcSetThreadPriority(handle_id_t thread_handle_id, i32 priority);
+    result_t svcGetThreadCoreMask(handle_id_t thread_handle_id,
+                                  i32& out_core_mask0, u64& out_core_mask1);
     result_t svcSetThreadCoreMask(handle_id_t thread_handle_id, i32 core_mask0,
                                   u64 core_mask1);
     void svcGetCurrentProcessorNumber(u32& out_number);
