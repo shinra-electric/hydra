@@ -349,15 +349,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto coords_x = GET_REG(8);
         const auto coords_y = GET_REG(20);
-        const auto const_buffer_index = GET_VALUE_U32(31, 4);
-        LOG_DEBUG(ShaderDecompiler, "tex r{} r{} r{} 0x{:08x}", dst, coords_x,
-                  coords_y, const_buffer_index);
+        const auto todo =
+            GET_VALUE_U32(31, 4); // TODO: what is this? (some sort of mask)
+        LOG_DEBUG(ShaderDecompiler, "tex r{} r{} r{} 0x{:x}", dst, coords_x,
+                  coords_y, todo);
 
-        o->OpTextureSample(
-            o->OpRegister(false, dst), o->OpRegister(false, dst + 1),
-            o->OpRegister(false, dst + 2), o->OpRegister(false, dst + 3),
-            const_buffer_index, o->OpRegister(true, coords_x),
-            o->OpRegister(true, coords_y));
+        // TODO: how does bindless work?
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Bindless");
+        // o->OpTextureSample(
+        //     o->OpRegister(false, dst), o->OpRegister(false, dst + 1),
+        //     o->OpRegister(false, dst + 2), o->OpRegister(false, dst + 3),
+        //     const_buffer_index, o->OpRegister(true, coords_x),
+        //     o->OpRegister(true, coords_y));
     }
     INST(0xde78000000000000, 0xfffc000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "txd");
@@ -600,6 +603,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
+        // TODO: pred 39
         LOG_DEBUG(ShaderDecompiler, "fsetp {} {} p{} p{} r{} r{}", cmp,
                   combine_bin, dst, combine, srcA, srcB);
 
@@ -616,8 +620,26 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dsetp");
     INST(0x5b70000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dfma");
-    INST(0x5b60000000000000, 0xfff0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "isetp");
+    INST(0x5b60000000000000, 0xfff0000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto cmp = get_operand_5b60_0(inst);
+        const auto type = get_operand_5c30_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_REG(20);
+        // TODO: pred 39
+        LOG_DEBUG(ShaderDecompiler, "isetp {} {} {} p{} p{} r{} r{}", cmp, type,
+                  combine_bin, dst, combine, srcA, srcB);
+
+        auto cmp_res = o->OpCompare(cmp, o->OpRegister(true, srcA, type),
+                                    o->OpRegister(true, srcB, type));
+        auto bin_res =
+            o->OpBinary(combine_bin, cmp_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin_res);
+    }
     INST(0x5b50000000000000, 0xfff0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iset");
     INST(0x5b40000000000000, 0xfff0000000000000)

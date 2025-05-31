@@ -228,6 +228,7 @@ class Kernel {
     // Handles
     DynamicHandlePool<Handle> handle_pool;
 
+    std::mutex sync_mutex;
     // TODO: use a different container?
     std::map<vaddr_t, Mutex> mutex_map;
     std::map<vaddr_t, std::condition_variable> cond_var_map;

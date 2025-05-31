@@ -73,4 +73,13 @@ DEFINE_OPERAND_TABLE(5cb8_1, DataType, 0x0000000000002c00, 0x0000000000000000,
                      0x0000000000002000, I8, 0x0000000000002400, I16,
                      0x0000000000002800, I32)
 
+DEFINE_OPERAND_TABLE(5b60_0, ComparisonOperator, 0x000e000000000000,
+                     0x0000000000000000, F, 0x0002000000000000, Less,
+                     0x0004000000000000, Equal, 0x000600000000000, LessEqual,
+                     0x0008000000000000, Greater, 0x000a000000000000, NotEqual,
+                     0x000c000000000000, GreaterEqual, 0x000e000000000000, T)
+
+DEFINE_OPERAND_TABLE(5c30_0, DataType, 0x0001000000000000, 0x0000000000000000,
+                     U32, 0x0001000000000000, I32)
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

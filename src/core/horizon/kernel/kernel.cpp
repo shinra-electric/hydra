@@ -644,8 +644,10 @@ result_t Kernel::svcWaitProcessWideKeyAtomic(uptr mutex_addr, uptr var_addr,
         "self: 0x{:08x}, timeout: {})",
         mutex_addr, var_addr, self_tag, timeout);
 
+    sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
     auto& cond_var = cond_var_map[var_addr];
+    sync_mutex.unlock();
 
     // TODO: correct?
     auto& value = *reinterpret_cast<u32*>(mmu->UnmapAddr(mutex_addr));
@@ -669,7 +671,10 @@ result_t Kernel::svcSignalProcessWideKey(uptr addr, i32 count) {
               "svcSignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
+    sync_mutex.lock();
     auto& cond_var = cond_var_map[addr];
+    sync_mutex.unlock();
+
     if (count == -1) {
         cond_var.notify_all();
     } else {
