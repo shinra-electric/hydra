@@ -62,6 +62,14 @@ FsResult Directory::Delete(bool recursive) {
 FsResult Directory::AddEntry(const std::string_view path, EntryBase* entry,
                              bool add_intermediate) {
     COMMON;
+
+    // TODO: handle this differently?
+    // ASSERT(!broken_path.empty(), Filesystem, "Path cannot be empty");
+    if (broken_path.empty()) {
+        LOG_WARN(Filesystem, "Path cannot be empty");
+        return FsResult::Success;
+    }
+
     return AddEntryImpl(broken_path, entry, add_intermediate);
 }
 
@@ -85,12 +93,18 @@ FsResult Directory::AddEntry(const std::string_view path,
 
 FsResult Directory::DeleteEntry(const std::string_view path, bool recursive) {
     COMMON;
+    ASSERT(!broken_path.empty(), Filesystem, "Path cannot be empty");
     return DeleteEntryImpl(broken_path, recursive);
 }
 
 FsResult Directory::GetEntry(const std::string_view path,
                              EntryBase*& out_entry) {
     COMMON;
+    if (broken_path.empty()) {
+        out_entry = this;
+        return FsResult::Success;
+    }
+
     return GetEntryImpl(broken_path, out_entry);
 }
 

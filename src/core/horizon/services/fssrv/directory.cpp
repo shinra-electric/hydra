@@ -17,12 +17,12 @@ struct FsDirectoryEntry {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IDirectory, 0, Read)
+DEFINE_SERVICE_COMMAND_TABLE(IDirectory, 0, Read, 1, GetEntryCount)
 
-result_t IDirectory::Read(i64* out_total_entries,
+result_t IDirectory::Read(u64* out_entry_count,
                           OutBuffer<BufferAttr::MapAlias> out_entries) {
     if (entry_index >= directory->GetEntries().size()) {
-        *out_total_entries = 0;
+        *out_entry_count = 0;
         return RESULT_SUCCESS;
     }
 
@@ -56,9 +56,14 @@ result_t IDirectory::Read(i64* out_total_entries,
         i++;
     }
 
-    *out_total_entries =
+    *out_entry_count =
         out_entries.writer->GetWrittenSize() / sizeof(FsDirectoryEntry);
 
+    return RESULT_SUCCESS;
+}
+
+result_t IDirectory::GetEntryCount(u64* out_count) {
+    *out_count = directory->GetEntries().size();
     return RESULT_SUCCESS;
 }
 

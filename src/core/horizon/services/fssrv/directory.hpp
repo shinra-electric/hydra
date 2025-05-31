@@ -26,8 +26,9 @@ class IDirectory : public ServiceBase {
     u32 entry_index{0};
 
     // Commands
-    result_t Read(i64* out_total_entries,
+    result_t Read(u64* out_entry_count,
                   OutBuffer<BufferAttr::MapAlias> out_entries);
+    result_t GetEntryCount(u64* out_count);
 };
 
 } // namespace hydra::horizon::services::fssrv

@@ -9,6 +9,26 @@
 
 namespace hydra::horizon::services::fssrv {
 
+namespace {
+
+std::string get_save_data_mount(const SaveDataAttribute& attr) {
+    switch (attr.type) {
+    case SaveDataType::Account: {
+        u64 title_id = attr.title_id;
+        if (title_id == 0x0)
+            title_id = KERNEL_INSTANCE.GetTitleID();
+        return FS_SAVE_DATA_PATH(title_id, attr.user_id);
+    }
+    case SaveDataType::Cache:
+        return FS_CACHE_MOUNT;
+    default:
+        LOG_NOT_IMPLEMENTED(Services, "Save data type {}", attr.type);
+        return "INVALID";
+    }
+}
+
+} // namespace
+
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystemProxy, 0, OpenFileSystem, 1,
                              SetCurrentProcess, 8, OpenFileSystemWithIdObsolete,
                              11, OpenBisFileSystem, 18, OpenSdCardFileSystem,
@@ -65,22 +85,7 @@ result_t
 IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
                                            SaveDataCreationInfo creation_info,
                                            SaveDataMetaInfo meta_info) {
-    LOG_FUNC_STUBBED(Services);
-
-    std::string mount = "INVALID";
-    switch (attr.type) {
-    case SaveDataType::Account: {
-        u64 title_id = attr.title_id;
-        if (title_id == 0x0)
-            title_id = KERNEL_INSTANCE.GetTitleID();
-        mount = FS_SAVE_DATA_PATH(title_id, attr.user_id);
-        break;
-    }
-    default:
-        LOG_NOT_IMPLEMENTED(Services, "Save data type {}", attr.type);
-        break;
-    }
-
+    std::string mount = get_save_data_mount(attr);
     auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount);
     // TODO: check res
 
@@ -91,20 +96,7 @@ result_t
 IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
                                          aligned<SaveDataSpaceId, 8> space_id,
                                          SaveDataAttribute attr) {
-    std::string mount = "INVALID";
-    switch (attr.type) {
-    case SaveDataType::Account: {
-        u64 title_id = attr.title_id;
-        if (title_id == 0x0)
-            title_id = KERNEL_INSTANCE.GetTitleID();
-        mount = FS_SAVE_DATA_PATH(title_id, attr.user_id);
-        break;
-    }
-    default:
-        LOG_NOT_IMPLEMENTED(Services, "Save data type {}", attr.type);
-        break;
-    }
-
+    std::string mount = get_save_data_mount(attr);
     add_service(new IFileSystem(mount));
 
     return RESULT_SUCCESS;
