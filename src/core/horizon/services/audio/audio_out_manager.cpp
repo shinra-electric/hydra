@@ -5,16 +5,13 @@
 namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 0, ListAudioOuts, 1,
-                             OpenAudioOut, 3, OpenAudioOutAuto)
+                             OpenAudioOut, 2, ListAudioOutsAuto, 3,
+                             OpenAudioOutAuto)
 
 result_t
 IAudioOutManager::ListAudioOuts(u32* out_count,
                                 OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    LOG_FUNC_STUBBED(Services);
-
-    // HACK
-    *out_count = 0;
-    return RESULT_SUCCESS;
+    return ListAudioOutsImpl(out_count, *out_buffer.writer);
 }
 
 result_t IAudioOutManager::OpenAudioOut(
@@ -29,6 +26,11 @@ result_t IAudioOutManager::OpenAudioOut(
                             out_state, *out_device_name_buffer.writer);
 }
 
+result_t IAudioOutManager::ListAudioOutsAuto(
+    u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffer) {
+    return ListAudioOutsImpl(out_count, *out_buffer.writer);
+}
+
 result_t IAudioOutManager::OpenAudioOutAuto(
     add_service_fn_t add_service, u32 sample_rate, u16 channel_count,
     u16 _reserved, u64 aruid,
@@ -40,6 +42,14 @@ result_t IAudioOutManager::OpenAudioOutAuto(
                             aruid, *in_device_name_buffer.reader,
                             out_sample_rate, out_channel_count, out_format,
                             out_state, *out_device_name_buffer.writer);
+}
+
+result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count, Writer writer) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_count = 0;
+    return RESULT_SUCCESS;
 }
 
 result_t IAudioOutManager::OpenAudioOutImpl(
