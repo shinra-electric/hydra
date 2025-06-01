@@ -655,14 +655,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(48);
         const auto srcB = GET_REG(20);
+        const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} r{}", dst, srcA, srcB,
-                  srcC);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} {}r{} {}r{}", dst, srcA,
+                  (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC);
 
-        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpRegister(true, srcB, DataType::F32),
-                                 o->OpRegister(true, srcC, DataType::F32));
+        auto res =
+            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                          o->OpRegister(true, srcB, DataType::F32, negB),
+                          o->OpRegister(true, srcC, DataType::F32, negC));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5900000000000000, 0xff80000000000000)
@@ -733,14 +736,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(48);
         const auto srcB = GET_REG(39);
+        const auto negC = GET_BIT(49);
         const auto srcC = GET_CMEM(34, 14);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} r{} c{}[0x{:x}]", dst, srcA,
-                  srcB, srcC.idx, srcC.imm);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} {}r{} {}c{}[0x{:x}]", dst,
+                  srcA, (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC.idx,
+                  srcC.imm);
 
         auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpRegister(true, srcB, DataType::F32),
-                                 o->OpConstMemoryL(srcC, DataType::F32));
+                                 o->OpRegister(true, srcB, DataType::F32, negB),
+                                 o->OpConstMemoryL(srcC, DataType::F32, negC));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x5100000000000000, 0xff80000000000000)
@@ -873,7 +879,8 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negB = GET_BIT(45);
         const auto srcB = GET_CMEM(34, 14);
         LOG_DEBUG(ShaderDecompiler, "fadd r{} {}r{} {}c{}[0x{:x}]", dst,
-                  negA ? "-" : "", srcA, negB ? "-" : "", srcB.idx, srcB.imm);
+                  (negA ? "-" : ""), srcA, (negB ? "-" : ""), srcB.idx,
+                  srcB.imm);
 
         auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32, negA),
                             o->OpConstMemoryL(srcB, DataType::F32, negB));
@@ -947,14 +954,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(48);
         const auto srcB = GET_CMEM(34, 14);
+        const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} c{}[0x{:x}] r{}", dst, srcA,
-                  srcB.idx, srcB.imm, srcC);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} {}c{}[0x{:x}] {}r{}", dst,
+                  srcA, (negB ? "-" : ""), srcB.idx, srcB.imm,
+                  (negC ? "-" : ""), srcC);
 
-        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpConstMemoryL(srcB, DataType::F32),
-                                 o->OpRegister(true, srcC, DataType::F32));
+        auto res =
+            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                          o->OpConstMemoryL(srcB, DataType::F32, negB),
+                          o->OpRegister(true, srcC, DataType::F32, negC));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4900000000000000, 0xff80000000000000)
@@ -1135,14 +1146,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(48);
         const auto srcB = GET_VALUE_F32();
+        const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} 0x{:08x} r{}", dst, srcA,
-                  srcB, srcC);
+        LOG_DEBUG(ShaderDecompiler, "ffma r{} r{} {}0x{:08x} {}r{}", dst, srcA,
+                  (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC);
 
-        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpImmediateL(srcB, DataType::F32),
-                                 o->OpRegister(true, srcC, DataType::F32));
+        auto res =
+            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
+                          o->OpImmediateL(srcB, DataType::F32, negB),
+                          o->OpRegister(true, srcC, DataType::F32, negC));
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x3200000000000000, 0xfe80000000000000)
