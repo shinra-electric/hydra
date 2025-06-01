@@ -84,7 +84,7 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
                                            SaveDataCreationInfo creation_info,
                                            SaveDataMetaInfo meta_info) {
     std::string mount = get_save_data_mount(attr);
-    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount);
+    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
     // TODO: check res
 
     return RESULT_SUCCESS;
@@ -96,6 +96,10 @@ IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
                                          SaveDataAttribute attr) {
     std::string mount = get_save_data_mount(attr);
     add_service(new IFileSystem(mount));
+
+    // TODO: correct?
+    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
+    // TODO: check res
 
     return RESULT_SUCCESS;
 }
