@@ -13,7 +13,6 @@ class HandlerBase {
                                    const std::string& title,
                                    const std::string& message) = 0;
     // TODO: more texts
-    // TODO: text verification callback
     virtual applets::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
                          std::string& out_text) = 0;
