@@ -84,12 +84,14 @@ class Event : public Handle {
     std::mutex mutex;
     std::condition_variable cv;
     bool autoclear;
-    bool signaled;
+    bool signaled; // TODO: atomic? (probably not necessary though)
 
     bool WaitImpl(std::unique_lock<std::mutex>& lock, i64 timeout) {
         // First, check if the event is already signaled
         if (signaled)
             return true;
+        else if (timeout == 0)
+            return false;
 
         if (timeout == INFINITE_TIMEOUT) {
             cv.wait(lock);

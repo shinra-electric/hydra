@@ -579,20 +579,56 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         "{})",
         (void*)handle_ids, handle_count, timeout);
 
-    // TODO: implement multiple handles
-    ASSERT_DEBUG(handle_count <= 1, Kernel,
-                 "Multiple handles not "
-                 "implemented");
-
     if (handle_count == 0) {
         // TODO: allow waiting forever
         ASSERT(timeout != INFINITE_TIMEOUT, Kernel,
                "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
-        out_handle_index = 0;
+        out_handle_index = 0; // TODO: correct?
 
         return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
+        // HACK: a super dumb implementation of multiple handles
+        if (handle_count > 1) {
+            ONCE(LOG_WARN(Kernel, "Multiple handles"));
+
+            auto start_time = std::chrono::high_resolution_clock::now();
+            while (true) {
+                for (u32 i = 0; i < handle_count; i++) {
+                    handle_id_t handle_id = handle_ids[i];
+                    auto event = dynamic_cast<Event*>(GetHandle(handle_id));
+
+                    // HACK
+                    if (!event) {
+                        LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle",
+                                 handle_id);
+                        std::this_thread::sleep_for(
+                            std::chrono::milliseconds(33));
+                        return RESULT_SUCCESS;
+                    }
+
+                    ASSERT_DEBUG(event, Kernel,
+                                 "Handle 0x{:x} is not an event handle",
+                                 handle_id);
+
+                    LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}",
+                              handle_id);
+
+                    if (event->Wait(0)) {
+                        out_handle_index = i;
+                        return RESULT_SUCCESS;
+                    }
+                }
+
+                // Check for timout
+                auto current_time = std::chrono::high_resolution_clock::now();
+                if (std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        current_time - start_time)
+                        .count() > timeout)
+                    return MAKE_RESULT(Svc, Error::TimedOut);
+            }
+        }
+
         handle_id_t handle_id = handle_ids[0];
         auto event = dynamic_cast<Event*>(GetHandle(handle_id));
 
@@ -608,11 +644,13 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
 
         LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}", handle_id);
 
-        if (!event->Wait(timeout))
+        if (event->Wait(timeout)) {
+            out_handle_index = 0;
+            return RESULT_SUCCESS;
+        } else {
             return MAKE_RESULT(Svc, Error::TimedOut);
+        }
     }
-
-    return RESULT_SUCCESS;
 }
 
 result_t Kernel::svcCancelSynchronization(handle_id_t thread_handle_id) {

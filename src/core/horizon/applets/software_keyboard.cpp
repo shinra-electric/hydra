@@ -125,6 +125,12 @@ struct KeyboardConfigAdditional_x6000b {
     u8 _reserved2[0x4];
 } PACKED;
 
+enum class TextCheckResult : u32 {
+    Success = 0,
+    ShowFailureDialog = 1,
+    ShowConfirmDialog = 2,
+};
+
 } // namespace
 
 } // namespace hydra::horizon::applets
@@ -137,19 +143,55 @@ result_t SoftwareKeyboard::Run() {
 
     // TODO: additional config
 
-    // TODO: text verification
-    std::string output_text_utf8;
-    const auto result = OS_INSTANCE.GetUiHandler().ShowSoftwareKeyboard(
-        utf16_to_utf8(std::u16string(config.header_text)), output_text_utf8);
-    const auto output_text = utf8_to_utf16(output_text_utf8);
+    SoftwareKeyboardResult result;
+    std::u16string output_text;
+    while (true) {
+        // Text input
+        std::string output_text_utf8;
+        result = OS_INSTANCE.GetUiHandler().ShowSoftwareKeyboard(
+            utf16_to_utf8(std::u16string(config.header_text)),
+            output_text_utf8);
+        output_text = utf8_to_utf16(output_text_utf8);
+        if (!config.text_check_enabled)
+            break;
 
-    usize output_size =
-        sizeof(SoftwareKeyboardResult) + output_text.size() * sizeof(char16_t);
-    auto output_ptr = (u8*)malloc(output_size);
-    Writer writer(output_ptr, output_size);
-    writer.Write(result);
-    writer.WritePtr(output_text.data(), output_text.size() * sizeof(char16_t));
-    PushOutDataRaw(sized_ptr(output_ptr, output_size));
+        // Verify
+        usize size = sizeof(usize) + output_text.size() * sizeof(char16_t);
+        auto ptr = (u8*)malloc(size);
+        Writer writer(ptr, size);
+        writer.Write(output_text.size() * sizeof(char16_t)); // TODO: correct?
+        writer.WritePtr(output_text.data(),
+                        output_text.size() * sizeof(char16_t));
+        writer.Write<char16_t>('\0'); // TODO: correct?
+        PushInteractiveOutDataRaw(sized_ptr(ptr, size));
+
+        auto reader = PopInteractiveInDataRaw();
+        auto res = reader.Read<TextCheckResult>();
+        if (res == TextCheckResult::Success)
+            break;
+
+        // Dialog
+        std::u16string msg = reader.ReadPtr<char16_t>();
+        OS_INSTANCE.GetUiHandler().ShowMessageDialog(
+            (res == TextCheckResult::ShowFailureDialog
+                 ? ui::MessageDialogType::Error
+                 : ui::MessageDialogType::Info),
+            "Text input", // TODO: better text
+            utf16_to_utf8(msg));
+    }
+
+    // Output
+    {
+        usize size = sizeof(SoftwareKeyboardResult) +
+                     output_text.size() * sizeof(char16_t);
+        auto ptr = (u8*)malloc(size);
+        Writer writer(ptr, size);
+        writer.Write(result);
+        writer.WritePtr(output_text.data(),
+                        output_text.size() * sizeof(char16_t));
+        writer.Write<char16_t>('\0'); // TODO: correct?
+        PushOutDataRaw(sized_ptr(ptr, size));
+    }
 
     return RESULT_SUCCESS;
 }
