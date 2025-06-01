@@ -111,7 +111,8 @@ class Renderer : public RendererBase {
 
     // Draw
     void Draw(const engines::PrimitiveType primitive_type, const u32 start,
-              const u32 count, bool indexed) override;
+              const u32 count, const u32 base_vertex, const u32 base_instance,
+              const u32 instance_count, bool indexed) override;
 
     // Helpers
 

@@ -322,7 +322,9 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
 }
 
 void Renderer::Draw(const engines::PrimitiveType primitive_type,
-                    const u32 start, const u32 count, bool indexed) {
+                    const u32 start, const u32 count, const u32 base_vertex,
+                    const u32 base_instance, const u32 instance_count,
+                    bool indexed) {
     auto encoder = GetRenderCommandEncoder();
 
     // States
@@ -393,13 +395,13 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
         auto index_buffer_mtl = state.index_buffer->GetBuffer();
 
         // TODO: is start used correctly?
-        encoder->drawIndexedPrimitives(to_mtl_primitive_type(primitive_type),
-                                       NS::UInteger(count),
-                                       to_mtl_index_type(state.index_type),
-                                       index_buffer_mtl, NS::UInteger(0), 1);
+        encoder->drawIndexedPrimitives(
+            to_mtl_primitive_type(primitive_type), count,
+            to_mtl_index_type(state.index_type), index_buffer_mtl, 0,
+            instance_count, base_vertex, base_instance);
     } else {
-        encoder->drawPrimitives(to_mtl_primitive_type(primitive_type),
-                                NS::UInteger(start), NS::UInteger(count));
+        encoder->drawPrimitives(to_mtl_primitive_type(primitive_type), start,
+                                count, instance_count, base_instance);
     }
 
     // Debug

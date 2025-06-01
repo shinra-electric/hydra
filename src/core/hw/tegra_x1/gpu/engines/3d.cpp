@@ -238,8 +238,9 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
     if (index_buffer)
         RENDERER_INSTANCE->BindIndexBuffer(index_buffer, index_type);
 
-    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_array_start, count,
-                            index_buffer != nullptr);
+    // TODO: instance count
+    RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_array_start, count, 0,
+                            regs.base_instance, 1, index_buffer != nullptr);
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
@@ -256,8 +257,6 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     auto index_buffer = RENDERER_INSTANCE->GetBufferCache().Find(
         {index_buffer_ptr, index_buffer_size});
 
-    RENDERER_INSTANCE->BindIndexBuffer(index_buffer, regs.index_type);
-
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
     index_buffer = RENDERER_INSTANCE->GetIndexCache().Decode(
@@ -271,7 +270,7 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
 
     // Draw
     RENDERER_INSTANCE->Draw(primitive_type, regs.vertex_elements_start, count,
-                            true);
+                            regs.base_vertex, regs.base_instance, 1, true);
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {

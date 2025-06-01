@@ -92,7 +92,8 @@ class RendererBase {
 
     // Draw
     virtual void Draw(const engines::PrimitiveType primitive_type,
-                      const u32 start, const u32 count,
+                      const u32 start, const u32 count, const u32 base_vertex,
+                      const u32 base_instance, const u32 instance_count,
                       bool indexed = false) = 0;
 
     // Getters

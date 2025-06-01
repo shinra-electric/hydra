@@ -374,7 +374,13 @@ struct Regs3D {
     u32 single_rop_control;
     u32 color_blend_enabled[COLOR_TARGET_COUNT];
 
-    u32 padding_0x4e0[0x6e];
+    u32 padding_0x4e0[0x2d];
+
+    // 0x50d
+    u32 base_vertex;
+    u32 base_instance;
+
+    u32 padding_0x50f[0x3f];
 
     // 0x54e
     bool32 depth_target_enabled;

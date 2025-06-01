@@ -6,11 +6,11 @@
 namespace hydra::horizon::kernel {
 
 void DomainService::Request(RequestContext& context) {
-    LOG_DEBUG(Services, "Domain service request");
+    // LOG_DEBUG(Services, "Domain service request");
 
     // Domain in
     auto cmif_in = context.readers.reader.Read<cmif::DomainInHeader>();
-    LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
+    // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
     auto subservice = subservice_pool.Get(cmif_in.object_id);
 
     if (cmif_in.num_in_objects != 0) {
