@@ -125,11 +125,6 @@ struct KeyboardConfigAdditional_x6000b {
     u8 _reserved2[0x4];
 } PACKED;
 
-enum class ResultCode : u32 {
-    OK = 0,
-    Cancel = 1,
-};
-
 } // namespace
 
 } // namespace hydra::horizon::applets
@@ -142,15 +137,14 @@ result_t SoftwareKeyboard::Run() {
 
     // TODO: additional config
 
-    // TODO: GUI
-    const auto header_text = utf16_to_utf8(
-        std::u16string(config.header_text)); // TODO: don't convert to UTF8
-    std::u16string output_text =
-        utf8_to_utf16("HELLO_WORLD"); // TODO: don't convert to UTF8
-    ResultCode result = ResultCode::OK;
+    // TODO: text verification
+    std::string output_text_utf8;
+    const auto result = OS_INSTANCE.GetUiHandler().ShowSoftwareKeyboard(
+        utf16_to_utf8(std::u16string(config.header_text)), output_text_utf8);
+    const auto output_text = utf8_to_utf16(output_text_utf8);
 
     usize output_size =
-        sizeof(ResultCode) + output_text.size() * sizeof(char16_t);
+        sizeof(SoftwareKeyboardResult) + output_text.size() * sizeof(char16_t);
     auto output_ptr = (u8*)malloc(output_size);
     Writer writer(output_ptr, output_size);
     writer.Write(result);

@@ -134,15 +134,18 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 
 // Emulation context
 // TODO: proper UI handler
-class UiHandler : public hydra::horizon::ui::HandlerBase {
+class UIHandler : public hydra::horizon::ui::HandlerBase {
   public:
     void ShowMessageDialog(const hydra::horizon::ui::MessageDialogType type,
                            const std::string& title,
                            const std::string& message) override {}
+    hydra::horizon::applets::SoftwareKeyboardResult
+    ShowSoftwareKeyboard(const std::string& header_text,
+                         std::string& out_text) override;
 };
 
 HYDRA_EXPORT void* hydra_emulation_context_create() {
-    return new hydra::EmulationContext(*(new UiHandler()));
+    return new hydra::EmulationContext(*(new UIHandler()));
 }
 
 HYDRA_EXPORT void hydra_emulation_context_destroy(void* ctx) {

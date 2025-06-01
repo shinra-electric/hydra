@@ -1,7 +1,16 @@
+# TODO: set based on platform
+set(NATIVE_SOURCE_FILES
+    native/cocoa/native.hpp
+    native/cocoa/native.mm
+)
+
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
 
-    set(SOURCE_FILES
+    find_package(SDL3 CONFIG REQUIRED)
+    set(LINK_LIBS SDL3::SDL3)
+
+    add_executable(hydra ${NATIVE_SOURCE_FILES}
         sdl3/main.cpp
         sdl3/const.hpp
         sdl3/cursor.cpp
@@ -9,15 +18,10 @@ if (FRONTEND STREQUAL "SDL3")
         sdl3/window.cpp
         sdl3/window.hpp
     )
-
-    find_package(SDL3 CONFIG REQUIRED)
-    set(LINK_LIBS SDL3::SDL3)
-
-    add_executable(hydra ${SOURCE_FILES})
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
 
-    set(SOURCE_FILES
+    add_executable(hydra
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
@@ -37,14 +41,12 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/SettingsView.swift
     )
 
-    add_executable(hydra ${SOURCE_FILES})
-
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
 
-target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
+target_link_libraries(hydra PRIVATE hydra-common hydra-core "-framework Cocoa" ${LINK_LIBS})
 
 if (MACOS_BUNDLE)
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)

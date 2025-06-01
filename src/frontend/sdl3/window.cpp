@@ -16,7 +16,7 @@ Window::Window(int argc, const char* argv[]) : emulation_context(*this) {
 
     if (!SDL_CreateWindowAndRenderer(APP_NAME, 1280, 720, SDL_WINDOW_RESIZABLE,
                                      &window, &renderer)) {
-        LOG_FATAL(SDL3Window, "Failed to create SDL3 window/renderer: {}",
+        LOG_FATAL(SDL3Window, "Failed to create window/renderer: {}",
                   SDL_GetError());
         return;
     }
@@ -87,6 +87,14 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
 
     // TODO: why does this crash?
     SDL_ShowSimpleMessageBox(flags, title.c_str(), message.c_str(), window);
+}
+
+horizon::applets::SoftwareKeyboardResult
+Window::ShowSoftwareKeyboard(const std::string& header_text,
+                             std::string& out_text) {
+    return native.ShowInputTextDialog(header_text, out_text)
+               ? horizon::applets::SoftwareKeyboardResult::OK
+               : horizon::applets::SoftwareKeyboardResult::Cancel;
 }
 
 void Window::BeginEmulation(const std::string& rom_filename) {
