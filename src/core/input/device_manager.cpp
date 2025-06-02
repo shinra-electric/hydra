@@ -3,6 +3,9 @@
 #include "core/horizon/os.hpp"
 #include "core/input/apple_gc/device_list.hpp"
 
+// TODO: remove dependency
+#include "core/input/keyboard_base.hpp"
+
 namespace hydra::input {
 
 namespace hid = horizon::hid;
@@ -30,18 +33,27 @@ void DeviceManager::Poll() {
 
         // Buttons
         // TODO: get buttons mappings for this npad from the config
-        const auto plus = make_code(1, 30);  // Enter
-        const auto minus = make_code(1, 31); // Tab
-        const auto left = make_code(1, 10);  // A
-        const auto right = make_code(1, 12); // D
-        const auto up = make_code(1, 1);     // W
-        const auto down = make_code(1, 11);  // S
-        const auto a = make_code(1, 18);     // L
-        const auto b = make_code(1, 17);     // K
-        const auto x = make_code(1, 7);      // I
-        const auto y = make_code(1, 16);     // J
+        const auto plus = make_code(KEYBOARD_DEVICE_ID, Key::Enter);
+        const auto minus = make_code(KEYBOARD_DEVICE_ID, Key::Tab);
+        const auto left = make_code(KEYBOARD_DEVICE_ID, Key::A);
+        const auto right = make_code(KEYBOARD_DEVICE_ID, Key::D);
+        const auto up = make_code(KEYBOARD_DEVICE_ID, Key::W);
+        const auto down = make_code(KEYBOARD_DEVICE_ID, Key::S);
+        const auto a = make_code(KEYBOARD_DEVICE_ID, Key::L);
+        const auto b = make_code(KEYBOARD_DEVICE_ID, Key::K);
+        const auto x = make_code(KEYBOARD_DEVICE_ID, Key::I);
+        const auto y = make_code(KEYBOARD_DEVICE_ID, Key::J);
+        const auto analog_l_neg_x = make_code(KEYBOARD_DEVICE_ID, Key::A);
+        const auto analog_l_pos_x = make_code(KEYBOARD_DEVICE_ID, Key::D);
+        const auto analog_l_pos_y = make_code(KEYBOARD_DEVICE_ID, Key::W);
+        const auto analog_l_neg_y = make_code(KEYBOARD_DEVICE_ID, Key::S);
 
         hid::NpadButtons buttons = hid::NpadButtons::None;
+        f32 analog_l_x = 0.0f;
+        f32 analog_l_y = 0.0f;
+        f32 analog_r_x = 0.0f;
+        f32 analog_r_y = 0.0f;
+
         // TODO: get devices for this npad from the config
         for (u32 i = 0; i < 1; i++) {
             const auto name = "keyboard";
@@ -72,11 +84,22 @@ void DeviceManager::Poll() {
             if (device->IsPressed(y))
                 buttons |= hid::NpadButtons::Y;
 
-            // TODO: analog sticks
+            analog_l_x -= device->GetAxisValue(analog_l_neg_x);
+            analog_l_x += device->GetAxisValue(analog_l_pos_x);
+            analog_l_y -= device->GetAxisValue(analog_l_neg_y);
+            analog_l_y += device->GetAxisValue(analog_l_pos_y);
         }
 
+        // TODO: normalize analog sticks if the length of the vector is more
+        // than 1?
+
         INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(type, buttons);
-        // TODO: analog sticks
+        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadAnalogStickStateL(
+            type,
+            {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
+        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadAnalogStickStateR(
+            type,
+            {std::bit_cast<i32>(analog_r_x), std::bit_cast<i32>(analog_r_y)});
     }
 
     // Touch screen
