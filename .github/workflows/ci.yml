@@ -59,8 +59,10 @@ jobs:
           echo "BUILD_MODE=RelWithDebInfo" >> $GITHUB_ENV
         fi
         if [[ ${{ matrix.suffix }} == *'SwiftUI'* ]]; then
+          echo "FRONTEND_MODE=SwiftUI" >> $GITHUB_ENV
           echo "BUNDLE_MODE=ON" >> $GITHUB_ENV
-        else 
+        else
+          echo "FRONTEND_MODE=SDL3" >> $GITHUB_ENV
           echo "BUNDLE_MODE=OFF" >> $GITHUB_ENV
         fi
   
@@ -68,6 +70,7 @@ jobs:
       run: |
         cmake hydra -B build \
         -DCMAKE_BUILD_TYPE=${{ env.BUILD_MODE }} \
+        -DFRONTEND=${{ env.FRONTEND_MODE }} \
         -DMACOS_BUNDLE=${{ env.BUNDLE_MODE }} \
         -GNinja
         ninja -C build
