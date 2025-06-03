@@ -185,10 +185,16 @@ void Builder::EmitMainPrototype() {
 }
 
 void Builder::EmitExit() {
-    // HACK
-    if (type == ShaderType::Vertex)
+    if (type == ShaderType::Vertex) {
+        // Flip vertically
+        // TODO: handle this with viewports?
+        WriteStatement("__out.position.y = -__out.position.y");
+
+        // Convert depth from < -1, 1 > to < 0, 1 >
+        // TODO: only if enabled?
         WriteStatement(
             "__out.position.z = (__out.position.z + __out.position.w) / 2.0");
+    }
 
     // Return
     WriteStatement("return __out");

@@ -177,9 +177,10 @@ void Renderer::Present(const TextureBase* texture, const uint2 output_origin,
 
     u32 zero = 0;
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
+    // Flip vertically
     BlitParams params = {
-        .src_offset = {0.0f, 0.0f},
-        .src_scale = {1.0f, 1.0f},
+        .src_offset = {0.0f, 1.0f},
+        .src_scale = {1.0f, -1.0f},
     };
     encoder->setFragmentBytes(&params, sizeof(params), 0);
     encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
