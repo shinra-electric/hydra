@@ -178,8 +178,8 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         // Buffer output
         // TODO
         parcel_writer.Write<BqBufferOutput>({
-            .width = 1280,       // TODO: don't hardcode
-            .height = 720,       // TODO: don't hardcode
+            .width = 1920,       // TODO: don't hardcode
+            .height = 1080,      // TODO: don't hardcode
             .transform_hint = 0, // HACK
             .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
         });
@@ -196,10 +196,10 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         u32 value = 0;
         switch (what) {
         case NativeWindowAttribute::Width:
-            value = 1280; // TODO: don't hardcode
+            value = 1920; // TODO: don't hardcode
             break;
         case NativeWindowAttribute::Height:
-            value = 720; // TODO: don't hardcode
+            value = 1080; // TODO: don't hardcode
             break;
         case NativeWindowAttribute::Format:
             value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
@@ -218,8 +218,8 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         parcel_writer.Write<BqBufferOutput>({
-            .width = 1280,       // TODO: don't hardcode
-            .height = 720,       // TODO: don't hardcode
+            .width = 1920,       // TODO: don't hardcode
+            .height = 1080,      // TODO: don't hardcode
             .transform_hint = 0, // HACK
             .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
         });

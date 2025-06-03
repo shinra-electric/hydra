@@ -28,8 +28,8 @@ result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
     LOG_FUNC_STUBBED(Services);
 
     // TODO: get this from the display
-    *out_width = 1280;
-    *out_height = 720;
+    *out_width = 1920;
+    *out_height = 1080;
     *out_refresh_rate = 60.0f;
     *out_unknown = 0;
     return RESULT_SUCCESS;
