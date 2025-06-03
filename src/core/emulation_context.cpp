@@ -225,36 +225,66 @@ void EmulationContext::Present(u32 width, u32 height,
     // Get the buffer to present
     u32 binder_id = layer->GetBinderId();
     auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
-    i32 slot = binder.ConsumeBuffer(out_dt_ns_list);
+
+    horizon::BqBufferInput input;
+    i32 slot = binder.ConsumeBuffer(input, out_dt_ns_list);
     if (slot == -1)
         return;
     const auto& buffer = binder.GetBuffer(slot);
 
-    // Output viewport
-    // TODO: get the size differently
-    u32 input_width = buffer.nv_buffer.planes[0].width;
-    u32 input_height = buffer.nv_buffer.planes[0].height;
+    // Src rect
+    IntRect2D src_rect;
+    src_rect.origin.x() = input.rect.left;
+    src_rect.origin.y() =
+        input.rect.top; // Convert from top left to bottom left origin
+    src_rect.size.x() = input.rect.right - input.rect.left;
+    src_rect.size.y() = input.rect.bottom - input.rect.top;
 
-    uint2 origin;
-    uint2 size;
+    // HACK
+    if (src_rect.size.x() == 0) {
+        src_rect.size.x() = buffer.nv_buffer.planes[0].width;
+        ONCE(LOG_WARN(Other, "Invalid src width"));
+    }
+    if (src_rect.size.y() == 0) {
+        src_rect.size.y() = buffer.nv_buffer.planes[0].height;
+        ONCE(LOG_WARN(Other, "Invalid src height"));
+    }
 
-    auto scale_x = (f32)width / (f32)input_width;
-    auto scale_y = (f32)height / (f32)input_height;
+    if (any(input.transform_flags & horizon::TransformFlags::FlipH)) {
+        src_rect.origin.x() += src_rect.size.x();
+        src_rect.size.x() = -src_rect.size.x();
+    }
+    if (any(input.transform_flags & horizon::TransformFlags::FlipV)) {
+        src_rect.origin.y() += src_rect.size.y();
+        src_rect.size.y() = -src_rect.size.y();
+    }
+    if (any(input.transform_flags & horizon::TransformFlags::Rot90)) {
+        // TODO: how does this work? Is the aspect ratio kept intact?
+        ONCE(LOG_NOT_IMPLEMENTED(Other, "Rotating by 90 degrees"));
+    }
+
+    // Dst rect
+    const auto src_width = abs(src_rect.size.x());
+    const auto src_height = abs(src_rect.size.y());
+
+    IntRect2D dst_rect;
+    auto scale_x = (f32)width / (f32)src_width;
+    auto scale_y = (f32)height / (f32)src_height;
     if (scale_x > scale_y) {
-        u32 output_width = static_cast<u32>(input_width * scale_y);
-        origin = uint2({(width - output_width) / 2, 0});
-        size = uint2({output_width, height});
+        const auto dst_width = static_cast<i32>(src_width * scale_y);
+        dst_rect.origin = int2({static_cast<i32>(width - dst_width) / 2, 0});
+        dst_rect.size = int2({dst_width, static_cast<i32>(height)});
     } else {
-        u32 output_height = static_cast<u32>(input_height * scale_x);
-        origin = uint2({0, (height - output_height) / 2});
-        size = uint2({width, output_height});
+        const auto dst_height = static_cast<i32>(src_height * scale_x);
+        dst_rect.origin = int2({0, static_cast<i32>(height - dst_height) / 2});
+        dst_rect.size = int2({static_cast<i32>(width), dst_height});
     }
 
     // Present
     auto renderer = gpu->GetRenderer();
     renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer.nv_buffer);
-    renderer->Present(texture, origin, size);
+    renderer->Present(texture, src_rect, dst_rect);
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
 }

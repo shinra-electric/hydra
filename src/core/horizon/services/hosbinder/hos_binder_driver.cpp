@@ -66,24 +66,6 @@ enum class PixelFormat : u32 {
     RGBA4444,
 };
 
-// TODO: define these somewhere else
-struct NvFence {
-    u32 id;
-    u32 value;
-};
-
-struct NvMultiFence {
-    u32 num_fences;
-    NvFence fences[4];
-};
-
-struct BqBufferOutput {
-    u32 width;
-    u32 height;
-    u32 transform_hint;
-    u32 num_pending_buffers;
-};
-
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IHOSBinderDriver, 0, TransactParcel, 1,
@@ -189,10 +171,9 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
 
         // Slot
         i32 slot = parcel_reader.Read<i32>();
+        const auto& input = *parcel_reader.ReadFlattenedObject<BqBufferInput>();
 
-        // TODO: input
-
-        binder.QueueBuffer(slot);
+        binder.QueueBuffer(slot, input);
 
         // Buffer output
         // TODO

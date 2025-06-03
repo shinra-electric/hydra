@@ -62,8 +62,8 @@ class Renderer : public RendererBase {
 
     void SetSurface(void* surface) override;
 
-    void Present(const TextureBase* texture, const uint2 output_origin,
-                 const uint2 output_size) override;
+    void Present(const TextureBase* texture, const IntRect2D src_rect,
+                 const IntRect2D dst_rect) override;
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;

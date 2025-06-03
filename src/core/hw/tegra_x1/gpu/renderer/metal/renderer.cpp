@@ -145,8 +145,8 @@ void Renderer::SetSurface(void* surface) {
     // TODO: set pixel format
 }
 
-void Renderer::Present(const TextureBase* texture, const uint2 output_origin,
-                       const uint2 output_size) {
+void Renderer::Present(const TextureBase* texture, const IntRect2D src_rect,
+                       const IntRect2D dst_rect) {
     auto texture_impl = static_cast<const Texture*>(texture);
 
     // TODO: acquire drawable earlier?
@@ -171,17 +171,23 @@ void Renderer::Present(const TextureBase* texture, const uint2 output_origin,
     // Draw
     encoder->setRenderPipelineState(
         blit_pipeline_cache->Find({dst->pixelFormat()}));
-    encoder->setViewport(
-        MTL::Viewport{(f64)output_origin.x(), (f64)output_origin.y(),
-                      (f64)output_size.x(), (f64)output_size.y(), 0.0, 1.0});
+    encoder->setViewport(MTL::Viewport{
+        (f64)dst_rect.origin.x(), (f64)dst_rect.origin.y(),
+        (f64)dst_rect.size.x(), (f64)dst_rect.size.y(), 0.0, 1.0});
 
     u32 zero = 0;
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
-    // Flip vertically
+
+    // Src rect
+    const auto src_width = texture->GetDescriptor().width;
+    const auto src_height = texture->GetDescriptor().height;
     BlitParams params = {
-        .src_offset = {0.0f, 1.0f},
-        .src_scale = {1.0f, -1.0f},
+        .src_offset = {(f32)src_rect.origin.x() / (f32)src_width,
+                       (f32)src_rect.origin.y() / (f32)src_height},
+        .src_scale = {(f32)src_rect.size.x() / (f32)src_width,
+                      (f32)src_rect.size.y() / (f32)src_height},
     };
+
     encoder->setFragmentBytes(&params, sizeof(params), 0);
     encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
     encoder->setFragmentSamplerState(linear_sampler, NS::UInteger(0));

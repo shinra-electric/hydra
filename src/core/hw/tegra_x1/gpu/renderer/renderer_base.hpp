@@ -40,8 +40,9 @@ class RendererBase {
 
     virtual void SetSurface(void* surface) = 0;
 
-    virtual void Present(const TextureBase* texture, const uint2 output_origin,
-                         const uint2 output_size) = 0;
+    // Uses lower left origin
+    virtual void Present(const TextureBase* texture, const IntRect2D src_rect,
+                         const IntRect2D dst_rect) = 0;
 
     // Buffer
     virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;

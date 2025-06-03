@@ -40,9 +40,9 @@ i32 DisplayBinder::GetAvailableSlot() {
     return slot;
 }
 
-void DisplayBinder::QueueBuffer(i32 slot) {
+void DisplayBinder::QueueBuffer(i32 slot, const BqBufferInput& input) {
     std::lock_guard<std::mutex> lock(queue_mutex);
-    queued_buffers.push(slot);
+    queued_buffers.push({slot, input});
     buffers[slot].queued = true;
 
     // Time
@@ -55,7 +55,8 @@ void DisplayBinder::QueueBuffer(i32 slot) {
     queue_cv.notify_all();
 }
 
-i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
+i32 DisplayBinder::ConsumeBuffer(BqBufferInput& out_input,
+                                 std::vector<u64>& out_dt_ns_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     // TODO: should there be a timeout?
@@ -66,9 +67,11 @@ i32 DisplayBinder::ConsumeBuffer(std::vector<u64>& out_dt_ns_list) {
         return -1;
 
     // Get the first queued buffer
-    const auto slot = queued_buffers.front();
+    const auto [slot, input] = queued_buffers.front();
     queued_buffers.pop();
     buffers[slot].queued = false;
+
+    out_input = input;
 
     // Time
     out_dt_ns_list = dt_ns_queue;
@@ -88,7 +91,7 @@ void DisplayBinder::UnqueueAllBuffers() {
 
     // Unqueue all
     while (!queued_buffers.empty()) {
-        const auto slot = queued_buffers.front();
+        const auto [slot, input] = queued_buffers.front();
         queued_buffers.pop();
         buffers[slot].queued = false;
     }

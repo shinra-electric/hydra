@@ -133,6 +133,10 @@ vec<T, component_count> operator/(const vec<T, component_count>& l,
     return result;
 }
 
+using char2 = vec<i8, 2>;
+using short2 = vec<i16, 2>;
+using int2 = vec<i32, 2>;
+using long2 = vec<i64, 2>;
 using uchar2 = vec<u8, 2>;
 using ushort2 = vec<u16, 2>;
 using uint2 = vec<u32, 2>;
@@ -140,6 +144,10 @@ using ulong2 = vec<u64, 2>;
 using usize2 = vec<usize, 2>;
 using float2 = vec<float, 2>;
 
+using char3 = vec<i8, 3>;
+using short3 = vec<i16, 3>;
+using int3 = vec<i32, 3>;
+using long3 = vec<i64, 3>;
 using uchar3 = vec<u8, 3>;
 using ushort3 = vec<u16, 3>;
 using uint3 = vec<u32, 3>;
@@ -147,12 +155,23 @@ using ulong3 = vec<u64, 3>;
 using usize3 = vec<usize, 3>;
 using float3 = vec<float, 3>;
 
+using char4 = vec<i8, 4>;
+using short4 = vec<i16, 4>;
+using int4 = vec<i32, 4>;
+using long4 = vec<i64, 4>;
 using uchar4 = vec<u8, 4>;
 using ushort4 = vec<u16, 4>;
 using uint4 = vec<u32, 4>;
 using ulong4 = vec<u64, 4>;
 using usize4 = vec<usize, 4>;
 using float4 = vec<float, 4>;
+
+template <typename Origin, typename Size> struct Rect2D {
+    vec<Origin, 2> origin;
+    vec<Size, 2> size;
+};
+
+using IntRect2D = Rect2D<i32, i32>;
 
 template <typename T, usize alignment> class aligned {
   public:

@@ -31,6 +31,51 @@ struct DisplayBuffer {
     GraphicBuffer buffer;
 };
 
+struct NvFence {
+    u32 id;
+    u32 value;
+} PACKED;
+
+struct NvMultiFence {
+    u32 num_fences;
+    NvFence fences[4];
+} PACKED;
+
+enum class TransformFlags : u32 {
+    None = 0,
+    FlipH = BIT(0),
+    FlipV = BIT(1),
+    Rot90 = BIT(2),
+    InverseDisplay = BIT(3),
+    NoVSyncCapability = BIT(4),
+    ReturnFrameNumber = BIT(5),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(TransformFlags)
+
+struct BqBufferInput {
+    i64 timestamp;
+    bool32 is_auto_timestamp; // TODO: correct?
+    struct {
+        i32 left;
+        i32 top;
+        i32 right;
+        i32 bottom;
+    } rect;
+    i32 scaling_mode; // TODO: what is this?
+    TransformFlags transform_flags;
+    u32 sticky_transform; // TODO: what is this?
+    u32 _unknown;
+    u32 swap_interval; // TODO: float?
+    NvMultiFence fence;
+} PACKED;
+
+struct BqBufferOutput {
+    u32 width;
+    u32 height;
+    u32 transform_hint;
+    u32 num_pending_buffers;
+} PACKED;
+
 constexpr usize MAX_BINDER_BUFFER_COUNT = 3; // TODO: what should this be?
 
 struct DisplayBinder {
@@ -47,8 +92,9 @@ struct DisplayBinder {
     // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
-    void QueueBuffer(i32 slot);
-    i32 ConsumeBuffer(std::vector<u64>& out_dt_ns_list);
+    void QueueBuffer(i32 slot, const BqBufferInput& input);
+    i32 ConsumeBuffer(BqBufferInput& out_input,
+                      std::vector<u64>& out_dt_ns_list);
     void UnqueueAllBuffers();
 
     // Getters
@@ -67,7 +113,7 @@ struct DisplayBinder {
     DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                                     // max number of buffers?
     u32 buffer_count = 0;
-    std::queue<i32> queued_buffers;
+    std::queue<std::pair<i32, BqBufferInput>> queued_buffers;
     std::mutex queue_mutex;
     std::condition_variable queue_cv;
 
