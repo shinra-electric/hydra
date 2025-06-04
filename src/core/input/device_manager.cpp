@@ -35,10 +35,10 @@ void DeviceManager::Poll() {
         // TODO: get buttons mappings for this npad from the config
         const auto plus = make_code(KEYBOARD_DEVICE_ID, Key::Enter);
         const auto minus = make_code(KEYBOARD_DEVICE_ID, Key::Tab);
-        const auto left = make_code(KEYBOARD_DEVICE_ID, Key::A);
-        const auto right = make_code(KEYBOARD_DEVICE_ID, Key::D);
-        const auto up = make_code(KEYBOARD_DEVICE_ID, Key::W);
-        const auto down = make_code(KEYBOARD_DEVICE_ID, Key::S);
+        const auto left = make_code(KEYBOARD_DEVICE_ID, Key::ArrowLeft);
+        const auto right = make_code(KEYBOARD_DEVICE_ID, Key::ArrowRight);
+        const auto up = make_code(KEYBOARD_DEVICE_ID, Key::ArrowUp);
+        const auto down = make_code(KEYBOARD_DEVICE_ID, Key::ArrowDown);
         const auto a = make_code(KEYBOARD_DEVICE_ID, Key::L);
         const auto b = make_code(KEYBOARD_DEVICE_ID, Key::K);
         const auto x = make_code(KEYBOARD_DEVICE_ID, Key::I);
