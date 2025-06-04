@@ -141,7 +141,7 @@ class UIHandler : public hydra::horizon::ui::HandlerBase {
                            const std::string& message) override {}
     hydra::horizon::applets::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
-                         std::string& out_text) override;
+                         std::string& out_text) override {}
 };
 
 HYDRA_EXPORT void* hydra_emulation_context_create() {
