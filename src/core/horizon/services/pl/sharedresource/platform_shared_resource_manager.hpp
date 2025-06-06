@@ -15,8 +15,8 @@ enum class SharedFontType : u32 {
 };
 
 enum class LoadState : u32 {
-    Loading,
-    Loaded,
+    Loading = 0,
+    Loaded = 1,
 };
 
 class IPlatformSharedResourceManager : public ServiceBase {

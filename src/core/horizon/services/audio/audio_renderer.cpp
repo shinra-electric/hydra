@@ -18,7 +18,7 @@ struct UpdateDataHeader {
     u32 render_info_size;
     u32 _reserved[4];
     u32 total_size;
-};
+} PACKED;
 
 enum class MemPoolState : u32 {
     Invalid,
@@ -35,12 +35,12 @@ struct MemPoolInfoIn {
     u64 size;
     MemPoolState state;
     u32 _padding[3];
-};
+} PACKED;
 
 struct MemPoolInfoOut {
     MemPoolState new_state;
     u32 _padding[3];
-};
+} PACKED;
 
 enum class VoicePlayState : u8 {
     Started = 0,
@@ -53,7 +53,7 @@ struct BiquadFilter {
     u8 _padding;
     i16 numerator[3];
     i16 denominator[2];
-};
+} PACKED;
 
 struct WaveBuffer {
     vaddr_t address;
@@ -67,7 +67,7 @@ struct WaveBuffer {
     vaddr_t context_addr;
     u64 context_sz;
     u64 _padding2;
-};
+} PACKED;
 
 struct VoiceInfoIn {
     u32 id;
@@ -80,8 +80,8 @@ struct VoiceInfoIn {
     u32 priority;
     u32 sorting_order;
     u32 channel_count;
-    float pitch;
-    float volume;
+    f32 pitch;
+    f32 volume;
     BiquadFilter biquads[2];
     u32 wave_buffer_count;
     i16 wave_buffer_head;
@@ -94,7 +94,7 @@ struct VoiceInfoIn {
     WaveBuffer wave_buffers[4];
     u32 channel_ids[6];
     u8 _padding3[24];
-};
+} PACKED;
 
 enum class EffectState : u8 {
     Enabled = 3,
@@ -104,35 +104,35 @@ enum class EffectState : u8 {
 struct EffectInfoOutV1 {
     EffectState state;
     u8 _reserved[15];
-};
+} PACKED;
 
 struct SinkInfoOut {
     u32 last_written_offset;
     u32 _padding;
     u64 _reserved[3];
-};
+} PACKED;
 
 struct ErrorInfo {
     result_t result;
     u32 _padding;
     u64 extra_error_info;
-};
+} PACKED;
 
 struct BehaviorInfoOut {
     ErrorInfo error_infos[10];
     u32 error_info_count;
     u32 _reserved[3];
-};
+} PACKED;
 
 struct RenderInfoOut {
     u64 elapsed_frame_count;
     u64 _reserved;
-};
+} PACKED;
 
 struct PerformanceInfoOut {
     u32 history_size;
     u32 _reserved[3];
-};
+} PACKED;
 
 } // namespace
 
@@ -148,18 +148,17 @@ namespace hydra::horizon::services::audio {
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
                              Stop, 7, QuerySystemEvent)
 
-// TODO: autoclear event?
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
     : params{params_}, work_buffer_size{work_buffer_size_},
-      event(new kernel::Event()) {
+      event(new kernel::Event(true)) {
     voices.resize(params.voice_count);
 
     // HACK: create a thread that signals the handle every so often
     auto t = new std::thread([&]() {
         while (true) {
             event.handle->Signal();
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            std::this_thread::sleep_for(std::chrono::microseconds(2));
         }
     });
 }
@@ -191,7 +190,7 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
     for (u32 i = 0; i < mempool_count; i++) {
         const auto mempool_in = reader.Read<MemPoolInfoIn>();
 
-        MemPoolInfoOut mempool;
+        MemPoolInfoOut mempool{};
         switch (mempool_in.state) {
         case MemPoolState::RequestAttach:
             mempool.new_state = MemPoolState::Attached;
@@ -214,22 +213,22 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
     for (u32 i = 0; i < params.voice_count; i++) {
         const auto voice_in = reader.Read<VoiceInfoIn>();
 
-        VoiceInfoOut* voice = &voices[i];
+        VoiceInfoOut& voice = voices[i];
         if (voice_in.is_new) {
-            voice->played_sample_count = 0;
-            voice->num_wave_buffers_consumed = 0;
+            voice.played_sample_count = 0;
+            voice.num_wave_buffers_consumed = 0;
         } else if (voice_in.play_state == VoicePlayState::Started) {
             for (u32 j = 0; j < voice_in.wave_buffer_count; j++) {
-                voice->played_sample_count +=
+                voice.played_sample_count +=
                     (voice_in.wave_buffers[j].end_sample_offset -
                      voice_in.wave_buffers[j].start_sample_offset) /
                     2;
-                voice->num_wave_buffers_consumed++;
+                voice.num_wave_buffers_consumed++;
             }
         } else {
             ONCE(LOG_NOT_IMPLEMENTED(Services, "Voice"));
         }
-        writer.Write(*voice);
+        writer.Write(voice);
     }
 
     // Channels

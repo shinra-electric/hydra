@@ -19,13 +19,26 @@ struct AudioRendererParameters {
     i32 voice_count;
     i32 sink_count;
     i32 effect_count;
-    i32 unk1;
-    u8 unk2;
+    i32 unknown_x1c;
+    u8 _unknown_x20;
     u8 padding1[3];
     i32 splitter_count;
-    i32 unk3;
-    i32 unk4;
+    i32 _unknown_x2c;
+    i32 _unknown_x30;
     u32 revision;
 };
+
+enum class AudioFeature {
+    Splitter,
+};
+
+inline bool IsAudioRendererFeatureSupported(const AudioFeature feature,
+                                            u32 revision) {
+    const auto version = revision - make_magic4('R', 'E', 'V', '0');
+    switch (feature) {
+    case AudioFeature::Splitter:
+        return version >= 2;
+    }
+}
 
 } // namespace hydra::horizon::services::audio
