@@ -29,6 +29,7 @@ class IRequest : public ServiceBase {
     result_t
     GetSystemEventReadableHandles(OutHandle<HandleAttr::Copy> out_handle0,
                                   OutHandle<HandleAttr::Copy> out_handle1);
+    STUB_REQUEST_COMMAND(Cancel);
     STUB_REQUEST_COMMAND(Submit);
 };
 

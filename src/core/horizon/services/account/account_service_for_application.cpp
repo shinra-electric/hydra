@@ -7,9 +7,9 @@
 namespace hydra::horizon::services::account {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 0, GetUserCount, 1,
-                             GetUserExistence, 2, ListAllUsers, 4,
-                             GetLastOpenedUser, 5, GetProfile, 100,
-                             InitializeApplicationInfoV0, 101,
+                             GetUserExistence, 2, ListAllUsers, 3,
+                             ListOpenUsers, 4, GetLastOpenedUser, 5, GetProfile,
+                             100, InitializeApplicationInfoV0, 101,
                              GetBaasAccountManagerForApplication, 140,
                              InitializeApplicationInfo, 150,
                              IsUserAccountSwitchLocked)
@@ -38,6 +38,30 @@ result_t IAccountServiceForApplication::ListAllUsers(
 
         out_buffer.writer->Write(*user_id);
     }
+
+    return RESULT_SUCCESS;
+}
+
+// TODO: how is this different from ListAllUsers? Or a better question: what is
+// the difference between an opened user and a closed user?
+result_t IAccountServiceForApplication::ListOpenUsers(
+    OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK: writing any user ID causes
+    /*
+    for (auto user_id = USER_MANAGER_INSTANCE.Begin();
+         user_id != USER_MANAGER_INSTANCE.End(); user_id++) {
+        // Check if we cen fit the entry in the buffer
+        if (out_buffer.writer->GetWrittenSize() + sizeof(uuid_t) >
+            out_buffer.writer->GetSize())
+            continue;
+
+        out_buffer.writer->Write(*user_id);
+    }
+    */
+    // memset((void*)out_buffer.writer->GetBase(), 0,
+    // out_buffer.writer->GetSize());
 
     return RESULT_SUCCESS;
 }
