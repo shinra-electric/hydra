@@ -463,15 +463,29 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src_type = get_operand_5cb8_1(inst);
         // TODO: 5cb8_2
         const auto dst = GET_REG(0);
+        const auto neg = GET_BIT(45);
         const auto src = GET_REG(20);
-        LOG_DEBUG(ShaderDecompiler, "i2f {} {} r{} r{}", dst_type, src_type,
-                  dst, src);
+        LOG_DEBUG(ShaderDecompiler, "i2f {} {} r{} {}r{}", dst_type, src_type,
+                  dst, neg ? "-" : "", src);
 
-        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
+        auto res = o->OpCast(o->OpRegister(true, src, src_type, neg), dst_type);
         o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
-    INST(0x5cb0000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "f2i");
+    INST(0x5cb0000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto dst_type = get_operand_5cb0_2(inst);
+        const auto src_type = get_operand_5cb0_0(inst);
+        // TODO: 5cb0_1
+        const auto dst = GET_REG(0);
+        const auto neg = GET_BIT(45);
+        const auto src = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "f2i {} {} r{} {}r{}", dst_type, src_type,
+                  dst, neg ? "-" : "", src);
+
+        auto res = o->OpCast(o->OpRegister(true, src, src_type, neg), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+    }
     INST(0x5ca8000000000000, 0xfff8000000000000) {
         HANDLE_PRED_COND();
 
@@ -1129,8 +1143,27 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dsetp");
     INST(0x3670000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "dfma");
-    INST(0x3660000000000000, 0xfef0000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "isetp");
+    INST(0x3660000000000000, 0xfef0000000000000) {
+        HANDLE_PRED_COND();
+
+        const auto cmp = get_operand_5b60_0(inst);
+        const auto type = get_operand_5c30_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_PRED(3);
+        const auto combine = GET_PRED(0); // TODO: combine?
+        const auto srcA = GET_REG(8);
+        const auto srcB = GET_VALUE_U32(20, 19) |
+                          (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
+        // TODO: pred 39
+        LOG_DEBUG(ShaderDecompiler, "isetp {} {} {} p{} p{} r{} r{}", cmp, type,
+                  combine_bin, dst, combine, srcA, srcB);
+
+        auto cmp_res = o->OpCompare(cmp, o->OpRegister(true, srcA, type),
+                                    o->OpImmediateL(srcB, type));
+        auto bin_res =
+            o->OpBinary(combine_bin, cmp_res, o->OpPredicate(true, combine));
+        o->OpMove(o->OpPredicate(false, dst), bin_res);
+    }
     INST(0x3650000000000000, 0xfef0000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "iset");
     INST(0x3640000000000000, 0xfef0000000000000)
