@@ -16,7 +16,7 @@ result_t IHardwareOpusDecoder::DecodeInterleavedOld(
 result_t IHardwareOpusDecoder::DecodeInterleavedImpl(
     Reader& in_opus_reader, i32* out_decoded_data_size,
     i32* out_decoded_sample_count, Writer& out_pcm_writer) {
-    LOG_FUNC_STUBBED(Services);
+    ONCE(LOG_FUNC_STUBBED(Services));
 
     // HACK
     *out_decoded_data_size = 0;

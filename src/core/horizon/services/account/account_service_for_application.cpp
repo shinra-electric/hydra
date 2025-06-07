@@ -48,7 +48,7 @@ result_t IAccountServiceForApplication::ListOpenUsers(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_FUNC_STUBBED(Services);
 
-    // HACK: writing any user ID causes
+    // HACK: writing any user ID causes Raymen Legends to deadlock
     /*
     for (auto user_id = USER_MANAGER_INSTANCE.Begin();
          user_id != USER_MANAGER_INSTANCE.End(); user_id++) {
@@ -60,8 +60,8 @@ result_t IAccountServiceForApplication::ListOpenUsers(
         out_buffer.writer->Write(*user_id);
     }
     */
-    // memset((void*)out_buffer.writer->GetBase(), 0,
-    // out_buffer.writer->GetSize());
+    memset((void*)out_buffer.writer->GetBase(), 0,
+           out_buffer.writer->GetSize());
 
     return RESULT_SUCCESS;
 }

@@ -89,16 +89,18 @@ add_library(hydra-core
     horizon/services/nvdrv/ioctl/fd_base.hpp
     horizon/services/nvdrv/ioctl/channel_base.cpp
     horizon/services/nvdrv/ioctl/channel_base.hpp
-    horizon/services/nvdrv/ioctl/nvhost_ctrl.cpp
-    horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp
     horizon/services/nvdrv/ioctl/nvmap.cpp
     horizon/services/nvdrv/ioctl/nvmap.hpp
+    horizon/services/nvdrv/ioctl/nvhost_ctrl.cpp
+    horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp
     horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_gpu.cpp
     horizon/services/nvdrv/ioctl/nvhost_gpu.hpp
+    horizon/services/nvdrv/ioctl/nvhost_nvdec.cpp
+    horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp
     horizon/services/settings/nx_settings.cpp
     horizon/services/settings/nx_settings.hpp
     horizon/services/settings/settings_server.cpp
@@ -229,6 +231,8 @@ add_library(hydra-core
     horizon/services/codec/hardware_opus_decoder_manager.cpp
     horizon/services/codec/hardware_opus_decoder_manager.hpp
     horizon/services/ncm/const.hpp
+    horizon/services/mmnv/request.cpp
+    horizon/services/mmnv/request.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

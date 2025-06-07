@@ -6,6 +6,7 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
+#include "core/horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvmap.hpp"
 
 namespace hydra::horizon::services::nvdrv {
@@ -31,6 +32,8 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
         fd_pool.GetRef(fd_id) = new ioctl::NvHostCtrlGpu();
     } else if (path == "/dev/nvhost-gpu") {
         fd_pool.GetRef(fd_id) = new ioctl::NvHostGpu();
+    } else if (path == "/dev/nvhost-nvdec") {
+        fd_pool.GetRef(fd_id) = new ioctl::NvHostNvDec();
     } else {
         LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO

@@ -15,6 +15,7 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
@@ -92,6 +93,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(prepo::IPrepoService, "prepo:a", "prepo:a2", "prepo:m",
                      "prepo:u", "prepo:s")
         SERVICE_CASE(codec::IHardwareOpusDecoderManager, "hwopus")
+        SERVICE_CASE(mmnv::IRequest, "mm:u")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

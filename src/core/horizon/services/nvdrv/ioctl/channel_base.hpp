@@ -22,17 +22,29 @@ class ChannelBase : public FdBase {
                  InOut<hw::tegra_x1::gpu::GpfifoFlags, u32>
                      inout_flags_and_detailed_error,
                  InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,
-                 const hw::tegra_x1::gpu::GpfifoEntry* entries) = 0;
-    virtual NvResult AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) = 0;
-    virtual NvResult ZCullBind(gpu_vaddr_t addr, u32 mode, u32 reserved) = 0;
+                 const hw::tegra_x1::gpu::GpfifoEntry* entries) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
+    virtual NvResult AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
+    virtual NvResult ZCullBind(gpu_vaddr_t addr, u32 mode, u32 reserved) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
     virtual NvResult SetErrorNotifier(u64 offset, u64 size, u32 mem,
-                                      u32 reserved) = 0;
+                                      u32 reserved) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
     NvResult SetPriority(u32 priority);
     virtual NvResult GetErrorNotification(u64* out_timestamp, u32* out_info32,
-                                          u16* out_info16, u64* out_status) = 0;
+                                          u16* out_info16, u64* out_status) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
     virtual NvResult AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                                    hw::tegra_x1::gpu::Fence* out_fence,
-                                   std::array<u32, 3> reserved) = 0;
+                                   std::array<u32, 3> reserved) {
+        LOG_FATAL(Services, "Not available for this channel");
+    }
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl
