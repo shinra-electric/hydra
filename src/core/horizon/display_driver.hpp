@@ -76,7 +76,7 @@ struct BqBufferOutput {
     u32 num_pending_buffers;
 } PACKED;
 
-constexpr usize MAX_BINDER_BUFFER_COUNT = 3; // TODO: what should this be?
+constexpr usize MAX_BINDER_BUFFER_COUNT = 8; // TODO: what should this be?
 
 struct DisplayBinder {
     using clock_t = std::chrono::steady_clock;
