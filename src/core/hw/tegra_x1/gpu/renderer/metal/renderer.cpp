@@ -351,10 +351,40 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
         if (REGS_3D.viewport_transform_enabled) {
             // TODO: render target scale
 
-            dst.originX = t.offset_x - t.scale_x;
-            dst.originY = t.offset_y - t.scale_y;
-            dst.width = t.scale_x * 2.f;
-            dst.height = t.scale_y * 2.f;
+            auto scale_x = t.scale_x;
+            auto scale_y = t.scale_y;
+            if (any(REGS_3D.window_origin_flags &
+                    engines::WindowOriginFlags::FlipY))
+                scale_y = -scale_y;
+
+            // Swizzle
+            // TODO: uncomment
+            /*
+            // TODO: check for viewport swizzle support
+            if (t.swizzle.x == engines::ViewportSwizzle::NegativeX)
+                scale_x = -scale_x;
+            else
+                ASSERT_DEBUG(t.swizzle.x == engines::ViewportSwizzle::PositiveX,
+                             MetalRenderer, "Unsupported X viewport swizzle {}",
+                             t.swizzle.x);
+            if (t.swizzle.y == engines::ViewportSwizzle::NegativeY)
+                scale_y = -scale_y;
+            else
+                ASSERT_DEBUG(t.swizzle.y == engines::ViewportSwizzle::PositiveY,
+                             MetalRenderer, "Unsupported Y viewport swizzle {}",
+                             t.swizzle.y);
+            ASSERT_DEBUG(t.swizzle.z == engines::ViewportSwizzle::PositiveZ,
+                         MetalRenderer, "Unsupported Z viewport swizzle {}",
+                         t.swizzle.z);
+            ASSERT_DEBUG(t.swizzle.w == engines::ViewportSwizzle::PositiveW,
+                         MetalRenderer, "Unsupported W viewport swizzle {}",
+                         t.swizzle.w);
+            */
+
+            dst.originX = t.offset_x - scale_x;
+            dst.originY = t.offset_y - scale_y;
+            dst.width = scale_x * 2.0f;
+            dst.height = scale_y * 2.0f;
             // TODO: Z scale and offset
             dst.znear = src.near;
             dst.zfar = src.far;
@@ -366,6 +396,11 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
             dst.znear = src.near;
             dst.zfar = src.far;
         }
+
+        // Flip Y
+        // TODO: correct?
+        dst.originY += dst.height;
+        dst.height = -dst.height;
     }
     encoder->setViewports(viewports, sizeof_array(viewports));
 

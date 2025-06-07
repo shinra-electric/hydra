@@ -181,6 +181,19 @@ ThreeD::ThreeD() {
     // TODO: choose based on Macro backend
     { macro_driver = new macro::interpreter::Driver(this); }
 
+    // Initialize default state
+
+    // Viewports
+    // TODO: correct?
+    for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
+        regs.viewport_transforms[i].swizzle = {
+            .x = ViewportSwizzle::PositiveX,
+            .y = ViewportSwizzle::PositiveY,
+            .z = ViewportSwizzle::PositiveZ,
+            .w = ViewportSwizzle::PositiveW,
+        };
+    }
+
     // HACK
     regs.shader_programs[(u32)ShaderStage::VertexB].config.enable = true;
 }

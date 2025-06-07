@@ -181,6 +181,24 @@ enum class ViewportZClip : u32 {
     OneToOne,
 };
 
+enum class WindowOriginFlags : u32 {
+    None = 0,
+    LowerLeft = BIT(0),
+    FlipY = BIT(4),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(WindowOriginFlags)
+
+enum class ViewportSwizzle : u32 {
+    PositiveX = 0,
+    NegativeX = 1,
+    PositiveY = 2,
+    NegativeY = 3,
+    PositiveZ = 4,
+    NegativeZ = 5,
+    PositiveW = 6,
+    NegativeW = 7,
+};
+
 // TODO: handle this differently
 inline renderer::ShaderType to_renderer_shader_type(ShaderStage stage) {
     switch (stage) {
@@ -211,12 +229,12 @@ struct Regs3D {
         f32 offset_y;
         f32 offset_z;
         struct {
-            u32 x : 3;
-            u32 y : 3;
-            u32 z : 3;
-            u32 w : 3;
+            ViewportSwizzle x : 3;
+            ViewportSwizzle y : 3;
+            ViewportSwizzle z : 3;
+            ViewportSwizzle w : 3;
             u32 unused : 20;
-        } coord_swizzle;
+        } swizzle;
         struct {
             u32 x : 5;
             u32 unused1 : 3;
@@ -374,7 +392,12 @@ struct Regs3D {
     u32 single_rop_control;
     u32 color_blend_enabled[COLOR_TARGET_COUNT];
 
-    u32 padding_0x4e0[0x2d];
+    u32 padding_0x4e0[0xb];
+
+    // 0x4eb
+    WindowOriginFlags window_origin_flags;
+
+    u32 padding_0x4ec[0x21];
 
     // 0x50d
     u32 base_vertex;
@@ -504,7 +527,7 @@ struct Regs3D {
 
     // 0xd00
     u32 mme_scratch[0x80];
-};
+} PACKED;
 
 class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
   public:
@@ -587,3 +610,9 @@ ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::TicHdrVersion,
                        _1DBuffer, "1D buffer", PitchColorKey, "pitch color key",
                        Pitch, "pitch", BlockLinear, "block linear",
                        BlockLinearColorKey, "block linear color key")
+
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::ViewportSwizzle,
+                       PositiveX, "positive X", NegativeX, "negative X",
+                       PositiveY, "positive Y", NegativeY, "negative Y",
+                       PositiveZ, "positive Z", NegativeZ, "negative Z",
+                       PositiveW, "positive W", NegativeW, "negative W")

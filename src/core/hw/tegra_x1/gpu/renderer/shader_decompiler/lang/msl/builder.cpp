@@ -188,7 +188,7 @@ void Builder::EmitExit() {
     if (type == ShaderType::Vertex) {
         // Flip vertically
         // TODO: handle this with viewports?
-        WriteStatement("__out.position.y = -__out.position.y");
+        // WriteStatement("__out.position.y = -__out.position.y");
 
         // Convert depth from < -1, 1 > to < 0, 1 >
         // TODO: only if enabled?
