@@ -60,6 +60,7 @@ void hydra_string_array_option_set(void* option, uint32_t index,
 void hydra_string_array_option_remove(void* option, uint32_t index);
 
 // Config
+void hydra_config_initialize();
 void hydra_config_serialize();
 void hydra_config_deserialize();
 

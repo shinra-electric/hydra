@@ -76,6 +76,10 @@ HYDRA_EXPORT void hydra_string_array_option_remove(void* option,
 }
 
 // Config
+HYDRA_EXPORT void hydra_config_initialize() {
+    hydra::CONFIG_INSTANCE.Initialize();
+}
+
 HYDRA_EXPORT void hydra_config_serialize() {
     hydra::CONFIG_INSTANCE.Serialize();
 }
