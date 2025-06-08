@@ -47,7 +47,7 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
-TOML11_DEFINE_CONVERSION_ENUM(hydra::Output, StdOut, "stdout", File, "file")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, StdOut, "stdout", File, "file")
 
 namespace hydra {
 
@@ -221,8 +221,8 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        logging_output = toml::find_or<Output>(debug, "logging_output",
-                                               GetDefaultLoggingOutput());
+        logging_output = toml::find_or<LogOutput>(debug, "logging_output",
+                                                  GetDefaultLoggingOutput());
         log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
                                             GetDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",

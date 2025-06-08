@@ -402,6 +402,8 @@ add_library(hydra-core
     input/apple_gc/keyboard.hpp
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
+    debugger/debugger.cpp
+    debugger/debugger.hpp
     emulation_context.cpp
     emulation_context.hpp
     c_api.cpp

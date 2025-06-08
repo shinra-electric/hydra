@@ -23,6 +23,6 @@ void Logger::EnsureOutputStream() {
     ofs = new std::ofstream(path);
 }
 
-Output Logger::GetOutput() { return CONFIG_INSTANCE.GetLoggingOutput(); }
+LogOutput Logger::GetOutput() { return CONFIG_INSTANCE.GetLoggingOutput(); }
 
 } // namespace hydra
