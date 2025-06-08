@@ -347,43 +347,280 @@ usize get_texture_format_stride(const TextureFormat format, usize width) {
     }
 }
 
-bool texture_format_can_be_swizzled(TextureFormat format) {
+// TODO: check the logic of this
+SwizzleChannels::SwizzleChannels(const TextureFormat format,
+                                 const ImageSwizzle x, const ImageSwizzle y,
+                                 const ImageSwizzle z, const ImageSwizzle w) {
+#define SWIZZLE(r_, g_, b_, a_)                                                \
+    {                                                                          \
+        r = r_;                                                                \
+        g = g_;                                                                \
+        b = b_;                                                                \
+        a = a_;                                                                \
+        break;                                                                 \
+    }
+
     switch (format) {
-    case TextureFormat::RGBA8Unorm:
+    // TODO: fix these
     case TextureFormat::R8Unorm:
-    case TextureFormat::B5G6R5Unorm:
-    case TextureFormat::RGBA8Unorm_sRGB:
-    case TextureFormat::BGRA8Unorm:
-    case TextureFormat::BGRA8Unorm_sRGB:
-    case TextureFormat::RGB10A2Unorm:
-    case TextureFormat::RGB10A2Uint:
-    case TextureFormat::RG8Unorm:
-    case TextureFormat::RG8Snorm:
-    case TextureFormat::RG8Sint:
-    case TextureFormat::RG8Uint:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Uint:
+    case TextureFormat::R8Sint:
+    case TextureFormat::R16Float:
     case TextureFormat::R16Unorm:
     case TextureFormat::R16Snorm:
-    case TextureFormat::R16Sint:
     case TextureFormat::R16Uint:
-    case TextureFormat::R16Float:
-    case TextureFormat::R8Snorm:
-    case TextureFormat::R8Sint:
-    case TextureFormat::R8Uint:
+    case TextureFormat::R16Sint:
+    case TextureFormat::R32Float:
+    case TextureFormat::R32Uint:
+    case TextureFormat::R32Sint:
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::RG8Sint:
+    case TextureFormat::RG16Float:
+    case TextureFormat::RG16Unorm:
+    case TextureFormat::RG16Snorm:
+    case TextureFormat::RG16Uint:
+    case TextureFormat::RG16Sint:
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RG32Sint:
+    case TextureFormat::RGB32Float:
+    case TextureFormat::RGB32Uint:
+    case TextureFormat::RGB32Sint:
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::RGBA8Snorm:
+    case TextureFormat::RGBA8Uint:
+    case TextureFormat::RGBA8Sint:
+    case TextureFormat::RGBA8Unorm_sRGB:
     case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Snorm:
+    case TextureFormat::RGBX8Uint:
+    case TextureFormat::RGBX8Sint:
     case TextureFormat::RGBX8Unorm_sRGB:
-    case TextureFormat::BGRX8Unorm:
-    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::RGBA16Float:
     case TextureFormat::RGBA16Unorm:
     case TextureFormat::RGBA16Snorm:
-    case TextureFormat::RGBA16Sint:
     case TextureFormat::RGBA16Uint:
-    case TextureFormat::RGBA16Float:
-    case TextureFormat::RG32Float:
-    case TextureFormat::RG32Sint:
-    case TextureFormat::RG32Uint:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBX16Float:
+    case TextureFormat::RGBX16Unorm:
+    case TextureFormat::RGBX16Snorm:
+    case TextureFormat::RGBX16Uint:
+    case TextureFormat::RGBX16Sint:
     case TextureFormat::RGBA32Float:
-    case TextureFormat::RGBA32Sint:
     case TextureFormat::RGBA32Uint:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBX32Float:
+    case TextureFormat::RGBX32Uint:
+    case TextureFormat::RGBX32Sint:
+    case TextureFormat::RGBA4Unorm:
+    case TextureFormat::RGB5Unorm:
+    case TextureFormat::RGB5A1Unorm:
+    case TextureFormat::R5G6B5Unorm:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+    case TextureFormat::RG11B10Float:
+    case TextureFormat::E5BGR9Float:
+    case TextureFormat::BC1_RGB:
+    case TextureFormat::BC1_RGBA:
+    case TextureFormat::BC1_RGB_sRGB:
+    case TextureFormat::BC1_RGBA_sRGB:
+    case TextureFormat::BC2_RGBA:
+    case TextureFormat::BC3_RGBA:
+    case TextureFormat::BC2_RGBA_sRGB:
+    case TextureFormat::BC3_RGBA_sRGB:
+    case TextureFormat::BC4_RUnorm:
+    case TextureFormat::BC4_RSnorm:
+    case TextureFormat::BC5_RGUnorm:
+    case TextureFormat::BC5_RGSnorm:
+    case TextureFormat::BC7_RGBAUnorm:
+    case TextureFormat::BC7_RGBAUnorm_sRGB:
+    case TextureFormat::BC6H_RGBA_SF16_Float:
+    case TextureFormat::BC6H_RGBA_UF16_Float:
+    case TextureFormat::ASTC_RGBA_4x4:
+    case TextureFormat::ASTC_RGBA_4x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x4:
+    case TextureFormat::ASTC_RGBA_5x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x5:
+    case TextureFormat::ASTC_RGBA_5x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x5:
+    case TextureFormat::ASTC_RGBA_6x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x6:
+    case TextureFormat::ASTC_RGBA_6x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x5:
+    case TextureFormat::ASTC_RGBA_8x5_sRGB:
+    case TextureFormat::ASTC_RGBA_8x6:
+    case TextureFormat::ASTC_RGBA_8x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x8:
+    case TextureFormat::ASTC_RGBA_8x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x5:
+    case TextureFormat::ASTC_RGBA_10x5_sRGB:
+    case TextureFormat::ASTC_RGBA_10x6:
+    case TextureFormat::ASTC_RGBA_10x6_sRGB:
+    case TextureFormat::ASTC_RGBA_10x8:
+    case TextureFormat::ASTC_RGBA_10x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x10:
+    case TextureFormat::ASTC_RGBA_10x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x10:
+    case TextureFormat::ASTC_RGBA_12x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x12:
+    case TextureFormat::ASTC_RGBA_12x12_sRGB:
+    case TextureFormat::A1BGR5Unorm:
+    case TextureFormat::ETC2_R_Unorm:
+    case TextureFormat::ETC2_R_Snorm:
+    case TextureFormat::ETC2_RG_Unorm:
+    case TextureFormat::ETC2_RG_Snorm:
+    case TextureFormat::ETC2_RGB:
+    case TextureFormat::PTA_ETC2_RGB:
+    case TextureFormat::ETC2_RGB_sRGB:
+    case TextureFormat::PTA_ETC2_RGB_sRGB:
+    case TextureFormat::ETC2_RGBA:
+    case TextureFormat::ETC2_RGBA_sRGB:
+        SWIZZLE(x, y, z, w);
+    case TextureFormat::BGR5A1Unorm:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRA8Unorm_sRGB:
+        SWIZZLE(z, y, x, w);
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BGR5Unorm:
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+        SWIZZLE(z, y, x, ImageSwizzle::OneFloat);
+    default:
+        LOG_NOT_IMPLEMENTED(GPU, "Swizzle for format {}", format);
+        break;
+    }
+
+#undef SWIZZLE
+}
+
+bool texture_format_can_be_swizzled(TextureFormat format) {
+    switch (format) {
+    case TextureFormat::R8Unorm:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Uint:
+    case TextureFormat::R8Sint:
+    case TextureFormat::R16Float:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Sint:
+    case TextureFormat::R32Float:
+    case TextureFormat::R32Uint:
+    case TextureFormat::R32Sint:
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::RG8Sint:
+    case TextureFormat::RG16Float:
+    case TextureFormat::RG16Unorm:
+    case TextureFormat::RG16Snorm:
+    case TextureFormat::RG16Uint:
+    case TextureFormat::RG16Sint:
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RG32Sint:
+    case TextureFormat::RGB32Float:
+    case TextureFormat::RGB32Uint:
+    case TextureFormat::RGB32Sint:
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::RGBA8Snorm:
+    case TextureFormat::RGBA8Uint:
+    case TextureFormat::RGBA8Sint:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Snorm:
+    case TextureFormat::RGBX8Uint:
+    case TextureFormat::RGBX8Sint:
+    case TextureFormat::RGBX8Unorm_sRGB:
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBX16Float:
+    case TextureFormat::RGBX16Unorm:
+    case TextureFormat::RGBX16Snorm:
+    case TextureFormat::RGBX16Uint:
+    case TextureFormat::RGBX16Sint:
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Uint:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBX32Float:
+    case TextureFormat::RGBX32Uint:
+    case TextureFormat::RGBX32Sint:
+    case TextureFormat::RGBA4Unorm:
+    case TextureFormat::RGB5Unorm:
+    case TextureFormat::RGB5A1Unorm:
+    case TextureFormat::R5G6B5Unorm:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+    case TextureFormat::RG11B10Float:
+    case TextureFormat::E5BGR9Float:
+    case TextureFormat::BC1_RGB:
+    case TextureFormat::BC1_RGBA:
+    case TextureFormat::BC1_RGB_sRGB:
+    case TextureFormat::BC1_RGBA_sRGB:
+    case TextureFormat::BC2_RGBA:
+    case TextureFormat::BC3_RGBA:
+    case TextureFormat::BC2_RGBA_sRGB:
+    case TextureFormat::BC3_RGBA_sRGB:
+    case TextureFormat::BC4_RUnorm:
+    case TextureFormat::BC4_RSnorm:
+    case TextureFormat::BC5_RGUnorm:
+    case TextureFormat::BC5_RGSnorm:
+    case TextureFormat::BC7_RGBAUnorm:
+    case TextureFormat::BC7_RGBAUnorm_sRGB:
+    case TextureFormat::BC6H_RGBA_SF16_Float:
+    case TextureFormat::BC6H_RGBA_UF16_Float:
+    case TextureFormat::ASTC_RGBA_4x4:
+    case TextureFormat::ASTC_RGBA_4x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x4:
+    case TextureFormat::ASTC_RGBA_5x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x5:
+    case TextureFormat::ASTC_RGBA_5x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x5:
+    case TextureFormat::ASTC_RGBA_6x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x6:
+    case TextureFormat::ASTC_RGBA_6x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x5:
+    case TextureFormat::ASTC_RGBA_8x5_sRGB:
+    case TextureFormat::ASTC_RGBA_8x6:
+    case TextureFormat::ASTC_RGBA_8x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x8:
+    case TextureFormat::ASTC_RGBA_8x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x5:
+    case TextureFormat::ASTC_RGBA_10x5_sRGB:
+    case TextureFormat::ASTC_RGBA_10x6:
+    case TextureFormat::ASTC_RGBA_10x6_sRGB:
+    case TextureFormat::ASTC_RGBA_10x8:
+    case TextureFormat::ASTC_RGBA_10x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x10:
+    case TextureFormat::ASTC_RGBA_10x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x10:
+    case TextureFormat::ASTC_RGBA_12x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x12:
+    case TextureFormat::ASTC_RGBA_12x12_sRGB:
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BGR5Unorm:
+    case TextureFormat::BGR5A1Unorm:
+    case TextureFormat::A1BGR5Unorm:
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm_sRGB:
+    case TextureFormat::ETC2_R_Unorm:
+    case TextureFormat::ETC2_R_Snorm:
+    case TextureFormat::ETC2_RG_Unorm:
+    case TextureFormat::ETC2_RG_Snorm:
+    case TextureFormat::ETC2_RGB:
+    case TextureFormat::PTA_ETC2_RGB:
+    case TextureFormat::ETC2_RGB_sRGB:
+    case TextureFormat::PTA_ETC2_RGB_sRGB:
+    case TextureFormat::ETC2_RGBA:
+    case TextureFormat::ETC2_RGBA_sRGB:
         return true;
     default:
         return false;
@@ -397,7 +634,8 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
                 ImageSwizzle::Zero};
 
 #define SWIZZLE(r, g, b, a)                                                    \
-    { ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b, ImageSwizzle::a }
+    SwizzleChannels(ImageSwizzle::r, ImageSwizzle::g, ImageSwizzle::b,         \
+                    ImageSwizzle::a)
 
     // TODO: implement all formats
     switch (format) {
@@ -412,7 +650,7 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     case TextureFormat::RGBA8Unorm_sRGB:
         return SWIZZLE(R, G, B, A);
     case TextureFormat::RG8Unorm:
-        return SWIZZLE(R, G, OneFloat, OneFloat);
+        return SWIZZLE(R, G, Zero, OneFloat);
     case TextureFormat::BGRA8Unorm:
         return SWIZZLE(R, G, B, A);
     default:

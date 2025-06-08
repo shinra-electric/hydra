@@ -154,6 +154,14 @@ struct SwizzleChannels {
     ImageSwizzle b : 3;
     ImageSwizzle a : 3;
 
+    SwizzleChannels(const ImageSwizzle r_, const ImageSwizzle g_,
+                    const ImageSwizzle b_, const ImageSwizzle a_)
+        : r{r_}, g{g_}, b{b_}, a{a_} {}
+
+    SwizzleChannels(const TextureFormat format, const ImageSwizzle x,
+                    const ImageSwizzle y, const ImageSwizzle z,
+                    const ImageSwizzle w);
+
     bool operator==(const SwizzleChannels& other) const {
         return r == other.r && g == other.g && b == other.b && a == other.a;
     }
@@ -227,7 +235,7 @@ struct TextureDescriptor {
 };
 
 struct TextureViewDescriptor {
-    renderer::TextureFormat format;
+    TextureFormat format;
     SwizzleChannels swizzle_channels;
 
     u32 GetHash() const {

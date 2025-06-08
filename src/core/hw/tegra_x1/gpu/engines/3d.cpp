@@ -422,8 +422,9 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         static_cast<usize>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
         get_texture_format_stride(format, tic.width_minus_one + 1),
-        {tic.format_word.swizzle_x, tic.format_word.swizzle_y,
-         tic.format_word.swizzle_z, tic.format_word.swizzle_w});
+        renderer::SwizzleChannels(
+            format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
+            tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
     return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
 }
