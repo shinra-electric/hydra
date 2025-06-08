@@ -1,26 +1,27 @@
 #pragma once
 
-namespace hydra::debugger {
+#define DEBUGGER_INSTANCE debugger::Debugger::GetInstance()
 
-struct Message {
-    LogLevel level;
-    LogClass c;
-    std::string file;
-    u32 line;
-    std::string function;
-    std::string str;
-};
+namespace hydra::debugger {
 
 class Thread {
   public:
     Thread(const std::string_view name_);
 
-    void Log(const Message& msg);
+    void Log(const LogMessage& msg);
+
+    // API
+    usize GetMessageCount() const {
+        return (msg_queue_filled ? messages.size() : msg_ptr);
+    }
+    const LogMessage& GetMessage(const u32 index) const {
+        return messages[(msg_ptr + index) % messages.size()];
+    }
 
   private:
     std::string name;
 
-    std::vector<Message> messages;
+    std::vector<LogMessage> messages;
     u32 msg_ptr{0};
     bool msg_queue_filled{false};
 };
@@ -34,15 +35,13 @@ class Debugger {
 
     void RegisterThisThread(const std::string_view name);
     void UnregisterThisThread();
-    void LogOnThisThread(const Message& msg);
+    void LogOnThisThread(const LogMessage& msg);
 
     // API
+    void InstallCallback();
     void Lock() { thread_mutex.lock(); }
-
     void Unlock() { thread_mutex.unlock(); }
-
     usize GetThreadCount() const { return threads.size(); }
-
     Thread& GetThread(const u32 index) {
         // TODO: not the best way to index into a map
         auto it = threads.begin();

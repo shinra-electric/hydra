@@ -14,7 +14,7 @@ Thread::Thread(const std::string_view name_) : name{name_} {
     messages.resize(256);
 }
 
-void Thread::Log(const Message& msg) {
+void Thread::Log(const LogMessage& msg) {
     messages[msg_ptr++] = msg;
     if (msg_ptr >= messages.size()) {
         msg_ptr = 0;
@@ -32,9 +32,18 @@ void Debugger::UnregisterThisThread() {
     threads.erase(it);
 }
 
-void Debugger::LogOnThisThread(const Message& msg) {
+void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     it->second.Log(msg);
+}
+
+void Debugger::InstallCallback() {
+#ifdef HYDRA_DEBUG
+    g_logger.InstallCallback(
+        [this](const LogMessage& msg) { LogOnThisThread(msg); });
+#else
+    LOG_FATAL(Debugger, "Debugger not supported");
+#endif
 }
 
 } // namespace hydra::debugger

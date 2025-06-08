@@ -133,13 +133,28 @@ ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
 
 namespace hydra {
 
+struct LogMessage {
+    LogLevel level;
+    LogClass c;
+    std::string file;
+    u32 line;
+    std::string function;
+    std::string str;
+};
+
+typedef std::function<void(const LogMessage&)> log_callback_fn_t;
+
 class Logger {
   public:
     ~Logger();
 
+#ifdef HYDRA_DEBUG
+    void InstallCallback(log_callback_fn_t callback_) { callback = callback_; }
+#endif
+
     template <typename... T>
     void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
-             const std::string_view function, fmt::format_string<T...> fmt,
+             const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
         mutex.lock();
 
@@ -174,14 +189,14 @@ class Logger {
                        function, fmt::format("{}:{}", file, line));
 
             // Message
-            fmt::print(fmt, std::forward<T>(args)...);
+            fmt::print(f, std::forward<T>(args)...);
             fmt::print("\n");
             break;
         case LogOutput::File:
             EnsureOutputStream();
 
             fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
-            fmt::print(*ofs, fmt, std::forward<T>(args)...);
+            fmt::print(*ofs, f, std::forward<T>(args)...);
             fmt::print(*ofs, "\n");
             break;
         default:
@@ -190,11 +205,22 @@ class Logger {
         }
 
         mutex.unlock();
+
+#ifdef HYDRA_DEBUG
+        if (callback)
+            (*callback)(LogMessage{level, c, std::string(file), line,
+                                   std::string(function),
+                                   fmt::format(f, std::forward<T>(args)...)});
+#endif
     }
 
   private:
     std::mutex mutex;
     std::ofstream* ofs{nullptr};
+
+#ifdef HYDRA_DEBUG
+    std::optional<log_callback_fn_t> callback{};
+#endif
 
     void EnsureOutputStream();
 
