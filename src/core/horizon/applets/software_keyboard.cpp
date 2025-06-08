@@ -156,13 +156,13 @@ result_t SoftwareKeyboard::Run() {
             break;
 
         // Verify
-        usize size = sizeof(usize) + output_text.size() * sizeof(char16_t);
+        usize size = sizeof(u64) + (output_text.size() + 1) * sizeof(char16_t);
         auto ptr = (u8*)malloc(size);
         Writer writer(ptr, size);
-        writer.Write(output_text.size() * sizeof(char16_t)); // TODO: correct?
+        writer.Write<u64>(size);
         writer.WritePtr(output_text.data(),
                         output_text.size() * sizeof(char16_t));
-        writer.Write<char16_t>('\0'); // TODO: correct?
+        writer.Write(u'\0');
         PushInteractiveOutDataRaw(sized_ptr(ptr, size));
 
         auto reader = PopInteractiveInDataRaw();
@@ -183,13 +183,13 @@ result_t SoftwareKeyboard::Run() {
     // Output
     {
         usize size = sizeof(SoftwareKeyboardResult) +
-                     output_text.size() * sizeof(char16_t);
+                     (output_text.size() + 1) * sizeof(char16_t);
         auto ptr = (u8*)malloc(size);
         Writer writer(ptr, size);
         writer.Write(result);
         writer.WritePtr(output_text.data(),
                         output_text.size() * sizeof(char16_t));
-        writer.Write<char16_t>('\0'); // TODO: correct?
+        writer.Write(u'\0');
         PushOutDataRaw(sized_ptr(ptr, size));
     }
 
