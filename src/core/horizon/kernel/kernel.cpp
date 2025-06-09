@@ -47,7 +47,9 @@ uptr Kernel::CreateExecutableMemory(usize size, MemoryPermission perm,
                            add_guard_page, out_base);
 }
 
-bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
+bool Kernel::SupervisorCall(Thread* thread,
+                            hw::tegra_x1::cpu::ThreadBase* guest_thread,
+                            u64 id) {
     result_t res;
     i32 tmp_i32;
     u32 tmp_u32;
@@ -56,38 +58,39 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
     handle_id_t tmp_handle_id;
     switch (id) {
     case 0x1:
-        res = svcSetHeapSize(thread->GetRegX(1), tmp_uptr);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_uptr);
+        res = svcSetHeapSize(guest_thread->GetRegX(1), tmp_uptr);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_uptr);
         break;
     case 0x2:
         res = svcSetMemoryPermission(
-            thread->GetRegX(0), thread->GetRegX(1),
-            static_cast<MemoryPermission>(thread->GetRegX(2)));
-        thread->SetRegW(0, res);
+            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            static_cast<MemoryPermission>(guest_thread->GetRegX(2)));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x3:
-        res = svcSetMemoryAttribute(thread->GetRegX(0), thread->GetRegX(1),
-                                    thread->GetRegX(2), thread->GetRegX(3));
-        thread->SetRegW(0, res);
+        res = svcSetMemoryAttribute(
+            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            guest_thread->GetRegX(2), guest_thread->GetRegX(3));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x4:
-        res = svcMapMemory(thread->GetRegX(0), thread->GetRegX(1),
-                           thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res = svcMapMemory(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+                           guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x5:
-        res = svcUnmapMemory(thread->GetRegX(0), thread->GetRegX(1),
-                             thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res = svcUnmapMemory(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+                             guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x6:
-        res = svcQueryMemory(
-            thread->GetRegX(2),
-            *reinterpret_cast<MemoryInfo*>(mmu->UnmapAddr(thread->GetRegX(0))),
-            tmp_u32);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_u32);
+        res = svcQueryMemory(guest_thread->GetRegX(2),
+                             *reinterpret_cast<MemoryInfo*>(
+                                 mmu->UnmapAddr(guest_thread->GetRegX(0))),
+                             tmp_u32);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_u32);
         break;
     case 0x7:
         svcExitProcess();
@@ -95,173 +98,188 @@ bool Kernel::SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
         return false;
     case 0x8:
         res = svcCreateThread(
-            thread->GetRegX(1), thread->GetRegX(2), thread->GetRegX(3),
-            std::bit_cast<i32>(thread->GetRegW(4)),
-            std::bit_cast<i32>(thread->GetRegW(5)), tmp_handle_id);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_handle_id);
+            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            guest_thread->GetRegX(3),
+            std::bit_cast<i32>(guest_thread->GetRegW(4)),
+            std::bit_cast<i32>(guest_thread->GetRegW(5)), tmp_handle_id);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x9:
-        res = svcStartThread(thread->GetRegW(0));
-        thread->SetRegW(0, res);
+        res = svcStartThread(guest_thread->GetRegW(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0xa:
-        svcExitThread();
+        svcExitThread(thread);
         return false;
     case 0xb:
-        svcSleepThread(std::bit_cast<i64>(thread->GetRegX(0)));
+        svcSleepThread(std::bit_cast<i64>(guest_thread->GetRegX(0)));
         break;
     case 0xc:
-        res = svcGetThreadPriority(thread->GetRegX(1), tmp_i32);
-        thread->SetRegW(0, res);
-        thread->SetRegW(1, std::bit_cast<u32>(tmp_i32));
+        res = svcGetThreadPriority(guest_thread->GetRegX(1), tmp_i32);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, std::bit_cast<u32>(tmp_i32));
         break;
     case 0xd:
-        res = svcSetThreadPriority(thread->GetRegX(0), thread->GetRegX(1));
-        thread->SetRegW(0, res);
+        res = svcSetThreadPriority(guest_thread->GetRegX(0),
+                                   guest_thread->GetRegX(1));
+        guest_thread->SetRegW(0, res);
         break;
     case 0xe:
-        res = svcGetThreadCoreMask(thread->GetRegW(2), tmp_i32, tmp_u64);
-        thread->SetRegW(0, res);
-        thread->SetRegW(1, tmp_i32);
-        thread->SetRegW(2, tmp_u64);
+        res = svcGetThreadCoreMask(guest_thread->GetRegW(2), tmp_i32, tmp_u64);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, tmp_i32);
+        guest_thread->SetRegW(2, tmp_u64);
         break;
     case 0xf:
-        res = svcSetThreadCoreMask(thread->GetRegW(0),
-                                   std::bit_cast<i32>(thread->GetRegW(1)),
-                                   thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res = svcSetThreadCoreMask(guest_thread->GetRegW(0),
+                                   std::bit_cast<i32>(guest_thread->GetRegW(1)),
+                                   guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x10:
         svcGetCurrentProcessorNumber(tmp_u32);
-        thread->SetRegW(0, tmp_u32);
+        guest_thread->SetRegW(0, tmp_u32);
         break;
     case 0x11:
-        res = svcSignalEvent(thread->GetRegW(0));
-        thread->SetRegW(0, res);
+        res = svcSignalEvent(guest_thread->GetRegW(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x12:
-        res = svcClearEvent(thread->GetRegW(0));
-        thread->SetRegW(0, res);
+        res = svcClearEvent(guest_thread->GetRegW(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x13:
         res = svcMapSharedMemory(
-            thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
-            static_cast<MemoryPermission>(thread->GetRegX(3)));
-        thread->SetRegW(0, res);
+            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            guest_thread->GetRegX(2),
+            static_cast<MemoryPermission>(guest_thread->GetRegX(3)));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x14:
-        res = svcUnmapSharedMemory(thread->GetRegX(0), thread->GetRegX(1),
-                                   thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res = svcUnmapSharedMemory(guest_thread->GetRegX(0),
+                                   guest_thread->GetRegX(1),
+                                   guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x15:
         res = svcCreateTransferMemory(
-            thread->GetRegX(1), thread->GetRegX(2),
-            static_cast<MemoryPermission>(thread->GetRegX(3)), tmp_handle_id);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_handle_id);
+            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            static_cast<MemoryPermission>(guest_thread->GetRegX(3)),
+            tmp_handle_id);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x16:
-        res = svcCloseHandle(thread->GetRegX(0));
-        thread->SetRegW(0, res);
+        res = svcCloseHandle(guest_thread->GetRegX(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x17:
-        res = svcResetSignal(thread->GetRegX(0));
-        thread->SetRegW(0, res);
+        res = svcResetSignal(guest_thread->GetRegX(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            reinterpret_cast<handle_id_t*>(mmu->UnmapAddr(thread->GetRegX(1))),
-            std::bit_cast<i64>(thread->GetRegX(2)),
-            std::bit_cast<i64>(thread->GetRegX(3)), tmp_u64);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_u64);
+            reinterpret_cast<handle_id_t*>(
+                mmu->UnmapAddr(guest_thread->GetRegX(1))),
+            std::bit_cast<i64>(guest_thread->GetRegX(2)),
+            std::bit_cast<i64>(guest_thread->GetRegX(3)), tmp_u64);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x19:
-        res = svcCancelSynchronization(thread->GetRegW(0));
-        thread->SetRegW(0, res);
+        res = svcCancelSynchronization(guest_thread->GetRegW(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x1a:
-        res = svcArbitrateLock(thread->GetRegX(0), thread->GetRegX(1),
-                               thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res =
+            svcArbitrateLock(guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+                             guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x1b:
-        res = svcArbitrateUnlock(thread->GetRegX(0));
-        thread->SetRegW(0, res);
+        res = svcArbitrateUnlock(guest_thread->GetRegX(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x1c:
         res = svcWaitProcessWideKeyAtomic(
-            thread->GetRegX(0), thread->GetRegX(1), thread->GetRegX(2),
-            std::bit_cast<i64>(thread->GetRegX(3)));
-        thread->SetRegW(0, res);
+            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            guest_thread->GetRegX(2),
+            std::bit_cast<i64>(guest_thread->GetRegX(3)));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x1d:
-        res = svcSignalProcessWideKey(thread->GetRegX(0), thread->GetRegX(1));
-        thread->SetRegW(0, res);
+        res = svcSignalProcessWideKey(guest_thread->GetRegX(0),
+                                      guest_thread->GetRegX(1));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x1e:
         svcGetSystemTick(tmp_u64);
-        thread->SetRegX(0, tmp_u64);
+        guest_thread->SetRegX(0, tmp_u64);
         break;
     case 0x1f:
-        res = svcConnectToNamedPort(
-            reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(1))),
-            tmp_handle_id);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_handle_id);
+        res =
+            svcConnectToNamedPort(reinterpret_cast<const char*>(
+                                      mmu->UnmapAddr(guest_thread->GetRegX(1))),
+                                  tmp_handle_id);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_handle_id);
         break;
     case 0x21:
-        res = svcSendSyncRequest(thread->GetTlsMemory(), thread->GetRegX(0));
-        thread->SetRegW(0, res);
+        res = svcSendSyncRequest(guest_thread->GetTlsMemory(),
+                                 guest_thread->GetRegX(0));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x25:
-        res = svcGetThreadId(static_cast<handle_id_t>(thread->GetRegX(1)),
+        res = svcGetThreadId(static_cast<handle_id_t>(guest_thread->GetRegX(1)),
                              tmp_u64);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_u64);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x26:
         // Debug
-        thread->LogRegisters();
+        guest_thread->LogRegisters();
 
-        res = svcBreak(BreakReason(thread->GetRegX(0)),
-                       mmu->UnmapAddr(thread->GetRegX(1)), thread->GetRegX(2));
-        thread->SetRegW(0, res);
+        res = svcBreak(BreakReason(guest_thread->GetRegX(0)),
+                       mmu->UnmapAddr(guest_thread->GetRegX(1)),
+                       guest_thread->GetRegX(2));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x27:
-        res = svcOutputDebugString(
-            reinterpret_cast<const char*>(mmu->UnmapAddr(thread->GetRegX(0))),
-            thread->GetRegX(1));
-        thread->SetRegW(0, res);
+        res = svcOutputDebugString(reinterpret_cast<const char*>(mmu->UnmapAddr(
+                                       guest_thread->GetRegX(0))),
+                                   guest_thread->GetRegX(1));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x29:
-        res = svcGetInfo(static_cast<InfoType>(thread->GetRegX(1)),
-                         thread->GetRegX(2), thread->GetRegX(3), tmp_u64);
-        thread->SetRegW(0, res);
-        thread->SetRegX(1, tmp_u64);
+        res = svcGetInfo(static_cast<InfoType>(guest_thread->GetRegX(1)),
+                         guest_thread->GetRegX(2), guest_thread->GetRegX(3),
+                         tmp_u64);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x2c:
-        res = svcMapPhysicalMemory(thread->GetRegX(0), thread->GetRegX(1));
-        thread->SetRegW(0, res);
+        res = svcMapPhysicalMemory(guest_thread->GetRegX(0),
+                                   guest_thread->GetRegX(1));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x32:
         res = svcSetThreadActivity(
-            thread->GetRegW(0),
-            static_cast<ThreadActivity>(thread->GetRegW(1)));
-        thread->SetRegW(0, res);
+            guest_thread->GetRegW(0),
+            static_cast<ThreadActivity>(guest_thread->GetRegW(1)));
+        guest_thread->SetRegW(0, res);
         break;
     case 0x33:
-        res = svcGetThreadContext3(thread->GetRegW(1),
-                                   *reinterpret_cast<ThreadContext*>(
-                                       mmu->UnmapAddr(thread->GetRegX(0))));
-        thread->SetRegW(0, res);
+        res =
+            svcGetThreadContext3(guest_thread->GetRegW(1),
+                                 *reinterpret_cast<ThreadContext*>(
+                                     mmu->UnmapAddr(guest_thread->GetRegX(0))));
+        guest_thread->SetRegW(0, res);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
-        thread->SetRegW(0, res);
+        guest_thread->SetRegW(0, res);
         break;
     }
 
@@ -390,7 +408,12 @@ result_t Kernel::svcStartThread(handle_id_t thread_handle_id) {
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitThread() { LOG_DEBUG(Kernel, "svcExitThread called"); }
+void Kernel::svcExitThread(Thread* current_thread) {
+    LOG_DEBUG(Kernel, "svcExitThread called");
+
+    // Threads are signalled on exit
+    current_thread->Signal();
+}
 
 void Kernel::svcSleepThread(i64 nano) {
     LOG_DEBUG(Kernel, "svcSleepThread called (nano: {})", nano);

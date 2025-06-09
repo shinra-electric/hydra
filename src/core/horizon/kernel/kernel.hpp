@@ -42,7 +42,8 @@ class Kernel {
         service_ports[std::string(port_name)] = service;
     }
 
-    bool SupervisorCall(hw::tegra_x1::cpu::ThreadBase* thread, u64 id);
+    bool SupervisorCall(Thread* thread,
+                        hw::tegra_x1::cpu::ThreadBase* guest_thread, u64 id);
 
     // SVCs
     result_t svcSetHeapSize(usize size, uptr& out_base);
@@ -59,7 +60,7 @@ class Kernel {
                              i32 processor_id,
                              handle_id_t& out_thread_handle_id);
     result_t svcStartThread(handle_id_t thread_handle_id);
-    void svcExitThread();
+    void svcExitThread(Thread* current_thread);
     void svcSleepThread(i64 nano);
     result_t svcGetThreadPriority(handle_id_t thread_handle_id,
                                   i32& out_priority);
