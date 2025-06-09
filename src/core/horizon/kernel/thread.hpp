@@ -1,11 +1,12 @@
 #pragma once
 
 #include "core/horizon/kernel/const.hpp"
+#include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-class Thread : public Handle {
+class Thread : public SynchronizationObject {
   public:
     Thread(vaddr_t stack_top_addr_, i32 priority_);
     ~Thread() override;

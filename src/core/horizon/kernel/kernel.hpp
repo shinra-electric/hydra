@@ -1,8 +1,11 @@
 #pragma once
 
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/handle_pool.hpp"
+#include "core/horizon/kernel/mutex.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
+#include "core/horizon/kernel/transfer_memory.hpp"
 
 #define KERNEL_INSTANCE hydra::horizon::kernel::Kernel::GetInstance()
 
@@ -19,105 +22,6 @@ namespace hydra::horizon::kernel {
 
 class ServiceBase;
 class Thread;
-
-// TODO: should this be used?
-constexpr u32 HANDLE_WAIT_MASK = 0x40000000;
-
-class Mutex {
-  public:
-    void Lock(u32& value, u32 self_tag) {
-        std::unique_lock<std::mutex> lock(mutex);
-        // TODO: why is this necessary?
-        value = value | HANDLE_WAIT_MASK;
-        cv.wait(lock, [&] { return (value & ~HANDLE_WAIT_MASK) == 0; });
-        value = self_tag | (value & HANDLE_WAIT_MASK);
-    }
-
-    void Unlock(u32& value) {
-        std::unique_lock<std::mutex> lock(mutex);
-        value = (value & HANDLE_WAIT_MASK);
-        cv.notify_one();
-    }
-
-    // Getters
-    std::mutex& GetNativeHandle() { return mutex; }
-
-  private:
-    std::mutex mutex;
-    std::condition_variable cv;
-};
-
-class Event : public Handle {
-  public:
-    Event(bool autoclear_ = false, bool signaled_ = false)
-        : autoclear{autoclear_}, signaled{signaled_} {}
-
-    void Signal() {
-        std::unique_lock<std::mutex> lock(mutex);
-        signaled = true;
-        cv.notify_all();
-    }
-
-    bool Clear() {
-        bool was_signaled;
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            was_signaled = signaled;
-            signaled = false;
-        }
-
-        return was_signaled;
-    }
-
-    // Returns true if the event was signaled, false on timeout
-    bool Wait(i64 timeout = INFINITE_TIMEOUT) {
-        std::unique_lock<std::mutex> lock(mutex);
-        bool was_signaled = WaitImpl(lock, timeout);
-        // TODO: correct?
-        if (autoclear)
-            signaled = false;
-
-        return was_signaled;
-    }
-
-  private:
-    std::mutex mutex;
-    std::condition_variable cv;
-    bool autoclear;
-    bool signaled; // TODO: atomic? (probably not necessary though)
-
-    bool WaitImpl(std::unique_lock<std::mutex>& lock, i64 timeout) {
-        // First, check if the event is already signaled
-        if (signaled)
-            return true;
-        else if (timeout == 0)
-            return false;
-
-        if (timeout == INFINITE_TIMEOUT) {
-            cv.wait(lock);
-            return true;
-        } else {
-            const auto status =
-                cv.wait_for(lock, std::chrono::nanoseconds(timeout));
-            return (status == std::cv_status::no_timeout);
-        }
-    }
-};
-
-class TransferMemory : public Handle {
-  public:
-    TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_)
-        : addr{addr_}, size{size_}, perm{perm_} {}
-
-    vaddr_t GetAddress() const { return addr; }
-    u64 GetSize() const { return size; }
-    MemoryPermission GetPermission() const { return perm; }
-
-  private:
-    vaddr_t addr;
-    u64 size;
-    MemoryPermission perm;
-};
 
 class Kernel {
   public:
@@ -200,10 +104,12 @@ class Kernel {
                                   ThreadContext& out_thread_context);
 
     // Helpers
-    Handle* GetHandle(handle_id_t handle_id) const {
+    AutoObject* GetHandle(handle_id_t handle_id) const {
         return handle_pool.Get(handle_id);
     }
-    handle_id_t AddHandle(Handle* handle) { return handle_pool.Add(handle); }
+    handle_id_t AddHandle(AutoObject* handle) {
+        return handle_pool.Add(handle);
+    }
     void FreeHandle(handle_id_t handle_id) { handle_pool.Free(handle_id); }
 
     hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
@@ -230,7 +136,7 @@ class Kernel {
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Handles
-    DynamicHandlePool<Handle> handle_pool;
+    DynamicHandlePool<AutoObject> handle_pool;
 
     std::mutex sync_mutex;
     // TODO: use a different container?
@@ -242,8 +148,8 @@ class Kernel {
 };
 
 template <typename T> struct HandleWithId {
-    static_assert(std::is_convertible_v<T*, Handle*>,
-                  "Type does not inherit from Handle");
+    static_assert(std::is_convertible_v<T*, AutoObject*>,
+                  "Type does not inherit from AutoObject");
 
     T* handle;
     handle_id_t id;

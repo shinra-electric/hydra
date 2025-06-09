@@ -1,12 +1,13 @@
 #pragma once
 
 #include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-class Process : public Handle {
+class Process : public SynchronizationObject {
   public:
     Process();
     ~Process() override;

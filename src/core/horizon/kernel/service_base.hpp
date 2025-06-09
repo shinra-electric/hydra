@@ -16,8 +16,10 @@ struct RequestContext {
     const get_service_fn_t& get_service;
 };
 
-class ServiceBase : public Handle {
+class ServiceBase {
   public:
+    virtual ~ServiceBase() {}
+
     virtual void Request(RequestContext& context);
     virtual usize GetPointerBufferSize() { return 0; }
 

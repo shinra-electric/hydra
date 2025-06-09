@@ -19,7 +19,7 @@ class DomainService : public ServiceBase {
     }
 
   private:
-    DynamicHandlePool<ServiceBase> subservice_pool;
+    DynamicPool<ServiceBase*> subservice_pool;
 };
 
 } // namespace hydra::horizon::kernel

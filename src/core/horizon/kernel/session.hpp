@@ -1,10 +1,11 @@
 #pragma once
 
+#include "core/horizon/kernel/auto_object.hpp"
 #include "core/horizon/kernel/service_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-class Session : public Handle {
+class Session : public AutoObject {
   public:
     Session(ServiceBase* service_) : service{service_} {}
 

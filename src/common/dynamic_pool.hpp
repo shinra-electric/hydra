@@ -26,7 +26,7 @@ template <typename T> class DynamicPool {
         return index;
     }
 
-    void FreeByIndex(u32 index) {
+    void Free(u32 index) {
         if (index == objects.size() - 1)
             objects.pop_back();
         else

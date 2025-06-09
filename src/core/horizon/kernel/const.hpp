@@ -475,11 +475,6 @@ struct ThreadContext {
     u64 tpidr;
 };
 
-class Handle {
-  public:
-    virtual ~Handle() = default;
-};
-
 } // namespace hydra::horizon::kernel
 
 ENABLE_ENUM_FORMATTING(

@@ -551,18 +551,17 @@ Kernel::svcCreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
 result_t Kernel::svcCloseHandle(handle_id_t handle_id) {
     LOG_DEBUG(Kernel, "svcCloseHandle called (handle: 0x{:x})", handle_id);
 
-    // TODO: uncomment
-    // FreeHandle(handle_id);
-
+    FreeHandle(handle_id);
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::svcResetSignal(handle_id_t handle_id) {
     LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})", handle_id);
 
-    // TODO: correct?
-    auto handle = dynamic_cast<Event*>(GetHandle(handle_id));
-    ASSERT_DEBUG(handle, Kernel, "Handle {} is not an event handle", handle_id);
+    // TODO: can only be ReadableEvent or Process?
+    auto handle = dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));
+    ASSERT_DEBUG(handle, Kernel, "Handle {} is not a SynchronizationObject",
+                 handle_id);
 
     if (!handle->Clear())
         return MAKE_RESULT(Svc, Error::InvalidState);
@@ -596,25 +595,27 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
             while (true) {
                 for (u32 i = 0; i < handle_count; i++) {
                     handle_id_t handle_id = handle_ids[i];
-                    auto event = dynamic_cast<Event*>(GetHandle(handle_id));
+                    auto handle = dynamic_cast<SynchronizationObject*>(
+                        GetHandle(handle_id));
 
                     // HACK
-                    if (!event) {
-                        LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle",
+                    if (!handle) {
+                        LOG_WARN(Kernel,
+                                 "Handle 0x{:x} is not a SynchronizationObject",
                                  handle_id);
                         std::this_thread::sleep_for(
                             std::chrono::milliseconds(33));
                         return RESULT_SUCCESS;
                     }
 
-                    ASSERT_DEBUG(event, Kernel,
-                                 "Handle 0x{:x} is not an event handle",
+                    ASSERT_DEBUG(handle, Kernel,
+                                 "Handle 0x{:x} is not a SynchronizationObject",
                                  handle_id);
 
                     LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}",
                               handle_id);
 
-                    if (event->Wait(0)) {
+                    if (handle->Wait(0)) {
                         out_handle_index = i;
                         return RESULT_SUCCESS;
                     }
@@ -630,21 +631,23 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         }
 
         handle_id_t handle_id = handle_ids[0];
-        auto event = dynamic_cast<Event*>(GetHandle(handle_id));
+        auto handle =
+            dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));
 
         // HACK
-        if (!event) {
-            LOG_WARN(Kernel, "Handle 0x{:x} is not an event handle", handle_id);
+        if (!handle) {
+            LOG_WARN(Kernel, "Handle 0x{:x} is not a SynchronizationObject",
+                     handle_id);
             std::this_thread::sleep_for(std::chrono::milliseconds(33));
             return RESULT_SUCCESS;
         }
 
-        ASSERT_DEBUG(event, Kernel, "Handle 0x{:x} is not an event handle",
-                     handle_id);
+        ASSERT_DEBUG(handle, Kernel,
+                     "Handle 0x{:x} is not a SynchronizationObject", handle_id);
 
         LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}", handle_id);
 
-        if (event->Wait(timeout)) {
+        if (handle->Wait(timeout)) {
             out_handle_index = 0;
             return RESULT_SUCCESS;
         } else {
