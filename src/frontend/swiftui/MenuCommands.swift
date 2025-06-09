@@ -4,19 +4,22 @@ struct MenuCommands: Commands {
 
     var body: some Commands {
         // Adds a new command to the File menu
-        /*
         CommandGroup(after: .newItem) {
-            Button("Boot Game") {
-
+            Button("Add to Library") {
+                // TODO: Implement
+            }
+            .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
+            
+            Button("Boot from File") {
+                // TODO: Implement
             }
             .keyboardShortcut(KeyEquivalent("b"), modifiers: .command)
         }
-        */
 
-        // This is an example of removing menu items, in this case from the help menu
+        // This removes/replaces menu items
         CommandGroup(replacing: CommandGroupPlacement.help) {}
-
-        // Add the show/hide sidebar command and shortcut to the menu
-        SidebarCommands()
+        CommandGroup(replacing: CommandGroupPlacement.pasteboard) {}
+        CommandGroup(replacing: CommandGroupPlacement.undoRedo) {}
+//        CommandGroup(replacing: CommandGroupPlacement.systemServices) {}
     }
 }
