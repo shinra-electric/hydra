@@ -12,18 +12,22 @@ class Thread {
 
     // API
     usize GetMessageCount() const {
-        return (msg_queue_filled ? messages.size() : msg_ptr);
+        if (!has_messages)
+            return 0;
+
+        return ((msg_head + messages.size()) - msg_tail) % messages.size();
     }
     const LogMessage& GetMessage(const u32 index) const {
-        return messages[(msg_ptr + index) % messages.size()];
+        return messages[(msg_tail + index) % messages.size()];
     }
 
   private:
     std::string name;
 
     std::vector<LogMessage> messages;
-    u32 msg_ptr{0};
-    bool msg_queue_filled{false};
+    u32 msg_head{0};
+    u32 msg_tail{0};
+    bool has_messages{false};
 };
 
 class Debugger {

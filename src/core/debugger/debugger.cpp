@@ -15,11 +15,9 @@ Thread::Thread(const std::string_view name_) : name{name_} {
 }
 
 void Thread::Log(const LogMessage& msg) {
-    messages[msg_ptr++] = msg;
-    if (msg_ptr >= messages.size()) {
-        msg_ptr = 0;
-        msg_queue_filled = true;
-    }
+    messages[msg_head] = msg;
+    msg_head = (msg_head + 1) % messages.size();
+    has_messages = true;
 }
 
 void Debugger::RegisterThisThread(const std::string_view name) {
