@@ -4,8 +4,8 @@
 
 namespace hydra::horizon::kernel::cmif {
 
-#define CMIF_IN_HEADER_MAGIC 0x49434653  // "SFCI"
-#define CMIF_OUT_HEADER_MAGIC 0x4F434653 // "SFCO"
+constexpr u32 IN_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'I');
+constexpr u32 OUT_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'O');
 
 enum class DomainCommandType : u8 {
     Invalid,
@@ -67,7 +67,7 @@ struct OutHeader {
 
 inline result_t* write_out_header(Writer& writer) {
     auto hdr = writer.Write(OutHeader{
-        .magic = CMIF_OUT_HEADER_MAGIC,
+        .magic = OUT_HEADER_MAGIC,
         .version = 0,
         .result = RESULT_SUCCESS,
         .token = 0,
@@ -80,6 +80,10 @@ inline void write_domain_out_header(Writer& writer) {
     writer.Write(DomainOutHeader{
         .num_out_objects = 0,
     });
+}
+
+template <typename T> inline T* align_data_start(T* data_start) {
+    return align_ptr(data_start, 0x10); // align to 16 bytes
 }
 
 } // namespace hydra::horizon::kernel::cmif

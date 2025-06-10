@@ -39,7 +39,7 @@
 
 namespace hydra::horizon::services::sm {
 
-DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterProcess, 1,
+DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterClient, 1,
                              GetServiceHandle)
 
 result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,

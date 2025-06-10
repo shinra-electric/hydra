@@ -821,8 +821,12 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     // Request
 
     // HIPC header
-    hipc::ParsedRequest hipc_in = hipc::parse_request(tls_ptr);
-    u8* in_ptr = align_ptr((u8*)hipc_in.data.data_words, 0x10);
+    auto hipc_in = hipc::parse_request(tls_ptr);
+    auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
+    const bool is_tipc = (command_type >= cmif::CommandType::TipcCommandRegion);
+    if (!is_tipc)
+        hipc_in.data.data_words =
+            cmif::align_data_start(hipc_in.data.data_words);
 
     // Scratch memory
     u8 scratch_buffer[0x200];
@@ -850,31 +854,33 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     };
 
     // Dispatch
-    auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
+    cmif::CommandType response_command_type{cmif::CommandType::Invalid};
+    bool should_respond = true;
     switch (command_type) {
     case cmif::CommandType::Close:
-    case cmif::CommandType::TipcClose:
+    case cmif::CommandType::TipcClose: // TODO: is this the same as regular
+                                       // close?
         session->Close();
+        should_respond = false;
         break;
     case cmif::CommandType::Request:
     case cmif::CommandType::RequestWithContext: {
         // TODO: how is RequestWithContext different?
-
         session->Request(context);
+        // TODO: respond command type 0?
         break;
     }
     case cmif::CommandType::Control:
     case cmif::CommandType::ControlWithContext:
         // TODO: how is ControlWithContext different?
-
         session->Control(readers, writers);
         break;
     default:
         if (command_type >= cmif::CommandType::TipcCommandRegion) {
-            const auto tipc_command =
+            const auto command_id =
                 (u32)command_type - (u32)cmif::CommandType::TipcCommandRegion;
-            LOG_ERROR(Kernel, "TIPC command {}", tipc_command);
-            session->Request(context);
+            session->TipcRequest(context, command_id);
+            response_command_type = command_type; // Same as input
             break;
         }
 
@@ -883,8 +889,8 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
     }
 
     // Response
-
-    // HIPC header
+    if (should_respond) {
+        // HIPC header
 #define GET_ARRAY_SIZE(writer)                                                 \
     static_cast<u32>(align(writers.writer.GetWrittenSize(), (usize)4) /        \
                      sizeof(u32))
@@ -895,26 +901,33 @@ result_t Kernel::svcSendSyncRequest(hw::tegra_x1::cpu::MemoryBase* tls_mem,
                writers.writer.GetWrittenSize());                               \
     }
 
-    hipc::Metadata meta{.num_data_words = GET_ARRAY_SIZE(writer) +
-                                          GET_ARRAY_SIZE(objects_writer),
-                        .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
-                        .num_move_handles =
-                            GET_ARRAY_SIZE(move_handles_writer)};
-    auto response = hipc::make_request(tls_ptr, meta);
+        hipc::Metadata meta{
+            .type = (u32)response_command_type,
+            .num_data_words =
+                GET_ARRAY_SIZE(writer) + GET_ARRAY_SIZE(objects_writer),
+            .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
+            .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)};
+        auto response = hipc::make_request(tls_ptr, meta);
+        if (!is_tipc)
+            response.data_words = cmif::align_data_start(response.data_words);
 
-    u8* data_start =
-        reinterpret_cast<u8*>(align_ptr(response.data_words, 0x10));
-    WRITE_ARRAY(writer, data_start);
-    if (writers.objects_writer.GetWrittenSize() != 0) {
-        memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
-               writers.objects_writer.GetBase(),
-               writers.objects_writer.GetWrittenSize());
-    }
-    WRITE_ARRAY(copy_handles_writer, response.copy_handles);
-    WRITE_ARRAY(move_handles_writer, response.move_handles);
+        u8* data_start = reinterpret_cast<u8*>(response.data_words);
+        if (command_type <
+            cmif::CommandType::TipcCommandRegion) // TODO: is this really how it
+                                                  // works?
+            data_start = align_ptr(data_start, 0x10);
+        WRITE_ARRAY(writer, data_start);
+        if (writers.objects_writer.GetWrittenSize() != 0) {
+            memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
+                   writers.objects_writer.GetBase(),
+                   writers.objects_writer.GetWrittenSize());
+        }
+        WRITE_ARRAY(copy_handles_writer, response.copy_handles);
+        WRITE_ARRAY(move_handles_writer, response.move_handles);
 
 #undef GET_ARRAY_SIZE
 #undef WRITE_ARRAY
+    }
 
     return RESULT_SUCCESS;
 }

@@ -58,4 +58,10 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     }
 }
 
+void Session::TipcRequest(RequestContext& context, const u32 command_id) {
+    ASSERT_DEBUG(!dynamic_cast<DomainService*>(service), Kernel,
+                 "TIPC is not supported for domain services");
+    service->TipcRequest(context, command_id);
+}
+
 } // namespace hydra::horizon::kernel

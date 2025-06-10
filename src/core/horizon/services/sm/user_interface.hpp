@@ -10,7 +10,7 @@ class IUserInterface : public ServiceBase {
 
   private:
     // Commands
-    STUB_REQUEST_COMMAND(RegisterProcess);
+    STUB_REQUEST_COMMAND(RegisterClient);
     result_t GetServiceHandle(add_service_fn_t add_service, u64 name);
 };
 

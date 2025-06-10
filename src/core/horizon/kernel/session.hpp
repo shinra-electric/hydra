@@ -12,6 +12,7 @@ class Session : public AutoObject {
     void Close();
     void Request(RequestContext& context);
     void Control(hipc::Readers& readers, hipc::Writers& writers);
+    void TipcRequest(RequestContext& context, const u32 command_id);
 
     // Getters
     ServiceBase* GetService() const { return service; }
