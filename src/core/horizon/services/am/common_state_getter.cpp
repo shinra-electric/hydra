@@ -5,10 +5,11 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ICommonStateGetter, 0, GetEventHandle, 1,
-                             ReceiveMessage, 4, DisallowToEnterSleep, 5,
-                             GetOperationMode, 6, GetPerformanceMode, 9,
-                             GetCurrentFocusState)
+DEFINE_SERVICE_COMMAND_TABLE(
+    ICommonStateGetter, 0, GetEventHandle, 1, ReceiveMessage, 4,
+    DisallowToEnterSleep, 5, GetOperationMode, 6, GetPerformanceMode, 9,
+    GetCurrentFocusState, 66, SetCpuBoostMode, 900,
+    SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled)
 
 result_t
 ICommonStateGetter::GetEventHandle(OutHandle<HandleAttr::Copy> out_handle) {
@@ -34,6 +35,13 @@ result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
 
 result_t ICommonStateGetter::GetCurrentFocusState(AppletFocusState* out_state) {
     *out_state = StateManager::GetInstance().GetFocusState();
+    return RESULT_SUCCESS;
+}
+
+result_t ICommonStateGetter::SetCpuBoostMode(oe::CpuBoostMode mode) {
+    LOG_FUNC_STUBBED(Services);
+
+    // TODO: pass mode to apm::ISystemManage::SetCpuBoostMode
     return RESULT_SUCCESS;
 }
 

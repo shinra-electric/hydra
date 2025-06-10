@@ -12,7 +12,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 0, GetUserCount, 1,
                              100, InitializeApplicationInfoV0, 101,
                              GetBaasAccountManagerForApplication, 140,
                              InitializeApplicationInfo, 150,
-                             IsUserAccountSwitchLocked)
+                             IsUserAccountSwitchLocked, 160,
+                             InitializeApplicationInfoV2)
 
 result_t IAccountServiceForApplication::GetUserCount(i32* out_count) {
     *out_count = USER_MANAGER_INSTANCE.GetCount();

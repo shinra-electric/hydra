@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/oe/const.hpp"
 #include "core/horizon/state_manager.hpp"
 
 namespace hydra::horizon::services::am {
@@ -22,6 +23,9 @@ class ICommonStateGetter : public ServiceBase {
     result_t GetOperationMode(OperationMode* out_mode);
     STUB_REQUEST_COMMAND(GetPerformanceMode);
     result_t GetCurrentFocusState(AppletFocusState* out_state);
+    result_t SetCpuBoostMode(oe::CpuBoostMode mode);
+    STUB_REQUEST_COMMAND(
+        SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled);
 };
 
 } // namespace hydra::horizon::services::am

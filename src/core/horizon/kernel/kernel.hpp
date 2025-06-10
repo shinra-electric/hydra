@@ -103,6 +103,8 @@ class Kernel {
                                   ThreadActivity activity);
     result_t svcGetThreadContext3(handle_id_t thread_handle_id,
                                   ThreadContext& out_thread_context);
+    result_t svcWaitForAddress(vaddr_t addr, ArbitrationType arbitration_type,
+                               u32 value, u64 timeout);
 
     // Helpers
     AutoObject* GetHandle(handle_id_t handle_id) const {

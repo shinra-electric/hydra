@@ -238,6 +238,9 @@ add_library(hydra-core
     horizon/services/ncm/const.hpp
     horizon/services/mmnv/request.cpp
     horizon/services/mmnv/request.hpp
+    horizon/services/err/context/writer_for_application.cpp
+    horizon/services/err/context/writer_for_application.hpp
+    horizon/services/oe/const.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

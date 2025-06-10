@@ -276,6 +276,13 @@ bool Kernel::SupervisorCall(Thread* thread,
                                      mmu->UnmapAddr(guest_thread->GetRegX(0))));
         guest_thread->SetRegW(0, res);
         break;
+    case 0x34:
+        res = svcWaitForAddress(
+            mmu->UnmapAddr(guest_thread->GetRegX(0)),
+            static_cast<ArbitrationType>(guest_thread->GetRegW(1)),
+            guest_thread->GetRegW(2), guest_thread->GetRegX(3));
+        guest_thread->SetRegW(0, res);
+        break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
@@ -1122,6 +1129,48 @@ result_t Kernel::svcGetThreadContext3(handle_id_t thread_handle_id,
 
     // HACK
     out_thread_context = {};
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::svcWaitForAddress(vaddr_t addr,
+                                   ArbitrationType arbitration_type, u32 value,
+                                   u64 timeout) {
+    LOG_DEBUG(Kernel,
+              "svcWaitForAddress called (addr: 0x{:08x}, type: {}, value: "
+              "0x{:x}, timeout: 0x{:08x})",
+              addr, arbitration_type, value, timeout);
+
+    sync_mutex.lock();
+    auto& mutex = mutex_map[addr];
+    auto& cond_var = cond_var_map[addr];
+    sync_mutex.unlock();
+
+    {
+        std::unique_lock lock(mutex.GetNativeHandle());
+
+        const auto current_value = mmu->Load<u32>(addr);
+        bool wait{false};
+        switch (arbitration_type) {
+        case ArbitrationType::WaitIfLessThan:
+            wait = (current_value < value);
+            break;
+        case ArbitrationType::DecrementAndWaitIfLessThan:
+            wait = (current_value < value);
+            mmu->Store<u32>(addr, current_value - 1); // TODO: decrement after?
+            break;
+        case ArbitrationType::WaitIfEqual:
+            wait = (current_value == value);
+            break;
+        }
+
+        if (wait) {
+            cond_var.wait_for(lock, std::chrono::nanoseconds(timeout),
+                              [=, this]() {
+                                  return mmu->Load<u32>(addr) == value;
+                              }); // TODO: is the timeout correct?
+        }
+    }
+
     return RESULT_SUCCESS;
 }
 
