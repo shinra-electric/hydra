@@ -6,16 +6,14 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISelfController, 0, Exit, 1, LockExit, 2,
-                             UnlockExit, 9, GetLibraryAppletLaunchableEvent, 10,
-                             SetScreenShotPermission, 11,
-                             SetOperationModeChangedNotification, 12,
-                             SetPerformanceModeChangedNotification, 13,
-                             SetFocusHandlingMode, 14, SetRestartMessageEnabled,
-                             16, SetOutOfFocusSuspendingEnabled, 40,
-                             CreateManagedDisplayLayer, 44,
-                             CreateManagedDisplaySeparableLayer, 91,
-                             GetAccumulatedSuspendedTickChangedEvent)
+DEFINE_SERVICE_COMMAND_TABLE(
+    ISelfController, 0, Exit, 1, LockExit, 2, UnlockExit, 9,
+    GetLibraryAppletLaunchableEvent, 10, SetScreenShotPermission, 11,
+    SetOperationModeChangedNotification, 12,
+    SetPerformanceModeChangedNotification, 13, SetFocusHandlingMode, 14,
+    SetRestartMessageEnabled, 16, SetOutOfFocusSuspendingEnabled, 40,
+    CreateManagedDisplayLayer, 44, CreateManagedDisplaySeparableLayer, 62,
+    SetIdleTimeDetectionExtension, 91, GetAccumulatedSuspendedTickChangedEvent)
 
 // TODO: autoclear library applet launchable event?
 ISelfController::ISelfController()
@@ -58,6 +56,15 @@ result_t ISelfController::CreateManagedDisplaySeparableLayer(
     // TODO: what is a recording layer?
     *out_recording_layer_id =
         KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+
+    return RESULT_SUCCESS;
+}
+
+result_t
+ISelfController::SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Extension: {}", ext);
 
     return RESULT_SUCCESS;
 }
