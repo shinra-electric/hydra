@@ -23,11 +23,11 @@ u64 DepthStencilStateCache::Hash(
     const DepthStencilStateDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.depth_test_enabled;
-    hash = rotl(hash, 1);
+    hash = std::rotl(hash, 1);
     hash += descriptor.depth_write_enabled;
-    hash = rotl(hash, 1);
+    hash = std::rotl(hash, 1);
     hash += (u64)descriptor.depth_test_func;
-    hash = rotl(hash, 5);
+    hash = std::rotl(hash, 5);
 
     return hash;
 }
