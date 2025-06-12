@@ -7,7 +7,8 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                                             ZCullGetCtxSize, 0x02, ZCullGetInfo,
                                             0x05, GetCharacteristics, 0x06,
                                             GetTpcMasks, 0x14,
-                                            ZbcGetActiveSlotMask))
+                                            ZbcGetActiveSlotMask, 0x1c,
+                                            GetGpuTime))
 
 NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
                                    handle_id_t& out_handle_id) {
@@ -126,6 +127,12 @@ NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
     // TODO: correct?
     *out_slot = 0x07;
     *out_mask = 0x01;
+    return NvResult::Success;
+}
+
+NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp, u64* _out_reserved) {
+    // TODO: is it okay to just return CPU time?
+    *out_timestamp = get_absolute_time();
     return NvResult::Success;
 }
 

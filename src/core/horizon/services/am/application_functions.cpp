@@ -10,7 +10,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              SetTerminateResult, 25, ExtendSaveData, 26,
                              GetSaveDataSize, 40, NotifyRunning, 50,
                              GetPseudoDeviceId, 66, InitializeGamePlayRecording,
-                             67, SetGamePlayRecordingState, 130,
+                             67, SetGamePlayRecordingState, 90,
+                             EnableApplicationCrashReport, 130,
                              GetGpuErrorDetectedSystemEvent)
 
 result_t IApplicationFunctions::PopLaunchParameter(add_service_fn_t add_service,
@@ -81,6 +82,14 @@ result_t IApplicationFunctions::GetPseudoDeviceId(u128* out_id) {
 
     // HACK
     *out_id = str_to_u64("pseudo_id");
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationFunctions::EnableApplicationCrashReport(bool enabled) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Enabled: {}", enabled);
+
     return RESULT_SUCCESS;
 }
 

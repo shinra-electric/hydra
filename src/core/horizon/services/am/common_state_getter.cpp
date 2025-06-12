@@ -8,7 +8,8 @@ namespace hydra::horizon::services::am {
 DEFINE_SERVICE_COMMAND_TABLE(
     ICommonStateGetter, 0, GetEventHandle, 1, ReceiveMessage, 4,
     DisallowToEnterSleep, 5, GetOperationMode, 6, GetPerformanceMode, 9,
-    GetCurrentFocusState, 66, SetCpuBoostMode, 900,
+    GetCurrentFocusState, 60, GetDefaultDisplayResolution, 61,
+    GetDefaultDisplayResolutionChangeEvent, 66, SetCpuBoostMode, 900,
     SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled)
 
 result_t
@@ -30,6 +31,20 @@ result_t ICommonStateGetter::ReceiveMessage(AppletMessage* out_message) {
 result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
     *out_mode = OS::GetInstance().IsInHandheldMode() ? OperationMode::Handheld
                                                      : OperationMode::Console;
+    return RESULT_SUCCESS;
+}
+
+result_t ICommonStateGetter::GetDefaultDisplayResolution(i32* out_width,
+                                                         i32* out_height) {
+    // TODO: don't hardcode
+    *out_width = 1920;
+    *out_height = 1080;
+    return RESULT_SUCCESS;
+}
+
+result_t ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(
+    OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = default_display_resolution_change_event.id;
     return RESULT_SUCCESS;
 }
 

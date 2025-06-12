@@ -29,6 +29,7 @@ class IApplicationFunctions : public ServiceBase {
     result_t GetPseudoDeviceId(u128* out_id);
     STUB_REQUEST_COMMAND(InitializeGamePlayRecording);
     STUB_REQUEST_COMMAND(SetGamePlayRecordingState);
+    result_t EnableApplicationCrashReport(bool enabled);
     result_t
     GetGpuErrorDetectedSystemEvent(OutHandle<HandleAttr::Copy> out_handle);
 };
