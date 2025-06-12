@@ -1062,6 +1062,11 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         // HACK
         out_info = 64 * 1024;
         return RESULT_SUCCESS;
+    case InfoType::UserExceptionContextAddress:
+        LOG_NOT_IMPLEMENTED(Kernel, "UserExceptionContextAddress");
+        // HACK
+        out_info = 0;
+        return RESULT_SUCCESS;
     case InfoType::TotalNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "TotalNonSystemMemorySize");
         // HACK
@@ -1078,7 +1083,7 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         out_info = 0;
         return RESULT_SUCCESS;
     default:
-        LOG_WARN(Kernel, "Unimplemented info type {}", info_type);
+        LOG_WARN(Kernel, "Unknown info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
 }

@@ -354,6 +354,8 @@ struct PipelineDescriptor {
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
 
+usize get_vertex_format_size(engines::VertexAttribSize size);
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 ENABLE_ENUM_FORMATTING(

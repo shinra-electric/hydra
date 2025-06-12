@@ -639,19 +639,18 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
 
     // TODO: implement all formats
     switch (format) {
-    case TextureFormat::RGBA8Unorm:
-        return SWIZZLE(R, G, B, A);
     case TextureFormat::R8Unorm:
         return SWIZZLE(R, Zero, Zero, OneFloat);
     case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BC1_RGB:
         return SWIZZLE(R, G, B, OneFloat);
-    case TextureFormat::RGB10A2Unorm:
-        return SWIZZLE(R, G, B, A);
-    case TextureFormat::RGBA8Unorm_sRGB:
-        return SWIZZLE(R, G, B, A);
     case TextureFormat::RG8Unorm:
         return SWIZZLE(R, G, Zero, OneFloat);
+    case TextureFormat::RGBA8Unorm:
     case TextureFormat::BGRA8Unorm:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::BC3_RGBA:
         return SWIZZLE(R, G, B, A);
     default:
         LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
@@ -659,6 +658,41 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     }
 
 #undef SWIZZLE
+}
+
+usize get_vertex_format_size(engines::VertexAttribSize size) {
+    switch (size) {
+    case engines::VertexAttribSize::_1x32:
+        return 4;
+    case engines::VertexAttribSize::_2x32:
+        return 8;
+    case engines::VertexAttribSize::_3x32:
+        return 12;
+    case engines::VertexAttribSize::_4x32:
+        return 16;
+
+    case engines::VertexAttribSize::_1x16:
+        return 2;
+    case engines::VertexAttribSize::_2x16:
+        return 4;
+    case engines::VertexAttribSize::_3x16:
+        return 6;
+    case engines::VertexAttribSize::_4x16:
+        return 8;
+
+    case engines::VertexAttribSize::_1x8:
+        return 1;
+    case engines::VertexAttribSize::_2x8:
+        return 2;
+    case engines::VertexAttribSize::_3x8:
+        return 3;
+    case engines::VertexAttribSize::_4x8:
+        return 4;
+
+    case engines::VertexAttribSize::_10_10_10_2:
+    case engines::VertexAttribSize::_11_11_10:
+        return 4;
+    }
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

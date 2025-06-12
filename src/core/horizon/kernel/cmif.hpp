@@ -40,7 +40,7 @@ struct DomainInHeader {
     u8 num_in_objects;
     u16 data_size;
     u32 object_id;
-    u32 padding;
+    u32 _padding_x8;
     u32 token;
 };
 
@@ -54,7 +54,7 @@ struct InHeader {
 // From https://github.com/switchbrew/libnx
 struct DomainOutHeader {
     u32 num_out_objects;
-    u32 padding[3];
+    u32 _padding_x4[3];
 };
 
 // From https://github.com/switchbrew/libnx
