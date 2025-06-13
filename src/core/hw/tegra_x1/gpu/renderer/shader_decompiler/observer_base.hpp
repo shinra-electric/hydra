@@ -86,6 +86,13 @@ class ObserverBase {
         return nullptr;
     }
 
+    // Vector
+    virtual ValueBase*
+    OpVectorConstruct(const std::vector<ValueBase*>& elements,
+                      DataType data_type) {
+        return nullptr;
+    }
+
     // Special
     // TODO: remove this
     virtual ValueBase* OpInterpolate(ValueBase* src) { return nullptr; }

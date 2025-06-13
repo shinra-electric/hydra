@@ -71,6 +71,10 @@ class LangBuilderBase : public BuilderBase {
     ValueBase* OpMax(ValueBase* srcA, ValueBase* srcB) override;
     ValueBase* OpMathFunction(MathFunc func, ValueBase* src) override;
 
+    // Vector
+    ValueBase* OpVectorConstruct(const std::vector<ValueBase*>& elements,
+                                 DataType data_type) override;
+
     // Special
     ValueBase* OpInterpolate(ValueBase* src) override;
     void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
@@ -135,21 +139,64 @@ class LangBuilderBase : public BuilderBase {
     }
 
     // Helpers
-    std::string GetImmediateL(u32 imm, DataType data_type = DataType::U32) {
-        return fmt::format("as_type<{}>(uint(0x{:08x}u))", data_type, imm);
+    template <typename T> std::string GetImmediateL(const T imm) {
+        if constexpr (std::is_same_v<T, i32>)
+            return fmt::format("({:#010x}i)", imm);
+        if constexpr (std::is_same_v<T, i64>)
+            return fmt::format("({:#018}ill)", imm);
+        else if constexpr (std::is_same_v<T, u32>)
+            return fmt::format("({:#010x}u)", imm);
+        else if constexpr (std::is_same_v<T, u64>)
+            return fmt::format("({:#018x}ull)", imm);
+        else if constexpr (std::is_same_v<T, f32>)
+            return fmt::format("({:#}f)", imm);
+        else if constexpr (std::is_same_v<T, f64>)
+            return fmt::format("({:#}f)", imm);
+        else if constexpr (std::is_same_v<T, bool>)
+            return fmt::format("{}", imm);
+        else {
+            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
+                      typeid(T).name());
+            return INVALID_VALUE;
+        }
+    }
+
+    std::string GetImmediateL(const u32 imm, DataType data_type) {
+        switch (data_type) {
+        case DataType::U8:
+            return GetImmediateL<u8>(imm & 0xff);
+        case DataType::U16:
+            return GetImmediateL<u16>(imm & 0xffff);
+        case DataType::U32:
+            return GetImmediateL<u32>(imm);
+        case DataType::I8:
+            return GetImmediateL<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
+        case DataType::I16:
+            return GetImmediateL<i16>(std::bit_cast<i16>((u16)(imm & 0xffff)));
+        case DataType::I32:
+            return GetImmediateL<i32>(std::bit_cast<i32>(imm));
+        case DataType::F16:
+            return fmt::format("as_type<f16>((u16)0x{:04x})",
+                               (u16)(imm & 0xffff));
+        case DataType::F32:
+            return GetImmediateL<f32>(std::bit_cast<f32>(imm));
+        // TODO: F16X2
+        default:
+            return INVALID_VALUE;
+        }
     }
 
     std::string GetRegister(bool load, reg_t reg,
                             DataType data_type = DataType::U32) {
         if (load && reg == RZ)
-            return GetImmediate(0, data_type);
+            return GetImmediateL(0, data_type);
 
         return fmt::format("r[{}].{}", reg, GetTypePrefix(data_type));
     }
 
     std::string GetPredicate(bool load, pred_t pred) {
         if (load && pred == PT)
-            return GetImmediate(true);
+            return GetImmediateL(true);
 
         return fmt::format("p[{}]", pred);
     }
@@ -193,6 +240,8 @@ class LangBuilderBase : public BuilderBase {
             return "_f16";
         case DataType::F32:
             return "_f32";
+        case DataType::F16X2:
+            return "_f16x2";
         default:
             LOG_ERROR(ShaderDecompiler, "Invalid data type {}", data_type);
             return INVALID_VALUE;
@@ -220,50 +269,6 @@ class LangBuilderBase : public BuilderBase {
             return "1.0 / sqrt"; // TODO: correct?
         case MathFunc::Sqrt:
             return "sqrt";
-        default:
-            return INVALID_VALUE;
-        }
-    }
-
-    template <typename T> std::string GetImmediate(const T imm) {
-        if constexpr (std::is_same_v<T, i32>)
-            return fmt::format("0x{:08x}i", imm);
-        if constexpr (std::is_same_v<T, i64>)
-            return fmt::format("0x{:08x}ill", imm);
-        else if constexpr (std::is_same_v<T, u32>)
-            return fmt::format("0x{:08x}u", imm);
-        else if constexpr (std::is_same_v<T, u64>)
-            return fmt::format("0x{:08x}ull", imm);
-        else if constexpr (std::is_same_v<T, f32>)
-            return fmt::format("{:#}f", imm);
-        else if constexpr (std::is_same_v<T, f64>)
-            return fmt::format("{:#}f", imm);
-        else if constexpr (std::is_same_v<T, bool>)
-            return fmt::format("{}", imm);
-        else {
-            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
-                      typeid(T).name());
-            return INVALID_VALUE;
-        }
-    }
-
-    std::string GetImmediate(const u32 imm, DataType data_type) {
-        switch (data_type) {
-        case DataType::U8:
-            return GetImmediate<u8>(imm & 0xff);
-        case DataType::U16:
-            return GetImmediate<u16>(imm & 0xffff);
-        case DataType::U32:
-            return GetImmediate<u32>(imm);
-        case DataType::I8:
-            return GetImmediate<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
-        case DataType::I16:
-            return GetImmediate<i16>(std::bit_cast<i16>((u16)(imm & 0xffff)));
-        case DataType::I32:
-            return GetImmediate<i32>(std::bit_cast<i32>(imm));
-        // TODO: F16
-        case DataType::F32:
-            return GetImmediate<f32>(std::bit_cast<f32>(imm));
         default:
             return INVALID_VALUE;
         }

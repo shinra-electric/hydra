@@ -80,6 +80,7 @@ void LangBuilderBase::Start() {
     Write("i32 _i32;");
     Write("f16 _f16;");
     Write("f32 _f32;");
+    Write("half2 _f16x2;");
     ExitScopeEmpty(true);
     WriteNewline();
 
@@ -329,6 +330,19 @@ ValueBase* LangBuilderBase::OpMax(ValueBase* srcA, ValueBase* srcB) {
 
 ValueBase* LangBuilderBase::OpMathFunction(MathFunc func, ValueBase* src) {
     RET_V("({}({}))", GetMathFunc(func), V(src));
+}
+
+ValueBase*
+LangBuilderBase::OpVectorConstruct(const std::vector<ValueBase*>& elements,
+                                   DataType data_type) {
+    // TODO: find a better way?
+    std::string elements_str;
+    for (u32 i = 0; i < elements.size(); i++) {
+        elements_str += V(elements[i]);
+        if (i != elements.size() - 1)
+            elements_str += ", ";
+    }
+    RET_V("vec<{}, {}>({})", data_type, elements.size(), elements_str);
 }
 
 ValueBase* LangBuilderBase::OpInterpolate(ValueBase* src) {
