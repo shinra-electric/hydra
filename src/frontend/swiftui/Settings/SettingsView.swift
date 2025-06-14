@@ -33,6 +33,7 @@ struct SettingsView: View {
         // TODO: don't hardcode the size
         .frame(width: 375, height: /*150*/ 400)
         .onDisappear {
+            // TODO: why is this called before the individual tabs?
             hydra_config_serialize()
         }
     }

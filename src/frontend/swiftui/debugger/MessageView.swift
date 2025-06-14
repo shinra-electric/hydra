@@ -17,7 +17,6 @@ struct MessageView: View {
                         .foregroundColor(.primary)
                         .font(.system(size: 14, weight: .medium))
 
-                    // TODO: simplify this?
                     HStack {
                         Text(message.function)
                             .foregroundStyle(.white)
@@ -61,7 +60,6 @@ struct MessageView: View {
         let addr = hydra_debugger_resolved_stack_frame_get_address(resolved)
         hydra_debugger_resolved_stack_frame_destroy(resolved)
 
-        // TODO: hex address
         return "0x\(String(addr, radix: 16)) (\(function) in \(module))"
     }
 }

@@ -47,7 +47,8 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
-TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, StdOut, "stdout", File, "file")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
+                              File, "file")
 
 namespace hydra {
 

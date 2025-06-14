@@ -21,6 +21,7 @@ struct DebuggerView: View {
                     Spacer()
 
                     Button(action: {
+                        load()
                         refreshCount += 1
                     }) {
                         Image(systemName: "arrow.clockwise")
