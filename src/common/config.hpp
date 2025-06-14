@@ -211,5 +211,5 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, StdOut, "stdout",
-                                   File, "file")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",
+                                   StdOut, "stdout", File, "file")

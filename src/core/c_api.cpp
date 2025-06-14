@@ -282,7 +282,8 @@ hydra_debugger_message_get_stack_trace(const void* msg) {
 
 // Stack trace
 HYDRA_EXPORT void* hydra_debugger_stack_trace_copy(const void* stack_trace) {
-    return new hydra::debugger::StackTrace(*static_cast<const hydra::debugger::StackTrace*>(stack_trace));
+    return new hydra::debugger::StackTrace(
+        *static_cast<const hydra::debugger::StackTrace*>(stack_trace));
 }
 
 HYDRA_EXPORT void hydra_debugger_stack_trace_destroy(void* stack_trace) {
@@ -302,7 +303,8 @@ hydra_debugger_stack_trace_get_frame(const void* stack_trace, uint32_t index) {
 }
 
 // Stack frame
-HYDRA_EXPORT void* hydra_debugger_stack_frame_resolve_unmanaged(const void* stack_frame) {
+HYDRA_EXPORT void*
+hydra_debugger_stack_frame_resolve_unmanaged(const void* stack_frame) {
     return new hydra::debugger::ResolvedStackFrame(
         static_cast<const hydra::debugger::StackFrame*>(stack_frame)
             ->Resolve());

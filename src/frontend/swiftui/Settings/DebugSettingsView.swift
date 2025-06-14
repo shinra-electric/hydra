@@ -9,9 +9,11 @@ struct DebugSettingsView: View {
     var body: some View {
         VStack {
             Picker("Logging output", selection: self.$loggingOutput.rawValue) {
-                Text("stdout (for debugging)").tag(
+                Text("none (not recommended)").tag(
+                    HYDRA_LOGGING_OUTPUT_NONE.rawValue)
+                Text("stdout").tag(
                     HYDRA_LOGGING_OUTPUT_STD_OUT.rawValue)
-                Text("file").tag(HYDRA_LOGGING_OUTPUT_FILE.rawValue)
+                Text("file (default)").tag(HYDRA_LOGGING_OUTPUT_FILE.rawValue)
             }
             Toggle("Debug logging", isOn: self.$debugLogging)
             Toggle("Stack trace logging", isOn: self.$stackTraceLogging)

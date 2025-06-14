@@ -32,6 +32,7 @@ typedef enum : uint32_t {
 typedef enum : uint32_t {
     HYDRA_LOGGING_OUTPUT_INVALID = 0,
 
+    HYDRA_LOGGING_OUTPUT_NONE,
     HYDRA_LOGGING_OUTPUT_STD_OUT,
     HYDRA_LOGGING_OUTPUT_FILE,
 } HydraLoggingOutput;

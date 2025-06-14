@@ -118,6 +118,7 @@ void Config::Serialize() {
             {"General", toml::table{}},
             {"CPU", toml::table{}},
             {"Graphics", toml::table{}},
+            {"Audio", toml::table{}},
             {"User", toml::table{}},
             {"Debug", toml::table{}},
         });

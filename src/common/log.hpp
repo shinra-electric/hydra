@@ -79,6 +79,7 @@ constexpr const char* trim_source_path(std::string_view source) {
 enum class LogOutput {
     Invalid = 0,
 
+    None,
     StdOut,
     File,
 };
@@ -163,6 +164,8 @@ class Logger {
         std::unique_lock lock(mutex);
 
         switch (GetOutput()) {
+        case LogOutput::None:
+            break;
         case LogOutput::StdOut:
             // Level
             fmt::terminal_color color;
