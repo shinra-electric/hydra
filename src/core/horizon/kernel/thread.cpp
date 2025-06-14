@@ -1,5 +1,6 @@
 #include "core/horizon/kernel/thread.hpp"
 
+#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
@@ -27,6 +28,8 @@ void Thread::Run() {
     ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
 
     t = new std::thread([&]() {
+        DEBUGGER_INSTANCE.RegisterThisThread("Guest"); // TODO: handle ID?
+
         hw::tegra_x1::cpu::ThreadBase* thread =
             hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
         thread->Initialize(
@@ -40,6 +43,8 @@ void Thread::Run() {
             thread->SetRegX(i, args[i]);
 
         thread->Run();
+
+        DEBUGGER_INSTANCE.UnregisterThisThread();
 
         delete thread;
     });

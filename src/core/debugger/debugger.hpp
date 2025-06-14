@@ -13,6 +13,7 @@ class Thread {
     // API
     void Lock() { msg_mutex.lock(); }
     void Unlock() { msg_mutex.unlock(); }
+
     const std::string& GetName() const { return name; }
     usize GetMessageCount() const { return msg_count; }
     const LogMessage& GetMessage(const u32 index) const {
@@ -35,14 +36,19 @@ class Debugger {
         return s_instance;
     }
 
-    void RegisterThisThread(const std::string_view name);
-    void UnregisterThisThread();
-    void LogOnThisThread(const LogMessage& msg);
+    Debugger();
+    ~Debugger();
 
     // API
-    void InstallCallback();
+    void TryInstallCallback();
+
     void Lock() { thread_mutex.lock(); }
     void Unlock() { thread_mutex.unlock(); }
+
+    // No need to lock the mutex for these
+    void RegisterThisThread(const std::string_view name);
+    void UnregisterThisThread();
+
     usize GetThreadCount() const { return threads.size(); }
     Thread& GetThread(const u32 index) {
         // TODO: not the best way to index into a map
@@ -54,6 +60,8 @@ class Debugger {
   private:
     std::mutex thread_mutex;
     std::map<std::thread::id, Thread> threads;
+
+    void LogOnThisThread(const LogMessage& msg);
 };
 
 } // namespace hydra::debugger

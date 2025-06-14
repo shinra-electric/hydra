@@ -197,13 +197,21 @@ hydra_emulation_context_get_last_delta_time_average(void* ctx) {
 // Debugger
 
 // Debugger
-HYDRA_EXPORT void hydra_debugger_install_callback() {
-    hydra::DEBUGGER_INSTANCE.InstallCallback();
+HYDRA_EXPORT void hydra_debugger_try_install_callback() {
+    hydra::DEBUGGER_INSTANCE.TryInstallCallback();
 }
 
 HYDRA_EXPORT void hydra_debugger_lock() { hydra::DEBUGGER_INSTANCE.Lock(); }
 
 HYDRA_EXPORT void hydra_debugger_unlock() { hydra::DEBUGGER_INSTANCE.Unlock(); }
+
+HYDRA_EXPORT void hydra_debugger_register_this_thread(const char* name) {
+    hydra::DEBUGGER_INSTANCE.RegisterThisThread(name);
+}
+
+HYDRA_EXPORT void hydra_debugger_unregister_this_thread() {
+    hydra::DEBUGGER_INSTANCE.UnregisterThisThread();
+}
 
 HYDRA_EXPORT size_t hydra_debugger_get_thread_count() {
     return hydra::DEBUGGER_INSTANCE.GetThreadCount();

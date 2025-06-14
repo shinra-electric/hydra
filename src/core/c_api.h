@@ -65,7 +65,6 @@ typedef enum : uint32_t {
     HYDRA_LOG_CLASS_HYPERVISOR,
     HYDRA_LOG_CLASS_DYNARMIC,
     HYDRA_LOG_CLASS_INPUT,
-    HYDRA_LOG_CLASS_DEBUGGER,
     HYDRA_LOG_CLASS_OTHER,
 } HydraLogClass;
 
@@ -133,9 +132,11 @@ float hydra_emulation_context_get_last_delta_time_average(void* ctx);
 // Debugger
 
 // Debugger
-void hydra_debugger_install_callback();
+void hydra_debugger_try_install_callback();
 void hydra_debugger_lock();
 void hydra_debugger_unlock();
+void hydra_debugger_register_this_thread(const char* name);
+void hydra_debugger_unregister_this_thread();
 size_t hydra_debugger_get_thread_count();
 void* hydra_debugger_get_thread(uint32_t index);
 

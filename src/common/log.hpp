@@ -112,7 +112,6 @@ enum class LogClass {
     Hypervisor,
     Dynarmic,
     Input,
-    Debugger,
     Other,
 };
 
@@ -128,8 +127,7 @@ ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
                        Loader, "Loader", Services, "Services", Applets,
                        "Applets", Cubeb, "Cubeb", Hypervisor, "Hypervisor",
-                       Dynarmic, "Dynarmic", Input, "input", Debugger,
-                       "debugger", Other, "")
+                       Dynarmic, "Dynarmic", Input, "input", Other, "")
 
 namespace hydra {
 
@@ -148,9 +146,7 @@ class Logger {
   public:
     ~Logger();
 
-#ifdef HYDRA_DEBUG
     void InstallCallback(log_callback_fn_t callback_) { callback = callback_; }
-#endif
 
     template <typename... T>
     void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
@@ -206,21 +202,17 @@ class Logger {
 
         mutex.unlock();
 
-#ifdef HYDRA_DEBUG
         if (callback)
             (*callback)(LogMessage{level, c, std::string(file), line,
                                    std::string(function),
                                    fmt::format(f, std::forward<T>(args)...)});
-#endif
     }
 
   private:
     std::mutex mutex;
     std::ofstream* ofs{nullptr};
 
-#ifdef HYDRA_DEBUG
     std::optional<log_callback_fn_t> callback{};
-#endif
 
     void EnsureOutputStream();
 
