@@ -16,6 +16,10 @@ struct MyApp: App {
             MenuCommands()
         }
 
+        Window("Debugger", id: "debugger") {
+            DebuggerView()
+        }
+
         Settings {
             SettingsView()
         }

@@ -25,7 +25,7 @@
 
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, fmt, ...)                                               \
-    LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
+    LOG(Stub, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 #define LOG_FATAL(c, ...)                                                      \
@@ -86,7 +86,7 @@ enum class LogOutput {
 enum class LogLevel {
     Debug,
     Info,
-    Stubbed,
+    Stub,
     Warning,
     Error,
     Fatal,
@@ -118,7 +118,7 @@ enum class LogClass {
 
 } // namespace hydra
 
-ENABLE_ENUM_FORMATTING(hydra::LogLevel, Debug, "D", Info, "I", Stubbed, "S",
+ENABLE_ENUM_FORMATTING(hydra::LogLevel, Debug, "D", Info, "I", Stub, "S",
                        Warning, "W", Error, "E", Fatal, "F")
 
 ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
@@ -169,7 +169,7 @@ class Logger {
             case LogLevel::Info:
                 color = fmt::terminal_color::white;
                 break;
-            case LogLevel::Stubbed:
+            case LogLevel::Stub:
                 color = fmt::terminal_color::magenta;
                 break;
             case LogLevel::Warning:

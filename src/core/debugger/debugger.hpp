@@ -11,12 +11,10 @@ class Thread {
     void Log(const LogMessage& msg);
 
     // API
-    usize GetMessageCount() const {
-        if (!has_messages)
-            return 0;
-
-        return ((msg_head + messages.size()) - msg_tail) % messages.size();
-    }
+    void Lock() { msg_mutex.lock(); }
+    void Unlock() { msg_mutex.unlock(); }
+    const std::string& GetName() const { return name; }
+    usize GetMessageCount() const { return msg_count; }
     const LogMessage& GetMessage(const u32 index) const {
         return messages[(msg_tail + index) % messages.size()];
     }
@@ -24,10 +22,10 @@ class Thread {
   private:
     std::string name;
 
+    std::mutex msg_mutex;
     std::vector<LogMessage> messages;
-    u32 msg_head{0};
     u32 msg_tail{0};
-    bool has_messages{false};
+    usize msg_count{0};
 };
 
 class Debugger {

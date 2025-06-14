@@ -15,14 +15,17 @@ Thread::Thread(const std::string_view name_) : name{name_} {
 }
 
 void Thread::Log(const LogMessage& msg) {
-    messages[msg_head] = msg;
-    msg_head = (msg_head + 1) % messages.size();
-    has_messages = true;
+    std::unique_lock lock(msg_mutex);
+    messages[(msg_tail + msg_count) % messages.size()] = msg;
+    if (msg_count < messages.size())
+        msg_count++;
+    else
+        msg_tail = (msg_tail + 1) % messages.size();
 }
 
 void Debugger::RegisterThisThread(const std::string_view name) {
     std::unique_lock lock(thread_mutex);
-    threads.insert({std::this_thread::get_id(), Thread(name)});
+    threads.emplace(std::this_thread::get_id(), name);
 }
 
 void Debugger::UnregisterThisThread() {

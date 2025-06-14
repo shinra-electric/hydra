@@ -36,6 +36,39 @@ typedef enum : uint32_t {
     HYDRA_LOGGING_OUTPUT_FILE,
 } HydraLoggingOutput;
 
+typedef enum : uint32_t {
+    HYDRA_LOG_LEVEL_DEBUG,
+    HYDRA_LOG_LEVEL_INFO,
+    HYDRA_LOG_LEVEL_STUB,
+    HYDRA_LOG_LEVEL_WARNING,
+    HYDRA_LOG_LEVEL_ERROR,
+    HYDRA_LOG_LEVEL_FATAL,
+} HydraLogLevel;
+
+typedef enum : uint32_t {
+    HYDRA_LOG_CLASS_COMMON,
+    HYDRA_LOG_CLASS_MMU,
+    HYDRA_LOG_CLASS_CPU,
+    HYDRA_LOG_CLASS_GPU,
+    HYDRA_LOG_CLASS_ENGINES,
+    HYDRA_LOG_CLASS_MACRO,
+    HYDRA_LOG_CLASS_SHADER_DECOMPILER,
+    HYDRA_LOG_CLASS_METAL_RENDERER,
+    HYDRA_LOG_CLASS_SDL3_WINDOW,
+    HYDRA_LOG_CLASS_HORIZON,
+    HYDRA_LOG_CLASS_KERNEL,
+    HYDRA_LOG_CLASS_FILESYSTEM,
+    HYDRA_LOG_CLASS_LOADER,
+    HYDRA_LOG_CLASS_SERVICES,
+    HYDRA_LOG_CLASS_APPLETS,
+    HYDRA_LOG_CLASS_CUBEB,
+    HYDRA_LOG_CLASS_HYPERVISOR,
+    HYDRA_LOG_CLASS_DYNARMIC,
+    HYDRA_LOG_CLASS_INPUT,
+    HYDRA_LOG_CLASS_DEBUGGER,
+    HYDRA_LOG_CLASS_OTHER,
+} HydraLogClass;
+
 // Options
 bool hydra_bool_option_get(const void* option);
 void hydra_bool_option_set(void* option, const bool value);
@@ -96,6 +129,30 @@ float hydra_emulation_context_get_last_delta_time_average(void* ctx);
 
 // Input
 // TODO
+
+// Debugger
+
+// Debugger
+void hydra_debugger_install_callback();
+void hydra_debugger_lock();
+void hydra_debugger_unlock();
+size_t hydra_debugger_get_thread_count();
+void* hydra_debugger_get_thread(uint32_t index);
+
+// Thread
+void hydra_debugger_thread_lock(void* thread);
+void hydra_debugger_thread_unlock(void* thread);
+const char* hydra_debugger_thread_get_name(void* thread);
+size_t hydra_debugger_thread_get_message_count(void* thread);
+const void* hydra_debugger_thread_get_message(void* thread, uint32_t index);
+
+// Message
+HydraLogLevel hydra_debugger_message_get_log_level(const void* msg);
+HydraLogClass hydra_debugger_message_get_log_class(const void* msg);
+const char* hydra_debugger_message_get_file(const void* msg);
+uint32_t hydra_debugger_message_get_line(const void* msg);
+const char* hydra_debugger_message_get_function(const void* msg);
+const char* hydra_debugger_message_get_string(const void* msg);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include "core/c_api.h"
 
+#include "core/debugger/debugger.hpp"
 #include "core/emulation_context.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
@@ -191,4 +192,74 @@ HYDRA_EXPORT float
 hydra_emulation_context_get_last_delta_time_average(void* ctx) {
     return static_cast<hydra::EmulationContext*>(ctx)
         ->GetLastDeltaTimeAverage();
+}
+
+// Debugger
+
+// Debugger
+HYDRA_EXPORT void hydra_debugger_install_callback() {
+    hydra::DEBUGGER_INSTANCE.InstallCallback();
+}
+
+HYDRA_EXPORT void hydra_debugger_lock() { hydra::DEBUGGER_INSTANCE.Lock(); }
+
+HYDRA_EXPORT void hydra_debugger_unlock() { hydra::DEBUGGER_INSTANCE.Unlock(); }
+
+HYDRA_EXPORT size_t hydra_debugger_get_thread_count() {
+    return hydra::DEBUGGER_INSTANCE.GetThreadCount();
+}
+
+HYDRA_EXPORT void* hydra_debugger_get_thread(uint32_t index) {
+    return &hydra::DEBUGGER_INSTANCE.GetThread(index);
+}
+
+// Thread
+HYDRA_EXPORT void hydra_debugger_thread_lock(void* thread) {
+    static_cast<hydra::debugger::Thread*>(thread)->Lock();
+}
+
+HYDRA_EXPORT void hydra_debugger_thread_unlock(void* thread) {
+    static_cast<hydra::debugger::Thread*>(thread)->Unlock();
+}
+
+HYDRA_EXPORT const char* hydra_debugger_thread_get_name(void* thread) {
+    return static_cast<hydra::debugger::Thread*>(thread)->GetName().c_str();
+}
+
+HYDRA_EXPORT size_t hydra_debugger_thread_get_message_count(void* thread) {
+    return static_cast<hydra::debugger::Thread*>(thread)->GetMessageCount();
+}
+
+HYDRA_EXPORT const void* hydra_debugger_thread_get_message(void* thread,
+                                                           uint32_t index) {
+    return &static_cast<hydra::debugger::Thread*>(thread)->GetMessage(index);
+}
+
+// Message
+HYDRA_EXPORT HydraLogLevel
+hydra_debugger_message_get_log_level(const void* msg) {
+    return static_cast<HydraLogLevel>(
+        static_cast<const hydra::LogMessage*>(msg)->level);
+}
+
+HYDRA_EXPORT HydraLogClass
+hydra_debugger_message_get_log_class(const void* msg) {
+    return static_cast<HydraLogClass>(
+        static_cast<const hydra::LogMessage*>(msg)->c);
+}
+
+HYDRA_EXPORT const char* hydra_debugger_message_get_file(const void* msg) {
+    return static_cast<const hydra::LogMessage*>(msg)->file.c_str();
+}
+
+HYDRA_EXPORT uint32_t hydra_debugger_message_get_line(const void* msg) {
+    return static_cast<const hydra::LogMessage*>(msg)->line;
+}
+
+HYDRA_EXPORT const char* hydra_debugger_message_get_function(const void* msg) {
+    return static_cast<const hydra::LogMessage*>(msg)->function.c_str();
+}
+
+HYDRA_EXPORT const char* hydra_debugger_message_get_string(const void* msg) {
+    return static_cast<const hydra::LogMessage*>(msg)->str.c_str();
 }
