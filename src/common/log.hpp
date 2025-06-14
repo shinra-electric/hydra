@@ -10,8 +10,8 @@
 #include "common/type_aliases.hpp"
 
 #define LOG(level, c, ...)                                                     \
-    g_logger.Log(Level::level, Class::c, trim_source_path(__FILE__), __LINE__, \
-                 __func__, __VA_ARGS__)
+    g_logger.Log(LogLevel::level, LogClass::c, trim_source_path(__FILE__),     \
+                 __LINE__, __func__, __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
@@ -25,7 +25,7 @@
 
 #define LOG_INFO(c, ...) LOG(Info, c, __VA_ARGS__)
 #define LOG_STUBBED(c, fmt, ...)                                               \
-    LOG(Stubbed, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
+    LOG(Stub, c, fmt " stubbed" PASS_VA_ARGS(__VA_ARGS__))
 #define LOG_WARN(c, ...) LOG(Warning, c, __VA_ARGS__)
 #define LOG_ERROR(c, ...) LOG(Error, c, __VA_ARGS__)
 #define LOG_FATAL(c, ...)                                                      \
@@ -76,23 +76,24 @@ constexpr const char* trim_source_path(std::string_view source) {
 }
 
 // TODO: move this to config
-enum class Output {
+enum class LogOutput {
     Invalid = 0,
 
+    None,
     StdOut,
     File,
 };
 
-enum class Level {
+enum class LogLevel {
     Debug,
     Info,
-    Stubbed,
+    Stub,
     Warning,
     Error,
     Fatal,
 };
 
-enum class Class {
+enum class LogClass {
     Common,
     MMU,
     CPU,
@@ -117,11 +118,11 @@ enum class Class {
 
 } // namespace hydra
 
-ENABLE_ENUM_FORMATTING(hydra::Level, Debug, "D", Info, "I", Stubbed, "S",
+ENABLE_ENUM_FORMATTING(hydra::LogLevel, Debug, "D", Info, "I", Stub, "S",
                        Warning, "W", Error, "E", Fatal, "F")
 
-ENABLE_ENUM_FORMATTING(hydra::Class, Common, "Common", MMU, "MMU", CPU, "CPU",
-                       GPU, "GPU", Engines, "Engines", Macro, "Macro",
+ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
+                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
@@ -131,37 +132,60 @@ ENABLE_ENUM_FORMATTING(hydra::Class, Common, "Common", MMU, "MMU", CPU, "CPU",
 
 namespace hydra {
 
+struct LogMessage {
+    LogLevel level;
+    LogClass c;
+    std::string file;
+    u32 line;
+    std::string function;
+    std::string str;
+};
+
+typedef std::function<void(const LogMessage&)> log_callback_fn_t;
+
 class Logger {
   public:
     ~Logger();
 
+    void InstallCallback(log_callback_fn_t callback_) {
+        std::unique_lock lock(mutex);
+        callback = callback_;
+    }
+
+    void UninstallCallback() {
+        std::unique_lock lock(mutex);
+        callback = std::nullopt;
+    }
+
     template <typename... T>
-    void Log(Level level, Class c, const std::string_view file, u32 line,
-             const std::string_view function, fmt::format_string<T...> fmt,
+    void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
+             const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
-        mutex.lock();
+        std::unique_lock lock(mutex);
 
         switch (GetOutput()) {
-        case Output::StdOut:
+        case LogOutput::None:
+            break;
+        case LogOutput::StdOut:
             // Level
             fmt::terminal_color color;
             switch (level) {
-            case Level::Debug:
+            case LogLevel::Debug:
                 color = fmt::terminal_color::cyan;
                 break;
-            case Level::Info:
+            case LogLevel::Info:
                 color = fmt::terminal_color::white;
                 break;
-            case Level::Stubbed:
+            case LogLevel::Stub:
                 color = fmt::terminal_color::magenta;
                 break;
-            case Level::Warning:
+            case LogLevel::Warning:
                 color = fmt::terminal_color::bright_yellow;
                 break;
-            case Level::Error:
+            case LogLevel::Error:
                 color = fmt::terminal_color::bright_red;
                 break;
-            case Level::Fatal:
+            case LogLevel::Fatal:
                 color = fmt::terminal_color::red;
                 break;
             }
@@ -172,14 +196,14 @@ class Logger {
                        function, fmt::format("{}:{}", file, line));
 
             // Message
-            fmt::print(fmt, std::forward<T>(args)...);
+            fmt::print(f, std::forward<T>(args)...);
             fmt::print("\n");
             break;
-        case Output::File:
+        case LogOutput::File:
             EnsureOutputStream();
 
             fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
-            fmt::print(*ofs, fmt, std::forward<T>(args)...);
+            fmt::print(*ofs, f, std::forward<T>(args)...);
             fmt::print(*ofs, "\n");
             break;
         default:
@@ -187,17 +211,22 @@ class Logger {
             break;
         }
 
-        mutex.unlock();
+        if (callback)
+            (*callback)(LogMessage{level, c, std::string(file), line,
+                                   std::string(function),
+                                   fmt::format(f, std::forward<T>(args)...)});
     }
 
   private:
     std::mutex mutex;
     std::ofstream* ofs{nullptr};
 
+    std::optional<log_callback_fn_t> callback{};
+
     void EnsureOutputStream();
 
     // HACK
-    static Output GetOutput();
+    static LogOutput GetOutput();
 };
 
 extern Logger g_logger;

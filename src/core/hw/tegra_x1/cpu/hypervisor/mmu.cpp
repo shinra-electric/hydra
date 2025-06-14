@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
+#include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/memory.hpp"
 
@@ -100,6 +101,15 @@ MMU::MMU()
     memcpy(
         reinterpret_cast<void*>(kernel_mem_ptr + EXCEPTION_TRAMPOLINE_OFFSET),
         exception_trampoline, sizeof(exception_trampoline));
+
+    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+        {"Hypervisor::handler",
+         range<vaddr_t>(KERNEL_REGION_BASE, KERNEL_REGION_BASE + 0x800)});
+    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+        {"Hypervisor::trampoline",
+         range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
+                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
+                            sizeof(exception_trampoline))});
 }
 
 MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }

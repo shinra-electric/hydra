@@ -140,8 +140,6 @@ void Thread::Run() {
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
-            LogStackTrace();
-
             u64 syndrome = exit->exception.syndrome;
             const auto hv_ec =
                 static_cast<ExceptionClass>((syndrome >> 26) & 0x3f);
@@ -266,35 +264,6 @@ void Thread::LogRegisters(bool simd, u32 count) {
         }
     }
     LOG_DEBUG(Hypervisor, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
-}
-
-void Thread::LogStackTraceImpl() {
-    u64 fp = GetReg(HV_REG_FP);
-    u64 lr = GetReg(HV_REG_LR);
-    u64 sp = GetSysReg(HV_SYS_REG_SP_EL0);
-
-    LOG_DEBUG(Hypervisor, "Stack trace:");
-    LOG_DEBUG(Hypervisor, "0x{:08x}", GetReg(HV_REG_PC));
-    LOG_DEBUG(Hypervisor, "0x{:08x}", GetSysReg(HV_SYS_REG_ELR_EL1));
-
-    for (uint64_t frame = 0; fp != 0; frame++) {
-        LOG_DEBUG(Hypervisor, "0x{:08x}", lr - 0x4);
-        if (frame == MAX_STACK_TRACE_DEPTH - 1) {
-            LOG_DEBUG(Hypervisor, "... (more frames)");
-            break;
-        }
-
-        // HACK
-        // if (fp < 0x10000000 || fp >= 0x20000000) {
-        //    LOG_WARN(Hypervisor, "Currputed stack");
-        //    break;
-        //}
-
-        u64 new_fp = mmu->Load<u64>(fp);
-        lr = mmu->Load<u64>(fp + 8);
-
-        fp = new_fp;
-    }
 }
 
 void Thread::InstructionTrap(u32 esr) {

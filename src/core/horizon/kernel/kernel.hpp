@@ -34,8 +34,9 @@ class Kernel {
     uptr CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
                          bool add_guard_page, vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
-    uptr CreateExecutableMemory(usize size, MemoryPermission perm,
-                                bool add_guard_page, vaddr_t& out_base);
+    uptr CreateExecutableMemory(const std::string_view module_name, usize size,
+                                MemoryPermission perm, bool add_guard_page,
+                                vaddr_t& out_base);
 
     void ConnectServiceToPort(const std::string& port_name,
                               ServiceBase* service) {

@@ -12,6 +12,16 @@ class MetalLayerCoordinator: NSObject {
     init(emulationContext: Binding<UnsafeMutableRawPointer?>) {
         self.emulationContext = emulationContext
         super.init()
+
+        // TODO: probably not the best way to do this, but it works
+        let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
+        dispatchQueue.async {
+            hydra_debugger_register_this_thread("Display")
+            while true {
+                self.handleDisplayLink()
+            }
+            hydra_debugger_unregister_this_thread()
+        }
     }
 
     deinit {
@@ -27,14 +37,6 @@ class MetalLayerCoordinator: NSObject {
         // Display link
         //self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
         //self.displayLink?.add(to: .main, forMode: .common)
-
-        // TODO: probably not the best way to do this, but it works
-        let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
-        dispatchQueue.async {
-            while true {
-                self.handleDisplayLink()
-            }
-        }
     }
 
     @objc func handleDisplayLink() {

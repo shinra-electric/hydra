@@ -267,6 +267,7 @@ add_library(hydra-core
     hw/tegra_x1/cpu/memory_base.hpp
     hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
+    hw/tegra_x1/cpu/thread_base.cpp
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.cpp
     hw/tegra_x1/cpu/cpu_base.hpp
@@ -410,6 +411,9 @@ add_library(hydra-core
     input/apple_gc/keyboard.hpp
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
+    # TODO: only build the debugger on debug builds
+    debugger/debugger.cpp
+    debugger/debugger.hpp
     emulation_context.cpp
     emulation_context.hpp
     c_api.cpp

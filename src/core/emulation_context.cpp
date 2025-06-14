@@ -100,7 +100,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
     if (extension == "nro") {
         loader = new horizon::loader::NroLoader(reader);
     } else if (extension == "nso") {
-        loader = new horizon::loader::NsoLoader(reader, true);
+        loader = new horizon::loader::NsoLoader(reader);
     } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(reader);
     } else {

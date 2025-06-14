@@ -2,8 +2,13 @@ import SwiftUI
 
 @main
 struct MyApp: App {
+    // TODO: if macOS
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     init() {
         hydra_config_initialize()
+        // TODO: only enable if enabled in the config
+        hydra_debugger_enable()
     }
 
     var body: some Scene {
@@ -15,6 +20,11 @@ struct MyApp: App {
         .commands {
             MenuCommands()
         }
+
+        Window("Debugger", id: "debugger") {
+            DebuggerView()
+        }
+        .defaultLaunchBehavior(.suppressed)
 
         Settings {
             SettingsView()

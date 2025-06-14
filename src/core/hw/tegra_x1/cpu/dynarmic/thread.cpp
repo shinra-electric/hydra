@@ -61,35 +61,6 @@ void Thread::LogRegisters(bool simd, u32 count) {
     LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
 }
 
-void Thread::LogStackTraceImpl() {
-    u64 fp = jit->GetRegister(29);
-    u64 lr = jit->GetRegister(30);
-    u64 sp = jit->GetSP();
-
-    LOG_DEBUG(CPU, "Stack trace:");
-    LOG_DEBUG(CPU, "0x{:08x}", jit->GetPC());
-    // TODO: ELR?
-
-    for (uint64_t frame = 0; fp != 0; frame++) {
-        LOG_DEBUG(CPU, "0x{:08x}", lr - 0x4);
-        if (frame == MAX_STACK_TRACE_DEPTH - 1) {
-            LOG_DEBUG(CPU, "... (more frames)");
-            break;
-        }
-
-        // HACK
-        // if (fp < 0x10000000 || fp >= 0x20000000) {
-        //    LOG_WARN(Hypervisor, "Currputed stack");
-        //    break;
-        //}
-
-        u64 new_fp = mmu->Load<u64>(fp);
-        lr = mmu->Load<u64>(fp + 8);
-
-        fp = new_fp;
-    }
-}
-
 u8 Thread::MemoryRead8(u64 addr) { return mmu->Load<u8>(addr); }
 
 u16 Thread::MemoryRead16(u64 addr) { return mmu->Load<u16>(addr); }
@@ -145,15 +116,12 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 }
 
 void Thread::CallSVC(u32 svc) {
-    LogStackTrace();
     bool running = svc_handler(this, svc);
     if (!running)
         jit->HaltExecution();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
-    LogStackTrace();
-
     // TODO: handle the exception
     LOG_FATAL(Dynarmic, "Exception");
 }

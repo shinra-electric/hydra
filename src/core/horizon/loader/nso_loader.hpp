@@ -12,12 +12,14 @@ struct Segment {
 
 class NsoLoader : public LoaderBase {
   public:
-    NsoLoader(StreamReader reader, const bool is_entry_point_);
+    NsoLoader(StreamReader reader, const std::string_view name_ = "main",
+              const bool is_entry_point_ = true);
 
     kernel::Process* LoadProcess(StreamReader reader,
                                  const std::string_view rom_filename) override;
 
   private:
+    std::string name;
     const bool is_entry_point;
 
     u32 text_offset;
@@ -27,6 +29,10 @@ class NsoLoader : public LoaderBase {
         usize file_size;
         bool compressed;
     } segments[3];
+    u32 dyn_str_offset;
+    u32 dyn_str_size;
+    u32 dyn_sym_offset;
+    u32 dyn_sym_size;
 };
 
 } // namespace hydra::horizon::loader

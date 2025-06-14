@@ -125,7 +125,7 @@ class Config {
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
-    Option<Output>& GetLoggingOutput() { return logging_output; }
+    Option<LogOutput>& GetLoggingOutput() { return logging_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
@@ -145,10 +145,10 @@ class Config {
     Option<ShaderBackend> shader_backend;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
-    Option<Output> logging_output =
-        Output::StdOut; // Set to stdout so that messages logged
-                        // before logs path is initialized get logged
-                        // properly
+    Option<LogOutput> logging_output =
+        LogOutput::StdOut; // Set to stdout so that messages logged
+                           // before logs path is initialized get logged
+                           // properly
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
     Option<bool> stack_trace_logging;
@@ -174,7 +174,7 @@ class Config {
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
     }
-    Output GetDefaultLoggingOutput() const { return Output::File; }
+    LogOutput GetDefaultLoggingOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
     bool GetDefaultStackTraceLogging() const { return false; }
@@ -211,5 +211,5 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
-ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Output, output, StdOut, "stdout",
-                                   File, "file")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",
+                                   StdOut, "stdout", File, "file")

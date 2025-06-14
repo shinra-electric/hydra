@@ -1,5 +1,7 @@
 #include "core/horizon/applets/applet_base.hpp"
 
+#include "core/debugger/debugger.hpp"
+
 namespace hydra::horizon::applets {
 
 namespace {
@@ -23,8 +25,10 @@ void AppletBase::Start() {
            "Invalid struct size 0x{:x}", common_args.size);
 
     thread = new std::thread([&]() {
+        DEBUGGER_INSTANCE.RegisterThisThread("Applet");
         result = Run();
         state_changed_event.handle->Signal();
+        DEBUGGER_INSTANCE.UnregisterThisThread();
     });
 }
 

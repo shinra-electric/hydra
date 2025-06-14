@@ -1,7 +1,7 @@
 #include "frontend/sdl3/window.hpp"
 
 int main(int argc, const char* argv[]) {
-    // Config
+    // Initialize
     hydra::CONFIG_INSTANCE.Initialize();
 
     // Window

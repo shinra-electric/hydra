@@ -52,7 +52,7 @@ kernel::Process* Pfs0Loader::LoadProcess(StreamReader reader,
         } else {
             reader.Seek(entries_offset + entry.offset);
             auto nso_reader = reader.CreateSubReader(entry.size);
-            NsoLoader loader(nso_reader, entry_name == "rtld");
+            NsoLoader loader(nso_reader, entry_name, entry_name == "rtld");
             auto process_ = loader.LoadProcess(nso_reader, rom_filename);
             if (process_)
                 CHECK_AND_SET_PROCESS(process, process_);

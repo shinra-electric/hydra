@@ -1,5 +1,6 @@
 #include "core/horizon/kernel/thread.hpp"
 
+#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
@@ -29,17 +30,23 @@ void Thread::Run() {
     t = new std::thread([&]() {
         hw::tegra_x1::cpu::ThreadBase* thread =
             hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
+
+        DEBUGGER_INSTANCE.RegisterThisThread("Guest",
+                                             thread); // TODO: handle ID?
+
         thread->Initialize(
             [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
                 return KERNEL_INSTANCE.SupervisorCall(this, thread, id);
             },
             tls_addr, stack_top_addr);
 
-        thread->SetRegPC(entry_point);
+        thread->SetPC(entry_point);
         for (u32 i = 0; i < sizeof_array(args); i++)
             thread->SetRegX(i, args[i]);
 
         thread->Run();
+
+        DEBUGGER_INSTANCE.UnregisterThisThread();
 
         delete thread;
     });

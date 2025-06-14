@@ -1,5 +1,7 @@
 #include "core/horizon/services/audio/audio_renderer.hpp"
 
+#include "core/debugger/debugger.hpp"
+
 namespace hydra::horizon::services::audio {
 
 namespace {
@@ -156,10 +158,12 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
 
     // HACK: create a thread that signals the handle every so often
     auto t = new std::thread([&]() {
+        DEBUGGER_INSTANCE.RegisterThisThread("Audren signal");
         while (true) {
             event.handle->Signal();
             std::this_thread::sleep_for(std::chrono::microseconds(2));
         }
+        DEBUGGER_INSTANCE.UnregisterThisThread();
     });
 }
 
