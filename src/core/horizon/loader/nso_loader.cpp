@@ -1,6 +1,8 @@
 #include "core/horizon/loader/nso_loader.hpp"
 
+#include "common/elf.h"
 #include "common/lz4.hpp"
+#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 
@@ -118,6 +120,11 @@ NsoLoader::NsoLoader(StreamReader reader, const std::string_view name_,
                    any(header.flags & NsoFlags::RoCompressed)};
     segments[2] = {header.data, header.data_file_size,
                    any(header.flags & NsoFlags::DataCompressed)};
+
+    dyn_str_offset = header.dyn_str_offset;
+    dyn_str_size = header.dyn_str_size;
+    dyn_sym_offset = header.dyn_sym_offset;
+    dyn_sym_size = header.dyn_sym_size;
 }
 
 kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
@@ -161,7 +168,37 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
 #endif
 
     // Debug symbols
-    // TODO
+
+    // .dynamic
+    // TODO: link
+
+    // .dynstr
+    std::string dyn_str;
+    dyn_str.resize(dyn_str_size);
+    memcpy(dyn_str.data(),
+           reinterpret_cast<char*>(ptr + segments[1].seg.memory_offset +
+                                   dyn_str_offset),
+           dyn_str_size);
+
+    // .dynsym
+    std::vector<Elf64_Sym> dyn_sym;
+    dyn_sym.resize(dyn_sym_size / sizeof(Elf64_Sym));
+    memcpy(dyn_sym.data(),
+           reinterpret_cast<char*>(ptr + segments[1].seg.memory_offset +
+                                   dyn_sym_offset),
+           dyn_sym_size);
+
+    // Register
+    for (const auto& symbol : dyn_sym) {
+        std::string_view name(dyn_str.data() + symbol.st_name);
+        if (symbol.st_shndx != 0) {
+            // TODO: demangle the name
+            DEBUGGER_INSTANCE.GetFunctionTable().RegisterSymbol(
+                {std::string(name),
+                 range<vaddr_t>(base + symbol.st_value,
+                                base + symbol.st_value + symbol.st_size)});
+        }
+    }
 
     // Process
     if (is_entry_point) {

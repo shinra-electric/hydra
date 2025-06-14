@@ -18,6 +18,7 @@ add_library(hydra-common
     config.cpp
     config.hpp
     common.hpp
+    elf.h
 )
 target_precompile_headers(hydra-common PUBLIC common.hpp)
 
