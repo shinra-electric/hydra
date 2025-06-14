@@ -169,6 +169,8 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
 
     // Debug symbols
 
+    // TODO: the ROM may also contain DWARF symbols?
+
     // .dynamic
     // TODO: link
 
@@ -192,9 +194,8 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
     for (const auto& symbol : dyn_sym) {
         std::string_view name(dyn_str.data() + symbol.st_name);
         if (symbol.st_shndx != 0) {
-            // TODO: demangle the name
             DEBUGGER_INSTANCE.GetFunctionTable().RegisterSymbol(
-                {std::string(name),
+                {demangle(std::string(name)),
                  range<vaddr_t>(base + symbol.st_value,
                                 base + symbol.st_value + symbol.st_size)});
         }

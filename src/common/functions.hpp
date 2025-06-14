@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <cxxabi.h>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,6 +119,19 @@ template <typename T> void push_unique(std::vector<T>& vec, T value) {
                            [&](const T v) { return v == value; });
     if (it == vec.end())
         vec.push_back(value);
+}
+
+inline std::string demangle(const char* mangled_name) {
+    i32 status;
+    std::unique_ptr<char, void (*)(void*)> result{
+        abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status),
+        std::free};
+
+    return (status == 0) ? result.get() : mangled_name;
+}
+
+inline std::string demangle(const std::string& mangled_name) {
+    return demangle(mangled_name.c_str());
 }
 
 } // namespace hydra
