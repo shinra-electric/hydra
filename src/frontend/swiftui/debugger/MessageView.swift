@@ -47,9 +47,6 @@ struct MessageView: View {
                 }
             }
         }
-        .onDisappear {
-            hydra_debugger_stack_trace_destroy(self.message.stack_trace)
-        }
     }
 
     func getStackFrame(index: UInt32) -> String {

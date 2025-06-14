@@ -15,8 +15,7 @@ struct ThreadDebuggerView: View {
                     .ignoresSafeArea()
 
                 ScrollView(.vertical) {
-                    // TODO: lazy
-                    /*Lazy*/VStack {
+                    LazyVStack {
                         ForEach(self.messages, id: \.self) { msg in
                             MessageView(message: msg)
                         }
@@ -27,6 +26,11 @@ struct ThreadDebuggerView: View {
         .frame(height: 500)
         .onAppear {
             load()
+        }
+        .onDisappear {
+            for msg in self.messages {
+                hydra_debugger_stack_trace_destroy(msg.stack_trace)
+            }
         }
     }
 
