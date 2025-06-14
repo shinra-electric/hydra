@@ -73,6 +73,11 @@ void Debugger::UnregisterThisThread() {
     threads.erase(it);
 }
 
+void Debugger::BreakOnThisThread() {
+    // TODO: abort after the debugger is closed?
+    std::this_thread::sleep_for(std::chrono::years(0xffffffff));
+}
+
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     auto stack_trace = GetStackTrace(thread);

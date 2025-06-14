@@ -243,9 +243,6 @@ bool Kernel::SupervisorCall(Thread* thread,
         guest_thread->SetRegX(1, tmp_u64);
         break;
     case 0x26:
-        // Debug
-        guest_thread->LogRegisters();
-
         res = svcBreak(BreakReason(guest_thread->GetRegX(0)),
                        mmu->UnmapAddr(guest_thread->GetRegX(1)),
                        guest_thread->GetRegX(2));
@@ -982,7 +979,7 @@ result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
     }
 
     if (!reason.notification_only)
-        throw;
+        DEBUGGER_INSTANCE.BreakOnThisThread();
 
     return RESULT_SUCCESS;
 }

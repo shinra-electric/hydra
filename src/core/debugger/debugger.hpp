@@ -101,21 +101,22 @@ class Debugger {
     Debugger();
     ~Debugger();
 
-    SymbolTable& GetModuleTable() { return module_table; }
-    SymbolTable& GetFunctionTable() { return function_table; }
-
-    // API
     void Enable();
     void Disable();
 
-    void Lock() { thread_mutex.lock(); }
-    void Unlock() { thread_mutex.unlock(); }
-
-    // No need to lock the mutex for these
     void
     RegisterThisThread(const std::string_view name,
                        hw::tegra_x1::cpu::ThreadBase* guest_thread = nullptr);
     void UnregisterThisThread();
+
+    void BreakOnThisThread();
+
+    SymbolTable& GetModuleTable() { return module_table; }
+    SymbolTable& GetFunctionTable() { return function_table; }
+
+    // API
+    void Lock() { thread_mutex.lock(); }
+    void Unlock() { thread_mutex.unlock(); }
 
     usize GetThreadCount() const { return threads.size(); }
     Thread& GetThread(const u32 index) {

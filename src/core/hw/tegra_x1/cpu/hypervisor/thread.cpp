@@ -3,6 +3,7 @@
 #include <mach/mach_time.h>
 #include <thread>
 
+#include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
@@ -175,7 +176,7 @@ void Thread::Run() {
                     break;
                 }
                 default:
-                    LOG_FATAL(
+                    LOG_ERROR(
                         Hypervisor,
                         "Unknown HVC code (EC: {}, ESR: 0x{:08x}, PC: "
                         "0x{:08x}, FAR: "
@@ -185,6 +186,9 @@ void Thread::Run() {
                         GetSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
                         exit->exception.physical_address, instruction);
+
+                    DEBUGGER_INSTANCE.BreakOnThisThread();
+
                     break;
                 }
 
@@ -208,10 +212,7 @@ void Thread::Run() {
                 AdvancePC();
                 break;
             default:
-                // Debug
-                LogRegisters();
-
-                LOG_FATAL(Hypervisor,
+                LOG_ERROR(Hypervisor,
                           "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
                           "0x{:08x}, PC: 0x{:08x}, "
                           "VA: "
@@ -228,7 +229,7 @@ void Thread::Run() {
             UpdateVTimer();
         } else {
             // TODO: don't cast to u32
-            LOG_FATAL(Hypervisor, "Unexpected VM exit reason {}",
+            LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       (u32)exit->reason);
             break;
         }
