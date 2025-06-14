@@ -28,10 +28,18 @@ Debugger::Debugger() { RegisterThisThread("Main"); }
 
 Debugger::~Debugger() { UnregisterThisThread(); }
 
-void Debugger::TryInstallCallback() {
-    // TODO: only install if debugger is enabled
+void Debugger::Enable() {
     g_logger.InstallCallback(
         [this](const LogMessage& msg) { LogOnThisThread(msg); });
+}
+
+void Debugger::Disable() {
+    std::unique_lock lock(thread_mutex);
+    g_logger.UninstallCallback();
+    for (auto& [id, thread] : threads) {
+        std::unique_lock lock(thread.msg_mutex);
+        thread.messages.clear();
+    }
 }
 
 void Debugger::RegisterThisThread(const std::string_view name) {

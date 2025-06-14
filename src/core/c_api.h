@@ -132,7 +132,8 @@ float hydra_emulation_context_get_last_delta_time_average(void* ctx);
 // Debugger
 
 // Debugger
-void hydra_debugger_try_install_callback();
+void hydra_debugger_enable();
+void hydra_debugger_disable();
 void hydra_debugger_lock();
 void hydra_debugger_unlock();
 void hydra_debugger_register_this_thread(const char* name);

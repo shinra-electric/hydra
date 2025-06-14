@@ -146,13 +146,21 @@ class Logger {
   public:
     ~Logger();
 
-    void InstallCallback(log_callback_fn_t callback_) { callback = callback_; }
+    void InstallCallback(log_callback_fn_t callback_) {
+        std::unique_lock lock(mutex);
+        callback = callback_;
+    }
+
+    void UninstallCallback() {
+        std::unique_lock lock(mutex);
+        callback = std::nullopt;
+    }
 
     template <typename... T>
     void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
-        mutex.lock();
+        std::unique_lock lock(mutex);
 
         switch (GetOutput()) {
         case LogOutput::StdOut:
@@ -199,8 +207,6 @@ class Logger {
             throw std::runtime_error("Invalid logging output");
             break;
         }
-
-        mutex.unlock();
 
         if (callback)
             (*callback)(LogMessage{level, c, std::string(file), line,

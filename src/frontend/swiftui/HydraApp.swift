@@ -4,7 +4,8 @@ import SwiftUI
 struct MyApp: App {
     init() {
         hydra_config_initialize()
-        hydra_debugger_try_install_callback()
+        // TODO: only enable if enabled in the config
+        hydra_debugger_enable()
     }
 
     var body: some Scene {

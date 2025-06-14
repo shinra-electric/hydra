@@ -197,8 +197,10 @@ hydra_emulation_context_get_last_delta_time_average(void* ctx) {
 // Debugger
 
 // Debugger
-HYDRA_EXPORT void hydra_debugger_try_install_callback() {
-    hydra::DEBUGGER_INSTANCE.TryInstallCallback();
+HYDRA_EXPORT void hydra_debugger_enable() { hydra::DEBUGGER_INSTANCE.Enable(); }
+
+HYDRA_EXPORT void hydra_debugger_disable() {
+    hydra::DEBUGGER_INSTANCE.Disable();
 }
 
 HYDRA_EXPORT void hydra_debugger_lock() { hydra::DEBUGGER_INSTANCE.Lock(); }

@@ -4,8 +4,14 @@ struct DebuggerView: View {
     @State var threads: [UnsafeMutableRawPointer] = []
 
     var body: some View {
-        ForEach(self.threads, id: \.self) { thread in
-            ThreadDebuggerView(thread: thread)
+        ScrollView(.vertical) {
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(minimum: 300)), count: 4), spacing: 10
+            ) {
+                ForEach(self.threads, id: \.self) { thread in
+                    ThreadDebuggerView(thread: thread)
+                }
+            }
         }
         .onAppear {
             load()

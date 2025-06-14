@@ -5,6 +5,8 @@
 namespace hydra::debugger {
 
 class Thread {
+    friend class Debugger;
+
   public:
     Thread(const std::string_view name_);
 
@@ -40,7 +42,8 @@ class Debugger {
     ~Debugger();
 
     // API
-    void TryInstallCallback();
+    void Enable();
+    void Disable();
 
     void Lock() { thread_mutex.lock(); }
     void Unlock() { thread_mutex.unlock(); }
