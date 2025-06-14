@@ -83,8 +83,9 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-NsoLoader::NsoLoader(StreamReader reader, const bool is_entry_point_)
-    : is_entry_point{is_entry_point_} {
+NsoLoader::NsoLoader(StreamReader reader, const std::string_view name_,
+                     const bool is_entry_point_)
+    : name{name_}, is_entry_point{is_entry_point_} {
     // Header
     const auto header = reader.Read<NsoHeader>();
     ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
@@ -124,7 +125,8 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
     // Create executable memory
     vaddr_t base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
-        executable_size, kernel::MemoryPermission::ReadExecute, false, base);
+        fmt::format("{}.nso", name), executable_size,
+        kernel::MemoryPermission::ReadExecute, false, base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments
@@ -157,6 +159,9 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
     out.write(reinterpret_cast<const char*>(ptr), executable_size);
     out.close();
 #endif
+
+    // Debug symbols
+    // TODO
 
     // Process
     if (is_entry_point) {

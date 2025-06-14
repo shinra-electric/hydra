@@ -23,6 +23,8 @@ template <typename T> struct range {
         return begin == other.begin && end == other.end;
     }
 
+    bool Contains(const T v) const { return v >= begin && v < end; }
+
     // Getters
     T GetBegin() const { return begin; }
     T GetEnd() const { return end; }

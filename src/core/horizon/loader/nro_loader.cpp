@@ -67,8 +67,10 @@ kernel::Process* NroLoader::LoadProcess(StreamReader reader,
     // Create executable memory
     usize executable_size = reader.GetSize() + bss_size;
     uptr base;
+    // TODO: module name
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
-        executable_size, kernel::MemoryPermission::ReadWriteExecute, true,
+        "main.nro", executable_size, kernel::MemoryPermission::ReadWriteExecute,
+        true,
         base); // TODO: is the permission correct?
     reader.Seek(0);
     reader.ReadPtr(reinterpret_cast<u8*>(ptr), reader.GetSize());
@@ -122,6 +124,9 @@ kernel::Process* NroLoader::LoadProcess(StreamReader reader,
                                  reader.GetOffset(), false));
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS entry: {}", res);
+
+    // Debug symbols
+    // TODO
 
     // Process
     kernel::Process* process = new kernel::Process();

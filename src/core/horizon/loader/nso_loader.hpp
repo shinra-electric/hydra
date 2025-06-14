@@ -12,12 +12,14 @@ struct Segment {
 
 class NsoLoader : public LoaderBase {
   public:
-    NsoLoader(StreamReader reader, const bool is_entry_point_);
+    NsoLoader(StreamReader reader, const std::string_view name_ = "main",
+              const bool is_entry_point_ = true);
 
     kernel::Process* LoadProcess(StreamReader reader,
                                  const std::string_view rom_filename) override;
 
   private:
+    std::string name;
     const bool is_entry_point;
 
     u32 text_offset;

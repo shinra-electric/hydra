@@ -1,5 +1,6 @@
 #include "core/horizon/kernel/kernel.hpp"
 
+#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/cmif.hpp"
 #include "core/horizon/kernel/session.hpp"
 #include "core/horizon/kernel/thread.hpp"
@@ -40,11 +41,16 @@ uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
     return mmu->GetMemoryPtr(mem);
 }
 
-uptr Kernel::CreateExecutableMemory(usize size, MemoryPermission perm,
+uptr Kernel::CreateExecutableMemory(const std::string_view module_name,
+                                    usize size, MemoryPermission perm,
                                     bool add_guard_page, vaddr_t& out_base) {
     // TODO: use MemoryType::Static
-    return CreateRomMemory(size, static_cast<MemoryType>(3), perm,
-                           add_guard_page, out_base);
+    auto ptr = CreateRomMemory(size, static_cast<MemoryType>(3), perm,
+                               add_guard_page, out_base);
+    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+        {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
+
+    return ptr;
 }
 
 bool Kernel::SupervisorCall(Thread* thread,

@@ -18,9 +18,13 @@ ResolvedStackFrame StackFrame::Resolve() const {
     case StackFrameType::Host:
         // TODO
         return {"libhydra.dylib", "", addr};
-    case StackFrameType::Guest:
-        // TODO
-        return {"main.nso", "main", addr};
+    case StackFrameType::Guest: {
+        const auto& module =
+            DEBUGGER_INSTANCE.GetModuleTable().FindSymbol(addr);
+        const auto& function =
+            DEBUGGER_INSTANCE.GetFunctionTable().FindSymbol(addr);
+        return {module, function, addr};
+    }
     }
 }
 
