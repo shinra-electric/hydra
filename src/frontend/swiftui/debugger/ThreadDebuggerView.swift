@@ -34,6 +34,7 @@ struct ThreadDebuggerView: View {
     var body: some View {
         VStack {
             Text(String(cString: hydra_debugger_thread_get_name(self.thread)))
+                .bold()
             ZStack {
                 Color.black
                     .ignoresSafeArea()
@@ -46,9 +47,11 @@ struct ThreadDebuggerView: View {
                             HStack {
                                 Text(msg.function)
                                     .foregroundStyle(.white)
-                                    .frame(maxWidth: 150, alignment: .trailing)
+                                    .font(.system(size: 12))
+                                    .frame(maxWidth: 120, alignment: .trailing)
                                 Text(msg.str)
                                     .foregroundStyle(msg.style)
+                                    .font(.system(size: 12))
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
@@ -56,7 +59,6 @@ struct ThreadDebuggerView: View {
                 }
             }
         }
-        .frame(minWidth: 400)
         .frame(height: 500)
         .onAppear {
             load()

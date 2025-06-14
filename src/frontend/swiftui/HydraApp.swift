@@ -24,6 +24,7 @@ struct MyApp: App {
         Window("Debugger", id: "debugger") {
             DebuggerView()
         }
+        .defaultLaunchBehavior(.suppressed)
 
         Settings {
             SettingsView()
