@@ -43,6 +43,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/SettingsView.swift
         swiftui/debugger/ThreadDebuggerView.swift
         swiftui/debugger/DebuggerView.swift
+        # TODO: if macOS
+        swiftui/macos/AppDelegate.swift
     )
 
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)

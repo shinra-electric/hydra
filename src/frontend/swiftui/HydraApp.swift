@@ -2,6 +2,9 @@ import SwiftUI
 
 @main
 struct MyApp: App {
+    // TODO: if macOS
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     init() {
         hydra_config_initialize()
         // TODO: only enable if enabled in the config
