@@ -267,6 +267,7 @@ add_library(hydra-core
     hw/tegra_x1/cpu/memory_base.hpp
     hw/tegra_x1/cpu/mmu_base.cpp
     hw/tegra_x1/cpu/mmu_base.hpp
+    hw/tegra_x1/cpu/thread_base.cpp
     hw/tegra_x1/cpu/thread_base.hpp
     hw/tegra_x1/cpu/cpu_base.cpp
     hw/tegra_x1/cpu/cpu_base.hpp

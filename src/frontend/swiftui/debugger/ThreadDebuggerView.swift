@@ -1,30 +1,5 @@
 import SwiftUI
 
-struct Message: Hashable {
-    let log_level: HydraLogLevel
-    let function: String
-    let str: String
-
-    var style: any ShapeStyle {
-        switch self.log_level {
-        case HYDRA_LOG_LEVEL_DEBUG:
-            return .cyan
-        case HYDRA_LOG_LEVEL_INFO:
-            return .white
-        case HYDRA_LOG_LEVEL_STUB:
-            return .purple
-        case HYDRA_LOG_LEVEL_WARNING:
-            return .yellow
-        case HYDRA_LOG_LEVEL_ERROR:
-            return .red
-        case HYDRA_LOG_LEVEL_FATAL:
-            return .red  // TODO: dark red
-        default:
-            return .white
-        }
-    }
-}
-
 // TODO: don't store the messages in a separate array?
 struct ThreadDebuggerView: View {
     let thread: UnsafeMutableRawPointer
@@ -43,17 +18,7 @@ struct ThreadDebuggerView: View {
                     // TODO: lazy
                     /*Lazy*/VStack {
                         ForEach(self.messages, id: \.self) { msg in
-                            // TODO: simplify this?
-                            HStack {
-                                Text(msg.function)
-                                    .foregroundStyle(.white)
-                                    .font(.system(size: 12))
-                                    .frame(maxWidth: 120, alignment: .trailing)
-                                Text(msg.str)
-                                    .foregroundStyle(msg.style)
-                                    .font(.system(size: 12))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
+                            MessageView(message: msg)
                         }
                     }
                 }
@@ -73,7 +38,10 @@ struct ThreadDebuggerView: View {
             let log_level = hydra_debugger_message_get_log_level(message)
             let function = String(cString: hydra_debugger_message_get_function(message))
             let str = String(cString: hydra_debugger_message_get_string(message))
-            let msg = Message(log_level: log_level, function: function, str: str)
+            let stack_trace = hydra_debugger_message_get_stack_trace(message)!
+
+            let msg = Message(
+                log_level: log_level, function: function, str: str, stack_trace: stack_trace)
             self.messages.append(msg)
         }
         hydra_debugger_thread_unlock(self.thread)

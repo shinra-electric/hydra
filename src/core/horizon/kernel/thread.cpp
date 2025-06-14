@@ -28,17 +28,19 @@ void Thread::Run() {
     ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
 
     t = new std::thread([&]() {
-        DEBUGGER_INSTANCE.RegisterThisThread("Guest"); // TODO: handle ID?
-
         hw::tegra_x1::cpu::ThreadBase* thread =
             hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
+
+        DEBUGGER_INSTANCE.RegisterThisThread("Guest",
+                                             thread); // TODO: handle ID?
+
         thread->Initialize(
             [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
                 return KERNEL_INSTANCE.SupervisorCall(this, thread, id);
             },
             tls_addr, stack_top_addr);
 
-        thread->SetRegPC(entry_point);
+        thread->SetPC(entry_point);
         for (u32 i = 0; i < sizeof_array(args); i++)
             thread->SetRegX(i, args[i]);
 

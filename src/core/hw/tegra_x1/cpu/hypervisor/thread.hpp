@@ -31,12 +31,15 @@ class Thread : public ThreadBase {
     u64 GetRegX(u8 reg) const override {
         return GetReg((hv_reg_t)(HV_REG_X0 + reg));
     }
-
     void SetRegX(u8 reg, u64 value) override {
         SetReg((hv_reg_t)(HV_REG_X0 + reg), value);
     }
-
-    void SetRegPC(u64 value) override { SetReg(HV_REG_PC, value); }
+    u64 GetPC() override { return GetReg(HV_REG_PC); }
+    void SetPC(u64 value) override { SetReg(HV_REG_PC, value); }
+    u64 GetFP() override { return GetReg(HV_REG_FP); }
+    u64 GetLR() override { return GetReg(HV_REG_LR); }
+    u64 GetSP() override { return GetSysReg(HV_SYS_REG_SP_EL0); }
+    u64 GetELR() override { return GetSysReg(HV_SYS_REG_ELR_EL1); }
 
     void SetupVTimer();
 
@@ -81,10 +84,6 @@ class Thread : public ThreadBase {
 
     // Debug
     void LogRegisters(bool simd = false, u32 count = 32) override;
-
-  protected:
-    // Debug
-    void LogStackTraceImpl() override;
 
   private:
     MMU* mmu;

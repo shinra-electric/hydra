@@ -41,6 +41,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/GraphicsSettingsView.swift
         swiftui/settings/DebugSettingsView.swift
         swiftui/settings/SettingsView.swift
+        swiftui/debugger/Message.swift
+        swiftui/debugger/MessageView.swift
         swiftui/debugger/ThreadDebuggerView.swift
         swiftui/debugger/DebuggerView.swift
         # TODO: if macOS

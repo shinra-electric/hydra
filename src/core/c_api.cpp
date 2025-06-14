@@ -249,27 +249,81 @@ HYDRA_EXPORT const void* hydra_debugger_thread_get_message(void* thread,
 HYDRA_EXPORT HydraLogLevel
 hydra_debugger_message_get_log_level(const void* msg) {
     return static_cast<HydraLogLevel>(
-        static_cast<const hydra::LogMessage*>(msg)->level);
+        static_cast<const hydra::debugger::Message*>(msg)->log.level);
 }
 
 HYDRA_EXPORT HydraLogClass
 hydra_debugger_message_get_log_class(const void* msg) {
     return static_cast<HydraLogClass>(
-        static_cast<const hydra::LogMessage*>(msg)->c);
+        static_cast<const hydra::debugger::Message*>(msg)->log.c);
 }
 
 HYDRA_EXPORT const char* hydra_debugger_message_get_file(const void* msg) {
-    return static_cast<const hydra::LogMessage*>(msg)->file.c_str();
+    return static_cast<const hydra::debugger::Message*>(msg)->log.file.c_str();
 }
 
 HYDRA_EXPORT uint32_t hydra_debugger_message_get_line(const void* msg) {
-    return static_cast<const hydra::LogMessage*>(msg)->line;
+    return static_cast<const hydra::debugger::Message*>(msg)->log.line;
 }
 
 HYDRA_EXPORT const char* hydra_debugger_message_get_function(const void* msg) {
-    return static_cast<const hydra::LogMessage*>(msg)->function.c_str();
+    return static_cast<const hydra::debugger::Message*>(msg)
+        ->log.function.c_str();
 }
 
 HYDRA_EXPORT const char* hydra_debugger_message_get_string(const void* msg) {
-    return static_cast<const hydra::LogMessage*>(msg)->str.c_str();
+    return static_cast<const hydra::debugger::Message*>(msg)->log.str.c_str();
+}
+
+HYDRA_EXPORT const void*
+hydra_debugger_message_get_stack_trace(const void* msg) {
+    return &static_cast<const hydra::debugger::Message*>(msg)->stack_trace;
+}
+
+// Stack trace
+HYDRA_EXPORT uint32_t
+hydra_debugger_stack_trace_get_frame_count(const void* stack_trace) {
+    return static_cast<const hydra::debugger::StackTrace*>(stack_trace)
+        ->frames.size();
+}
+
+HYDRA_EXPORT const void*
+hydra_debugger_stack_trace_get_frame(const void* stack_trace, uint32_t index) {
+    return &static_cast<const hydra::debugger::StackTrace*>(stack_trace)
+                ->frames[index];
+}
+
+// Stack frame
+HYDRA_EXPORT void* hydra_debugger_stack_frame_resolve(const void* stack_frame) {
+    return new hydra::debugger::ResolvedStackFrame(
+        static_cast<const hydra::debugger::StackFrame*>(stack_frame)
+            ->Resolve());
+}
+
+// Resolved stack frame
+HYDRA_EXPORT void
+hydra_debugger_resolved_stack_frame_destroy(void* resolved_stack_frame) {
+    delete static_cast<hydra::debugger::ResolvedStackFrame*>(
+        resolved_stack_frame);
+}
+
+HYDRA_EXPORT const char* hydra_debugger_resolved_stack_frame_get_module(
+    const void* resolved_stack_frame) {
+    return static_cast<const hydra::debugger::ResolvedStackFrame*>(
+               resolved_stack_frame)
+        ->module.c_str();
+}
+
+HYDRA_EXPORT const char* hydra_debugger_resolved_stack_frame_get_function(
+    const void* resolved_stack_frame) {
+    return static_cast<const hydra::debugger::ResolvedStackFrame*>(
+               resolved_stack_frame)
+        ->function.c_str();
+}
+
+HYDRA_EXPORT uint64_t hydra_debugger_resolved_stack_frame_get_address(
+    const void* resolved_stack_frame) {
+    return static_cast<const hydra::debugger::ResolvedStackFrame*>(
+               resolved_stack_frame)
+        ->addr;
 }
