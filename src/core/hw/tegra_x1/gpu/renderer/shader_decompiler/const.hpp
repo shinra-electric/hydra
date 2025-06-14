@@ -15,6 +15,7 @@ typedef u8 pred_t;
 constexpr reg_t RZ = 255;
 constexpr pred_t PT = 7;
 
+// TODO: make an abstract Type class
 enum class DataType {
     Invalid,
 
@@ -26,6 +27,7 @@ enum class DataType {
     I32,
     F16,
     F32,
+    F16X2,
 };
 
 DataType to_data_type(engines::VertexAttribType vertex_attrib_type);

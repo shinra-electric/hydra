@@ -21,7 +21,7 @@ void BufferCache::Update(BufferBase* buffer) {
 u64 BufferCache::Hash(const BufferDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
-    hash = rotl(hash, 19);
+    hash = std::rotl(hash, 19);
     hash += descriptor.size;
 
     return hash;

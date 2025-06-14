@@ -81,6 +81,7 @@ class NvHostCtrlGpu : public FdBase {
     NvResult GetTpcMasks(u32 mask_buffer_size, std::array<u32, 3> reserved,
                          u64* out_mask_buffer);
     NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
+    NvResult GetGpuTime(u64* out_timestamp, u64* _out_reserved);
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

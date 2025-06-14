@@ -25,6 +25,7 @@ class IAccountServiceForApplication : public ServiceBase {
                                                  uuid_t user_id);
     STUB_REQUEST_COMMAND(InitializeApplicationInfo);
     STUB_REQUEST_COMMAND(IsUserAccountSwitchLocked);
+    STUB_REQUEST_COMMAND(InitializeApplicationInfoV2);
 };
 
 } // namespace hydra::horizon::services::account

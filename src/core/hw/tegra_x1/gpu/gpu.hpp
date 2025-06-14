@@ -58,7 +58,7 @@ class GPU {
         memory_map.write = write;
     }
 
-    void FreeMap(handle_id_t handle_id) { memory_maps.FreeByIndex(handle_id); }
+    void FreeMap(handle_id_t handle_id) { memory_maps.Free(handle_id); }
 
     u32 GetMapId(handle_id_t handle_id) { return handle_id + 1; }
 

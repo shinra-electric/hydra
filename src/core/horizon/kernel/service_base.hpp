@@ -16,10 +16,13 @@ struct RequestContext {
     const get_service_fn_t& get_service;
 };
 
-class ServiceBase : public Handle {
+class ServiceBase {
   public:
+    virtual ~ServiceBase() {}
+
     virtual void Request(RequestContext& context);
     virtual usize GetPointerBufferSize() { return 0; }
+    void TipcRequest(RequestContext& context, const u32 command_id);
 
   protected:
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;

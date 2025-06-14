@@ -475,9 +475,10 @@ struct ThreadContext {
     u64 tpidr;
 };
 
-class Handle {
-  public:
-    virtual ~Handle() = default;
+enum class ArbitrationType {
+    WaitIfLessThan = 0,
+    DecrementAndWaitIfLessThan = 1,
+    WaitIfEqual = 2,
 };
 
 } // namespace hydra::horizon::kernel
@@ -588,3 +589,8 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::SystemInfoType,
 
 ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::ThreadActivity, None, "none",
                        Runnable, "runnable")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::ArbitrationType, WaitIfLessThan,
+                       "wait if less than", DecrementAndWaitIfLessThan,
+                       "decrement and wait if less than", WaitIfEqual,
+                       "wait if equal")

@@ -2,7 +2,8 @@
 
 namespace hydra::horizon::services::aocsrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAddOnContentManager, 3, ListAddOnContent)
+DEFINE_SERVICE_COMMAND_TABLE(IAddOnContentManager, 3, ListAddOnContent, 50,
+                             CheckAddOnContentMountStatus)
 
 result_t IAddOnContentManager::ListAddOnContent(
     u32 start_index, u32 buffer_size, u32* out_count,

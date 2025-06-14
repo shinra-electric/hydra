@@ -50,6 +50,7 @@ class User {
         ASSERT(nickname.size() < NICKNAME_SIZE, Services,
                "Nickname size ({}) too big", nickname.size());
         std::memcpy(base.nickname, nickname.data(), nickname.size());
+        base.nickname[nickname.size()] = '\0';
         NotifyEdit();
     }
 

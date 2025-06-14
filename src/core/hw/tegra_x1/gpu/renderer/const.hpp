@@ -147,6 +147,7 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
 usize get_texture_format_stride(const TextureFormat format, usize width);
+bool is_texture_format_compressed(const TextureFormat format);
 
 struct SwizzleChannels {
     ImageSwizzle r : 3;
@@ -353,6 +354,8 @@ struct PipelineDescriptor {
     VertexState vertex_state;
     ColorTargetState color_target_states[COLOR_TARGET_COUNT];
 };
+
+usize get_vertex_format_size(engines::VertexAttribSize size);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 

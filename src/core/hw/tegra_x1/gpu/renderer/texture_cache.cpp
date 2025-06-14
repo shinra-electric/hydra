@@ -65,10 +65,12 @@ void TextureCache::Update(Tex& texture) {
 u64 TextureCache::Hash(const TextureDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
-    hash = rotl(hash, 7);
+    hash = std::rotl(hash, 7);
     hash += descriptor.width;
-    hash = rotl(hash, 11);
+    hash = std::rotl(hash, 11);
     hash += descriptor.height;
+    hash = std::rotl(hash, 11);
+    hash += is_texture_format_compressed(descriptor.format);
 
     return hash;
 }

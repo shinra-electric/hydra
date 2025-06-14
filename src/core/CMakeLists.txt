@@ -10,22 +10,27 @@ add_library(hydra-core
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
-    horizon/kernel/handle_pool.hpp
     horizon/kernel/hipc.cpp
     horizon/kernel/hipc.hpp
     horizon/kernel/cmif.hpp
-    horizon/kernel/session.cpp
-    horizon/kernel/session.hpp
+    horizon/kernel/mutex.hpp
     horizon/kernel/service_base.cpp
     horizon/kernel/service_base.hpp
     horizon/kernel/domain_service.cpp
     horizon/kernel/domain_service.hpp
+    horizon/kernel/auto_object.hpp
+    horizon/kernel/synchronization_object.hpp
+    horizon/kernel/event.hpp
+    horizon/kernel/session.cpp
+    horizon/kernel/session.hpp
+    horizon/kernel/transfer_memory.hpp
     horizon/kernel/shared_memory.cpp
     horizon/kernel/shared_memory.hpp
     horizon/kernel/thread.cpp
     horizon/kernel/thread.hpp
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
+    horizon/kernel/handle_pool.hpp
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
@@ -233,6 +238,9 @@ add_library(hydra-core
     horizon/services/ncm/const.hpp
     horizon/services/mmnv/request.cpp
     horizon/services/mmnv/request.hpp
+    horizon/services/err/context/writer_for_application.cpp
+    horizon/services/err/context/writer_for_application.hpp
+    horizon/services/oe/const.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

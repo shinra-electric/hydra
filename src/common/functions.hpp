@@ -120,9 +120,4 @@ template <typename T> void push_unique(std::vector<T>& vec, T value) {
         vec.push_back(value);
 }
 
-// HACK
-template <typename T> T rotl(T v, u64 shift) {
-    return (v << shift) | (v >> (32 - shift));
-}
-
 } // namespace hydra

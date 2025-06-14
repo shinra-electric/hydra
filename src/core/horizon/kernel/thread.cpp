@@ -30,8 +30,8 @@ void Thread::Run() {
         hw::tegra_x1::cpu::ThreadBase* thread =
             hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
         thread->Initialize(
-            [](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
-                return KERNEL_INSTANCE.SupervisorCall(thread, id);
+            [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
+                return KERNEL_INSTANCE.SupervisorCall(this, thread, id);
             },
             tls_addr, stack_top_addr);
 

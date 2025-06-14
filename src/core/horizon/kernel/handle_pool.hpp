@@ -1,12 +1,12 @@
 #pragma once
 
-#include "core/horizon/kernel/const.hpp"
+#include "core/horizon/kernel/auto_object.hpp"
 
 namespace hydra::horizon::kernel {
 
 template <typename T, typename Pool> class HandlePool {
-    static_assert(std::is_convertible_v<T*, Handle*>,
-                  "Type does not inherit from Handle");
+    static_assert(std::is_convertible_v<T*, AutoObject*>,
+                  "Type does not inherit from AutoObject");
 
   public:
     handle_id_t Add(T* handle) {
@@ -17,8 +17,9 @@ template <typename T, typename Pool> class HandlePool {
 
     void Free(handle_id_t handle_id) {
         u32 index = HandleIdToIndex(handle_id);
-        delete pool.Get(index);
-        pool.FreeByIndex(index);
+        // TODO: should deallocation be enforced?
+        if (pool.Get(index)->Release())
+            pool.Free(index);
     }
 
     T* Get(handle_id_t handle_id) const {

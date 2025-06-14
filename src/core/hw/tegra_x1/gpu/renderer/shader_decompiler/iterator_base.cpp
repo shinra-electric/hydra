@@ -38,6 +38,10 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     GET_VALUE_I_SIGN_EXTEND(32, b, count)
 #define GET_VALUE_I64_SIGN_EXTEND(b, count)                                    \
     GET_VALUE_I_SIGN_EXTEND(64, b, count)
+
+// TODO: correct?
+#define GET_VALUE_F16(b) ((GET_VALUE_U32(b, 9)) << 6)
+
     // TODO: correct?
 #define GET_VALUE_F32() ((GET_BIT(56) << 31) | (GET_VALUE_U32(20, 19) << 12))
 
@@ -401,15 +405,37 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     INST(0x8000000000000000, 0xe000000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "ld");
     INST(0x7e80000000000000, 0xfe80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hsetp2");
+    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hsetp2"); // TODO: needed by Cuphead
     INST(0x7e00000000000000, 0xfe80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hsetp2");
+    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hsetp2"); // TODO: needed by Cuphead
     INST(0x7c80000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hset2");
     INST(0x7c00000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hset2");
-    INST(0x7a00000000000000, 0xfe80000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hadd2");
+    INST(0x7a00000000000000, 0xfe80000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        const bool negA = GET_BIT(43);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB1 = GET_BIT(56);
+        const auto srcB1 = GET_VALUE_F16(30);
+        const bool negB0 = GET_BIT(29);
+        const auto srcB0 = GET_VALUE_F16(20);
+        LOG_DEBUG(ShaderDecompiler, "hadd2 r{} {}r{} {}0x{:x} {}0x{:x}", dst,
+                  negA ? "-" : "", srcA, negB1 ? "-" : "", srcB1,
+                  negB0 ? "-" : "", srcB0);
+
+        auto srcB_v =
+            o->OpVectorConstruct({o->OpImmediateL(srcB0, DataType::F16, negB0),
+                                  o->OpImmediateL(srcB1, DataType::F16, negB1)},
+                                 DataType::F16);
+        auto res =
+            o->OpAdd(o->OpRegister(false, srcA, DataType::F16X2, negA), srcB_v);
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
     INST(0x7a80000000000000, 0xfe80000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hadd2");
     INST(0x7800000000000000, 0xfe80000000000000)
@@ -418,22 +444,123 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hmul2");
     INST(0x7080000000000000, 0xf880000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hfma2");
-    INST(0x7000000000000000, 0xf880000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hfma2");
-    INST(0x6080000000000000, 0xf880000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hfma2");
+    INST(0x7000000000000000, 0xf880000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 6080_0
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB1 = GET_BIT(56);
+        const auto srcB1 = GET_VALUE_F16(30);
+        const bool negB0 = GET_BIT(29);
+        const auto srcB0 = GET_VALUE_F16(20);
+        const bool negC = GET_BIT(51);
+        // TODO: 2c00_0
+        const auto srcC = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "hfma2 r{} r{} {}0x{:x} {}0x{:x} {}r{}",
+                  dst, srcA, negB1 ? "-" : "", srcB1, negB0 ? "-" : "", srcB0,
+                  negC ? "-" : "", srcC);
+
+        auto srcB_v =
+            o->OpVectorConstruct({o->OpImmediateL(srcB0, DataType::F16, negB0),
+                                  o->OpImmediateL(srcB1, DataType::F16, negB1)},
+                                 DataType::F16);
+        auto res =
+            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2), srcB_v,
+                          o->OpRegister(false, srcC, DataType::F16X2, negC));
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
+    INST(0x6080000000000000, 0xf880000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 6080_0
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(56);
+        // TODO: 2c00_0
+        const auto srcB = GET_REG(39);
+        const bool negC = GET_BIT(51);
+        const auto srcC = GET_CMEM(34, 14);
+        LOG_DEBUG(ShaderDecompiler, "hfma2 r{} r{} {}r{} {}c{}[0x{:x}]", dst,
+                  srcA, negB ? "-" : "", srcB, negC ? "-" : "", srcC.idx,
+                  srcC.imm);
+
+        auto res =
+            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2),
+                          o->OpRegister(false, srcB, DataType::F16X2, negB),
+                          o->OpConstMemoryL(srcC, DataType::F16X2, negC));
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
     INST(0x5f00000000000000, 0xff00000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "vmad");
     INST(0x5d20000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hsetp2");
     INST(0x5d18000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hset2");
-    INST(0x5d10000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hadd2");
-    INST(0x5d08000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hmul2");
-    INST(0x5d00000000000000, 0xfff8000000000000)
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "hfma2");
+    INST(0x5d10000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 6080_0
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(31);
+        // TODO: 5d10_2
+        const auto srcB = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "hadd2 r{} r{} {}r{}", dst, srcA,
+                  negB ? "-" : "", srcB);
+
+        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F16X2),
+                            o->OpRegister(false, srcB, DataType::F16X2, negB));
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
+    INST(0x5d08000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 6080_0
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(31);
+        // TODO: 5d10_2
+        const auto srcB = GET_REG(20);
+        LOG_DEBUG(ShaderDecompiler, "hmul2 r{} r{} {}r{}", dst, srcA,
+                  negB ? "-" : "", srcB);
+
+        auto res =
+            o->OpMultiply(o->OpRegister(false, srcA, DataType::F16X2),
+                          o->OpRegister(false, srcB, DataType::F16X2, negB));
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
+    INST(0x5d00000000000000, 0xfff8000000000000) {
+        HANDLE_PRED_COND();
+
+        // TODO: 6080_0
+        // TODO: 5d10_0
+        const auto dst = GET_REG(0);
+        // TODO: 5d10_1
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(31);
+        // TODO: 5d10_2
+        const auto srcB = GET_REG(20);
+        const bool negC = GET_BIT(30);
+        // TODO: 5d00_1
+        const auto srcC = GET_REG(39);
+        LOG_DEBUG(ShaderDecompiler, "hfma2 r{} r{} {}r{} {}r{}", dst, srcA,
+                  negB ? "-" : "", srcB, negC ? "-" : "", srcC);
+
+        auto res =
+            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2),
+                          o->OpRegister(false, srcB, DataType::F16X2, negB),
+                          o->OpRegister(false, srcC, DataType::F16X2, negC));
+        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+    }
     INST(0x5cf8000000000000, 0xfff8000000000000)
     LOG_NOT_IMPLEMENTED(ShaderDecompiler, "shf");
     INST(0x5cf0000000000000, 0xfff8000000000000)

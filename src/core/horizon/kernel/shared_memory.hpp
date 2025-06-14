@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/auto_object.hpp"
 #include "core/horizon/kernel/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
@@ -9,7 +10,7 @@ class MMUBase;
 
 namespace hydra::horizon::kernel {
 
-class SharedMemory : public Handle {
+class SharedMemory : public AutoObject {
   public:
     SharedMemory(usize size);
     ~SharedMemory() override;

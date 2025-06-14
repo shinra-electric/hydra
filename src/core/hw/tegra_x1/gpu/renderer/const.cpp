@@ -347,6 +347,68 @@ usize get_texture_format_stride(const TextureFormat format, usize width) {
     }
 }
 
+bool is_texture_format_compressed(const TextureFormat format) {
+    switch (format) {
+    case TextureFormat::BC1_RGB:
+    case TextureFormat::BC1_RGBA:
+    case TextureFormat::BC1_RGB_sRGB:
+    case TextureFormat::BC1_RGBA_sRGB:
+    case TextureFormat::BC2_RGBA:
+    case TextureFormat::BC3_RGBA:
+    case TextureFormat::BC2_RGBA_sRGB:
+    case TextureFormat::BC3_RGBA_sRGB:
+    case TextureFormat::BC4_RUnorm:
+    case TextureFormat::BC4_RSnorm:
+    case TextureFormat::BC5_RGUnorm:
+    case TextureFormat::BC5_RGSnorm:
+    case TextureFormat::BC7_RGBAUnorm:
+    case TextureFormat::BC7_RGBAUnorm_sRGB:
+    case TextureFormat::BC6H_RGBA_SF16_Float:
+    case TextureFormat::BC6H_RGBA_UF16_Float:
+    case TextureFormat::ASTC_RGBA_4x4:
+    case TextureFormat::ASTC_RGBA_4x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x4:
+    case TextureFormat::ASTC_RGBA_5x4_sRGB:
+    case TextureFormat::ASTC_RGBA_5x5:
+    case TextureFormat::ASTC_RGBA_5x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x5:
+    case TextureFormat::ASTC_RGBA_6x5_sRGB:
+    case TextureFormat::ASTC_RGBA_6x6:
+    case TextureFormat::ASTC_RGBA_6x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x5:
+    case TextureFormat::ASTC_RGBA_8x5_sRGB:
+    case TextureFormat::ASTC_RGBA_8x6:
+    case TextureFormat::ASTC_RGBA_8x6_sRGB:
+    case TextureFormat::ASTC_RGBA_8x8:
+    case TextureFormat::ASTC_RGBA_8x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x5:
+    case TextureFormat::ASTC_RGBA_10x5_sRGB:
+    case TextureFormat::ASTC_RGBA_10x6:
+    case TextureFormat::ASTC_RGBA_10x6_sRGB:
+    case TextureFormat::ASTC_RGBA_10x8:
+    case TextureFormat::ASTC_RGBA_10x8_sRGB:
+    case TextureFormat::ASTC_RGBA_10x10:
+    case TextureFormat::ASTC_RGBA_10x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x10:
+    case TextureFormat::ASTC_RGBA_12x10_sRGB:
+    case TextureFormat::ASTC_RGBA_12x12:
+    case TextureFormat::ASTC_RGBA_12x12_sRGB:
+    case TextureFormat::ETC2_R_Unorm:
+    case TextureFormat::ETC2_R_Snorm:
+    case TextureFormat::ETC2_RG_Unorm:
+    case TextureFormat::ETC2_RG_Snorm:
+    case TextureFormat::ETC2_RGB:
+    case TextureFormat::PTA_ETC2_RGB:
+    case TextureFormat::ETC2_RGB_sRGB:
+    case TextureFormat::PTA_ETC2_RGB_sRGB:
+    case TextureFormat::ETC2_RGBA:
+    case TextureFormat::ETC2_RGBA_sRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
 // TODO: check the logic of this
 SwizzleChannels::SwizzleChannels(const TextureFormat format,
                                  const ImageSwizzle x, const ImageSwizzle y,
@@ -639,19 +701,19 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
 
     // TODO: implement all formats
     switch (format) {
-    case TextureFormat::RGBA8Unorm:
-        return SWIZZLE(R, G, B, A);
     case TextureFormat::R8Unorm:
         return SWIZZLE(R, Zero, Zero, OneFloat);
     case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BC1_RGB:
         return SWIZZLE(R, G, B, OneFloat);
-    case TextureFormat::RGB10A2Unorm:
-        return SWIZZLE(R, G, B, A);
-    case TextureFormat::RGBA8Unorm_sRGB:
-        return SWIZZLE(R, G, B, A);
     case TextureFormat::RG8Unorm:
         return SWIZZLE(R, G, Zero, OneFloat);
+    case TextureFormat::RGBA8Unorm:
     case TextureFormat::BGRA8Unorm:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::BC2_RGBA:
+    case TextureFormat::BC3_RGBA:
         return SWIZZLE(R, G, B, A);
     default:
         LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
@@ -659,6 +721,41 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     }
 
 #undef SWIZZLE
+}
+
+usize get_vertex_format_size(engines::VertexAttribSize size) {
+    switch (size) {
+    case engines::VertexAttribSize::_1x32:
+        return 4;
+    case engines::VertexAttribSize::_2x32:
+        return 8;
+    case engines::VertexAttribSize::_3x32:
+        return 12;
+    case engines::VertexAttribSize::_4x32:
+        return 16;
+
+    case engines::VertexAttribSize::_1x16:
+        return 2;
+    case engines::VertexAttribSize::_2x16:
+        return 4;
+    case engines::VertexAttribSize::_3x16:
+        return 6;
+    case engines::VertexAttribSize::_4x16:
+        return 8;
+
+    case engines::VertexAttribSize::_1x8:
+        return 1;
+    case engines::VertexAttribSize::_2x8:
+        return 2;
+    case engines::VertexAttribSize::_3x8:
+        return 3;
+    case engines::VertexAttribSize::_4x8:
+        return 4;
+
+    case engines::VertexAttribSize::_10_10_10_2:
+    case engines::VertexAttribSize::_11_11_10:
+        return 4;
+    }
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

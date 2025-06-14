@@ -297,7 +297,7 @@ struct Readers {
     std::vector<Reader> exch_buffers_readers;
 
     Readers(const hw::tegra_x1::cpu::MMUBase* mmu, ParsedRequest hipc_in)
-        : reader(align_ptr((u8*)hipc_in.data.data_words, 0x10),
+        : reader((u8*)hipc_in.data.data_words,
                  hipc_in.meta.num_data_words * sizeof(u32)),
           objects_reader{nullptr},
           copy_handles_reader((u8*)hipc_in.data.copy_handles,

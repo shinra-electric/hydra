@@ -5,6 +5,12 @@
 
 namespace hydra::horizon::services::am {
 
+enum class IdleTimeDetectionExtension : u32 {
+    Disabled = 0,
+    Extended = 1,
+    ExtendedUnsafe = 2,
+};
+
 class ISelfController : public ServiceBase {
   public:
     ISelfController();
@@ -32,8 +38,13 @@ class ISelfController : public ServiceBase {
     result_t CreateManagedDisplayLayer(u64* out_layer_id);
     result_t CreateManagedDisplaySeparableLayer(u64* out_display_layer_id,
                                                 u64* out_recording_layer_id);
+    result_t SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext);
     result_t GetAccumulatedSuspendedTickChangedEvent(
         OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::am::IdleTimeDetectionExtension,
+                       Disabled, "disabled", Extended, "extended",
+                       ExtendedUnsafe, "extended unsafe")

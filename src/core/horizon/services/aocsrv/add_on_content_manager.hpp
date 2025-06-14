@@ -13,6 +13,7 @@ class IAddOnContentManager : public ServiceBase {
     // TODO: correct?
     result_t ListAddOnContent(u32 start_index, u32 buffer_size, u32* out_count,
                               OutBuffer<BufferAttr::MapAlias> out_buffer);
+    STUB_REQUEST_COMMAND(CheckAddOnContentMountStatus);
 };
 
 } // namespace hydra::horizon::services::aocsrv

@@ -16,6 +16,8 @@ void Session::Request(RequestContext& context) { service->Request(context); }
 
 void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<cmif::InHeader>();
+    ASSERT_DEBUG(cmif_in.magic == cmif::IN_HEADER_MAGIC, Kernel,
+                 "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
     result_t* result = cmif::write_out_header(writers.writer);
 
@@ -56,6 +58,12 @@ void Session::Control(hipc::Readers& readers, hipc::Writers& writers) {
         LOG_ERROR(Services, "Unimplemented control request {}", command);
         break;
     }
+}
+
+void Session::TipcRequest(RequestContext& context, const u32 command_id) {
+    ASSERT_DEBUG(!dynamic_cast<DomainService*>(service), Kernel,
+                 "TIPC is not supported for domain services");
+    service->TipcRequest(context, command_id);
 }
 
 } // namespace hydra::horizon::kernel
