@@ -6,7 +6,7 @@ struct DebuggerView: View {
     var body: some View {
         ScrollView(.vertical) {
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(minimum: 300)), count: 4), spacing: 10
+                columns: Array(repeating: GridItem(.flexible(minimum: 400)), count: 3), spacing: 10
             ) {
                 ForEach(self.threads, id: \.self) { thread in
                     ThreadDebuggerView(thread: thread)

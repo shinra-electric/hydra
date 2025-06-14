@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Message: Hashable {
     let log_level: HydraLogLevel
+    let function: String
     let str: String
 
     var style: any ShapeStyle {
@@ -41,15 +42,22 @@ struct ThreadDebuggerView: View {
                     // TODO: lazy
                     /*Lazy*/VStack {
                         ForEach(self.messages, id: \.self) { msg in
-                            Text(msg.str)
-                                .foregroundStyle(msg.style)
+                            // TODO: simplify this?
+                            HStack {
+                                Text(msg.function)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: 150, alignment: .trailing)
+                                Text(msg.str)
+                                    .foregroundStyle(msg.style)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                         }
                     }
                 }
             }
         }
-        .frame(minWidth: 300)
-        .frame(height: 400)
+        .frame(minWidth: 400)
+        .frame(height: 500)
         .onAppear {
             load()
         }
@@ -63,7 +71,7 @@ struct ThreadDebuggerView: View {
             let log_level = hydra_debugger_message_get_log_level(message)
             let function = String(cString: hydra_debugger_message_get_function(message))
             let str = String(cString: hydra_debugger_message_get_string(message))
-            let msg = Message(log_level: log_level, str: "\(function): \(str)")
+            let msg = Message(log_level: log_level, function: function, str: str)
             self.messages.append(msg)
         }
         hydra_debugger_thread_unlock(self.thread)
