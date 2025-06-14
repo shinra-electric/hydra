@@ -38,7 +38,8 @@ struct ThreadDebuggerView: View {
             let log_level = hydra_debugger_message_get_log_level(message)
             let function = String(cString: hydra_debugger_message_get_function(message))
             let str = String(cString: hydra_debugger_message_get_string(message))
-            let stack_trace = hydra_debugger_message_get_stack_trace(message)!
+            let stack_trace = hydra_debugger_stack_trace_copy(
+                hydra_debugger_message_get_stack_trace(message))!
 
             let msg = Message(
                 log_level: log_level, function: function, str: str, stack_trace: stack_trace)

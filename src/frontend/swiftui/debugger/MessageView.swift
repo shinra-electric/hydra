@@ -41,17 +41,21 @@ struct MessageView: View {
                         i in
                         HStack {
                             Text(getStackFrame(index: UInt32(i)))
+                                .font(.system(size: 12))
                             Spacer()
                         }
                     }
                 }
             }
         }
+        .onDisappear {
+            hydra_debugger_stack_trace_destroy(self.message.stack_trace)
+        }
     }
 
     func getStackFrame(index: UInt32) -> String {
         let stack_frame = hydra_debugger_stack_trace_get_frame(message.stack_trace, index)
-        let resolved = hydra_debugger_stack_frame_resolve(stack_frame)
+        let resolved = hydra_debugger_stack_frame_resolve_unmanaged(stack_frame)
         let module = String(cString: hydra_debugger_resolved_stack_frame_get_module(resolved))
         let function = String(cString: hydra_debugger_resolved_stack_frame_get_function(resolved))
         let addr = hydra_debugger_resolved_stack_frame_get_address(resolved)

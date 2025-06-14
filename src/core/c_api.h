@@ -158,11 +158,13 @@ const char* hydra_debugger_message_get_string(const void* msg);
 const void* hydra_debugger_message_get_stack_trace(const void* msg);
 
 // Stack trace
+void* hydra_debugger_stack_trace_copy(const void* stack_trace);
+void hydra_debugger_stack_trace_destroy(void* stack_trace);
 uint32_t hydra_debugger_stack_trace_get_frame_count(const void* stack_trace);
 const void* hydra_debugger_stack_trace_get_frame(const void* stack_trace, uint32_t index);
 
 // Stack frame
-void* hydra_debugger_stack_frame_resolve(const void* stack_frame);
+void* hydra_debugger_stack_frame_resolve_unmanaged(const void* stack_frame);
 
 // Resolved stack frame
 void hydra_debugger_resolved_stack_frame_destroy(void* resolved_stack_frame);
