@@ -236,6 +236,18 @@ HYDRA_EXPORT const char* hydra_debugger_thread_get_name(void* thread) {
     return static_cast<hydra::debugger::Thread*>(thread)->GetName().c_str();
 }
 
+HYDRA_EXPORT HydraDebuggerThreadStatus
+hydra_debugger_thread_get_status(void* thread) {
+    return static_cast<HydraDebuggerThreadStatus>(
+        static_cast<hydra::debugger::Thread*>(thread)->GetStatus());
+}
+
+HYDRA_EXPORT const char* hydra_debugger_thread_get_break_reason(void* thread) {
+    return static_cast<hydra::debugger::Thread*>(thread)
+        ->GetBreakReason()
+        .c_str();
+}
+
 HYDRA_EXPORT size_t hydra_debugger_thread_get_message_count(void* thread) {
     return static_cast<hydra::debugger::Thread*>(thread)->GetMessageCount();
 }

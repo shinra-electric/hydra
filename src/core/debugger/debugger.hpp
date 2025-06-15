@@ -35,6 +35,11 @@ struct Message {
     StackTrace stack_trace;
 };
 
+enum class ThreadStatus {
+    Running,
+    Break,
+};
+
 class Thread {
     friend class Debugger;
 
@@ -47,6 +52,8 @@ class Thread {
     void Unlock() { msg_mutex.unlock(); }
 
     const std::string& GetName() const { return name; }
+    ThreadStatus GetStatus() const { return status; }
+    const std::string& GetBreakReason() const { return break_reason; }
     usize GetMessageCount() const { return msg_count; }
     const Message& GetMessage(const u32 index) const {
         return messages[(msg_tail + index) % messages.size()];
@@ -55,6 +62,9 @@ class Thread {
   private:
     std::string name;
     hw::tegra_x1::cpu::ThreadBase* guest_thread;
+
+    ThreadStatus status{ThreadStatus::Running};
+    std::string break_reason;
 
     std::mutex msg_mutex;
     std::vector<Message> messages;
@@ -109,7 +119,7 @@ class Debugger {
                        hw::tegra_x1::cpu::ThreadBase* guest_thread = nullptr);
     void UnregisterThisThread();
 
-    void BreakOnThisThread();
+    void BreakOnThisThread(const std::string_view reason);
 
     SymbolTable& GetModuleTable() { return module_table; }
     SymbolTable& GetFunctionTable() { return function_table; }

@@ -4,7 +4,9 @@ import SwiftUI
 struct ThreadDebuggerView: View {
     let thread: UnsafeMutableRawPointer
 
-    @State var messages: [Message] = []
+    @State private var status = HYDRA_DEBUGGER_THREAD_STATUS_RUNNING
+    @State private var breakReason = ""
+    @State private var messages: [Message] = []
 
     var body: some View {
         VStack {
@@ -18,6 +20,10 @@ struct ThreadDebuggerView: View {
                     LazyVStack {
                         ForEach(self.messages, id: \.self) { msg in
                             MessageView(message: msg)
+                        }
+                        if self.status == HYDRA_DEBUGGER_THREAD_STATUS_BREAK {
+                            Text("BREAK (reason: \(self.breakReason))")
+                                .foregroundStyle(.red)
                         }
                     }
                 }
@@ -35,8 +41,14 @@ struct ThreadDebuggerView: View {
     }
 
     func load() {
-        self.messages.removeAll()
         hydra_debugger_thread_lock(self.thread)
+
+        // Status
+        self.status = hydra_debugger_thread_get_status(self.thread)
+        self.breakReason = String(cString: hydra_debugger_thread_get_break_reason(self.thread))
+
+        // Messages
+        self.messages.removeAll()
         for i in 0..<hydra_debugger_thread_get_message_count(self.thread) {
             let message = hydra_debugger_thread_get_message(self.thread, UInt32(i))
             let log_level = hydra_debugger_message_get_log_level(message)
@@ -49,6 +61,7 @@ struct ThreadDebuggerView: View {
                 log_level: log_level, function: function, str: str, stack_trace: stack_trace)
             self.messages.append(msg)
         }
+
         hydra_debugger_thread_unlock(self.thread)
     }
 }

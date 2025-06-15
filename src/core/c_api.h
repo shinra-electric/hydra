@@ -69,6 +69,11 @@ typedef enum : uint32_t {
     HYDRA_LOG_CLASS_OTHER,
 } HydraLogClass;
 
+typedef enum : uint32_t {
+    HYDRA_DEBUGGER_THREAD_STATUS_RUNNING,
+    HYDRA_DEBUGGER_THREAD_STATUS_BREAK,
+} HydraDebuggerThreadStatus;
+
 // Options
 bool hydra_bool_option_get(const void* option);
 void hydra_bool_option_set(void* option, const bool value);
@@ -146,6 +151,8 @@ void* hydra_debugger_get_thread(uint32_t index);
 void hydra_debugger_thread_lock(void* thread);
 void hydra_debugger_thread_unlock(void* thread);
 const char* hydra_debugger_thread_get_name(void* thread);
+HydraDebuggerThreadStatus hydra_debugger_thread_get_status(void* thread);
+const char* hydra_debugger_thread_get_break_reason(void* thread);
 size_t hydra_debugger_thread_get_message_count(void* thread);
 const void* hydra_debugger_thread_get_message(void* thread, uint32_t index);
 

@@ -979,7 +979,7 @@ result_t Kernel::svcBreak(BreakReason reason, uptr buffer_ptr,
     }
 
     if (!reason.notification_only)
-        DEBUGGER_INSTANCE.BreakOnThisThread();
+        DEBUGGER_INSTANCE.BreakOnThisThread("svcBreak");
 
     return RESULT_SUCCESS;
 }

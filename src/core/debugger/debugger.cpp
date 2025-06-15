@@ -73,7 +73,13 @@ void Debugger::UnregisterThisThread() {
     threads.erase(it);
 }
 
-void Debugger::BreakOnThisThread() {
+void Debugger::BreakOnThisThread(const std::string_view reason) {
+    {
+        GET_THIS_THREAD();
+        thread.status = ThreadStatus::Break;
+        thread.break_reason = reason;
+    }
+
     // TODO: abort after the debugger is closed?
     std::this_thread::sleep_for(std::chrono::years(0xffffffff));
 }

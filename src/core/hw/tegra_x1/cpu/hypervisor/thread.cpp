@@ -187,8 +187,7 @@ void Thread::Run() {
                         exit->exception.virtual_address,
                         exit->exception.physical_address, instruction);
 
-                    DEBUGGER_INSTANCE.BreakOnThisThread();
-
+                    DEBUGGER_INSTANCE.BreakOnThisThread("unknown HVC code");
                     break;
                 }
 
@@ -223,6 +222,8 @@ void Thread::Run() {
                           GetSysReg(HV_SYS_REG_ELR_EL1),
                           exit->exception.virtual_address,
                           exit->exception.physical_address, mmu->Load<u32>(pc));
+
+                DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exception");
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
@@ -231,6 +232,8 @@ void Thread::Run() {
             // TODO: don't cast to u32
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       (u32)exit->reason);
+
+            DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exit reason");
             break;
         }
     }
