@@ -39,6 +39,12 @@ void StructuredIterator::IterateImpl(LangBuilderBase* builder,
     } else if (auto block = dynamic_cast<const CfgBlock*>(node)) {
         for (const auto block_node : block->nodes)
             IterateImpl(builder, block_node);
+    } else if (auto if_block = dynamic_cast<const CfgIfBlock*>(node)) {
+        // If
+        builder->SetPredCond(if_block->pred_cond);
+        builder->EnterScopeEmpty();
+        IterateImpl(builder, if_block->then_block);
+        builder->ExitScopeEmpty();
     } else if (auto if_else_block = dynamic_cast<const CfgIfElseBlock*>(node)) {
         // If
         builder->SetPredCond(if_else_block->pred_cond);

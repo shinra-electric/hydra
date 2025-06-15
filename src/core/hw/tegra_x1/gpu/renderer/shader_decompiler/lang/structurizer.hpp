@@ -101,6 +101,34 @@ struct CfgBlock : public CfgNode {
     }
 };
 
+struct CfgIfBlock : public CfgNode {
+    PredCond pred_cond;
+    CfgNode* then_block;
+
+    bool IsSameAs(const CfgNode* other) const override {
+        if (auto other_if_block = dynamic_cast<const CfgIfBlock*>(other)) {
+            return pred_cond == other_if_block->pred_cond &&
+                   then_block->IsSameAs(other_if_block->then_block);
+        }
+
+        return false;
+    }
+
+    CfgIfBlock(const PredCond pred_cond_, CfgNode* then_block_)
+        : pred_cond{pred_cond_}, then_block{then_block_} {}
+
+    void Log(const u32 indent = 0) const override {
+        LOG_DEBUG(ShaderDecompiler,
+                  INDENT_FMT "If block:", PASS_INDENT(indent));
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}p{}",
+                  PASS_INDENT(indent + 1), pred_cond.not_ ? "!" : "",
+                  pred_cond.pred);
+        LOG_DEBUG(ShaderDecompiler,
+                  INDENT_FMT "Then block:", PASS_INDENT(indent + 1));
+        then_block->Log(indent + 2);
+    }
+};
+
 struct CfgIfElseBlock : public CfgNode {
     PredCond pred_cond;
     CfgNode* then_block;

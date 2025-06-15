@@ -66,8 +66,8 @@ struct CfgBasicBlock {
     CfgBlockEdge edge;
 
     void Log(const u32 indent = 0) const {
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: 0x{:x}",
-                  PASS_INDENT(indent), code_range.begin);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
+                  code_range.begin);
         if (status == CfgBlockStatus::Unvisited) {
             LOG_DEBUG(ShaderDecompiler, INDENT_FMT "UNVISITED",
                       PASS_INDENT(indent + 1));
@@ -88,7 +88,7 @@ struct CfgBasicBlock {
                   PASS_INDENT(indent + 1), edge.type);
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target: 0x{:x}",
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target: {}",
                       PASS_INDENT(indent + 2),
                       edge.branch.target->code_range.begin);
             break;
@@ -97,10 +97,10 @@ struct CfgBasicBlock {
                       PASS_INDENT(indent + 2),
                       edge.branch_conditional.pred_cond.not_ ? "!" : "",
                       edge.branch_conditional.pred_cond.pred);
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target True: 0x{:x}",
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target True: {}",
                       PASS_INDENT(indent + 2),
                       edge.branch_conditional.target_true->code_range.begin);
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target False: 0x{:x}",
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target False: {}",
                       PASS_INDENT(indent + 2),
                       edge.branch_conditional.target_false->code_range.begin);
             break;

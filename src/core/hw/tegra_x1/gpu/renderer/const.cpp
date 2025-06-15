@@ -43,6 +43,8 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
                       RG8Unorm) // TODO: correct?
     IMAGE_FORMAT_CASE(A2BGR10, Unorm, Unorm, Unorm, Unorm, RGB10A2Unorm)
+    IMAGE_FORMAT_CASE(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm, ASTC_RGBA_4x4)
+    IMAGE_FORMAT_CASE(DXN1, Unorm, Unorm, Unorm, Unorm, BC4_RUnorm)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU, "Image format {}, components: {}, {}, {}, {}",
