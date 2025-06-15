@@ -4,20 +4,29 @@
 
 namespace hydra::horizon::kernel {
 
+enum class EventFlags {
+    None = 0,
+    AutoClear = BIT(0),
+    Signalled = BIT(1),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(EventFlags)
+
 // TODO: ReadableEvent and WritableEvent
 class Event : public SynchronizationObject {
   public:
-    Event(bool autoclear_ = false, bool signaled = false)
-        : SynchronizationObject(signaled), autoclear{autoclear_} {}
+    Event(const EventFlags flags = EventFlags::None,
+          const std::string_view debug_name = "Event")
+        : SynchronizationObject(any(flags & EventFlags::Signalled), debug_name),
+          autoclear{any(flags & EventFlags::AutoClear)} {}
 
     bool Wait(i64 timeout = INFINITE_TIMEOUT) override {
         std::unique_lock<std::mutex> lock(mutex);
-        bool was_signaled = WaitImpl(lock, timeout);
+        bool was_signalled = WaitImpl(lock, timeout);
         // TODO: correct?
         if (autoclear)
-            signaled = false;
+            signalled = false;
 
-        return was_signaled;
+        return was_signalled;
     }
 
   private:

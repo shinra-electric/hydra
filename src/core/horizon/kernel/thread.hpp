@@ -8,7 +8,8 @@ namespace hydra::horizon::kernel {
 
 class Thread : public SynchronizationObject {
   public:
-    Thread(vaddr_t stack_top_addr_, i32 priority_);
+    Thread(vaddr_t stack_top_addr_, i32 priority_,
+           const std::string_view debug_name = "Thread");
     ~Thread() override;
 
     void Run();

@@ -9,7 +9,7 @@ namespace hydra::horizon::kernel {
 
 class Process : public SynchronizationObject {
   public:
-    Process();
+    Process(const std::string_view debug_name = "Process");
     ~Process() override;
 
     void Run();

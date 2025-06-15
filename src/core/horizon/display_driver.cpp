@@ -23,7 +23,7 @@ i32 DisplayBinder::GetAvailableSlot() {
                 slot = i;
             } else {
                 // We know that there is another available slot, so we can
-                // keep the event signaled
+                // keep the event signalled
                 return slot;
             }
         }

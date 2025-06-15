@@ -7,7 +7,9 @@ namespace hydra::horizon::kernel {
 
 class Session : public AutoObject {
   public:
-    Session(ServiceBase* service_) : service{service_} {}
+    Session(ServiceBase* service_,
+            const std::string_view debug_name = "Session")
+        : AutoObject(debug_name), service{service_} {}
 
     void Close();
     void Request(RequestContext& context);

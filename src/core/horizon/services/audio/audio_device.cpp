@@ -18,8 +18,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioDevice, 0, ListAudioDeviceName, 1,
                              7, SetAudioDeviceOutputVolumeAuto, 10,
                              GetActiveAudioDeviceNameAuto)
 
-// TODO: autoclear event?
-IAudioDevice::IAudioDevice() : event(new kernel::Event()) {}
+IAudioDevice::IAudioDevice()
+    : event(new kernel::Event(kernel::EventFlags::AutoClear,
+                              "IAudioDevice event")) {}
 
 result_t
 IAudioDevice::ListAudioDeviceName(i32* out_count,

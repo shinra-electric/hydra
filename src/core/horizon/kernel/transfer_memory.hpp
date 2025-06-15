@@ -6,8 +6,9 @@ namespace hydra::horizon::kernel {
 
 class TransferMemory : public AutoObject {
   public:
-    TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_)
-        : addr{addr_}, size{size_}, perm{perm_} {}
+    TransferMemory(vaddr_t addr_, u64 size_, MemoryPermission perm_,
+                   const std::string_view debug_name = "TransferMemory")
+        : AutoObject(debug_name), addr{addr_}, size{size_}, perm{perm_} {}
 
     vaddr_t GetAddress() const { return addr; }
     u64 GetSize() const { return size; }

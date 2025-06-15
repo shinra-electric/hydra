@@ -645,8 +645,8 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
                                  "Handle 0x{:x} is not a SynchronizationObject",
                                  handle_id);
 
-                    LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}",
-                              handle_id);
+                    LOG_DEBUG(Kernel, "Synchronizing with {}",
+                              handle->GetDebugName());
 
                     if (handle->Wait(0)) {
                         out_handle_index = i;
@@ -678,7 +678,7 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         ASSERT_DEBUG(handle, Kernel,
                      "Handle 0x{:x} is not a SynchronizationObject", handle_id);
 
-        LOG_DEBUG(Kernel, "Synchronizing with handle 0x{:x}", handle_id);
+        LOG_DEBUG(Kernel, "Synchronizing with {}", handle->GetDebugName());
 
         if (handle->Wait(timeout)) {
             out_handle_index = 0;

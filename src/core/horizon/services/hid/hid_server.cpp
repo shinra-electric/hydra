@@ -17,9 +17,6 @@ DEFINE_SERVICE_COMMAND_TABLE(
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
     CreateActiveVibrationDeviceList, 206, SendVibrationValues)
 
-// TODO: autoclear event?
-IHidServer::IHidServer() : npad_style_set_update_event(new kernel::Event()) {}
-
 result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
                                           u64 aruid) {
     add_service(new IAppletResource());

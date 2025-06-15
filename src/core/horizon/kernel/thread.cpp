@@ -8,8 +8,10 @@
 
 namespace hydra::horizon::kernel {
 
-Thread::Thread(vaddr_t stack_top_addr_, i32 priority_)
-    : stack_top_addr{stack_top_addr_}, priority{priority_} {
+Thread::Thread(vaddr_t stack_top_addr_, i32 priority_,
+               const std::string_view debug_name)
+    : SynchronizationObject(false, debug_name),
+      stack_top_addr{stack_top_addr_}, priority{priority_} {
     tls_mem = KERNEL_INSTANCE.CreateTlsMemory(tls_addr);
 }
 

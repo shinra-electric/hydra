@@ -10,8 +10,9 @@ constexpr usize MAIN_THREAD_STACK_SIZE =
     0x4000000; // TODO: why does the size need to be double the size it used to
                // be before the thread rework? InstructionAbortSameEl otherwise
 
-Process::Process()
-    : main_thread(new Thread(STACK_REGION_BASE + MAIN_THREAD_STACK_SIZE - 0x10,
+Process::Process(const std::string_view debug_name)
+    : SynchronizationObject(false, debug_name),
+      main_thread(new Thread(STACK_REGION_BASE + MAIN_THREAD_STACK_SIZE - 0x10,
                              20)) /* TODO: priority */ {
     // Stack memory
     auto& mmu = hw::tegra_x1::cpu::MMUBase::GetInstance();

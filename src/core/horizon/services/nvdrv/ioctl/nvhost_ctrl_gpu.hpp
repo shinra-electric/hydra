@@ -59,10 +59,11 @@ struct ZCullInfo {
 
 class NvHostCtrlGpu : public FdBase {
   public:
-    // TODO: autoclear events?
     NvHostCtrlGpu()
-        : error_event(new kernel::Event()), unknown_event(new kernel::Event()) {
-    }
+        : error_event(new kernel::Event(kernel::EventFlags::AutoClear,
+                                        "NvHostCtrlGpu error event")),
+          unknown_event(new kernel::Event(kernel::EventFlags::AutoClear,
+                                          "NvHostCtrlGpu unknown event")) {}
 
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;

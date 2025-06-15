@@ -7,23 +7,26 @@ namespace hydra::horizon::kernel {
 // TODO: this shouldn't handle signaling and waiting, that's a job for the
 class SynchronizationObject : public AutoObject {
   public:
-    SynchronizationObject(bool signaled_ = false) : signaled{signaled_} {}
+    SynchronizationObject(
+        bool signalled_ = false,
+        const std::string_view debug_name = "SynchronizationObject")
+        : AutoObject(debug_name), signalled{signalled_} {}
 
     void Signal() {
         std::unique_lock<std::mutex> lock(mutex);
-        signaled = true;
+        signalled = true;
         cv.notify_all();
     }
 
     bool Clear() {
-        bool was_signaled;
+        bool was_signalled;
         {
             std::unique_lock<std::mutex> lock(mutex);
-            was_signaled = signaled;
-            signaled = false;
+            was_signalled = signalled;
+            signalled = false;
         }
 
-        return was_signaled;
+        return was_signalled;
     }
 
     virtual bool Wait(i64 timeout = INFINITE_TIMEOUT) {
@@ -33,12 +36,12 @@ class SynchronizationObject : public AutoObject {
 
   protected:
     std::mutex mutex;
-    bool signaled; // TODO: atomic? (probably not necessary though)
+    bool signalled; // TODO: atomic? (probably not necessary though)
 
-    // Returns true if the event was signaled, false on timeout
+    // Returns true if the event was signalled, false on timeout
     bool WaitImpl(std::unique_lock<std::mutex>& lock, i64 timeout) {
-        // First, check if the event is already signaled
-        if (signaled)
+        // First, check if the event is already signalled
+        if (signalled)
             return true;
         else if (timeout == 0)
             return false;

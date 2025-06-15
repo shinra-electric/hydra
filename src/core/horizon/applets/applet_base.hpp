@@ -8,9 +8,12 @@ namespace hydra::horizon::applets {
 class AppletBase {
   public:
     AppletBase(const LibraryAppletMode mode_)
-        : mode{mode_}, state_changed_event(new kernel::Event()),
-          interactive_in_data_event(new kernel::Event(true)),
-          interactive_out_data_event(new kernel::Event()) {}
+        : mode{mode_}, state_changed_event(new kernel::Event(
+                           kernel::EventFlags::None, "State changed event")),
+          interactive_in_data_event(new kernel::Event(
+              kernel::EventFlags::AutoClear, "Interactive in data event")),
+          interactive_out_data_event(new kernel::Event(
+              kernel::EventFlags::None, "Interactive out data event")) {}
     virtual ~AppletBase() {
         if (thread) {
             // TODO: join?

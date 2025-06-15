@@ -6,7 +6,8 @@ namespace hydra::horizon::kernel {
 
 class AutoObject {
   public:
-    AutoObject() : ref_count{0} {}
+    AutoObject(const std::string_view debug_name_ = "AutoObject")
+        : debug_name{debug_name_}, ref_count{0} {}
 
     void Retain() { ref_count++; }
 
@@ -22,10 +23,14 @@ class AutoObject {
         return false;
     }
 
+    const std::string_view GetDebugName() const { return debug_name; }
+
   protected:
     virtual ~AutoObject() {}
 
   private:
+    std::string debug_name;
+
     std::atomic<u32> ref_count;
 };
 

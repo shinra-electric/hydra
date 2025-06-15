@@ -6,8 +6,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles, 3, Cancel, 4,
                              Submit)
 
-// TODO: autoclear events?
-IRequest::IRequest() : events{{new kernel::Event()}, {new kernel::Event()}} {}
+// TODO: how come is the autoclear of the second one user-specified?
+IRequest::IRequest()
+    : events{{new kernel::Event(kernel::EventFlags::AutoClear,
+                                "IRequest system event")},
+             {new kernel::Event(kernel::EventFlags::AutoClear,
+                                "IRequest system event")}} {}
 
 result_t IRequest::GetRequestState(RequestState* out_state) {
     LOG_FUNC_STUBBED(Services);

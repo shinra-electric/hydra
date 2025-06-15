@@ -15,10 +15,12 @@ DEFINE_SERVICE_COMMAND_TABLE(
     CreateManagedDisplayLayer, 44, CreateManagedDisplaySeparableLayer, 62,
     SetIdleTimeDetectionExtension, 91, GetAccumulatedSuspendedTickChangedEvent)
 
-// TODO: autoclear library applet launchable event?
 ISelfController::ISelfController()
-    : library_applet_launchable_event(new kernel::Event(false, true)),
-      accumulated_suspended_tick_changed_event(new kernel::Event(true)) {}
+    : library_applet_launchable_event(new kernel::Event(
+          kernel::EventFlags::Signalled, "Library applet launchable event")),
+      accumulated_suspended_tick_changed_event(
+          new kernel::Event(kernel::EventFlags::AutoClear,
+                            "Accumulated suspended tick changed event")) {}
 
 result_t ISelfController::LockExit() {
     StateManager::GetInstance().LockExit();

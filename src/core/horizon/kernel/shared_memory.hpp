@@ -12,7 +12,8 @@ namespace hydra::horizon::kernel {
 
 class SharedMemory : public AutoObject {
   public:
-    SharedMemory(usize size);
+    SharedMemory(usize size,
+                 const std::string_view debug_name = "SharedMemory");
     ~SharedMemory() override;
 
     void MapToRange(const range<uptr> range_, MemoryPermission perm);

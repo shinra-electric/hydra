@@ -14,7 +14,9 @@ enum class OperationMode {
 class ICommonStateGetter : public ServiceBase {
   public:
     ICommonStateGetter()
-        : default_display_resolution_change_event(new kernel::Event(true)) {}
+        : default_display_resolution_change_event(
+              new kernel::Event(kernel::EventFlags::AutoClear,
+                                "Default display resolution change event")) {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;

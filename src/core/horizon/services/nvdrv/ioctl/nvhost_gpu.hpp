@@ -7,11 +7,16 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 class NvHostGpu : public ChannelBase {
   public:
-    // TODO: autoclear events?
     NvHostGpu()
-        : sm_exception_bpt_int_report_event(new kernel::Event()),
-          sm_exception_bpt_pause_report_event(new kernel::Event()),
-          error_notifier_event(new kernel::Event()) {}
+        : sm_exception_bpt_int_report_event(
+              new kernel::Event(kernel::EventFlags::AutoClear,
+                                "NvHostGpu SM exception BPT int report event")),
+          sm_exception_bpt_pause_report_event(new kernel::Event(
+              kernel::EventFlags::AutoClear,
+              "NvHostGpu SM exception BPT pause report event")),
+          error_notifier_event(
+              new kernel::Event(kernel::EventFlags::AutoClear,
+                                "NvHostGpu error norifier event")) {}
 
     NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;
 
