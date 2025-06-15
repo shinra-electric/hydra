@@ -68,21 +68,26 @@ void PageTable::Unmap(vaddr_t va, usize size) {
 
 // TODO: find out if there is a cheaper way
 PageRegion PageTable::QueryRegion(vaddr_t va) const {
+#define FREE_MEMORY(region_va, region_size)                                    \
+    PageRegion {                                                               \
+        .va = region_va, .pa = 0x0, .size = region_size,                       \
+        .state = {horizon::kernel::MemoryType::Free,                           \
+                  horizon::kernel::MemoryAttribute::None,                      \
+                  horizon::kernel::MemoryPermission::None},                    \
+    }
+
+#ifdef HYDRA_DEBUG
+    if (va >= ADDRESS_SPACE_SIZE)
+        return FREE_MEMORY(ADDRESS_SPACE_SIZE, 0); // TODO: size
+#endif
+
     u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
     u64 entry = top_level.ReadEntry(index);
     while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
-        if ((entry & PTE_TYPE_MASK) != PTE_TABLE) {
-            PageRegion region;
-            region.va = va & ~(level->GetBlockSize() - 1);
-            region.pa = 0x0;
-            region.size = level->GetBlockSize();
-            region.state = {horizon::kernel::MemoryType::Free,
-                            horizon::kernel::MemoryAttribute::None,
-                            horizon::kernel::MemoryPermission::None};
-
-            return region;
-        }
+        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
+            return FREE_MEMORY(va & ~(level->GetBlockSize() - 1),
+                               level->GetBlockSize());
 
         level = level->GetNextNoNew(index);
         index = level->VaToIndex(va);

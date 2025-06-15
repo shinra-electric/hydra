@@ -18,7 +18,7 @@ struct MenuCommands: Commands {
 
         // Remove some items
         CommandGroup(replacing: .help) {}
-        CommandGroup(replacing: .pasteboard) {}
+        //CommandGroup(replacing: .pasteboard) {}
         CommandGroup(replacing: .undoRedo) {}
         // CommandGroup(replacing: .systemServices) {}
     }

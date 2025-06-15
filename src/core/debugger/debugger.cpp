@@ -1,5 +1,7 @@
 #include "core/debugger/debugger.hpp"
 
+#include <future>
+
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 #define GET_THIS_THREAD()                                                      \
@@ -81,7 +83,9 @@ void Debugger::BreakOnThisThread(const std::string_view reason) {
     }
 
     // TODO: abort after the debugger is closed?
-    std::this_thread::sleep_for(std::chrono::years(0xffffffff));
+    std::promise<void> promise;
+    auto future = promise.get_future();
+    future.wait();
 }
 
 void Debugger::LogOnThisThread(const LogMessage& msg) {

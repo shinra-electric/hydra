@@ -41,6 +41,8 @@ struct MessageView: View {
                         HStack {
                             Text(getStackFrame(index: UInt32(i)))
                                 .font(.system(size: 12))
+                                .textSelection(.enabled)
+                                .focusable()
                             Spacer()
                         }
                     }
