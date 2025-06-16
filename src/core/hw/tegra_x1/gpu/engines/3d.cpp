@@ -264,9 +264,10 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
     gpu_vaddr_t index_buffer_ptr = UNMAP_ADDR(regs.index_buffer_addr);
     // TODO: uncomment?
     usize index_buffer_size =
-        count * get_index_type_size(
-                    regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr)
-                                      // - MAKE_ADDR(regs.index_buffer_addr);
+        count *
+        get_index_type_size(
+            regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr) + 1
+                              // - MAKE_ADDR(regs.index_buffer_addr);
     auto index_buffer = RENDERER_INSTANCE->GetBufferCache().Find(
         {index_buffer_ptr, index_buffer_size});
 
@@ -380,7 +381,7 @@ renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
 
     const renderer::BufferDescriptor descriptor{
         .ptr = UNMAP_ADDR(vertex_array.addr),
-        .size = MAKE_ADDR(regs.vertex_array_limits[vertex_array_index]) -
+        .size = MAKE_ADDR(regs.vertex_array_limits[vertex_array_index]) + 1 -
                 MAKE_ADDR(vertex_array.addr),
     };
 

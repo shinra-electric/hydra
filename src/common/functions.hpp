@@ -27,12 +27,12 @@ template <typename T> constexpr T all_ones() {
 template <typename T> constexpr T invalid() { return all_ones<T>(); }
 
 template <typename T, u64 b, u64 count> constexpr T mask() {
-    return ((1u << count) - 1u) << b;
+    return ((1ull << count) - 1ull) << b;
 }
 
 template <typename T, u64 b, u64 count, typename SrcT>
 T extract_bits(SrcT src) {
-    return static_cast<T>((src >> b) & mask<T, 0, count>());
+    return static_cast<T>((src >> b) & mask<SrcT, 0, count>());
 }
 
 template <typename T, u32 bit_count> T sign_extend(T v) {

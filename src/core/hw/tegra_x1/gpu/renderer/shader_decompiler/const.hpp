@@ -3,9 +3,6 @@
 #include "core/hw/tegra_x1/gpu/engines/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
-#define INST0(value, mask) if ((inst & mask##ull) == value##ull)
-#define INST(value, mask) else INST0(value, mask)
-
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 typedef u64 instruction_t;
@@ -96,10 +93,15 @@ const SvAccess get_sv_access_from_addr(u64 addr);
 enum class LoadStoreMode {
     Invalid,
 
+    U8,
+    S8,
+    U16,
+    S16,
     B32,
     B64,
     B96,
     B128,
+    UB128,
 };
 
 u32 get_load_store_count(LoadStoreMode mode);
@@ -118,7 +120,7 @@ enum class MathFunc {
     Sqrt,
 };
 
-enum class ComparisonOperator {
+enum class ComparisonOp {
     Invalid,
 
     F, // TODO: what is this?
@@ -139,12 +141,56 @@ enum class ComparisonOperator {
     T, // TODO: what is this?
 };
 
-enum class BinaryOperator {
+enum class BitwiseOp {
     Invalid,
 
     And,
     Or,
     Xor,
+    PassB,
+};
+
+enum class PredOp {
+    Invalid,
+
+    False,
+    True,
+    Zero,
+    NotZero,
+};
+
+enum class IpaOp {
+    Invalid,
+
+    Pass,
+    Multiply,
+    Constant,
+    SC,
+};
+
+enum class PixelImapType : u8 {
+    Unused = 0,
+    Constant = 1,
+    Perspective = 2,
+    ScreenLinear = 3,
+};
+
+struct PixelImap {
+    PixelImapType x;
+    PixelImapType y;
+    PixelImapType z;
+    PixelImapType w;
+};
+
+constexpr u32 PIXEL_IMAP_COUNT = 32;
+
+struct DecompilerContext {
+    ShaderType type;
+    union {
+        struct {
+            PixelImap pixel_imaps[PIXEL_IMAP_COUNT];
+        } frag;
+    };
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
@@ -160,7 +206,8 @@ ENABLE_ENUM_FORMATTING(
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::LoadStoreMode, Invalid,
-    "invalid", B32, "b32", B64, "b64", B96, "b96", B128, "b128")
+    "invalid", U8, "u8", S8, "S8", U16, "u16", S16, "s16", B32, "b32", B64,
+    "b64", B96, "b96", B128, "b128")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MathFunc, Invalid,
@@ -168,13 +215,21 @@ ENABLE_ENUM_FORMATTING(
     "rsq", Rcp64h, "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComparisonOperator,
-    Invalid, "invalid", F, "f", Less, "less", Equal, "equal", Greater,
-    "greater", LessEqual, "less equal", NotEqual, "not equal", GreaterEqual,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComparisonOp, Invalid,
+    "invalid", F, "f", Less, "less", Equal, "equal", Greater, "greater",
+    LessEqual, "less equal", NotEqual, "not equal", GreaterEqual,
     "greater equal", Num, "num", Nan, "nan", LessU, "less U", EqualU, "equal U",
     LessEqualU, "less equal U", GreaterU, "greater U", NotEqualU, "not equal U",
     GreaterEqualU, "greater equal U", T, "t")
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BinaryOperator, Invalid,
-    "invalid", And, "and", Or, "or", Xor, "xor")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BitwiseOp, Invalid,
+    "invalid", And, "and", Or, "or", Xor, "xor", PassB, "pass B")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::PredOp, Invalid,
+    "invalid", False, "false", True, "true", Zero, "zero", NotZero, "not zero")
+
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
+                       Invalid, "invalid", Pass, "pass", Multiply, "multiply",
+                       Constant, "constant", SC, "SC")

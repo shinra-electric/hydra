@@ -91,6 +91,21 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
 
+    // Context
+    DecompilerContext context;
+    context.type = type;
+    if (type == ShaderType::Fragment) {
+        for (u32 i = 0; i < PIXEL_IMAP_COUNT; i++) {
+            const auto imap = header.ps.imap_generic_vector[i];
+            context.frag.pixel_imaps[i] = {
+                .x = extract_bits<PixelImapType, 0, 2>(imap),
+                .y = extract_bits<PixelImapType, 2, 2>(imap),
+                .z = extract_bits<PixelImapType, 4, 2>(imap),
+                .w = extract_bits<PixelImapType, 6, 2>(imap),
+            };
+        }
+    }
+
 #define DUMP_SHADERS 0
 #if DUMP_SHADERS
     std::ofstream out(
@@ -104,13 +119,13 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     // Analyze
     Analyzer::MemoryAnalyzer memory_analyzer;
     {
-        AllPathsIterator iterator(code_reader.CreateSubReader());
+        AllPathsIterator iterator(context, code_reader.CreateSubReader());
         iterator.Iterate(&memory_analyzer);
     }
 
     Analyzer::CfgBuilder cfg_builder;
     {
-        AllPathsIterator iterator(code_reader.CreateSubReader());
+        AllPathsIterator iterator(context, code_reader.CreateSubReader());
         iterator.Iterate(&cfg_builder);
     }
 
@@ -123,15 +138,15 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     out_backend = CONFIG_INSTANCE.GetShaderBackend();
     switch (out_backend) {
     case ShaderBackend::Msl: {
-        builder = new Lang::MSL::Builder(memory_analyzer, type, state, out_code,
-                                         out_resource_mapping);
+        builder = new Lang::MSL::Builder(context, memory_analyzer, state,
+                                         out_code, out_resource_mapping);
         auto root_block = Lang::Structurize(cfg_builder.GetEntryBlock());
 
         // Debug
         root_block->Log();
 
-        iterator = new Lang::StructuredIterator(code_reader.CreateSubReader(),
-                                                root_block);
+        iterator = new Lang::StructuredIterator(
+            context, code_reader.CreateSubReader(), root_block);
         break;
     }
     // case ShaderBackend::Air:

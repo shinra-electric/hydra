@@ -14,11 +14,11 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 class BuilderBase : public ObserverBase {
   public:
-    BuilderBase(const Analyzer::MemoryAnalyzer& memory_analyzer_,
-                const ShaderType type_, const GuestShaderState& state_,
-                std::vector<u8>& out_code_,
+    BuilderBase(const DecompilerContext& context_,
+                const Analyzer::MemoryAnalyzer& memory_analyzer_,
+                const GuestShaderState& state_, std::vector<u8>& out_code_,
                 ResourceMapping& out_resource_mapping_)
-        : memory_analyzer{memory_analyzer_}, type{type_}, state{state_},
+        : context{context_}, memory_analyzer{memory_analyzer_}, state{state_},
           out_code{out_code_}, out_resource_mapping{out_resource_mapping_} {}
     virtual ~BuilderBase() {}
 
@@ -27,8 +27,8 @@ class BuilderBase : public ObserverBase {
     virtual void Finish() = 0;
 
   protected:
+    const DecompilerContext& context;
     const Analyzer::MemoryAnalyzer& memory_analyzer;
-    const ShaderType type;
     const GuestShaderState& state;
 
     std::vector<u8>& out_code;

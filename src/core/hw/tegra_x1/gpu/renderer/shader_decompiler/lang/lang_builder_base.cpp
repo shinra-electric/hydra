@@ -12,47 +12,47 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 
 namespace {
 
-std::string cmp_op_to_str(ComparisonOperator cmp) {
+std::string cmp_op_to_str(ComparisonOp cmp) {
     // TODO: are the U ones the same?
     switch (cmp) {
-    case ComparisonOperator::F:
+    case ComparisonOp::F:
         return INVALID_VALUE; // TODO
-    case ComparisonOperator::Less:
-    case ComparisonOperator::LessU:
+    case ComparisonOp::Less:
+    case ComparisonOp::LessU:
         return "<";
-    case ComparisonOperator::Equal:
-    case ComparisonOperator::EqualU:
+    case ComparisonOp::Equal:
+    case ComparisonOp::EqualU:
         return "==";
-    case ComparisonOperator::LessEqual:
-    case ComparisonOperator::LessEqualU:
+    case ComparisonOp::LessEqual:
+    case ComparisonOp::LessEqualU:
         return "<=";
-    case ComparisonOperator::Greater:
-    case ComparisonOperator::GreaterU:
+    case ComparisonOp::Greater:
+    case ComparisonOp::GreaterU:
         return ">";
-    case ComparisonOperator::NotEqual:
-    case ComparisonOperator::NotEqualU:
+    case ComparisonOp::NotEqual:
+    case ComparisonOp::NotEqualU:
         return "!=";
-    case ComparisonOperator::GreaterEqual:
-    case ComparisonOperator::GreaterEqualU:
+    case ComparisonOp::GreaterEqual:
+    case ComparisonOp::GreaterEqualU:
         return ">=";
-    case ComparisonOperator::Num:
+    case ComparisonOp::Num:
         return INVALID_VALUE; // TODO
-    case ComparisonOperator::Nan:
+    case ComparisonOp::Nan:
         return INVALID_VALUE; // TODO
-    case ComparisonOperator::T:
+    case ComparisonOp::T:
         return INVALID_VALUE; // TODO
     default:
         return INVALID_VALUE;
     }
 }
 
-std::string bin_op_to_str(BinaryOperator bin) {
+std::string bin_op_to_str(BitwiseOp bin) {
     switch (bin) {
-    case BinaryOperator::And:
+    case BitwiseOp::And:
         return "&";
-    case BinaryOperator::Or:
+    case BitwiseOp::Or:
         return "|";
-    case BinaryOperator::Xor:
+    case BitwiseOp::Xor:
         return "^";
     default:
         return INVALID_VALUE;
@@ -111,7 +111,8 @@ void LangBuilderBase::Start() {
     WriteNewline();
 
     // Inputs
-    switch (type) {
+    // TODO: these are provided in the shader header, no need for analysis
+    switch (context.type) {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
@@ -256,17 +257,21 @@ ValueBase* LangBuilderBase::OpShiftLeft(ValueBase* src, u32 shift) {
     RET_V("({} << 0x{:x})", V(src), shift);
 }
 
+ValueBase* LangBuilderBase::OpShiftRight(ValueBase* src, u32 shift) {
+    RET_V("({} >> 0x{:x})", V(src), shift);
+}
+
 ValueBase* LangBuilderBase::OpCast(ValueBase* src, DataType dst_type) {
     RET_V("({}){}", dst_type, V(src));
 }
 
-ValueBase* LangBuilderBase::OpCompare(ComparisonOperator cmp, ValueBase* srcA,
+ValueBase* LangBuilderBase::OpCompare(ComparisonOp cmp, ValueBase* srcA,
                                       ValueBase* srcB) {
     RET_V("({} {} {})", V(srcA), cmp_op_to_str(cmp), V(srcB));
 }
 
-ValueBase* LangBuilderBase::OpBinary(BinaryOperator bin, ValueBase* srcA,
-                                     ValueBase* srcB) {
+ValueBase* LangBuilderBase::OpBitwise(BitwiseOp bin, ValueBase* srcA,
+                                      ValueBase* srcB) {
     RET_V("({} {} {})", V(srcA), bin_op_to_str(bin), V(srcB));
 }
 
@@ -277,7 +282,7 @@ ValueBase* LangBuilderBase::OpSelect(ValueBase* cond, ValueBase* src_true,
 
 void LangBuilderBase::OpExit() {
     // Outputs
-    switch (type) {
+    switch (context.type) {
     case ShaderType::Vertex:
         // TODO: don't hardcode the bit cast type
 #define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
@@ -345,11 +350,6 @@ LangBuilderBase::OpVectorConstruct(const std::vector<ValueBase*>& elements,
     RET_V("vec<{}, {}>({})", data_type, elements.size(), elements_str);
 }
 
-ValueBase* LangBuilderBase::OpInterpolate(ValueBase* src) {
-    // TODO: interpolate param
-    RET_V("{}", V(src));
-}
-
 void LangBuilderBase::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
                                       ValueBase* dstC, ValueBase* dstD,
                                       u32 const_buffer_index,
@@ -363,6 +363,10 @@ void LangBuilderBase::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
     EmitWriteFromTemp(dstB, 1);
     EmitWriteFromTemp(dstC, 2);
     EmitWriteFromTemp(dstD, 3);
+}
+
+void LangBuilderBase::OpDebugComment(const std::string_view str) {
+    Write("// {}", str);
 }
 
 void LangBuilderBase::EmitReadToTemp(ValueBase* src, u32 offset) {

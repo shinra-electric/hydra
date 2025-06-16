@@ -55,11 +55,12 @@ class LangBuilderBase : public BuilderBase {
     ValueBase* OpFloatFma(ValueBase* srcA, ValueBase* srcB,
                           ValueBase* srcC) override;
     ValueBase* OpShiftLeft(ValueBase* src, u32 shift) override;
+    ValueBase* OpShiftRight(ValueBase* src, u32 shift) override;
     ValueBase* OpCast(ValueBase* src, DataType dst_type) override;
-    ValueBase* OpCompare(ComparisonOperator cmp, ValueBase* srcA,
+    ValueBase* OpCompare(ComparisonOp cmp, ValueBase* srcA,
                          ValueBase* srcB) override;
-    ValueBase* OpBinary(BinaryOperator bin, ValueBase* srcA,
-                        ValueBase* srcB) override;
+    ValueBase* OpBitwise(BitwiseOp bin, ValueBase* srcA,
+                         ValueBase* srcB) override;
     ValueBase* OpSelect(ValueBase* cond, ValueBase* src_true,
                         ValueBase* src_false) override;
 
@@ -76,10 +77,12 @@ class LangBuilderBase : public BuilderBase {
                                  DataType data_type) override;
 
     // Special
-    ValueBase* OpInterpolate(ValueBase* src) override;
     void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
                          ValueBase* dstD, u32 const_buffer_index,
                          ValueBase* coords_x, ValueBase* coords_y) override;
+
+    // Debug
+    void OpDebugComment(const std::string_view str) override;
 
   protected:
     virtual void EmitHeader() = 0;
@@ -141,13 +144,13 @@ class LangBuilderBase : public BuilderBase {
     // Helpers
     template <typename T> std::string GetImmediateL(const T imm) {
         if constexpr (std::is_same_v<T, i32>)
-            return fmt::format("({:#010x}i)", imm);
+            return fmt::format("({:#x})", imm);
         if constexpr (std::is_same_v<T, i64>)
-            return fmt::format("({:#018}ill)", imm);
+            return fmt::format("({:#x}ll)", imm);
         else if constexpr (std::is_same_v<T, u32>)
-            return fmt::format("({:#010x}u)", imm);
+            return fmt::format("({:#x}u)", imm);
         else if constexpr (std::is_same_v<T, u64>)
-            return fmt::format("({:#018x}ull)", imm);
+            return fmt::format("({:#x}ull)", imm);
         else if constexpr (std::is_same_v<T, f32>)
             return fmt::format("({:#}f)", imm);
         else if constexpr (std::is_same_v<T, f64>)

@@ -9,8 +9,9 @@ class LangBuilderBase;
 
 class StructuredIterator : public IteratorBase {
   public:
-    StructuredIterator(Reader code_reader, const CfgBlock* root_block_)
-        : IteratorBase(code_reader), root_block{root_block_} {}
+    StructuredIterator(const DecompilerContext& context, Reader code_reader,
+                       const CfgBlock* root_block_)
+        : IteratorBase(context, code_reader), root_block{root_block_} {}
 
     void Iterate(ObserverBase* observer) override;
 

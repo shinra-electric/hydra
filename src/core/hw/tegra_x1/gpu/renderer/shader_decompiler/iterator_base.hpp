@@ -23,7 +23,8 @@ struct result_t {
 
 class IteratorBase {
   public:
-    IteratorBase(Reader code_reader_) : code_reader{code_reader_} {}
+    IteratorBase(const DecompilerContext& context_, Reader code_reader_)
+        : context{context_}, code_reader{code_reader_} {}
     virtual ~IteratorBase() = default;
 
     virtual void Iterate(ObserverBase* observer) = 0;
@@ -40,6 +41,7 @@ class IteratorBase {
     u32 GetPC() const { return code_reader.Tell() / sizeof(instruction_t) - 1; }
 
   private:
+    const DecompilerContext& context;
     Reader code_reader;
 
     result_t ParseNextInstructionImpl(ObserverBase* observer, const u32 pc,

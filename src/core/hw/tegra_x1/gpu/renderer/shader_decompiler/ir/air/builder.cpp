@@ -339,11 +339,6 @@ void Builder::OpStore(AMem dst, reg_t src) {
     builder->CreateStore(GetReg(src), GetA(dst, true));
 }
 
-void Builder::OpInterpolate(reg_t dst, AMem src) {
-    // TODO: interpolate param
-    builder->CreateStore(GetA(src), GetReg(dst, true));
-}
-
 void Builder::OpTextureSample(reg_t dst0, reg_t dst1, u32 const_buffer_index,
                               reg_t coords_x, reg_t coords_y) {
     llvm::Value* coords_v = llvm::UndefValue::get(types._float2);

@@ -53,15 +53,18 @@ class ObserverBase {
     virtual ValueBase* OpShiftLeft(ValueBase* src, u32 shift) {
         return nullptr;
     }
+    virtual ValueBase* OpShiftRight(ValueBase* src, u32 shift) {
+        return nullptr;
+    }
     virtual ValueBase* OpCast(ValueBase* src, DataType dst_type) {
         return nullptr;
     }
-    virtual ValueBase* OpCompare(ComparisonOperator cmp, ValueBase* srcA,
+    virtual ValueBase* OpCompare(ComparisonOp cmp, ValueBase* srcA,
                                  ValueBase* srcB) {
         return nullptr;
     }
-    virtual ValueBase* OpBinary(BinaryOperator bin, ValueBase* srcA,
-                                ValueBase* srcB) {
+    virtual ValueBase* OpBitwise(BitwiseOp bin, ValueBase* srcA,
+                                 ValueBase* srcB) {
         return nullptr;
     }
     virtual ValueBase* OpSelect(ValueBase* cond, ValueBase* src_true,
@@ -94,13 +97,14 @@ class ObserverBase {
     }
 
     // Special
-    // TODO: remove this
-    virtual ValueBase* OpInterpolate(ValueBase* src) { return nullptr; }
     virtual void OpTextureSample(ValueBase* dstA, ValueBase* dstB,
                                  ValueBase* dstC, ValueBase* dstD,
                                  u32 const_buffer_index, ValueBase* coords_x,
                                  ValueBase* coords_y) {}
     virtual void OpDiscard() {}
+
+    // Debug
+    virtual void OpDebugComment(const std::string_view str) {}
 
     // Setters
     virtual void SetPC(const u32 pc_) { pc = pc_; }

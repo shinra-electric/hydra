@@ -55,6 +55,10 @@ const SvAccess get_sv_access_from_addr(u64 addr) {
 
 u32 get_load_store_count(LoadStoreMode mode) {
     switch (mode) {
+    case LoadStoreMode::U8:
+    case LoadStoreMode::S8:
+    case LoadStoreMode::U16:
+    case LoadStoreMode::S16:
     case LoadStoreMode::B32:
         return 1;
     case LoadStoreMode::B64:

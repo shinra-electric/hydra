@@ -47,7 +47,7 @@ void Builder::EmitDeclarations() {
     // Handled in GetMainArgs
 
     // Stage inputs
-    switch (type) {
+    switch (context.type) {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
@@ -97,7 +97,7 @@ void Builder::EmitDeclarations() {
     }
 
     // Stage outputs
-    switch (type) {
+    switch (context.type) {
     case ShaderType::Vertex:
         for (const auto output : memory_analyzer.GetStageOutputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, output);
@@ -136,7 +136,7 @@ void Builder::EmitDeclarations() {
 }
 
 void Builder::EmitMainPrototype() {
-    switch (type) {
+    switch (context.type) {
     case ShaderType::Vertex:
         WriteRaw("vertex ");
         break;
@@ -185,7 +185,7 @@ void Builder::EmitMainPrototype() {
 }
 
 void Builder::EmitExit() {
-    if (type == ShaderType::Vertex) {
+    if (context.type == ShaderType::Vertex) {
         // Flip vertically
         // TODO: handle this with viewports?
         // WriteStatement("__out.position.y = -__out.position.y");
@@ -205,7 +205,7 @@ std::string Builder::GetSvQualifierName(const Sv& sv, bool output) {
     case SvSemantic::Position:
         return "[[position]]";
     case SvSemantic::UserInOut:
-        switch (type) {
+        switch (context.type) {
         case ShaderType::Vertex:
             if (output)
                 return fmt::format("[[user(locn{})]]", sv.index);
