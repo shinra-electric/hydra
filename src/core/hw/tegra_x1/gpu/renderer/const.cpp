@@ -129,8 +129,6 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format) {
     default:
         LOG_NOT_IMPLEMENTED(GPU, "Color surface format {}",
                             color_surface_format);
-        // TODO: don't throw
-        throw;
         return TextureFormat::Invalid;
     }
 

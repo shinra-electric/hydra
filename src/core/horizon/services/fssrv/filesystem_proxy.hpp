@@ -115,6 +115,10 @@ class IFileSystemProxy : public ServiceBase {
                                     aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
     result_t
+    OpenReadOnlySaveDataFileSystem(add_service_fn_t add_service,
+                                   aligned<SaveDataSpaceId, 8> space_id,
+                                   SaveDataAttribute attr);
+    result_t
     OpenSaveDataInfoReaderBySaveDataSpaceId(add_service_fn_t add_service,
                                             SaveDataSpaceId space_id);
     result_t OpenDataStorageByProgramId(add_service_fn_t add_service,
@@ -124,6 +128,11 @@ class IFileSystemProxy : public ServiceBase {
                                      u64 data_id);
     result_t OpenPatchDataStorageByCurrentProcess(add_service_fn_t add_service);
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
+
+    // Impl
+    result_t OpenSaveDataFileSystemImpl(add_service_fn_t add_service,
+                                        SaveDataSpaceId space_id,
+                                        SaveDataAttribute attr, bool read_only);
 };
 
 } // namespace hydra::horizon::services::fssrv

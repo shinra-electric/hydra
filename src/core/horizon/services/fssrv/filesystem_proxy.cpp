@@ -33,9 +33,10 @@ DEFINE_SERVICE_COMMAND_TABLE(
     IFileSystemProxy, 0, OpenFileSystem, 1, SetCurrentProcess, 8,
     OpenFileSystemWithIdObsolete, 11, OpenBisFileSystem, 18,
     OpenSdCardFileSystem, 22, CreateSaveDataFileSystem, 51,
-    OpenSaveDataFileSystem, 61, OpenSaveDataInfoReaderBySaveDataSpaceId, 200,
-    OpenDataStorageByProgramId, 202, OpenDataStorageByDataId, 203,
-    OpenPatchDataStorageByCurrentProcess, 1005, GetGlobalAccessLogMode)
+    OpenSaveDataFileSystem, 53, OpenReadOnlySaveDataFileSystem, 61,
+    OpenSaveDataInfoReaderBySaveDataSpaceId, 200, OpenDataStorageByProgramId,
+    202, OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess,
+    1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
     add_service_fn_t add_service, FileSystemProxyType type,
@@ -94,14 +95,13 @@ result_t
 IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
                                          aligned<SaveDataSpaceId, 8> space_id,
                                          SaveDataAttribute attr) {
-    std::string mount = get_save_data_mount(attr);
-    add_service(new IFileSystem(mount));
+    return OpenSaveDataFileSystemImpl(add_service, space_id, attr, false);
+}
 
-    // TODO: correct?
-    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
-    // TODO: check res
-
-    return RESULT_SUCCESS;
+result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
+    add_service_fn_t add_service, aligned<SaveDataSpaceId, 8> space_id,
+    SaveDataAttribute attr) {
+    return OpenSaveDataFileSystemImpl(add_service, space_id, attr, true);
 }
 
 result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
@@ -167,6 +167,21 @@ result_t IFileSystemProxy::GetGlobalAccessLogMode(u32* out_log_mode) {
 
     // TODO: what should this be?
     *out_log_mode = 0;
+    return RESULT_SUCCESS;
+}
+
+result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(
+    add_service_fn_t add_service, SaveDataSpaceId space_id,
+    SaveDataAttribute attr, bool read_only) {
+    // TODO: support read only
+
+    std::string mount = get_save_data_mount(attr);
+    add_service(new IFileSystem(mount));
+
+    // TODO: correct?
+    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
+    // TODO: check res
+
     return RESULT_SUCCESS;
 }
 

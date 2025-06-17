@@ -10,6 +10,7 @@ class IAddOnContentManager : public ServiceBase {
 
   private:
     // Commands
+    result_t CountAddOnContent(i64* out_count);
     // TODO: correct?
     result_t ListAddOnContent(u32 start_index, u32 buffer_size, u32* out_count,
                               OutBuffer<BufferAttr::MapAlias> out_buffer);

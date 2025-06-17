@@ -205,6 +205,9 @@ add_library(hydra-core
     horizon/services/audio/audio_renderer.hpp
     horizon/services/audio/audio_renderer_manager.cpp
     horizon/services/audio/audio_renderer_manager.hpp
+    horizon/services/ssl/sf/const.hpp
+    horizon/services/ssl/sf/ssl_context.cpp
+    horizon/services/ssl/sf/ssl_context.hpp
     horizon/services/ssl/sf/ssl_service.cpp
     horizon/services/ssl/sf/ssl_service.hpp
     horizon/services/spl/random_interface.cpp
