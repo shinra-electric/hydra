@@ -437,7 +437,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         auto src_v = o->OpAttributeMemory(true, amem, DataType::F32);
 
         // HACK: multiply by position.w
-        if (amem.reg == RZ &&
+        if (amem.reg == RZ && amem.imm >= 0x80 &&
             context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4].x ==
                 PixelImapType::Perspective)
             src_v =

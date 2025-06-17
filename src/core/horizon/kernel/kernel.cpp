@@ -592,8 +592,10 @@ result_t Kernel::svcResetSignal(handle_id_t handle_id) {
     LOG_DEBUG(Kernel, "svcResetSignal called (handle: 0x{:x})", handle_id);
 
     // HACK
-    if (handle_id == 0x0)
+    if (handle_id == 0x0) {
+        LOG_WARN(Kernel, "Invalid handle");
         return RESULT_SUCCESS;
+    }
 
     // TODO: can only be ReadableEvent or Process?
     auto handle = dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));
@@ -670,8 +672,11 @@ result_t Kernel::svcWaitSynchronization(handle_id_t* handle_ids,
         handle_id_t handle_id = handle_ids[0];
 
         // HACK
-        if (handle_id == 0x0)
+        if (handle_id == 0x0) {
+            LOG_WARN(Kernel, "Invalid handle");
+            out_handle_index = 0;
             return RESULT_SUCCESS;
+        }
 
         auto handle =
             dynamic_cast<SynchronizationObject*>(GetHandle(handle_id));

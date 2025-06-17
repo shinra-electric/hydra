@@ -402,27 +402,32 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
         return nullptr;
     }
 
+    const auto format = renderer::to_texture_format(tic.format_word);
+
     NvKind kind;
+    usize stride;
     switch (tic.hdr_version) {
     case TicHdrVersion::Pitch:
         kind = NvKind::Pitch;
+        stride = tic.pitch_5_20 << 5;
         break;
     case TicHdrVersion::BlockLinear:
         kind = NvKind::Generic_16BX2;
+        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
         kind = NvKind::Pitch;
+        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
         break;
     }
 
-    const auto format = renderer::to_texture_format(tic.format_word);
     const renderer::TextureDescriptor descriptor(
         GPU::GetInstance().GetGPUMMU().UnmapAddr(gpu_addr), format, kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
-        get_texture_format_stride(format, tic.width_minus_one + 1),
+        stride,
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
@@ -675,7 +680,9 @@ bool ThreeD::DrawInternal() {
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
         const auto& vertex_array = regs.vertex_arrays[i];
-        if (!vertex_array.config.enable)
+        // HACK: Super Meat Boy contains invalid vertex arrays with address 4096
+        if (!vertex_array.config.enable ||
+            (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096))
             continue;
 
         const auto buffer = GetVertexBuffer(i);
