@@ -340,6 +340,7 @@ struct VertexState {
 
 struct ColorTargetState {
     TextureFormat format;
+    engines::ColorWriteMask write_mask;
     bool blend_enabled;
     BlendOperation rgb_op;
     BlendFactor src_rgb_factor;

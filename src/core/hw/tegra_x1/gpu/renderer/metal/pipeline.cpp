@@ -106,6 +106,18 @@ Pipeline::Pipeline(const PipelineDescriptor& descriptor)
             pipeline_descriptor->colorAttachments()->object(i);
         color_attachment_descriptor->setPixelFormat(
             to_mtl_pixel_format(color_target_state.format));
+
+        MTL::ColorWriteMask write_mask = MTL::ColorWriteMaskNone;
+        if (any(color_target_state.write_mask & engines::ColorWriteMask::Red))
+            write_mask |= MTL::ColorWriteMaskRed;
+        if (any(color_target_state.write_mask & engines::ColorWriteMask::Green))
+            write_mask |= MTL::ColorWriteMaskGreen;
+        if (any(color_target_state.write_mask & engines::ColorWriteMask::Blue))
+            write_mask |= MTL::ColorWriteMaskBlue;
+        if (any(color_target_state.write_mask & engines::ColorWriteMask::Alpha))
+            write_mask |= MTL::ColorWriteMaskAlpha;
+        color_attachment_descriptor->setWriteMask(write_mask);
+
         if (color_target_state.blend_enabled) {
             color_attachment_descriptor->setBlendingEnabled(true);
             color_attachment_descriptor->setRgbBlendOperation(
