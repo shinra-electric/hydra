@@ -30,10 +30,10 @@ PartitionFilesystem::PartitionFilesystem(FileBase* file, bool is_hfs) {
     const auto header = reader.Read<Header>();
     if (!is_hfs) {
         ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
-               "Invalid PFS magic 0x{:08x}", header.magic);
+               "Invalid PFS0 magic 0x{:08x}", header.magic);
     } else {
         ASSERT(header.magic == make_magic4('H', 'F', 'S', '0'), Filesystem,
-               "Invalid HFS magic 0x{:08x}", header.magic);
+               "Invalid HFS0 magic 0x{:08x}", header.magic);
     }
 
     const u64 entries_offset = sizeof(Header);

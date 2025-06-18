@@ -45,6 +45,11 @@ class EmulationContext {
 
     horizon::kernel::Process* process;
 
+    // Loading screen assets
+    hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
+    std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
+        startup_movie; // TODO: texture array?
+
     std::atomic_bool is_running = false;
 
     // Delta time

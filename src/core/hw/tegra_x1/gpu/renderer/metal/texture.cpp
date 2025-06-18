@@ -45,21 +45,9 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
 }
 
 void Texture::CopyFrom(const uptr data) {
-    usize size = descriptor.stride * descriptor.height * 1;
-
-    // TODO: get the buffer from a buffer allocator instead
-    auto tmp_buffer = METAL_RENDERER_INSTANCE.GetDevice()->newBuffer(
-        size, MTL::ResourceStorageModeShared);
-    memcpy(tmp_buffer->contents(), reinterpret_cast<void*>(data), size);
-
-    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
-
-    // TODO: bytes per image
-    encoder->copyFromBuffer(tmp_buffer, 0, descriptor.stride, 0,
-                            MTL::Size(descriptor.width, descriptor.height, 1),
-                            mtl_texture, 0, 0, MTL::Origin(0, 0, 0));
-
-    tmp_buffer->release();
+    mtl_texture->replaceRegion(
+        MTL::Region(0, 0, 0, descriptor.width, descriptor.height, 1), 0,
+        reinterpret_cast<void*>(data), descriptor.stride);
 }
 
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,

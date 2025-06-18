@@ -23,6 +23,10 @@ class LoaderBase {
 
     virtual std::optional<kernel::ProcessParams> LoadProcess() = 0;
     // TODO: load logo
+    virtual void LoadNintendoLogo(uchar4*& out_data, usize& out_width,
+                                  usize& out_height) {}
+    virtual void LoadStartupMovie(uchar4*& out_data, usize& out_width,
+                                  usize& out_height, u32& out_frame_count) {}
 };
 
 } // namespace hydra::horizon::loader

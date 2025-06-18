@@ -23,16 +23,7 @@ Buffer::~Buffer() {
 }
 
 void Buffer::CopyFrom(const uptr data) {
-    // TODO: get the buffer from a buffer allocator instead
-    auto tmp_buffer = METAL_RENDERER_INSTANCE.GetDevice()->newBuffer(
-        descriptor.size, MTL::ResourceStorageModeShared);
-    memcpy(tmp_buffer->contents(), reinterpret_cast<void*>(data),
-           descriptor.size);
-
-    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
-    blit_encoder->copyFromBuffer(tmp_buffer, 0, buffer, 0, descriptor.size);
-
-    tmp_buffer->release();
+    memcpy(buffer->contents(), reinterpret_cast<void*>(data), descriptor.size);
 }
 
 void Buffer::CopyFrom(BufferBase* src) {

@@ -13,6 +13,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
 namespace hydra {
@@ -105,11 +106,49 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         return;
     }
 
+    // Process
     const auto process_params = loader->LoadProcess();
-    delete loader;
 
     process = new horizon::kernel::Process(process_params.value());
     os->GetKernel().AddProcessHandle(process);
+
+    // Loading screen assets
+    {
+        uchar4* data = nullptr;
+        usize width, height;
+        loader->LoadNintendoLogo(data, width, height);
+        if (data) {
+            hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
+                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                width * 4);
+            nintendo_logo = gpu->GetRenderer()->CreateTexture(descriptor);
+            nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
+            free(data);
+        }
+    }
+    {
+        uchar4* data = nullptr;
+        usize width, height;
+        u32 frame_count;
+        loader->LoadStartupMovie(data, width, height, frame_count);
+        if (data) {
+            hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
+                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                width * 4);
+            startup_movie.reserve(frame_count);
+            for (u32 i = 0; i < frame_count; i++) {
+                auto frame = gpu->GetRenderer()->CreateTexture(descriptor);
+                frame->CopyFrom(
+                    reinterpret_cast<uptr>(data + i * height * width));
+                startup_movie.push_back(frame);
+            }
+            free(data);
+        }
+    }
+
+    delete loader;
 
     LOG_INFO(Other, "-------- Title info --------");
     LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
@@ -206,10 +245,50 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
 void EmulationContext::Present(u32 width, u32 height,
                                std::vector<u64>& out_dt_ns_list) {
+    auto renderer = gpu->GetRenderer();
+
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
-    if (!display->IsOpen())
+    if (!display->IsOpen()) {
+        // Display loading screen
+
+        renderer->LockMutex();
+        if (!renderer->AcquireNextSurface()) {
+            renderer->UnlockMutex();
+            return;
+        }
+
+        // Nintendo logo
+        if (nintendo_logo) {
+            renderer->DrawTextureToSurface(
+                nintendo_logo,
+                {{0, 0},
+                 {(i32)nintendo_logo->GetDescriptor().width,
+                  (i32)nintendo_logo->GetDescriptor().height}},
+                {{0, 0}, {1920, 1080}});
+        }
+
+        // Startup movie
+        if (!startup_movie.empty()) {
+            LOG_INFO(Other, "STARTUP MOVIE");
+        }
+
+        renderer->PresentSurface();
+        renderer->EndCommandBuffer();
+        renderer->UnlockMutex();
         return;
+    }
+
+    // Free loading assets
+    if (nintendo_logo) {
+        delete nintendo_logo;
+        nintendo_logo = nullptr;
+    }
+    if (!startup_movie.empty()) {
+        for (auto frame : startup_movie)
+            delete frame;
+        startup_movie.clear();
+    }
 
     // Signal V-Sync
     display->GetVSyncEvent().handle->Signal();
@@ -278,10 +357,16 @@ void EmulationContext::Present(u32 width, u32 height,
     }
 
     // Present
-    auto renderer = gpu->GetRenderer();
     renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer.nv_buffer);
-    renderer->Present(texture, src_rect, dst_rect);
+    if (!renderer->AcquireNextSurface()) {
+        renderer->UnlockMutex();
+        return;
+    }
+
+    renderer->DrawTextureToSurface(texture, src_rect, dst_rect);
+
+    renderer->PresentSurface();
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
 }

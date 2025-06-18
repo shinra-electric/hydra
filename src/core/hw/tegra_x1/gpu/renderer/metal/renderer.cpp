@@ -145,16 +145,22 @@ void Renderer::SetSurface(void* surface) {
     // TODO: set pixel format
 }
 
-void Renderer::Present(const TextureBase* texture, const IntRect2D src_rect,
-                       const IntRect2D dst_rect) {
-    auto texture_impl = static_cast<const Texture*>(texture);
+bool Renderer::AcquireNextSurface() {
+    if (!layer)
+        return false;
 
-    // TODO: acquire drawable earlier?
-    auto drawable = layer->nextDrawable();
+    drawable = layer->nextDrawable();
+    return (drawable != nullptr);
+}
+
+void Renderer::DrawTextureToSurface(const TextureBase* texture,
+                                    const IntRect2D src_rect,
+                                    const IntRect2D dst_rect) {
     if (!drawable)
         return;
 
     auto dst = drawable->texture();
+    auto texture_impl = static_cast<const Texture*>(texture);
 
     // Render pass
     auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
@@ -195,10 +201,9 @@ void Renderer::Present(const TextureBase* texture, const IntRect2D src_rect,
                             NS::UInteger(3));
 
     EndEncoding();
-
-    // Present
-    command_buffer->presentDrawable(drawable);
 }
+
+void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);

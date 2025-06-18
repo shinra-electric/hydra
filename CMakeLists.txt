@@ -38,7 +38,7 @@ add_subdirectory(externals/hatch)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
-include_directories(externals/metal-cpp dynarmic)
+include_directories(externals/metal-cpp externals/dynarmic externals/stb)
 
 # TODO: find out why release builds are broken
 # TODO: do compile flags need to be specified manually?

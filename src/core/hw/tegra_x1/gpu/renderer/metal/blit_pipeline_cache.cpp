@@ -79,6 +79,14 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     pipeline_descriptor->setFragmentFunction(fragment_blit);
     auto color_attachment = pipeline_descriptor->colorAttachments()->object(0);
     color_attachment->setPixelFormat(descriptor.pixel_format);
+    color_attachment->setBlendingEnabled(true);
+    color_attachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+    color_attachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    color_attachment->setDestinationRGBBlendFactor(
+        MTL::BlendFactorOneMinusSourceAlpha);
+    color_attachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+    color_attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+    color_attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorZero);
 
     fragment_blit->release();
 
