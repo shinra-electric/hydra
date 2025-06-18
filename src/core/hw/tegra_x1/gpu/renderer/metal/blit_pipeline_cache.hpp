@@ -6,6 +6,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 struct BlitPipelineDescriptor {
     MTL::PixelFormat pixel_format;
+    bool transparent;
 };
 
 class BlitPipelineCache

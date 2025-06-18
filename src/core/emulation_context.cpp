@@ -265,7 +265,7 @@ void EmulationContext::Present(u32 width, u32 height,
                 {{0, 0},
                  {(i32)nintendo_logo->GetDescriptor().width,
                   (i32)nintendo_logo->GetDescriptor().height}},
-                {{0, 0}, {1920, 1080}});
+                {{0, 0}, {1920, 1080}}, true);
         }
 
         // Startup movie

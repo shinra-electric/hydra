@@ -65,7 +65,8 @@ class Renderer : public RendererBase {
     bool AcquireNextSurface() override;
     void DrawTextureToSurface(const TextureBase* texture,
                               const IntRect2D src_rect,
-                              const IntRect2D dst_rect) override;
+                              const IntRect2D dst_rect,
+                              bool transparent) override;
     void PresentSurface() override;
 
     // Buffer

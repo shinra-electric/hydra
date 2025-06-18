@@ -44,7 +44,8 @@ class RendererBase {
     // Uses lower left origin
     virtual void DrawTextureToSurface(const TextureBase* texture,
                                       const IntRect2D src_rect,
-                                      const IntRect2D dst_rect) = 0;
+                                      const IntRect2D dst_rect,
+                                      bool transparent = false) = 0;
     virtual void PresentSurface() = 0;
 
     // Buffer

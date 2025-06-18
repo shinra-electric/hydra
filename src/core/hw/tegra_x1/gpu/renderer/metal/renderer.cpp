@@ -155,7 +155,8 @@ bool Renderer::AcquireNextSurface() {
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
                                     const IntRect2D src_rect,
-                                    const IntRect2D dst_rect) {
+                                    const IntRect2D dst_rect,
+                                    bool transparent) {
     if (!drawable)
         return;
 
@@ -176,7 +177,7 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
 
     // Draw
     encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({dst->pixelFormat()}));
+        blit_pipeline_cache->Find({dst->pixelFormat(), transparent}));
     encoder->setViewport(MTL::Viewport{
         (f64)dst_rect.origin.x(), (f64)dst_rect.origin.y(),
         (f64)dst_rect.size.x(), (f64)dst_rect.size.y(), 0.0, 1.0});
@@ -697,7 +698,7 @@ void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
 
     // Draw
     encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({src->pixelFormat()}));
+        blit_pipeline_cache->Find({src->pixelFormat(), false}));
     // TODO: viewport
     encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
     // TODO: correct?
