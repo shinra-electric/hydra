@@ -6,17 +6,20 @@
 
 namespace hydra::horizon::kernel {
 
-constexpr usize MAIN_THREAD_STACK_SIZE =
-    0x4000000; // TODO: why does the size need to be double the size it used to
-               // be before the thread rework? InstructionAbortSameEl otherwise
-
-Process::Process(const std::string_view debug_name)
+Process::Process(const ProcessParams& params, const std::string_view debug_name)
     : SynchronizationObject(false, debug_name),
-      main_thread(new Thread(STACK_REGION_BASE + MAIN_THREAD_STACK_SIZE - 0x10,
-                             20)) /* TODO: priority */ {
+      main_thread(
+          new Thread(STACK_REGION_BASE + params.main_thread_stack_size - 0x10,
+                     params.main_thread_priority)),
+      system_resource_size{params.system_resource_size} {
+    // TODO: add main thread handle
+    main_thread.handle->SetEntryPoint(params.entry_point);
+    for (u32 i = 0; i < MAX_MAIN_THREAD_ARG_COUNT; i++)
+        main_thread.handle->SetArg(i, params.args[i]);
+
     // Stack memory
     auto& mmu = hw::tegra_x1::cpu::MMUBase::GetInstance();
-    stack_mem = mmu.AllocateMemory(MAIN_THREAD_STACK_SIZE);
+    stack_mem = mmu.AllocateMemory(params.main_thread_stack_size);
     mmu.Map(STACK_REGION_BASE, stack_mem,
             {MemoryType::Stack, MemoryAttribute::None,
              MemoryPermission::ReadWrite});

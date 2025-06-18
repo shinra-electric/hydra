@@ -85,9 +85,12 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-NsoLoader::NsoLoader(StreamReader reader, const std::string_view name_,
+NsoLoader::NsoLoader(filesystem::FileBase* file_, const std::string_view name_,
                      const bool is_entry_point_)
-    : name{name_}, is_entry_point{is_entry_point_} {
+    : file{file_}, name{name_}, is_entry_point{is_entry_point_} {
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
     // Header
     const auto header = reader.Read<NsoHeader>();
     ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
@@ -125,10 +128,14 @@ NsoLoader::NsoLoader(StreamReader reader, const std::string_view name_,
     dyn_str_size = header.dyn_str_size;
     dyn_sym_offset = header.dyn_sym_offset;
     dyn_sym_size = header.dyn_sym_size;
+
+    file->Close(stream);
 }
 
-kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
-                                        const std::string_view rom_filename) {
+std::optional<kernel::ProcessParams> NsoLoader::LoadProcess() {
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
     // Create executable memory
     vaddr_t base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
@@ -201,17 +208,16 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
         }
     }
 
+    file->Close(stream);
+
     // Process
     if (is_entry_point) {
-        kernel::Process* process = new kernel::Process();
-        auto& main_thread = process->GetMainThread();
-        main_thread.handle->SetEntryPoint(base + text_offset);
-        main_thread.handle->SetArg(0, 0x0);
-        main_thread.handle->SetArg(1, main_thread.id);
-
-        return process;
+        return kernel::ProcessParams{
+            .entry_point = base + text_offset,
+            .args = {0x0, /*main_thread.id*/ 0x1}, // TODO: thread handle ID
+        };
     } else {
-        return nullptr;
+        return std::nullopt;
     }
 }
 

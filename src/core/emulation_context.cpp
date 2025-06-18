@@ -4,6 +4,7 @@
 
 #include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -86,33 +87,29 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         return;
     }
 
-    // Open file
-    std::ifstream ifs{std::string(rom_filename),
-                      std::ios::in | std::ios::binary | std::ios::ate};
-    usize size = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    StreamReader reader(ifs, 0, size);
-
+    // Load ROM
+    auto file = new horizon::filesystem::HostFile(rom_filename, false);
     std::string extension =
         rom_filename.substr(rom_filename.find_last_of(".") + 1);
+
     horizon::loader::LoaderBase* loader{nullptr};
     if (extension == "nro") {
-        loader = new horizon::loader::NroLoader(reader);
+        loader = new horizon::loader::NroLoader(file);
     } else if (extension == "nso") {
-        loader = new horizon::loader::NsoLoader(reader);
+        loader = new horizon::loader::NsoLoader(file);
     } else if (extension == "nca") {
-        loader = new horizon::loader::NcaLoader(reader);
+        loader = new horizon::loader::NcaLoader(file);
     } else {
         // TODO: return an error instead
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
         return;
     }
 
-    process = loader->LoadProcess(reader, rom_filename);
+    const auto process_params = loader->LoadProcess();
     delete loader;
 
-    ifs.close();
+    process = new horizon::kernel::Process(process_params.value());
+    os->GetKernel().AddProcessHandle(process);
 
     LOG_INFO(Other, "-------- Title info --------");
     LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());

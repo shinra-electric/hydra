@@ -1,206 +1,122 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel/kernel.hpp"
-#include "core/horizon/loader/pfs0_loader.hpp"
+#include "core/horizon/loader/nso_loader.hpp"
 
 namespace hydra::horizon::loader {
 
 namespace {
 
-enum class DistributionType : u8 {
-    Download,
-    GameCard,
+enum class NpdmFlags : u8 {
+    None = 0,
+    Is64BitInstruction = BIT(0),
+    AddressSpace32Bit = 0x0 << 1,
+    AddressSpace64BitOld = 0x1 << 1,
+    AddressSpace32BitNoReserved = 0x2 << 1,
+    AddressSpace64Bit = 0x3 << 1,
+    OptimizeMemoryAllocation = BIT(4),       // 7.0.0+
+    DisableDeviceAddressSpaceMerge = BIT(5), // 11.0.0+
+    EnableAliasRegionExtraSize = BIT(6),     // 18.0.0+
+    PreventCodeReads = BIT(7),               // 19.0.0+
 };
+ENABLE_ENUM_BITMASK_OPERATORS(NpdmFlags)
 
-enum class ContentType : u8 {
-    Program,
-    Meta,
-    Control,
-    Manual,
-    Data,
-    PublicData,
-};
-
-enum class KeyGenerationOld : u8 {
-    _1_0_0,
-    Unused,
-    _3_0_0,
-};
-
-enum class KeyAreaEncryptionKeyIndex : u8 {
-    Application,
-    Ocean,
-    System,
-};
-
-enum class KeyGeneration : u8 {
-    _3_0_1 = 3,
-    _4_0_0,
-    _5_0_0,
-    _6_0_0,
-    _6_2_0,
-    _7_0_0,
-    _8_1_0,
-    _9_0_0,
-    _9_1_0,
-    _12_1_0,
-    _13_0_0,
-    _14_0_0,
-    _15_0_0,
-    _16_0_0,
-    _17_0_0,
-    _18_0_0,
-    _19_0_0,
-
-    Invalid = 0xff,
-};
-
-constexpr usize FS_BLOCK_SIZE = 0x200;
-constexpr usize FS_ENTRY_COUNT = 4;
-constexpr u32 IVFC_MAX_LEVEL = 6;
-
-struct NcaHeader {
-    u8 signature0[0x100];
-    u8 signature1[0x100];
+struct NpdmMeta {
     u32 magic;
-    DistributionType distribution_type;
-    ContentType content_type;
-    KeyGenerationOld key_generation_old;
-    KeyAreaEncryptionKeyIndex key_area_encryption_key_index;
-    usize content_size;
-    u64 program_id;
-    u32 content_index;
-    u32 sdk_addon_version;
-    KeyGeneration key_generation;
-    u8 signature_key_generation;
-    u8 reserved[0xe];
-    u8 rights_id[0x10];
-    FsEntry fs_entries[FS_ENTRY_COUNT];
-    // TODO: correct?
-    u8 section_hashes[4][0x20];
-    u8 encrypted_keys[4][0x10];
-    u8 padding_0x340[0xC0];
-    FsHeader fs_headers[FS_ENTRY_COUNT]; /* FS section headers. */
+    u32 signature_key_generation; // 9.0.0+
+    u32 _reserved_x8;
+    NpdmFlags flags;
+    u8 _reserved_xd;
+    u8 main_thread_priority;
+    u8 main_thread_core_number;
+    u32 _reserved_x10;
+    u32 system_resource_size; // 3.0.0+
+    u32 version;
+    u32 main_thread_stack_size;
+    char name[0x10];
+    u8 product_code[0x10];
+    u8 _reserved_x40[0x30];
+    u32 aci_offset;
+    u32 aci_size;
+    u32 acid_offset;
+    u32 acid_size;
+};
 
-    SectionType get_section_type_from_index(const u32 index) const {
-        if (content_type == ContentType::Program) {
-            switch (index) {
-            case 0:
-                return SectionType::Code;
-            case 1:
-                return SectionType::Data;
-            case 2:
-                return SectionType::Logo;
-            default:
-                return SectionType::Invalid;
-            }
+} // namespace
+
+std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
+    // Title ID
+    KERNEL_INSTANCE.SetTitleId(content_archive.GetTitleID());
+
+    std::optional<kernel::ProcessParams> process_params = std::nullopt;
+    for (const auto& [name, entry] : content_archive.GetEntries()) {
+        if (name == "code") {
+            auto dir = dynamic_cast<filesystem::Directory*>(entry);
+            ASSERT(dir, Loader, "Code is not a directory");
+            process_params = LoadCode(dir);
+        } else if (name.starts_with("data")) {
+            const auto res = FILESYSTEM_INSTANCE.AddEntry(
+                FS_SD_MOUNT "/rom/romFS", entry, true);
+            ASSERT(res == filesystem::FsResult::Success, Loader,
+                   "Failed to add romFS entry: {}", res);
         } else {
-            return SectionType::Data;
+            LOG_NOT_IMPLEMENTED(Loader, "{}", name);
         }
     }
-};
 
-} // namespace
-
-} // namespace hydra::horizon::loader
-
-ENABLE_ENUM_FORMATTING(hydra::horizon::loader::HashType, Auto, "auto", None,
-                       "none", HierarchicalSha256Hash,
-                       "hierarchical SHA 256 hash", HierarchicalIntegrityHash,
-                       "hierarchical integrity hash", AutoSha3, "auto SHA3",
-                       HierarchicalSha3256Hash, "hierarchical SHA3 256 hash",
-                       HierarchicalIntegritySha3Hash,
-                       "hierarchical integrity SHA3 hash")
-
-namespace hydra::horizon::loader {
-
-namespace {
-
-void load_section(StreamReader reader, const std::string_view rom_filename,
-                  SectionType type, const FsHeader& header,
-                  kernel::Process*& out_process) {
-    switch (type) {
-    case SectionType::Code: {
-        ASSERT(header.hash_type == HashType::HierarchicalSha256Hash, Loader,
-               "Invalid hash type \"{}\" for Code section", header.hash_type);
-        const auto& layer_region = header.hierarchical_sha_256_data.pfs0_region;
-
-        reader.Seek(layer_region.offset);
-        auto pfs0_reader = reader.CreateSubReader(layer_region.size);
-        Pfs0Loader pfs0_loader(pfs0_reader);
-        auto process_ = pfs0_loader.LoadProcess(pfs0_reader, rom_filename);
-        CHECK_AND_SET_PROCESS(out_process, process_);
-        break;
-    }
-    case SectionType::Data: {
-        // TODO: can other hash types be used as well?
-        ASSERT(header.hash_type == HashType::HierarchicalIntegrityHash, Loader,
-               "Invalid hash type \"{}\" for Data section", header.hash_type);
-        // TODO: correct?
-        const auto& level = header.integrity_meta_info.info_level_hash
-                                .levels[IVFC_MAX_LEVEL - 1];
-
-        reader.Seek(level.logical_offset);
-        auto romfs_reader = reader.CreateSubReader(level.hash_data_size);
-        const auto res = FILESYSTEM_INSTANCE.AddEntry(
-            FS_SD_MOUNT "/rom/romFS",
-            new filesystem::HostFile(rom_filename, romfs_reader.GetSize(),
-                                     romfs_reader.GetOffset(), false),
-            true);
-        ASSERT(res == filesystem::FsResult::Success, Loader,
-               "Failed to add romFS entry: {}", res);
-        break;
-    }
-    case SectionType::Logo:
-        LOG_NOT_IMPLEMENTED(Loader, "Logo loading");
-        break;
-    case SectionType::Invalid:
-        LOG_ERROR(Loader, "Invalid section type");
-        break;
-    }
+    CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
 }
 
-} // namespace
+std::optional<kernel::ProcessParams>
+NcaLoader::LoadCode(filesystem::Directory* dir) {
+    std::optional<kernel::ProcessParams> process_params = std::nullopt;
+    NpdmMeta meta;
+    for (const auto& [name, entry] : dir->GetEntries()) {
+        auto file = dynamic_cast<filesystem::FileBase*>(entry);
+        ASSERT(file, Loader, "Code entry is not a file");
+        if (name == "main.npdm") {
+            auto stream = file->Open(filesystem::FileOpenFlags::Read);
+            auto reader = stream.CreateReader();
 
-NcaLoader::NcaLoader(StreamReader reader) {
-    // Header
-    const auto header = reader.Read<NcaHeader>();
-    // TODO: allow other NCA versions as well
-    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Loader,
-           "Invalid NCA magic");
+            meta = reader.Read<NpdmMeta>();
 
-    title_id = header.program_id;
-
-    // FS entries
-    // TODO: don't iterate over all entries?
-    for (u32 i = 0; i < FS_ENTRY_COUNT; i++) {
-        sections.push_back({header.get_section_type_from_index(i),
-                            header.fs_entries[i], header.fs_headers[i]});
-    }
-}
-
-kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
-                                        const std::string_view rom_filename) {
-    // Title ID
-    KERNEL_INSTANCE.SetTitleId(title_id);
-
-    kernel::Process* process = nullptr;
-
-    // FS entries
-    for (const auto& section : sections) {
-        const auto& entry = section.fs_entry;
-
-        reader.Seek(entry.start_offset * FS_BLOCK_SIZE);
-        auto entry_reader = reader.CreateSubReader(
-            (entry.end_offset - entry.start_offset) * FS_BLOCK_SIZE);
-
-        load_section(entry_reader, rom_filename, section.type,
-                     section.fs_header, process);
+            file->Close(stream);
+        } else {
+            NsoLoader loader(file, name, name == "rtld");
+            auto process_params_ = loader.LoadProcess();
+            if (process_params_)
+                CHECK_AND_SET_PROCESS_PARAMS(process_params, process_params_);
+        }
     }
 
-    CHECK_AND_RETURN_PROCESS(process);
+    ASSERT(process_params, Loader, "Failed to load process");
+
+    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
+
+    // TODO: support 32-bit games
+    ASSERT(any(meta.flags & NpdmFlags::Is64BitInstruction), Loader,
+           "32-bit games not supported");
+
+    LOG_DEBUG(Loader, "Name: {}", meta.name);
+    LOG_DEBUG(Loader, "Main thread priority: 0x{:02x}",
+              meta.main_thread_priority);
+    LOG_DEBUG(Loader, "Main thread core number: {}",
+              meta.main_thread_core_number);
+    LOG_DEBUG(Loader, "Main thread stack size: 0x{:08x}",
+              meta.main_thread_stack_size);
+    LOG_DEBUG(Loader, "System resource size: 0x{:08x}",
+              meta.system_resource_size);
+
+    process_params->main_thread_priority = meta.main_thread_priority;
+    process_params->main_thread_core_number = meta.main_thread_core_number;
+    process_params->main_thread_stack_size = meta.main_thread_stack_size;
+    process_params->system_resource_size = meta.system_resource_size;
+
+    // TODO: ACI and ACID
+
+    return process_params;
 }
 
 } // namespace hydra::horizon::loader

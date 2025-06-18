@@ -8,16 +8,10 @@
 
 namespace hydra::horizon::filesystem {
 
-HostFile::HostFile(const std::string_view host_path_, usize size_, u64 offset,
-                   bool is_mutable_)
-    : FileBase(offset), host_path{host_path_}, size{size_}, is_mutable{
-                                                                is_mutable_} {
-    ASSERT(!(is_mutable && offset != 0), Filesystem,
-           "Mutable files cannot start at offset (offset: 0x{:08x})", offset);
-
+HostFile::HostFile(const std::string_view host_path_, bool is_mutable_)
+    : host_path{host_path_}, is_mutable{is_mutable_} {
     if (std::filesystem::exists(host_path)) {
-        if (size == invalid<usize>())
-            size = std::filesystem::file_size(host_path);
+        size = std::filesystem::file_size(host_path);
     } else {
         ASSERT(is_mutable, Filesystem, "Immutable file \"{}\" does not exist",
                host_path);
@@ -45,6 +39,8 @@ HostFile::~HostFile() {
 }
 
 void HostFile::Resize(usize new_size) {
+    ASSERT(is_mutable, Filesystem, "Immutable file cannot be resized");
+
     size = new_size;
 
     LOG_FS_ACCESS(host_path, "file resized (size: {})", new_size);
@@ -62,7 +58,7 @@ FileStream HostFile::Open(FileOpenFlags flags) {
 
     LOG_FS_ACCESS(host_path, "file opened");
 
-    return FileStream(stream, offset, GetSize(), flags);
+    return FileStream(stream, 0, size, flags);
 }
 
 void HostFile::Close(FileStream& stream) {

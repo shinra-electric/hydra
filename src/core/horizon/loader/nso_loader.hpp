@@ -12,13 +12,14 @@ struct Segment {
 
 class NsoLoader : public LoaderBase {
   public:
-    NsoLoader(StreamReader reader, const std::string_view name_ = "main",
+    NsoLoader(filesystem::FileBase* file_,
+              const std::string_view name_ = "main",
               const bool is_entry_point_ = true);
 
-    kernel::Process* LoadProcess(StreamReader reader,
-                                 const std::string_view rom_filename) override;
+    std::optional<kernel::ProcessParams> LoadProcess() override;
 
   private:
+    filesystem::FileBase* file;
     std::string name;
     const bool is_entry_point;
 
