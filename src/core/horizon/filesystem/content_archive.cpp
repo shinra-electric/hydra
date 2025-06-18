@@ -218,6 +218,8 @@ ContentArchive::ContentArchive(FileBase* file) {
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
 
+    title_id = header.program_id;
+
     // FS entries
     // TODO: don't iterate over all entries?
     for (u32 i = 0; i < FS_ENTRY_COUNT; i++) {
