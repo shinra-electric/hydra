@@ -4,7 +4,7 @@
 
 #define sizeof_array(array) (sizeof(array) / sizeof(array[0]))
 
-#define PACKED __attribute__((packed))
+#define PACKED __attribute__((packed, aligned(1)))
 
 #define ONCE(code)                                                             \
     {                                                                          \

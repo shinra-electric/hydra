@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/kernel/process.hpp"
 
 #define CHECK_AND_SET_PROCESS_PARAMS(dst_process, src_process)                 \
@@ -20,9 +21,7 @@ class LoaderBase {
   public:
     virtual ~LoaderBase() = default;
 
-    // TODO: remove the filename arg
-    virtual std::optional<kernel::ProcessParams>
-    LoadProcess(StreamReader reader, const std::string_view rom_filename) = 0;
+    virtual std::optional<kernel::ProcessParams> LoadProcess() = 0;
     // TODO: load logo
 };
 

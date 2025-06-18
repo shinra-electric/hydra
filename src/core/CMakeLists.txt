@@ -36,6 +36,7 @@ add_library(hydra-core
     horizon/filesystem/const.hpp
     horizon/filesystem/entry_base.hpp
     horizon/filesystem/file_base.hpp
+    horizon/filesystem/file_view.hpp
     horizon/filesystem/host_file.cpp
     horizon/filesystem/host_file.hpp
     horizon/filesystem/ram_file.hpp
@@ -45,13 +46,15 @@ add_library(hydra-core
     horizon/filesystem/device.hpp
     horizon/filesystem/filesystem.cpp
     horizon/filesystem/filesystem.hpp
+    horizon/filesystem/partition_filesystem.cpp
+    horizon/filesystem/partition_filesystem.hpp
+    horizon/filesystem/content_archive.cpp
+    horizon/filesystem/content_archive.hpp
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp
     horizon/loader/nro_loader.hpp
     horizon/loader/nso_loader.cpp
     horizon/loader/nso_loader.hpp
-    horizon/loader/pfs0_loader.cpp
-    horizon/loader/pfs0_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
     horizon/services/const.hpp

@@ -27,9 +27,10 @@ class Directory : public EntryBase {
         return entries;
     }
 
-  private:
+  protected:
     std::map<std::string, EntryBase*> entries;
 
+  private:
     // Impl
     FsResult AddEntryImpl(const std::span<std::string_view> path,
                           EntryBase* entry, bool add_intermediate = false);

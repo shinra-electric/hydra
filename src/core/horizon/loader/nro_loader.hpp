@@ -6,13 +6,12 @@ namespace hydra::horizon::loader {
 
 class NroLoader : public LoaderBase {
   public:
-    NroLoader(StreamReader reader);
+    NroLoader(filesystem::FileBase* file_);
 
-    std::optional<kernel::ProcessParams>
-    LoadProcess(StreamReader reader,
-                const std::string_view rom_filename) override;
+    std::optional<kernel::ProcessParams> LoadProcess() override;
 
   private:
+    filesystem::FileBase* file;
     u32 text_offset;
     usize bss_size;
 };

@@ -1,8 +1,8 @@
 #include "core/horizon/loader/nro_loader.hpp"
 
 #include "core/horizon/const.hpp"
+#include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 
@@ -50,7 +50,10 @@ struct NroHeader {
 
 } // namespace
 
-NroLoader::NroLoader(StreamReader reader) {
+NroLoader::NroLoader(filesystem::FileBase* file_) : file{file_} {
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
     // Header
     const auto header = reader.Read<NroHeader>();
 
@@ -60,11 +63,14 @@ NroLoader::NroLoader(StreamReader reader) {
 
     text_offset = header.GetSection(NroSectionType::Text).offset;
     bss_size = header.bss_size;
+
+    file->Close(stream);
 }
 
-std::optional<kernel::ProcessParams>
-NroLoader::LoadProcess(StreamReader reader,
-                       const std::string_view rom_filename) {
+std::optional<kernel::ProcessParams> NroLoader::LoadProcess() {
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
     // Create executable memory
     usize executable_size = reader.GetSize() + bss_size;
     uptr base;
@@ -121,13 +127,14 @@ NroLoader::LoadProcess(StreamReader reader,
     // filesystem
     const auto res = FILESYSTEM_INSTANCE.AddEntry(
         ROM_VIRTUAL_PATH,
-        new filesystem::HostFile(rom_filename, reader.GetSize(),
-                                 reader.GetOffset(), false));
+        new filesystem::FileView(file, reader.GetOffset(), reader.GetSize()));
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS entry: {}", res);
 
     // Debug symbols
     // TODO
+
+    file->Close(stream);
 
     return kernel::ProcessParams{
         .entry_point = base + sizeof(NroHeader) + text_offset,
