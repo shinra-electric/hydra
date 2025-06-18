@@ -205,7 +205,8 @@ void EmulationContext::Run() {
     }
 
     process->Run();
-    is_running = true;
+    running = true;
+    loading = true;
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -215,7 +216,61 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     // Present
     std::vector<u64> dt_ns_list;
-    Present(width, height, dt_ns_list);
+    if (!Present(width, height, dt_ns_list)) {
+        // TODO: till when should the loading screen be shown?
+        if (loading) {
+            // Display loading screen
+
+            auto renderer = gpu->GetRenderer();
+            renderer->LockMutex();
+            if (!renderer->AcquireNextSurface()) {
+                renderer->UnlockMutex();
+                return;
+            }
+
+            // Nintendo logo
+            if (nintendo_logo) {
+                int2 size = {(i32)nintendo_logo->GetDescriptor().width,
+                             (i32)nintendo_logo->GetDescriptor().height};
+                int2 dst_offset = {32, 32};
+                renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
+                                               {dst_offset, size}, true);
+            }
+
+            // Startup movie
+            if (!startup_movie.empty()) {
+                static i32 i = 0;
+                auto frame = startup_movie[i];
+                i = (i + 1) % startup_movie.size();
+
+                int2 size = {(i32)frame->GetDescriptor().width,
+                             (i32)frame->GetDescriptor().height};
+                int2 dst_offset = {(i32)width - size.x() - 32,
+                                   (i32)height - size.y() - 32};
+                renderer->DrawTextureToSurface(frame, {{0, 0}, size},
+                                               {dst_offset, size}, true);
+            }
+
+            renderer->PresentSurface();
+            renderer->EndCommandBuffer();
+            renderer->UnlockMutex();
+            return;
+        }
+    } else if (loading) {
+        // Stop the loading screen on the first present
+        loading = false;
+
+        // Free loading assets
+        if (nintendo_logo) {
+            delete nintendo_logo;
+            nintendo_logo = nullptr;
+        }
+        if (!startup_movie.empty()) {
+            for (auto frame : startup_movie)
+                delete frame;
+            startup_movie.clear();
+        }
+    }
 
     // Delta time
     using namespace std::chrono_literals;
@@ -243,52 +298,12 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     }
 }
 
-void EmulationContext::Present(u32 width, u32 height,
+bool EmulationContext::Present(u32 width, u32 height,
                                std::vector<u64>& out_dt_ns_list) {
-    auto renderer = gpu->GetRenderer();
-
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
-    if (!display->IsOpen()) {
-        // Display loading screen
-
-        renderer->LockMutex();
-        if (!renderer->AcquireNextSurface()) {
-            renderer->UnlockMutex();
-            return;
-        }
-
-        // Nintendo logo
-        if (nintendo_logo) {
-            renderer->DrawTextureToSurface(
-                nintendo_logo,
-                {{0, 0},
-                 {(i32)nintendo_logo->GetDescriptor().width,
-                  (i32)nintendo_logo->GetDescriptor().height}},
-                {{0, 0}, {1920, 1080}}, true);
-        }
-
-        // Startup movie
-        if (!startup_movie.empty()) {
-            LOG_INFO(Other, "STARTUP MOVIE");
-        }
-
-        renderer->PresentSurface();
-        renderer->EndCommandBuffer();
-        renderer->UnlockMutex();
-        return;
-    }
-
-    // Free loading assets
-    if (nintendo_logo) {
-        delete nintendo_logo;
-        nintendo_logo = nullptr;
-    }
-    if (!startup_movie.empty()) {
-        for (auto frame : startup_movie)
-            delete frame;
-        startup_movie.clear();
-    }
+    if (!display->IsOpen())
+        return false;
 
     // Signal V-Sync
     display->GetVSyncEvent().handle->Signal();
@@ -296,7 +311,7 @@ void EmulationContext::Present(u32 width, u32 height,
     // Layer
     auto layer = display->GetPresentableLayer();
     if (!layer)
-        return;
+        return false;
 
     // Get the buffer to present
     u32 binder_id = layer->GetBinderId();
@@ -305,7 +320,7 @@ void EmulationContext::Present(u32 width, u32 height,
     horizon::BqBufferInput input;
     i32 slot = binder.ConsumeBuffer(input, out_dt_ns_list);
     if (slot == -1)
-        return;
+        return false;
     const auto& buffer = binder.GetBuffer(slot);
 
     // Src rect
@@ -357,11 +372,13 @@ void EmulationContext::Present(u32 width, u32 height,
     }
 
     // Present
+    auto renderer = gpu->GetRenderer();
+
     renderer->LockMutex();
     auto texture = gpu->GetTexture(buffer.nv_buffer);
     if (!renderer->AcquireNextSurface()) {
         renderer->UnlockMutex();
-        return;
+        return false;
     }
 
     renderer->DrawTextureToSurface(texture, src_rect, dst_rect);
@@ -369,6 +386,7 @@ void EmulationContext::Present(u32 width, u32 height,
     renderer->PresentSurface();
     renderer->EndCommandBuffer();
     renderer->UnlockMutex();
+    return true;
 }
 
 void EmulationContext::TryApplyPatch(const std::string_view target_filename,

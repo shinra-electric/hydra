@@ -31,7 +31,7 @@ class EmulationContext {
 
     u64 GetTitleID() const { return os->GetKernel().GetTitleID(); }
 
-    bool IsRunning() const { return is_running; }
+    bool IsRunning() const { return running; }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
@@ -50,7 +50,8 @@ class EmulationContext {
     std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
         startup_movie; // TODO: texture array?
 
-    std::atomic_bool is_running = false;
+    std::atomic_bool running{false};
+    bool loading{false};
 
     // Delta time
     f32 last_dt_average{0.0f};
@@ -59,7 +60,7 @@ class EmulationContext {
     u32 dt_sample_count{0};
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
-    void Present(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
+    bool Present(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
 
     // Helpers
     void TryApplyPatch(const std::string_view target_filename,

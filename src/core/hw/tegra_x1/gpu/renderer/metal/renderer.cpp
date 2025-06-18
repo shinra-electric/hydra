@@ -150,34 +150,37 @@ bool Renderer::AcquireNextSurface() {
         return false;
 
     drawable = layer->nextDrawable();
-    return (drawable != nullptr);
+    if (drawable) {
+        // Render pass
+        auto render_pass_descriptor =
+            MTL::RenderPassDescriptor::alloc()->init();
+        auto color_attachment =
+            render_pass_descriptor->colorAttachments()->object(0);
+        color_attachment->setTexture(drawable->texture());
+        color_attachment->setLoadAction(MTL::LoadActionClear);
+        color_attachment->setClearColor(
+            MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
+        color_attachment->setStoreAction(MTL::StoreActionStore);
+
+        auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+        render_pass_descriptor->release();
+
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
                                     const IntRect2D src_rect,
                                     const IntRect2D dst_rect,
                                     bool transparent) {
-    if (!drawable)
-        return;
-
-    auto dst = drawable->texture();
     auto texture_impl = static_cast<const Texture*>(texture);
-
-    // Render pass
-    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
-    auto color_attachment =
-        render_pass_descriptor->colorAttachments()->object(0);
-    color_attachment->setTexture(dst);
-    color_attachment->setLoadAction(MTL::LoadActionClear);
-    color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
-    color_attachment->setStoreAction(MTL::StoreActionStore);
-
-    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
-    render_pass_descriptor->release();
+    auto encoder = GetRenderCommandEncoderUnchecked();
 
     // Draw
-    encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({dst->pixelFormat(), transparent}));
+    encoder->setRenderPipelineState(blit_pipeline_cache->Find(
+        {drawable->texture()->pixelFormat(), transparent}));
     encoder->setViewport(MTL::Viewport{
         (f64)dst_rect.origin.x(), (f64)dst_rect.origin.y(),
         (f64)dst_rect.size.x(), (f64)dst_rect.size.y(), 0.0, 1.0});
@@ -200,11 +203,12 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
     encoder->setFragmentSamplerState(linear_sampler, NS::UInteger(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
-
-    EndEncoding();
 }
 
-void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
+void Renderer::PresentSurface() {
+    EndEncoding();
+    command_buffer->presentDrawable(drawable);
+}
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);

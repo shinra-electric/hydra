@@ -59,9 +59,9 @@ i32 DisplayBinder::ConsumeBuffer(BqBufferInput& out_input,
                                  std::vector<u64>& out_dt_ns_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
-    // TODO: should there be a timeout?
-    queue_cv.wait_for(lock, std::chrono::milliseconds(67),
-                      [&] { return !queued_buffers.empty(); });
+    // TODO: should we wait?
+    // queue_cv.wait_for(lock, std::chrono::milliseconds(67),
+    //                  [&] { return !queued_buffers.empty(); });
 
     if (queued_buffers.empty())
         return -1;

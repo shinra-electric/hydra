@@ -149,6 +149,7 @@ void NcaLoader::LoadStartupMovie(uchar4*& out_data, usize& out_width,
 
     out_width = w;
     out_height = h;
+    out_frame_count = f;
 }
 
 std::optional<kernel::ProcessParams>
