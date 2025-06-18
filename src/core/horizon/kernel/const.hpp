@@ -2,6 +2,9 @@
 
 namespace hydra::horizon::kernel {
 
+constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
+constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
+
 // TODO: how does this work?
 constexpr uptr ADDRESS_SPACE_START = 0x10000000;
 constexpr uptr ADDRESS_SPACE_END = 0x200000000;

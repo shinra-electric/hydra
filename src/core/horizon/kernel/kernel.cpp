@@ -2,6 +2,7 @@
 
 #include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/cmif.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/kernel/session.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
@@ -1014,6 +1015,10 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
               "svcGetInfo called (type: {}, handle: 0x{:08x}, subtype: {})",
               info_type, handle_id, info_sub_type);
 
+#define GET_PROCESS()                                                          \
+    auto process = dynamic_cast<Process*>(GetHandle(handle_id));               \
+    ASSERT_DEBUG(process, Kernel, "Invalid process handle 0x{:x}", handle_id);
+
     switch (info_type) {
     case InfoType::CoreMask:
         LOG_NOT_IMPLEMENTED(Kernel, "CoreMask");
@@ -1069,11 +1074,11 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
     case InfoType::StackRegionSize:
         out_info = STACK_REGION_SIZE;
         return RESULT_SUCCESS;
-    case InfoType::TotalSystemResourceSize:
-        LOG_NOT_IMPLEMENTED(Kernel, "TotalSystemResourceSize");
-        // HACK
-        out_info = 2u * 1024u * 1024u;
+    case InfoType::TotalSystemResourceSize: {
+        GET_PROCESS();
+        out_info = process->GetSystemResourceSize();
         return RESULT_SUCCESS;
+    }
     case InfoType::UsedSystemResourceSize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedSystemResourceSize");
         // HACK
@@ -1103,6 +1108,8 @@ result_t Kernel::svcGetInfo(InfoType info_type, handle_id_t handle_id,
         LOG_WARN(Kernel, "Unknown info type {}", info_type);
         return MAKE_RESULT(Svc, 0x78);
     }
+
+#undef GET_PROCESS
 }
 
 result_t Kernel::svcMapPhysicalMemory(vaddr_t addr, usize size) {

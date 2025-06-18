@@ -62,8 +62,9 @@ NroLoader::NroLoader(StreamReader reader) {
     bss_size = header.bss_size;
 }
 
-kernel::Process* NroLoader::LoadProcess(StreamReader reader,
-                                        const std::string_view rom_filename) {
+std::optional<kernel::ProcessParams>
+NroLoader::LoadProcess(StreamReader reader,
+                       const std::string_view rom_filename) {
     // Create executable memory
     usize executable_size = reader.GetSize() + bss_size;
     uptr base;
@@ -128,14 +129,10 @@ kernel::Process* NroLoader::LoadProcess(StreamReader reader,
     // Debug symbols
     // TODO
 
-    // Process
-    kernel::Process* process = new kernel::Process();
-    auto& main_thread = process->GetMainThread();
-    main_thread.handle->SetEntryPoint(base + sizeof(NroHeader) + text_offset);
-    main_thread.handle->SetArg(0, base + config_offset);
-    main_thread.handle->SetArg(1, UINT64_MAX);
-
-    return process;
+    return kernel::ProcessParams{
+        .entry_point = base + sizeof(NroHeader) + text_offset,
+        .args = {base + config_offset, UINT64_MAX},
+    };
 }
 
 } // namespace hydra::horizon::loader

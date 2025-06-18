@@ -109,8 +109,11 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         return;
     }
 
-    process = loader->LoadProcess(reader, rom_filename);
+    const auto process_params = loader->LoadProcess(reader, rom_filename);
     delete loader;
+
+    process = new horizon::kernel::Process(process_params.value());
+    os->GetKernel().AddProcessHandle(process);
 
     ifs.close();
 

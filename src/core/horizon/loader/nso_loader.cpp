@@ -127,8 +127,9 @@ NsoLoader::NsoLoader(StreamReader reader, const std::string_view name_,
     dyn_sym_size = header.dyn_sym_size;
 }
 
-kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
-                                        const std::string_view rom_filename) {
+std::optional<kernel::ProcessParams>
+NsoLoader::LoadProcess(StreamReader reader,
+                       const std::string_view rom_filename) {
     // Create executable memory
     vaddr_t base;
     auto ptr = KERNEL_INSTANCE.CreateExecutableMemory(
@@ -203,15 +204,12 @@ kernel::Process* NsoLoader::LoadProcess(StreamReader reader,
 
     // Process
     if (is_entry_point) {
-        kernel::Process* process = new kernel::Process();
-        auto& main_thread = process->GetMainThread();
-        main_thread.handle->SetEntryPoint(base + text_offset);
-        main_thread.handle->SetArg(0, 0x0);
-        main_thread.handle->SetArg(1, main_thread.id);
-
-        return process;
+        return kernel::ProcessParams{
+            .entry_point = base + text_offset,
+            .args = {0x0, /*main_thread.id*/ 0x1}, // TODO: thread handle ID
+        };
     } else {
-        return nullptr;
+        return std::nullopt;
     }
 }
 

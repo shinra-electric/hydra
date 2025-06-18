@@ -108,13 +108,28 @@ class Kernel {
                                u32 value, u64 timeout);
 
     // Helpers
+
+    // Handles
+    handle_id_t GetRealHandleID(handle_id_t handle_id) const {
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
+            return current_process_handle_id;
+
+        // TODO: CURRENT_THREAD_PSEUDO_HANDLE
+
+        return handle_id;
+    }
     AutoObject* GetHandle(handle_id_t handle_id) const {
-        return handle_pool.Get(handle_id);
+        return handle_pool.Get(GetRealHandleID(handle_id));
     }
     handle_id_t AddHandle(AutoObject* handle) {
         return handle_pool.Add(handle);
     }
-    void FreeHandle(handle_id_t handle_id) { handle_pool.Free(handle_id); }
+    void AddProcessHandle(AutoObject* handle) {
+        current_process_handle_id = AddHandle(handle);
+    }
+    void FreeHandle(handle_id_t handle_id) {
+        handle_pool.Free(GetRealHandleID(handle_id));
+    }
 
     hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
@@ -131,6 +146,7 @@ class Kernel {
     filesystem::Filesystem filesystem;
 
     u64 title_id{invalid<u64>()};
+    handle_id_t current_process_handle_id{INVALID_HANDLE_ID};
 
     // Memory
     hw::tegra_x1::cpu::MemoryBase* heap_mem;

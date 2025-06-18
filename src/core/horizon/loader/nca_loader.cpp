@@ -118,9 +118,9 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-void load_section(StreamReader reader, const std::string_view rom_filename,
-                  SectionType type, const FsHeader& header,
-                  kernel::Process*& out_process) {
+std::optional<kernel::ProcessParams>
+load_section(StreamReader reader, const std::string_view rom_filename,
+             SectionType type, const FsHeader& header) {
     switch (type) {
     case SectionType::Code: {
         ASSERT(header.hash_type == HashType::HierarchicalSha256Hash, Loader,
@@ -130,9 +130,9 @@ void load_section(StreamReader reader, const std::string_view rom_filename,
         reader.Seek(layer_region.offset);
         auto pfs0_reader = reader.CreateSubReader(layer_region.size);
         Pfs0Loader pfs0_loader(pfs0_reader);
-        auto process_ = pfs0_loader.LoadProcess(pfs0_reader, rom_filename);
-        CHECK_AND_SET_PROCESS(out_process, process_);
-        break;
+        auto process_params =
+            pfs0_loader.LoadProcess(pfs0_reader, rom_filename);
+        CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
     }
     case SectionType::Data: {
         // TODO: can other hash types be used as well?
@@ -151,14 +151,14 @@ void load_section(StreamReader reader, const std::string_view rom_filename,
             true);
         ASSERT(res == filesystem::FsResult::Success, Loader,
                "Failed to add romFS entry: {}", res);
-        break;
+        return std::nullopt;
     }
     case SectionType::Logo:
         LOG_NOT_IMPLEMENTED(Loader, "Logo loading");
-        break;
+        return std::nullopt;
     case SectionType::Invalid:
         LOG_ERROR(Loader, "Invalid section type");
-        break;
+        return std::nullopt;
     }
 }
 
@@ -181,12 +181,13 @@ NcaLoader::NcaLoader(StreamReader reader) {
     }
 }
 
-kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
-                                        const std::string_view rom_filename) {
+std::optional<kernel::ProcessParams>
+NcaLoader::LoadProcess(StreamReader reader,
+                       const std::string_view rom_filename) {
     // Title ID
     KERNEL_INSTANCE.SetTitleId(title_id);
 
-    kernel::Process* process = nullptr;
+    std::optional<kernel::ProcessParams> process_params = std::nullopt;
 
     // FS entries
     for (const auto& section : sections) {
@@ -196,11 +197,13 @@ kernel::Process* NcaLoader::LoadProcess(StreamReader reader,
         auto entry_reader = reader.CreateSubReader(
             (entry.end_offset - entry.start_offset) * FS_BLOCK_SIZE);
 
-        load_section(entry_reader, rom_filename, section.type,
-                     section.fs_header, process);
+        auto process_params_ = load_section(entry_reader, rom_filename,
+                                            section.type, section.fs_header);
+        if (process_params_)
+            CHECK_AND_SET_PROCESS_PARAMS(process_params, process_params_);
     }
 
-    CHECK_AND_RETURN_PROCESS(process);
+    CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
 }
 
 } // namespace hydra::horizon::loader

@@ -108,8 +108,9 @@ class NcaLoader : public LoaderBase {
   public:
     NcaLoader(StreamReader reader);
 
-    kernel::Process* LoadProcess(StreamReader reader,
-                                 const std::string_view rom_filename) override;
+    std::optional<kernel::ProcessParams>
+    LoadProcess(StreamReader reader,
+                const std::string_view rom_filename) override;
 
   private:
     u64 title_id;
