@@ -1257,7 +1257,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
     INST(0x4cb8000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("i2f");
+        const auto dst_type = get_operand_5cb8_0(inst);
+        const auto src_type = get_operand_5cb8_1(inst);
+        // TODO: 5cb8_2
+        const auto dst = GET_REG(0);
+        const auto neg = GET_BIT(45);
+        const auto src = GET_CMEM(34, 14);
+        COMMENT("i2f {} {} r{} {}c{}[0x{:x}]", dst_type, src_type, dst,
+                (neg ? "-" : ""), src.idx, src.imm);
+
+        HANDLE_PRED_COND();
+
+        auto res = o->OpCast(o->OpConstMemoryL(src, src_type, neg), dst_type);
+        o->OpMove(o->OpRegister(false, dst, dst_type), res);
     }
     INST(0x4cb0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("f2i");
@@ -1303,7 +1315,24 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4c60000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("fmnmx");
+        const auto dst = GET_REG(0);
+        const auto negA = GET_BIT(48);
+        const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(45);
+        const auto srcB = GET_CMEM(34, 14);
+        const auto pred = GET_PRED(39);
+        COMMENT("fmnmx r{} {}r{} {}c{}[0x{:x}] p{}", dst, (negA ? "-" : ""),
+                srcA, (negB ? "-" : ""), srcB.idx, srcB.imm, pred);
+
+        HANDLE_PRED_COND();
+
+        auto srcA_v = o->OpRegister(true, srcA, DataType::F32, negA);
+        auto srcB_v = o->OpConstMemoryL(srcB, DataType::F32, negB);
+        auto min_v = o->OpMin(srcA_v, srcB_v);
+        auto max_v = o->OpMax(srcA_v, srcB_v);
+        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
+                               min_v); // TODO: correct?
+        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
     }
     INST(0x4c58000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -1541,7 +1570,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 
         HANDLE_PRED_COND();
 
-        auto srcA_v = o->OpRegister(false, srcA, DataType::F32);
+        auto srcA_v = o->OpRegister(true, srcA, DataType::F32);
         auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
         auto min_v = o->OpMin(srcA_v, srcB_v);
         auto max_v = o->OpMax(srcA_v, srcB_v);

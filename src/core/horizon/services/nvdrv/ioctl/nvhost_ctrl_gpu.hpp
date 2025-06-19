@@ -75,6 +75,9 @@ class NvHostCtrlGpu : public FdBase {
     // Ioctls
     NvResult ZCullGetCtxSize(u32* out_size);
     NvResult ZCullGetInfo(ZCullInfo* out_info);
+    NvResult ZbcSetTable(std::array<u32, 4> color_ds,
+                         std::array<u32, 4> color_l2, u32 depth, u32 format,
+                         u32 table);
     // TODO: is buffer_addr in GPU virtual address space?
     NvResult GetCharacteristics(InOutSingle<u64> inout_buffer_size,
                                 gpu_vaddr_t buffer_addr,

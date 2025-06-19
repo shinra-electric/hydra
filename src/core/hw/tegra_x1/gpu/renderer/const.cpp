@@ -45,6 +45,8 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(A2BGR10, Unorm, Unorm, Unorm, Unorm, RGB10A2Unorm)
     IMAGE_FORMAT_CASE(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm, ASTC_RGBA_4x4)
     IMAGE_FORMAT_CASE(DXN1, Unorm, Unorm, Unorm, Unorm, BC4_RUnorm)
+    IMAGE_FORMAT_CASE(Z24S8, Uint, Unorm, Unorm, Unorm, Z24Unorm_S8Uint)
+    IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU, "Image format {}, components: {}, {}, {}, {}",
@@ -716,7 +718,7 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     case TextureFormat::BC3_RGBA:
         return SWIZZLE(R, G, B, A);
     default:
-        LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format);
+        ONCE(LOG_NOT_IMPLEMENTED(GPU, "{} default swizzle", format));
         return SWIZZLE(R, G, B, A);
     }
 

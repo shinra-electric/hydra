@@ -2,13 +2,12 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
-DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
-                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01,
-                                            ZCullGetCtxSize, 0x02, ZCullGetInfo,
-                                            0x05, GetCharacteristics, 0x06,
-                                            GetTpcMasks, 0x14,
-                                            ZbcGetActiveSlotMask, 0x1c,
-                                            GetGpuTime))
+DEFINE_IOCTL_TABLE(
+    NvHostCtrlGpu,
+    DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01, ZCullGetCtxSize, 0x02,
+                             ZCullGetInfo, 0x03, ZbcSetTable, 0x05,
+                             GetCharacteristics, 0x06, GetTpcMasks, 0x14,
+                             ZbcGetActiveSlotMask, 0x1c, GetGpuTime))
 
 NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
                                    handle_id_t& out_handle_id) {
@@ -52,6 +51,13 @@ NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
         .subregion_height_align_pixels = 0x40,
         .subregion_count = 0x10,
     };
+    return NvResult::Success;
+}
+
+NvResult NvHostCtrlGpu::ZbcSetTable(std::array<u32, 4> color_ds,
+                                    std::array<u32, 4> color_l2, u32 depth,
+                                    u32 format, u32 table) {
+    LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }
 
