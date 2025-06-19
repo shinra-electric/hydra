@@ -25,6 +25,7 @@ namespace {
 struct BlitParams {
     float2 src_offset;
     float2 src_scale;
+    f32 opacity;
 };
 
 } // namespace
@@ -173,8 +174,8 @@ bool Renderer::AcquireNextSurface() {
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
                                     const IntRect2D src_rect,
-                                    const IntRect2D dst_rect,
-                                    bool transparent) {
+                                    const IntRect2D dst_rect, bool transparent,
+                                    f32 opacity) {
     auto texture_impl = static_cast<const Texture*>(texture);
     auto encoder = GetRenderCommandEncoderUnchecked();
 
@@ -196,6 +197,7 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
                        (f32)src_rect.origin.y() / (f32)src_height},
         .src_scale = {(f32)src_rect.size.x() / (f32)src_width,
                       (f32)src_rect.size.y() / (f32)src_height},
+        .opacity = opacity,
     };
 
     encoder->setFragmentBytes(&params, sizeof(params), 0);

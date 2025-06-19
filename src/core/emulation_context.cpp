@@ -20,6 +20,13 @@ using namespace std::chrono_literals;
 
 namespace hydra {
 
+namespace {
+
+constexpr auto STARTUP_MOVIE_FADE_IN_DURATION = 100ms;
+constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
+
+} // namespace
+
 EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     // Random
     srand(time(0));
@@ -151,7 +158,7 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         }
 
         // Extend the last frame's time
-        startup_movie_delays.back() = 6s;
+        startup_movie_delays.back() = 5s;
     }
 
     delete loader;
@@ -214,8 +221,11 @@ void EmulationContext::Run() {
 
     running = true;
     loading = true;
-    next_startup_movie_frame_time =
-        clock_t::now() + 300ms; // Small starting delay
+
+    const auto crnt_time = clock_t::now();
+    next_startup_movie_frame_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION +
+                                    STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION;
+    startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -244,7 +254,19 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             startup_movie_delays.shrink_to_fit();
         }
     } else if (loading) {
+        const auto crnt_time = clock_t::now();
+
         // Display loading screen
+
+        // Fade in
+        f32 opacity = 1.0f;
+        if (crnt_time < startup_movie_fade_in_time)
+            opacity =
+                1.0f -
+                std::chrono::duration_cast<std::chrono::duration<f32>>(
+                    startup_movie_fade_in_time - crnt_time) /
+                    std::chrono::duration_cast<std::chrono::duration<f32>>(
+                        STARTUP_MOVIE_FADE_IN_DURATION);
 
         auto renderer = gpu->GetRenderer();
         renderer->LockMutex();
@@ -259,13 +281,12 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                          (i32)nintendo_logo->GetDescriptor().height};
             int2 dst_offset = {32, 32};
             renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
-                                           {dst_offset, size}, true);
+                                           {dst_offset, size}, true, opacity);
         }
 
         // Startup movie
         if (!startup_movie.empty()) {
             // Progress frame
-            const auto crnt_time = clock_t::now();
             while (crnt_time > next_startup_movie_frame_time) {
                 startup_movie_frame =
                     (startup_movie_frame + 1) % startup_movie.size();
@@ -279,7 +300,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             int2 dst_offset = {(i32)width - size.x() - 32,
                                (i32)height - size.y() - 32};
             renderer->DrawTextureToSurface(frame, {{0, 0}, size},
-                                           {dst_offset, size}, true);
+                                           {dst_offset, size}, true, opacity);
         }
 
         renderer->PresentSurface();

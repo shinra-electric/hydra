@@ -51,6 +51,7 @@ class EmulationContext {
         startup_movie; // TODO: texture array?
     std::vector<std::chrono::milliseconds> startup_movie_delays;
     clock_t::time_point next_startup_movie_frame_time;
+    clock_t::time_point startup_movie_fade_in_time;
     i32 startup_movie_frame{0};
 
     std::atomic_bool running{false};

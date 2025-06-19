@@ -45,7 +45,8 @@ class RendererBase {
     virtual void DrawTextureToSurface(const TextureBase* texture,
                                       const IntRect2D src_rect,
                                       const IntRect2D dst_rect,
-                                      bool transparent = false) = 0;
+                                      bool transparent = false,
+                                      f32 opacity = 1.0f) = 0;
     virtual void PresentSurface() = 0;
 
     // Buffer
