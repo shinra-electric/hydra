@@ -12,12 +12,26 @@
 
 namespace hydra::horizon::services::visrv {
 
+namespace {
+
+struct DisplayInfo {
+    char name[0x40];
+    bool has_layer_limit;
+    u8 _reserved_x41[0x7];
+    u64 layer_count_max;
+    u64 layer_width_pixel_count_max;
+    u64 layer_height_pixel_count_max;
+};
+
+} // namespace
+
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              101, GetSystemDisplayService, 102,
                              GetManagerDisplayService, 103,
-                             GetIndirectDisplayTransactionService, 1010,
-                             OpenDisplay, 1020, CloseDisplay, 2020, OpenLayer,
-                             2021, CloseLayer, 2101, SetLayerScalingMode, 2102,
+                             GetIndirectDisplayTransactionService, 1000,
+                             ListDisplays, 1010, OpenDisplay, 1020,
+                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer,
+                             2101, SetLayerScalingMode, 2102,
                              ConvertScalingMode, 5202, GetDisplayVsyncEvent)
 
 result_t
@@ -42,6 +56,20 @@ result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
     add_service_fn_t add_service) {
     // TODO: how is this different from GetRelayService?
     add_service(new hosbinder::IHOSBinderDriver());
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::ListDisplays(
+    u64* out_count, OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
+    // TODO: don't hardcode
+    out_display_infos_buffer.writer->Write<DisplayInfo>({
+        .name = "Default",
+        .has_layer_limit = true,
+        .layer_count_max = 1,
+        .layer_width_pixel_count_max = 1920,
+        .layer_height_pixel_count_max = 1080,
+    });
+    *out_count = 1;
     return RESULT_SUCCESS;
 }
 

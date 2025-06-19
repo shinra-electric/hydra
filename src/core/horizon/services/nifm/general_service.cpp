@@ -7,19 +7,6 @@ namespace hydra::horizon::services::nifm {
 namespace {
 
 #pragma pack(push, 1)
-struct IpAddressSetting {
-    u8 is_automatic;
-    IpV4Address current_addr;
-    IpV4Address subnet_mask;
-    IpV4Address gateway;
-};
-
-struct DnsSetting {
-    u8 is_automatic;
-    IpV4Address primary_dns_server;
-    IpV4Address secondary_dns_server;
-};
-
 struct ProxySetting {
     u8 enabled;
     u8 pad;
@@ -64,7 +51,8 @@ struct SfNetworkProfileData {
 
 DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
                              GetCurrentNetworkProfile, 12, GetCurrentIpAddress,
-                             18, GetInternetConnectionStatus)
+                             15, GetCurrentIpConfigInfo, 18,
+                             GetInternetConnectionStatus)
 
 result_t IGeneralService::CreateRequest(add_service_fn_t add_service,
                                         i32 requirement_preset) {
@@ -119,6 +107,25 @@ result_t IGeneralService::GetCurrentIpAddress(IpV4Address* out_ip) {
 
     // HACK
     *out_ip = {0};
+    return RESULT_SUCCESS;
+}
+
+result_t IGeneralService::GetCurrentIpConfigInfo(
+    IpAddressSetting* out_ip_address_setting, DnsSetting* out_dns_setting) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_ip_address_setting = {
+        .is_automatic = 0x1,
+        .current_addr = {.addr = {0x7, 0x7, 0x7, 0x7}},
+        .subnet_mask = {.addr = {0xFF, 0xFF, 0xFF, 0xFF}},
+        .gateway = {.addr = {0x8, 0x8, 0x8, 0x8}},
+    };
+    *out_dns_setting = {
+        .is_automatic = 0x1,
+        .primary_dns_server = {.addr = {0x1, 0x1, 0x1, 0x1}},
+        .secondary_dns_server = {.addr = {0x2, 0x2, 0x2, 0x2}},
+    };
     return RESULT_SUCCESS;
 }
 

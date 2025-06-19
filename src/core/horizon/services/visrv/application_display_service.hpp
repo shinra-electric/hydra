@@ -18,6 +18,9 @@ class IApplicationDisplayService : public DisplayServiceBase {
     result_t GetSystemDisplayService(add_service_fn_t add_service);
     result_t GetManagerDisplayService(add_service_fn_t add_service);
     result_t GetIndirectDisplayTransactionService(add_service_fn_t add_service);
+    result_t
+    ListDisplays(u64* out_count,
+                 OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer);
     result_t OpenDisplay(u64* out_display_id);
     result_t CloseDisplay(u64 display_id);
     result_t OpenLayer(u64 display_name, u64 layer_id, u64 aruid,
