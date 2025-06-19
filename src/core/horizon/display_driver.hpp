@@ -96,7 +96,7 @@ struct DisplayBinder {
     i32 GetAvailableSlot();
     void QueueBuffer(i32 slot, const BqBufferInput& input);
     i32 ConsumeBuffer(BqBufferInput& out_input,
-                      std::vector<u64>& out_dt_ns_list);
+                      std::vector<std::chrono::nanoseconds>& out_dt_list);
     void UnqueueAllBuffers();
 
     // Getters
@@ -121,7 +121,7 @@ struct DisplayBinder {
 
     // Time
     clock_t::time_point last_queue_time{clock_t::now()};
-    std::vector<u64> dt_ns_queue{};
+    std::vector<std::chrono::nanoseconds> dt_queue{};
 };
 
 class DisplayDriver {

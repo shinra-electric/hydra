@@ -140,6 +140,15 @@ inline i32 get_block_size_log2(const BlockDim dim) {
     return sign_extend<i32, 4>(static_cast<i32>(dim));
 }
 
+enum class ColorWriteMask : u32 {
+    None = 0,
+    Red = BIT(0),
+    Green = BIT(4),
+    Blue = BIT(8),
+    Alpha = BIT(12),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(ColorWriteMask)
+
 } // namespace hydra::hw::tegra_x1::gpu::engines
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::engines::PrimitiveType, Points,

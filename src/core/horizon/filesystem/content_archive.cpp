@@ -237,9 +237,10 @@ ContentArchive::ContentArchive(FileBase* file) {
         // FS_BLOCK_SIZE;
 
         switch (type) {
-        case SectionType::Code: {
+        case SectionType::Code:
+        case SectionType::Logo: {
             ASSERT(fs_header.hash_type == HashType::HierarchicalSha256Hash,
-                   Filesystem, "Invalid hash type \"{}\" for Code section",
+                   Filesystem, "Invalid hash type \"{}\" for PFS0",
                    fs_header.hash_type);
             const auto& layer_region =
                 fs_header.hierarchical_sha_256_data.pfs0_region;
@@ -247,8 +248,8 @@ ContentArchive::ContentArchive(FileBase* file) {
             auto partition_file =
                 new FileView(file, entry_offset + layer_region.offset,
                              layer_region.size); // TODO: free
-            entries.insert(
-                {"code", new PartitionFilesystem(partition_file, false)});
+            entries.insert({(type == SectionType::Code ? "code" : "logo"),
+                            new PartitionFilesystem(partition_file, false)});
             break;
         }
         case SectionType::Data: {
@@ -266,9 +267,6 @@ ContentArchive::ContentArchive(FileBase* file) {
                               level.hash_data_size)});
             break;
         }
-        case SectionType::Logo:
-            LOG_NOT_IMPLEMENTED(Filesystem, "Logo loading");
-            break;
         default:
             break;
         }

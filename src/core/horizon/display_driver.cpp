@@ -47,21 +47,20 @@ void DisplayBinder::QueueBuffer(i32 slot, const BqBufferInput& input) {
 
     // Time
     const auto now = clock_t::now();
-    dt_ns_queue.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                              now - last_queue_time)
-                              .count());
+    dt_queue.push_back(now - last_queue_time);
     last_queue_time = now;
 
     queue_cv.notify_all();
 }
 
-i32 DisplayBinder::ConsumeBuffer(BqBufferInput& out_input,
-                                 std::vector<u64>& out_dt_ns_list) {
+i32 DisplayBinder::ConsumeBuffer(
+    BqBufferInput& out_input,
+    std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
-    // TODO: should there be a timeout?
-    queue_cv.wait_for(lock, std::chrono::milliseconds(67),
-                      [&] { return !queued_buffers.empty(); });
+    // TODO: should we wait?
+    // queue_cv.wait_for(lock, std::chrono::milliseconds(67),
+    //                  [&] { return !queued_buffers.empty(); });
 
     if (queued_buffers.empty())
         return -1;
@@ -74,8 +73,8 @@ i32 DisplayBinder::ConsumeBuffer(BqBufferInput& out_input,
     out_input = input;
 
     // Time
-    out_dt_ns_list = dt_ns_queue;
-    dt_ns_queue.clear();
+    out_dt_list = dt_queue;
+    dt_queue.clear();
 
     queue_cv.notify_all();
 

@@ -62,8 +62,12 @@ class Renderer : public RendererBase {
 
     void SetSurface(void* surface) override;
 
-    void Present(const TextureBase* texture, const IntRect2D src_rect,
-                 const IntRect2D dst_rect) override;
+    bool AcquireNextSurface() override;
+    void DrawTextureToSurface(const TextureBase* texture,
+                              const IntRect2D src_rect,
+                              const IntRect2D dst_rect, bool transparent,
+                              f32 opacity) override;
+    void PresentSurface() override;
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
@@ -174,7 +178,8 @@ class Renderer : public RendererBase {
     MTL::Device* device;
     MTL::CommandQueue* command_queue;
 
-    CA::MetalLayer* layer;
+    CA::MetalLayer* layer{nullptr};
+    CA::MetalDrawable* drawable{nullptr};
 
     // Resources
 

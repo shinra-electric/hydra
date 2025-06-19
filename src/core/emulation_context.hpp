@@ -31,7 +31,7 @@ class EmulationContext {
 
     u64 GetTitleID() const { return os->GetKernel().GetTitleID(); }
 
-    bool IsRunning() const { return is_running; }
+    bool IsRunning() const { return running; }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
@@ -45,16 +45,27 @@ class EmulationContext {
 
     horizon::kernel::Process* process;
 
-    std::atomic_bool is_running = false;
+    // Loading screen assets
+    hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
+    std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
+        startup_movie; // TODO: texture array?
+    std::vector<std::chrono::milliseconds> startup_movie_delays;
+    clock_t::time_point next_startup_movie_frame_time;
+    clock_t::time_point startup_movie_fade_in_time;
+    i32 startup_movie_frame{0};
+
+    std::atomic_bool running{false};
+    bool loading{false};
 
     // Delta time
     f32 last_dt_average{0.0f};
 
-    u64 accumulated_dt_ns{0};
+    std::chrono::nanoseconds accumulated_dt{0};
     u32 dt_sample_count{0};
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
-    void Present(u32 width, u32 height, std::vector<u64>& out_dt_ns_list);
+    bool Present(u32 width, u32 height,
+                 std::vector<std::chrono::nanoseconds>& out_dt_ns_list);
 
     // Helpers
     void TryApplyPatch(const std::string_view target_filename,

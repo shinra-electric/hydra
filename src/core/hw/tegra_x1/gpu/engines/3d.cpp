@@ -591,6 +591,7 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
         auto& color_target = descriptor.color_target_states[i];
         color_target.format =
             renderer::to_texture_format(regs.color_targets[i].format);
+        color_target.write_mask = regs.color_write_masks[i];
         color_target.blend_enabled =
             static_cast<bool>(regs.color_blend_enabled[i]);
         if (color_target.blend_enabled) {

@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 // TODO: remove
@@ -83,10 +84,14 @@ void TextureCache::DestroyElement(Tex& texture) {
 void TextureCache::DecodeTexture(TextureBase* texture) {
     scratch_buffer.resize(texture->GetDescriptor().stride *
                           texture->GetDescriptor().height);
-    auto out_data = scratch_buffer.data();
-    texture_decoder.Decode(texture->GetDescriptor(), out_data);
+    auto data = scratch_buffer.data();
+    texture_decoder.Decode(texture->GetDescriptor(), data);
 
-    texture->CopyFrom(reinterpret_cast<uptr>(out_data));
+    auto tmp_buffer = RENDERER_INSTANCE->AllocateTemporaryBuffer(
+        texture->GetDescriptor().stride * texture->GetDescriptor().height);
+    tmp_buffer->CopyFrom(reinterpret_cast<uptr>(data));
+    texture->CopyFrom(tmp_buffer);
+    RENDERER_INSTANCE->FreeTemporaryBuffer(tmp_buffer);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

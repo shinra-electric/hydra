@@ -49,6 +49,7 @@ void BlitPipelineCache::Destroy() { pipeline_descriptor->release(); }
 MTL::RenderPipelineState*
 BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     // Source
+    // TODO: only take opacity when transparent?
     auto shader_source = R"(
         #include <metal_stdlib>
         using namespace metal;
@@ -62,12 +63,15 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
         struct BlitParams {
             float2 src_offset;
             float2 src_scale;
+            float opacity;
         };
 
         // TODO: choose the correct color data type
         fragment float4 fragment_blit(VertexBlitOut in [[stage_in]], constant BlitParams& params [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler samplr [[sampler(0)]]) {
             float2 tex_coord = params.src_offset + in.tex_coord * params.src_scale;
-            return tex.sample(samplr, tex_coord);
+            float4 color = tex.sample(samplr, tex_coord);
+            color.a *= params.opacity;
+            return color;
         }
     )";
 
@@ -79,6 +83,18 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     pipeline_descriptor->setFragmentFunction(fragment_blit);
     auto color_attachment = pipeline_descriptor->colorAttachments()->object(0);
     color_attachment->setPixelFormat(descriptor.pixel_format);
+    if (descriptor.transparent) {
+        color_attachment->setBlendingEnabled(true);
+        color_attachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+        color_attachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+        color_attachment->setDestinationRGBBlendFactor(
+            MTL::BlendFactorOneMinusSourceAlpha);
+        color_attachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+        color_attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+        color_attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorZero);
+    } else {
+        color_attachment->setBlendingEnabled(false);
+    }
 
     fragment_blit->release();
 
@@ -95,7 +111,7 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
 }
 
 u64 BlitPipelineCache::Hash(const BlitPipelineDescriptor& descriptor) {
-    return (u64)descriptor.pixel_format;
+    return (u64)descriptor.pixel_format | ((u64)descriptor.transparent << 12);
 }
 
 void BlitPipelineCache::DestroyElement(MTL::RenderPipelineState* pipeline) {

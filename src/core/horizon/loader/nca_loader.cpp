@@ -1,8 +1,13 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
+#include <stb_image.h>
+
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+
+#define NINTENDO_LOGO_PATH "logo/NintendoLogo.png"
+#define STARTUP_MOVIE_PATH "logo/StartupMovie.gif"
 
 namespace hydra::horizon::loader {
 
@@ -60,12 +65,99 @@ std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
                 FS_SD_MOUNT "/rom/romFS", entry, true);
             ASSERT(res == filesystem::FsResult::Success, Loader,
                    "Failed to add romFS entry: {}", res);
+        } else if (name == "logo") {
+            // Do nothing
         } else {
             LOG_NOT_IMPLEMENTED(Loader, "{}", name);
         }
     }
 
     CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
+}
+
+void NcaLoader::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
+                                 usize& out_height) {
+    filesystem::EntryBase* logo_entry;
+    const auto res = content_archive.GetEntry(NINTENDO_LOGO_PATH, logo_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
+        return;
+    }
+
+    auto logo_file = dynamic_cast<filesystem::FileBase*>(logo_entry);
+    if (!logo_file) {
+        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
+        return;
+    }
+
+    auto stream = logo_file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    usize raw_data_size = reader.GetSize();
+    u8* raw_data = new u8[raw_data_size];
+    reader.ReadWhole(raw_data);
+
+    logo_file->Close(stream);
+
+    i32 w, h;
+    i32 comp;
+    out_data = reinterpret_cast<uchar4*>(stbi_load_from_memory(
+        raw_data, raw_data_size, &w, &h, &comp, STBI_rgb_alpha));
+    delete[] raw_data;
+    if (!out_data) {
+        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
+        return;
+    }
+
+    out_width = w;
+    out_height = h;
+}
+
+void NcaLoader::LoadStartupMovie(
+    uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
+    usize& out_width, usize& out_height, u32& out_frame_count) {
+    filesystem::EntryBase* logo_entry;
+    const auto res = content_archive.GetEntry(STARTUP_MOVIE_PATH, logo_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to " STARTUP_MOVIE_PATH ": {}", res);
+        return;
+    }
+
+    auto logo_file = dynamic_cast<filesystem::FileBase*>(logo_entry);
+    if (!logo_file) {
+        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
+        return;
+    }
+
+    auto stream = logo_file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    usize raw_data_size = reader.GetSize();
+    u8* raw_data = new u8[raw_data_size];
+    reader.ReadWhole(raw_data);
+
+    logo_file->Close(stream);
+
+    i32 w, h, f;
+    i32 comp;
+    i32* delays_ms;
+    out_data = reinterpret_cast<uchar4*>(
+        stbi_load_gif_from_memory(raw_data, raw_data_size, &delays_ms, &w, &h,
+                                  &f, &comp, STBI_rgb_alpha));
+    delete[] raw_data;
+    if (!out_data) {
+        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
+        return;
+    }
+
+    out_width = w;
+    out_height = h;
+    out_frame_count = f;
+
+    out_delays.reserve(f);
+    for (u32 i = 0; i < f; i++)
+        out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
+    free(delays_ms);
 }
 
 std::optional<kernel::ProcessParams>

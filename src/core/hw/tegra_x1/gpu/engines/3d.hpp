@@ -456,7 +456,12 @@ struct Regs3D {
     // 0x64b
     bool32 viewport_transform_enabled;
 
-    u32 padding_0x64c[0x74];
+    u32 padding_0x64c[0x34];
+
+    // 0x680
+    ColorWriteMask color_write_masks[COLOR_TARGET_COUNT];
+
+    u32 padding_0x688[0x38];
 
     // 0x6c0 report semaphore
     Iova report_semaphore_addr;

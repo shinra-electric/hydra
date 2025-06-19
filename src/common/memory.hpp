@@ -20,6 +20,8 @@ class Reader {
     void Seek(u64 pos) { ptr = base + pos; }
     void Skip(usize size) { ptr += size; }
 
+    template <typename T> const T Read() { return *ReadPtr<T>(); }
+
     template <typename T> const T* ReadPtr(usize count = 1) {
         const T* result = reinterpret_cast<const T*>(ptr);
         ptr += sizeof(T) * count;
@@ -27,7 +29,9 @@ class Reader {
         return result;
     }
 
-    template <typename T> const T Read() { return *ReadPtr<T>(); }
+    template <typename T> const T* ReadWhole() {
+        return ReadPtr<T>(size / sizeof(T));
+    }
 
     std::string ReadString() {
         std::string result(reinterpret_cast<const char*>(ptr));
@@ -126,6 +130,10 @@ class StreamReader {
 
     template <typename T> void ReadPtr(T* ptr, usize count) {
         stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
+    }
+
+    template <typename T> void ReadWhole(T* ptr) {
+        ReadPtr(ptr, size / sizeof(T));
     }
 
     // Getters
