@@ -214,7 +214,8 @@ void EmulationContext::Run() {
 
     running = true;
     loading = true;
-    next_startup_movie_frame_time = clock_t::now();
+    next_startup_movie_frame_time =
+        clock_t::now() + 300ms; // Small starting delay
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -223,8 +224,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 
     // Present
-    std::vector<u64> dt_ns_list;
-    if (Present(width, height, dt_ns_list) && loading) {
+    std::vector<std::chrono::nanoseconds> dt_list;
+    if (Present(width, height, dt_list) && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present
         loading = false;
@@ -288,8 +289,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     }
 
     // Delta time
-    for (const auto dt_ns : dt_ns_list) {
-        accumulated_dt_ns += dt_ns;
+    for (const auto dt : dt_list) {
+        accumulated_dt += dt;
         dt_sample_count++;
     }
 
@@ -298,10 +299,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     if (time_since_last_dt_averaging > 1s) {
         if (dt_sample_count != 0)
             last_dt_average =
-                (f32)accumulated_dt_ns / (f32)dt_sample_count / 1'000'000'000.f;
+                (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
+                    accumulated_dt)
+                    .count() /
+                (f32)dt_sample_count;
         else
             last_dt_average = 0.f;
-        accumulated_dt_ns = 0;
+        accumulated_dt = 0ns;
         dt_sample_count = 0;
         last_dt_averaging_time = now;
 
@@ -311,8 +315,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     }
 }
 
-bool EmulationContext::Present(u32 width, u32 height,
-                               std::vector<u64>& out_dt_ns_list) {
+bool EmulationContext::Present(
+    u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
     auto display = bus->GetDisplay(0);
     if (!display->IsOpen())
@@ -331,7 +335,7 @@ bool EmulationContext::Present(u32 width, u32 height,
     auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
 
     horizon::BqBufferInput input;
-    i32 slot = binder.ConsumeBuffer(input, out_dt_ns_list);
+    i32 slot = binder.ConsumeBuffer(input, out_dt_list);
     if (slot == -1)
         return false;
     const auto& buffer = binder.GetBuffer(slot);
