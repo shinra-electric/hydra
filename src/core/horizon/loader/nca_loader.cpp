@@ -113,8 +113,9 @@ void NcaLoader::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
     out_height = h;
 }
 
-void NcaLoader::LoadStartupMovie(uchar4*& out_data, usize& out_width,
-                                 usize& out_height, u32& out_frame_count) {
+void NcaLoader::LoadStartupMovie(
+    uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
+    usize& out_width, usize& out_height, u32& out_frame_count) {
     filesystem::EntryBase* logo_entry;
     const auto res = content_archive.GetEntry(STARTUP_MOVIE_PATH, logo_entry);
     if (res != filesystem::FsResult::Success) {
@@ -139,8 +140,10 @@ void NcaLoader::LoadStartupMovie(uchar4*& out_data, usize& out_width,
 
     i32 w, h, f;
     i32 comp;
-    out_data = reinterpret_cast<uchar4*>(stbi_load_gif_from_memory(
-        raw_data, raw_data_size, nullptr, &w, &h, &f, &comp, STBI_rgb_alpha));
+    i32* delays_ms;
+    out_data = reinterpret_cast<uchar4*>(
+        stbi_load_gif_from_memory(raw_data, raw_data_size, &delays_ms, &w, &h,
+                                  &f, &comp, STBI_rgb_alpha));
     delete[] raw_data;
     if (!out_data) {
         LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
@@ -150,6 +153,11 @@ void NcaLoader::LoadStartupMovie(uchar4*& out_data, usize& out_width,
     out_width = w;
     out_height = h;
     out_frame_count = f;
+
+    out_delays.reserve(f);
+    for (u32 i = 0; i < f; i++)
+        out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
+    free(delays_ms);
 }
 
 std::optional<kernel::ProcessParams>

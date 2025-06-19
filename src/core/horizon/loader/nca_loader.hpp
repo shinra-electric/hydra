@@ -12,8 +12,10 @@ class NcaLoader : public LoaderBase {
     std::optional<kernel::ProcessParams> LoadProcess() override;
     void LoadNintendoLogo(uchar4*& out_data, usize& out_width,
                           usize& out_height) override;
-    void LoadStartupMovie(uchar4*& out_data, usize& out_width,
-                          usize& out_height, u32& out_frame_count) override;
+    void LoadStartupMovie(uchar4*& out_data,
+                          std::vector<std::chrono::milliseconds>& out_delays,
+                          usize& out_width, usize& out_height,
+                          u32& out_frame_count) override;
 
   private:
     filesystem::ContentArchive content_archive;

@@ -49,6 +49,9 @@ class EmulationContext {
     hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
     std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
         startup_movie; // TODO: texture array?
+    std::vector<std::chrono::milliseconds> startup_movie_delays;
+    clock_t::time_point next_startup_movie_frame_time;
+    i32 startup_movie_frame{0};
 
     std::atomic_bool running{false};
     bool loading{false};

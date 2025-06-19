@@ -25,8 +25,9 @@ class LoaderBase {
     // TODO: load logo
     virtual void LoadNintendoLogo(uchar4*& out_data, usize& out_width,
                                   usize& out_height) {}
-    virtual void LoadStartupMovie(uchar4*& out_data, usize& out_width,
-                                  usize& out_height, u32& out_frame_count) {}
+    virtual void LoadStartupMovie(
+        uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
+        usize& out_width, usize& out_height, u32& out_frame_count) {}
 };
 
 } // namespace hydra::horizon::loader

@@ -16,6 +16,8 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
+using namespace std::chrono_literals;
+
 namespace hydra {
 
 EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
@@ -131,7 +133,8 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
         uchar4* data = nullptr;
         usize width, height;
         u32 frame_count;
-        loader->LoadStartupMovie(data, width, height, frame_count);
+        loader->LoadStartupMovie(data, startup_movie_delays, width, height,
+                                 frame_count);
         if (data) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
@@ -146,6 +149,9 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
             }
             free(data);
         }
+
+        // Extend the last frame's time
+        startup_movie_delays.back() = 6s;
     }
 
     delete loader;
@@ -205,8 +211,10 @@ void EmulationContext::Run() {
     }
 
     process->Run();
+
     running = true;
     loading = true;
+    next_startup_movie_frame_time = clock_t::now();
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -216,47 +224,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     // Present
     std::vector<u64> dt_ns_list;
-    if (!Present(width, height, dt_ns_list)) {
+    if (Present(width, height, dt_ns_list) && loading) {
         // TODO: till when should the loading screen be shown?
-        if (loading) {
-            // Display loading screen
-
-            auto renderer = gpu->GetRenderer();
-            renderer->LockMutex();
-            if (!renderer->AcquireNextSurface()) {
-                renderer->UnlockMutex();
-                return;
-            }
-
-            // Nintendo logo
-            if (nintendo_logo) {
-                int2 size = {(i32)nintendo_logo->GetDescriptor().width,
-                             (i32)nintendo_logo->GetDescriptor().height};
-                int2 dst_offset = {32, 32};
-                renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
-                                               {dst_offset, size}, true);
-            }
-
-            // Startup movie
-            if (!startup_movie.empty()) {
-                static i32 i = 0;
-                auto frame = startup_movie[i];
-                i = (i + 1) % startup_movie.size();
-
-                int2 size = {(i32)frame->GetDescriptor().width,
-                             (i32)frame->GetDescriptor().height};
-                int2 dst_offset = {(i32)width - size.x() - 32,
-                                   (i32)height - size.y() - 32};
-                renderer->DrawTextureToSurface(frame, {{0, 0}, size},
-                                               {dst_offset, size}, true);
-            }
-
-            renderer->PresentSurface();
-            renderer->EndCommandBuffer();
-            renderer->UnlockMutex();
-            return;
-        }
-    } else if (loading) {
         // Stop the loading screen on the first present
         loading = false;
 
@@ -269,12 +238,56 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             for (auto frame : startup_movie)
                 delete frame;
             startup_movie.clear();
+            startup_movie.shrink_to_fit();
+            startup_movie_delays.clear();
+            startup_movie_delays.shrink_to_fit();
         }
+    } else if (loading) {
+        // Display loading screen
+
+        auto renderer = gpu->GetRenderer();
+        renderer->LockMutex();
+        if (!renderer->AcquireNextSurface()) {
+            renderer->UnlockMutex();
+            return;
+        }
+
+        // Nintendo logo
+        if (nintendo_logo) {
+            int2 size = {(i32)nintendo_logo->GetDescriptor().width,
+                         (i32)nintendo_logo->GetDescriptor().height};
+            int2 dst_offset = {32, 32};
+            renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
+                                           {dst_offset, size}, true);
+        }
+
+        // Startup movie
+        if (!startup_movie.empty()) {
+            // Progress frame
+            const auto crnt_time = clock_t::now();
+            while (crnt_time > next_startup_movie_frame_time) {
+                startup_movie_frame =
+                    (startup_movie_frame + 1) % startup_movie.size();
+                next_startup_movie_frame_time +=
+                    startup_movie_delays[startup_movie_frame];
+            }
+
+            auto frame = startup_movie[startup_movie_frame];
+            int2 size = {(i32)frame->GetDescriptor().width,
+                         (i32)frame->GetDescriptor().height};
+            int2 dst_offset = {(i32)width - size.x() - 32,
+                               (i32)height - size.y() - 32};
+            renderer->DrawTextureToSurface(frame, {{0, 0}, size},
+                                           {dst_offset, size}, true);
+        }
+
+        renderer->PresentSurface();
+        renderer->EndCommandBuffer();
+        renderer->UnlockMutex();
+        return;
     }
 
     // Delta time
-    using namespace std::chrono_literals;
-
     for (const auto dt_ns : dt_ns_list) {
         accumulated_dt_ns += dt_ns;
         dt_sample_count++;
