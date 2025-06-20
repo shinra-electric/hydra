@@ -36,7 +36,7 @@ DEFINE_SERVICE_COMMAND_TABLE(
     OpenSaveDataFileSystem, 53, OpenReadOnlySaveDataFileSystem, 61,
     OpenSaveDataInfoReaderBySaveDataSpaceId, 200, OpenDataStorageByProgramId,
     202, OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess,
-    1005, GetGlobalAccessLogMode)
+    1003, DisableAutoSaveDataCreation, 1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
     add_service_fn_t add_service, FileSystemProxyType type,
@@ -159,6 +159,11 @@ result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
 
     add_service(new IStorage(file, filesystem::FileOpenFlags::Read));
 
+    return RESULT_SUCCESS;
+}
+
+result_t IFileSystemProxy::DisableAutoSaveDataCreation() {
+    LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 

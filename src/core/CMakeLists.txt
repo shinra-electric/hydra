@@ -119,6 +119,8 @@ add_library(hydra-core
     horizon/services/am/apm_manager.hpp
     horizon/services/am/application_proxy_service.cpp
     horizon/services/am/application_proxy_service.hpp
+    horizon/services/am/all_system_applet_proxies_service.cpp
+    horizon/services/am/all_system_applet_proxies_service.hpp
     horizon/services/am/common_state_getter.cpp
     horizon/services/am/common_state_getter.hpp
     horizon/services/am/self_controller.cpp
@@ -137,8 +139,14 @@ add_library(hydra-core
     horizon/services/am/application_functions.hpp
     horizon/services/am/debug_functions.cpp
     horizon/services/am/debug_functions.hpp
+    horizon/services/am/process_winding_controller.cpp
+    horizon/services/am/process_winding_controller.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/am/library_applet_proxy.cpp
+    horizon/services/am/library_applet_proxy.hpp
+    horizon/services/am/library_applet_self_accessor.cpp
+    horizon/services/am/library_applet_self_accessor.hpp
     horizon/services/am/storage.cpp
     horizon/services/am/storage.hpp
     horizon/services/am/storage_accessor.cpp

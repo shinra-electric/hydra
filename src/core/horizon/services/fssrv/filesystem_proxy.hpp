@@ -127,6 +127,7 @@ class IFileSystemProxy : public ServiceBase {
                                      aligned<ncm::StorageID, 8> storage_id,
                                      u64 data_id);
     result_t OpenPatchDataStorageByCurrentProcess(add_service_fn_t add_service);
+    result_t DisableAutoSaveDataCreation();
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
 
     // Impl

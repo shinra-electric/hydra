@@ -2,6 +2,7 @@
 
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
+#include "core/horizon/services/am/all_system_applet_proxies_service.hpp"
 #include "core/horizon/services/am/apm_manager.hpp"
 #include "core/horizon/services/am/application_proxy_service.hpp"
 #include "core/horizon/services/aocsrv/add_on_content_manager.hpp"
@@ -64,6 +65,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(settings::ISystemSettingsServer, "set:sys")
         SERVICE_CASE(am::IApmManager, "apm", "apm:am")
         SERVICE_CASE(am::IApplicationProxyService, "appletOE")
+        SERVICE_CASE(am::IAllSystemAppletProxiesService, "appletAE")
         SERVICE_CASE(visrv::IApplicationRootService, "vi:u")
         SERVICE_CASE(visrv::ISystemRootService, "vi:s")
         SERVICE_CASE(visrv::IManagerRootService, "vi:m")
