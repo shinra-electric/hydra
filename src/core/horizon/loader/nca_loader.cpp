@@ -105,7 +105,7 @@ void NcaLoader::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
         raw_data, raw_data_size, &w, &h, &comp, STBI_rgb_alpha));
     delete[] raw_data;
     if (!out_data) {
-        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
+        LOG_ERROR(Loader, "Failed to load " NINTENDO_LOGO_PATH);
         return;
     }
 
@@ -119,7 +119,7 @@ void NcaLoader::LoadStartupMovie(
     filesystem::EntryBase* logo_entry;
     const auto res = content_archive.GetEntry(STARTUP_MOVIE_PATH, logo_entry);
     if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to " STARTUP_MOVIE_PATH ": {}", res);
+        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
         return;
     }
 
@@ -146,7 +146,7 @@ void NcaLoader::LoadStartupMovie(
                                   &f, &comp, STBI_rgb_alpha));
     delete[] raw_data;
     if (!out_data) {
-        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
+        LOG_ERROR(Loader, "Failed to load " STARTUP_MOVIE_PATH);
         return;
     }
 

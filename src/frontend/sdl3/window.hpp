@@ -34,7 +34,7 @@ class Window : public horizon::ui::HandlerBase {
 
     EmulationContext emulation_context;
 
-    void BeginEmulation(const std::string& rom_filename);
+    void BeginEmulation(const std::string& filename);
 
     void UpdateWindowTitle();
     void SetWindowTitle(const std::string& title);

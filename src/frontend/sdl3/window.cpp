@@ -97,13 +97,20 @@ Window::ShowSoftwareKeyboard(const std::string& header_text,
                : horizon::applets::SoftwareKeyboardResult::Cancel;
 }
 
-void Window::BeginEmulation(const std::string& rom_filename) {
+void Window::BeginEmulation(const std::string& filename) {
     // Connect cursor as a touch screen device
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
 
+    // Load
+    // TODO: handle library applets more cleanly
+    if (filename == "MII_EDIT")
+        emulation_context.LoadFromFirmware(
+            horizon::AppletId::LibraryAppletMiiEdit);
+    else
+        emulation_context.LoadFromFile(filename);
+
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    emulation_context.LoadRom(rom_filename);
     emulation_context.Run();
 }
 

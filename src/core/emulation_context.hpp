@@ -17,7 +17,8 @@ class EmulationContext {
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
-    void LoadRom(const std::string& rom_filename);
+    void LoadFromFile(const std::string& filename);
+    void LoadFromFirmware(horizon::AppletId applet_id);
     void Run();
 
     // TODO: rename?

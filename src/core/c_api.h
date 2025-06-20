@@ -120,7 +120,8 @@ void* hydra_emulation_context_create();
 void hydra_emulation_context_destroy(void* ctx);
 
 void hydra_emulation_context_set_surface(void* ctx, void* surface);
-void hydra_emulation_context_load_rom(void* ctx, const char* rom_filename);
+void hydra_emulation_context_load_from_file(void* ctx, const char* filename);
+//void hydra_emulation_context_load_from_firmware(void* ctx, TODO);
 void hydra_emulation_context_run(void* ctx);
 
 void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,

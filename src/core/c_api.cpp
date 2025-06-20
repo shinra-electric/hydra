@@ -165,9 +165,9 @@ HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
     static_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load_rom(void* ctx,
-                                                   const char* rom_filename) {
-    static_cast<hydra::EmulationContext*>(ctx)->LoadRom(rom_filename);
+HYDRA_EXPORT void hydra_emulation_context_load_from_file(void* ctx,
+                                                         const char* filename) {
+    static_cast<hydra::EmulationContext*>(ctx)->LoadFromFile(filename);
 }
 
 HYDRA_EXPORT void hydra_emulation_context_run(void* ctx) {

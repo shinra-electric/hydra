@@ -87,20 +87,19 @@ EmulationContext::~EmulationContext() {
     // TODO: delete objects
 }
 
-void EmulationContext::LoadRom(const std::string& rom_filename) {
+void EmulationContext::LoadFromFile(const std::string& filename) {
     // Load ROM
 
     // Check if the file exists
-    if (!std::filesystem::exists(rom_filename)) {
+    if (!std::filesystem::exists(filename)) {
         // TODO: return an error instead
-        LOG_FATAL(Other, "Invalid ROM path {}", rom_filename);
+        LOG_FATAL(Other, "Invalid path \"{}\"", filename);
         return;
     }
 
     // Load ROM
-    auto file = new horizon::filesystem::HostFile(rom_filename, false);
-    std::string extension =
-        rom_filename.substr(rom_filename.find_last_of(".") + 1);
+    auto file = new horizon::filesystem::HostFile(filename, false);
+    std::string extension = filename.substr(filename.find_last_of(".") + 1);
 
     horizon::loader::LoaderBase* loader{nullptr};
     if (extension == "nro") {
@@ -183,6 +182,30 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
             }
         }
     }
+}
+
+void EmulationContext::LoadFromFirmware(horizon::AppletId applet_id) {
+    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
+    if (!std::filesystem::exists(firmware_path)) {
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Invalid firmware path \"{}\"", firmware_path);
+        return;
+    }
+
+    std::string filename;
+    // TODO: should it be chosen based on filenames?
+    switch (applet_id) {
+    case horizon::AppletId::LibraryAppletMiiEdit:
+        filename = fmt::format("{}/0f77b0fbf77f4635ad9a842549356dd8.nca",
+                               firmware_path);
+        break;
+    default:
+        // TODO: return an error instead
+        LOG_FATAL(Other, "Unsupported applet ID {}", applet_id);
+        return;
+    }
+
+    LoadFromFile(filename);
 }
 
 void EmulationContext::Run() {
