@@ -126,7 +126,7 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
                 e = new Directory();
                 e->SetParent(this);
             } else {
-                return FsResult::IntermediateDirectoryDoesNotExist;
+                return FsResult::DoesNotExist;
             }
         }
 
@@ -153,7 +153,7 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
         return FsResult::Success;
     } else {
         if (!e)
-            return FsResult::IntermediateDirectoryDoesNotExist;
+            return FsResult::DoesNotExist;
 
         auto sub_dir = dynamic_cast<Directory*>(e);
         if (!sub_dir)
@@ -175,7 +175,7 @@ FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
         return FsResult::Success;
     } else {
         if (!e)
-            return FsResult::IntermediateDirectoryDoesNotExist;
+            return FsResult::DoesNotExist;
 
         auto sub_dir = dynamic_cast<Directory*>(e);
         if (!sub_dir)

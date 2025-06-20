@@ -223,13 +223,16 @@ ContentArchive::ContentArchive(FileBase* file) {
     // FS entries
     // TODO: don't iterate over all entries?
     for (u32 i = 0; i < FS_ENTRY_COUNT; i++) {
+        const auto& entry = header.fs_entries[i];
+        if (entry.start_offset == 0x0)
+            continue;
+
         const auto type = header.get_section_type_from_index(i);
         if (type == SectionType::Invalid) {
             LOG_ERROR(Filesystem, "Invalid section type");
             continue;
         }
 
-        const auto& entry = header.fs_entries[i];
         const auto& fs_header = header.fs_headers[i];
 
         const u64 entry_offset = entry.start_offset * FS_BLOCK_SIZE;

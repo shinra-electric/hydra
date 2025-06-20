@@ -14,7 +14,6 @@ enum class FsResult {
 
     NotMounted,
     DoesNotExist,
-    IntermediateDirectoryDoesNotExist,
     NotAFile,
     NotADirectory,
     AlreadyExists,
@@ -35,11 +34,10 @@ ENABLE_ENUM_BITMASK_OPERATORS(FileOpenFlags)
 
 ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::FsResult, Success, "success",
                        NotMounted, "not mounted", DoesNotExist,
-                       "does not exist", IntermediateDirectoryDoesNotExist,
-                       "intermediate directory does not exist", NotAFile,
-                       "not a file", NotADirectory, "not a directory",
-                       AlreadyExists, "already exists", DirectoryNotEmpty,
-                       "directory not empty", NotImplemented, "not implemented")
+                       "does not exist", NotAFile, "not a file", NotADirectory,
+                       "not a directory", AlreadyExists, "already exists",
+                       DirectoryNotEmpty, "directory not empty", NotImplemented,
+                       "not implemented")
 
 ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::filesystem::FileOpenFlags, Read,
                              "read", Write, "write", Append, "append")

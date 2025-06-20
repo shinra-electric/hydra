@@ -155,10 +155,10 @@ void EmulationContext::LoadRom(const std::string& rom_filename) {
                 startup_movie.push_back(frame);
             }
             free(data);
-        }
 
-        // Extend the last frame's time
-        startup_movie_delays.back() = 5s;
+            // Extend the last frame's time
+            startup_movie_delays.back() = 5s;
+        }
     }
 
     delete loader;

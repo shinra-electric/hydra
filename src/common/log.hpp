@@ -31,7 +31,7 @@
 #define LOG_FATAL(c, ...)                                                      \
     {                                                                          \
         LOG(Fatal, c, __VA_ARGS__);                                            \
-        throw;                                                                 \
+        abort();                                                               \
     }
 
 #define LOG_FUNC_STUBBED(c) LOG_STUBBED(c, "{}", __func__)
@@ -41,7 +41,7 @@
 
 #define ASSERT(condition, c, ...)                                              \
     if (!(condition)) {                                                        \
-        LOG_ERROR(c, __VA_ARGS__);                                             \
+        LOG_FATAL(c, __VA_ARGS__);                                             \
     }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
