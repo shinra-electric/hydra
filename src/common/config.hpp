@@ -118,13 +118,14 @@ class Config {
     // Getters
     ArrayOption<std::string>& GetGamePaths() { return game_paths; }
     ArrayOption<std::string>& GetPatchPaths() { return patch_paths; }
-    Option<std::string>& GetSdCardPath() { return sd_card_path; }
-    Option<std::string>& GetSavePath() { return save_path; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
+    Option<std::string>& GetFirmwarePath() { return firmware_path; }
+    Option<std::string>& GetSdCardPath() { return sd_card_path; }
+    Option<std::string>& GetSavePath() { return save_path; }
     Option<LogOutput>& GetLoggingOutput() { return logging_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
@@ -138,13 +139,14 @@ class Config {
     // Config
     ArrayOption<std::string> game_paths;
     ArrayOption<std::string> patch_paths;
-    Option<std::string> sd_card_path;
-    Option<std::string> save_path;
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
+    Option<std::string> firmware_path;
+    Option<std::string> sd_card_path;
+    Option<std::string> save_path;
     Option<LogOutput> logging_output =
         LogOutput::StdOut; // Set to stdout so that messages logged
                            // before logs path is initialized get logged
@@ -157,12 +159,6 @@ class Config {
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
-    std::string GetDefaultSdCardPath() const {
-        return fmt::format("{}/sdmc", app_data_path);
-    }
-    std::string GetDefaultSavePath() const {
-        return fmt::format("{}/save", app_data_path);
-    }
     CpuBackend GetDefaultCpuBackend() const {
         // TODO: use Dynarmic by default on all platforms except for Apple
         // Silicon
@@ -173,6 +169,13 @@ class Config {
     AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
+    }
+    std::string GetDefaultFirmwarePath() const { return ""; }
+    std::string GetDefaultSdCardPath() const {
+        return fmt::format("{}/sdmc", app_data_path);
+    }
+    std::string GetDefaultSavePath() const {
+        return fmt::format("{}/save", app_data_path);
     }
     LogOutput GetDefaultLoggingOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }

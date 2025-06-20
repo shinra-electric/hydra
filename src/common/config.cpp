@@ -94,13 +94,14 @@ void Config::Initialize() {
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
     patch_paths = GetDefaultPatchPaths();
-    sd_card_path = GetDefaultSdCardPath();
     save_path = GetDefaultSavePath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
+    firmware_path = GetDefaultFirmwarePath();
+    sd_card_path = GetDefaultSdCardPath();
     logging_output = GetDefaultLoggingOutput();
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
@@ -121,6 +122,7 @@ void Config::Serialize() {
             {"Graphics", toml::table{}},
             {"Audio", toml::table{}},
             {"User", toml::table{}},
+            {"System", toml::table{}},
             {"Debug", toml::table{}},
         });
 
@@ -136,9 +138,6 @@ void Config::Serialize() {
             patch_paths_arr = toml::array{};
             patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
                                               patch_paths.Get().end());
-
-            general["sd_card_path"] = sd_card_path;
-            general["save_path"] = save_path;
         }
 
         {
@@ -160,6 +159,13 @@ void Config::Serialize() {
         {
             auto& user = data.at("User");
             user["user_id"] = user_id.Get();
+        }
+
+        {
+            auto& system = data.at("System");
+            system["firmware_path"] = firmware_path;
+            system["sd_card_path"] = sd_card_path;
+            system["save_path"] = save_path;
         }
 
         {
@@ -195,10 +201,6 @@ void Config::Deserialize() {
             general, "game_paths", GetDefaultGamePaths());
         patch_paths = toml::find_or<std::vector<std::string>>(
             general, "patch_paths", GetDefaultPatchPaths());
-        sd_card_path = toml::find_or<std::string>(general, "sd_card_path",
-                                                  GetDefaultSdCardPath());
-        save_path = toml::find_or<std::string>(general, "save_path",
-                                               GetDefaultSavePath());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
@@ -220,6 +222,15 @@ void Config::Deserialize() {
     if (data.contains("User")) {
         const auto& user = data.at("User");
         user_id = toml::find_or<uuid_t>(user, "user_id", GetDefaultUserID());
+    }
+    if (data.contains("System")) {
+        const auto& system = data.at("System");
+        firmware_path = toml::find_or<std::string>(system, "firmware_path",
+                                                   GetDefaultFirmwarePath());
+        sd_card_path = toml::find_or<std::string>(system, "sd_card_path",
+                                                  GetDefaultSdCardPath());
+        save_path = toml::find_or<std::string>(system, "save_path",
+                                               GetDefaultSavePath());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
@@ -265,13 +276,14 @@ void Config::Deserialize() {
 void Config::Log() {
     LOG_INFO(Other, "Game paths: [{}]", game_paths);
     LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
-    LOG_INFO(Other, "SD card path: {}", sd_card_path);
-    LOG_INFO(Other, "Save path: {}", save_path);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "GPU renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
+    LOG_INFO(Other, "Firmware path: {}", firmware_path);
+    LOG_INFO(Other, "SD card path: {}", sd_card_path);
+    LOG_INFO(Other, "Save path: {}", save_path);
     LOG_INFO(Other, "Logging output: {}", logging_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
