@@ -10,6 +10,7 @@ class IHidSystemServer : public ServiceBase {
 
   private:
     // Commands
+    STUB_REQUEST_COMMAND(ApplyNpadSystemCommonPolicy);
 };
 
 } // namespace hydra::horizon::services::hid

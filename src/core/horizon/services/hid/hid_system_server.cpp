@@ -2,6 +2,6 @@
 
 namespace hydra::horizon::services::hid {
 
-DEFINE_SERVICE_COMMAND_TABLE(IHidSystemServer)
+DEFINE_SERVICE_COMMAND_TABLE(IHidSystemServer, 303, ApplyNpadSystemCommonPolicy)
 
 } // namespace hydra::horizon::services::hid

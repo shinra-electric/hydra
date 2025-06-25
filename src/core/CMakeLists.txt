@@ -256,6 +256,10 @@ add_library(hydra-core
     horizon/services/err/context/writer_for_application.cpp
     horizon/services/err/context/writer_for_application.hpp
     horizon/services/oe/const.hpp
+    horizon/services/mii/database_service.cpp
+    horizon/services/mii/database_service.hpp
+    horizon/services/mii/static_service.cpp
+    horizon/services/mii/static_service.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
     horizon/applets/err/error_applet.cpp

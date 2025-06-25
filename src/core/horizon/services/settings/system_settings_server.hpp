@@ -17,6 +17,7 @@ class ISystemSettingsServer : public ServiceBase {
     // Commands
     result_t GetFirmwareVersion(OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetColorSetId(ColorSetId* out_id);
+    result_t GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer);
 };
 
 } // namespace hydra::horizon::services::settings

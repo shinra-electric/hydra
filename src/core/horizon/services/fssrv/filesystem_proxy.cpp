@@ -33,10 +33,12 @@ DEFINE_SERVICE_COMMAND_TABLE(
     IFileSystemProxy, 0, OpenFileSystem, 1, SetCurrentProcess, 8,
     OpenFileSystemWithIdObsolete, 11, OpenBisFileSystem, 18,
     OpenSdCardFileSystem, 22, CreateSaveDataFileSystem, 51,
-    OpenSaveDataFileSystem, 53, OpenReadOnlySaveDataFileSystem, 61,
-    OpenSaveDataInfoReaderBySaveDataSpaceId, 200, OpenDataStorageByProgramId,
-    202, OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess,
-    1003, DisableAutoSaveDataCreation, 1005, GetGlobalAccessLogMode)
+    OpenSaveDataFileSystem, 52,
+    ReadSaveDataFileSystemExtraDataBySaveDataSpaceId, 53,
+    OpenReadOnlySaveDataFileSystem, 61, OpenSaveDataInfoReaderBySaveDataSpaceId,
+    200, OpenDataStorageByProgramId, 202, OpenDataStorageByDataId, 203,
+    OpenPatchDataStorageByCurrentProcess, 1003, DisableAutoSaveDataCreation,
+    1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
     add_service_fn_t add_service, FileSystemProxyType type,
@@ -88,6 +90,19 @@ IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
     auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
     // TODO: check res
 
+    return RESULT_SUCCESS;
+}
+
+result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+    aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
+    OutBuffer<BufferAttr::MapAlias> out_buffer) {
+    LOG_FUNC_STUBBED(Services);
+
+    // TODO: why is the writer NULL?
+    if (out_buffer.writer) {
+        // HACK
+        out_buffer.writer->Write<SaveDataFileSystemExtraData>({});
+    }
     return RESULT_SUCCESS;
 }
 

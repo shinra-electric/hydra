@@ -15,7 +15,8 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 200,
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
-    CreateActiveVibrationDeviceList, 206, SendVibrationValues)
+    CreateActiveVibrationDeviceList, 206, SendVibrationValues, 303,
+    ActivateSevenSixAxisSensor)
 
 result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
                                           u64 aruid) {

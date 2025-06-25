@@ -77,6 +77,7 @@ class IHidServer : public ServiceBase {
     result_t
     CreateActiveVibrationDeviceList(kernel::add_service_fn_t add_service);
     STUB_REQUEST_COMMAND(SendVibrationValues);
+    STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
 };
 
 } // namespace hydra::horizon::services::hid

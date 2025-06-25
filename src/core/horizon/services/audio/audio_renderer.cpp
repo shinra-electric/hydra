@@ -148,7 +148,8 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::services::audio::MemPoolState, Invalid,
 namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
-                             Stop, 7, QuerySystemEvent)
+                             Stop, 7, QuerySystemEvent, 8,
+                             SetRenderingTimeLimit, 9, GetRenderingTimeLimit)
 
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
@@ -297,6 +298,16 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
 result_t
 IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
     out_handle = event.id;
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioRenderer::SetRenderingTimeLimit(u32 time_limit) {
+    rendering_time_limit = time_limit;
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) {
+    *out_time_limit = rendering_time_limit;
     return RESULT_SUCCESS;
 }
 

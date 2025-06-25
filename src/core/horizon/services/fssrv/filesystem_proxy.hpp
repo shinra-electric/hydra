@@ -85,6 +85,18 @@ struct SaveDataMetaInfo {
     SaveDataMetaType type;
     u8 reserved[0x0B];
 };
+
+struct SaveDataFileSystemExtraData {
+    SaveDataAttribute attr;
+    u64 owner_id;
+    u64 timestamp;
+    u32 flags; // ?
+    u32 _unused_x54;
+    u64 usable_size;
+    u64 journal_size;
+    u64 commit_id;
+    u8 _padding_x70[0x190];
+};
 #pragma pack(pop)
 
 class IFileSystemProxy : public ServiceBase {
@@ -111,6 +123,9 @@ class IFileSystemProxy : public ServiceBase {
     result_t CreateSaveDataFileSystem(SaveDataAttribute attr,
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
+    result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+        aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
+        OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t OpenSaveDataFileSystem(add_service_fn_t add_service,
                                     aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);

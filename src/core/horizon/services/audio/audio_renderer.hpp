@@ -26,6 +26,7 @@ class IAudioRenderer : public ServiceBase {
 
     kernel::HandleWithId<kernel::Event> event;
 
+    u32 rendering_time_limit{0x1000}; // TODO: what should this be?
     std::vector<VoiceInfoOut> voices;
 
     // Commands
@@ -35,6 +36,8 @@ class IAudioRenderer : public ServiceBase {
     STUB_REQUEST_COMMAND(Start);
     STUB_REQUEST_COMMAND(Stop);
     result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
+    result_t SetRenderingTimeLimit(u32 time_limit);
+    result_t GetRenderingTimeLimit(u32* out_time_limit);
 };
 
 } // namespace hydra::horizon::services::audio

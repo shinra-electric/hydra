@@ -17,6 +17,7 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
+#include "core/horizon/services/mii/static_service.hpp"
 #include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
@@ -61,7 +62,8 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(hid::IHidSystemServer, "hid:sys")
         SERVICE_CASE(fssrv::IFileSystemProxy, "fsp-srv")
         SERVICE_CASE(timesrv::IStaticService, "time:u", "time:a", "time:s")
-        SERVICE_CASE(nvdrv::INvDrvServices, "nvdrv")
+        SERVICE_CASE(nvdrv::INvDrvServices, "nvdrv", "nvdrv:a", "nvdrv:s",
+                     "nvdrv:t")
         SERVICE_CASE(settings::ISystemSettingsServer, "set:sys")
         SERVICE_CASE(am::IApmManager, "apm", "apm:am")
         SERVICE_CASE(am::IApplicationProxyService, "appletOE")
@@ -98,6 +100,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(codec::IHardwareOpusDecoderManager, "hwopus")
         SERVICE_CASE(mmnv::IRequest, "mm:u")
         SERVICE_CASE(err::context::IWriterForApplication, "ectx:aw")
+        SERVICE_CASE(mii::IStaticService, "mii:u", "mii:e")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
