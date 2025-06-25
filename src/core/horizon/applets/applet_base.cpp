@@ -1,21 +1,9 @@
 #include "core/horizon/applets/applet_base.hpp"
 
 #include "core/debugger/debugger.hpp"
+#include "core/horizon/applets/const.hpp"
 
 namespace hydra::horizon::applets {
-
-namespace {
-
-struct CommonArguments {
-    u32 version; // Version of the struct
-    u32 size;    // Size of the struct
-    u32 library_applet_api_version;
-    u32 theme_color;
-    bool play_startup_sound;
-    u64 system_tick;
-};
-
-} // namespace
 
 void AppletBase::Start() {
     // TODO: not every applet uses common args (for instance

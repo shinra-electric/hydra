@@ -260,6 +260,7 @@ add_library(hydra-core
     horizon/services/mii/database_service.hpp
     horizon/services/mii/static_service.cpp
     horizon/services/mii/static_service.hpp
+    horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
     horizon/applets/err/error_applet.cpp
@@ -268,6 +269,7 @@ add_library(hydra-core
     horizon/applets/swkbd/software_keyboard.cpp
     horizon/applets/swkbd/software_keyboard.hpp
     horizon/applets/mii/const.hpp
+    horizon/applets/album/const.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp

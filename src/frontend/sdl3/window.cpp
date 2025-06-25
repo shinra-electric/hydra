@@ -103,9 +103,18 @@ void Window::BeginEmulation(const std::string& filename) {
 
     // Load
     // TODO: handle library applets more cleanly
-    if (filename == "MII_EDIT")
+    if (filename == "miiEdit")
         emulation_context.LoadLibraryAppletFromFirmware(
             horizon::AppletId::LibraryAppletMiiEdit);
+    else if (filename == "controller")
+        emulation_context.LoadLibraryAppletFromFirmware(
+            horizon::AppletId::LibraryAppletController);
+    else if (filename == "photoViewer")
+        emulation_context.LoadLibraryAppletFromFirmware(
+            horizon::AppletId::LibraryAppletPhotoViewer);
+    else if (filename == "swkbd")
+        emulation_context.LoadLibraryAppletFromFirmware(
+            horizon::AppletId::LibraryAppletSwkbd);
     else
         emulation_context.LoadFromFile(filename);
 

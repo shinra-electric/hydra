@@ -4,7 +4,10 @@
 
 #include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
+#include "core/horizon/applets/album/const.hpp"
+#include "core/horizon/applets/const.hpp"
 #include "core/horizon/applets/mii/const.hpp"
+#include "core/horizon/applets/swkbd/const.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
@@ -203,11 +206,67 @@ void EmulationContext::LoadLibraryAppletFromFirmware(
     case horizon::AppletId::LibraryAppletMiiEdit: {
         filename = fmt::format("{}/0f77b0fbf77f4635ad9a842549356dd8.nca",
                                firmware_path);
-        auto input = new horizon::applets::mii::AppletInput{
+
+        // Args
+        auto args = new horizon::applets::mii::AppletInput{
             ._unknown_x0 = 0x3,
             .mode = horizon::applets::mii::AppletMode::ShowMiiEdit,
         };
-        controller->PushInData(new horizon::services::am::IStorage(input));
+        controller->PushInData(new horizon::services::am::IStorage(args));
+
+        break;
+    }
+    case horizon::AppletId::LibraryAppletController: {
+        filename = fmt::format("{}/7af6b5f30898fc90c1202af396a9e974.nca",
+                               firmware_path);
+        break;
+    }
+    case horizon::AppletId::LibraryAppletPhotoViewer: {
+        filename = fmt::format("{}/29db1caf058bc47c3233401b82c4168f.nca",
+                               firmware_path);
+
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Arg
+        auto arg = new horizon::applets::album::Arg{
+            horizon::applets::album::Arg::ShowAllAlbumFilesForHomeMenu};
+        controller->PushInData(new horizon::services::am::IStorage(arg));
+
+        break;
+    }
+    case horizon::AppletId::LibraryAppletSwkbd: {
+        filename = fmt::format("{}/96ccebff3c5dffc1f3f7303fb0eaf7fc.nca",
+                               firmware_path);
+
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Config
+        auto config = new horizon::applets::swkbd::KeyboardConfigCommon{
+            .mode = horizon::applets::swkbd::KeyboardMode::Full,
+            // TODO: more
+        };
+        controller->PushInData(new horizon::services::am::IStorage(config));
+
         break;
     }
     default:

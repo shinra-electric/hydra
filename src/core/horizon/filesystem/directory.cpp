@@ -141,21 +141,21 @@ FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
 FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
                                     bool recursive) {
     const auto entry_name = path[0];
-    auto& e = entries[std::string(entry_name)];
+    auto it = entries.find(std::string(entry_name));
     if (path.size() == 1) {
-        if (!e)
+        if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto res = e->Delete(recursive);
-        delete e;
-        entries.erase(std::string(entry_name)); // TODO: find better way
+        auto res = it->second->Delete(recursive);
+        delete it->second;
+        entries.erase(it);
 
         return FsResult::Success;
     } else {
-        if (!e)
+        if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(e);
+        auto sub_dir = dynamic_cast<Directory*>(it->second);
         if (!sub_dir)
             return FsResult::NotADirectory;
 
@@ -166,18 +166,18 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
 FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
                                  EntryBase*& out_entry) {
     const auto entry_name = path[0];
-    auto& e = entries[std::string(entry_name)];
+    auto it = entries.find(std::string(entry_name));
     if (path.size() == 1) {
-        if (!e)
+        if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        out_entry = e;
+        out_entry = it->second;
         return FsResult::Success;
     } else {
-        if (!e)
+        if (it == entries.end())
             return FsResult::DoesNotExist;
 
-        auto sub_dir = dynamic_cast<Directory*>(e);
+        auto sub_dir = dynamic_cast<Directory*>(it->second);
         if (!sub_dir)
             return FsResult::NotADirectory;
 

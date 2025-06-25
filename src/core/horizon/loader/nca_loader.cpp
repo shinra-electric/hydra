@@ -164,6 +164,13 @@ std::optional<kernel::ProcessParams>
 NcaLoader::LoadCode(filesystem::Directory* dir) {
     std::optional<kernel::ProcessParams> process_params = std::nullopt;
     NpdmMeta meta;
+
+    // HACK: if rtld is not present, use main as the entry point
+    std::string entry_point = "rtld";
+    filesystem::EntryBase* e;
+    if (dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
+        entry_point = "main";
+
     for (const auto& [name, entry] : dir->GetEntries()) {
         auto file = dynamic_cast<filesystem::FileBase*>(entry);
         ASSERT(file, Loader, "Code entry is not a file");
@@ -175,7 +182,7 @@ NcaLoader::LoadCode(filesystem::Directory* dir) {
 
             file->Close(stream);
         } else {
-            NsoLoader loader(file, name, name == "rtld");
+            NsoLoader loader(file, name, name == entry_point);
             auto process_params_ = loader.LoadProcess();
             if (process_params_)
                 CHECK_AND_SET_PROCESS_PARAMS(process_params, process_params_);
