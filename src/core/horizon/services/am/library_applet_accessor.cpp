@@ -1,7 +1,7 @@
 #include "core/horizon/services/am/library_applet_accessor.hpp"
 
-#include "core/horizon/applets/error_applet.hpp"
-#include "core/horizon/applets/software_keyboard.hpp"
+#include "core/horizon/applets/err/error_applet.hpp"
+#include "core/horizon/applets/swkbd/software_keyboard.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
 namespace hydra::horizon::services::am {
@@ -13,13 +13,14 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletAccessor, 0,
                              106, GetPopInteractiveOutDataEvent)
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
-                                               const LibraryAppletMode mode) {
+                                               const LibraryAppletMode mode)
+    : controller(mode) {
     switch (id) {
     case AppletId::LibraryAppletError:
-        applet = new applets::ErrorApplet(mode);
+        applet = new applets::err::ErrorApplet(controller);
         break;
     case AppletId::LibraryAppletSwkbd:
-        applet = new applets::SoftwareKeyboard(mode);
+        applet = new applets::swkbd::SoftwareKeyboard(controller);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Services, "Applet ID {}", id);
@@ -32,7 +33,7 @@ ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
 result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
     OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = applet->GetStateChangedEventID();
+    out_handle = controller.GetStateChangedEvent().id;
     return RESULT_SUCCESS;
 }
 
@@ -47,12 +48,12 @@ result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
-    applet->PushInData(storage->GetData());
+    controller.PushInData(storage);
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletAccessor::PopOutData(add_service_fn_t add_service) {
-    add_service(new IStorage(applet->PopOutData()));
+    add_service(controller.PopOutData());
     return RESULT_SUCCESS;
 }
 
@@ -60,19 +61,19 @@ result_t ILibraryAppletAccessor::PushInteractiveInData(ServiceBase* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
-    applet->PushInteractiveInData(storage->GetData());
+    controller.PushInteractiveInData(storage);
     return RESULT_SUCCESS;
 }
 
 result_t
 ILibraryAppletAccessor::PopInteractiveOutData(add_service_fn_t add_service) {
-    add_service(new IStorage(applet->PopInteractiveOutData()));
+    add_service(controller.PopInteractiveOutData());
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(
     OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = applet->GetInteractiveOutDataEventID();
+    out_handle = controller.GetInteractiveOutDataEvent().id;
     return RESULT_SUCCESS;
 }
 

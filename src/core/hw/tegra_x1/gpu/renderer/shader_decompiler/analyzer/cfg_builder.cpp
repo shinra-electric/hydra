@@ -34,7 +34,7 @@ void CfgBuilder::OpBranch(u32 target) {
     CfgBlockEdge edge;
     if (pred_cond) {
         edge.type = CfgBlockEdgeType::BranchConditional;
-        edge.branch_conditional.pred_cond = pred_cond;
+        edge.branch_conditional.pred_cond = pred_cond.value();
         edge.branch_conditional.target_true =
             &GetBranchTarget(target, crnt_block->return_sync_point);
         edge.branch_conditional.target_false =

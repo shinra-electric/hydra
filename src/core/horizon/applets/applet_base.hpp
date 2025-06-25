@@ -1,19 +1,14 @@
 #pragma once
 
-#include "core/horizon/applets/const.hpp"
 #include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/services/am/library_applet_controller.hpp"
 
 namespace hydra::horizon::applets {
 
 class AppletBase {
   public:
-    AppletBase(const LibraryAppletMode mode_)
-        : mode{mode_}, state_changed_event(new kernel::Event(
-                           kernel::EventFlags::None, "State changed event")),
-          interactive_in_data_event(new kernel::Event(
-              kernel::EventFlags::AutoClear, "Interactive in data event")),
-          interactive_out_data_event(new kernel::Event(
-              kernel::EventFlags::None, "Interactive out data event")) {}
+    AppletBase(services::am::LibraryAppletController& controller_)
+        : controller{controller_} {}
     virtual ~AppletBase() {
         if (thread) {
             // TODO: join?
@@ -22,59 +17,18 @@ class AppletBase {
         }
     }
 
-    // Data
-    void PushInData(const sized_ptr data) { in_data.push(data); }
-
-    sized_ptr PopOutData() {
-        ASSERT(!out_data.empty(), Applets, "No output data");
-        const auto data = out_data.front();
-        out_data.pop();
-
-        return data;
-    }
-
-    // Interactive data
-    void PushInteractiveInData(const sized_ptr data) {
-        interactive_in_data.push(data);
-        interactive_in_data_event.handle->Signal();
-    }
-
-    sized_ptr PopInteractiveOutData() {
-        // No need to wait for event, as the guest is responsible for that
-
-        ASSERT(!interactive_out_data.empty(), Applets,
-               "No interactive output data");
-        const auto data = interactive_out_data.front();
-        interactive_out_data.pop();
-
-        return data;
-    }
-
     void Start();
-
-    handle_id_t GetStateChangedEventID() const {
-        return state_changed_event.id;
-    }
-
-    handle_id_t GetInteractiveOutDataEventID() const {
-        return interactive_out_data_event.id;
-    }
 
     result_t GetResult() const { return result; }
 
   protected:
-    LibraryAppletMode mode;
-
     virtual result_t Run() = 0;
 
     // Helpers
 
     // Data
     Reader PopInDataRaw() {
-        ASSERT(!in_data.empty(), Applets, "No input data");
-        const auto data = in_data.front();
-        in_data.pop();
-
+        auto data = controller.PopInData()->GetData();
         return Reader(data.GetPtrU8(), data.GetSize());
     }
 
@@ -86,7 +40,9 @@ class AppletBase {
         return reader.Read<T>();
     }
 
-    void PushOutDataRaw(const sized_ptr ptr) { out_data.push(ptr); }
+    void PushOutDataRaw(const sized_ptr data) {
+        controller.PushOutData(new services::am::IStorage(data));
+    }
 
     template <typename T> void PushOutData(const T& data) {
         auto ptr = malloc(sizeof(T));
@@ -96,12 +52,8 @@ class AppletBase {
 
     // Interactive data
     Reader PopInteractiveInDataRaw() {
-        interactive_in_data_event.handle->Wait();
-
-        ASSERT(!interactive_in_data.empty(), Applets, "No input data");
-        const auto data = interactive_in_data.front();
-        interactive_in_data.pop();
-
+        controller.GetInteractiveInDataEvent().handle->Wait();
+        auto data = controller.PopInteractiveInData()->GetData();
         return Reader(data.GetPtrU8(), data.GetSize());
     }
 
@@ -113,9 +65,8 @@ class AppletBase {
         return reader.Read<T>();
     }
 
-    void PushInteractiveOutDataRaw(const sized_ptr ptr) {
-        interactive_out_data.push(ptr);
-        interactive_out_data_event.handle->Signal();
+    void PushInteractiveOutDataRaw(const sized_ptr data) {
+        controller.PushInteractiveOutData(new services::am::IStorage(data));
     }
 
     template <typename T> void PushInteractiveOutData(const T& data) {
@@ -125,18 +76,9 @@ class AppletBase {
     }
 
   private:
-    kernel::HandleWithId<kernel::Event> state_changed_event;
-    kernel::HandleWithId<kernel::Event>
-        interactive_in_data_event; // TODO: use a regular condition variable?
-    kernel::HandleWithId<kernel::Event> interactive_out_data_event;
+    services::am::LibraryAppletController& controller;
 
     std::thread* thread{nullptr};
-
-    std::queue<sized_ptr> in_data;
-    std::queue<sized_ptr> out_data;
-    std::queue<sized_ptr> interactive_in_data;
-    std::queue<sized_ptr> interactive_out_data;
-
     result_t result{RESULT_SUCCESS};
 };
 

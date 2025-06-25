@@ -89,12 +89,12 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
     SDL_ShowSimpleMessageBox(flags, title.c_str(), message.c_str(), window);
 }
 
-horizon::applets::SoftwareKeyboardResult
+horizon::applets::swkbd::SoftwareKeyboardResult
 Window::ShowSoftwareKeyboard(const std::string& header_text,
                              std::string& out_text) {
     return native.ShowInputTextDialog(header_text, out_text)
-               ? horizon::applets::SoftwareKeyboardResult::OK
-               : horizon::applets::SoftwareKeyboardResult::Cancel;
+               ? horizon::applets::swkbd::SoftwareKeyboardResult::OK
+               : horizon::applets::swkbd::SoftwareKeyboardResult::Cancel;
 }
 
 void Window::BeginEmulation(const std::string& filename) {
@@ -104,7 +104,7 @@ void Window::BeginEmulation(const std::string& filename) {
     // Load
     // TODO: handle library applets more cleanly
     if (filename == "MII_EDIT")
-        emulation_context.LoadFromFirmware(
+        emulation_context.LoadLibraryAppletFromFirmware(
             horizon::AppletId::LibraryAppletMiiEdit);
     else
         emulation_context.LoadFromFile(filename);

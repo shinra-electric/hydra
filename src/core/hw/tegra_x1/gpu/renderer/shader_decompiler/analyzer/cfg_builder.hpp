@@ -12,7 +12,7 @@ class CfgBuilder : public ObserverBase {
     void SetPredCond(const PredCond pred_cond_) override {
         pred_cond = pred_cond_;
     }
-    void ClearPredCond() override { pred_cond = nullptr; }
+    void ClearPredCond() override { pred_cond = std::nullopt; }
     void BlockChanged() override;
 
     // Operations
@@ -36,7 +36,7 @@ class CfgBuilder : public ObserverBase {
 
     CfgBasicBlock* crnt_block;
 
-    nullable<PredCond> pred_cond;
+    std::optional<PredCond> pred_cond;
 
     CfgBasicBlock& VisitBlock(u32 label) {
         auto& block = blocks[label];

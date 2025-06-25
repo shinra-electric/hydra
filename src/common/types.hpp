@@ -37,6 +37,8 @@ struct sized_ptr {
     sized_ptr(uptr ptr_, usize size_) : ptr{ptr_}, size{size_} {}
     sized_ptr(void* ptr_, usize size_)
         : sized_ptr(reinterpret_cast<uptr>(ptr_), size_) {}
+    template <typename T>
+    sized_ptr(T* ptr_) : sized_ptr(reinterpret_cast<uptr>(ptr_), sizeof(T)) {}
 
     // Getters
     uptr GetPtr() const { return ptr; }
@@ -46,37 +48,6 @@ struct sized_ptr {
   private:
     uptr ptr;
     usize size;
-};
-
-template <typename T> class nullable {
-  public:
-    nullable() : obj{}, is_valid{false} {}
-    nullable(const nullable<T>& other)
-        : obj{other.obj}, is_valid{other.is_valid} {}
-    nullable(const T& obj_) : obj{obj_}, is_valid{true} {}
-    nullable(const T* obj_)
-        : obj{obj_ ? *obj_ : T{}}, is_valid{obj_ != nullptr} {}
-
-    operator bool() const { return is_valid; }
-    operator T() { return obj; }
-    operator T() const { return obj; }
-
-    void operator=(const T& other) {
-        obj = other;
-        is_valid = true;
-    }
-    void operator=(const T* other) {
-        if (other)
-            obj = *other;
-        is_valid = other != nullptr;
-    }
-
-    T* operator->() { return &obj; }
-    const T* operator->() const { return &obj; }
-
-  private:
-    T obj;
-    bool is_valid;
 };
 
 template <typename T, usize component_count> class vec {

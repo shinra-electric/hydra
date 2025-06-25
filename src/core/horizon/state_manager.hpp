@@ -95,11 +95,10 @@ class StateManager {
             user_ids.pop();
 
             return {new AccountHeader{
-                        .magic = 0xc79497ca,
-                        .unk_x4 = 1,
-                        .user_id = user_id,
-                    },
-                    sizeof(AccountHeader)};
+                .magic = 0xc79497ca,
+                .unk_x4 = 1,
+                .user_id = user_id,
+            }};
         }
         default:
             LOG_NOT_IMPLEMENTED(Horizon, "Launch parameter {}", kind);

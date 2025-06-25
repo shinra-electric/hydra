@@ -18,6 +18,8 @@ struct CommonArguments {
 } // namespace
 
 void AppletBase::Start() {
+    // TODO: not every applet uses common args (for instance
+    // LibraryAppletMiiEdit)
     const auto common_args = PopInData<CommonArguments>();
     ASSERT(common_args.version == 1, Applets, "Unsupported version {}",
            common_args.version); // TODO: support version 0
@@ -27,7 +29,7 @@ void AppletBase::Start() {
     thread = new std::thread([&]() {
         DEBUGGER_INSTANCE.RegisterThisThread("Applet");
         result = Run();
-        state_changed_event.handle->Signal();
+        controller.GetStateChangedEvent().handle->Signal();
         DEBUGGER_INSTANCE.UnregisterThisThread();
     });
 }

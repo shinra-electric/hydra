@@ -131,10 +131,15 @@ add_library(hydra-core
     horizon/services/am/audio_controller.hpp
     horizon/services/am/display_controller.cpp
     horizon/services/am/display_controller.hpp
+    horizon/services/am/library_applet_controller.hpp
     horizon/services/am/library_applet_creator.cpp
     horizon/services/am/library_applet_creator.hpp
     horizon/services/am/library_applet_accessor.cpp
     horizon/services/am/library_applet_accessor.hpp
+    horizon/services/am/library_applet_proxy.cpp
+    horizon/services/am/library_applet_proxy.hpp
+    horizon/services/am/library_applet_self_accessor.cpp
+    horizon/services/am/library_applet_self_accessor.hpp
     horizon/services/am/application_functions.cpp
     horizon/services/am/application_functions.hpp
     horizon/services/am/debug_functions.cpp
@@ -143,10 +148,6 @@ add_library(hydra-core
     horizon/services/am/process_winding_controller.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
-    horizon/services/am/library_applet_proxy.cpp
-    horizon/services/am/library_applet_proxy.hpp
-    horizon/services/am/library_applet_self_accessor.cpp
-    horizon/services/am/library_applet_self_accessor.hpp
     horizon/services/am/storage.cpp
     horizon/services/am/storage.hpp
     horizon/services/am/storage_accessor.cpp
@@ -255,13 +256,14 @@ add_library(hydra-core
     horizon/services/err/context/writer_for_application.cpp
     horizon/services/err/context/writer_for_application.hpp
     horizon/services/oe/const.hpp
-    horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
-    horizon/applets/error_applet.cpp
-    horizon/applets/error_applet.hpp
-    horizon/applets/software_keyboard.cpp
-    horizon/applets/software_keyboard.hpp
+    horizon/applets/err/error_applet.cpp
+    horizon/applets/err/error_applet.hpp
+    horizon/applets/swkbd/const.hpp
+    horizon/applets/swkbd/software_keyboard.cpp
+    horizon/applets/swkbd/software_keyboard.hpp
+    horizon/applets/mii/const.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp

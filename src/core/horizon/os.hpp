@@ -18,6 +18,10 @@ class CoreBase;
 
 namespace hydra::horizon {
 
+namespace services::am {
+class LibraryAppletController;
+}
+
 namespace services::sm {
 class IUserInterface;
 }
@@ -62,6 +66,14 @@ class OS {
     DisplayDriver display_driver;
     InputManager input_manager;
     services::account::UserManager user_manager;
+
+    services::am::LibraryAppletController* library_applet_self_controller{
+        nullptr};
+
+  public:
+    GETTER_AND_SETTER(library_applet_self_controller,
+                      GetLibraryAppletSelfController,
+                      SetLibraryAppletSelfController);
 };
 
 } // namespace hydra::horizon

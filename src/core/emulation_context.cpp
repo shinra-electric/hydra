@@ -4,10 +4,12 @@
 
 #include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
+#include "core/horizon/applets/mii/const.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/services/am/library_applet_controller.hpp"
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
@@ -184,7 +186,8 @@ void EmulationContext::LoadFromFile(const std::string& filename) {
     }
 }
 
-void EmulationContext::LoadFromFirmware(horizon::AppletId applet_id) {
+void EmulationContext::LoadLibraryAppletFromFirmware(
+    horizon::AppletId applet_id) {
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
     if (!std::filesystem::exists(firmware_path)) {
         // TODO: return an error instead
@@ -193,12 +196,20 @@ void EmulationContext::LoadFromFirmware(horizon::AppletId applet_id) {
     }
 
     std::string filename;
+    auto controller = new horizon::services::am::LibraryAppletController(
+        horizon::LibraryAppletMode::AllForeground);
     // TODO: should it be chosen based on filenames?
     switch (applet_id) {
-    case horizon::AppletId::LibraryAppletMiiEdit:
+    case horizon::AppletId::LibraryAppletMiiEdit: {
         filename = fmt::format("{}/0f77b0fbf77f4635ad9a842549356dd8.nca",
                                firmware_path);
+        auto input = new horizon::applets::mii::AppletInput{
+            ._unknown_x0 = 0x3,
+            .mode = horizon::applets::mii::AppletMode::ShowMiiEdit,
+        };
+        controller->PushInData(new horizon::services::am::IStorage(input));
         break;
+    }
     default:
         // TODO: return an error instead
         LOG_FATAL(Other, "Unsupported applet ID {}", applet_id);
@@ -206,6 +217,7 @@ void EmulationContext::LoadFromFirmware(horizon::AppletId applet_id) {
     }
 
     LoadFromFile(filename);
+    os->SetLibraryAppletSelfController(controller);
 }
 
 void EmulationContext::Run() {

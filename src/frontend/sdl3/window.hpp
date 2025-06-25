@@ -21,7 +21,7 @@ class Window : public horizon::ui::HandlerBase {
     void ShowMessageDialog(const horizon::ui::MessageDialogType type,
                            const std::string& title,
                            const std::string& message) override;
-    horizon::applets::SoftwareKeyboardResult
+    horizon::applets::swkbd::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
                          std::string& out_text) override;
 

@@ -1,9 +1,9 @@
-#include "core/horizon/applets/error_applet.hpp"
+#include "core/horizon/applets/err/error_applet.hpp"
 
 #include "core/horizon/os.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
-namespace hydra::horizon::applets {
+namespace hydra::horizon::applets::err {
 
 namespace {
 
@@ -49,9 +49,9 @@ struct ReturnValue {
 
 } // namespace
 
-} // namespace hydra::horizon::applets
+} // namespace hydra::horizon::applets::err
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::applets::ErrorType, SystemData,
+ENABLE_ENUM_FORMATTING(hydra::horizon::applets::err::ErrorType, SystemData,
                        "system data", SystemError, "system error",
                        ApplicationError, "application error", Eula, "eula",
                        ParentalControl, "parental control", RecordedSystemData,
@@ -60,7 +60,7 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::applets::ErrorType, SystemData,
                        "recorded application error", SystemUpdateEula,
                        "system update eula")
 
-namespace hydra::horizon::applets {
+namespace hydra::horizon::applets::err {
 
 result_t ErrorApplet::Run() {
     auto param_reader = PopInDataRaw();
@@ -97,4 +97,4 @@ result_t ErrorApplet::Run() {
     return RESULT_SUCCESS;
 }
 
-} // namespace hydra::horizon::applets
+} // namespace hydra::horizon::applets::err

@@ -1,9 +1,9 @@
-#include "core/horizon/applets/software_keyboard.hpp"
+#include "core/horizon/applets/swkbd/software_keyboard.hpp"
 
 #include "core/horizon/os.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
-namespace hydra::horizon::applets {
+namespace hydra::horizon::applets::swkbd {
 
 namespace {
 
@@ -133,10 +133,6 @@ enum class TextCheckResult : u32 {
 
 } // namespace
 
-} // namespace hydra::horizon::applets
-
-namespace hydra::horizon::applets {
-
 result_t SoftwareKeyboard::Run() {
     const auto config = PopInData<KeyboardConfigCommon>();
     // TODO: work buffer
@@ -196,4 +192,4 @@ result_t SoftwareKeyboard::Run() {
     return RESULT_SUCCESS;
 }
 
-} // namespace hydra::horizon::applets
+} // namespace hydra::horizon::applets::swkbd

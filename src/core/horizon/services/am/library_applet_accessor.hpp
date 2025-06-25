@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/const.hpp"
+#include "core/horizon/services/am/library_applet_controller.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::applets {
@@ -20,6 +21,7 @@ class ILibraryAppletAccessor : public ServiceBase {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
+    LibraryAppletController controller;
     applets::AppletBase* applet;
 
     // Commands
