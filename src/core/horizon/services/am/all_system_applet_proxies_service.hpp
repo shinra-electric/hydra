@@ -11,6 +11,8 @@ class IAllSystemAppletProxiesService : public ServiceBase {
   private:
     // Commands
     // TODO: params
+    result_t OpenSystemAppletProxy(add_service_fn_t add_service);
+    // TODO: params
     result_t OpenLibraryAppletProxyOld(add_service_fn_t add_service);
     // TODO: PID and type-0x15 buffer nn::am::AppletAttribute
     result_t

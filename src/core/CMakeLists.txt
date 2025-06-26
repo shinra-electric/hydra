@@ -131,6 +131,10 @@ add_library(hydra-core
     horizon/services/am/audio_controller.hpp
     horizon/services/am/display_controller.cpp
     horizon/services/am/display_controller.hpp
+    horizon/services/am/global_state_controller.cpp
+    horizon/services/am/global_state_controller.hpp
+    horizon/services/am/application_creator.cpp
+    horizon/services/am/application_creator.hpp
     horizon/services/am/library_applet_controller.hpp
     horizon/services/am/library_applet_creator.cpp
     horizon/services/am/library_applet_creator.hpp
@@ -140,8 +144,12 @@ add_library(hydra-core
     horizon/services/am/library_applet_proxy.hpp
     horizon/services/am/library_applet_self_accessor.cpp
     horizon/services/am/library_applet_self_accessor.hpp
+    horizon/services/am/system_applet_proxy.cpp
+    horizon/services/am/system_applet_proxy.hpp
     horizon/services/am/application_functions.cpp
     horizon/services/am/application_functions.hpp
+    horizon/services/am/home_menu_functions.cpp
+    horizon/services/am/home_menu_functions.hpp
     horizon/services/am/debug_functions.cpp
     horizon/services/am/debug_functions.hpp
     horizon/services/am/process_winding_controller.cpp

@@ -11,22 +11,15 @@ enum class SettingDataType {
 struct SettingValue {
     SettingDataType type;
     union {
-        const char* s;
+        std::string_view s;
         i32 i;
         bool b;
     };
 
-    static SettingValue String(const char* value) {
-        return {SettingDataType::String, {.s = value}};
-    }
-
-    static SettingValue Integer(i32 value) {
-        return {SettingDataType::Integer, {.i = value}};
-    }
-
-    static SettingValue Boolean(bool value) {
-        return {SettingDataType::Boolean, {.b = value}};
-    }
+    SettingValue(std::string_view value)
+        : type(SettingDataType::String), s(value) {}
+    SettingValue(i32 value) : type(SettingDataType::Integer), i(value) {}
+    SettingValue(bool value) : type(SettingDataType::Boolean), b(value) {}
 };
 
 extern std::map<std::string, SettingValue> nx_settings;

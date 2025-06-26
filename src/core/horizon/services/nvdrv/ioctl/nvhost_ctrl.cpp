@@ -13,7 +13,7 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
                                std::array<u8, 0x101>* out_value) {
     // TODO: use a different connecting char?
     const auto key_str =
-        to_lower(fmt::format("{}:{}", name.data(), key.data()));
+        to_lower(fmt::format("{}!{}", name.data(), key.data()));
     LOG_DEBUG(Services, "Key: {}", key_str);
 
     auto it = settings::nx_settings.find(key_str);
@@ -27,7 +27,7 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
     auto ptr = out_value->data();
     switch (value.type) {
     case settings::SettingDataType::String:
-        std::strcpy(reinterpret_cast<char*>(ptr), value.s);
+        std::memcpy(ptr, value.s.data(), value.s.size());
         break;
     case settings::SettingDataType::Integer:
         *reinterpret_cast<i32*>(ptr) = value.i;

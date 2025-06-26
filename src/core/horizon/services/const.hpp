@@ -97,8 +97,9 @@ enum class ArgumentType {
     OutBuffer,
     InHandle,
     OutHandle,
-    AddServiceFn,
-    Service,
+    AddServiceFn, // Deprecated
+    InService,
+    OutService,
 };
 
 template <typename T> struct arg_traits;
@@ -133,7 +134,11 @@ template <> struct arg_traits<add_service_fn_t> {
 };
 
 template <> struct arg_traits<ServiceBase*> {
-    static constexpr ArgumentType type = ArgumentType::Service;
+    static constexpr ArgumentType type = ArgumentType::InService;
+};
+
+template <> struct arg_traits<ServiceBase**> {
+    static constexpr ArgumentType type = ArgumentType::OutService;
 };
 
 template <typename CommandArguments, u32 in_buffer_index = 0,
@@ -171,8 +176,10 @@ void read_arg(RequestContext& context, CommandArguments& args) {
                         &context.readers.send_statics_readers[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
                 reader = &context.readers.send_buffers_readers[in_buffer_index];
-            } else /*if constexpr (Arg::attr == BufferAttr::HipcPointer)*/ {
+            } else if constexpr (Arg::attr == BufferAttr::HipcPointer) {
                 reader = &context.readers.send_statics_readers[in_buffer_index];
+            } else {
+                LOG_FATAL(Services, "Invalid in buffer args");
             }
 
             arg = Arg(*reader);
@@ -193,8 +200,10 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
                 writer =
                     &context.writers.recv_buffers_writers[out_buffer_index];
-            } else /*if constexpr (Arg::attr == BufferAttr::HipcPointer)*/ {
+            } else if constexpr (Arg::attr == BufferAttr::HipcPointer) {
                 writer = &context.writers.recv_list_writers[out_buffer_index];
+            } else {
+                LOG_FATAL(Services, "Invalid out buffer args");
             }
 
             arg = Arg(*writer);
@@ -208,9 +217,11 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             if constexpr (Arg::attr == HandleAttr::Copy) {
                 handle_id =
                     context.readers.copy_handles_reader.Read<handle_id_t>();
-            } else /*if constexpr (Arg::attr == HandleAttr::Move)*/ {
+            } else if constexpr (Arg::attr == HandleAttr::Move) {
                 handle_id =
                     context.readers.move_handles_reader.Read<handle_id_t>();
+            } else {
+                LOG_FATAL(Services, "Invalid in handle args");
             }
 
             arg = Arg(handle_id);
@@ -224,9 +235,11 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             if constexpr (Arg::attr == HandleAttr::Copy) {
                 handle_id =
                     context.writers.copy_handles_writer.WritePtr<handle_id_t>();
-            } else /*if constexpr (Arg::attr == HandleAttr::Move)*/ {
+            } else if constexpr (Arg::attr == HandleAttr::Move) {
                 handle_id =
                     context.writers.move_handles_writer.WritePtr<handle_id_t>();
+            } else {
+                LOG_FATAL(Services, "Invalid out handle args");
             }
 
             arg = Arg(*handle_id);
@@ -242,17 +255,28 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             read_arg<CommandArguments, in_buffer_index, out_buffer_index,
                      arg_index + 1>(context, args);
             return;
-        } else /*if constexpr (traits::type == ArgumentType::Service)*/ {
+        } else if constexpr (traits::type == ArgumentType::InService) {
             ASSERT_DEBUG(context.readers.objects_reader, Services,
                          "Objects reader is null");
             auto service_handle_id =
                 context.readers.objects_reader->Read<handle_id_t>();
-            arg = context.get_service(service_handle_id);
+            arg = dynamic_cast<Arg>(context.get_service(service_handle_id));
+            ASSERT_DEBUG(arg, Services, "Invalid service");
 
             // Next
             read_arg<CommandArguments, in_buffer_index, out_buffer_index,
                      arg_index + 1>(context, args);
             return;
+        } else if constexpr (traits::type == ArgumentType::OutService) {
+            // TODO: implement
+            LOG_FATAL(Services, "OutService");
+
+            // Next
+            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, args);
+            return;
+        } else {
+            LOG_FATAL(Services, "Invalid argument type");
         }
     }
 }

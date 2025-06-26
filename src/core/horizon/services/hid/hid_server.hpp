@@ -39,6 +39,7 @@ class IHidServer : public ServiceBase {
         : npad_style_set_update_event(new kernel::Event(
               kernel::EventFlags::None, "Npad style set update event")) {}
 
+    // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:

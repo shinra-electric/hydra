@@ -6,6 +6,7 @@ namespace hydra::horizon::services::account {
 
 class IAccountServiceForApplication : public ServiceBase {
   public:
+    // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:

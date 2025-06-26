@@ -101,6 +101,7 @@ struct SaveDataFileSystemExtraData {
 
 class IFileSystemProxy : public ServiceBase {
   public:
+    // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
 
   protected:
