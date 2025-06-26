@@ -268,6 +268,8 @@ add_library(hydra-core
     horizon/services/mii/database_service.hpp
     horizon/services/mii/static_service.cpp
     horizon/services/mii/static_service.hpp
+    horizon/services/fatalsrv/service.cpp
+    horizon/services/fatalsrv/service.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

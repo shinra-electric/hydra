@@ -11,6 +11,7 @@
 #include "core/horizon/services/audio/audio_renderer_manager.hpp"
 #include "core/horizon/services/codec/hardware_opus_decoder_manager.hpp"
 #include "core/horizon/services/err/context/writer_for_application.hpp"
+#include "core/horizon/services/fatalsrv/service.hpp"
 #include "core/horizon/services/friends/service_creator.hpp"
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 #include "core/horizon/services/hid/hid_debug_server.hpp"
@@ -101,6 +102,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(mmnv::IRequest, "mm:u")
         SERVICE_CASE(err::context::IWriterForApplication, "ectx:aw")
         SERVICE_CASE(mii::IStaticService, "mii:u", "mii:e")
+        SERVICE_CASE(fatalsrv::IService, "fatal:u")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

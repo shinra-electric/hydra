@@ -189,8 +189,7 @@ void EmulationContext::LoadFromFile(const std::string& filename) {
     }
 }
 
-void EmulationContext::LoadLibraryAppletFromFirmware(
-    horizon::AppletId applet_id) {
+void EmulationContext::LoadAppletFromFirmware(horizon::AppletId applet_id) {
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
     if (!std::filesystem::exists(firmware_path)) {
         // TODO: return an error instead
@@ -269,6 +268,10 @@ void EmulationContext::LoadLibraryAppletFromFirmware(
 
         break;
     }
+    case horizon::AppletId::SystemAppletMenu:
+        filename = fmt::format("{}/9b9ecc3b013cef5fd2df866e83c41e70.nca",
+                               firmware_path);
+        break;
     default:
         // TODO: return an error instead
         LOG_FATAL(Other, "Unsupported applet ID {}", applet_id);
