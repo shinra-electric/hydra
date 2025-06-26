@@ -194,6 +194,11 @@ ThreeD::ThreeD() {
         };
     }
 
+    // Color write masks
+    // TODO: correct?
+    for (u32 i = 0; i < COLOR_TARGET_COUNT; i++)
+        regs.color_write_masks[i] = ColorWriteMask::All;
+
     // HACK
     regs.shader_programs[(u32)ShaderStage::VertexB].config.enable = true;
 }

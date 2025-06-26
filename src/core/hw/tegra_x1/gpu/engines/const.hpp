@@ -146,6 +146,7 @@ enum class ColorWriteMask : u32 {
     Green = BIT(4),
     Blue = BIT(8),
     Alpha = BIT(12),
+    All = Red | Green | Blue | Alpha,
 };
 ENABLE_ENUM_BITMASK_OPERATORS(ColorWriteMask)
 
