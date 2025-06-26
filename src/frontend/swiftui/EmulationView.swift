@@ -23,9 +23,7 @@ struct EmulationView: View {
         }
 
         self.emulationContext = emulationContext
-        let loader = hydra_create_loader_from_file(game.path)
-        hydra_emulation_context_load(emulationContext, loader)
-        hydra_loader_destroy(loader)
+        hydra_emulation_context_load(emulationContext, game.loader)
         hydra_emulation_context_run(emulationContext)
     }
 

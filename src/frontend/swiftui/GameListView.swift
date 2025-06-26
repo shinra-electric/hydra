@@ -14,6 +14,11 @@ struct GameListView: View {
         .onAppear {
             load()
         }
+        .onDisappear {
+            for game in games {
+                hydra_loader_destroy(game.loader)
+            }
+        }
     }
 
     func load() {
@@ -62,6 +67,16 @@ struct GameListView: View {
             return
         }
 
-        self.games.append(Game(path: path))
+        guard let loader = hydra_create_loader_from_file(path) else {
+            return
+        }
+
+        var name = String(cString: hydra_loader_get_title_name(loader))
+        if name == "" {
+            name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        }
+
+        // TODO: name
+        self.games.append(Game(loader: loader, name: name))
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GamePreview: View {
     let game: Game
+
     @State private var lastClickTime: Date? = nil
     @State private var navigate = false
 
@@ -9,7 +10,7 @@ struct GamePreview: View {
         // TODO: this type of NavigationLink usage is deprecated
         NavigationLink(destination: EmulationView(game: game), isActive: $navigate) {
             // TODO: display logo as well
-            Text(game.path)
+            Text(game.name)
                 .padding()
                 .contentShape(Rectangle())
                 .onTapGesture {

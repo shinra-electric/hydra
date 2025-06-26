@@ -76,8 +76,10 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
            "Invalid NPDM meta magic 0x{:08x}", meta.magic);
 
     // TODO: support 32-bit games
-    ASSERT(any(meta.flags & NpdmFlags::Is64BitInstruction), Loader,
-           "32-bit games not supported");
+    if (!any(meta.flags & NpdmFlags::Is64BitInstruction)) {
+        LOG_WARN(Loader, "32-bit games not supported");
+        return;
+    }
 
     LOG_DEBUG(Loader, "Name: {}", meta.name);
     LOG_DEBUG(Loader, "Main thread priority: 0x{:02x}",
