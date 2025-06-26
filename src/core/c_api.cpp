@@ -2,6 +2,9 @@
 
 #include "core/debugger/debugger.hpp"
 #include "core/emulation_context.hpp"
+#include "core/horizon/filesystem/content_archive.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
@@ -137,6 +140,55 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
     return &hydra::CONFIG_INSTANCE.GetProcessArgs();
 }
 
+// Filesystem
+void* hydra_filesystem_open_file(const char* path) {
+    return new hydra::horizon::filesystem::HostFile(std::string(path));
+}
+
+void* hydra_filesystem_create_content_archive(void* file) {
+    return new hydra::horizon::filesystem::ContentArchive(
+        static_cast<hydra::horizon::filesystem::FileBase*>(file));
+}
+
+HydraContentArchiveContentType
+hydra_content_archive_get_content_type(void* archive) {
+    return static_cast<HydraContentArchiveContentType>(
+        static_cast<hydra::horizon::filesystem::ContentArchive*>(archive)
+            ->GetContentType());
+}
+
+// Loader
+void* hydra_create_loader_from_file(const char* path) {
+    return hydra::horizon::loader::LoaderBase::CreateFromFile(path);
+}
+
+void hydra_loader_destroy(void* loader) {
+    delete static_cast<hydra::horizon::loader::LoaderBase*>(loader);
+}
+
+uint64_t hydra_loader_get_title_id(void* loader) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)
+        ->GetTitleID();
+}
+
+const char* hydra_loader_get_title_name(void* loader) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)
+        ->GetTitleName()
+        .c_str();
+}
+
+void* hydra_create_nca_loader_from_content_archive(void* content_archive) {
+    return new hydra::horizon::loader::NcaLoader(
+        *static_cast<hydra::horizon::filesystem::ContentArchive*>(
+            content_archive));
+}
+
+const char* hydra_nca_loader_get_name(void* nca_loader) {
+    return static_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
+        ->GetTitleName()
+        .c_str();
+}
+
 // Emulation context
 // TODO: proper UI handler
 class UIHandler : public hydra::horizon::ui::HandlerBase {
@@ -151,7 +203,7 @@ class UIHandler : public hydra::horizon::ui::HandlerBase {
     }
 };
 
-HYDRA_EXPORT void* hydra_emulation_context_create() {
+HYDRA_EXPORT void* hydra_create_emulation_context() {
     return new hydra::EmulationContext(*(new UIHandler()));
 }
 
@@ -165,9 +217,9 @@ HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
     static_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load_from_file(void* ctx,
-                                                         const char* filename) {
-    static_cast<hydra::EmulationContext*>(ctx)->LoadFromFile(filename);
+HYDRA_EXPORT void hydra_emulation_context_load(void* ctx, void* loader) {
+    static_cast<hydra::EmulationContext*>(ctx)->Load(
+        static_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
 HYDRA_EXPORT void hydra_emulation_context_run(void* ctx) {

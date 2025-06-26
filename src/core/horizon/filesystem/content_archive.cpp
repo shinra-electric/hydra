@@ -106,15 +106,6 @@ enum class DistributionType : u8 {
     GameCard,
 };
 
-enum class ContentType : u8 {
-    Program,
-    Meta,
-    Control,
-    Manual,
-    Data,
-    PublicData,
-};
-
 enum class KeyGenerationOld : u8 {
     _1_0_0,
     Unused,
@@ -158,7 +149,7 @@ struct Header {
     u8 signature1[0x100];
     u32 magic;
     DistributionType distribution_type;
-    ContentType content_type;
+    ContentArchiveContentType content_type;
     KeyGenerationOld key_generation_old;
     KeyAreaEncryptionKeyIndex key_area_encryption_key_index;
     usize content_size;
@@ -177,7 +168,7 @@ struct Header {
     FsHeader fs_headers[FS_ENTRY_COUNT]; /* FS section headers. */
 
     SectionType get_section_type_from_index(const u32 index) const {
-        if (content_type == ContentType::Program) {
+        if (content_type == ContentArchiveContentType::Program) {
             switch (index) {
             case 0:
                 return SectionType::Code;

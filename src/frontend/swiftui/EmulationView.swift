@@ -16,14 +16,16 @@ struct EmulationView: View {
     }
 
     func startEmulation() {
-        guard let emulationContext = hydra_emulation_context_create() else {
+        guard let emulationContext = hydra_create_emulation_context() else {
             // TODO: error popup
             print("Failed to create emulation context")
             return
         }
 
         self.emulationContext = emulationContext
-        hydra_emulation_context_load_from_file(emulationContext, game.path)
+        let loader = hydra_create_loader_from_file(game.path)
+        hydra_emulation_context_load(emulationContext, loader)
+        hydra_loader_destroy(loader)
         hydra_emulation_context_run(emulationContext)
     }
 

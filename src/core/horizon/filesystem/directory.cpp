@@ -25,11 +25,13 @@ Directory::Directory(const std::string_view host_path) {
     }
 }
 
+// TODO: when should entries be deleted?
+/*
 Directory::~Directory() {
-    // TODO: when should entries be deleted?
-    // for (const auto [name, entry] : entries)
-    //    delete entry;
+    for (const auto [name, entry] : entries)
+       delete entry;
 }
+*/
 
 FsResult Directory::Delete(bool recursive) {
     if (!recursive) {

@@ -9,6 +9,10 @@
 
 namespace hydra {
 
+namespace horizon::loader {
+class LoaderBase;
+}
+
 class EmulationContext {
     using clock_t = std::chrono::steady_clock;
 
@@ -17,8 +21,7 @@ class EmulationContext {
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
-    void LoadFromFile(const std::string& filename);
-    void LoadAppletFromFirmware(horizon::AppletId applet_id);
+    void Load(horizon::loader::LoaderBase* loader);
     void Run();
 
     // TODO: rename?

@@ -8,7 +8,7 @@ class Directory : public EntryBase {
   public:
     Directory() = default;
     Directory(const std::string_view host_path);
-    ~Directory() override;
+    //~Directory() override;
 
     bool IsDirectory() const override { return true; }
 

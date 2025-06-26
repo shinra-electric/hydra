@@ -17,6 +17,8 @@ class MetalLayerCoordinator: NSObject {
         let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
         dispatchQueue.async {
             hydra_debugger_register_this_thread("Display")
+            // HACK: start presenting after a short delay, since acquiring a drawable too early may cause it to fail to allocate
+            sleep(1)
             while true {
                 self.handleDisplayLink()
             }

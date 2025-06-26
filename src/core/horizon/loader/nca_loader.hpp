@@ -7,7 +7,13 @@ namespace hydra::horizon::loader {
 
 class NcaLoader : public LoaderBase {
   public:
-    NcaLoader(filesystem::FileBase* file) : content_archive(file) {}
+    NcaLoader(filesystem::FileBase* file)
+        : NcaLoader(std::move(filesystem::ContentArchive(file))) {}
+    NcaLoader(const filesystem::ContentArchive& content_archive_);
+
+    u64 GetTitleID() const override { return content_archive.GetTitleID(); }
+
+    const std::string& GetName() const { return name; }
 
     std::optional<kernel::ProcessParams> LoadProcess() override;
     void LoadNintendoLogo(uchar4*& out_data, usize& out_width,
@@ -19,6 +25,12 @@ class NcaLoader : public LoaderBase {
 
   private:
     filesystem::ContentArchive content_archive;
+
+    std::string name;
+    u8 main_thread_priority;
+    u8 main_thread_core_number;
+    u32 main_thread_stack_size;
+    u32 system_resource_size;
 
     // Helpers
     std::optional<kernel::ProcessParams> LoadCode(filesystem::Directory* dir);

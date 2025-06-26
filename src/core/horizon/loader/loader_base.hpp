@@ -19,7 +19,12 @@ namespace hydra::horizon::loader {
 
 class LoaderBase {
   public:
+    static LoaderBase* CreateFromFile(const std::string& path);
+
     virtual ~LoaderBase() = default;
+
+    virtual u64 GetTitleID() const { return invalid<u64>(); }
+    const std::string& GetTitleName() const { return title_name; }
 
     virtual std::optional<kernel::ProcessParams> LoadProcess() = 0;
     // TODO: load logo
@@ -28,6 +33,9 @@ class LoaderBase {
     virtual void LoadStartupMovie(
         uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
         usize& out_width, usize& out_height, u32& out_frame_count) {}
+
+  protected:
+    std::string title_name;
 };
 
 } // namespace hydra::horizon::loader

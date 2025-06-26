@@ -30,6 +30,15 @@ typedef enum : uint32_t {
 } HydraShaderBackend;
 
 typedef enum : uint32_t {
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_PROGRAM = 0,
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_META = 1,
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_CONTROL = 2,
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_MANUAL = 3,
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_DATA = 4,
+    HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_PUBLIC_DATA = 5,
+} HydraContentArchiveContentType;
+
+typedef enum : uint32_t {
     HYDRA_LOGGING_OUTPUT_INVALID = 0,
 
     HYDRA_LOGGING_OUTPUT_NONE,
@@ -115,13 +124,27 @@ void* hydra_config_get_debug_logging();
 void* hydra_config_get_stack_trace_logging();
 void* hydra_config_get_process_args();
 
+// Filesystem
+void* hydra_filesystem_open_file(const char* path);
+void* hydra_filesystem_create_content_archive(void* file);
+HydraContentArchiveContentType
+hydra_content_archive_get_content_type(void* archive);
+
+// Loader
+void* hydra_create_loader_from_file(const char* path);
+void hydra_loader_destroy(void* loader);
+uint64_t hydra_loader_get_title_id(void* loader);
+const char* hydra_loader_get_title_name(void* loader);
+
+void* hydra_create_nca_loader_from_content_archive(void* content_archive);
+const char* hydra_nca_loader_get_name(void* nca_loader);
+
 // Emulation context
-void* hydra_emulation_context_create();
+void* hydra_create_emulation_context();
 void hydra_emulation_context_destroy(void* ctx);
 
 void hydra_emulation_context_set_surface(void* ctx, void* surface);
-void hydra_emulation_context_load_from_file(void* ctx, const char* filename);
-//void hydra_emulation_context_load_from_firmware(void* ctx, TODO);
+void hydra_emulation_context_load(void* ctx, void* loader);
 void hydra_emulation_context_run(void* ctx);
 
 void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
@@ -170,16 +193,20 @@ const void* hydra_debugger_message_get_stack_trace(const void* msg);
 void* hydra_debugger_stack_trace_copy(const void* stack_trace);
 void hydra_debugger_stack_trace_destroy(void* stack_trace);
 uint32_t hydra_debugger_stack_trace_get_frame_count(const void* stack_trace);
-const void* hydra_debugger_stack_trace_get_frame(const void* stack_trace, uint32_t index);
+const void* hydra_debugger_stack_trace_get_frame(const void* stack_trace,
+                                                 uint32_t index);
 
 // Stack frame
 void* hydra_debugger_stack_frame_resolve_unmanaged(const void* stack_frame);
 
 // Resolved stack frame
 void hydra_debugger_resolved_stack_frame_destroy(void* resolved_stack_frame);
-const char* hydra_debugger_resolved_stack_frame_get_module(const void* resolved_stack_frame);
-const char* hydra_debugger_resolved_stack_frame_get_function(const void* resolved_stack_frame);
-uint64_t hydra_debugger_resolved_stack_frame_get_address(const void* resolved_stack_frame);
+const char* hydra_debugger_resolved_stack_frame_get_module(
+    const void* resolved_stack_frame);
+const char* hydra_debugger_resolved_stack_frame_get_function(
+    const void* resolved_stack_frame);
+uint64_t hydra_debugger_resolved_stack_frame_get_address(
+    const void* resolved_stack_frame);
 
 #ifdef __cplusplus
 }

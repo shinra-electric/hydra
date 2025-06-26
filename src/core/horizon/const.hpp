@@ -161,6 +161,7 @@ constexpr LanguageCode available_languages[] = {
     LanguageCode::BrazilianPortugese,
 };
 
+// TODO: rename some values
 enum class AppletId : u32 {
     None = 0x00,
     Application = 0x01,

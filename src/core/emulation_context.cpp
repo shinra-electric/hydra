@@ -92,38 +92,74 @@ EmulationContext::~EmulationContext() {
     // TODO: delete objects
 }
 
-void EmulationContext::LoadFromFile(const std::string& filename) {
-    // Load ROM
-
-    // Check if the file exists
-    if (!std::filesystem::exists(filename)) {
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Invalid path \"{}\"", filename);
-        return;
-    }
-
-    // Load ROM
-    auto file = new horizon::filesystem::HostFile(filename, false);
-    std::string extension = filename.substr(filename.find_last_of(".") + 1);
-
-    horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == "nro") {
-        loader = new horizon::loader::NroLoader(file);
-    } else if (extension == "nso") {
-        loader = new horizon::loader::NsoLoader(file);
-    } else if (extension == "nca") {
-        loader = new horizon::loader::NcaLoader(file);
-    } else {
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
-        return;
-    }
-
+void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
     const auto process_params = loader->LoadProcess();
 
     process = new horizon::kernel::Process(process_params.value());
     os->GetKernel().AddProcessHandle(process);
+
+    // Check for firmware applets
+    auto controller = new horizon::services::am::LibraryAppletController(
+        horizon::LibraryAppletMode::AllForeground);
+    switch (loader->GetTitleID()) {
+    case 0x0100000000001008: { // swkbd
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Config
+        auto config = new horizon::applets::swkbd::KeyboardConfigCommon{
+            .mode = horizon::applets::swkbd::KeyboardMode::Full,
+            // TODO: more
+        };
+        controller->PushInData(new horizon::services::am::IStorage(config));
+
+        break;
+    }
+    case 0x0100000000001009: { // miiEdit
+        // Args
+        auto args = new horizon::applets::mii::AppletInput{
+            ._unknown_x0 = 0x3,
+            .mode = horizon::applets::mii::AppletMode::ShowMiiEdit,
+        };
+        controller->PushInData(new horizon::services::am::IStorage(args));
+
+        break;
+    }
+    case 0x010000000000100d: { // photoViewer
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Arg
+        auto arg = new horizon::applets::album::Arg{
+            horizon::applets::album::Arg::ShowAllAlbumFilesForHomeMenu};
+        controller->PushInData(new horizon::services::am::IStorage(arg));
+
+        break;
+    }
+    default:
+        break;
+    }
+
+    os->SetLibraryAppletSelfController(controller);
 
     // Loading screen assets
     {
@@ -165,8 +201,6 @@ void EmulationContext::LoadFromFile(const std::string& filename) {
         }
     }
 
-    delete loader;
-
     LOG_INFO(Other, "-------- Title info --------");
     LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
 
@@ -187,99 +221,6 @@ void EmulationContext::LoadFromFile(const std::string& filename) {
             }
         }
     }
-}
-
-void EmulationContext::LoadAppletFromFirmware(horizon::AppletId applet_id) {
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (!std::filesystem::exists(firmware_path)) {
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Invalid firmware path \"{}\"", firmware_path);
-        return;
-    }
-
-    std::string filename;
-    auto controller = new horizon::services::am::LibraryAppletController(
-        horizon::LibraryAppletMode::AllForeground);
-    // TODO: should it be chosen based on filenames?
-    switch (applet_id) {
-    case horizon::AppletId::LibraryAppletMiiEdit: {
-        filename = fmt::format("{}/0f77b0fbf77f4635ad9a842549356dd8.nca",
-                               firmware_path);
-
-        // Args
-        auto args = new horizon::applets::mii::AppletInput{
-            ._unknown_x0 = 0x3,
-            .mode = horizon::applets::mii::AppletMode::ShowMiiEdit,
-        };
-        controller->PushInData(new horizon::services::am::IStorage(args));
-
-        break;
-    }
-    case horizon::AppletId::LibraryAppletController: {
-        filename = fmt::format("{}/7af6b5f30898fc90c1202af396a9e974.nca",
-                               firmware_path);
-        break;
-    }
-    case horizon::AppletId::LibraryAppletPhotoViewer: {
-        filename = fmt::format("{}/29db1caf058bc47c3233401b82c4168f.nca",
-                               firmware_path);
-
-        // Common args
-        auto common_args = new horizon::applets::CommonArguments{
-            .version = 1,
-            .size = sizeof(horizon::applets::CommonArguments),
-            .library_applet_api_version = 1, // TODO: correct?
-            .theme_color = 0,                // HACK
-            .play_startup_sound = false,     // HACK
-            .system_tick = get_absolute_time(),
-        };
-        controller->PushInData(
-            new horizon::services::am::IStorage(common_args));
-
-        // Arg
-        auto arg = new horizon::applets::album::Arg{
-            horizon::applets::album::Arg::ShowAllAlbumFilesForHomeMenu};
-        controller->PushInData(new horizon::services::am::IStorage(arg));
-
-        break;
-    }
-    case horizon::AppletId::LibraryAppletSwkbd: {
-        filename = fmt::format("{}/96ccebff3c5dffc1f3f7303fb0eaf7fc.nca",
-                               firmware_path);
-
-        // Common args
-        auto common_args = new horizon::applets::CommonArguments{
-            .version = 1,
-            .size = sizeof(horizon::applets::CommonArguments),
-            .library_applet_api_version = 1, // TODO: correct?
-            .theme_color = 0,                // HACK
-            .play_startup_sound = false,     // HACK
-            .system_tick = get_absolute_time(),
-        };
-        controller->PushInData(
-            new horizon::services::am::IStorage(common_args));
-
-        // Config
-        auto config = new horizon::applets::swkbd::KeyboardConfigCommon{
-            .mode = horizon::applets::swkbd::KeyboardMode::Full,
-            // TODO: more
-        };
-        controller->PushInData(new horizon::services::am::IStorage(config));
-
-        break;
-    }
-    case horizon::AppletId::SystemAppletMenu:
-        filename = fmt::format("{}/9b9ecc3b013cef5fd2df866e83c41e70.nca",
-                               firmware_path);
-        break;
-    default:
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Unsupported applet ID {}", applet_id);
-        return;
-    }
-
-    LoadFromFile(filename);
-    os->SetLibraryAppletSelfController(controller);
 }
 
 void EmulationContext::Run() {

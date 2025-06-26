@@ -12,11 +12,11 @@ DEFINE_SERVICE_COMMAND_TABLE(
     100, SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
     SetSupportedNpadIdType, 103, ActivateNpad, 106,
     AcquireNpadStyleSetUpdateEventHandle, 109, ActivateNpadWithRevision, 120,
-    SetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,
-    SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 200,
-    GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
-    CreateActiveVibrationDeviceList, 206, SendVibrationValues, 303,
-    ActivateSevenSixAxisSensor)
+    SetNpadJoyHoldType, 121, GetNpadJoyHoldType, 122,
+    SetNpadJoyAssignmentModeSingleByDefault, 124, SetNpadJoyAssignmentModeDual,
+    128, SetNpadHandheldActivationMode, 200, GetVibrationDeviceInfo, 201,
+    SendVibrationValue, 203, CreateActiveVibrationDeviceList, 206,
+    SendVibrationValues, 303, ActivateSevenSixAxisSensor)
 
 result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
                                           u64 aruid) {
@@ -39,6 +39,19 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     // TODO: params
     out_handle = npad_style_set_update_event.id;
 
+    return RESULT_SUCCESS;
+}
+
+result_t
+IHidServer::SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
+                               i64 aruid) {
+    npad_joy_hold_type = type;
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::GetNpadJoyHoldType(
+    i64 aruid, ::hydra::horizon::hid::NpadJoyHoldType* out_type) {
+    *out_type = npad_joy_hold_type;
     return RESULT_SUCCESS;
 }
 

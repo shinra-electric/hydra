@@ -50,6 +50,52 @@ struct NpdmMeta {
 
 } // namespace
 
+NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
+    : content_archive(content_archive_) {
+    filesystem::EntryBase* e;
+    const auto res = content_archive.GetEntry("code/main.npdm", e);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
+        return;
+    }
+
+    auto file = dynamic_cast<filesystem::FileBase*>(e);
+    if (!file) {
+        LOG_ERROR(Loader, "main.npdm is not a file");
+        return;
+    }
+
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    const auto meta = reader.Read<NpdmMeta>();
+
+    file->Close(stream);
+
+    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
+           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
+
+    // TODO: support 32-bit games
+    ASSERT(any(meta.flags & NpdmFlags::Is64BitInstruction), Loader,
+           "32-bit games not supported");
+
+    LOG_DEBUG(Loader, "Name: {}", meta.name);
+    LOG_DEBUG(Loader, "Main thread priority: 0x{:02x}",
+              meta.main_thread_priority);
+    LOG_DEBUG(Loader, "Main thread core number: {}",
+              meta.main_thread_core_number);
+    LOG_DEBUG(Loader, "Main thread stack size: 0x{:08x}",
+              meta.main_thread_stack_size);
+    LOG_DEBUG(Loader, "System resource size: 0x{:08x}",
+              meta.system_resource_size);
+
+    name = meta.name;
+    main_thread_priority = meta.main_thread_priority;
+    main_thread_core_number = meta.main_thread_core_number;
+    main_thread_stack_size = meta.main_thread_stack_size;
+    system_resource_size = meta.system_resource_size;
+}
+
 std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
     // Title ID
     KERNEL_INSTANCE.SetTitleId(content_archive.GetTitleID());
@@ -163,7 +209,6 @@ void NcaLoader::LoadStartupMovie(
 std::optional<kernel::ProcessParams>
 NcaLoader::LoadCode(filesystem::Directory* dir) {
     std::optional<kernel::ProcessParams> process_params = std::nullopt;
-    NpdmMeta meta;
 
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
@@ -175,12 +220,7 @@ NcaLoader::LoadCode(filesystem::Directory* dir) {
         auto file = dynamic_cast<filesystem::FileBase*>(entry);
         ASSERT(file, Loader, "Code entry is not a file");
         if (name == "main.npdm") {
-            auto stream = file->Open(filesystem::FileOpenFlags::Read);
-            auto reader = stream.CreateReader();
-
-            meta = reader.Read<NpdmMeta>();
-
-            file->Close(stream);
+            // Do nothing
         } else {
             NsoLoader loader(file, name, name == entry_point);
             auto process_params_ = loader.LoadProcess();
@@ -191,27 +231,10 @@ NcaLoader::LoadCode(filesystem::Directory* dir) {
 
     ASSERT(process_params, Loader, "Failed to load process");
 
-    ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
-           "Invalid NPDM meta magic 0x{:08x}", meta.magic);
-
-    // TODO: support 32-bit games
-    ASSERT(any(meta.flags & NpdmFlags::Is64BitInstruction), Loader,
-           "32-bit games not supported");
-
-    LOG_DEBUG(Loader, "Name: {}", meta.name);
-    LOG_DEBUG(Loader, "Main thread priority: 0x{:02x}",
-              meta.main_thread_priority);
-    LOG_DEBUG(Loader, "Main thread core number: {}",
-              meta.main_thread_core_number);
-    LOG_DEBUG(Loader, "Main thread stack size: 0x{:08x}",
-              meta.main_thread_stack_size);
-    LOG_DEBUG(Loader, "System resource size: 0x{:08x}",
-              meta.system_resource_size);
-
-    process_params->main_thread_priority = meta.main_thread_priority;
-    process_params->main_thread_core_number = meta.main_thread_core_number;
-    process_params->main_thread_stack_size = meta.main_thread_stack_size;
-    process_params->system_resource_size = meta.system_resource_size;
+    process_params->main_thread_priority = main_thread_priority;
+    process_params->main_thread_core_number = main_thread_core_number;
+    process_params->main_thread_stack_size = main_thread_stack_size;
+    process_params->system_resource_size = system_resource_size;
 
     // TODO: ACI and ACID
 

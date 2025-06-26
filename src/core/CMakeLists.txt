@@ -50,6 +50,7 @@ add_library(hydra-core
     horizon/filesystem/partition_filesystem.hpp
     horizon/filesystem/content_archive.cpp
     horizon/filesystem/content_archive.hpp
+    horizon/loader/loader_base.cpp
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp
     horizon/loader/nro_loader.hpp
@@ -448,6 +449,7 @@ add_library(hydra-core
     debugger/debugger.hpp
     emulation_context.cpp
     emulation_context.hpp
+    title.hpp
     c_api.cpp
     c_api.h
 )
