@@ -1,5 +1,6 @@
 #include "frontend/sdl3/window.hpp"
 
+#include "core/horizon/loader/loader_base.hpp"
 #include "core/input/device_manager.hpp"
 
 namespace hydra::frontend::sdl3 {
@@ -97,29 +98,15 @@ Window::ShowSoftwareKeyboard(const std::string& header_text,
                : horizon::applets::swkbd::SoftwareKeyboardResult::Cancel;
 }
 
-void Window::BeginEmulation(const std::string& filename) {
+void Window::BeginEmulation(const std::string& path) {
     // Connect cursor as a touch screen device
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
 
     // Load
-    // TODO: handle library applets more cleanly
-    if (filename == "miiEdit")
-        emulation_context.LoadAppletFromFirmware(
-            horizon::AppletId::LibraryAppletMiiEdit);
-    else if (filename == "controller")
-        emulation_context.LoadAppletFromFirmware(
-            horizon::AppletId::LibraryAppletController);
-    else if (filename == "photoViewer")
-        emulation_context.LoadAppletFromFirmware(
-            horizon::AppletId::LibraryAppletPhotoViewer);
-    else if (filename == "swkbd")
-        emulation_context.LoadAppletFromFirmware(
-            horizon::AppletId::LibraryAppletSwkbd);
-    else if (filename == "qlaunch")
-        emulation_context.LoadAppletFromFirmware(
-            horizon::AppletId::SystemAppletMenu);
-    else
-        emulation_context.LoadFromFile(filename);
+    // TODO: support loading applets from firmware
+    auto loader = horizon::loader::LoaderBase::CreateFromFile(path);
+    emulation_context.Load(loader);
+    delete loader;
 
     // Begin emulation
     emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
