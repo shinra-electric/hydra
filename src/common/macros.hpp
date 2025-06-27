@@ -38,16 +38,58 @@
 #define BIT(n) (1u << (n))
 #define BITL(n) (1ul << (n))
 
+#define UNDERLYING(t) std::underlying_type_t<t>
+
+#define ENABLE_ENUM_ARITHMETIC_OPERATORS(e)                                    \
+    inline e operator+(e a, e b) {                                             \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) +                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
+    }                                                                          \
+    inline e operator-(e a, e b) {                                             \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) -                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
+    }                                                                          \
+    inline e operator*(e a, e b) {                                             \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) *                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
+    }                                                                          \
+    inline e operator/(e a, e b) {                                             \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) /                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
+    }                                                                          \
+    inline e operator++(e& x, i32) {                                           \
+        const auto tmp = x;                                                    \
+        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) + 1);                 \
+        return tmp;                                                            \
+    }                                                                          \
+    inline e operator--(e& x, i32) {                                           \
+        const auto tmp = x;                                                    \
+        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) - 1);                 \
+        return tmp;                                                            \
+    }                                                                          \
+    inline e& operator++(e& x) {                                               \
+        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) + 1);                 \
+        return x;                                                              \
+    }                                                                          \
+    inline e& operator--(e& x) {                                               \
+        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) - 1);                 \
+        return x;                                                              \
+    }
+
 #define ENABLE_ENUM_BITMASK_OPERATORS(e)                                       \
     inline e operator|(e a, e b) {                                             \
-        return static_cast<e>(static_cast<u32>(a) | static_cast<u32>(b));      \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) |                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
     }                                                                          \
     inline e& operator|=(e& a, e b) { return a = a | b; }                      \
     inline e operator&(e a, e b) {                                             \
-        return static_cast<e>(static_cast<u32>(a) & static_cast<u32>(b));      \
+        return static_cast<e>(static_cast<UNDERLYING(e)>(a) &                  \
+                              static_cast<UNDERLYING(e)>(b));                  \
     }                                                                          \
     inline e& operator&=(e& a, e b) { return a = a & b; }                      \
-    inline e operator~(e a) { return static_cast<e>(~static_cast<u32>(a)); }   \
+    inline e operator~(e a) {                                                  \
+        return static_cast<e>(~static_cast<UNDERLYING(e)>(a));                 \
+    }                                                                          \
     inline bool any(e a) { return a != e::None; }
 
 #define GETTER(member, name)                                                   \

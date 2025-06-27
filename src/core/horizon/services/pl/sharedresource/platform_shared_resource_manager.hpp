@@ -1,18 +1,22 @@
 #pragma once
 
+#include "core/horizon/const.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::pl::shared_resource {
 
 enum class SharedFontType : u32 {
-    JapanUsEurope,
-    ChineseSimplified,
-    ExtendedChineseSimplified,
-    ChineseTraditional,
-    Korean,
-    NintendoExtended,
+    JapanUsEurope = 0,
+    ChineseSimplified = 1,
+    ExtendedChineseSimplified = 2,
+    ChineseTraditional = 3,
+    Korean = 4,
+    NintendoExtended = 5,
+
+    Total,
 };
+ENABLE_ENUM_ARITHMETIC_OPERATORS(SharedFontType)
 
 enum class LoadState : u32 {
     Loading = 0,
@@ -37,7 +41,12 @@ class IPlatformSharedResourceManager : public ServiceBase {
                                           u32* out_address_offset);
     result_t
     GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
-    result_t GetSharedFontInOrderOfPriority();
+    // TODO: buffer attr
+    result_t GetSharedFontInOrderOfPriority(
+        LanguageCode language_code, bool* out_loaded, u32* out_count,
+        OutBuffer<BufferAttr::MapAlias> out_types_buffer,
+        OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
+        OutBuffer<BufferAttr::MapAlias> out_sizes_buffer);
 };
 
 } // namespace hydra::horizon::services::pl::shared_resource

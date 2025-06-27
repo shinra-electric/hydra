@@ -22,6 +22,7 @@
 #include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
+#include "core/horizon/services/ns/application_manager_interface.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
@@ -103,6 +104,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(err::context::IWriterForApplication, "ectx:aw")
         SERVICE_CASE(mii::IStaticService, "mii:u", "mii:e")
         SERVICE_CASE(fatalsrv::IService, "fatal:u")
+        SERVICE_CASE(ns::IApplicationManagerInterface, "ns:am")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

@@ -271,9 +271,12 @@ add_library(hydra-core
     horizon/services/mii/static_service.hpp
     horizon/services/fatalsrv/service.cpp
     horizon/services/fatalsrv/service.hpp
+    horizon/services/ns/application_manager_interface.cpp
+    horizon/services/ns/application_manager_interface.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
+    horizon/applets/err/const.hpp
     horizon/applets/err/error_applet.cpp
     horizon/applets/err/error_applet.hpp
     horizon/applets/swkbd/const.hpp
@@ -281,6 +284,7 @@ add_library(hydra-core
     horizon/applets/swkbd/software_keyboard.hpp
     horizon/applets/mii/const.hpp
     horizon/applets/album/const.hpp
+    horizon/applets/controller/const.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp

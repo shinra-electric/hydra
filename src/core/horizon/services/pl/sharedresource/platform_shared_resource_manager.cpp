@@ -13,7 +13,8 @@ constexpr usize SHARED_MEMORY_SIZE = 0x01100000;
 DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetLoadState, 2, GetSize, 3,
                              GetSharedMemoryAddressOffset, 4,
-                             GetSharedMemoryNativeHandle)
+                             GetSharedMemoryNativeHandle, 5,
+                             GetSharedFontInOrderOfPriority)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager()
     : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}
@@ -64,8 +65,24 @@ result_t IPlatformSharedResourceManager::GetSharedMemoryNativeHandle(
     return RESULT_SUCCESS;
 }
 
-result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority() {
-    LOG_FUNC_NOT_IMPLEMENTED(Services);
+result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
+    LanguageCode language_code, bool* out_loaded, u32* out_count,
+    OutBuffer<BufferAttr::MapAlias> out_types_buffer,
+    OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
+    OutBuffer<BufferAttr::MapAlias> out_sizes_buffer) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_loaded = true;
+    *out_count = (u32)SharedFontType::Total;
+    for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
+         type++) {
+        out_types_buffer.writer->Write(type);
+        // TODO: don't hardcode
+        out_offsets_buffer.writer->Write<u32>(0);
+        out_sizes_buffer.writer->Write<u32>(0x100);
+    }
+
     return RESULT_SUCCESS;
 }
 

@@ -1,11 +1,15 @@
 #include "core/emulation_context.hpp"
 
+#include "core/horizon/const.hpp"
+#include "core/horizon/kernel/const.hpp"
 #include "hatch/hatch.hpp"
 
 #include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
 #include "core/horizon/applets/album/const.hpp"
 #include "core/horizon/applets/const.hpp"
+#include "core/horizon/applets/controller/const.hpp"
+#include "core/horizon/applets/err/const.hpp"
 #include "core/horizon/applets/mii/const.hpp"
 #include "core/horizon/applets/swkbd/const.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
@@ -103,6 +107,94 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     auto controller = new horizon::services::am::LibraryAppletController(
         horizon::LibraryAppletMode::AllForeground);
     switch (loader->GetTitleID()) {
+    case 0x0100000000001003: { // controller
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Arg
+        horizon::applets::controller::ControllerSupportArg0 arg0{
+            .player_count_min = 0,
+            .player_count_max = 2,
+            .enable_take_over_connection = true,
+            .enable_left_justify = false,
+            .enable_permit_joy_dual = true,
+            .enable_single_mode = true,
+            .enable_identification_color = false,
+        };
+
+        horizon::applets::controller::ControllerSupportArg1 arg1{
+            .enable_explain_text = false,
+        };
+
+        // Private arg
+        auto private_arg =
+            new horizon::applets::controller::ControllerSupportArgPrivate{
+                .size = sizeof(
+                    horizon::applets::controller::ControllerSupportArgPrivate),
+                .controller_support_arg_size = sizeof(arg0) + sizeof(arg1),
+                .flag0 = 0,
+                .flag1 = 0,
+                .mode = horizon::applets::controller::ControllerSupportMode::
+                    ShowControllerSupport,
+                .caller = horizon::applets::controller::
+                    ControllerSupportCaller::Application,
+                .npad_style_set = horizon::hid::NpadStyleSet::JoyDual,
+                .npad_joy_hold_type = horizon::hid::NpadJoyHoldType::Vertical,
+            };
+        controller->PushInData(
+            new horizon::services::am::IStorage(private_arg));
+
+        auto arg = (u8*)malloc(sizeof(arg0) + sizeof(arg1));
+        memcpy(arg, &arg0, sizeof(arg0));
+        memcpy(arg + sizeof(arg0), &arg1, sizeof(arg1));
+        controller->PushInData(new horizon::services::am::IStorage(arg));
+
+        break;
+    }
+    case 0x0100000000001005: { // error
+        // Common args
+        auto common_args = new horizon::applets::CommonArguments{
+            .version = 1,
+            .size = sizeof(horizon::applets::CommonArguments),
+            .library_applet_api_version = 1, // TODO: correct?
+            .theme_color = 0,                // HACK
+            .play_startup_sound = false,     // HACK
+            .system_tick = get_absolute_time(),
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(common_args));
+
+        // Param common
+        auto param_common = new horizon::applets::err::ParamCommon{
+            .type = horizon::applets::err::ErrorType::ApplicationError,
+            .is_jump_enabled = false,
+        };
+        controller->PushInData(
+            new horizon::services::am::IStorage(param_common));
+
+        // Param for application error
+        auto param_for_application_error =
+            new horizon::applets::err::ParamForApplicationError{
+                .version = 1,
+                .error_code_number = MAKE_RESULT(Svc, 0),
+                .language_code = horizon::LanguageCode::AmericanEnglish,
+                .dialog_message = "Dialog message",
+                .fullscreen_message = "Fullscreen message",
+            };
+        controller->PushInData(
+            new horizon::services::am::IStorage(param_for_application_error));
+
+        break;
+    }
     case 0x0100000000001008: { // swkbd
         // Common args
         auto common_args = new horizon::applets::CommonArguments{
