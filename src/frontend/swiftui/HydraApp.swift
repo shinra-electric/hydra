@@ -5,6 +5,8 @@ struct MyApp: App {
     // TODO: if macOS
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    @State private var activeGame: Game? = nil
+
     init() {
         hydra_config_initialize()
         // TODO: only enable if enabled in the config
@@ -13,12 +15,12 @@ struct MyApp: App {
 
     var body: some Scene {
         Window("Hydra", id: "main") {
-            ContentView()
+            ContentView(activeGame: self.$activeGame)
                 .frame(minWidth: 640, minHeight: 360)
         }
         .windowResizability(.contentSize)
         .commands {
-            MenuCommands()
+            MenuCommands(activeGame: self.$activeGame)
         }
 
         Window("Debugger", id: "debugger") {

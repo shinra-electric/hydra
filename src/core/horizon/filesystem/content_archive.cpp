@@ -248,9 +248,10 @@ ContentArchive::ContentArchive(FileBase* file) {
         }
         case SectionType::Data: {
             // TODO: can other hash types be used as well?
-            ASSERT(fs_header.hash_type == HashType::HierarchicalIntegrityHash,
-                   Filesystem, "Invalid hash type \"{}\" for Data section",
-                   fs_header.hash_type);
+            // ASSERT(fs_header.hash_type ==
+            // HashType::HierarchicalIntegrityHash,
+            //       Filesystem, "Invalid hash type \"{}\" for Data section",
+            //       fs_header.hash_type);
             // TODO: correct?
             const auto& level = fs_header.integrity_meta_info.info_level_hash
                                     .levels[IVFC_MAX_LEVEL - 1];

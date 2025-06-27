@@ -1,6 +1,6 @@
 import Foundation
 
-struct Game {
+struct Game: Hashable {
     var loader: UnsafeMutableRawPointer
     var name: String
 }

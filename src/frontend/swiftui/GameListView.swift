@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct GameListView: View {
+    @Binding var activeGame: Game?
+
     @State private var games: [Game] = []
 
     var body: some View {
         List {
             ForEach(self.games.indices, id: \.self) { index in
-                GamePreview(game: games[index])
+                GamePreview(game: games[index], activeGame: self.$activeGame)
                     .padding(.vertical, 8)
             }
         }
@@ -42,7 +44,6 @@ struct GameListView: View {
                     tryAddGame(path: gamePath)
                 } else {
                     // Iterate recursively over the game directories
-                    let fileManager = FileManager.default
                     guard let enumerator = fileManager.enumerator(atPath: gamePath) else {
                         // TODO: error popup
                         print("Invalid game directory \(gamePath)")
@@ -76,7 +77,6 @@ struct GameListView: View {
             name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
         }
 
-        // TODO: name
         self.games.append(Game(loader: loader, name: name))
     }
 }

@@ -113,22 +113,26 @@ void hydra_config_deserialize();
 
 void* hydra_config_get_game_paths();
 void* hydra_config_get_patch_paths();
-void* hydra_config_get_sd_card_path();
-void* hydra_config_get_save_path();
 void* hydra_config_get_cpu_backend();
 void* hydra_config_get_gpu_renderer();
 void* hydra_config_get_shader_backend();
 void* hydra_config_get_user_id();
+void* hydra_config_get_firmware_path();
+void* hydra_config_get_sd_card_path();
+void* hydra_config_get_save_path();
 void* hydra_config_get_logging_output();
 void* hydra_config_get_debug_logging();
 void* hydra_config_get_stack_trace_logging();
 void* hydra_config_get_process_args();
 
 // Filesystem
-void* hydra_filesystem_open_file(const char* path);
-void* hydra_filesystem_create_content_archive(void* file);
+void* hydra_open_file(const char* path);
+void hydra_file_close(void* file);
+
+void* hydra_create_content_archive(void* file);
+void hydra_content_archive_destroy(void* content_archive);
 HydraContentArchiveContentType
-hydra_content_archive_get_content_type(void* archive);
+hydra_content_archive_get_content_type(void* content_archive);
 
 // Loader
 void* hydra_create_loader_from_file(const char* path);

@@ -100,14 +100,6 @@ HYDRA_EXPORT void* hydra_config_get_patch_paths() {
     return &hydra::CONFIG_INSTANCE.GetPatchPaths();
 }
 
-HYDRA_EXPORT void* hydra_config_get_sd_card_path() {
-    return &hydra::CONFIG_INSTANCE.GetSdCardPath();
-}
-
-HYDRA_EXPORT void* hydra_config_get_save_path() {
-    return &hydra::CONFIG_INSTANCE.GetSavePath();
-}
-
 HYDRA_EXPORT void* hydra_config_get_cpu_backend() {
     return &hydra::CONFIG_INSTANCE.GetCpuBackend();
 }
@@ -122,6 +114,18 @@ HYDRA_EXPORT void* hydra_config_get_shader_backend() {
 
 HYDRA_EXPORT void* hydra_config_get_user_id() {
     return &hydra::CONFIG_INSTANCE.GetUserID();
+}
+
+HYDRA_EXPORT void* hydra_config_get_firmware_path() {
+    return &hydra::CONFIG_INSTANCE.GetFirmwarePath();
+}
+
+HYDRA_EXPORT void* hydra_config_get_sd_card_path() {
+    return &hydra::CONFIG_INSTANCE.GetSdCardPath();
+}
+
+HYDRA_EXPORT void* hydra_config_get_save_path() {
+    return &hydra::CONFIG_INSTANCE.GetSavePath();
 }
 
 HYDRA_EXPORT void* hydra_config_get_logging_output() {
@@ -141,19 +145,29 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 }
 
 // Filesystem
-void* hydra_filesystem_open_file(const char* path) {
+void* hydra_open_file(const char* path) {
     return new hydra::horizon::filesystem::HostFile(std::string(path));
 }
 
-void* hydra_filesystem_create_content_archive(void* file) {
+void hydra_file_close(void* file) {
+    delete static_cast<hydra::horizon::filesystem::HostFile*>(file);
+}
+
+void* hydra_create_content_archive(void* file) {
     return new hydra::horizon::filesystem::ContentArchive(
         static_cast<hydra::horizon::filesystem::FileBase*>(file));
 }
 
+void hydra_content_archive_destroy(void* content_archive) {
+    delete static_cast<hydra::horizon::filesystem::ContentArchive*>(
+        content_archive);
+}
+
 HydraContentArchiveContentType
-hydra_content_archive_get_content_type(void* archive) {
+hydra_content_archive_get_content_type(void* content_archive) {
     return static_cast<HydraContentArchiveContentType>(
-        static_cast<hydra::horizon::filesystem::ContentArchive*>(archive)
+        static_cast<hydra::horizon::filesystem::ContentArchive*>(
+            content_archive)
             ->GetContentType());
 }
 
@@ -185,7 +199,7 @@ void* hydra_create_nca_loader_from_content_archive(void* content_archive) {
 
 const char* hydra_nca_loader_get_name(void* nca_loader) {
     return static_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
-        ->GetTitleName()
+        ->GetName()
         .c_str();
 }
 
