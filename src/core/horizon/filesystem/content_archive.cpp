@@ -242,8 +242,10 @@ ContentArchive::ContentArchive(FileBase* file) {
             auto partition_file =
                 new FileView(file, entry_offset + layer_region.offset,
                              layer_region.size); // TODO: free
-            entries.insert({(type == SectionType::Code ? "code" : "logo"),
-                            new PartitionFilesystem(partition_file, false)});
+            auto pfs = new PartitionFilesystem();
+            pfs->Initialize<false>(partition_file);
+            entries.insert(
+                {(type == SectionType::Code ? "code" : "logo"), pfs});
             break;
         }
         case SectionType::Data: {
