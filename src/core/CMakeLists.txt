@@ -46,7 +46,6 @@ add_library(hydra-core
     horizon/filesystem/device.hpp
     horizon/filesystem/filesystem.cpp
     horizon/filesystem/filesystem.hpp
-    horizon/filesystem/partition_filesystem.cpp
     horizon/filesystem/partition_filesystem.hpp
     horizon/filesystem/content_archive.cpp
     horizon/filesystem/content_archive.hpp
@@ -58,6 +57,8 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/loader/xci_loader.cpp
+    horizon/loader/xci_loader.hpp
     horizon/services/const.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp

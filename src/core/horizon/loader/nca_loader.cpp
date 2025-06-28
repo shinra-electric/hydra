@@ -218,13 +218,13 @@ NcaLoader::LoadCode(filesystem::Directory* dir) {
     if (dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
         entry_point = "main";
 
-    for (const auto& [name, entry] : dir->GetEntries()) {
+    for (const auto& [filename, entry] : dir->GetEntries()) {
         auto file = dynamic_cast<filesystem::FileBase*>(entry);
         ASSERT(file, Loader, "Code entry is not a file");
-        if (name == "main.npdm") {
+        if (filename == "main.npdm") {
             // Do nothing
         } else {
-            NsoLoader loader(file, name, name == entry_point);
+            NsoLoader loader(file, filename, filename == entry_point);
             auto process_params_ = loader.LoadProcess();
             if (process_params_)
                 CHECK_AND_SET_PROCESS_PARAMS(process_params, process_params_);

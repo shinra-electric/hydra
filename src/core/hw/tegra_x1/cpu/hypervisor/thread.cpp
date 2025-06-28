@@ -297,12 +297,10 @@ void Thread::InstructionTrap(u32 esr) {
 }
 
 void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
-    ONCE(LOG_WARN(Hypervisor,
-                  "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}", elr,
-                  instruction, far));
+    LOG_WARN(Hypervisor, "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}",
+             elr, instruction, far);
 
-    // Set the return address
-    // TODO: correct?
+    // Skip one instruction
     SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
 }
 

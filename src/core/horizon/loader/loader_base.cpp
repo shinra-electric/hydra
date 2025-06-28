@@ -4,6 +4,7 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/loader/xci_loader.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -27,6 +28,8 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
         loader = new horizon::loader::NsoLoader(file);
     } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(file);
+    } else if (extension == "xci") {
+        loader = new horizon::loader::XciLoader(file);
     } else {
         // TODO: return an error instead
         LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);

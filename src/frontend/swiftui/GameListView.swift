@@ -44,16 +44,17 @@ struct GameListView: View {
                     tryAddGame(path: gamePath)
                 } else {
                     // Iterate recursively over the game directories
-                    guard let enumerator = fileManager.enumerator(atPath: gamePath) else {
+                    guard
+                        let enumerator = fileManager.enumerator(
+                            at: URL(fileURLWithPath: gamePath), includingPropertiesForKeys: nil)
+                    else {
                         // TODO: error popup
                         print("Invalid game directory \(gamePath)")
                         return
                     }
 
-                    while let filename = enumerator.nextObject() as? String {
-                        // HACK: get the full path (only works for the root directory)
-                        let path = "\(gamePath)/\(filename)"
-                        tryAddGame(path: path)
+                    while let url = enumerator.nextObject() as? URL {
+                        tryAddGame(path: url.path)
                     }
                 }
             }
@@ -63,7 +64,7 @@ struct GameListView: View {
     func tryAddGame(path: String) {
         // TODO: ask the core for supported extensions
         if !path.hasSuffix("nro") && !path.hasSuffix("nso")
-            && !path.hasSuffix("nca")
+            && !path.hasSuffix("nca") && !path.hasSuffix("xci")
         {
             return
         }
