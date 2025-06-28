@@ -57,6 +57,8 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
+    horizon/loader/nsp_loader.cpp
+    horizon/loader/nsp_loader.hpp
     horizon/loader/xci_loader.cpp
     horizon/loader/xci_loader.hpp
     horizon/services/const.hpp

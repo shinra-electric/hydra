@@ -33,9 +33,11 @@ struct PfsHeader {
 
 } // namespace
 
-template <bool is_hfs> class PartitionFilesystem final : public Directory {
+class PartitionFilesystem final : public Directory {
   public:
-    PartitionFilesystem(FileBase* file) {
+    // HACK: need to use a method instead of a constructor, since we have a
+    // template parameter
+    template <bool is_hfs> PartitionFilesystem* Initialize(FileBase* file) {
         auto stream = file->Open(FileOpenFlags::Read);
         auto reader = stream.CreateReader();
 
@@ -77,6 +79,8 @@ template <bool is_hfs> class PartitionFilesystem final : public Directory {
         }
 
         file->Close(stream);
+
+        return this;
     }
 };
 

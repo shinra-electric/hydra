@@ -2,6 +2,7 @@
 
 #include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/partition_filesystem.hpp"
+#include "core/horizon/loader/nsp_loader.hpp"
 
 namespace hydra::horizon::loader {
 
@@ -114,63 +115,53 @@ XciLoader::XciLoader(filesystem::FileBase* file) {
     ASSERT(header.magic == make_magic4('H', 'E', 'A', 'D'), Loader,
            "Invalid XCI magic 0x{:08X}", header.magic);
 
-    // Normal area
+    u64 offset = NORMAL_AREA_OFFSET;
+    usize size = file->GetSize() - offset;
+    filesystem::PartitionFilesystem root_pfs;
+    root_pfs.Initialize<true>(new filesystem::FileView(file, offset, size));
+
+    // Normal
+    /*
     {
-        /*
-        u64 offset = NORMAL_AREA_OFFSET;
-        usize size = file->GetSize() - offset;
-        filesystem::PartitionFilesystem<true> root_pfs(
-            new filesystem::FileView(file, offset, size));
-
-        // Normal
-        {
-            filesystem::EntryBase* entry;
-            if (root_pfs.GetEntry("normal", entry) !=
-                filesystem::FsResult::Success) {
-                LOG_ERROR(Loader, "Failed to find \"normal\" entry");
-                return;
-            }
-
-            auto normal_file = dynamic_cast<filesystem::FileBase*>(entry);
-            if (!normal_file) {
-                LOG_ERROR(Loader,
-                          "Failed to cast \"normal\" entry to FileBase");
-                return;
-            }
-
-            filesystem::PartitionFilesystem<true> normal_pfs(normal_file);
+        filesystem::EntryBase* normal_entry;
+        if (root_pfs.GetEntry("normal", normal_entry) !=
+            filesystem::FsResult::Success) {
+            LOG_ERROR(Loader, "Failed to find \"normal\" entry");
+            return;
         }
 
-        // TODO: update and secure
-        */
-    }
-
-    // ROM area
-    {
-        u64 offset = header.rom_area_start_page_address * PAGE_SIZE;
-        usize size = file->GetSize() - offset;
-        filesystem::PartitionFilesystem<true> partition_filesystem(
-            new filesystem::FileView(file, offset, size));
-
-        // NCAs
-        // HACK: find the largest one
-        struct {
-            filesystem::FileBase* file;
-            usize size;
-        } largest_entry{nullptr, 0};
-        for (const auto& [filename, entry] :
-             partition_filesystem.GetEntries()) {
-            auto file = dynamic_cast<filesystem::FileBase*>(entry);
-            if (!file)
-                continue;
-
-            if (file->GetSize() > largest_entry.size)
-                largest_entry = {file, file->GetSize()};
+        auto normal_file = dynamic_cast<filesystem::FileBase*>(normal_entry);
+        if (!normal_file) {
+            LOG_ERROR(Loader,
+                        "Failed to cast \"normal\" entry to FileBase");
+            return;
         }
 
-        // TODO: needs to be decrypted first
-        // main_nca_loader = new NcaLoader(largest_entry.file);
+        filesystem::PartitionFilesystem<true> normal_pfs(normal_file);
     }
+    */
+
+    // Secure
+    {
+        filesystem::EntryBase* secure_entry;
+        if (root_pfs.GetEntry("secure", secure_entry) !=
+            filesystem::FsResult::Success) {
+            LOG_ERROR(Loader, "Failed to find \"secure\" entry");
+            return;
+        }
+
+        auto secure_file = dynamic_cast<filesystem::FileBase*>(secure_entry);
+        if (!secure_file) {
+            LOG_ERROR(Loader, "Failed to cast \"secure\" entry to FileBase");
+            return;
+        }
+
+        filesystem::PartitionFilesystem secure_pfs;
+        secure_pfs.Initialize<true>(secure_file);
+        nsp_loader = new NspLoader(secure_pfs);
+    }
+
+    // TODO: update
 
     file->Close(stream);
 }
