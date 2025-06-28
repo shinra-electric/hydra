@@ -1,7 +1,6 @@
 #include "core/horizon/loader/loader_base.hpp"
 
 #include "core/horizon/filesystem/host_file.hpp"
-#include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/loader/xci_loader.hpp"
@@ -28,6 +27,8 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
         loader = new horizon::loader::NsoLoader(file);
     } else if (extension == "nca") {
         loader = new horizon::loader::NcaLoader(file);
+    } else if (extension == "nsp") {
+        loader = new horizon::loader::NspLoader(file);
     } else if (extension == "xci") {
         loader = new horizon::loader::XciLoader(file);
     } else {
