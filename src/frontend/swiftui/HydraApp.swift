@@ -8,7 +8,6 @@ struct MyApp: App {
     @State private var activeGame: Game? = nil
 
     init() {
-        hydra_config_initialize()
         // TODO: only enable if enabled in the config
         hydra_debugger_enable()
     }

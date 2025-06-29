@@ -4,8 +4,6 @@
 
 namespace hydra {
 
-Logger g_logger;
-
 // TODO: will the destructor ever get called?
 Logger::~Logger() {
     if (ofs) {
@@ -22,7 +20,5 @@ void Logger::EnsureOutputStream() {
     const auto path = fmt::format("{}/log.log", CONFIG_INSTANCE.GetLogsPath());
     ofs = new std::ofstream(path);
 }
-
-LogOutput Logger::GetOutput() { return CONFIG_INSTANCE.GetLoggingOutput(); }
 
 } // namespace hydra

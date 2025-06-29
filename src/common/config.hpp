@@ -98,7 +98,7 @@ class Config {
         return g_config;
     }
 
-    void Initialize();
+    Config();
 
     void LoadDefaults();
 
@@ -126,10 +126,9 @@ class Config {
     Option<std::string>& GetFirmwarePath() { return firmware_path; }
     Option<std::string>& GetSdCardPath() { return sd_card_path; }
     Option<std::string>& GetSavePath() { return save_path; }
-    Option<LogOutput>& GetLoggingOutput() { return logging_output; }
+    Option<LogOutput>& GetLogOutput() { return log_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
-    Option<bool>& GetStackTraceLogging() { return stack_trace_logging; }
     ArrayOption<std::string>& GetProcessArgs() { return process_args; }
 
   private:
@@ -147,13 +146,9 @@ class Config {
     Option<std::string> firmware_path;
     Option<std::string> sd_card_path;
     Option<std::string> save_path;
-    Option<LogOutput> logging_output =
-        LogOutput::StdOut; // Set to stdout so that messages logged
-                           // before logs path is initialized get logged
-                           // properly
+    Option<LogOutput> log_output;
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
-    Option<bool> stack_trace_logging;
     ArrayOption<std::string> process_args;
 
     // Default values
@@ -177,10 +172,9 @@ class Config {
     std::string GetDefaultSavePath() const {
         return fmt::format("{}/save", app_data_path);
     }
-    LogOutput GetDefaultLoggingOutput() const { return LogOutput::File; }
+    LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
-    bool GetDefaultStackTraceLogging() const { return false; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
 };
 

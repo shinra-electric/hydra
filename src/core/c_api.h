@@ -39,12 +39,12 @@ typedef enum : uint32_t {
 } HydraContentArchiveContentType;
 
 typedef enum : uint32_t {
-    HYDRA_LOGGING_OUTPUT_INVALID = 0,
+    HYDRA_LOG_OUTPUT_INVALID = 0,
 
-    HYDRA_LOGGING_OUTPUT_NONE,
-    HYDRA_LOGGING_OUTPUT_STD_OUT,
-    HYDRA_LOGGING_OUTPUT_FILE,
-} HydraLoggingOutput;
+    HYDRA_LOG_OUTPUT_NONE,
+    HYDRA_LOG_OUTPUT_STD_OUT,
+    HYDRA_LOG_OUTPUT_FILE,
+} HydraLogOutput;
 
 typedef enum : uint32_t {
     HYDRA_LOG_LEVEL_DEBUG,
@@ -107,7 +107,6 @@ void hydra_string_array_option_set(void* option, uint32_t index,
 void hydra_string_array_option_remove(void* option, uint32_t index);
 
 // Config
-void hydra_config_initialize();
 void hydra_config_serialize();
 void hydra_config_deserialize();
 
@@ -120,9 +119,8 @@ void* hydra_config_get_user_id();
 void* hydra_config_get_firmware_path();
 void* hydra_config_get_sd_card_path();
 void* hydra_config_get_save_path();
-void* hydra_config_get_logging_output();
+void* hydra_config_get_log_output();
 void* hydra_config_get_debug_logging();
-void* hydra_config_get_stack_trace_logging();
 void* hydra_config_get_process_args();
 
 // Filesystem

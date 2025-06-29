@@ -80,10 +80,6 @@ HYDRA_EXPORT void hydra_string_array_option_remove(void* option,
 }
 
 // Config
-HYDRA_EXPORT void hydra_config_initialize() {
-    hydra::CONFIG_INSTANCE.Initialize();
-}
-
 HYDRA_EXPORT void hydra_config_serialize() {
     hydra::CONFIG_INSTANCE.Serialize();
 }
@@ -128,16 +124,12 @@ HYDRA_EXPORT void* hydra_config_get_save_path() {
     return &hydra::CONFIG_INSTANCE.GetSavePath();
 }
 
-HYDRA_EXPORT void* hydra_config_get_logging_output() {
-    return &hydra::CONFIG_INSTANCE.GetLoggingOutput();
+HYDRA_EXPORT void* hydra_config_get_log_output() {
+    return &hydra::CONFIG_INSTANCE.GetLogOutput();
 }
 
 HYDRA_EXPORT void* hydra_config_get_debug_logging() {
     return &hydra::CONFIG_INSTANCE.GetDebugLogging();
-}
-
-HYDRA_EXPORT void* hydra_config_get_stack_trace_logging() {
-    return &hydra::CONFIG_INSTANCE.GetStackTraceLogging();
 }
 
 HYDRA_EXPORT void* hydra_config_get_process_args() {

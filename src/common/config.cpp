@@ -52,7 +52,7 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
 
 namespace hydra {
 
-void Config::Initialize() {
+Config::Config() {
 #ifdef __APPLE__
     // macOS
     if (const char* home = std::getenv("HOME")) {
@@ -102,10 +102,9 @@ void Config::LoadDefaults() {
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
-    logging_output = GetDefaultLoggingOutput();
+    log_output = GetDefaultLogOutput();
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
-    stack_trace_logging = GetDefaultStackTraceLogging();
     process_args = GetDefaultProcessArgs();
 }
 
@@ -170,10 +169,9 @@ void Config::Serialize() {
 
         {
             auto& debug = data.at("Debug");
-            debug["logging_output"] = logging_output.Get();
+            debug["log_output"] = log_output.Get();
             debug["log_fs_access"] = log_fs_access.Get();
             debug["debug_logging"] = debug_logging.Get();
-            debug["stack_trace_logging"] = stack_trace_logging.Get();
             debug["process_args"] = process_args.Get();
         }
 
@@ -234,14 +232,12 @@ void Config::Deserialize() {
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
-        logging_output = toml::find_or<LogOutput>(debug, "logging_output",
-                                                  GetDefaultLoggingOutput());
+        log_output = toml::find_or<LogOutput>(debug, "log_output",
+                                              GetDefaultLogOutput());
         log_fs_access = toml::find_or<bool>(debug, "log_fs_access",
                                             GetDefaultLogFsAccess());
         debug_logging = toml::find_or<bool>(debug, "debug_logging",
                                             GetDefaultDebugLogging());
-        stack_trace_logging = toml::find_or<bool>(
-            debug, "stack_trace_logging", GetDefaultStackTraceLogging());
         process_args = toml::find_or<std::vector<std::string>>(
             debug, "process_args", GetDefaultProcessArgs());
     }
@@ -284,10 +280,9 @@ void Config::Log() {
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
-    LOG_INFO(Other, "Logging output: {}", logging_output);
+    LOG_INFO(Other, "Log output: {}", log_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
-    LOG_INFO(Other, "Log stack trace: {}", stack_trace_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);
 }
 

@@ -37,6 +37,8 @@ constexpr auto STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION = 200ms;
 } // namespace
 
 EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
+    LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
+
     // Random
     srand(time(0));
 
@@ -94,6 +96,8 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 
 EmulationContext::~EmulationContext() {
     // TODO: delete objects
+
+    LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {

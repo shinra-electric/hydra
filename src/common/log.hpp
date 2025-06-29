@@ -9,9 +9,12 @@
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
+#define LOGGER_INSTANCE Logger::GetInstance()
+
 #define LOG(level, c, ...)                                                     \
-    g_logger.Log(LogLevel::level, LogClass::c, trim_source_path(__FILE__),     \
-                 __LINE__, __func__, __VA_ARGS__)
+    LOGGER_INSTANCE.Log(LogLevel::level, LogClass::c,                          \
+                        trim_source_path(__FILE__), __LINE__, __func__,        \
+                        __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
@@ -155,6 +158,11 @@ typedef std::function<void(const LogMessage&)> log_callback_fn_t;
 
 class Logger {
   public:
+    static Logger& GetInstance() {
+        static Logger instance;
+        return instance;
+    }
+
     ~Logger();
 
     void InstallCallback(log_callback_fn_t callback_) {
@@ -167,13 +175,18 @@ class Logger {
         callback = std::nullopt;
     }
 
+    void SetOutput(const LogOutput output_) {
+        std::unique_lock lock(mutex);
+        output = output_;
+    }
+
     template <typename... T>
     void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
         std::unique_lock lock(mutex);
 
-        switch (GetOutput()) {
+        switch (output) {
         case LogOutput::None:
             break;
         case LogOutput::StdOut:
@@ -232,13 +245,9 @@ class Logger {
     std::ofstream* ofs{nullptr};
 
     std::optional<log_callback_fn_t> callback{};
+    LogOutput output{LogOutput::StdOut};
 
     void EnsureOutputStream();
-
-    // HACK
-    static LogOutput GetOutput();
 };
-
-extern Logger g_logger;
 
 } // namespace hydra

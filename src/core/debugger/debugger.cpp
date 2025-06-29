@@ -51,13 +51,13 @@ Debugger::Debugger() { RegisterThisThread("Main"); }
 Debugger::~Debugger() { UnregisterThisThread(); }
 
 void Debugger::Enable() {
-    g_logger.InstallCallback(
+    LOGGER_INSTANCE.InstallCallback(
         [this](const LogMessage& msg) { LogOnThisThread(msg); });
 }
 
 void Debugger::Disable() {
     std::unique_lock lock(thread_mutex);
-    g_logger.UninstallCallback();
+    LOGGER_INSTANCE.UninstallCallback();
     for (auto& [id, thread] : threads) {
         std::unique_lock lock(thread.msg_mutex);
         thread.messages.clear();
