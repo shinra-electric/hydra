@@ -7,10 +7,11 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
                              EnsureSaveData, 21, GetDesiredLanguage, 22,
-                             SetTerminateResult, 25, ExtendSaveData, 26,
-                             GetSaveDataSize, 40, NotifyRunning, 50,
-                             GetPseudoDeviceId, 66, InitializeGamePlayRecording,
-                             67, SetGamePlayRecordingState, 90,
+                             SetTerminateResult, 23, GetDisplayVersion, 25,
+                             ExtendSaveData, 26, GetSaveDataSize, 40,
+                             NotifyRunning, 50, GetPseudoDeviceId, 66,
+                             InitializeGamePlayRecording, 67,
+                             SetGamePlayRecordingState, 90,
                              EnableApplicationCrashReport, 130,
                              GetGpuErrorDetectedSystemEvent)
 
@@ -48,6 +49,16 @@ result_t IApplicationFunctions::SetTerminateResult(result_t result) {
     const auto description = GET_RESULT_DESCRIPTION(result);
     LOG_INFO(Kernel, "Module: {}, description: {}", module, description);
 
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationFunctions::GetDisplayVersion(DisplayVersion* out_version) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_version = {
+        .name = "1.0.0",
+    };
     return RESULT_SUCCESS;
 }
 

@@ -30,9 +30,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              GetManagerDisplayService, 103,
                              GetIndirectDisplayTransactionService, 1000,
                              ListDisplays, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 2020, OpenLayer, 2021, CloseLayer,
-                             2101, SetLayerScalingMode, 2102,
-                             ConvertScalingMode, 5202, GetDisplayVsyncEvent)
+                             CloseDisplay, 1102, GetDisplayResolution, 2020,
+                             OpenLayer, 2021, CloseLayer, 2101,
+                             SetLayerScalingMode, 2102, ConvertScalingMode,
+                             5202, GetDisplayVsyncEvent)
 
 result_t
 IApplicationDisplayService::GetRelayService(add_service_fn_t add_service) {
@@ -83,6 +84,19 @@ result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
 
 result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
     KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->Close();
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
+                                                          i64* out_width,
+                                                          i64* out_height) {
+    LOG_FUNC_STUBBED(Services);
+
+    auto display = KERNEL_INSTANCE.GetBus().GetDisplay(display_id);
+
+    // HACK
+    *out_width = 1920;
+    *out_height = 1080;
     return RESULT_SUCCESS;
 }
 

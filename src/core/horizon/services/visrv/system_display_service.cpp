@@ -18,7 +18,7 @@ result_t ISystemDisplayService::CreateStrayLayer(
 }
 
 result_t ISystemDisplayService::SetLayerVisibility(u64 layer_id, bool visible) {
-    return SetLayerVisibility(layer_id, visible);
+    return SetLayerVisibilityImpl(layer_id, visible);
 }
 
 result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,

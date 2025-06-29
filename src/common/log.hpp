@@ -43,15 +43,25 @@
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
     }
+#define DEBUGGER_ASSERT(condition, c, ...)                                     \
+    if (!(condition)) {                                                        \
+        LOG_ERROR(c, __VA_ARGS__);                                             \
+        DEBUGGER_INSTANCE.BreakOnThisThread("Assertion failed");               \
+    }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
            name " must be {}-byte aligned", alignment)
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
+#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
+    DEBUGGER_ASSERT(condition, c, __VA_ARGS__)
 #else
 // TODO: should we evaluate the condition anyway?
 #define ASSERT_DEBUG(condition, c, ...)                                        \
+    if (condition) {                                                           \
+    }
+#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
     if (condition) {                                                           \
     }
 #endif

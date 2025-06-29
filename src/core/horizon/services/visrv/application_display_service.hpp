@@ -23,6 +23,8 @@ class IApplicationDisplayService : public DisplayServiceBase {
                  OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer);
     result_t OpenDisplay(u64* out_display_id);
     result_t CloseDisplay(u64 display_id);
+    result_t GetDisplayResolution(u64 display_id, i64* out_width,
+                                  i64* out_height);
     result_t OpenLayer(u64 display_name, u64 layer_id, u64 aruid,
                        u64* out_native_window_size,
                        OutBuffer<BufferAttr::MapAlias> parcel_buffer);

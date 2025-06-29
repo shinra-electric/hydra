@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 
+#include "core/debugger/debugger.hpp"
+
 #define PTE_TYPE_MASK 0x3ull
 #define PTE_BLOCK(level) ((level == 2 ? 3ull : 1ull) << 0)
 #define PTE_TABLE (3ull << 0)           // For level 0 and 1 descriptors
@@ -105,8 +107,8 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
-    ASSERT(region.state.type != horizon::kernel::MemoryType::Free, Hypervisor,
-           "Failed to unmap va 0x{:08x}", va);
+    DEBUGGER_ASSERT(region.state.type != horizon::kernel::MemoryType::Free,
+                    Hypervisor, "Failed to unmap va 0x{:08x}", va);
 
     return region.UnmapAddr(va);
 }
