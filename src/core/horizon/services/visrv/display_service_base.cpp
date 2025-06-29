@@ -32,9 +32,10 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
 
 result_t DisplayServiceBase::SetLayerVisibilityImpl(u64 layer_id,
                                                     bool visible) {
+    LOG_FUNC_STUBBED(Services);
+
     LOG_DEBUG(Services, "Layer ID: {}, visible: {}", layer_id, visible);
 
-    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 

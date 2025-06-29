@@ -47,6 +47,9 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(DXN1, Unorm, Unorm, Unorm, Unorm, BC4_RUnorm)
     IMAGE_FORMAT_CASE(Z24S8, Uint, Unorm, Unorm, Unorm, Z24Unorm_S8Uint)
     IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
+    IMAGE_FORMAT_CASE(R32, Float, Float, Float, Float, R32Float)
+    IMAGE_FORMAT_CASE(Z16, Unorm, Unorm, Unorm, Unorm, Z16Unorm)
+    IMAGE_FORMAT_CASE(RGBA16, Float, Float, Float, Float, RGBA16Float)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU, "Image format {}, components: {}, {}, {}, {}",
@@ -405,6 +408,20 @@ bool is_texture_format_compressed(const TextureFormat format) {
     case TextureFormat::PTA_ETC2_RGB_sRGB:
     case TextureFormat::ETC2_RGBA:
     case TextureFormat::ETC2_RGBA_sRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool is_texture_format_depth_or_stencil(const TextureFormat format) {
+    switch (format) {
+    case TextureFormat::S8Uint:
+    case TextureFormat::Z16Unorm:
+    case TextureFormat::Z24Unorm_X8Uint:
+    case TextureFormat::Z32Float:
+    case TextureFormat::Z24Unorm_S8Uint:
+    case TextureFormat::Z32Float_X24S8Uint:
         return true;
     default:
         return false;

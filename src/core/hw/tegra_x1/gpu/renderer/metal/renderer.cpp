@@ -257,6 +257,13 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                                              .color_targets[render_target_id]
                                              .texture);
 
+    // HACK
+    if (!texture) {
+        ONCE(LOG_WARN(MetalRenderer, "Invalid color target at index {}",
+                      render_target_id));
+        return;
+    }
+
     SetRenderPipelineState(clear_color_pipeline_cache->Find(
         {texture->GetPixelFormat(), render_target_id, mask}));
     // TODO: set viewport and scissor

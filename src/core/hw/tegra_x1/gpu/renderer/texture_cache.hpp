@@ -11,29 +11,34 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 class TextureBase;
 
 struct Tex {
-    TextureBase* base;
+    TextureBase* base{nullptr};
     small_cache<u32, TextureBase*> view_cache;
 };
 
-class TextureCache : public CacheBase<TextureCache, Tex, TextureDescriptor> {
+struct TextureMem {
+    small_cache<u64, Tex> cache;
+};
+
+class TextureCache {
   public:
-    void Destroy() {}
+    ~TextureCache();
 
     TextureBase* GetTextureView(const TextureDescriptor& descriptor);
-
-    Tex Create(const TextureDescriptor& descriptor);
-    void Update(Tex& texture);
-    u64 Hash(const TextureDescriptor& descriptor);
-
-    void DestroyElement(Tex& texture);
 
   private:
     TextureDecoder texture_decoder;
 
+    // TODO: use a more memory lookup friendly data structure
+    std::map<uptr, TextureMem> texture_mem_map;
+
     // Buffers
     std::vector<u8> scratch_buffer;
 
+    TextureBase* Create(const TextureDescriptor& descriptor);
+    void Update(TextureBase* texture);
+
     // Helpers
+    u64 GetTextureHash(const TextureDescriptor& descriptor);
     void DecodeTexture(TextureBase* texture);
     // TODO: encode texture
 };

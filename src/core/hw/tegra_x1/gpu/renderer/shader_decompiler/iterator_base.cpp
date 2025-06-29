@@ -1485,7 +1485,39 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("dset");
     }
     INST(0x4800000000000000, 0xfe00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("fset");
+        const auto bool_float = GET_BIT(52);
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto negA = GET_BIT(43);
+        const auto srcB = GET_CMEM(34, 14);
+        const auto negB = GET_BIT(53);
+        // TODO: combine
+        COMMENT("fset {} {} {} r{} {}r{} {}c{}[0x{:x}]",
+                (bool_float ? "BF" : ""), cmp, combine_bin, dst,
+                (negA ? "-" : ""), srcA, (negB ? "-" : ""), srcB.idx, srcB.imm);
+
+        HANDLE_PRED_COND();
+
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
+                         o->OpConstMemoryL(srcB, DataType::F32, negB));
+        // TODO: uncomment
+        // auto bin_res = o->OpBitwise(combine_bin, cmp_res,
+        //                    o->OpPredicate(true, combine));
+        // TODO: use bin_res instead of cmp_res
+        // TODO: simplify immediate value creation
+        if (bool_float) {
+            auto res = o->OpSelect(
+                cmp_res,
+                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
+                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
+            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        } else {
+            auto res = o->OpCast(cmp_res, DataType::U32);
+            o->OpMove(o->OpRegister(false, dst), res);
+        }
     }
     INST(0x4000000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vset");
@@ -1775,7 +1807,39 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("dset");
     }
     INST(0x3000000000000000, 0xfe00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("fset");
+        const auto bool_float = GET_BIT(52);
+        const auto cmp = get_operand_5bb0_0(inst);
+        const auto combine_bin = get_operand_5bb0_1(inst);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        const auto negA = GET_BIT(43);
+        const auto srcB = GET_VALUE_F32();
+        const auto negB = GET_BIT(53);
+        // TODO: combine
+        COMMENT("fset {} {} {} r{} {}r{} {}0x{:08x}", (bool_float ? "BF" : ""),
+                cmp, combine_bin, dst, (negA ? "-" : ""), srcA,
+                (negB ? "-" : ""), srcB);
+
+        HANDLE_PRED_COND();
+
+        auto cmp_res =
+            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
+                         o->OpImmediateL(srcB, DataType::F32, negB));
+        // TODO: uncomment
+        // auto bin_res = o->OpBitwise(combine_bin, cmp_res,
+        //                    o->OpPredicate(true, combine));
+        // TODO: use bin_res instead of cmp_res
+        // TODO: simplify immediate value creation
+        if (bool_float) {
+            auto res = o->OpSelect(
+                cmp_res,
+                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
+                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
+            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        } else {
+            auto res = o->OpCast(cmp_res, DataType::U32);
+            o->OpMove(o->OpRegister(false, dst), res);
+        }
     }
     INST(0x2c00000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("hadd2_32i");

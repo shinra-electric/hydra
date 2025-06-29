@@ -24,50 +24,57 @@ class CfgBuilder : public ObserverBase {
     // Debug
     void LogBlocks() const {
         for (const auto& [label, block] : blocks)
-            block.Log();
+            block->Log();
     }
 
     // Getters
     const CfgBasicBlock* GetEntryBlock() const { return entry_point_block; }
 
   private:
-    std::map<u32, CfgBasicBlock> blocks;
+    std::map<u32, CfgBasicBlock*> blocks;
     CfgBasicBlock* entry_point_block;
 
     CfgBasicBlock* crnt_block;
 
     std::optional<PredCond> pred_cond;
 
-    CfgBasicBlock& VisitBlock(u32 label) {
+    CfgBasicBlock* VisitBlock(u32 label) {
         auto& block = blocks[label];
-        ASSERT_DEBUG(block.status == CfgBlockStatus::Unvisited,
+        if (!block)
+            block = new CfgBasicBlock{};
+
+        ASSERT_DEBUG(block->status == CfgBlockStatus::Unvisited,
                      ShaderDecompiler, "Block 0x{:x} already visited", label);
-        block.status = CfgBlockStatus::Visited;
-        block.code_range = range(label);
+        block->status = CfgBlockStatus::Visited;
+        block->code_range = range(label);
 
         return block;
     }
 
-    void FinishBlock(CfgBasicBlock& block, const u32 end,
+    void FinishBlock(CfgBasicBlock* block, const u32 end,
                      const CfgBlockEdge& edge) {
-        ASSERT_DEBUG(block.status == CfgBlockStatus::Visited, ShaderDecompiler,
+        ASSERT_DEBUG(block, ShaderDecompiler, "Invalid block");
+        ASSERT_DEBUG(block->status == CfgBlockStatus::Visited, ShaderDecompiler,
                      "Block 0x{:x} finished without being visited",
-                     block.code_range.begin);
+                     block->code_range.begin);
 
-        block.code_range.end = end;
-        block.edge = edge;
-        block.status = CfgBlockStatus::Finished;
+        block->code_range.end = end;
+        block->edge = edge;
+        block->status = CfgBlockStatus::Finished;
     }
 
     void EndBlock(const CfgBlockEdge& edge) {
-        FinishBlock(*crnt_block,
+        FinishBlock(crnt_block,
                     pc + (edge.type == CfgBlockEdgeType::Exit ? 1 : 0), edge);
         crnt_block = nullptr;
     }
 
-    CfgBasicBlock& GetBranchTarget(u32 label, u32 return_sync_point) {
+    CfgBasicBlock* GetBranchTarget(u32 label, u32 return_sync_point) {
         auto& block = blocks[label];
-        block.return_sync_point = return_sync_point;
+        if (!block)
+            block = new CfgBasicBlock{};
+
+        block->return_sync_point = return_sync_point;
         return block;
     }
 };
