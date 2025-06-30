@@ -84,10 +84,13 @@ void Builder::EmitDeclarations() {
     EnterScope("struct StageOut");
 
     // SVs
+    // HACK: always write position in vertex shaders
+    if (context.type == ShaderType::Vertex)
+        Write("float4 position [[position]];");
     for (const auto sv_semantic : memory_analyzer.GetOutputSVs()) {
         switch (sv_semantic) {
         case SvSemantic::Position:
-            Write("float4 position [[position]];");
+            // Write("float4 position [[position]];");
             break;
         default:
             LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Output SV semantic {}",

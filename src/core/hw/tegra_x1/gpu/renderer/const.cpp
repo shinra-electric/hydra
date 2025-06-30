@@ -38,8 +38,11 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
     IMAGE_FORMAT_CASE(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA)
     IMAGE_FORMAT_CASE(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA)
+    IMAGE_FORMAT_CASE(DXN2, Unorm, Unorm, Unorm, Unorm, BC5_RGUnorm)
+    IMAGE_FORMAT_CASE(DXN2, Snorm, Snorm, Snorm, Snorm, BC5_RGSnorm)
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     IMAGE_FORMAT_CASE(B5G6R5, Unorm, Unorm, Unorm, Unorm, B5G6R5Unorm)
+    IMAGE_FORMAT_CASE(B10GR11Float, Float, Float, Float, Float, RG11B10Float)
     IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
                       RG8Unorm) // TODO: correct?
     IMAGE_FORMAT_CASE(A2BGR10, Unorm, Unorm, Unorm, Unorm, RGB10A2Unorm)
@@ -49,7 +52,10 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
     IMAGE_FORMAT_CASE(R32, Float, Float, Float, Float, R32Float)
     IMAGE_FORMAT_CASE(Z16, Unorm, Unorm, Unorm, Unorm, Z16Unorm)
+    IMAGE_FORMAT_CASE(ZF32, Float, Float, Float, Float, Z32Float)
+    IMAGE_FORMAT_CASE(RG16, Float, Float, Float, Float, RG16Float)
     IMAGE_FORMAT_CASE(RGBA16, Float, Float, Float, Float, RGBA16Float)
+    IMAGE_FORMAT_CASE(RGBA32, Float, Float, Float, Float, RGBA32Float)
     else {
         LOG_NOT_IMPLEMENTED(
             GPU, "Image format {}, components: {}, {}, {}, {}",

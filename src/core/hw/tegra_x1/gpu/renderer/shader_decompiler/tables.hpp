@@ -12,7 +12,8 @@
             FOR_EACH_1_2(OPERAND_TABLE_ENTRY, e, __VA_ARGS__)                  \
         default:                                                               \
             LOG_ERROR(ShaderDecompiler,                                        \
-                      "Couldn't extract opernad from instruction 0x{:016x}",   \
+                      "Couldn't extract " #e " (" #name                        \
+                      ") operand from instruction 0x{:016x}",                  \
                       inst);                                                   \
             return e::Invalid;                                                 \
         }                                                                      \

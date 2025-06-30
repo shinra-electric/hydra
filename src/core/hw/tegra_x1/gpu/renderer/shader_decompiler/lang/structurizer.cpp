@@ -57,7 +57,7 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
         });
 
         if (is_loop) {
-            LOG_INFO(ShaderDecompiler, "Do-while loop detected");
+            LOG_DEBUG(ShaderDecompiler, "Do-while loop detected");
 
             // Do-while loop
             auto merge_block = TransformLoop(block, target);
@@ -112,7 +112,7 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
         }
 
         if (is_loop) {
-            LOG_INFO(ShaderDecompiler, "While loop detected");
+            LOG_DEBUG(ShaderDecompiler, "While loop detected");
 
             // While loop
             auto merge_block = TransformLoop(block, block_true);
@@ -129,6 +129,8 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
             // fact that we cannot have a proper prologue (so the prologue is
             // emitted twice: once before the if-else and once at the end of the
             // do-while loop)
+            // TODO: this is simply not correct, as continue statements won't
+            // jump to the prologue
             auto code_block = new CfgCodeBlock(block->code_range);
             auto while_block = new CfgWhileBlock(
                 true, block->edge.branch_conditional.pred_cond,

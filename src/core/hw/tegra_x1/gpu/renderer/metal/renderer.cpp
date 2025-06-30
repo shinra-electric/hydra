@@ -251,8 +251,6 @@ void Renderer::BindRenderPass(const RenderPassBase* render_pass) {
 
 void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                           const uint4 color) {
-    auto encoder = GetRenderCommandEncoder();
-
     auto texture = static_cast<Texture*>(state.render_pass->GetDescriptor()
                                              .color_targets[render_target_id]
                                              .texture);
@@ -264,6 +262,8 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
         return;
     }
 
+    auto encoder = GetRenderCommandEncoder();
+
     SetRenderPipelineState(clear_color_pipeline_cache->Find(
         {texture->GetPixelFormat(), render_target_id, mask}));
     // TODO: set viewport and scissor
@@ -274,10 +274,16 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
 }
 
 void Renderer::ClearDepth(u32 layer, const float value) {
-    auto encoder = GetRenderCommandEncoder();
-
     auto texture = static_cast<Texture*>(
         state.render_pass->GetDescriptor().depth_stencil_target.texture);
+
+    // HACK
+    if (!texture) {
+        ONCE(LOG_WARN(MetalRenderer, "Invalid depth target"));
+        return;
+    }
+
+    auto encoder = GetRenderCommandEncoder();
 
     SetRenderPipelineState(
         clear_depth_pipeline_cache->Find(texture->GetPixelFormat()));

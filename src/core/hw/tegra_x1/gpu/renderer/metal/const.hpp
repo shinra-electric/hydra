@@ -47,6 +47,8 @@ inline MTL::Library* CreateLibraryFromSource(MTL::Device* device,
     if (error) {
         LOG_ERROR(GPU, "Failed to create library: {}",
                   error->localizedDescription()->utf8String());
+        // TODO: don't log?
+        LOG_INFO(MetalRenderer, "Shader source: {}", source);
         error->release(); // TODO: release?
         return nullptr;
     }
