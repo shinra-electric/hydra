@@ -31,6 +31,7 @@ class LangBuilderBase : public BuilderBase {
     void Finish() override;
 
     void SetPredCond(const PredCond pred_cond) override;
+    void SetWhilePredCond(const PredCond pred_cond);
 
     // Operations
 
@@ -65,6 +66,8 @@ class LangBuilderBase : public BuilderBase {
                         ValueBase* src_false) override;
 
     // Control flow
+    void OpBreak();
+    void OpContinue();
     void OpExit() override;
 
     // Math
@@ -124,10 +127,14 @@ class LangBuilderBase : public BuilderBase {
         skip_indent = true;
     }
 
-    void EnterScopeEmpty() { EnterScopeImpl(""); }
-
     template <typename... T> void EnterScope(WRITE_ARGS) {
         EnterScopeImpl("{} ", FMT);
+    }
+
+    void EnterScopeEmpty() { EnterScopeImpl(""); }
+
+    template <typename... T> void ExitScope(WRITE_ARGS) {
+        ExitScopeImpl(" {};", FMT);
     }
 
     void ExitScopeEmpty(bool semicolon = false) {
@@ -137,8 +144,9 @@ class LangBuilderBase : public BuilderBase {
             ExitScopeImpl("");
     }
 
-    template <typename... T> void ExitScope(WRITE_ARGS) {
-        ExitScopeImpl(" {};", FMT);
+    void ExitScopeWithWhilePredCond(const PredCond pred_cond) {
+        ExitScope("while ({}{})", pred_cond.not_ ? "!" : "",
+                  GetPredicate(true, pred_cond.pred));
     }
 
     // Helpers

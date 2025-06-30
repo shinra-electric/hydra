@@ -204,6 +204,11 @@ void LangBuilderBase::SetPredCond(const PredCond pred_cond) {
                    GetPredicate(true, pred_cond.pred));
 }
 
+void LangBuilderBase::SetWhilePredCond(const PredCond pred_cond) {
+    EnterScopeTemp("while ({}{})", pred_cond.not_ ? "!" : "",
+                   GetPredicate(true, pred_cond.pred));
+}
+
 #define RET_V_WITH_NEG(s)                                                      \
     {                                                                          \
         auto str = s;                                                          \
@@ -279,6 +284,10 @@ ValueBase* LangBuilderBase::OpSelect(ValueBase* cond, ValueBase* src_true,
                                      ValueBase* src_false) {
     RET_V("({} ? {} : {})", V(cond), V(src_true), V(src_false));
 }
+
+void LangBuilderBase::OpBreak() { WriteStatement("break"); }
+
+void LangBuilderBase::OpContinue() { WriteStatement("continue"); }
 
 void LangBuilderBase::OpExit() {
     // Outputs

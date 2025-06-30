@@ -36,6 +36,16 @@ void StructuredIterator::IterateImpl(LangBuilderBase* builder,
         Jump(builder, code_block->code_range.begin);
         for (u32 i = 0; i < code_block->code_range.GetSize(); i++)
             PARSE_NEXT_INSTRUCTION();
+        switch (code_block->last_statement) {
+        case LastStatement::Break:
+            builder->OpBreak();
+            break;
+        case LastStatement::Continue:
+            builder->OpContinue();
+            break;
+        case LastStatement::None:
+            break;
+        }
     } else if (auto block = dynamic_cast<const CfgBlock*>(node)) {
         for (const auto block_node : block->nodes)
             IterateImpl(builder, block_node);
@@ -56,6 +66,18 @@ void StructuredIterator::IterateImpl(LangBuilderBase* builder,
         builder->EnterScope("else");
         IterateImpl(builder, if_else_block->else_block);
         builder->ExitScopeEmpty();
+    } else if (auto while_block = dynamic_cast<const CfgWhileBlock*>(node)) {
+        // While
+        if (!while_block->IsDoWhile()) {
+            builder->SetWhilePredCond(while_block->pred_cond);
+            builder->EnterScopeEmpty();
+            IterateImpl(builder, while_block->body_block);
+            builder->ExitScopeEmpty();
+        } else {
+            builder->EnterScope("do");
+            IterateImpl(builder, while_block->body_block);
+            builder->ExitScopeWithWhilePredCond(while_block->pred_cond);
+        }
     } else {
         LOG_ERROR(ShaderDecompiler, "Invalid structured node");
     }

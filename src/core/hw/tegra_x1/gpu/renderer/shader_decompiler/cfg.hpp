@@ -8,6 +8,8 @@ enum class CfgBlockEdgeType {
     Branch,
     BranchConditional,
     Exit,
+    Break,
+    Continue,
 };
 
 struct CfgBasicBlock;
@@ -40,6 +42,8 @@ struct CfgBlockEdge {
                    branch_conditional.target_false ==
                        other.branch_conditional.target_false;
         case CfgBlockEdgeType::Exit:
+        case CfgBlockEdgeType::Break:
+        case CfgBlockEdgeType::Continue:
             return true;
         }
     }
@@ -64,6 +68,37 @@ struct CfgBasicBlock {
     range<u32> code_range;
     u32 return_sync_point{invalid<u32>()};
     CfgBlockEdge edge;
+
+    void Walk(std::function<bool(CfgBasicBlock*)> visitor) {
+        std::vector<CfgBasicBlock*> visited;
+        WalkImpl(visitor, visited);
+    }
+
+    bool CanJumpTo(CfgBasicBlock* target) {
+        bool can_jump = false;
+        Walk([&can_jump, target](CfgBasicBlock* b) {
+            if (b == target) {
+                can_jump = true;
+                return false;
+            }
+
+            return true;
+        });
+
+        return can_jump;
+    }
+
+    bool CanDirectlyJumpTo(CfgBasicBlock* target) const {
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            return edge.branch.target == target;
+        case CfgBlockEdgeType::BranchConditional:
+            return edge.branch_conditional.target_true == target ||
+                   edge.branch_conditional.target_false == target;
+        default:
+            return false;
+        }
+    }
 
     void Log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
@@ -105,6 +140,40 @@ struct CfgBasicBlock {
                       edge.branch_conditional.target_false->code_range.begin);
             break;
         case CfgBlockEdgeType::Exit:
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Exit",
+                      PASS_INDENT(indent + 2));
+            break;
+        case CfgBlockEdgeType::Break:
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Break",
+                      PASS_INDENT(indent + 2));
+            break;
+        case CfgBlockEdgeType::Continue:
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Continue",
+                      PASS_INDENT(indent + 2));
+            break;
+        }
+    }
+
+  private:
+    void WalkImpl(std::function<bool(CfgBasicBlock*)> visitor,
+                  std::vector<CfgBasicBlock*>& visited) {
+        if (std::find(visited.begin(), visited.end(), this) != visited.end())
+            return;
+
+        visited.push_back(this);
+
+        if (!visitor(this))
+            return;
+
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            edge.branch.target->WalkImpl(visitor, visited);
+            break;
+        case CfgBlockEdgeType::BranchConditional:
+            edge.branch_conditional.target_true->WalkImpl(visitor, visited);
+            edge.branch_conditional.target_false->WalkImpl(visitor, visited);
+            break;
+        default:
             break;
         }
     }

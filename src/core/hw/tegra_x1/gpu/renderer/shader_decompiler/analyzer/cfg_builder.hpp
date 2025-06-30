@@ -28,7 +28,7 @@ class CfgBuilder : public ObserverBase {
     }
 
     // Getters
-    const CfgBasicBlock* GetEntryBlock() const { return entry_point_block; }
+    CfgBasicBlock* GetEntryBlock() { return entry_point_block; }
 
   private:
     std::map<u32, CfgBasicBlock*> blocks;
