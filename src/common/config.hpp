@@ -73,14 +73,10 @@ class ArrayOption {
     const T& Get(u32 index) const { return values[index]; }
     usize GetCount() const { return values.size(); }
 
-    void Add(const T& value) { values.push_back(value); }
+    void Resize(u32 size) { values.resize(size); }
     void Set(u32 index, const T& value) {
         VerifyIndex(index);
         values[index] = value;
-    }
-    void Remove(u32 index) {
-        VerifyIndex(index);
-        values.erase(values.begin() + index);
     }
 
   private:

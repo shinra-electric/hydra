@@ -101,10 +101,9 @@ void hydra_string_option_set(void* option, const char* value);
 
 uint32_t hydra_string_array_option_get_count(const void* option);
 const char* hydra_string_array_option_get(const void* option, uint32_t index);
-void hydra_string_array_option_add(void* option, const char* value);
+void hydra_string_array_option_resize(void* option, size_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
                                    const char* value);
-void hydra_string_array_option_remove(void* option, uint32_t index);
 
 // Config
 void hydra_config_serialize();

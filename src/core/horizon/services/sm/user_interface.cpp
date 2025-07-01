@@ -17,6 +17,7 @@
 #include "core/horizon/services/hid/hid_debug_server.hpp"
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
+#include "core/horizon/services/lbl/lbl_controller.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
 #include "core/horizon/services/mmnv/request.hpp"
@@ -105,6 +106,7 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(mii::IStaticService, "mii:u", "mii:e")
         SERVICE_CASE(fatalsrv::IService, "fatal:u")
         SERVICE_CASE(ns::IApplicationManagerInterface, "ns:am")
+        SERVICE_CASE(lbl::ILblController, "lbl")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module

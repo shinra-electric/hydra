@@ -54,26 +54,17 @@ struct GeneralSettingsView: View {
     func save() {
         // TODO: simplify this?
         let gamePathsOption = hydra_config_get_game_paths()
+        hydra_string_array_option_resize(gamePathsOption, self.gamePaths.count)
         for i in 0..<self.gamePaths.count {
             hydra_string_array_option_set(
                 gamePathsOption, UInt32(i), self.gamePaths[i].cString(using: .ascii))
         }
-        // HACK: need to do it this way in order to avoid "failed to produce diagnostic for expression"
-        var i = self.gamePaths.count
-        while i < hydra_string_array_option_get_count(gamePathsOption) {
-            hydra_string_array_option_remove(gamePathsOption, UInt32(i))
-            i += 1
-        }
 
         let patchPathsOption = hydra_config_get_patch_paths()
+        hydra_string_array_option_resize(patchPathsOption, self.patchPaths.count)
         for i in 0..<self.patchPaths.count {
             hydra_string_array_option_set(
                 patchPathsOption, UInt32(i), self.patchPaths[i].cString(using: .ascii))
-        }
-        i = self.patchPaths.count
-        while i < hydra_string_array_option_get_count(patchPathsOption) {
-            hydra_string_array_option_remove(patchPathsOption, UInt32(i))
-            i += 1
         }
 
         let sdCardPathOption = hydra_config_get_sd_card_path()

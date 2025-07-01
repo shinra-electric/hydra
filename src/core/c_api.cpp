@@ -64,19 +64,13 @@ HYDRA_EXPORT const char* hydra_string_array_option_get(const void* option,
         .c_str();
 }
 
-HYDRA_EXPORT void hydra_string_array_option_add(void* option,
-                                                const char* value) {
-    static_cast<hydra::ArrayOption<std::string>*>(option)->Add(value);
+HYDRA_EXPORT void hydra_string_array_option_resize(void* option, size_t size) {
+    static_cast<hydra::ArrayOption<std::string>*>(option)->Resize(size);
 }
 
 HYDRA_EXPORT void hydra_string_array_option_set(void* option, uint32_t index,
                                                 const char* value) {
     static_cast<hydra::ArrayOption<std::string>*>(option)->Set(index, value);
-}
-
-HYDRA_EXPORT void hydra_string_array_option_remove(void* option,
-                                                   uint32_t index) {
-    static_cast<hydra::ArrayOption<std::string>*>(option)->Remove(index);
 }
 
 // Config

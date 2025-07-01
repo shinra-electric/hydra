@@ -22,15 +22,15 @@ struct FirmwareVersion {
 };
 
 constexpr FirmwareVersion FIRMWARE_VERSION = {
-    .major = 1,
+    .major = 4,
     .minor = 0,
     .micro = 0,
     .revision_major = 0,
     .revision_minor = 0,
     .platform = "NX",
     .version_hash = "voyp5gq7m551zuqgspcgobbmo74rg6yydpalt72l",
-    .display_version = "1.0.0",
-    .display_title = "hydra firmware 1.0.0",
+    .display_version = "4.0.0",
+    .display_title = "Hydra firmware 4.0.0",
 };
 
 enum class ConfigEntryType : u32 {
