@@ -4,13 +4,16 @@
 
 namespace hydra {
 
-template <typename T> struct function_traits;
+template <typename T>
+struct function_traits;
 
-template <typename R, typename... Args> struct function_traits<R(Args...)> {
+template <typename R, typename... Args>
+struct function_traits<R(Args...)> {
     using return_type = R;
     static constexpr usize arg_count = sizeof...(Args);
 
-    template <usize N> struct arg {
+    template <usize N>
+    struct arg {
         using type = typename std::tuple_element<N, std::tuple<Args...>>::type;
     };
 

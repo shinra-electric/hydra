@@ -10,7 +10,8 @@
 
 namespace hydra {
 
-template <typename T> struct range {
+template <typename T>
+struct range {
   public:
     T begin;
     T end;
@@ -50,7 +51,8 @@ struct sized_ptr {
     usize size;
 };
 
-template <typename T, usize component_count> class vec {
+template <typename T, usize component_count>
+class vec {
   public:
     vec() = default;
     vec(const T& value) {
@@ -139,14 +141,16 @@ using ulong4 = vec<u64, 4>;
 using usize4 = vec<usize, 4>;
 using float4 = vec<float, 4>;
 
-template <typename Origin, typename Size> struct Rect2D {
+template <typename Origin, typename Size>
+struct Rect2D {
     vec<Origin, 2> origin;
     vec<Size, 2> size;
 };
 
 using IntRect2D = Rect2D<i32, i32>;
 
-template <typename T, usize alignment> class aligned {
+template <typename T, usize alignment>
+class aligned {
   public:
     static_assert(sizeof(T) <= alignment);
 

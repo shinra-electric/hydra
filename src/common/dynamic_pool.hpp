@@ -5,7 +5,8 @@
 
 namespace hydra {
 
-template <typename T> class DynamicPool {
+template <typename T>
+class DynamicPool {
   public:
     DynamicPool() = default;
     ~DynamicPool() = default;

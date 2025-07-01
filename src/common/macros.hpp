@@ -179,7 +179,8 @@
         break;
 
 #define ENABLE_ENUM_FORMATTING(e, ...)                                         \
-    template <> struct fmt::formatter<e> : formatter<string_view> {            \
+    template <>                                                                \
+    struct fmt::formatter<e> : formatter<string_view> {                        \
         template <typename FormatContext>                                      \
         auto format(e c, FormatContext& ctx) const {                           \
             string_view name;                                                  \
@@ -222,7 +223,8 @@
     }
 
 #define ENABLE_ENUM_FLAGS_FORMATTING(e, ...)                                   \
-    template <> struct fmt::formatter<e> : formatter<string_view> {            \
+    template <>                                                                \
+    struct fmt::formatter<e> : formatter<string_view> {                        \
         template <typename FormatContext>                                      \
         auto format(e c, FormatContext& ctx) const {                           \
             std::string name;                                                  \
@@ -239,7 +241,8 @@
     str += fmt::format("{}: {}, ", #member, c.member);
 
 #define ENABLE_STRUCT_FORMATTING(s, ...)                                       \
-    template <> struct fmt::formatter<s> : formatter<string_view> {            \
+    template <>                                                                \
+    struct fmt::formatter<s> : formatter<string_view> {                        \
         template <typename FormatContext>                                      \
         auto format(const s& c, FormatContext& ctx) const {                    \
             std::string str;                                                   \

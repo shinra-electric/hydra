@@ -167,7 +167,8 @@ class Kernel {
     std::map<std::string, ServiceBase*> service_ports;
 };
 
-template <typename T> struct HandleWithId {
+template <typename T>
+struct HandleWithId {
     static_assert(std::is_convertible_v<T*, AutoObject*>,
                   "Type does not inherit from AutoObject");
 

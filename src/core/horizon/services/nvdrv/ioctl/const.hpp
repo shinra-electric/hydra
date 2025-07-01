@@ -38,7 +38,8 @@ struct IoctlContext {
     Writer* buffer_writer;
 };
 
-template <typename In, typename Out> struct InOut {
+template <typename In, typename Out>
+struct InOut {
     static_assert(sizeof(In) == sizeof(Out));
     In in;
     Out* out;
@@ -47,7 +48,8 @@ template <typename In, typename Out> struct InOut {
     void operator=(const Out& other) { *out = other; }
 };
 
-template <typename T> struct InOutSingle {
+template <typename T>
+struct InOutSingle {
     T* data;
 
     operator T() const { return *data; }
@@ -62,29 +64,35 @@ enum class ArgumentType {
     InArray,
 };
 
-template <typename T> struct arg_traits;
+template <typename T>
+struct arg_traits;
 
-template <typename T> struct arg_traits {
+template <typename T>
+struct arg_traits {
     static constexpr ArgumentType type = ArgumentType::In;
 };
 
-template <typename T> struct arg_traits<T*> {
+template <typename T>
+struct arg_traits<T*> {
     static constexpr ArgumentType type = ArgumentType::Out;
     using BaseType = T;
 };
 
-template <typename In_, typename Out_> struct arg_traits<InOut<In_, Out_>> {
+template <typename In_, typename Out_>
+struct arg_traits<InOut<In_, Out_>> {
     static constexpr ArgumentType type = ArgumentType::InOut;
     using In = In_;
     using Out = Out_;
 };
 
-template <typename T> struct arg_traits<InOutSingle<T>> {
+template <typename T>
+struct arg_traits<InOutSingle<T>> {
     static constexpr ArgumentType type = ArgumentType::InOutSingle;
     using BaseType = T;
 };
 
-template <typename T> struct arg_traits<const T*> {
+template <typename T>
+struct arg_traits<const T*> {
     static constexpr ArgumentType type = ArgumentType::InArray;
     using BaseType = T;
 };

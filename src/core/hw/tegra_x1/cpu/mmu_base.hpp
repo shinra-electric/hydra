@@ -39,15 +39,18 @@ class MMUBase {
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
 
-    template <typename T> T Load(vaddr_t va) const {
+    template <typename T>
+    T Load(vaddr_t va) const {
         return *reinterpret_cast<T*>(UnmapAddr(va));
     }
 
-    template <typename T> void Store(vaddr_t va, T value) const {
+    template <typename T>
+    void Store(vaddr_t va, T value) const {
         *reinterpret_cast<T*>(UnmapAddr(va)) = value;
     }
 
-    template <typename T> void StoreExclusive(vaddr_t va, T value) const {
+    template <typename T>
+    void StoreExclusive(vaddr_t va, T value) const {
         auto ptr = reinterpret_cast<T*>(UnmapAddr(va));
         std::atomic<T>* ref = new (ptr) std::atomic<T>(*ptr);
         ref->store(value, std::memory_order_release); // TODO: correct?

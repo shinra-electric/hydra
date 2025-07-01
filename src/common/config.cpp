@@ -14,13 +14,16 @@
 
 #define TOML11_DEFINE_CONVERSION_ENUM(e, ...)                                  \
     namespace toml {                                                           \
-    template <> struct from<e> {                                               \
-        template <typename TC> static e from_toml(const basic_value<TC>& v) {  \
+    template <>                                                                \
+    struct from<e> {                                                           \
+        template <typename TC>                                                 \
+        static e from_toml(const basic_value<TC>& v) {                         \
             FOR_EACH_1_2(TOML11_CONVERSION_TOML_TO_ENUM_CASE, e, __VA_ARGS__)  \
             return e::Invalid;                                                 \
         }                                                                      \
     };                                                                         \
-    template <> struct into<e> {                                               \
+    template <>                                                                \
+    struct into<e> {                                                           \
         template <typename TC>                                                 \
         static basic_value<TC> into_toml(const e& obj) {                       \
             switch (obj) {                                                     \

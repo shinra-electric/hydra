@@ -32,7 +32,8 @@ class AppletBase {
         return Reader(data.GetPtrU8(), data.GetSize());
     }
 
-    template <typename T> T PopInData() {
+    template <typename T>
+    T PopInData() {
         auto reader = PopInDataRaw();
         ASSERT(reader.GetSize() >= sizeof(T), Applets,
                "Not enough space ({} < {})", reader.GetSize(), sizeof(T));
@@ -44,7 +45,8 @@ class AppletBase {
         controller.PushOutData(new services::am::IStorage(data));
     }
 
-    template <typename T> void PushOutData(const T& data) {
+    template <typename T>
+    void PushOutData(const T& data) {
         auto ptr = malloc(sizeof(T));
         memcpy(ptr, &data, sizeof(T));
         PushOutDataRaw(sized_ptr(ptr, sizeof(T)));
@@ -57,7 +59,8 @@ class AppletBase {
         return Reader(data.GetPtrU8(), data.GetSize());
     }
 
-    template <typename T> T PopInteractiveInData() {
+    template <typename T>
+    T PopInteractiveInData() {
         auto reader = PopInteractiveInDataRaw();
         ASSERT(reader.GetSize() >= sizeof(T), Applets,
                "Not enough space ({} < {})", reader.GetSize(), sizeof(T));
@@ -69,7 +72,8 @@ class AppletBase {
         controller.PushInteractiveOutData(new services::am::IStorage(data));
     }
 
-    template <typename T> void PushInteractiveOutData(const T& data) {
+    template <typename T>
+    void PushInteractiveOutData(const T& data) {
         auto ptr = malloc(sizeof(T));
         memcpy(ptr, &data, sizeof(T));
         PushInteractiveOutDataRaw(sized_ptr(ptr, sizeof(T)));

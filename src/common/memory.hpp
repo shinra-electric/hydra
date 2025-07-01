@@ -20,16 +20,21 @@ class Reader {
     void Seek(u64 pos) { ptr = base + pos; }
     void Skip(usize size) { ptr += size; }
 
-    template <typename T> const T Read() { return *ReadPtr<T>(); }
+    template <typename T>
+    const T Read() {
+        return *ReadPtr<T>();
+    }
 
-    template <typename T> const T* ReadPtr(usize count = 1) {
+    template <typename T>
+    const T* ReadPtr(usize count = 1) {
         const T* result = reinterpret_cast<const T*>(ptr);
         ptr += sizeof(T) * count;
 
         return result;
     }
 
-    template <typename T> const T* ReadWhole() {
+    template <typename T>
+    const T* ReadWhole() {
         return ReadPtr<T>(size / sizeof(T));
     }
 
@@ -62,7 +67,8 @@ class Writer {
     void Seek(u64 pos) { ptr = base + pos; }
     void Skip(usize size) { ptr += size; }
 
-    template <typename T> T* Write(const T& value) {
+    template <typename T>
+    T* Write(const T& value) {
         T* result = reinterpret_cast<T*>(ptr);
         *result = value;
         ptr += sizeof(T);
@@ -121,18 +127,21 @@ class StreamReader {
     u64 Tell() const { return static_cast<u64>(stream.tellg()) - offset; }
     void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
 
-    template <typename T> T Read() {
+    template <typename T>
+    T Read() {
         T result;
         stream.read(reinterpret_cast<char*>(&result), sizeof(T));
 
         return result;
     }
 
-    template <typename T> void ReadPtr(T* ptr, usize count) {
+    template <typename T>
+    void ReadPtr(T* ptr, usize count) {
         stream.read(reinterpret_cast<char*>(ptr), count * sizeof(T));
     }
 
-    template <typename T> void ReadWhole(T* ptr) {
+    template <typename T>
+    void ReadWhole(T* ptr) {
         ReadPtr(ptr, size / sizeof(T));
     }
 
@@ -162,11 +171,13 @@ class StreamWriter {
     u64 Tell() { return static_cast<u64>(stream.tellp()) - offset; }
     void Seek(u64 pos) { stream.seekp(offset + pos, std::ios::beg); }
 
-    template <typename T> void Write(const T& value) {
+    template <typename T>
+    void Write(const T& value) {
         stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
     }
 
-    template <typename T> void WritePtr(const T* write_ptr, usize count) {
+    template <typename T>
+    void WritePtr(const T* write_ptr, usize count) {
         stream.write(reinterpret_cast<const char*>(write_ptr),
                      count * sizeof(T));
     }

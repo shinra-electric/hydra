@@ -10,7 +10,8 @@ namespace hydra {
 #define FREE_SLOT(index) free_slots[index / 8]
 #define MASK(index) (1 << index % 8)
 
-template <typename T, u32 size> class StaticPool {
+template <typename T, u32 size>
+class StaticPool {
   public:
     StaticPool() = default;
     ~StaticPool() = default;

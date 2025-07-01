@@ -26,7 +26,8 @@ class Pfifo {
     bool SubmitCommand(uptr& gpu_addr); // TODO: return void
 
     // Helpers
-    template <typename T> T Read(uptr& gpu_addr) {
+    template <typename T>
+    T Read(uptr& gpu_addr) {
         T word = gpu_mmu.Load<T>(gpu_addr);
         gpu_addr += sizeof(T);
 

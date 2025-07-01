@@ -37,7 +37,8 @@ class PartitionFilesystem final : public Directory {
   public:
     // HACK: need to use a method instead of a constructor, since we have a
     // template parameter
-    template <bool is_hfs> PartitionFilesystem* Initialize(FileBase* file) {
+    template <bool is_hfs>
+    PartitionFilesystem* Initialize(FileBase* file) {
         auto stream = file->Open(FileOpenFlags::Read);
         auto reader = stream.CreateReader();
 

@@ -91,7 +91,8 @@ class Builder final : public BuilderBase {
     }
 
     // TODO: signed and unsigned
-    template <typename T = u32> llvm::Constant* GetImmediate(const T imm) {
+    template <typename T = u32>
+    llvm::Constant* GetImmediate(const T imm) {
         if constexpr (std::is_same_v<T, i32>)
             return llvm::ConstantInt::get(types._int, imm);
         else if constexpr (std::is_same_v<T, u32>)

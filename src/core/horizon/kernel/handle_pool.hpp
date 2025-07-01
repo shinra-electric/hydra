@@ -4,7 +4,8 @@
 
 namespace hydra::horizon::kernel {
 
-template <typename T, typename Pool> class HandlePool {
+template <typename T, typename Pool>
+class HandlePool {
     static_assert(std::is_convertible_v<T*, AutoObject*>,
                   "Type does not inherit from AutoObject");
 

@@ -20,13 +20,18 @@ namespace hydra {
 #endif
 }
 
-template <typename T> constexpr T all_ones() {
+template <typename T>
+constexpr T all_ones() {
     return std::numeric_limits<T>::max();
 }
 
-template <typename T> constexpr T invalid() { return all_ones<T>(); }
+template <typename T>
+constexpr T invalid() {
+    return all_ones<T>();
+}
 
-template <typename T, u64 b, u64 count> constexpr T mask() {
+template <typename T, u64 b, u64 count>
+constexpr T mask() {
     return ((1ull << count) - 1ull) << b;
 }
 
@@ -35,22 +40,26 @@ T extract_bits(SrcT src) {
     return static_cast<T>((src >> b) & mask<SrcT, 0, count>());
 }
 
-template <typename T, u32 bit_count> T sign_extend(T v) {
+template <typename T, u32 bit_count>
+T sign_extend(T v) {
     static_assert(std::is_signed<T>::value);
     static_assert(bit_count < sizeof(T) * 8);
     T const m = T(1) << (bit_count - 1);
     return (v ^ m) - m;
 }
 
-template <typename T> T align(T v, T alignment) {
+template <typename T>
+T align(T v, T alignment) {
     return (v + alignment - 1) & ~(alignment - 1);
 }
 
-template <typename T> bool is_aligned(T v, T alignment) {
+template <typename T>
+bool is_aligned(T v, T alignment) {
     return (v & (alignment - 1)) == 0x0;
 }
 
-template <typename T> T align_down(T v, T alignment) {
+template <typename T>
+T align_down(T v, T alignment) {
     return v & ~(alignment - 1);
 }
 
@@ -64,11 +73,15 @@ inline uptr make_addr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
-template <typename T> T ceil_divide(T dividend, T divisor) {
+template <typename T>
+T ceil_divide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
-template <typename T> T random() { return rand() & all_ones<T>(); }
+template <typename T>
+T random() {
+    return rand() & all_ones<T>();
+}
 
 inline u64 random64() { return (u64)rand() | ((u64)rand() << 32); }
 
@@ -114,7 +127,8 @@ inline std::string u64_to_str(u64 value) {
     return std::string(str, std::min(strlen(str), (usize)8));
 }
 
-template <typename T> void push_unique(std::vector<T>& vec, T value) {
+template <typename T>
+void push_unique(std::vector<T>& vec, T value) {
     auto it = std::find_if(vec.begin(), vec.end(),
                            [&](const T v) { return v == value; });
     if (it == vec.end())

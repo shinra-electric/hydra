@@ -97,9 +97,13 @@ class LangBuilderBase : public BuilderBase {
     virtual std::string EmitTextureSample(u32 const_buffer_index,
                                           const std::string_view coords) = 0;
 
-    template <typename... T> void WriteRaw(WRITE_ARGS) { code_str += FMT; }
+    template <typename... T>
+    void WriteRaw(WRITE_ARGS) {
+        code_str += FMT;
+    }
 
-    template <typename... T> void WriteWithIndent(WRITE_ARGS) {
+    template <typename... T>
+    void WriteWithIndent(WRITE_ARGS) {
         // TODO: handle indentation differently
         std::string indent_str;
         if (!skip_indent) {
@@ -112,28 +116,33 @@ class LangBuilderBase : public BuilderBase {
         WriteRaw("{}{}", indent_str, FMT);
     }
 
-    template <typename... T> void Write(WRITE_ARGS) {
+    template <typename... T>
+    void Write(WRITE_ARGS) {
         WriteWithIndent("{}\n", FMT);
     }
 
     void WriteNewline() { code_str += "\n"; }
 
-    template <typename... T> void WriteStatement(WRITE_ARGS) {
+    template <typename... T>
+    void WriteStatement(WRITE_ARGS) {
         Write("{};", FMT);
     }
 
-    template <typename... T> void EnterScopeTemp(WRITE_ARGS) {
+    template <typename... T>
+    void EnterScopeTemp(WRITE_ARGS) {
         WriteWithIndent("{} ", FMT);
         skip_indent = true;
     }
 
-    template <typename... T> void EnterScope(WRITE_ARGS) {
+    template <typename... T>
+    void EnterScope(WRITE_ARGS) {
         EnterScopeImpl("{} ", FMT);
     }
 
     void EnterScopeEmpty() { EnterScopeImpl(""); }
 
-    template <typename... T> void ExitScope(WRITE_ARGS) {
+    template <typename... T>
+    void ExitScope(WRITE_ARGS) {
         ExitScopeImpl(" {};", FMT);
     }
 
@@ -150,7 +159,8 @@ class LangBuilderBase : public BuilderBase {
     }
 
     // Helpers
-    template <typename T> std::string GetImmediateL(const T imm) {
+    template <typename T>
+    std::string GetImmediateL(const T imm) {
         if constexpr (std::is_same_v<T, i32>)
             return fmt::format("({:#x})", imm);
         if constexpr (std::is_same_v<T, i64>)
@@ -323,12 +333,14 @@ class LangBuilderBase : public BuilderBase {
     u32 indent{0};
     bool skip_indent{false};
 
-    template <typename... T> void EnterScopeImpl(WRITE_ARGS) {
+    template <typename... T>
+    void EnterScopeImpl(WRITE_ARGS) {
         Write("{}{{", FMT);
         indent++;
     }
 
-    template <typename... T> void ExitScopeImpl(WRITE_ARGS) {
+    template <typename... T>
+    void ExitScopeImpl(WRITE_ARGS) {
         ASSERT_DEBUG(indent != 0, ShaderDecompiler,
                      "Cannot exit scope when indentation is 0");
         indent--;

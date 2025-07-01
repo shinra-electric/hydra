@@ -2,7 +2,8 @@
 
 namespace hydra::hw {
 
-template <typename SubclassT, typename Impl> class GenericMMU {
+template <typename SubclassT, typename Impl>
+class GenericMMU {
   public:
     void Map(uptr base, Impl impl) {
         mapped_ranges[base] = impl;
@@ -44,11 +45,13 @@ template <typename SubclassT, typename Impl> class GenericMMU {
         return *impl;
     }
 
-    template <typename T> T Load(uptr addr) const {
+    template <typename T>
+    T Load(uptr addr) const {
         return *reinterpret_cast<T*>(THIS->UnmapAddr(addr));
     }
 
-    template <typename T> void Store(uptr addr, T value) const {
+    template <typename T>
+    void Store(uptr addr, T value) const {
         *reinterpret_cast<T*>(THIS->UnmapAddr(addr)) = value;
     }
 

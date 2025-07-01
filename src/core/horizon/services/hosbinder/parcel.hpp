@@ -21,7 +21,8 @@ class ParcelReader {
         reader.Seek(header.data_offset);
     }
 
-    template <typename T> const T* ReadPtr(usize count = 1) {
+    template <typename T>
+    const T* ReadPtr(usize count = 1) {
         const T* ptr = reader.ReadPtr<T>(count);
 
         // Align
@@ -31,9 +32,13 @@ class ParcelReader {
         return ptr;
     }
 
-    template <typename T> T Read() { return *ReadPtr<T>(); }
+    template <typename T>
+    T Read() {
+        return *ReadPtr<T>();
+    }
 
-    template <typename T> const T* ReadFlattenedObject() {
+    template <typename T>
+    const T* ReadFlattenedObject() {
         auto len = Read<i32>();      // len
         auto fd_count = Read<i32>(); // fd count
 
@@ -45,7 +50,8 @@ class ParcelReader {
         return ReadPtr<T>();
     }
 
-    template <typename T> const T* ReadStrongPointer() {
+    template <typename T>
+    const T* ReadStrongPointer() {
         bool is_valid = Read<bool>();
         if (is_valid)
             return ReadFlattenedObject<T>();
@@ -99,15 +105,20 @@ class ParcelWriter {
         return ptr;
     }
 
-    template <typename T> void Write(const T& value) { WritePtr(&value); }
+    template <typename T>
+    void Write(const T& value) {
+        WritePtr(&value);
+    }
 
-    template <typename T> void WriteFlattenedObject(const T& object) {
+    template <typename T>
+    void WriteFlattenedObject(const T& object) {
         Write<i32>(sizeof(T)); // len
         Write<i32>(0);         // FD count
         Write(object);
     }
 
-    template <typename T> void WriteStrongPointer(const T* ptr) {
+    template <typename T>
+    void WriteStrongPointer(const T* ptr) {
         Write(ptr != nullptr);
         if (ptr)
             WriteFlattenedObject(*ptr);

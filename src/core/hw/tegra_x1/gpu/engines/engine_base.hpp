@@ -41,7 +41,8 @@ class EngineBase {
     }
 };
 
-template <typename RegsT> class EngineWithRegsBase : public EngineBase {
+template <typename RegsT>
+class EngineWithRegsBase : public EngineBase {
   public:
 #define REG_COUNT (sizeof(RegsT) / sizeof(u32))
 

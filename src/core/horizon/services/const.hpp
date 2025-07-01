@@ -37,7 +37,8 @@ enum class BufferAttr {
     HipcPointer,
 };
 
-template <BufferAttr attr_> class InBuffer {
+template <BufferAttr attr_>
+class InBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
@@ -47,7 +48,8 @@ template <BufferAttr attr_> class InBuffer {
     InBuffer(Reader& reader_) : reader{&reader_} {}
 };
 
-template <BufferAttr attr_> class OutBuffer {
+template <BufferAttr attr_>
+class OutBuffer {
   public:
     static constexpr BufferAttr attr = attr_;
 
@@ -62,7 +64,8 @@ enum class HandleAttr {
     Move,
 };
 
-template <HandleAttr attr_> class InHandle {
+template <HandleAttr attr_>
+class InHandle {
   public:
     static constexpr HandleAttr attr = attr_;
 
@@ -75,7 +78,8 @@ template <HandleAttr attr_> class InHandle {
     handle_id_t handle_id;
 };
 
-template <HandleAttr attr_> class OutHandle {
+template <HandleAttr attr_>
+class OutHandle {
   public:
     static constexpr HandleAttr attr = attr_;
 
@@ -102,42 +106,52 @@ enum class ArgumentType {
     OutService,
 };
 
-template <typename T> struct arg_traits;
+template <typename T>
+struct arg_traits;
 
-template <typename T> struct arg_traits {
+template <typename T>
+struct arg_traits {
     static constexpr ArgumentType type = ArgumentType::InData;
 };
 
-template <typename T> struct arg_traits<T*> {
+template <typename T>
+struct arg_traits<T*> {
     static constexpr ArgumentType type = ArgumentType::OutData;
     using BaseType = T;
 };
 
-template <BufferAttr attr> struct arg_traits<InBuffer<attr>> {
+template <BufferAttr attr>
+struct arg_traits<InBuffer<attr>> {
     static constexpr ArgumentType type = ArgumentType::InBuffer;
 };
 
-template <BufferAttr attr> struct arg_traits<OutBuffer<attr>> {
+template <BufferAttr attr>
+struct arg_traits<OutBuffer<attr>> {
     static constexpr ArgumentType type = ArgumentType::OutBuffer;
 };
 
-template <HandleAttr attr> struct arg_traits<InHandle<attr>> {
+template <HandleAttr attr>
+struct arg_traits<InHandle<attr>> {
     static constexpr ArgumentType type = ArgumentType::InHandle;
 };
 
-template <HandleAttr attr> struct arg_traits<OutHandle<attr>> {
+template <HandleAttr attr>
+struct arg_traits<OutHandle<attr>> {
     static constexpr ArgumentType type = ArgumentType::OutHandle;
 };
 
-template <> struct arg_traits<add_service_fn_t> {
+template <>
+struct arg_traits<add_service_fn_t> {
     static constexpr ArgumentType type = ArgumentType::AddServiceFn;
 };
 
-template <> struct arg_traits<ServiceBase*> {
+template <>
+struct arg_traits<ServiceBase*> {
     static constexpr ArgumentType type = ArgumentType::InService;
 };
 
-template <> struct arg_traits<ServiceBase**> {
+template <>
+struct arg_traits<ServiceBase**> {
     static constexpr ArgumentType type = ArgumentType::OutService;
 };
 

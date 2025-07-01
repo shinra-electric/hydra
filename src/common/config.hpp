@@ -36,7 +36,8 @@ enum class AudioBackend : u32 {
     Cubeb = 2,
 };
 
-template <typename T> class Option {
+template <typename T>
+class Option {
   public:
     Option() {}
     Option(const T& value_) : value{value_} {}
@@ -52,7 +53,8 @@ template <typename T> class Option {
     T value;
 };
 
-template <typename T> class ArrayOption {
+template <typename T>
+class ArrayOption {
   public:
     ArrayOption() {}
     ArrayOption(const std::vector<T>& values_) : values{values_} {}
