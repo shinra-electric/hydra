@@ -2,13 +2,15 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-#define PIXEL_FORMAT_ENTRY(format, pixel_format, has_stencil)                  \
+#define PIXEL_FORMAT_ENTRY(format, pixel_format, has_depth, has_stencil)       \
     {                                                                          \
-        TextureFormat::format, { MTL::PixelFormat##pixel_format, has_stencil } \
+        TextureFormat::format, {                                               \
+            MTL::PixelFormat##pixel_format, has_depth, has_stencil             \
+        }                                                                      \
     }
 
 #define COLOR_PIXEL_FORMAT_ENTRY(format, pixel_format)                         \
-    PIXEL_FORMAT_ENTRY(format, pixel_format, false)
+    PIXEL_FORMAT_ENTRY(format, pixel_format, false, false)
 
 std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(R8Unorm, R8Unorm),
@@ -49,13 +51,16 @@ std::map<TextureFormat, PixelFormatInfo> pixel_format_lut = {
     COLOR_PIXEL_FORMAT_ENTRY(RGBA16Sint, RGBA16Sint),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA32Float, RGBA32Float),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA32Uint, RGBA32Uint),
-    PIXEL_FORMAT_ENTRY(S8Uint, Stencil8, true),
-    PIXEL_FORMAT_ENTRY(Z16Unorm, Depth16Unorm, false),
-    PIXEL_FORMAT_ENTRY(Z24Unorm_X8Uint, Depth32Float_Stencil8, true), // HACK
-    PIXEL_FORMAT_ENTRY(Z32Float, Depth32Float, false),
-    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true),    // HACK
-    PIXEL_FORMAT_ENTRY(Z32Float_X24S8Uint, Depth32Float_Stencil8, true), // HACK
-    COLOR_PIXEL_FORMAT_ENTRY(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB),          // HACK
+    PIXEL_FORMAT_ENTRY(S8Uint, Stencil8, false, true),
+    PIXEL_FORMAT_ENTRY(Z16Unorm, Depth16Unorm, true, false),
+    PIXEL_FORMAT_ENTRY(Z24Unorm_X8Uint, Depth32Float_Stencil8, true,
+                       true), // HACK
+    PIXEL_FORMAT_ENTRY(Z32Float, Depth32Float, true, false),
+    PIXEL_FORMAT_ENTRY(Z24Unorm_S8Uint, Depth32Float_Stencil8, true,
+                       true), // HACK
+    PIXEL_FORMAT_ENTRY(Z32Float_X24S8Uint, Depth32Float_Stencil8, true,
+                       true),                                   // HACK
+    COLOR_PIXEL_FORMAT_ENTRY(RGBX8Unorm_sRGB, RGBA8Unorm_sRGB), // HACK
     COLOR_PIXEL_FORMAT_ENTRY(RGBA8Unorm_sRGB, RGBA8Unorm_sRGB),
     COLOR_PIXEL_FORMAT_ENTRY(RGBA4Unorm, ABGR4Unorm),     // HACK
     COLOR_PIXEL_FORMAT_ENTRY(RGB5Unorm, BGR5A1Unorm),     // HACK

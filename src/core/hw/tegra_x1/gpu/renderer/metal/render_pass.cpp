@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
@@ -35,24 +36,28 @@ RenderPass::RenderPass(const RenderPassDescriptor& descriptor)
     // Depth stencil target
     if (descriptor.depth_stencil_target.texture) {
         const auto& depth_stencil_target = descriptor.depth_stencil_target;
+        const auto& format_info = to_mtl_pixel_format_info(
+            depth_stencil_target.texture->GetDescriptor().format);
 
         // Depth
-        auto depth_attachment = render_pass_descriptor->depthAttachment();
-        depth_attachment->setTexture(
-            static_cast<Texture*>(depth_stencil_target.texture)->GetTexture());
-        if (depth_stencil_target.load_action_clear &&
-            depth_stencil_target.clear_data.clear_depth) {
-            depth_attachment->setLoadAction(MTL::LoadActionClear);
-            depth_attachment->setClearDepth(
-                depth_stencil_target.clear_data.depth);
-        } else {
-            depth_attachment->setLoadAction(MTL::LoadActionLoad);
+        if (format_info.has_depth) {
+            auto depth_attachment = render_pass_descriptor->depthAttachment();
+            depth_attachment->setTexture(
+                static_cast<Texture*>(depth_stencil_target.texture)
+                    ->GetTexture());
+            if (depth_stencil_target.load_action_clear &&
+                depth_stencil_target.clear_data.clear_depth) {
+                depth_attachment->setLoadAction(MTL::LoadActionClear);
+                depth_attachment->setClearDepth(
+                    depth_stencil_target.clear_data.depth);
+            } else {
+                depth_attachment->setLoadAction(MTL::LoadActionLoad);
+            }
+            depth_attachment->setStoreAction(MTL::StoreActionStore);
         }
-        depth_attachment->setStoreAction(MTL::StoreActionStore);
 
         // Stencil
-        // TODO: if format has stencil
-        if (false) {
+        if (format_info.has_stencil) {
             auto stencil_attachment =
                 render_pass_descriptor->stencilAttachment();
             stencil_attachment->setTexture(

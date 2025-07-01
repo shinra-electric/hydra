@@ -283,6 +283,14 @@ void Renderer::ClearDepth(u32 layer, const float value) {
         return;
     }
 
+    const auto format = texture->GetDescriptor().format;
+    if (!to_mtl_pixel_format_info(format).has_depth) {
+        ONCE(LOG_WARN(MetalRenderer,
+                      "Texture format {} does not have a depth component",
+                      format));
+        return;
+    }
+
     auto encoder = GetRenderCommandEncoder();
 
     SetRenderPipelineState(
