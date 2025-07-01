@@ -24,6 +24,7 @@
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/ns/application_manager_interface.hpp"
+#include "core/horizon/services/ns/service_getter_interface.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
@@ -106,6 +107,8 @@ result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
         SERVICE_CASE(mii::IStaticService, "mii:u", "mii:e")
         SERVICE_CASE(fatalsrv::IService, "fatal:u")
         SERVICE_CASE(ns::IApplicationManagerInterface, "ns:am")
+        SERVICE_CASE(ns::IServiceGetterInterface, "ns:am2", "ns:ec", "ns:rid",
+                     "ns:rt", "ns:web", "ns:ro", "ns:sweb")
         SERVICE_CASE(lbl::ILblController, "lbl")
     default:
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));

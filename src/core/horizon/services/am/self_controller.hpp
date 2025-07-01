@@ -40,6 +40,7 @@ class ISelfController : public ServiceBase {
                                                 u64* out_recording_layer_id);
     STUB_REQUEST_COMMAND(SetHandlesRequestToDisplay);
     result_t SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext);
+    STUB_REQUEST_COMMAND(SetWirelessPriorityMode);
     result_t GetAccumulatedSuspendedTickChangedEvent(
         OutHandle<HandleAttr::Copy> out_handle);
 };

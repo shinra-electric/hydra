@@ -276,6 +276,8 @@ add_library(hydra-core
     horizon/services/fatalsrv/service.hpp
     horizon/services/ns/application_manager_interface.cpp
     horizon/services/ns/application_manager_interface.hpp
+    horizon/services/ns/service_getter_interface.cpp
+    horizon/services/ns/service_getter_interface.hpp
     horizon/services/lbl/lbl_controller.cpp
     horizon/services/lbl/lbl_controller.hpp
     horizon/applets/const.hpp
