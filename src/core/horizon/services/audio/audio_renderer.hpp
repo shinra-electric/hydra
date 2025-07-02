@@ -38,6 +38,14 @@ class IAudioRenderer : public ServiceBase {
     result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
     result_t SetRenderingTimeLimit(u32 time_limit);
     result_t GetRenderingTimeLimit(u32* out_time_limit);
+    result_t
+    RequestUpdateAuto(InBuffer<BufferAttr::AutoSelect> in_buffer,
+                      OutBuffer<BufferAttr::AutoSelect> out_buffer,
+                      OutBuffer<BufferAttr::AutoSelect> out_perf_buffer);
+
+    // Impl
+    result_t RequestUpdateImpl(Reader& reader, Writer& writer,
+                               Writer& perf_writer);
 };
 
 } // namespace hydra::horizon::services::audio

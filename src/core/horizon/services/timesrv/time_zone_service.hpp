@@ -48,15 +48,26 @@ class ITimeZoneService : public ServiceBase {
     result_t GetDeviceLocationName(LocationName* out_name);
     result_t LoadTimeZoneRule(LocationName location_name,
                               OutBuffer<BufferAttr::MapAlias> out_rule_buffer);
-    result_t ToCalendarTime(u64 posix_time,
+    result_t ToCalendarTime(i64 posix_time,
                             InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                             ToCalendarTimeWithMyRuleOut* out);
-    result_t ToCalendarTimeWithMyRule(u64 posix_time,
+    result_t ToCalendarTimeWithMyRule(i64 posix_time,
                                       ToCalendarTimeWithMyRuleOut* out);
+    result_t ToPosixTime(CalendarTime calendar_time,
+                         InBuffer<BufferAttr::MapAlias> in_rule_buffer,
+                         i32* out_count,
+                         OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t
+    ToPosixTimeWithMyRule(CalendarTime calendar_time, i32* out_count,
+                          OutBuffer<BufferAttr::HipcPointer> out_buffer);
 
+    // Impl
     result_t ToCalendarTimeImpl(i64 posix_time, const TimeZoneRule& rule,
                                 CalendarTime& out_time,
                                 CalendarAdditionalInfo& out_additional_info);
+    // TODO: support more than 1 time?
+    result_t ToPosixTimeImpl(const CalendarTime& calendar_time,
+                             const TimeZoneRule& rule, i64& out_time);
 };
 
 } // namespace hydra::horizon::services::timesrv

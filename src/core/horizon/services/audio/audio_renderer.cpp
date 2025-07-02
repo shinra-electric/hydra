@@ -149,7 +149,8 @@ namespace hydra::horizon::services::audio {
 
 DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
                              Stop, 7, QuerySystemEvent, 8,
-                             SetRenderingTimeLimit, 9, GetRenderingTimeLimit)
+                             SetRenderingTimeLimit, 9, GetRenderingTimeLimit,
+                             10, RequestUpdateAuto)
 
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const usize work_buffer_size_)
@@ -173,11 +174,37 @@ result_t
 IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_perf_buffer) {
+    return RequestUpdateImpl(*in_buffer.reader, *out_buffer.writer,
+                             *out_perf_buffer.writer);
+}
+
+result_t
+IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = event.id;
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioRenderer::SetRenderingTimeLimit(u32 time_limit) {
+    rendering_time_limit = time_limit;
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) {
+    *out_time_limit = rendering_time_limit;
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioRenderer::RequestUpdateAuto(
+    InBuffer<BufferAttr::AutoSelect> in_buffer,
+    OutBuffer<BufferAttr::AutoSelect> out_buffer,
+    OutBuffer<BufferAttr::AutoSelect> out_perf_buffer) {
+    return RequestUpdateImpl(*in_buffer.reader, *out_buffer.writer,
+                             *out_perf_buffer.writer);
+}
+
+result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
+                                           Writer& perf_writer) {
     ONCE(LOG_FUNC_STUBBED(Services));
-
-    auto& reader = *in_buffer.reader;
-
-    auto& writer = *out_buffer.writer;
 
     // Header
     const auto in_header = reader.Read<UpdateDataHeader>();
@@ -286,28 +313,12 @@ IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
     header->performance_manager_size = sizeof(PerformanceInfoOut);
     header->total_size += header->performance_manager_size;
     // HACK
-    if (out_perf_buffer.writer->IsValid()) {
-        out_perf_buffer.writer->Write<PerformanceInfoOut>({
+    if (perf_writer.IsValid()) {
+        perf_writer.Write<PerformanceInfoOut>({
             .history_size = 0,
         });
     }
 
-    return RESULT_SUCCESS;
-}
-
-result_t
-IAudioRenderer::QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = event.id;
-    return RESULT_SUCCESS;
-}
-
-result_t IAudioRenderer::SetRenderingTimeLimit(u32 time_limit) {
-    rendering_time_limit = time_limit;
-    return RESULT_SUCCESS;
-}
-
-result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) {
-    *out_time_limit = rendering_time_limit;
     return RESULT_SUCCESS;
 }
 

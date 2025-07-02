@@ -196,7 +196,7 @@ void LangBuilderBase::Finish() {
     std::copy(code_str.begin(), code_str.end(), out_code.begin());
 
     // Debug
-    LOG_DEBUG(ShaderDecompiler, "Decompiled: \"\n{}\"", code_str);
+    LOG_DEBUG(ShaderDecompiler, "decompiled: \"\n{}\"", code_str);
 }
 
 void LangBuilderBase::SetPredCond(const PredCond pred_cond) {

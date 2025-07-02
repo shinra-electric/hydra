@@ -11,15 +11,16 @@ namespace hydra::horizon::services::fssrv {
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
                              DeleteDirectoryRecursively, 7, GetEntryType, 8,
-                             OpenFile, 9, OpenDirectory, 10, Commit)
+                             OpenFile, 9, OpenDirectory, 10, Commit, 14,
+                             GetFileTimeStampRaw)
 
 #define READ_PATH()                                                            \
-    const auto path = mount + path_buffer.reader->ReadString();                \
+    const auto path = mount + in_path_buffer.reader->ReadString();             \
     LOG_DEBUG(Services, "Path: {}", path);
 
 result_t
 IFileSystem::CreateFile(CreateOption flags, u64 size,
-                        InBuffer<BufferAttr::HipcPointer> path_buffer) {
+                        InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     // HACK
@@ -40,7 +41,7 @@ IFileSystem::CreateFile(CreateOption flags, u64 size,
 }
 
 result_t
-IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> path_buffer) {
+IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
@@ -51,7 +52,7 @@ IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> path_buffer) {
 }
 
 result_t
-IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
+IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.CreateDirectory(
@@ -66,7 +67,7 @@ IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
 }
 
 result_t
-IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
+IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
@@ -77,7 +78,7 @@ IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> path_buffer) {
 }
 
 result_t IFileSystem::DeleteDirectoryRecursively(
-    InBuffer<BufferAttr::HipcPointer> path_buffer) {
+    InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path, true);
@@ -88,7 +89,7 @@ result_t IFileSystem::DeleteDirectoryRecursively(
 }
 
 result_t
-IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
+IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type) {
     READ_PATH();
 
@@ -104,9 +105,10 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> path_buffer,
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystem::OpenFile(add_service_fn_t add_service,
-                               filesystem::FileOpenFlags flags,
-                               InBuffer<BufferAttr::HipcPointer> path_buffer) {
+result_t
+IFileSystem::OpenFile(add_service_fn_t add_service,
+                      filesystem::FileOpenFlags flags,
+                      InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     LOG_DEBUG(Services, "Flags: {}", flags);
@@ -125,7 +127,7 @@ result_t IFileSystem::OpenFile(add_service_fn_t add_service,
 result_t
 IFileSystem::OpenDirectory(add_service_fn_t add_service,
                            DirectoryFilterFlags filter_flags,
-                           InBuffer<BufferAttr::HipcPointer> path_buffer) {
+                           InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     LOG_DEBUG(Services, "Filter flags: {}", filter_flags);
@@ -138,6 +140,28 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
     }
 
     add_service(new IDirectory(directory, filter_flags));
+    return RESULT_SUCCESS;
+}
+
+result_t IFileSystem::GetFileTimeStampRaw(
+    InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+    TimeStampRaw* out_timestamp) {
+    LOG_FUNC_STUBBED(Services);
+
+    READ_PATH();
+
+    filesystem::FileBase* file;
+    const auto res = FILESYSTEM_INSTANCE.GetFile(path, file);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
+        // TODO: set is_valid to false?
+        return MAKE_RESULT(Fs, 1);
+    }
+
+    // HACK
+    *out_timestamp = {
+        .is_valid = true,
+    };
     return RESULT_SUCCESS;
 }
 
