@@ -171,12 +171,6 @@ uint64_t hydra_loader_get_title_id(void* loader) {
         ->GetTitleID();
 }
 
-const char* hydra_loader_get_title_name(void* loader) {
-    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)
-        ->GetTitleName()
-        .c_str();
-}
-
 void* hydra_create_nca_loader_from_content_archive(void* content_archive) {
     return new hydra::horizon::loader::NcaLoader(
         *static_cast<hydra::horizon::filesystem::ContentArchive*>(

@@ -1,7 +1,5 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
-#include <stb_image.h>
-
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -53,7 +51,7 @@ struct NpdmMeta {
 NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     : content_archive(content_archive_) {
     filesystem::EntryBase* e;
-    const auto res = content_archive.GetEntry("code/main.npdm", e);
+    auto res = content_archive.GetEntry("code/main.npdm", e);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
         return;
@@ -96,6 +94,36 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     main_thread_core_number = meta.main_thread_core_number;
     main_thread_stack_size = meta.main_thread_stack_size;
     system_resource_size = meta.system_resource_size;
+
+    // Nintendo logo
+    filesystem::EntryBase* nintendo_logo_entry;
+    res = content_archive.GetEntry(NINTENDO_LOGO_PATH, nintendo_logo_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
+        return;
+    }
+
+    nintendo_logo_file =
+        dynamic_cast<filesystem::FileBase*>(nintendo_logo_entry);
+    if (!nintendo_logo_file) {
+        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
+        return;
+    }
+
+    // Startup movie
+    filesystem::EntryBase* startup_movie_entry;
+    res = content_archive.GetEntry(STARTUP_MOVIE_PATH, startup_movie_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
+        return;
+    }
+
+    startup_movie_file =
+        dynamic_cast<filesystem::FileBase*>(startup_movie_entry);
+    if (!startup_movie_file) {
+        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
+        return;
+    }
 }
 
 std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
@@ -121,91 +149,6 @@ std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
     }
 
     CHECK_AND_RETURN_PROCESS_PARAMS(process_params);
-}
-
-void NcaLoader::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
-                                 usize& out_height) {
-    filesystem::EntryBase* logo_entry;
-    const auto res = content_archive.GetEntry(NINTENDO_LOGO_PATH, logo_entry);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
-        return;
-    }
-
-    auto logo_file = dynamic_cast<filesystem::FileBase*>(logo_entry);
-    if (!logo_file) {
-        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
-        return;
-    }
-
-    auto stream = logo_file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    usize raw_data_size = reader.GetSize();
-    u8* raw_data = new u8[raw_data_size];
-    reader.ReadWhole(raw_data);
-
-    logo_file->Close(stream);
-
-    i32 w, h;
-    i32 comp;
-    out_data = reinterpret_cast<uchar4*>(stbi_load_from_memory(
-        raw_data, raw_data_size, &w, &h, &comp, STBI_rgb_alpha));
-    delete[] raw_data;
-    if (!out_data) {
-        LOG_ERROR(Loader, "Failed to load " NINTENDO_LOGO_PATH);
-        return;
-    }
-
-    out_width = w;
-    out_height = h;
-}
-
-void NcaLoader::LoadStartupMovie(
-    uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
-    usize& out_width, usize& out_height, u32& out_frame_count) {
-    filesystem::EntryBase* logo_entry;
-    const auto res = content_archive.GetEntry(STARTUP_MOVIE_PATH, logo_entry);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
-        return;
-    }
-
-    auto logo_file = dynamic_cast<filesystem::FileBase*>(logo_entry);
-    if (!logo_file) {
-        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
-        return;
-    }
-
-    auto stream = logo_file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    usize raw_data_size = reader.GetSize();
-    u8* raw_data = new u8[raw_data_size];
-    reader.ReadWhole(raw_data);
-
-    logo_file->Close(stream);
-
-    i32 w, h, f;
-    i32 comp;
-    i32* delays_ms;
-    out_data = reinterpret_cast<uchar4*>(
-        stbi_load_gif_from_memory(raw_data, raw_data_size, &delays_ms, &w, &h,
-                                  &f, &comp, STBI_rgb_alpha));
-    delete[] raw_data;
-    if (!out_data) {
-        LOG_ERROR(Loader, "Failed to load " STARTUP_MOVIE_PATH);
-        return;
-    }
-
-    out_width = w;
-    out_height = h;
-    out_frame_count = f;
-
-    out_delays.reserve(f);
-    for (u32 i = 0; i < f; i++)
-        out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
-    free(delays_ms);
 }
 
 std::optional<kernel::ProcessParams>

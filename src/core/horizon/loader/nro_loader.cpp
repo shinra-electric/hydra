@@ -64,6 +64,10 @@ NroLoader::NroLoader(filesystem::FileBase* file_) : file{file_} {
     text_offset = header.GetSection(NroSectionType::Text).offset;
     bss_size = header.bss_size;
 
+    // Asset section
+    TryLoadAssetSection(new filesystem::FileView(
+        file, header.size, file->GetSize() - header.size));
+
     file->Close(stream);
 }
 
@@ -140,6 +144,49 @@ std::optional<kernel::ProcessParams> NroLoader::LoadProcess() {
         .entry_point = base + sizeof(NroHeader) + text_offset,
         .args = {base + config_offset, UINT64_MAX},
     };
+}
+
+namespace {
+
+struct AssetSection {
+    u64 offset;
+    u64 size;
+};
+
+struct AssetHeader {
+    u32 magic;
+    u32 format_version;
+    AssetSection icon_section;
+    AssetSection nacp_section;
+    AssetSection romfs_section;
+};
+
+} // namespace
+
+void NroLoader::TryLoadAssetSection(filesystem::FileBase* file) {
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    // Header
+    const auto header = reader.Read<AssetHeader>();
+    // TODO: is this the correct way to check if the asset section is present?
+    if (header.magic != make_magic4('A', 'S', 'E', 'T'))
+        return;
+
+    LOG_INFO(Loader, "Asset section found");
+
+    // Icon
+    if (header.icon_section.size > 0)
+        icon_file = new filesystem::FileView(file, header.icon_section.offset,
+                                             header.icon_section.size);
+
+    // NACP
+    if (header.nacp_section.size > 0) {
+        reader.Seek(header.nacp_section.offset);
+        // TODO: read
+    }
+
+    file->Close(stream);
 }
 
 } // namespace hydra::horizon::loader

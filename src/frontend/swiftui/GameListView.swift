@@ -73,10 +73,8 @@ struct GameListView: View {
             return
         }
 
-        var name = String(cString: hydra_loader_get_title_name(loader))
-        if name == "" {
-            name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
-        }
+        // TODO: get from NACP
+        var name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
 
         self.games.append(Game(loader: loader, name: name))
     }
