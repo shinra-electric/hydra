@@ -27,17 +27,17 @@ Kernel::~Kernel() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-uptr Kernel::CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
-                             bool add_guard_page, vaddr_t& out_base) {
+uptr Kernel::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
+                          bool add_guard_page, vaddr_t& out_base) {
     size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
     auto mem = mmu->AllocateMemory(size);
-    mmu->Map(executable_mem_base, mem, {type, MemoryAttribute::None, perm});
+    mmu->Map(mem_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
-    out_base = executable_mem_base;
+    out_base = mem_base;
     if (add_guard_page)
         size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
-    executable_mem_base += size;
+    mem_base += size;
 
     return mmu->GetMemoryPtr(mem);
 }
@@ -46,8 +46,8 @@ uptr Kernel::CreateExecutableMemory(const std::string_view module_name,
                                     usize size, MemoryPermission perm,
                                     bool add_guard_page, vaddr_t& out_base) {
     // TODO: use MemoryType::Static
-    auto ptr = CreateRomMemory(size, static_cast<MemoryType>(3), perm,
-                               add_guard_page, out_base);
+    auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
+                            add_guard_page, out_base);
     DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
         {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
 

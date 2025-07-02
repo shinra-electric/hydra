@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/debugger/debugger.hpp"
+
 namespace hydra::hw {
 
 template <typename SubclassT, typename Impl>
@@ -40,7 +42,8 @@ class GenericMMU {
     const Impl& FindAddrImpl(uptr addr, uptr& out_base) const {
         auto impl =
             const_cast<GenericMMU*>(this)->FindAddrImplRef(addr, out_base);
-        ASSERT_DEBUG(impl, MMU, "Failed to find impl for addr 0x{:08x}", addr);
+        DEBUGGER_ASSERT_DEBUG(impl, MMU,
+                              "Failed to find impl for addr 0x{:08x}", addr);
 
         return *impl;
     }

@@ -86,6 +86,13 @@ std::optional<kernel::ProcessParams> NroLoader::LoadProcess() {
     reader.Seek(0);
     reader.ReadPtr(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
+    // Next load
+    // TODO: memory type
+    vaddr_t next_load_base;
+    KERNEL_INSTANCE.CreateMemory(0x1000, static_cast<kernel::MemoryType>(4),
+                                 kernel::MemoryPermission::ReadWrite, true,
+                                 next_load_base);
+
     // Args
     const u64 argv_offset = executable_size;
 
@@ -118,6 +125,7 @@ std::optional<kernel::ProcessParams> NroLoader::LoadProcess() {
 
     ADD_ENTRY_MANDATORY(MainThreadHandle, 0x0000000f,
                         0); // TODO: what thread handle should be used?
+    ADD_ENTRY_MANDATORY(NextLoadPath, next_load_base, next_load_base + 0x800);
     ADD_ENTRY_MANDATORY(Argv, 0, base + argv_offset);
     // TODO: supply the actual availability
     ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX, UINT64_MAX);
@@ -128,7 +136,7 @@ std::optional<kernel::ProcessParams> NroLoader::LoadProcess() {
 #undef ADD_ENTRY_MANDATORY
 #undef ADD_ENTRY
 
-    // filesystem
+    // Filesystem
     const auto res = FILESYSTEM_INSTANCE.AddEntry(
         ROM_VIRTUAL_PATH,
         new filesystem::FileView(file, reader.GetOffset(), reader.GetSize()));

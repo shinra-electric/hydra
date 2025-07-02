@@ -31,8 +31,8 @@ class Kernel {
     ~Kernel();
 
     // Loading
-    uptr CreateRomMemory(usize size, MemoryType type, MemoryPermission perm,
-                         bool add_guard_page, vaddr_t& out_base);
+    uptr CreateMemory(usize size, MemoryType type, MemoryPermission perm,
+                      bool add_guard_page, vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
     uptr CreateExecutableMemory(const std::string_view module_name, usize size,
                                 MemoryPermission perm, bool add_guard_page,
@@ -152,7 +152,7 @@ class Kernel {
     hw::tegra_x1::cpu::MemoryBase* heap_mem;
     std::vector<hw::tegra_x1::cpu::MemoryBase*> executable_mems;
 
-    vaddr_t executable_mem_base{0x40000000};
+    vaddr_t mem_base{0x40000000};
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Handles
