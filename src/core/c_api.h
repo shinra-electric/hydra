@@ -135,6 +135,8 @@ hydra_content_archive_get_content_type(void* content_archive);
 void* hydra_create_loader_from_file(const char* path);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
+void hydra_loader_load_icon(void* loader, void** data, size_t* width,
+                            size_t* height);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 const char* hydra_nca_loader_get_name(void* nca_loader);

@@ -74,7 +74,7 @@ struct GameListView: View {
         }
 
         // TODO: get from NACP
-        var name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        let name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
 
         self.games.append(Game(loader: loader, name: name))
     }

@@ -131,25 +131,25 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 }
 
 // Filesystem
-void* hydra_open_file(const char* path) {
+HYDRA_EXPORT void* hydra_open_file(const char* path) {
     return new hydra::horizon::filesystem::HostFile(std::string(path));
 }
 
-void hydra_file_close(void* file) {
+HYDRA_EXPORT void hydra_file_close(void* file) {
     delete static_cast<hydra::horizon::filesystem::HostFile*>(file);
 }
 
-void* hydra_create_content_archive(void* file) {
+HYDRA_EXPORT void* hydra_create_content_archive(void* file) {
     return new hydra::horizon::filesystem::ContentArchive(
         static_cast<hydra::horizon::filesystem::FileBase*>(file));
 }
 
-void hydra_content_archive_destroy(void* content_archive) {
+HYDRA_EXPORT void hydra_content_archive_destroy(void* content_archive) {
     delete static_cast<hydra::horizon::filesystem::ContentArchive*>(
         content_archive);
 }
 
-HydraContentArchiveContentType
+HYDRA_EXPORT HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive) {
     return static_cast<HydraContentArchiveContentType>(
         static_cast<hydra::horizon::filesystem::ContentArchive*>(
@@ -158,26 +158,33 @@ hydra_content_archive_get_content_type(void* content_archive) {
 }
 
 // Loader
-void* hydra_create_loader_from_file(const char* path) {
+HYDRA_EXPORT void* hydra_create_loader_from_file(const char* path) {
     return hydra::horizon::loader::LoaderBase::CreateFromFile(path);
 }
 
-void hydra_loader_destroy(void* loader) {
+HYDRA_EXPORT void hydra_loader_destroy(void* loader) {
     delete static_cast<hydra::horizon::loader::LoaderBase*>(loader);
 }
 
-uint64_t hydra_loader_get_title_id(void* loader) {
+HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
     return static_cast<hydra::horizon::loader::LoaderBase*>(loader)
         ->GetTitleID();
 }
 
-void* hydra_create_nca_loader_from_content_archive(void* content_archive) {
+HYDRA_EXPORT void hydra_loader_load_icon(void* loader, void** data,
+                                         size_t* width, size_t* height) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadIcon(
+        *reinterpret_cast<hydra::uchar4**>(data), *width, *height);
+}
+
+HYDRA_EXPORT void*
+hydra_create_nca_loader_from_content_archive(void* content_archive) {
     return new hydra::horizon::loader::NcaLoader(
         *static_cast<hydra::horizon::filesystem::ContentArchive*>(
             content_archive));
 }
 
-const char* hydra_nca_loader_get_name(void* nca_loader) {
+HYDRA_EXPORT const char* hydra_nca_loader_get_name(void* nca_loader) {
     return static_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
         ->GetName()
         .c_str();
