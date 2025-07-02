@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 CfgBuilder::CfgBuilder() {
     entry_point_block = VisitBlock(0);
@@ -16,6 +16,7 @@ void CfgBuilder::BlockChanged() {
 void CfgBuilder::OpSetSync(u32 target) {
     ASSERT_DEBUG(crnt_block, ShaderDecompiler,
                  "Cannot set sync point without a block");
+    SetReturnSyncPoint(target, crnt_block->return_sync_point);
     crnt_block->return_sync_point = target;
 }
 
@@ -24,13 +25,9 @@ void CfgBuilder::OpSync() {
     ASSERT_DEBUG(target != invalid<u32>(), ShaderDecompiler,
                  "Invalid sync point");
 
-    auto& target_block = blocks[target];
-    if (!target_block)
-        target_block = new CfgBasicBlock{};
-
     CfgBlockEdge edge;
     edge.type = CfgBlockEdgeType::Branch;
-    edge.branch.target = target_block;
+    edge.branch.target = GetBranchTarget(target);
     EndBlock(edge);
 }
 
@@ -57,4 +54,4 @@ void CfgBuilder::OpExit() {
     EndBlock(edge);
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

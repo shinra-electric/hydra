@@ -3,7 +3,10 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
+
+typedef std::function<void(u32)> visit_callback_fn_t;
+typedef std::function<void()> exit_callback_fn_t;
 
 class CfgBuilder : public ObserverBase {
   public:
@@ -27,12 +30,13 @@ class CfgBuilder : public ObserverBase {
             block->Log();
     }
 
-    // Getters
-    CfgBasicBlock* GetEntryBlock() { return entry_point_block; }
-
   private:
+    visit_callback_fn_t visit_callback;
+    exit_callback_fn_t exit_callback;
+    std::queue<u32> to_visit_queue;
+
     std::map<u32, CfgBasicBlock*> blocks;
-    CfgBasicBlock* entry_point_block;
+    CfgBasicBlock* entry_point_block; // TODO: entry block
 
     CfgBasicBlock* crnt_block;
 
@@ -64,19 +68,58 @@ class CfgBuilder : public ObserverBase {
     }
 
     void EndBlock(const CfgBlockEdge& edge) {
-        FinishBlock(crnt_block,
-                    pc + (edge.type == CfgBlockEdgeType::Exit ? 1 : 0), edge);
+        FinishBlock(crnt_block, pc, edge);
         crnt_block = nullptr;
+
+        if (!to_visit_queue.empty()) {
+            visit_callback(to_visit_queue.front());
+            to_visit_queue.pop();
+        } else {
+            exit_callback();
+        }
     }
 
-    CfgBasicBlock* GetBranchTarget(u32 label, u32 return_sync_point) {
+    void SetReturnSyncPoint(u32 label, u32 return_sync_point) {
         auto& block = blocks[label];
-        if (!block)
+        if (!block) {
             block = new CfgBasicBlock{};
+            to_visit_queue.push(label);
+        }
 
-        block->return_sync_point = return_sync_point;
+        SetReturnSyncPointImpl(block, label, return_sync_point);
+    }
+
+    CfgBasicBlock* GetBranchTarget(u32 label,
+                                   u32 return_sync_point = invalid<u32>()) {
+        auto& block = blocks[label];
+        if (!block) {
+            block = new CfgBasicBlock{};
+            to_visit_queue.push(label);
+        }
+
+        if (return_sync_point != invalid<u32>())
+            SetReturnSyncPointImpl(block, label, return_sync_point);
+
         return block;
     }
+
+    void SetReturnSyncPointImpl(CfgBasicBlock* block, u32 label,
+                                u32 return_sync_point) {
+        if (block->return_sync_point == invalid<u32>()) {
+            block->return_sync_point = return_sync_point;
+        } else {
+            ASSERT_DEBUG(block->return_sync_point == return_sync_point,
+                         ShaderDecompiler,
+                         "Sync points for block {} don't match ({} != {})",
+                         label, block->return_sync_point, return_sync_point);
+        }
+    }
+
+  public:
+    SETTER(visit_callback, SetVisitCallback);
+    SETTER(exit_callback, SetExitCallback);
+    GETTER(entry_point_block, GetEntryBlock);
+    CONST_REF_GETTER(blocks, GetBlocks);
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

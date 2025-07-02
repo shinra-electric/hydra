@@ -45,7 +45,7 @@ CfgBlock* ResolveBlock(CfgBasicBlock* block);
 CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
     switch (block->edge.type) {
     case CfgBlockEdgeType::Branch: {
-        const auto target = block->edge.branch.target;
+        auto target = block->edge.branch.target;
         bool is_loop = false;
         target->Walk([&is_loop, block](CfgBasicBlock* b) {
             if (b == block) {
@@ -57,11 +57,18 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
         });
 
         if (is_loop) {
-            LOG_DEBUG(ShaderDecompiler, "Do-while loop detected");
+            LOG_DEBUG(ShaderDecompiler, "Do-while loop detected (block: {})",
+                      block->code_range.begin);
 
             // Do-while loop
+
+            // Clone target to be able to modify it
+            target = target->Clone();
+
+            // Find the merge block
             auto merge_block = TransformLoop(block, target);
 
+            // Structurize
             auto code_block = new CfgCodeBlock(block->code_range);
             auto target_resolved = ResolveBlock(target);
             auto while_block = new CfgWhileBlock(
@@ -112,16 +119,23 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
         }
 
         if (is_loop) {
-            LOG_DEBUG(ShaderDecompiler, "While loop detected");
+            LOG_DEBUG(ShaderDecompiler, "While loop detected (block: {})",
+                      block->code_range.begin);
 
             // While loop
+
+            // Clone block_true to be able to modify it
+            block_true = block_true->Clone();
+
+            // Find the merge block
             auto merge_block = TransformLoop(block, block_true);
 
             auto resolved_block_true = ResolveBlockImpl(block_true);
             auto resolved_block_false = ResolveBlockImpl(block_false);
             if (!resolved_block_true || !resolved_block_false) {
                 LOG_ERROR(ShaderDecompiler,
-                          "Failed to resolve branch conditional");
+                          "Failed to resolve branch conditional (block: {})",
+                          block->code_range.begin);
                 return nullptr;
             }
 
@@ -198,7 +212,9 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
                 // Verify that the branch targets match
                 if (!block_false_with_edge->branch_target->IsSameAs(
                         merge_node)) {
-                    LOG_ERROR(ShaderDecompiler, "Branch targets do not match");
+                    LOG_ERROR(ShaderDecompiler,
+                              "Branch targets do not match (block: {})",
+                              block->code_range.begin);
                     resolved_block_true->Log();
                     resolved_block_false->Log();
                     // TODO: uncomment
@@ -218,11 +234,15 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
             return base_block;
     }
     case CfgBlockEdgeType::Exit:
-        return new CfgCodeBlock(block->code_range);
+        return new CfgCodeBlock(block->code_range, LastStatement::Exit);
     case CfgBlockEdgeType::Break:
         return new CfgCodeBlock(block->code_range, LastStatement::Break);
     case CfgBlockEdgeType::Continue:
         return new CfgCodeBlock(block->code_range, LastStatement::Continue);
+    case CfgBlockEdgeType::Invalid:
+        LOG_ERROR(ShaderDecompiler, "Invalid block {}",
+                  block->code_range.begin);
+        return nullptr;
     }
 
     return nullptr;
@@ -231,7 +251,8 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
 CfgBlock* ResolveBlock(CfgBasicBlock* block) {
     auto resolved_block = ResolveBlockImpl(block);
     if (!resolved_block) {
-        LOG_ERROR(ShaderDecompiler, "Failed to resolve block");
+        LOG_ERROR(ShaderDecompiler, "Failed to resolve block {}",
+                  block->code_range.begin);
         return nullptr;
     }
 

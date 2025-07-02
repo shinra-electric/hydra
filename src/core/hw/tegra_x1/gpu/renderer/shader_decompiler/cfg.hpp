@@ -10,6 +10,8 @@ enum class CfgBlockEdgeType {
     Exit,
     Break,
     Continue,
+
+    Invalid,
 };
 
 struct CfgBasicBlock;
@@ -41,9 +43,7 @@ struct CfgBlockEdge {
                        other.branch_conditional.target_true &&
                    branch_conditional.target_false ==
                        other.branch_conditional.target_false;
-        case CfgBlockEdgeType::Exit:
-        case CfgBlockEdgeType::Break:
-        case CfgBlockEdgeType::Continue:
+        default:
             return true;
         }
     }
@@ -52,8 +52,9 @@ struct CfgBlockEdge {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType, Branch,
-    "branch", BranchConditional, "branch conditional", Exit, "exit")
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType,
+    Invalid, "invalid", Branch, "branch", BranchConditional,
+    "branch conditional", Exit, "exit")
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
@@ -68,6 +69,25 @@ struct CfgBasicBlock {
     range<u32> code_range;
     u32 return_sync_point{invalid<u32>()};
     CfgBlockEdge edge;
+
+    CfgBasicBlock* Clone() {
+        auto clone = new CfgBasicBlock(*this);
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            clone->edge.branch.target = clone->edge.branch.target->Clone();
+            break;
+        case CfgBlockEdgeType::BranchConditional:
+            clone->edge.branch_conditional.target_true =
+                clone->edge.branch_conditional.target_true->Clone();
+            clone->edge.branch_conditional.target_false =
+                clone->edge.branch_conditional.target_false->Clone();
+            break;
+        default:
+            break;
+        }
+
+        return clone;
+    }
 
     void Walk(std::function<bool(CfgBasicBlock*)> visitor) {
         std::vector<CfgBasicBlock*> visited;
@@ -139,17 +159,7 @@ struct CfgBasicBlock {
                       PASS_INDENT(indent + 2),
                       edge.branch_conditional.target_false->code_range.begin);
             break;
-        case CfgBlockEdgeType::Exit:
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Exit",
-                      PASS_INDENT(indent + 2));
-            break;
-        case CfgBlockEdgeType::Break:
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Break",
-                      PASS_INDENT(indent + 2));
-            break;
-        case CfgBlockEdgeType::Continue:
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Continue",
-                      PASS_INDENT(indent + 2));
+        default:
             break;
         }
     }
@@ -173,7 +183,10 @@ struct CfgBasicBlock {
             edge.branch_conditional.target_true->WalkImpl(visitor, visited);
             edge.branch_conditional.target_false->WalkImpl(visitor, visited);
             break;
-        default:
+        case CfgBlockEdgeType::Exit:
+        case CfgBlockEdgeType::Break:
+        case CfgBlockEdgeType::Continue:
+        case CfgBlockEdgeType::Invalid:
             break;
         }
     }

@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 namespace {
 
@@ -62,4 +62,4 @@ void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
     push_sv(output_svs, stage_outputs, amem.imm);
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

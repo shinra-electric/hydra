@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 class MemoryAnalyzer : public ObserverBase {
   public:
@@ -45,4 +45,4 @@ class MemoryAnalyzer : public ObserverBase {
     void HandleAMemStore(const AMem amem);
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Analyzer
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

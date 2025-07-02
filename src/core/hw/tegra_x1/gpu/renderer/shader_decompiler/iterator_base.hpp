@@ -38,7 +38,7 @@ class IteratorBase {
         observer->BlockChanged();
     }
 
-    u32 GetPC() const { return code_reader.Tell() / sizeof(instruction_t) - 1; }
+    u32 GetPC() const { return code_reader.Tell() / sizeof(instruction_t); }
 
   private:
     const DecompilerContext& context;

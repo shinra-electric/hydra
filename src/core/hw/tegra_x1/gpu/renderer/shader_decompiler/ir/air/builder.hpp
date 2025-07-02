@@ -21,7 +21,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR {
 
 class Builder final : public BuilderBase {
   public:
-    Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
+    Builder(const analyzer::Analyzer& analyzer, const ShaderType type,
             const GuestShaderState& state, std::vector<u8>& out_code,
             ResourceMapping& out_resource_mapping);
 

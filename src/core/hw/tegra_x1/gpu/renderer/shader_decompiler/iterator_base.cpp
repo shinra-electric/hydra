@@ -5,8 +5,8 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 result_t IteratorBase::ParseNextInstruction(ObserverBase* o) {
-    const auto inst = code_reader.Read<instruction_t>();
     const u32 pc = GetPC();
+    const auto inst = code_reader.Read<instruction_t>();
     if ((pc % 4) == 0) // Sched
         return {ResultCode::None};
 

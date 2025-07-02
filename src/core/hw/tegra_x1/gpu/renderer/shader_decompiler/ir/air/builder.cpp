@@ -9,7 +9,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IR::AIR {
 // TODO: make this configurable
 static constexpr bool FAST_MATH_ENABLED = true;
 
-Builder::Builder(const Analyzer::Analyzer& analyzer, const ShaderType type,
+Builder::Builder(const analyzer::Analyzer& analyzer, const ShaderType type,
                  const GuestShaderState& state, std::vector<u8>& out_code,
                  ResourceMapping& out_resource_mapping)
     : BuilderBase(analyzer, type, state, out_code, out_resource_mapping),

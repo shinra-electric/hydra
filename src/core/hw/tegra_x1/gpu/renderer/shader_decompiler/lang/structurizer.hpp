@@ -44,6 +44,8 @@ struct CfgStructuredNodeWithEdge : public CfgNode {
 
 enum class LastStatement {
     None,
+
+    Exit,
     Break,
     Continue,
 };

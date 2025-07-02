@@ -37,6 +37,9 @@ void StructuredIterator::IterateImpl(LangBuilderBase* builder,
         for (u32 i = 0; i < code_block->code_range.GetSize(); i++)
             PARSE_NEXT_INSTRUCTION();
         switch (code_block->last_statement) {
+        case LastStatement::Exit:
+            builder->OpExit();
+            break;
         case LastStatement::Break:
             builder->OpBreak();
             break;
