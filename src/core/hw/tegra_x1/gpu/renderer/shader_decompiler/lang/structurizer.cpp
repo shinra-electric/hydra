@@ -5,7 +5,63 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
 namespace {
 
 // Returns merge block
-CfgBasicBlock* TransformLoop(CfgBasicBlock* entry_block,
+CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
+    auto block_true = block->edge.branch_conditional.target_true;
+    auto block_false = block->edge.branch_conditional.target_false;
+
+    // Find the merge block
+    CfgBasicBlock* merge_block = block_true->FindMergeBlock(block_false);
+
+    if (!merge_block) {
+        LOG_ERROR(ShaderDecompiler,
+                  "Failed to find merge block for if-else block {}",
+                  block->code_range.begin);
+        return nullptr;
+    }
+
+    // Replace all jumps to the target with a continue statement and
+    // jumps to merge block with a break statement
+    block->Walk([=](CfgBasicBlock* b) {
+        switch (b->edge.type) {
+        case CfgBlockEdgeType::Branch:
+            if (b->edge.branch.target->IsSameAs(merge_block))
+                b->edge.type = CfgBlockEdgeType::None;
+            break;
+        case CfgBlockEdgeType::BranchConditional:
+            if (b->edge.branch_conditional.target_true->IsSameAs(merge_block)) {
+                b->edge.branch_conditional.target_true = new CfgBasicBlock{
+                    .status = CfgBlockStatus::Finished,
+                    .edge =
+                        {
+                            .type = CfgBlockEdgeType::None,
+                        },
+                };
+            }
+            if (b->edge.branch_conditional.target_false->IsSameAs(
+                    merge_block)) {
+                b->edge.branch_conditional.target_false = new CfgBasicBlock{
+                    .status = CfgBlockStatus::Finished,
+                    .edge =
+                        {
+                            .type = CfgBlockEdgeType::None,
+                        },
+                };
+            }
+            break;
+        default:
+            break;
+        }
+        if (b == merge_block)
+            b->edge.type = CfgBlockEdgeType::None;
+
+        return true;
+    });
+
+    return merge_block;
+}
+
+// Returns merge block
+CfgBasicBlock* TransformLoop(const CfgBasicBlock* entry_block,
                              CfgBasicBlock* looping_block) {
     // Find the merge block
     // TODO: collect merge block candidates and find one that all of them can
@@ -21,14 +77,15 @@ CfgBasicBlock* TransformLoop(CfgBasicBlock* entry_block,
     });
 
     if (!merge_block) {
-        LOG_ERROR(ShaderDecompiler, "Failed to find merge block for loop");
+        LOG_ERROR(ShaderDecompiler,
+                  "Failed to find merge block for loop block {}",
+                  entry_block->code_range.begin);
         return nullptr;
     }
 
     // Replace all jumps to the target with a continue statement and
     // jumps to merge block with a break statement
     looping_block->Walk([entry_block, merge_block](CfgBasicBlock* b) {
-        // TODO: create new block instead of modifying the existing one
         if (b->CanDirectlyJumpTo(entry_block))
             b->edge.type = CfgBlockEdgeType::Continue;
         else if (b->CanDirectlyJumpTo(merge_block))
@@ -40,10 +97,12 @@ CfgBasicBlock* TransformLoop(CfgBasicBlock* entry_block,
     return merge_block;
 }
 
-CfgBlock* ResolveBlock(CfgBasicBlock* block);
+CfgBlock* ResolveBlock(const CfgBasicBlock* block);
 
-CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
+CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
     switch (block->edge.type) {
+    case CfgBlockEdgeType::None:
+        return new CfgCodeBlock(block->code_range);
     case CfgBlockEdgeType::Branch: {
         auto target = block->edge.branch.target;
         bool is_loop = false;
@@ -130,8 +189,8 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
             // Find the merge block
             auto merge_block = TransformLoop(block, block_true);
 
-            auto resolved_block_true = ResolveBlockImpl(block_true);
-            auto resolved_block_false = ResolveBlockImpl(block_false);
+            auto resolved_block_true = ResolveBlock(block_true);
+            auto resolved_block_false = ResolveBlock(block_false);
             if (!resolved_block_true || !resolved_block_false) {
                 LOG_ERROR(ShaderDecompiler,
                           "Failed to resolve branch conditional (block: {})",
@@ -158,80 +217,31 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
                                                  ResolveBlock(merge_block));
         }
 
-        auto resolved_block_true = ResolveBlockImpl(block_true);
-        auto resolved_block_false = ResolveBlockImpl(block_false);
+        // Clone block to be able to modify it
+        auto block_cloned = block->Clone();
+
+        // Find the merge block
+        auto merge_block = TransformIfElse(block_cloned);
+
+        auto resolved_block_true =
+            ResolveBlock(block_cloned->edge.branch_conditional.target_true);
+        auto resolved_block_false =
+            ResolveBlock(block_cloned->edge.branch_conditional.target_false);
         if (!resolved_block_true || !resolved_block_false) {
             LOG_ERROR(ShaderDecompiler, "Failed to resolve branch conditional");
             return nullptr;
         }
 
-        CfgNode* node_true = resolved_block_true;
-        CfgNode* node_false = resolved_block_false;
-        CfgNode* merge_node = nullptr;
-        if (auto block_true_with_edge =
-                dynamic_cast<CfgStructuredNodeWithEdge*>(resolved_block_true)) {
-            node_true = block_true_with_edge->node;
-            merge_node = block_true_with_edge->branch_target;
-        }
-
-        if (auto block_false_with_edge =
-                dynamic_cast<CfgStructuredNodeWithEdge*>(
-                    resolved_block_false)) {
-            node_false = block_false_with_edge->node;
-            if (merge_node) {
-                auto block_true_with_edge =
-                    static_cast<CfgStructuredNodeWithEdge*>(
-                        resolved_block_true);
-
-                // TODO: the special cases need to be handled more generically
-
-                // Special case when the true block branches to the false block
-                if (merge_node->IsSameAs(resolved_block_false)) {
-                    auto if_block =
-                        new CfgIfBlock(block->edge.branch_conditional.pred_cond,
-                                       block_true_with_edge->node);
-                    auto base_block = new CfgBlock({code_block, if_block});
-                    return new CfgStructuredNodeWithEdge(
-                        base_block, block_false_with_edge->node);
-                }
-
-                // Special case when the false block branches to the true block
-                if (block_false_with_edge->branch_target->IsSameAs(
-                        resolved_block_true)) {
-                    // Invert the condition
-                    auto pred_cond = block->edge.branch_conditional.pred_cond;
-                    pred_cond.not_ = !pred_cond.not_;
-
-                    auto if_block =
-                        new CfgIfBlock(pred_cond, block_false_with_edge->node);
-                    auto base_block = new CfgBlock({code_block, if_block});
-                    return new CfgStructuredNodeWithEdge(
-                        base_block, block_true_with_edge->node);
-                }
-
-                // Verify that the branch targets match
-                if (!block_false_with_edge->branch_target->IsSameAs(
-                        merge_node)) {
-                    LOG_ERROR(ShaderDecompiler,
-                              "Branch targets do not match (block: {})",
-                              block->code_range.begin);
-                    resolved_block_true->Log();
-                    resolved_block_false->Log();
-                    // TODO: uncomment
-                    // return nullptr;
-                }
-            } else {
-                merge_node = block_false_with_edge->branch_target;
-            }
-        }
-
-        auto if_else_block = new CfgIfElseBlock(
-            block->edge.branch_conditional.pred_cond, node_true, node_false);
+        auto if_else_block =
+            new CfgIfElseBlock(block_cloned->edge.branch_conditional.pred_cond,
+                               resolved_block_true, resolved_block_false);
         auto base_block = new CfgBlock({code_block, if_else_block});
-        if (merge_node)
+        if (merge_block) {
+            auto merge_node = ResolveBlock(merge_block);
             return new CfgStructuredNodeWithEdge(base_block, merge_node);
-        else
+        } else {
             return base_block;
+        }
     }
     case CfgBlockEdgeType::Exit:
         return new CfgCodeBlock(block->code_range, LastStatement::Exit);
@@ -248,7 +258,7 @@ CfgNode* ResolveBlockImpl(CfgBasicBlock* block) {
     return nullptr;
 }
 
-CfgBlock* ResolveBlock(CfgBasicBlock* block) {
+CfgBlock* ResolveBlock(const CfgBasicBlock* block) {
     auto resolved_block = ResolveBlockImpl(block);
     if (!resolved_block) {
         LOG_ERROR(ShaderDecompiler, "Failed to resolve block {}",
@@ -272,7 +282,7 @@ CfgBlock* ResolveBlock(CfgBasicBlock* block) {
 
 } // namespace
 
-CfgBlock* Structurize(CfgBasicBlock* entry_bb) {
+CfgBlock* Structurize(const CfgBasicBlock* entry_bb) {
     return ResolveBlock(entry_bb);
 }
 

@@ -5,6 +5,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 enum class CfgBlockEdgeType {
+    None,
     Branch,
     BranchConditional,
     Exit,
@@ -70,23 +71,51 @@ struct CfgBasicBlock {
     u32 return_sync_point{invalid<u32>()};
     CfgBlockEdge edge;
 
-    CfgBasicBlock* Clone() {
+    CfgBasicBlock* Clone() const {
         auto clone = new CfgBasicBlock(*this);
-        switch (edge.type) {
-        case CfgBlockEdgeType::Branch:
-            clone->edge.branch.target = clone->edge.branch.target->Clone();
-            break;
-        case CfgBlockEdgeType::BranchConditional:
-            clone->edge.branch_conditional.target_true =
-                clone->edge.branch_conditional.target_true->Clone();
-            clone->edge.branch_conditional.target_false =
-                clone->edge.branch_conditional.target_false->Clone();
-            break;
-        default:
-            break;
-        }
+        clone->Walk([](CfgBasicBlock* b) {
+            switch (b->edge.type) {
+            case CfgBlockEdgeType::Branch:
+                b->edge.branch.target =
+                    new CfgBasicBlock(*b->edge.branch.target);
+                break;
+            case CfgBlockEdgeType::BranchConditional:
+                b->edge.branch_conditional.target_true =
+                    new CfgBasicBlock(*b->edge.branch_conditional.target_true);
+                b->edge.branch_conditional.target_false =
+                    new CfgBasicBlock(*b->edge.branch_conditional.target_false);
+                break;
+            default:
+                break;
+            }
+
+            return true;
+        });
 
         return clone;
+    }
+
+    bool IsSameAs(const CfgBasicBlock* other) const {
+        if (other == this)
+            return true;
+
+        if (other->edge.type != edge.type)
+            return false;
+
+        if (other->code_range != code_range)
+            return false;
+
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            return edge.branch.target->IsSameAs(other->edge.branch.target);
+        case CfgBlockEdgeType::BranchConditional:
+            return edge.branch_conditional.target_true->IsSameAs(
+                       other->edge.branch_conditional.target_true) &&
+                   edge.branch_conditional.target_false->IsSameAs(
+                       other->edge.branch_conditional.target_false);
+        default:
+            return true;
+        }
     }
 
     void Walk(std::function<bool(CfgBasicBlock*)> visitor) {
@@ -94,10 +123,10 @@ struct CfgBasicBlock {
         WalkImpl(visitor, visited);
     }
 
-    bool CanJumpTo(CfgBasicBlock* target) {
+    bool CanJumpTo(const CfgBasicBlock* target) {
         bool can_jump = false;
         Walk([&can_jump, target](CfgBasicBlock* b) {
-            if (b == target) {
+            if (b->IsSameAs(target)) {
                 can_jump = true;
                 return false;
             }
@@ -108,18 +137,33 @@ struct CfgBasicBlock {
         return can_jump;
     }
 
-    bool CanDirectlyJumpTo(CfgBasicBlock* target) const {
+    bool CanDirectlyJumpTo(const CfgBasicBlock* target) const {
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            return edge.branch.target == target;
+            return edge.branch.target->IsSameAs(target);
         case CfgBlockEdgeType::BranchConditional:
-            return edge.branch_conditional.target_true == target ||
-                   edge.branch_conditional.target_false == target;
+            return edge.branch_conditional.target_true->IsSameAs(target) ||
+                   edge.branch_conditional.target_false->IsSameAs(target);
         default:
             return false;
         }
     }
 
+    CfgBasicBlock* FindMergeBlock(CfgBasicBlock* other) {
+        CfgBasicBlock* merge_block = nullptr;
+        Walk([&](CfgBasicBlock* b) {
+            if (other->CanJumpTo(b)) {
+                merge_block = b;
+                return false;
+            }
+
+            return true;
+        });
+
+        return merge_block;
+    }
+
+    // Debug
     void Log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
                   code_range.begin);
@@ -183,10 +227,7 @@ struct CfgBasicBlock {
             edge.branch_conditional.target_true->WalkImpl(visitor, visited);
             edge.branch_conditional.target_false->WalkImpl(visitor, visited);
             break;
-        case CfgBlockEdgeType::Exit:
-        case CfgBlockEdgeType::Break:
-        case CfgBlockEdgeType::Continue:
-        case CfgBlockEdgeType::Invalid:
+        default:
             break;
         }
     }

@@ -44,7 +44,6 @@ struct CfgStructuredNodeWithEdge : public CfgNode {
 
 enum class LastStatement {
     None,
-
     Exit,
     Break,
     Continue,
@@ -210,7 +209,6 @@ struct CfgWhileBlock : public CfgNode {
     GETTER(is_do_while, IsDoWhile);
 };
 
-// NOTE: this function cannot modify the CFG
-CfgBlock* Structurize(CfgBasicBlock* entry_bb);
+CfgBlock* Structurize(const CfgBasicBlock* entry_bb);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
