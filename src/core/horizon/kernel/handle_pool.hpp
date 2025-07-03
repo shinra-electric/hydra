@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/auto_object.hpp"
 
 namespace hydra::horizon::kernel {
@@ -32,8 +33,8 @@ class HandlePool {
 
     // Helpers
     static u32 HandleIdToIndex(handle_id_t handle_id) {
-        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
-                     "Invalid handle ID");
+        DEBUGGER_ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
+                              "Invalid handle ID");
         return handle_id - 1;
     }
 

@@ -50,6 +50,8 @@ class IFileSystem : public ServiceBase {
                            DirectoryFilterFlags filter_flags,
                            InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     STUB_REQUEST_COMMAND(Commit);
+    result_t GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+                              u64* out_size);
     result_t
     GetFileTimeStampRaw(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         TimeStampRaw* out_timestamp); // 3.0.0+

@@ -11,8 +11,8 @@ namespace hydra::horizon::services::fssrv {
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
                              DeleteDirectoryRecursively, 7, GetEntryType, 8,
-                             OpenFile, 9, OpenDirectory, 10, Commit, 14,
-                             GetFileTimeStampRaw)
+                             OpenFile, 9, OpenDirectory, 10, Commit, 11,
+                             GetFreeSpaceSize, 14, GetFileTimeStampRaw)
 
 #define READ_PATH()                                                            \
     const auto path = mount + in_path_buffer.reader->ReadString();             \
@@ -140,6 +140,18 @@ IFileSystem::OpenDirectory(add_service_fn_t add_service,
     }
 
     add_service(new IDirectory(directory, filter_flags));
+    return RESULT_SUCCESS;
+}
+
+result_t
+IFileSystem::GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+                              u64* out_size) {
+    LOG_FUNC_STUBBED(Services);
+
+    READ_PATH();
+
+    // HACK
+    *out_size = 64_GiB;
     return RESULT_SUCCESS;
 }
 
