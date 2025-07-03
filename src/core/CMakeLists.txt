@@ -49,6 +49,8 @@ add_library(hydra-core
     horizon/filesystem/partition_filesystem.hpp
     horizon/filesystem/content_archive.cpp
     horizon/filesystem/content_archive.hpp
+    horizon/filesystem/romfs.cpp
+    horizon/filesystem/romfs.hpp
     horizon/loader/loader_base.cpp
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp

@@ -209,6 +209,7 @@ ContentArchive::ContentArchive(FileBase* file) {
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
 
+    content_type = header.content_type;
     title_id = header.program_id;
 
     // FS entries
@@ -259,9 +260,8 @@ ContentArchive::ContentArchive(FileBase* file) {
                                     .levels[IVFC_MAX_LEVEL - 1];
 
             entries.insert(
-                {fmt::format("data{}", i),
-                 new FileView(file, entry_offset + level.logical_offset,
-                              level.hash_data_size)});
+                {"data", new FileView(file, entry_offset + level.logical_offset,
+                                      level.hash_data_size)});
             break;
         }
         default:

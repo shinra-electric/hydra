@@ -113,6 +113,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
             auto file =
                 new horizon::filesystem::HostFile(entry.path().string());
             horizon::filesystem::ContentArchive content_archive(file);
+            // TODO: find a better way to handle this
+            if (content_archive.GetContentType() ==
+                horizon::filesystem::ContentArchiveContentType::Meta)
+                continue;
 
             auto it = firmware_titles_map.find(content_archive.GetTitleID());
             if (it == firmware_titles_map.end())
@@ -120,9 +124,8 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 
             auto res = FILESYSTEM_INSTANCE.AddEntry(
                 fmt::format(FS_FIRMWARE_PATH "/{}", it->second), file, true);
-            if (res != horizon::filesystem::FsResult::Success &&
-                res != horizon::filesystem::FsResult::AlreadyExists)
-                LOG_FATAL(Other, "Failed to add firmware entry: {}", res);
+            ASSERT(res == horizon::filesystem::FsResult::Success, Other,
+                   "Failed to add firmware entry: {}", res);
         }
     }
 }

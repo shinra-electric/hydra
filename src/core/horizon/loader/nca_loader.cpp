@@ -136,7 +136,7 @@ std::optional<kernel::ProcessParams> NcaLoader::LoadProcess() {
             auto dir = dynamic_cast<filesystem::Directory*>(entry);
             ASSERT(dir, Loader, "Code is not a directory");
             process_params = LoadCode(dir);
-        } else if (name.starts_with("data")) {
+        } else if (name == "data") {
             const auto res = FILESYSTEM_INSTANCE.AddEntry(
                 FS_SD_MOUNT "/rom/romFS", entry, true);
             ASSERT(res == filesystem::FsResult::Success, Loader,

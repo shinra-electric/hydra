@@ -6,12 +6,16 @@ namespace hydra::horizon::filesystem {
 
 class FileView : public FileBase {
   public:
-    FileView(FileBase* base_, u64 offset_, usize size_)
+    FileView(FileBase* base_, u64 offset_, usize size_ = invalid<usize>())
         : base{base_}, offset{offset_}, size{size_} {
-        ASSERT(size <= base->GetSize(), Filesystem,
-               "File view size (0x{:08x}) cannot be larger than base file size "
-               "(0x{:08x})",
-               size, base->GetSize());
+        if (size == invalid<usize>())
+            size = base->GetSize() - offset;
+        else
+            ASSERT(size <= base->GetSize(), Filesystem,
+                   "File view size (0x{:08x}) cannot be larger than base file "
+                   "size "
+                   "(0x{:08x})",
+                   size, base->GetSize());
     }
 
     void Resize(usize new_size) override {

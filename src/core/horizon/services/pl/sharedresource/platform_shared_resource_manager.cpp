@@ -1,7 +1,10 @@
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 
+#include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/filesystem/partition_filesystem.hpp"
+#include "core/horizon/filesystem/romfs.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 
 namespace hydra::horizon::services::pl::shared_resource {
@@ -10,31 +13,77 @@ namespace {
 
 constexpr usize SHARED_MEMORY_SIZE = 0x01100000;
 
-#define SHARED_FONT_ENTRY(name, filename) [(u32)SharedFontType::name] = filename
+struct SharedFontName {
+    std::string_view name;
+    std::string_view filename;
+};
 
-constexpr std::string_view shared_font_filenames[] = {
-    SHARED_FONT_ENTRY(JapanUsEurope, "FontStandard"),
-    SHARED_FONT_ENTRY(ChineseSimplified, "FontChineseSimple"),
-    SHARED_FONT_ENTRY(ExtendedChineseSimplified, "FontChineseSimple"),
-    SHARED_FONT_ENTRY(ChineseTraditional, "FontChineseTraditional"),
-    SHARED_FONT_ENTRY(Korean, "FontKorean"),
-    SHARED_FONT_ENTRY(NintendoExtended, "FontNintendoExtension"),
+#define SHARED_FONT_ENTRY(type, name, filename)                                \
+    [(u32)SharedFontType::type] = SharedFontName { name, filename ".bfttf" }
+
+constexpr SharedFontName shared_font_names[] = {
+    SHARED_FONT_ENTRY(JapanUsEurope, "FontStandard", "nintendo_udsg-r_std_003"),
+    SHARED_FONT_ENTRY(ChineseSimplified, "FontChineseSimple",
+                      "nintendo_udsg-r_org_zh-cn_003"),
+    SHARED_FONT_ENTRY(ExtendedChineseSimplified, "FontChineseSimple",
+                      "nintendo_udsg-r_ext_zh-cn_003"),
+    SHARED_FONT_ENTRY(ChineseTraditional, "FontChineseTraditional",
+                      "nintendo_udsg-r_ko_003"),
+    SHARED_FONT_ENTRY(Korean, "FontKorean", "nintendo_udjxh-db_zh-tw_003"),
+    SHARED_FONT_ENTRY(NintendoExtended, "FontNintendoExtension",
+                      "nintendo_ext_003"),
 };
 
 #undef SHARED_FONT_ENTRY
 
 filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
+    const auto& name = shared_font_names[(u32)font_type];
+
+    // NCA
     filesystem::FileBase* file;
-    const auto res = FILESYSTEM_INSTANCE.GetFile(
-        fmt::format(FS_FIRMWARE_PATH "/{}",
-                    shared_font_filenames[(u32)font_type]),
-        file);
+    auto res = FILESYSTEM_INSTANCE.GetFile(
+        fmt::format(FS_FIRMWARE_PATH "/{}", name.name), file);
     if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Services, "Failed to get shared font {} file", font_type);
+        LOG_ERROR(Services, "Failed to get shared font {} file: {}", font_type,
+                  res);
         return nullptr;
     }
 
-    return file;
+    filesystem::ContentArchive content_archive(file);
+
+    // Data
+    filesystem::EntryBase* data_entry;
+    res = content_archive.GetEntry("data", data_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Services, "Failed to get shared font {} data: {}", font_type,
+                  res);
+        return nullptr;
+    }
+
+    auto data_file = dynamic_cast<filesystem::FileBase*>(data_entry);
+    if (!data_file) {
+        LOG_ERROR(Services, "Shared font {} data is not a file", font_type);
+        return nullptr;
+    }
+
+    // RomFS
+    filesystem::RomFS romfs(data_file);
+
+    // Font
+    filesystem::EntryBase* font_entry;
+    res = romfs.GetEntry(name.filename, font_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Services, "Failed to get shared font {}: {}", font_type, res);
+        return nullptr;
+    }
+
+    auto font_file = dynamic_cast<filesystem::FileBase*>(font_entry);
+    if (!font_file) {
+        LOG_ERROR(Services, "Shared font {} is not a file", font_type);
+        return nullptr;
+    }
+
+    return font_file;
 }
 
 } // namespace
@@ -108,9 +157,6 @@ result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
     OutBuffer<BufferAttr::MapAlias> out_sizes_buffer) {
     *out_loaded = 0;
     *out_count = 0;
-
-    // HACK: return early, nx-hbmenu probably doesn't like the font data
-    return RESULT_SUCCESS;
 
     for (SharedFontType type = (SharedFontType)0;
          type < SharedFontType::ChineseSimplified; type++) {
