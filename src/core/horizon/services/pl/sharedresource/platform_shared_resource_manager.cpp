@@ -116,43 +116,21 @@ DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
                              GetSharedFontInOrderOfPriority)
 
 IPlatformSharedResourceManager::IPlatformSharedResourceManager()
-    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {}
+    : shared_memory_handle(new kernel::SharedMemory(SHARED_MEMORY_SIZE)) {
+    // Load fonts
+    for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
+         type++)
+        LoadFont(type);
+}
 
 result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {
-    auto& state = states[(u32)font_type];
-    if (state.load_state == LoadState::Loaded) {
-        LOG_WARN(Services, "Shared font {} is already loaded", font_type);
-        return RESULT_SUCCESS;
-    }
-
-    auto file = GetSharedFontFile(font_type);
-    if (!file)
-        return MAKE_RESULT(Svc, 100); // TODO
-
-    // Load
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    const auto res =
-        DecryptBFTTF(reader, Writer((u8*)shared_memory_handle.handle->GetPtr() +
-                                        shared_memory_offset,
-                                    SHARED_MEMORY_SIZE - shared_memory_offset));
-    file->Close(stream);
-    if (res != RESULT_SUCCESS)
-        return res;
-
-    // Set state
-    state.load_state = LoadState::Loaded;
-    state.shared_memory_offset = shared_memory_offset;
-    state.size = file->GetSize();
-    shared_memory_offset += file->GetSize();
-
+    // Do nothing, all the fonts are already loaded
     return RESULT_SUCCESS;
 }
 
 result_t IPlatformSharedResourceManager::GetLoadState(SharedFontType font_type,
                                                       LoadState* out_state) {
-    *out_state = states[(u32)font_type].load_state;
+    *out_state = LoadState::Loaded;
     return RESULT_SUCCESS;
 }
 
@@ -185,9 +163,6 @@ result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
     for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
          type++) {
         const auto& state = states[(u32)type];
-        if (state.load_state != LoadState::Loaded)
-            continue;
-
         out_types_buffer.writer->Write(type);
         out_offsets_buffer.writer->Write<u32>(state.shared_memory_offset);
         out_sizes_buffer.writer->Write<u32>(state.size);
@@ -197,6 +172,30 @@ result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
     }
 
     return RESULT_SUCCESS;
+}
+
+void IPlatformSharedResourceManager::LoadFont(const SharedFontType type) {
+    auto file = GetSharedFontFile(type);
+    if (!file)
+        return;
+
+    // Load
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    const auto res =
+        DecryptBFTTF(reader, Writer((u8*)shared_memory_handle.handle->GetPtr() +
+                                        shared_memory_offset,
+                                    SHARED_MEMORY_SIZE - shared_memory_offset));
+    file->Close(stream);
+    if (res != RESULT_SUCCESS)
+        return;
+
+    // Set state
+    auto& state = states[(u32)type];
+    state.shared_memory_offset = shared_memory_offset;
+    state.size = file->GetSize();
+    shared_memory_offset += file->GetSize();
 }
 
 } // namespace hydra::horizon::services::pl::shared_resource

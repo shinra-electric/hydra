@@ -34,7 +34,6 @@ class IPlatformSharedResourceManager : public ServiceBase {
     kernel::HandleWithId<kernel::SharedMemory> shared_memory_handle;
     u32 shared_memory_offset{0};
     struct {
-        LoadState load_state{LoadState::Loading};
         u32 shared_memory_offset{0};
         usize size{0};
     } states[(u32)SharedFontType::Total]{};
@@ -54,6 +53,9 @@ class IPlatformSharedResourceManager : public ServiceBase {
         OutBuffer<BufferAttr::MapAlias> out_types_buffer,
         OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
         OutBuffer<BufferAttr::MapAlias> out_sizes_buffer);
+
+    // Helpers
+    void LoadFont(const SharedFontType type);
 };
 
 } // namespace hydra::horizon::services::pl::shared_resource

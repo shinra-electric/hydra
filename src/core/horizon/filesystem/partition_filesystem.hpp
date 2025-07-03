@@ -72,7 +72,7 @@ class PartitionFilesystem final : public Directory {
 
             const std::string entry_name(string_table.data() +
                                          entry.string_offset);
-            LOG_INFO(Filesystem, "Partition entry: {}", entry_name);
+            LOG_DEBUG(Filesystem, "Partition entry: {}", entry_name);
 
             const u32 entry_data_offset = data_offset + entry.offset;
             entries.insert({std::string(entry_name),

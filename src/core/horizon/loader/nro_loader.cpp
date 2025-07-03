@@ -181,7 +181,7 @@ void NroLoader::TryLoadAssetSection(filesystem::FileBase* file) {
     if (header.magic != make_magic4('A', 'S', 'E', 'T'))
         return;
 
-    LOG_INFO(Loader, "Asset section found");
+    LOG_DEBUG(Loader, "Asset section found");
 
     // Icon
     if (header.icon_section.size > 0)
