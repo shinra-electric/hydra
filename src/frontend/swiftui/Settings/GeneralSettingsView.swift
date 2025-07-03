@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct GeneralSettingsView: View {
     @State private var gamePaths: [String] = []
@@ -6,12 +7,18 @@ struct GeneralSettingsView: View {
     @State private var sdCardPath: String = ""
     @State private var savePath: String = ""
 
+    private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
+    private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
+
     var body: some View {
         VStack {
             Text("Game paths")
-            EditablePathList(items: self.$gamePaths)
+            EditablePathList(
+                allowedContentTypes: [.folder, self.switchType],
+                items: self.$gamePaths)
             Text("Patch paths")
-            EditablePathList(items: self.$patchPaths)
+            EditablePathList(
+                allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths)
 
             // TODO: make these editable
             Text("SD card path: \(self.sdCardPath)")

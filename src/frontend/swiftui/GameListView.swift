@@ -64,7 +64,7 @@ struct GameListView: View {
     func tryAddGame(path: String) {
         // TODO: ask the core for supported extensions
         if !path.hasSuffix("nro") && !path.hasSuffix("nso")
-            && !path.hasSuffix("nca") && !path.hasSuffix("nsp") && !path.hasSuffix("xci")
+            && !path.hasSuffix("nca")
         {
             return
         }

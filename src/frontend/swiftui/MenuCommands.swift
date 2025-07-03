@@ -5,7 +5,7 @@ struct MenuCommands: Commands {
 
     @Binding var activeGame: Game?
 
-    @State var firmwareLoaders: [UnsafeMutableRawPointer] = []
+    @State var firmwareApplets: [Game] = []
 
     var body: some Commands {
         CommandGroup(after: .newItem) {
@@ -16,20 +16,19 @@ struct MenuCommands: Commands {
             .keyboardShortcut(KeyEquivalent("l"), modifiers: .command)
 
             Menu("Load from firmware") {
-                ForEach(self.firmwareLoaders, id: \.self) { firmwareLoader in
-                    let name = String(cString: hydra_nca_loader_get_name(firmwareLoader))
-                    Button(name) {
-                        self.activeGame = Game(loader: firmwareLoader, name: name)
+                ForEach(self.firmwareApplets, id: \.self) { firmwareApplet in
+                    Button(firmwareApplet.name) {
+                        self.activeGame = firmwareApplet
                     }
                 }
             }
-            .disabled(self.firmwareLoaders.count == 0)
+            .disabled(self.firmwareApplets.count == 0)
             .onAppear {
                 self.loadFirmware()
             }
             .onDisappear {
-                for firmwareLoader in self.firmwareLoaders {
-                    hydra_loader_destroy(firmwareLoader)
+                for firmwareApplet in self.firmwareApplets {
+                    hydra_loader_destroy(firmwareApplet.loader)
                 }
             }
         }
@@ -85,6 +84,11 @@ struct MenuCommands: Commands {
             return
         }
 
-        self.firmwareLoaders.append(loader)
+        let name = String(cString: hydra_nca_loader_get_name(loader))
+        if name == "" {
+            return
+        }
+
+        self.firmwareApplets.append(Game(loader: loader, name: name))
     }
 }

@@ -1,6 +1,8 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct EditablePathList: View {
+    var allowedContentTypes: [UTType]
     @Binding var items: [String]
 
     @State private var isFilePickerPresented: Bool = false
@@ -22,7 +24,8 @@ struct EditablePathList: View {
                 .buttonStyle(PlainButtonStyle())
                 // TODO: allow specifying allowedContentTypes
                 .fileImporter(
-                    isPresented: $isFilePickerPresented, allowedContentTypes: [.data],
+                    isPresented: $isFilePickerPresented,
+                    allowedContentTypes: self.allowedContentTypes,
                     allowsMultipleSelection: false
                 ) { result in
                     switch result {
