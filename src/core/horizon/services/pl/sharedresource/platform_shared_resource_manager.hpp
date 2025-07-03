@@ -32,6 +32,12 @@ class IPlatformSharedResourceManager : public ServiceBase {
 
   private:
     kernel::HandleWithId<kernel::SharedMemory> shared_memory_handle;
+    u32 shared_memory_offset{0};
+    struct {
+        LoadState load_state{LoadState::Loading};
+        u32 shared_memory_offset{0};
+        usize size{0};
+    } states[(u32)SharedFontType::Total]{};
 
     // Commands
     result_t RequestLoad(SharedFontType font_type);
@@ -42,8 +48,9 @@ class IPlatformSharedResourceManager : public ServiceBase {
     result_t
     GetSharedMemoryNativeHandle(OutHandle<HandleAttr::Copy> out_handle);
     // TODO: buffer attr
+    // TODO: should out_loaded be a bool?
     result_t GetSharedFontInOrderOfPriority(
-        LanguageCode language_code, bool* out_loaded, u32* out_count,
+        LanguageCode language_code, u8* out_loaded, u32* out_count,
         OutBuffer<BufferAttr::MapAlias> out_types_buffer,
         OutBuffer<BufferAttr::MapAlias> out_offsets_buffer,
         OutBuffer<BufferAttr::MapAlias> out_sizes_buffer);

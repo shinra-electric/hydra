@@ -1,7 +1,5 @@
 #include "core/emulation_context.hpp"
 
-#include "core/horizon/const.hpp"
-#include "core/horizon/kernel/const.hpp"
 #include "hatch/hatch.hpp"
 
 #include "core/audio/cubeb/core.hpp"
@@ -92,6 +90,41 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
                  root_path.host_path);
     }
     */
+
+    // Content
+
+    FILESYSTEM_INSTANCE.Mount(FS_CONTENT_MOUNT);
+
+    // Firmware
+    std::map<u64, std::string> firmware_titles_map = {
+        {0x010000000000080E, "TimeZoneBinary"},
+        {0x0100000000000810, "FontNintendoExtension"},
+        {0x0100000000000811, "FontStandard"},
+        {0x0100000000000812, "FontKorean"},
+        {0x0100000000000813, "FontChineseTraditional"},
+        {0x0100000000000814, "FontChineseSimple"},
+    };
+
+    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
+    if (!firmware_path.empty()) {
+        // Iterate over the directory
+        for (const auto& entry :
+             std::filesystem::directory_iterator(firmware_path)) {
+            auto file =
+                new horizon::filesystem::HostFile(entry.path().string());
+            horizon::filesystem::ContentArchive content_archive(file);
+
+            auto it = firmware_titles_map.find(content_archive.GetTitleID());
+            if (it == firmware_titles_map.end())
+                continue;
+
+            auto res = FILESYSTEM_INSTANCE.AddEntry(
+                fmt::format(FS_FIRMWARE_PATH "/{}", it->second), file, true);
+            if (res != horizon::filesystem::FsResult::Success &&
+                res != horizon::filesystem::FsResult::AlreadyExists)
+                LOG_FATAL(Other, "Failed to add firmware entry: {}", res);
+        }
+    }
 }
 
 EmulationContext::~EmulationContext() {
