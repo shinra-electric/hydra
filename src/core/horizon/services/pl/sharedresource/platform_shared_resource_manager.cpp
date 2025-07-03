@@ -28,8 +28,8 @@ constexpr SharedFontName shared_font_names[] = {
     SHARED_FONT_ENTRY(ExtendedChineseSimplified, "FontChineseSimple",
                       "nintendo_udsg-r_ext_zh-cn_003"),
     SHARED_FONT_ENTRY(ChineseTraditional, "FontChineseTraditional",
-                      "nintendo_udsg-r_ko_003"),
-    SHARED_FONT_ENTRY(Korean, "FontKorean", "nintendo_udjxh-db_zh-tw_003"),
+                      "nintendo_udjxh-db_zh-tw_003"),
+    SHARED_FONT_ENTRY(Korean, "FontKorean", "nintendo_udsg-r_ko_003"),
     SHARED_FONT_ENTRY(NintendoExtended, "FontNintendoExtension",
                       "nintendo_ext_003"),
 };
@@ -86,6 +86,27 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
     return font_file;
 }
 
+constexpr u32 BFTTF_MAGIC = 0x18029a7f;
+constexpr u32 FONT_KEY = 0x06186249;
+
+result_t DecryptBFTTF(StreamReader reader, Writer writer) {
+#define KEY_XOR(x) (x ^ FONT_KEY)
+
+    const auto magic = KEY_XOR(reader.Read<u32>());
+    if (magic != BFTTF_MAGIC) {
+        LOG_ERROR(Services, "Invalid BFTTF magic");
+        return MAKE_RESULT(Svc, 100); // TODO
+    }
+
+    reader.Skip(4);
+
+    for (u32 i = 0; i < (reader.GetSize() - 8) / sizeof(u32); i++)
+        writer.Write(KEY_XOR(reader.Read<u32>()));
+#undef KEY_XOR
+
+    return RESULT_SUCCESS;
+}
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(IPlatformSharedResourceManager, 0, RequestLoad, 1,
@@ -106,16 +127,19 @@ result_t IPlatformSharedResourceManager::RequestLoad(SharedFontType font_type) {
 
     auto file = GetSharedFontFile(font_type);
     if (!file)
-        return MAKE_RESULT(Fs, 1); // TODO
+        return MAKE_RESULT(Svc, 100); // TODO
 
     // Load
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
-    reader.ReadWhole((u8*)shared_memory_handle.handle->GetPtr() +
-                     shared_memory_offset);
-
+    const auto res =
+        DecryptBFTTF(reader, Writer((u8*)shared_memory_handle.handle->GetPtr() +
+                                        shared_memory_offset,
+                                    SHARED_MEMORY_SIZE - shared_memory_offset));
     file->Close(stream);
+    if (res != RESULT_SUCCESS)
+        return res;
 
     // Set state
     state.load_state = LoadState::Loaded;
@@ -158,8 +182,8 @@ result_t IPlatformSharedResourceManager::GetSharedFontInOrderOfPriority(
     *out_loaded = 0;
     *out_count = 0;
 
-    for (SharedFontType type = (SharedFontType)0;
-         type < SharedFontType::ChineseSimplified; type++) {
+    for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
+         type++) {
         const auto& state = states[(u32)type];
         if (state.load_state != LoadState::Loaded)
             continue;

@@ -126,6 +126,7 @@ class StreamReader {
 
     u64 Tell() const { return static_cast<u64>(stream.tellg()) - offset; }
     void Seek(u64 pos) { stream.seekg(offset + pos, std::ios::beg); }
+    void Skip(usize size) { stream.seekg(size, std::ios::cur); }
 
     template <typename T>
     T Read() {
@@ -170,6 +171,7 @@ class StreamWriter {
 
     u64 Tell() { return static_cast<u64>(stream.tellp()) - offset; }
     void Seek(u64 pos) { stream.seekp(offset + pos, std::ios::beg); }
+    void Skip(usize size) { stream.seekp(size, std::ios::cur); }
 
     template <typename T>
     void Write(const T& value) {
