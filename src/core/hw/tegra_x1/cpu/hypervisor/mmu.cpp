@@ -85,7 +85,7 @@ MMU::MMU()
         reinterpret_cast<void*>(physical_memory_ptr), 0x0, PHYSICAL_MEMORY_SIZE,
         HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
 
-    // kernel memory
+    // Kernel memory
     uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
     kernel_page_table.Map(0x0, physical_memory_cur, KERNEL_MEM_SIZE,
                           {horizon::kernel::MemoryType::Kernel,
@@ -102,6 +102,20 @@ MMU::MMU()
         reinterpret_cast<void*>(kernel_mem_ptr + EXCEPTION_TRAMPOLINE_OFFSET),
         exception_trampoline, sizeof(exception_trampoline));
 
+    // Loader return address
+    // TODO: this should be done in a backend agnostic way (perhaps in the
+    // kernel?)
+    uptr ret_mem_ptr = physical_memory_ptr + physical_memory_cur;
+    user_page_table.Map(0xffff0000, physical_memory_cur, 0x1000,
+                        {horizon::kernel::MemoryType::Code,
+                         horizon::kernel::MemoryAttribute::None,
+                         horizon::kernel::MemoryPermission::Execute},
+                        ApFlags::UserExecuteKernelRead);
+    physical_memory_cur += 0x1000;
+
+    *reinterpret_cast<u32*>(ret_mem_ptr) = 0xd40000e1; // svcExitProcess
+
+    // Symbols
     DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
          range<vaddr_t>(KERNEL_REGION_BASE, KERNEL_REGION_BASE + 0x800)});

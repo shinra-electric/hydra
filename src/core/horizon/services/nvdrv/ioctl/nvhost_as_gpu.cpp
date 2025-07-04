@@ -6,10 +6,10 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostAsGpu,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostAsGpu, 0x41, 0x01,
-                                            BindChannel, 0x02, AllocSpace, 0x05,
-                                            UnmapBuffer, 0x06, MapBufferEX,
-                                            0x08, GetVaRegions, 0x09, AllocAsEX,
-                                            0x14, Remap))
+                                            BindChannel, 0x02, AllocSpace, 0x03,
+                                            FreeSpace, 0x05, UnmapBuffer, 0x06,
+                                            MapBufferEX, 0x08, GetVaRegions,
+                                            0x09, AllocAsEX, 0x14, Remap))
 
 NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
     LOG_FUNC_STUBBED(Services);
@@ -25,6 +25,11 @@ NvResult NvHostAsGpu::AllocSpace(u32 pages, u32 page_size,
 
     align_and_offset = GPU_INSTANCE.AllocatePrivateAddressSpace(
         static_cast<usize>(pages) * static_cast<usize>(page_size), gpu_addr);
+    return NvResult::Success;
+}
+
+NvResult NvHostAsGpu::FreeSpace(vaddr_t offset, u32 pages, u32 page_size) {
+    LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }
 

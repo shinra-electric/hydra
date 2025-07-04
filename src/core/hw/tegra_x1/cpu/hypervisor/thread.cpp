@@ -132,6 +132,9 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
         ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
 
     SetupVTimer();
+
+    // HACK: set LR to loader return address
+    SetReg(HV_REG_LR, 0xffff0000);
 }
 
 void Thread::Run() {
