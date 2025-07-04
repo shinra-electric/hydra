@@ -234,4 +234,9 @@ std::string Builder::EmitTextureSample(u32 const_buffer_index,
                        const_buffer_index, coords);
 }
 
+std::string Builder::EmitTextureRead(u32 const_buffer_index,
+                                     const std::string_view coords) {
+    return fmt::format("tex{}.read(uint2({}))", const_buffer_index, coords);
+}
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL

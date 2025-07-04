@@ -374,6 +374,20 @@ void LangBuilderBase::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
     EmitWriteFromTemp(dstD, 3);
 }
 
+void LangBuilderBase::OpTextureRead(ValueBase* dstA, ValueBase* dstB,
+                                    ValueBase* dstC, ValueBase* dstD,
+                                    u32 const_buffer_index, ValueBase* coords_x,
+                                    ValueBase* coords_y) {
+    EmitReadToTemp(coords_x, 0);
+    EmitReadToTemp(coords_y, 1);
+    WriteStatement("temp.f = {}",
+                   EmitTextureRead(const_buffer_index, "temp.f.xy"));
+    EmitWriteFromTemp(dstA, 0);
+    EmitWriteFromTemp(dstB, 1);
+    EmitWriteFromTemp(dstC, 2);
+    EmitWriteFromTemp(dstD, 3);
+}
+
 void LangBuilderBase::OpDebugComment(const std::string_view str) {
     Write("// {}", str);
 }

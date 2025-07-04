@@ -106,6 +106,15 @@ enum class LoadStoreMode {
 
 u32 get_load_store_count(LoadStoreMode mode);
 
+enum class ShuffleMode {
+    Invalid,
+
+    Index,
+    Up,
+    Down,
+    Bfly,
+};
+
 enum class MathFunc {
     Invalid,
 
@@ -208,6 +217,10 @@ ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::LoadStoreMode, Invalid,
     "invalid", U8, "u8", S8, "S8", U16, "u16", S16, "s16", B32, "b32", B64,
     "b64", B96, "b96", B128, "b128")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ShuffleMode, Invalid,
+    "invalid", Index, "index", Up, "up", Down, "down", Bfly, "BFLY")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MathFunc, Invalid,

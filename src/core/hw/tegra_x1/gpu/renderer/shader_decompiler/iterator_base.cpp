@@ -210,7 +210,49 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("ld");
     }
     INST(0xef10000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shfl");
+        const auto mode = get_operand_ef10_0(inst);
+        const auto dst_pred = GET_PRED(48);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        COMMENT("shfl {} p{} r{} r{} ...", mode, dst_pred, dst, srcA);
+
+        HANDLE_PRED_COND();
+
+        auto dst_v = o->OpRegister(false, dst);
+        auto dst_pred_v = o->OpPredicate(false, dst_pred);
+        auto srcA_v = o->OpRegister(true, srcA);
+        auto srcB_v = ((inst & 0x10000000) == 0x0
+                           ? o->OpRegister(true, GET_REG(20))
+                           : o->OpImmediateL(GET_VALUE_U32(20, 5)));
+        auto srcC_v = ((inst & 0x10000000) == 0x0
+                           ? o->OpRegister(true, GET_REG(39))
+                           : o->OpImmediateL(GET_VALUE_U32(34, 13)));
+
+        ValueBase* res_v;
+        ValueBase* res_valid_v;
+
+        // HACK
+        res_v = srcA_v;
+        res_valid_v = o->OpPredicate(true, PT);
+        /*
+        switch (mode) {
+        case ShuffleMode::Index:
+            // TODO
+            break;
+        case ShuffleMode::Up:
+            // TODO
+            break;
+        case ShuffleMode::Down:
+            // TODO
+            break;
+        case ShuffleMode::Bfly:
+            // TODO
+            break;
+        }
+        */
+
+        o->OpMove(dst_v, res_v);
+        o->OpMove(dst_pred_v, res_valid_v);
     }
     INST(0xeef0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("atom");
@@ -526,10 +568,26 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("tld");
     }
     INST(0xd200000000000000, 0xf600000000000000) {
-        COMMENT_NOT_IMPLEMENTED("tlds");
+        // TODO: d200_0
+        const auto dst1 = GET_REG(28);
+        const auto dst0 = GET_REG(0);
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
+        const auto const_buffer_index = GET_VALUE_U32(36, 13);
+        // TODO: texture type
+        // TODO: component swizzle?
+        COMMENT("tlds r{} r{} r{} r{} 0x{:08x}", dst1, dst0, coords_x, coords_y,
+                const_buffer_index);
+
+        HANDLE_PRED_COND();
+
+        o->OpTextureRead(
+            o->OpRegister(false, dst0), o->OpRegister(false, dst0 + 1),
+            o->OpRegister(false, dst1), o->OpRegister(false, dst1 + 1),
+            const_buffer_index, o->OpRegister(true, coords_x),
+            o->OpRegister(true, coords_y));
     }
     INST(0xd000000000000000, 0xf600000000000000) {
-        // TODO: is the dst correct?
         const auto dst1 = GET_REG(28);
         const auto dst0 = GET_REG(0);
         const auto coords_x = GET_REG(8);

@@ -22,6 +22,8 @@ class Builder final : public LangBuilderBase {
 
     std::string EmitTextureSample(u32 const_buffer_index,
                                   const std::string_view coords) override;
+    std::string EmitTextureRead(u32 const_buffer_index,
+                                const std::string_view coords) override;
 
   private:
     // Helpers

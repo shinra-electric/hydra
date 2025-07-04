@@ -20,6 +20,9 @@ class MemoryAnalyzer : public ObserverBase {
     void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
                          ValueBase* dstD, u32 const_buffer_index,
                          ValueBase* coords_x, ValueBase* coords_y) override;
+    void OpTextureRead(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
+                       ValueBase* dstD, u32 const_buffer_index,
+                       ValueBase* coords_x, ValueBase* coords_y) override;
 
     // Getters
     const std::vector<SvSemantic>& GetInputSVs() const { return input_svs; }

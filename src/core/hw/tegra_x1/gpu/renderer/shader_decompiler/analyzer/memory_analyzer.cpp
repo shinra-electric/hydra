@@ -37,6 +37,13 @@ void MemoryAnalyzer::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
     push_unique(textures, const_buffer_index);
 }
 
+void MemoryAnalyzer::OpTextureRead(ValueBase* dstA, ValueBase* dstB,
+                                   ValueBase* dstC, ValueBase* dstD,
+                                   u32 const_buffer_index, ValueBase* coords_x,
+                                   ValueBase* coords_y) {
+    push_unique(textures, const_buffer_index);
+}
+
 void MemoryAnalyzer::HandleAMemLoad(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,

@@ -101,6 +101,10 @@ class ObserverBase {
                                  ValueBase* dstC, ValueBase* dstD,
                                  u32 const_buffer_index, ValueBase* coords_x,
                                  ValueBase* coords_y) {}
+    virtual void OpTextureRead(ValueBase* dstA, ValueBase* dstB,
+                               ValueBase* dstC, ValueBase* dstD,
+                               u32 const_buffer_index, ValueBase* coords_x,
+                               ValueBase* coords_y) {}
     virtual void OpDiscard() {}
 
     // Debug
