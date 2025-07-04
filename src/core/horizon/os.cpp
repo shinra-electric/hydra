@@ -7,10 +7,10 @@ namespace hydra::horizon {
 
 SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon)
 
-OS::OS(hw::Bus& bus, hw::tegra_x1::cpu::MMUBase* mmu_,
-       audio::CoreBase& audio_core_, ui::HandlerBase& ui_handler_)
+OS::OS(hw::tegra_x1::cpu::MMUBase* mmu_, audio::CoreBase& audio_core_,
+       ui::HandlerBase& ui_handler_)
     : mmu{mmu_}, audio_core{audio_core_}, ui_handler{ui_handler_},
-      kernel(bus, mmu_) {
+      kernel(mmu_) {
     SINGLETON_SET_INSTANCE(OS, Horizon);
 
     // Services

@@ -2,13 +2,10 @@
 
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/os.hpp"
-#include "core/horizon/services/const.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/horizon/services/visrv/manager_display_service.hpp"
 #include "core/horizon/services/visrv/system_display_service.hpp"
-#include "core/hw/bus.hpp"
-#include "core/hw/display/display.hpp"
 
 namespace hydra::horizon::services::visrv {
 
@@ -75,15 +72,20 @@ result_t IApplicationDisplayService::ListDisplays(
 }
 
 result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
-    u64 display_id = 0; // TODO: get based on the name
-    KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->Open();
+    // TODO: what display ID should be used?
+    const auto display_id = 0;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
+    display.Open();
 
     *out_display_id = display_id;
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
-    KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->Close();
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
+    display.Close();
     return RESULT_SUCCESS;
 }
 
@@ -92,7 +94,8 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
                                                           i64* out_height) {
     LOG_FUNC_STUBBED(Services);
 
-    auto display = KERNEL_INSTANCE.GetBus().GetDisplay(display_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
 
     // HACK
     *out_width = 1920;
@@ -104,10 +107,11 @@ result_t IApplicationDisplayService::OpenLayer(
     u64 display_name, u64 layer_id, u64 aruid, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
     u64 display_id = 0; // TODO: get based on the name
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
 
-    auto layer =
-        KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->GetLayer(layer_id);
-    layer->Open();
+    auto& layer = display.GetLayer(layer_id);
+    layer.Open();
 
     // Out
     // TODO: correct?
@@ -120,7 +124,7 @@ result_t IApplicationDisplayService::OpenLayer(
     parcel_writer.Write<ParcelData>({
         .unknown0 = 0x2,
         .unknown1 = 0x0, // TODO
-        .binder_id = layer->GetBinderId(),
+        .binder_id = layer.GetBinderID(),
         .unknown2 = {0x0},
         .str = str_to_u64("dispdrv"),
         .unknown3 = 0x0,
@@ -133,10 +137,11 @@ result_t IApplicationDisplayService::OpenLayer(
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     u64 display_id = 0; // TODO: get from layer ID
 
-    KERNEL_INSTANCE.GetBus()
-        .GetDisplay(display_id)
-        ->GetLayer(layer_id)
-        ->Close();
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
+
+    auto& layer = display.GetLayer(layer_id);
+    layer.Close();
     return RESULT_SUCCESS;
 }
 
@@ -147,8 +152,10 @@ result_t IApplicationDisplayService::ConvertScalingMode() {
 
 result_t IApplicationDisplayService::GetDisplayVsyncEvent(
     u64 display_id, OutHandle<HandleAttr::Move> out_handle) {
-    out_handle =
-        KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->GetVSyncEvent().id;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock display_lock(display.GetMutex());
+
+    out_handle = display.GetVSyncEvent().id;
     return RESULT_SUCCESS;
 }
 

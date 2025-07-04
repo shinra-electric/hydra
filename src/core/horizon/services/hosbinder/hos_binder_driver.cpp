@@ -140,7 +140,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         i32 slot = parcel_reader.Read<i32>();
-        if (slot > MAX_BINDER_BUFFER_COUNT) {
+        if (slot > display::MAX_BINDER_BUFFER_COUNT) {
             LOG_WARN(Services, "Invalid slot: {}", slot);
             parcel_writer.Write<u32>(0x0);
             break;
@@ -158,7 +158,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         parcel_writer.Write(slot);
 
         // NvMultiFence
-        NvMultiFence fence = {
+        display::NvMultiFence fence = {
             .num_fences = 0,
         };
         parcel_writer.WriteStrongPointer(&fence);
@@ -171,17 +171,18 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
 
         // Slot
         i32 slot = parcel_reader.Read<i32>();
-        const auto& input = *parcel_reader.ReadFlattenedObject<BqBufferInput>();
+        const auto& input =
+            *parcel_reader.ReadFlattenedObject<display::BqBufferInput>();
 
         binder.QueueBuffer(slot, input);
 
         // Buffer output
         // TODO
-        parcel_writer.Write<BqBufferOutput>({
+        parcel_writer.Write<display::BqBufferOutput>({
             .width = 1920,       // TODO: don't hardcode
             .height = 1080,      // TODO: don't hardcode
             .transform_hint = 0, // HACK
-            .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
+            .num_pending_buffers = display::MAX_BINDER_BUFFER_COUNT, // HACK
         });
 
         break;
@@ -217,11 +218,11 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         auto interface_token = parcel_reader.ReadInterfaceToken();
         LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
-        parcel_writer.Write<BqBufferOutput>({
+        parcel_writer.Write<display::BqBufferOutput>({
             .width = 1920,       // TODO: don't hardcode
             .height = 1080,      // TODO: don't hardcode
             .transform_hint = 0, // HACK
-            .num_pending_buffers = MAX_BINDER_BUFFER_COUNT, // HACK
+            .num_pending_buffers = display::MAX_BINDER_BUFFER_COUNT, // HACK
         });
 
         break;
@@ -244,7 +245,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         i32 slot = parcel_reader.Read<i32>();
 
         // Input buffer
-        auto buffer = parcel_reader.ReadStrongPointer<GraphicBuffer>();
+        auto buffer = parcel_reader.ReadStrongPointer<display::GraphicBuffer>();
         if (!buffer) {
             LOG_ERROR(Services, "No graphic buffer");
             break;

@@ -1,15 +1,15 @@
-#include "core/horizon/display_driver.hpp"
+#include "core/horizon/display/binder.hpp"
 
-namespace hydra::horizon {
+namespace hydra::horizon::display {
 
-void DisplayBinder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
+void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
     std::lock_guard<std::mutex> lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
 }
 
-i32 DisplayBinder::GetAvailableSlot() {
+i32 Binder::GetAvailableSlot() {
     // Wait for a slot to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     queue_cv.wait(lock, [&] { return queued_buffers.size() != buffer_count; });
@@ -40,7 +40,7 @@ i32 DisplayBinder::GetAvailableSlot() {
     return slot;
 }
 
-void DisplayBinder::QueueBuffer(i32 slot, const BqBufferInput& input) {
+void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
     std::lock_guard<std::mutex> lock(queue_mutex);
     queued_buffers.push({slot, input});
     buffers[slot].queued = true;
@@ -53,9 +53,8 @@ void DisplayBinder::QueueBuffer(i32 slot, const BqBufferInput& input) {
     queue_cv.notify_all();
 }
 
-i32 DisplayBinder::ConsumeBuffer(
-    BqBufferInput& out_input,
-    std::vector<std::chrono::nanoseconds>& out_dt_list) {
+i32 Binder::ConsumeBuffer(BqBufferInput& out_input,
+                          std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     // TODO: should we wait?
@@ -84,7 +83,7 @@ i32 DisplayBinder::ConsumeBuffer(
     return slot;
 }
 
-void DisplayBinder::UnqueueAllBuffers() {
+void Binder::UnqueueAllBuffers() {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
 
@@ -101,4 +100,4 @@ void DisplayBinder::UnqueueAllBuffers() {
     event.handle->Signal();
 }
 
-} // namespace hydra::horizon
+} // namespace hydra::horizon::display

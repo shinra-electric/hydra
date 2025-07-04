@@ -27,7 +27,7 @@ class Kernel {
   public:
     static Kernel& GetInstance();
 
-    Kernel(hw::Bus& bus_, hw::tegra_x1::cpu::MMUBase* mmu_);
+    Kernel(hw::tegra_x1::cpu::MMUBase* mmu_);
     ~Kernel();
 
     // Loading
@@ -133,14 +133,12 @@ class Kernel {
 
     hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
 
-    hw::Bus& GetBus() const { return bus; }
     hw::tegra_x1::cpu::MMUBase* GetMMU() const { return mmu; }
 
     u64 GetTitleID() const { return title_id; }
     void SetTitleId(const u64 title_id_) { title_id = title_id_; }
 
   private:
-    hw::Bus& bus;
     hw::tegra_x1::cpu::MMUBase* mmu;
 
     filesystem::Filesystem filesystem;

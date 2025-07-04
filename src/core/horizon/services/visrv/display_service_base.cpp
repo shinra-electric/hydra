@@ -1,19 +1,18 @@
 #include "core/horizon/services/visrv/display_service_base.hpp"
 
 #include "core/horizon/os.hpp"
-#include "core/hw/bus.hpp"
-#include "core/hw/display/display.hpp"
 
 namespace hydra::horizon::services::visrv {
 
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     u32 flags, u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     hosbinder::ParcelWriter& out_parcel_writer) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     // Out
-    *out_layer_id =
-        KERNEL_INSTANCE.GetBus().GetDisplay(display_id)->CreateLayer(binder_id);
+    *out_layer_id = display.CreateLayer(binder_id);
     *out_native_window_size =
         sizeof(hosbinder::ParcelHeader) + sizeof(ParcelData);
 

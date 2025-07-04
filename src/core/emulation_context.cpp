@@ -57,11 +57,6 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 
     gpu = new hw::tegra_x1::gpu::GPU(cpu->GetMMU());
 
-    builtin_display = new hw::display::Display();
-
-    bus = new hw::Bus();
-    bus->ConnectDisplay(builtin_display, 0);
-
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
         audio_core = new audio::null::Core();
@@ -76,7 +71,8 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    os = new horizon::OS(*bus, cpu->GetMMU(), *audio_core, ui_handler);
+    os = new horizon::OS(cpu->GetMMU(), *audio_core, ui_handler);
+    os->GetDisplayDriver().CreateDisplay();
 
     // Filesystem
     /*
@@ -509,23 +505,22 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 bool EmulationContext::Present(
     u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
-    auto display = bus->GetDisplay(0);
-    if (!display->IsOpen())
-        return false;
-
-    // Signal V-Sync
-    display->GetVSyncEvent().handle->Signal();
+    auto& display = os->GetDisplayDriver().GetDisplay(0);
+    std::unique_lock display_lock(display.GetMutex());
 
     // Layer
-    auto layer = display->GetPresentableLayer();
+    auto layer = display.GetPresentableLayer();
     if (!layer)
         return false;
 
+    // Signal V-Sync
+    display.GetVSyncEvent().handle->Signal();
+
     // Get the buffer to present
-    u32 binder_id = layer->GetBinderId();
+    u32 binder_id = layer->GetBinderID();
     auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
 
-    horizon::BqBufferInput input;
+    horizon::display::BqBufferInput input;
     i32 slot = binder.ConsumeBuffer(input, out_dt_list);
     if (slot == -1)
         return false;
@@ -549,15 +544,15 @@ bool EmulationContext::Present(
         ONCE(LOG_WARN(Other, "Invalid src height"));
     }
 
-    if (any(input.transform_flags & horizon::TransformFlags::FlipH)) {
+    if (any(input.transform_flags & horizon::display::TransformFlags::FlipH)) {
         src_rect.origin.x() += src_rect.size.x();
         src_rect.size.x() = -src_rect.size.x();
     }
-    if (any(input.transform_flags & horizon::TransformFlags::FlipV)) {
+    if (any(input.transform_flags & horizon::display::TransformFlags::FlipV)) {
         src_rect.origin.y() += src_rect.size.y();
         src_rect.size.y() = -src_rect.size.y();
     }
-    if (any(input.transform_flags & horizon::TransformFlags::Rot90)) {
+    if (any(input.transform_flags & horizon::display::TransformFlags::Rot90)) {
         // TODO: how does this work? Is the aspect ratio kept intact?
         ONCE(LOG_NOT_IMPLEMENTED(Other, "Rotating by 90 degrees"));
     }

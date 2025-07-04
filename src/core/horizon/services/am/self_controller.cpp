@@ -1,8 +1,6 @@
 #include "core/horizon/services/am/self_controller.hpp"
 
 #include "core/horizon/os.hpp"
-#include "core/hw/bus.hpp"
-#include "core/hw/display/display.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -40,26 +38,25 @@ result_t ISelfController::GetLibraryAppletLaunchableEvent(
 }
 
 result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
-
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    *out_layer_id =
-        KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
+    std::unique_lock<std::mutex> display_lock(display.GetMutex());
+
+    *out_layer_id = display.CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 
 result_t ISelfController::CreateManagedDisplaySeparableLayer(
     u64* out_display_layer_id, u64* out_recording_layer_id) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().AddBinder();
-
+    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    *out_display_layer_id =
-        KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
+    std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
+    *out_display_layer_id = display.CreateLayer(binder_id);
     // TODO: what is a recording layer?
-    *out_recording_layer_id =
-        KERNEL_INSTANCE.GetBus().GetDisplay(0)->CreateLayer(binder_id);
-
+    *out_recording_layer_id = display.CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 

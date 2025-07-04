@@ -5,8 +5,6 @@ add_library(hydra-core
     horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
-    horizon/display_driver.cpp
-    horizon/display_driver.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
@@ -63,6 +61,11 @@ add_library(hydra-core
     horizon/loader/nsp_loader.hpp
     horizon/loader/xci_loader.cpp
     horizon/loader/xci_loader.hpp
+    horizon/display/binder.cpp
+    horizon/display/binder.hpp
+    horizon/display/layer.hpp
+    horizon/display/display.hpp
+    horizon/display/driver.hpp
     horizon/services/const.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
@@ -445,9 +448,6 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/clear_depth_pipeline_cache.hpp
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
-    hw/display/layer.hpp
-    hw/display/display.hpp
-    hw/bus.hpp
     input/const.hpp
     input/device_base.hpp
     input/keyboard_base.hpp

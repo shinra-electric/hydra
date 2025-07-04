@@ -3,7 +3,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-namespace hydra::horizon {
+namespace hydra::horizon::display {
 
 struct GraphicBufferHeader {
     u32 magic;
@@ -25,7 +25,7 @@ struct GraphicBuffer {
     hw::tegra_x1::gpu::NvGraphicsBuffer nv_buffer;
 };
 
-struct DisplayBuffer {
+struct Buffer {
     bool initialized = false;
     bool queued = false;
     GraphicBuffer buffer;
@@ -78,7 +78,7 @@ struct BqBufferOutput {
 
 constexpr usize MAX_BINDER_BUFFER_COUNT = 8; // TODO: what should this be?
 
-struct DisplayBinder {
+struct Binder {
     using clock_t = std::chrono::steady_clock;
 
   public:
@@ -87,7 +87,7 @@ struct DisplayBinder {
     u32 strong_ref_count = 0;
 
     // TODO: autoclear event?
-    DisplayBinder()
+    Binder()
         : event(new kernel::Event(kernel::EventFlags::Signalled,
                                   "Display event")) {}
 
@@ -112,8 +112,8 @@ struct DisplayBinder {
   private:
     kernel::HandleWithId<kernel::Event> event;
 
-    DisplayBuffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
-                                                    // max number of buffers?
+    Buffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
+                                             // max number of buffers?
     u32 buffer_count = 0;
     std::queue<std::pair<i32, BqBufferInput>> queued_buffers;
     std::mutex queue_mutex;
@@ -124,20 +124,4 @@ struct DisplayBinder {
     std::vector<std::chrono::nanoseconds> dt_queue{};
 };
 
-class DisplayDriver {
-  public:
-    u32 AddBinder() {
-        u32 id = binders.size();
-        binders.push_back(new DisplayBinder());
-
-        return id;
-    }
-
-    // Getters
-    DisplayBinder& GetBinder(u32 id) { return *binders[id]; }
-
-  private:
-    std::vector<DisplayBinder*> binders;
-};
-
-} // namespace hydra::horizon
+} // namespace hydra::horizon::display
