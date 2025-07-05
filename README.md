@@ -19,7 +19,7 @@ In order to run official games, you will need to download a set of patches to pr
 You can install Hydra dependencies with a package manager of your choice, like `brew`.
 
 ```sh
-brew install fmt
+brew install cmake ninja sdl3 fmt
 ```
 
 ### Building
