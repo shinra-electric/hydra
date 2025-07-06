@@ -177,7 +177,9 @@ class LangEmitter : public Emitter {
         }
     }
 
-    std::string GetLocalStr(local_t local) { return locals.at(local); }
+    std::string GetLocalStr(local_t local) {
+        return fmt::format("local{}", u32(local));
+    }
 
     template <bool load = true>
     std::string GetRegisterStr(reg_t reg, DataType data_type = DataType::U32) {
@@ -234,7 +236,8 @@ class LangEmitter : public Emitter {
     void StoreValue(const ir::Value& dst, WRITE_ARGS) {
         switch (dst.GetType()) {
         case ir::ValueType::Local:
-            locals[dst.GetLocal()] = FMT;
+            // TODO: don't use auto
+            WriteStatement("auto {} = {}", GetLocalStr(dst.GetLocal()), FMT);
             break;
         case ir::ValueType::Register:
             WriteStatement(
@@ -349,7 +352,6 @@ class LangEmitter : public Emitter {
   private:
     std::string code_str;
 
-    std::map<local_t, std::string> locals;
     u32 indent{0};
 
     template <typename... T>
