@@ -1,33 +1,35 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/lang_builder_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/emitter.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl {
 
-class Builder final : public LangBuilderBase {
+class MslEmitter final : public LangEmitter {
   public:
-    using LangBuilderBase::LangBuilderBase;
-
-    void InitializeResourceMapping() override;
-
-    // Operations
-    void OpDiscard() override;
+    MslEmitter(const DecompilerContext& context,
+               const analyzer::MemoryAnalyzer& memory_analyzer,
+               const GuestShaderState& state, std::vector<u8>& out_code,
+               ResourceMapping& out_resource_mapping);
 
   protected:
+    // Emit
+
     void EmitHeader() override;
     void EmitTypeAliases() override;
     void EmitDeclarations() override;
     void EmitMainPrototype() override;
-    void EmitExit() override;
+    void EmitExitReturn() override;
 
-    std::string EmitTextureSample(u32 const_buffer_index,
-                                  const std::string_view coords) override;
-    std::string EmitTextureRead(u32 const_buffer_index,
-                                const std::string_view coords) override;
+    // Special
+    void EmitDiscard() override;
+    void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
+                           const ir::Value& coords) override;
+    void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
+                         const ir::Value& coords) override;
 
   private:
     // Helpers
-    std::string GetSvQualifierName(const Sv& sv, bool output);
+    std::string GetSvQualifierStr(const Sv& sv, bool output);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL

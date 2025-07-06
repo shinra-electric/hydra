@@ -5,8 +5,10 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen {
 
 void Emitter::Emit(const ir::Module& modul) {
+    Start();
     for (const auto& [name, func] : modul.GetFunctions())
         EmitFunction(func);
+    Finish();
 }
 
 void Emitter::EmitInstruction(const ir::Instruction& inst) {

@@ -1,10 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
-// #include
-// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
-// #include
-// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
@@ -134,22 +131,13 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     // Debug
     LOG_DEBUG(ShaderDecompiler, "Module:\n{}", modul);
 
-    /*
     // Decompile
-    BuilderBase* builder;
-    IteratorBase* iterator;
+    codegen::Emitter* emitter;
     out_backend = CONFIG_INSTANCE.GetShaderBackend();
     switch (out_backend) {
     case ShaderBackend::Msl: {
-        builder = new Lang::MSL::Builder(context, memory_analyzer, state,
+        emitter = new codegen::lang::msl::MslEmitter(context, mem_analyzer, state,
                                          out_code, out_resource_mapping);
-        auto root_block = Lang::Structurize(cfg_builder.GetEntryBlock());
-
-        // Debug
-        root_block->Log();
-
-        iterator = new Lang::StructuredIterator(
-            context, code_reader.CreateSubReader(), root_block);
         break;
     }
     // case ShaderBackend::Air:
@@ -162,13 +150,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
         break;
     }
 
-    builder->InitializeResourceMapping();
-    builder->Start();
-    iterator->Iterate(builder);
-    builder->Finish();
-    delete iterator;
-    delete builder;
-    */
+    emitter->Emit(modul);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

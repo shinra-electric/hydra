@@ -389,10 +389,10 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.cpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.hpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.cpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/emitter.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/emitter.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp
     hw/tegra_x1/gpu/renderer/const.cpp
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp

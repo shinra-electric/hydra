@@ -1,11 +1,16 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl {
 
-void Builder::InitializeResourceMapping() {
+MslEmitter::MslEmitter(const DecompilerContext& context,
+                       const analyzer::MemoryAnalyzer& memory_analyzer,
+                       const GuestShaderState& state, std::vector<u8>& out_code,
+                       ResourceMapping& out_resource_mapping)
+    : LangEmitter(context, memory_analyzer, state, out_code,
+                  out_resource_mapping) {
     for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
         out_resource_mapping.uniform_buffers[index] = index;
     }
@@ -20,14 +25,12 @@ void Builder::InitializeResourceMapping() {
     // TODO: images
 }
 
-void Builder::OpDiscard() { Write("discard_fragment();"); }
-
-void Builder::EmitHeader() {
+void MslEmitter::EmitHeader() {
     Write("#include <metal_stdlib>");
     Write("using namespace metal;");
 }
 
-void Builder::EmitTypeAliases() {
+void MslEmitter::EmitTypeAliases() {
     Write("using u8 = uint8_t;");
     Write("using u16 = uint16_t;");
     Write("using u32 = uint32_t;");
@@ -38,7 +41,7 @@ void Builder::EmitTypeAliases() {
     Write("using f32 = float;");
 }
 
-void Builder::EmitDeclarations() {
+void MslEmitter::EmitDeclarations() {
     // Stage inputs
 
     EnterScope("struct StageIn");
@@ -60,7 +63,7 @@ void Builder::EmitDeclarations() {
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
             Write("vec<{}, 4> {} {};", to_data_type(vertex_attrib_state.type),
-                  GetSvName(sv), GetSvQualifierName(sv, false));
+                  GetSvStr(sv), GetSvQualifierStr(sv, false));
         }
         break;
     case ShaderType::Fragment:
@@ -68,8 +71,8 @@ void Builder::EmitDeclarations() {
         for (const auto input : memory_analyzer.GetStageInputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, input);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSvName(sv),
-                  GetSvQualifierName(sv, false));
+            Write("float4 {} {};", GetSvStr(sv),
+                  GetSvQualifierStr(sv, false));
         }
         break;
     default:
@@ -105,7 +108,7 @@ void Builder::EmitDeclarations() {
         for (const auto output : memory_analyzer.GetStageOutputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, output);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSvName(sv), GetSvQualifierName(sv, true));
+            Write("float4 {} {};", GetSvStr(sv), GetSvQualifierStr(sv, true));
         }
         break;
     case ShaderType::Fragment:
@@ -116,7 +119,7 @@ void Builder::EmitDeclarations() {
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
             Write("vec<{}, 4> {} {};", to_data_type(color_target_format),
-                  GetSvName(sv), GetSvQualifierName(sv, true));
+                  GetSvStr(sv), GetSvQualifierStr(sv, true));
         }
         break;
     default:
@@ -138,7 +141,7 @@ void Builder::EmitDeclarations() {
     WriteNewline();
 }
 
-void Builder::EmitMainPrototype() {
+void MslEmitter::EmitMainPrototype() {
     switch (context.type) {
     case ShaderType::Vertex:
         WriteRaw("vertex ");
@@ -187,7 +190,7 @@ void Builder::EmitMainPrototype() {
     WriteNewline();
 }
 
-void Builder::EmitExit() {
+void MslEmitter::EmitExitReturn() {
     if (context.type == ShaderType::Vertex) {
         // Flip vertically
         // TODO: handle this with viewports?
@@ -203,7 +206,21 @@ void Builder::EmitExit() {
     WriteStatement("return __out");
 }
 
-std::string Builder::GetSvQualifierName(const Sv& sv, bool output) {
+void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
+
+void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
+                                   const ir::Value& coords) {
+    StoreValue(dst, "tex{}.sample(samplr{}, {})", const_buffer_index,
+               const_buffer_index, GetValueStr(coords));
+}
+
+void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
+                                 const ir::Value& coords) {
+    StoreValue(dst, "tex{}.read(uint2({}))", const_buffer_index,
+               GetValueStr(coords));
+}
+
+std::string MslEmitter::GetSvQualifierStr(const Sv& sv, bool output) {
     switch (sv.semantic) {
     case SvSemantic::Position:
         return "[[position]]";
@@ -226,17 +243,6 @@ std::string Builder::GetSvQualifierName(const Sv& sv, bool output) {
         LOG_ERROR(ShaderDecompiler, "Unknown SV semantic {}", sv.semantic);
         return INVALID_VALUE;
     }
-}
-
-std::string Builder::EmitTextureSample(u32 const_buffer_index,
-                                       const std::string_view coords) {
-    return fmt::format("tex{}.sample(samplr{}, {})", const_buffer_index,
-                       const_buffer_index, coords);
-}
-
-std::string Builder::EmitTextureRead(u32 const_buffer_index,
-                                     const std::string_view coords) {
-    return fmt::format("tex{}.read(uint2({}))", const_buffer_index, coords);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL

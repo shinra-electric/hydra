@@ -38,12 +38,14 @@ class Emitter {
     std::vector<u8>& out_code;
     ResourceMapping& out_resource_mapping;
 
+    virtual void Start() = 0;
+    virtual void Finish() = 0;
+
     void EmitInstruction(const ir::Instruction& inst);
 
-    virtual void InitializeResourceMapping() = 0;
-    virtual void EmitFunction(const ir::Function& func) = 0;
-
     // Emit
+
+    virtual void EmitFunction(const ir::Function& func) = 0;
 
     // Basic
     virtual void EmitCopy(const ir::Value& dst, const ir::Value& src) = 0;
