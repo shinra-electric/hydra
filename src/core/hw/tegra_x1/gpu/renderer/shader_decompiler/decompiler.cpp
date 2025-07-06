@@ -1,13 +1,15 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/all_paths_iterator.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg_iterator.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structured_iterator.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
-// #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/air/builder.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/msl/builder.hpp"
+// #include
+// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
+// #include
+// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+// #include
+// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp"
+// #include
+// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/structurizer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
@@ -117,7 +119,19 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     out.close();
 #endif
 
+    // Build IR
+    ir::Module modul;
+    {
+        ir::Builder builder(modul);
+        decoder::Decoder decoder(
+            {context, code_reader.CreateSubReader(), builder});
+        decoder.Decode();
+    }
+
+    // TODO
+
     // Analyze
+    /*
     analyzer::CfgBuilder cfg_builder;
     {
         AllPathsIterator iterator(context, code_reader.CreateSubReader());
@@ -167,6 +181,7 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     builder->Finish();
     delete iterator;
     delete builder;
+    */
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

@@ -169,6 +169,57 @@ class aligned {
     u8 _pad[alignment - sizeof(T)];
 } PACKED;
 
+template <typename T>
+class strong_typedef {
+  public:
+    strong_typedef(const T& value_) : value{value_} {}
+
+    void operator=(const T& new_value) { value = new_value; }
+
+    operator T&() { return value; }
+    operator const T&() const { return value; }
+
+  private:
+    T value;
+};
+
+#define STRONG_TYPEDEF(type, base_type)                                        \
+    class type : public strong_typedef<base_type> {                            \
+      public:                                                                  \
+        using strong_typedef::strong_typedef;                                  \
+    }
+
+template <typename T>
+class strong_number_typedef {
+  public:
+    constexpr strong_number_typedef() : value{} {}
+    constexpr strong_number_typedef(const T& value_) : value{value_} {}
+
+    void operator=(const T& new_value) { value = new_value; }
+    void operator+=(const T& other) { value += other; }
+    void operator-=(const T& other) { value -= other; }
+    void operator*=(const T& other) { value *= other; }
+    void operator/=(const T& other) { value /= other; }
+    void operator%=(const T& other) { value %= other; }
+    void operator&=(const T& other) { value &= other; }
+    void operator|=(const T& other) { value |= other; }
+    void operator^=(const T& other) { value ^= other; }
+    void operator<<=(const T& other) { value <<= other; }
+    void operator>>=(const T& other) { value >>= other; }
+
+    operator T&() { return value; }
+    operator const T&() const { return value; }
+
+  private:
+    T value;
+};
+
+#define STRONG_NUMBER_TYPEDEF(type, base_type)                                 \
+    class type : public strong_number_typedef<base_type> {                     \
+      public:                                                                  \
+        using strong_number_typedef::strong_number_typedef;                    \
+    }
+
 template <typename KeyT, typename T, usize fast_cache_size = 4>
 class small_cache {
   public:

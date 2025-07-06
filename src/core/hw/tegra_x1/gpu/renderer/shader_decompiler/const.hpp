@@ -6,8 +6,10 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 typedef u64 instruction_t;
-typedef u8 reg_t;
-typedef u8 pred_t;
+STRONG_NUMBER_TYPEDEF(reg_t, u8);
+STRONG_NUMBER_TYPEDEF(pred_t, u8);
+STRONG_NUMBER_TYPEDEF(label_t, u32);
+STRONG_NUMBER_TYPEDEF(local_t, u32);
 
 constexpr reg_t RZ = 255;
 constexpr pred_t PT = 7;
@@ -203,6 +205,47 @@ struct DecompilerContext {
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
+
+template <>
+struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::reg_t>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::reg_t reg,
+           FormatContext& ctx) const {
+        if (reg == hydra::hw::tegra_x1::gpu::renderer::shader_decomp::RZ)
+            return formatter<string_view>::format("0", ctx);
+        return formatter<string_view>::format(
+            fmt::format("r{}", hydra::u8(reg)), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::pred_t>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::pred_t pred,
+           FormatContext& ctx) const {
+        if (pred == hydra::hw::tegra_x1::gpu::renderer::shader_decomp::PT)
+            return formatter<string_view>::format("true", ctx);
+        return formatter<string_view>::format(
+            fmt::format("p{}", hydra::u8(pred)), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(
+        const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t label,
+        FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("0x{:x}", hydra::u32(label)), ctx);
+    }
+};
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid,

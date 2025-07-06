@@ -1,6 +1,6 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 namespace {
 
@@ -286,4 +286,4 @@ CfgBlock* Structurize(const CfgBasicBlock* entry_bb) {
     return ResolveBlock(entry_bb);
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

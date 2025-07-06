@@ -1,37 +1,22 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/builder_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp"
 
 #define WRITE_ARGS fmt::format_string<T...> f, T &&... args
 #define FMT fmt::format(f, std::forward<T>(args)...)
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
 #define INVALID_VALUE "INVALID"
 
-class Value : public ValueBase {
-    friend class LangBuilderBase;
-
-  private:
-    const std::string str;
-
-    Value(const std::string_view str_) : str{str_} {}
-};
-
-// TODO: keep track of created values
-class LangBuilderBase : public BuilderBase {
-    friend class StructuredIterator;
-
+class LangEmitter : public IEmitter {
   public:
-    using BuilderBase::BuilderBase;
+    using IEmitter::IEmitter;
 
-    void Start() override;
-    void Finish() override;
-
-    void SetPredCond(const PredCond pred_cond) override;
-    void SetWhilePredCond(const PredCond pred_cond);
+    void BeginFunction(const std::string_view name);
+    void EndFunction();
 
     // Operations
 
@@ -357,7 +342,7 @@ class LangBuilderBase : public BuilderBase {
     void EmitWriteFromTemp(ValueBase* dst, u32 offset);
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang
 
 #undef FMT
 #undef WRITE_ARGS

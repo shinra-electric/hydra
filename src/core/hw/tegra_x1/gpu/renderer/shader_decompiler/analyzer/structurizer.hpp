@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 struct CfgNode {
     virtual ~CfgNode() = default;
@@ -211,4 +211,4 @@ struct CfgWhileBlock : public CfgNode {
 
 CfgBlock* Structurize(const CfgBasicBlock* entry_bb);
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer
