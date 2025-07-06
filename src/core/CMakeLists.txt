@@ -387,6 +387,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.cpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.hpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.cpp

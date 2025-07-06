@@ -37,13 +37,13 @@ class Builder {
     Value OpCast(const Value& src, DataType dst_type) {
         return AddInstruction(Opcode::Cast, {src, Value::RawValue(dst_type)});
     }
-    Value OpCompare(ComparisonOp cmp, const Value& srcA, const Value& srcB) {
+    Value OpCompare(ComparisonOp op, const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::Compare,
-                              {Value::RawValue(cmp), srcA, srcB});
+                              {Value::RawValue(op), srcA, srcB});
     }
-    Value OpBitwise(BitwiseOp bin, const Value& srcA, const Value& srcB) {
+    Value OpBitwise(BitwiseOp op, const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::Bitwise,
-                              {Value::RawValue(bin), srcA, srcB});
+                              {Value::RawValue(op), srcA, srcB});
     }
     Value OpSelect(const Value& cond, const Value& src_true,
                    const Value& src_false) {

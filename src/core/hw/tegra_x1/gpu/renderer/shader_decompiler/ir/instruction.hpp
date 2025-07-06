@@ -56,16 +56,9 @@ struct Instruction {
     usize GetOperandCount() const { return operands.size(); }
     const Value& GetOperand(usize index) const {
         ASSERT_DEBUG(index < GetOperandCount(), ShaderDecompiler,
-                     "Invalid operand index (expected {}, got {})",
-                     GetOperandCount(), index);
-        return operands[index];
-    }
-
-    template <usize expected>
-    inline void AssertOperandCount() const {
-        ASSERT_DEBUG(GetOperandCount() == expected, ShaderDecompiler,
-                     "Invalid operand count (expected {}, got {})", expected,
+                     "Invalid operand index ({} > {})", index,
                      GetOperandCount());
+        return operands[index];
     }
 
   private:
