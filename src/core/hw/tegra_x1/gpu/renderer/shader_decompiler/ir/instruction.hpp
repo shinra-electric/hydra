@@ -73,9 +73,38 @@ struct Instruction {
     std::optional<Value> dst;
     std::vector<Value> operands;
 
-    public:
+  public:
     GETTER(opcode, GetOpcode);
     CONST_REF_GETTER(operands, GetOperands);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Opcode, Copy, "copy",
+    Neg, "neg", Not, "not", Add, "add", Multiply, "mul", Fma, "fma", ShiftLeft,
+    "shl", ShiftRight, "shr", Cast, "cast", Compare, "cmp", Bitwise, "bitwise",
+    Select, "select", Branch, "branch", BranchConditional, "branch_cond",
+    BeginIf, "begin_if", EndIf, "end_if", Min, "min", Max, "max", MathFunction,
+    "math_func", VectorExtract, "extract", VectorInsert, "insert",
+    VectorConstruct, "construct", Exit, "exit", Discard, "discard",
+    TextureSample, "sample", TextureRead, "read")
+
+template <>
+struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Instruction>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::
+                    Instruction& inst,
+                FormatContext& ctx) const {
+        std::string str = fmt::format("{:{}}", "", 1 * 2); // TODO: indent
+        if (inst.HasDst())
+            str += fmt::format("{} = ", inst.GetDst());
+        str += fmt::format("{}", inst.GetOpcode());
+        for (const auto& operand : inst.GetOperands())
+            str += fmt::format(" {}", operand);
+
+        return formatter<string_view>::format(str, ctx);
+    }
+};

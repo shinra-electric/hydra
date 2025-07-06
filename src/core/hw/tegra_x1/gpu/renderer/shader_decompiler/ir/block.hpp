@@ -30,3 +30,19 @@ class Block {
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
+
+template <>
+struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Block>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Block&
+               block,
+           FormatContext& ctx) const {
+        std::string str = fmt::format("block {}:\n", "TODO"); // TODO: label
+        for (const auto& inst : block.GetInstructions())
+            str += fmt::format("{}\n", inst);
+        return formatter<string_view>::format(str, ctx);
+    }
+};

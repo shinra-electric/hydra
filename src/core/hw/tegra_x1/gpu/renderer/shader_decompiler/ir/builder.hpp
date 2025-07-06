@@ -10,9 +10,6 @@ class Builder {
         insert_block = &modul.GetFunction("main").GetBlock(0x0);
     }
 
-    // TODO: is validation needed?
-    void Validate() { LOG_FUNC_NOT_IMPLEMENTED(ShaderDecompiler); }
-
     // Operations
 
     // Basic
@@ -99,8 +96,8 @@ class Builder {
     }
 
     // Special
-    void OpExit() { AddInstruction(Opcode::Exit); }
-    void OpDiscard() { AddInstruction(Opcode::Discard); }
+    void OpExit() { AddInstructionWithDst(Opcode::Exit); }
+    void OpDiscard() { AddInstructionWithDst(Opcode::Discard); }
     Value OpTextureSample(u32 const_buffer_index, const Value& coords) {
         return AddInstruction(Opcode::TextureSample,
                               {Value::RawValue(const_buffer_index), coords});

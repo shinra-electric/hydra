@@ -65,8 +65,8 @@ class Value {
 
     template <ValueType type_>
     void AssertType() const {
-        ASSERT_DEBUG(type == type_, ShaderDecompiler, "Invalid value type (expected {}, got {})",
-                     type_, type);
+        ASSERT_DEBUG(type == type_, ShaderDecompiler,
+                     "Invalid value type (expected {}, got {})", type_, type);
     }
 
   public:
@@ -114,3 +114,53 @@ ENABLE_ENUM_FORMATTING(
     "raw value", Immediate, "immediate", Register, "register", Predicate,
     "predicate", AttrMemory, "attribute memory", ConstMemory, "constant memory",
     Label, "label")
+
+template <>
+struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Value>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Value&
+               value,
+           FormatContext& ctx) const {
+        std::string str;
+        switch (value.GetType()) {
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            RawValue:
+            // TODO: figure out a better way to print this
+            str = fmt::format("0x{:x}", value.GetRawValue<hydra::u64>());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Immediate:
+            str = fmt::format("0x{:08x}", value.GetImmediate());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Local:
+            str = fmt::format("{}", value.GetLocal());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Register:
+            str = fmt::format("{}", value.GetRegister());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Predicate:
+            str = fmt::format("{}", value.GetPredicate());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            AttrMemory:
+            str = fmt::format("{}", value.GetAttrMemory());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            ConstMemory:
+            str = fmt::format("{}", value.GetConstMemory());
+            break;
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+            Label:
+            str = fmt::format("{}", value.GetLabel());
+            break;
+        }
+
+        return formatter<string_view>::format(str, ctx);
+    }
+};

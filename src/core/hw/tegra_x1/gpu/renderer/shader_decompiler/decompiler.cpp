@@ -131,26 +131,10 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     analyzer::MemoryAnalyzer mem_analyzer;
     mem_analyzer.Analyze(modul);
 
-    // TODO
+    // Debug
+    LOG_DEBUG(ShaderDecompiler, "Module:\n{}", modul);
 
     /*
-    // Analyze
-    analyzer::CfgBuilder cfg_builder;
-    {
-        AllPathsIterator iterator(context, code_reader.CreateSubReader());
-        iterator.Iterate(&cfg_builder);
-    }
-
-    analyzer::MemoryAnalyzer memory_analyzer;
-    {
-        CfgIterator iterator(context, code_reader.CreateSubReader(),
-                             cfg_builder.GetBlocks());
-        iterator.Iterate(&memory_analyzer);
-    }
-
-    // Debug
-    cfg_builder.LogBlocks();
-
     // Decompile
     BuilderBase* builder;
     IteratorBase* iterator;

@@ -236,6 +236,19 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::pred_t>
 
 template <>
 struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(
+        const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t local,
+        FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("%{}", hydra::u32(local)), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t>
     : formatter<string_view> {
     template <typename FormatContext>
@@ -244,6 +257,30 @@ struct fmt::formatter<
         FormatContext& ctx) const {
         return formatter<string_view>::format(
             fmt::format("0x{:x}", hydra::u32(label)), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AMem>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AMem& amem,
+           FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("a[{} + 0x{:x}]", amem.reg, amem.imm), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CMem>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto
+    format(const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CMem& cmem,
+           FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("c{}[{} + 0x{:x}]", cmem.idx, cmem.reg, cmem.imm), ctx);
     }
 };
 
