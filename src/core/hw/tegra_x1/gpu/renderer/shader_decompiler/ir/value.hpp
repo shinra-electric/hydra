@@ -48,6 +48,30 @@ class Value {
         return Value{ValueType::Label, .label = label};
     }
 
+    bool operator==(const Value& other) const {
+        if (type != other.type)
+            return false;
+
+        switch (type) {
+            case ValueType::RawValue:
+                return raw_value == other.raw_value;
+            case ValueType::Immediate:
+                return imm == other.imm;
+            case ValueType::Local:
+                return local == other.local;
+            case ValueType::Register:
+                return reg == other.reg;
+            case ValueType::Predicate:
+                return pred == other.pred;
+            case ValueType::AttrMemory:
+                return amem == other.amem;
+            case ValueType::ConstMemory:
+                return cmem == other.cmem;
+            case ValueType::Label:
+                return label == other.label;
+        }
+    }
+
   public: // TODO: private?
     ValueType type;
     DataType data_type{DataType::Invalid};

@@ -39,12 +39,20 @@ inline DataType to_data_type(TextureFormat format) {
 struct AMem {
     reg_t reg;
     u64 imm;
+
+    bool operator==(const AMem& other) const {
+        return reg == other.reg && imm == other.imm;
+    }
 };
 
 struct CMem {
     u32 idx;
     reg_t reg;
     u64 imm;
+
+    bool operator==(const CMem& other) const {
+        return idx == other.idx && reg == other.reg && imm == other.imm;
+    }
 };
 
 struct PredCond {

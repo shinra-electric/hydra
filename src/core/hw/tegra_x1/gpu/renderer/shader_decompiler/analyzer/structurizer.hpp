@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 

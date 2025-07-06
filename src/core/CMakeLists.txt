@@ -370,7 +370,6 @@ add_library(hydra-core
     hw/tegra_x1/gpu/macro/interpreter/driver.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/cfg.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/value.hpp
@@ -383,6 +382,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.cpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
