@@ -212,17 +212,18 @@ class LangEmitter : public Emitter {
     std::string GetValueStr(const ir::Value& value, bool load = true) {
         switch (value.GetType()) {
         case ir::ValueType::Immediate:
-            return GetImmediateStr(value.GetImmediate());
+            return GetImmediateStr(value.GetImmediate(), value.GetDataType());
         case ir::ValueType::Local:
             return GetLocalStr(value.GetLocal());
         case ir::ValueType::Register:
-            return GetRegisterStr(value.GetRegister());
+            return GetRegisterStr(value.GetRegister(), value.GetDataType());
         case ir::ValueType::Predicate:
             return GetPredicateStr(value.GetPredicate());
         case ir::ValueType::AttrMemory:
-            return GetAttrMemoryStr(value.GetAttrMemory());
+            return GetAttrMemoryStr(value.GetAttrMemory(), value.GetDataType());
         case ir::ValueType::ConstMemory:
-            return GetConstMemoryStr(value.GetConstMemory());
+            return GetConstMemoryStr(value.GetConstMemory(),
+                                     value.GetDataType());
         default:
             LOG_FATAL(ShaderDecompiler, "Invalid value type {} for src",
                       value.GetType());
@@ -232,23 +233,23 @@ class LangEmitter : public Emitter {
     template <typename... T>
     void StoreValue(const ir::Value& dst, WRITE_ARGS) {
         switch (dst.GetType()) {
-        case ir::ValueType::Immediate:
-            WriteStatement("{} = {}", GetImmediateStr(dst.GetImmediate()), FMT);
-            break;
         case ir::ValueType::Local:
             locals[dst.GetLocal()] = FMT;
             break;
         case ir::ValueType::Register:
-            WriteStatement("{} = {}", GetRegisterStr<false>(dst.GetRegister()),
-                           FMT);
+            WriteStatement(
+                "{} = {}",
+                GetRegisterStr<false>(dst.GetRegister(), dst.GetDataType()),
+                FMT);
             break;
         case ir::ValueType::Predicate:
             WriteStatement("{} = {}",
                            GetPredicateStr<false>(dst.GetPredicate()), FMT);
             break;
         case ir::ValueType::AttrMemory:
-            WriteStatement("{} = {}", GetAttrMemoryStr(dst.GetAttrMemory()),
-                           FMT);
+            WriteStatement(
+                "{} = {}",
+                GetAttrMemoryStr(dst.GetAttrMemory(), dst.GetDataType()), FMT);
             break;
         default:
             LOG_FATAL(ShaderDecompiler, "Invalid value type {} for dst",

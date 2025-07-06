@@ -659,16 +659,16 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32,
-            {ir::Value::Register(coords_x), ir::Value::Register(coords_y)});
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
         auto res_v = BUILDER.OpTextureRead(const_buffer_index, coords_v);
-        BUILDER.OpCopy(ir::Value::Register(dst0),
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 0));
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1),
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 1));
-        BUILDER.OpCopy(ir::Value::Register(dst1),
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 2));
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1),
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 3));
 
         HANDLE_PRED_COND_END();
@@ -687,16 +687,16 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32,
-            {ir::Value::Register(coords_x), ir::Value::Register(coords_y)});
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
         auto res_v = BUILDER.OpTextureSample(const_buffer_index, coords_v);
-        BUILDER.OpCopy(ir::Value::Register(dst0),
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 0));
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1),
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 1));
-        BUILDER.OpCopy(ir::Value::Register(dst1),
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 2));
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1),
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 3));
 
         HANDLE_PRED_COND_END();

@@ -95,6 +95,7 @@ class Value {
 
   public:
     GETTER(type, GetType);
+    GETTER(data_type, GetDataType);
 
     template <typename T>
     T GetRawValue() const {
