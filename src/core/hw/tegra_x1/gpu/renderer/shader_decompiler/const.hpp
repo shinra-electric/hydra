@@ -9,7 +9,15 @@ typedef u64 instruction_t;
 STRONG_NUMBER_TYPEDEF(reg_t, u8);
 STRONG_NUMBER_TYPEDEF(pred_t, u8);
 STRONG_NUMBER_TYPEDEF(label_t, u32);
-STRONG_NUMBER_TYPEDEF(local_t, u32);
+
+struct local_t {
+    label_t label;
+    u32 id;
+
+    bool operator==(const local_t& other) const {
+        return label == other.label && id == other.id;
+    }
+};
 
 constexpr reg_t RZ = 255;
 constexpr pred_t PT = 7;
@@ -244,19 +252,6 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::pred_t>
 
 template <>
 struct fmt::formatter<
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t>
-    : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(
-        const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t local,
-        FormatContext& ctx) const {
-        return formatter<string_view>::format(
-            fmt::format("%{}", hydra::u32(local)), ctx);
-    }
-};
-
-template <>
-struct fmt::formatter<
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t>
     : formatter<string_view> {
     template <typename FormatContext>
@@ -265,6 +260,19 @@ struct fmt::formatter<
         FormatContext& ctx) const {
         return formatter<string_view>::format(
             fmt::format("label0x{:x}", hydra::u32(label)), ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t>
+    : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(
+        const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t local,
+        FormatContext& ctx) const {
+        return formatter<string_view>::format(
+            fmt::format("%{}_{}", local.label, local.id), ctx);
     }
 };
 

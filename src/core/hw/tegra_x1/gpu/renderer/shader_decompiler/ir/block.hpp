@@ -25,7 +25,7 @@ class Block {
     std::vector<Instruction> instructions;
 
     inline Value CreateLocal() {
-        return Value::Local(local_t(instructions.size()));
+        return Value::Local(local_t{label, u32(instructions.size())});
     }
 
   public:

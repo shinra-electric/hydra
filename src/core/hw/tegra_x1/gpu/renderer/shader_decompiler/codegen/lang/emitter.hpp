@@ -178,7 +178,7 @@ class LangEmitter : public Emitter {
     }
 
     std::string GetLocalStr(local_t local) {
-        return fmt::format("local{}", u32(local));
+        return fmt::format("local{}_{}", local.label, local.id);
     }
 
     template <bool load = true>
