@@ -53,22 +53,22 @@ class Value {
             return false;
 
         switch (type) {
-            case ValueType::RawValue:
-                return raw_value == other.raw_value;
-            case ValueType::Immediate:
-                return imm == other.imm;
-            case ValueType::Local:
-                return local == other.local;
-            case ValueType::Register:
-                return reg == other.reg;
-            case ValueType::Predicate:
-                return pred == other.pred;
-            case ValueType::AttrMemory:
-                return amem == other.amem;
-            case ValueType::ConstMemory:
-                return cmem == other.cmem;
-            case ValueType::Label:
-                return label == other.label;
+        case ValueType::RawValue:
+            return raw_value == other.raw_value;
+        case ValueType::Immediate:
+            return imm == other.imm;
+        case ValueType::Local:
+            return local == other.local;
+        case ValueType::Register:
+            return reg == other.reg;
+        case ValueType::Predicate:
+            return pred == other.pred;
+        case ValueType::AttrMemory:
+            return amem == other.amem;
+        case ValueType::ConstMemory:
+            return cmem == other.cmem;
+        case ValueType::Label:
+            return label == other.label;
         }
     }
 

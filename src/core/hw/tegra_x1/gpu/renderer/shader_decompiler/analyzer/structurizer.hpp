@@ -4,6 +4,21 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
+enum class LastStatement {
+    None,
+    Exit,
+    Break,
+    Continue,
+};
+
+}
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer::LastStatement,
+    None, "none", Exit, "exit", Break, "break", Continue, "continue")
+
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
+
 struct CfgNode {
     virtual ~CfgNode() = default;
 
@@ -42,25 +57,17 @@ struct CfgStructuredNodeWithEdge : public CfgNode {
     }
 };
 
-enum class LastStatement {
-    None,
-    Exit,
-    Break,
-    Continue,
-};
-
 struct CfgCodeBlock : public CfgNode {
-    range<u32> code_range;
+    label_t label;
     LastStatement last_statement;
 
-    CfgCodeBlock(const range<u32> code_range_,
+    CfgCodeBlock(const label_t label_,
                  LastStatement last_statement_ = LastStatement::None)
-        : code_range{code_range_}, last_statement{last_statement_} {}
+        : label{label_}, last_statement{last_statement_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
-        if (auto other_code_block = dynamic_cast<const CfgCodeBlock*>(other)) {
-            return code_range == other_code_block->code_range;
-        }
+        if (auto other_code_block = dynamic_cast<const CfgCodeBlock*>(other))
+            return label == other_code_block->label;
 
         return false;
     }
@@ -68,8 +75,10 @@ struct CfgCodeBlock : public CfgNode {
     void Log(const u32 indent = 0) const override {
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "Code block:", PASS_INDENT(indent));
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Range: {}",
-                  PASS_INDENT(indent + 1), code_range);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Label: {}",
+                  PASS_INDENT(indent + 1), label);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Last statement: {}",
+                  PASS_INDENT(indent + 1), last_statement);
     }
 };
 
@@ -112,15 +121,15 @@ struct CfgBlock : public CfgNode {
 };
 
 struct CfgIfBlock : public CfgNode {
-    PredCond pred_cond;
+    ir::Value cond;
     CfgNode* then_block;
 
-    CfgIfBlock(const PredCond pred_cond_, CfgNode* then_block_)
-        : pred_cond{pred_cond_}, then_block{then_block_} {}
+    CfgIfBlock(const ir::Value& cond_, CfgNode* then_block_)
+        : cond{cond_}, then_block{then_block_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_if_block = dynamic_cast<const CfgIfBlock*>(other)) {
-            return pred_cond == other_if_block->pred_cond &&
+            return cond == other_if_block->cond &&
                    then_block->IsSameAs(other_if_block->then_block);
         }
 
@@ -130,9 +139,8 @@ struct CfgIfBlock : public CfgNode {
     void Log(const u32 indent = 0) const override {
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "If block:", PASS_INDENT(indent));
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}p{}",
-                  PASS_INDENT(indent + 1), pred_cond.not_ ? "!" : "",
-                  pred_cond.pred);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}", PASS_INDENT(indent + 1),
+                  cond);
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "Then block:", PASS_INDENT(indent + 1));
         then_block->Log(indent + 2);
@@ -140,19 +148,18 @@ struct CfgIfBlock : public CfgNode {
 };
 
 struct CfgIfElseBlock : public CfgNode {
-    PredCond pred_cond;
+    ir::Value cond;
     CfgNode* then_block;
     CfgNode* else_block;
 
-    CfgIfElseBlock(const PredCond pred_cond_, CfgNode* then_block_,
+    CfgIfElseBlock(const ir::Value& cond_, CfgNode* then_block_,
                    CfgNode* else_block_)
-        : pred_cond{pred_cond_}, then_block{then_block_}, else_block{
-                                                              else_block_} {}
+        : cond{cond_}, then_block{then_block_}, else_block{else_block_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_if_else_block =
                 dynamic_cast<const CfgIfElseBlock*>(other)) {
-            return pred_cond == other_if_else_block->pred_cond &&
+            return cond == other_if_else_block->cond &&
                    then_block->IsSameAs(other_if_else_block->then_block) &&
                    else_block->IsSameAs(other_if_else_block->else_block);
         }
@@ -163,9 +170,8 @@ struct CfgIfElseBlock : public CfgNode {
     void Log(const u32 indent = 0) const override {
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "If-else block:", PASS_INDENT(indent));
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}p{}",
-                  PASS_INDENT(indent + 1), pred_cond.not_ ? "!" : "",
-                  pred_cond.pred);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}", PASS_INDENT(indent + 1),
+                  cond);
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "Then block:", PASS_INDENT(indent + 1));
         then_block->Log(indent + 2);
@@ -177,18 +183,17 @@ struct CfgIfElseBlock : public CfgNode {
 
 struct CfgWhileBlock : public CfgNode {
     bool is_do_while;
-    PredCond pred_cond;
+    ir::Value cond;
     CfgNode* body_block;
 
-    CfgWhileBlock(const bool is_do_while_, const PredCond pred_cond_,
+    CfgWhileBlock(const bool is_do_while_, const ir::Value& cond_,
                   CfgNode* body_block_)
-        : is_do_while{is_do_while_}, pred_cond{pred_cond_}, body_block{
-                                                                body_block_} {}
+        : is_do_while{is_do_while_}, cond{cond_}, body_block{body_block_} {}
 
     bool IsSameAs(const CfgNode* other) const override {
         if (auto other_if_block = dynamic_cast<const CfgWhileBlock*>(other)) {
             return is_do_while == other_if_block->is_do_while &&
-                   pred_cond == other_if_block->pred_cond &&
+                   cond == other_if_block->cond &&
                    body_block->IsSameAs(other_if_block->body_block);
         }
 
@@ -198,9 +203,8 @@ struct CfgWhileBlock : public CfgNode {
     void Log(const u32 indent = 0) const override {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "{} block:", PASS_INDENT(indent),
                   (is_do_while ? "Do-While" : "While"));
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "while {}p{}",
-                  PASS_INDENT(indent + 1), pred_cond.not_ ? "!" : "",
-                  pred_cond.pred);
+        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "while {}",
+                  PASS_INDENT(indent + 1), cond);
         LOG_DEBUG(ShaderDecompiler,
                   INDENT_FMT "Body block:", PASS_INDENT(indent + 1));
         body_block->Log(indent + 2);
