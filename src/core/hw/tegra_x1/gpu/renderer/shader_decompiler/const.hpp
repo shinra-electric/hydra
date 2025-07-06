@@ -264,7 +264,7 @@ struct fmt::formatter<
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::label_t label,
         FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("0x{:x}", hydra::u32(label)), ctx);
+            fmt::format("label0x{:x}", hydra::u32(label)), ctx);
     }
 };
 

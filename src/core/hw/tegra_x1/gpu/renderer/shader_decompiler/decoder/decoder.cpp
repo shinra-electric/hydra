@@ -1,7 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
 #define BUILDER context.builder
 
@@ -98,11 +97,13 @@ void Decoder::ParseNextInstruction() {
 #define NEG_IF(value, neg) neg_if(BUILDER, value, neg)
 #define NOT_IF(value, not_) not_if(BUILDER, value, not_)
 
+#define PRED_COND_NOTHING ((inst & 0x00000000000f0000) == 0x0000000000070000)
+#define PRED_COND_NEVER ((inst & 0x00000000000f0000) == 0x00000000000f0000)
+
 #define HANDLE_PRED_COND_BEGIN()                                               \
     bool conditional = false;                                                  \
-    if ((inst & 0x00000000000f0000) == 0x0000000000070000) { /* nothing */     \
-    } else if ((inst & 0x00000000000f0000) ==                                  \
-               0x00000000000f0000) { /* never */                               \
+    if (PRED_COND_NOTHING) {      /* nothing */                                \
+    } else if (PRED_COND_NEVER) { /* never */                                  \
         COMMENT("never");                                                      \
         abort(); /* TODO: implement */                                         \
     } else {     /* conditional */                                             \
@@ -142,15 +143,25 @@ void Decoder::ParseNextInstruction() {
         // TODO: f0f8_0
         COMMENT("sync");
 
-        // TODO: pred cond
-
         const auto target = crnt_block->return_sync_point;
         ASSERT_DEBUG(target != invalid<label_t>(), ShaderDecompiler,
                      "Invalid sync point");
 
-        BUILDER.OpBranch(target);
+        if (PRED_COND_NOTHING) { // Nothing
+            BUILDER.OpBranch(target);
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
+            COMMENT("never");
+            abort(); /* TODO: implement */
+        } else {     // Conditional
+            const auto pred = GET_PRED(16);
+            const bool not_ = GET_BIT(19);
+            COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-        EndBlock();
+            BUILDER.OpBranchConditional(
+                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            EndBlock();
+        }
     }
     INST(0xf0f0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("depbar");
@@ -403,11 +414,21 @@ void Decoder::ParseNextInstruction() {
         // TODO: f0f8_0
         COMMENT("exit");
 
-        // TODO: pred cond
+        if (PRED_COND_NOTHING) { // Nothing
+            BUILDER.OpExit();
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
+            COMMENT("never");
+            abort(); /* TODO: implement */
+        } else {     // Conditional
+            const auto pred = GET_PRED(16);
+            const bool not_ = GET_BIT(19);
+            COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-        BUILDER.OpExit();
-
-        EndBlock();
+            BUILDER.OpBeginIf({NOT_IF(ir::Value::Predicate(pred), not_)});
+            BUILDER.OpExit();
+            BUILDER.OpEndIf();
+        }
     }
     INST(0xe2f0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("setlmembase");
@@ -475,12 +496,11 @@ void Decoder::ParseNextInstruction() {
         const auto target = GET_BTARG();
         COMMENT("bra 0x{:x}", u32(target));
 
-        std::optional<PredCond> pred_cond = std::nullopt;
-        if ((inst & 0x00000000000f0000) == 0x0000000000070000) { // Nothing
+        if (PRED_COND_NOTHING) { // Nothing
             SetReturnSyncPoint(target, crnt_block->return_sync_point);
-
             BUILDER.OpBranch(target);
-        } else if ((inst & 0x00000000000f0000) == 0x00000000000f0000) { // Never
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
             COMMENT("never");
             abort(); /* TODO: implement */
         } else {     // Conditional
@@ -490,10 +510,9 @@ void Decoder::ParseNextInstruction() {
 
             SetReturnSyncPoint(target, crnt_block->return_sync_point);
             SetReturnSyncPoint(pc + 1, crnt_block->return_sync_point);
-
             BUILDER.OpBranchConditional(
-                NOT_IF(ir::Value::Predicate(pred_cond->pred), pred_cond->not_),
-                target, pc + 1);
+                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            EndBlock();
         }
     }
     INST(0xe230000000000000, 0xfff0000000000000) {

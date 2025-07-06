@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 class Builder;
@@ -15,7 +15,7 @@ enum class BlockStatus {
 
 struct Block {
     BlockStatus status{BlockStatus::Unvisited};
-    label_t return_sync_point;
+    label_t return_sync_point{invalid<u32>()};
 };
 
 struct DecoderContext {
@@ -51,10 +51,15 @@ class Decoder {
         crnt_block->status = BlockStatus::Visited;
         crnt_block = nullptr;
         while (!to_visit_queue.empty()) {
-            crnt_block = &blocks[to_visit_queue.front()];
+            const auto label = to_visit_queue.front();
             to_visit_queue.pop();
-            if (crnt_block->status == BlockStatus::Unvisited)
+
+            crnt_block = &blocks[label];
+            if (crnt_block->status == BlockStatus::Unvisited) {
+                context.builder.SetInsertBlock(label);
+                Jump(label);
                 break;
+            }
         }
     }
 

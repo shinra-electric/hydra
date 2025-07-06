@@ -376,7 +376,13 @@ void LangEmitter::EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
 
 void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
                                       const std::vector<ir::Value>& elements) {
-    StoreValue(dst, "({})", fmt::join(elements, ", "));
+    std::string str;
+    for (u32 i = 0; i < elements.size(); i++) {
+        if (i != 0)
+            str += ", ";
+        str += GetValueStr(elements[i]);
+    }
+    StoreValue(dst, "vec<{}, {}>({})", data_type, elements.size(), str);
 }
 
 void LangEmitter::EmitExit() {

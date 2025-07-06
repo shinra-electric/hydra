@@ -7,7 +7,8 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 class Builder {
   public:
     Builder(Module& modul_) : modul{modul_} {
-        insert_block = &modul.GetFunction("main").GetBlock(0x0);
+        SetInsertFunction("main");
+        SetInsertBlock(0x0);
     }
 
     // Operations
@@ -110,25 +111,31 @@ class Builder {
   protected:
     Module& modul;
 
+    Function* insert_func;
     Block* insert_block;
 
     void AddInstructionWithDst(Opcode opcode,
                                const std::optional<Value> dst = std::nullopt,
                                const std::vector<Value>& operands = {}) {
-        ASSERT_DEBUG(insert_block, ShaderDecompiler,
-                     "Instruction outside of a block");
+        ASSERT_DEBUG(insert_block, ShaderDecompiler, "No insert block");
         insert_block->AddInstructionWithDst(opcode, dst, operands);
     }
 
     Value AddInstruction(Opcode opcode,
                          const std::vector<Value>& operands = {}) {
-        ASSERT_DEBUG(insert_block, ShaderDecompiler,
-                     "Instruction outside of a block");
+        ASSERT_DEBUG(insert_block, ShaderDecompiler, "No insert block");
         return insert_block->AddInstruction(opcode, operands);
     }
 
   public:
-    SETTER(insert_block, SetInsertBlock);
+    void SetInsertFunction(const std::string& name) {
+        insert_func = &modul.GetFunction(name);
+    }
+
+    void SetInsertBlock(const label_t label) {
+        ASSERT_DEBUG(insert_func, ShaderDecompiler, "No insert function");
+        insert_block = &insert_func->GetBlock(label);
+    }
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir

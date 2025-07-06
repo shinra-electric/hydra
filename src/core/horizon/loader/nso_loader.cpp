@@ -152,7 +152,7 @@ std::optional<kernel::ProcessParams> NsoLoader::LoadProcess() {
 
     // Arg data
     // TODO: don't hardcode
-    std::string arg_data_str = "";
+    std::string arg_data_str;
 
     vaddr_t arg_data_base;
     // TODO: memory type
