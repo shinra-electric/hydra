@@ -1,13 +1,10 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decompiler.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 // #include
-// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp"
-// #include
-// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
 // #include
 // "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp"
-// #include
-// "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/structurizer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
@@ -128,10 +125,16 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
         decoder.Decode();
     }
 
+    // Analyze
+
+    // Memory
+    analyzer::MemoryAnalyzer mem_analyzer;
+    mem_analyzer.Analyze(modul);
+
     // TODO
 
-    // Analyze
     /*
+    // Analyze
     analyzer::CfgBuilder cfg_builder;
     {
         AllPathsIterator iterator(context, code_reader.CreateSubReader());

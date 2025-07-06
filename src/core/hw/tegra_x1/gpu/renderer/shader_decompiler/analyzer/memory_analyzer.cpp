@@ -15,33 +15,51 @@ void push_sv(std::vector<SvSemantic>& svs, std::vector<u8>& stage_in_outs,
 
 } // namespace
 
-ValueBase* MemoryAnalyzer::OpAttributeMemory(bool load, const AMem& amem,
-                                             DataType data_type, bool neg) {
-    if (load)
-        HandleAMemLoad(amem);
-    else
-        HandleAMemStore(amem);
-    return nullptr;
-}
+void MemoryAnalyzer::Analyze(const ir::Module& modul) {
+    for (const auto& [name, function] : modul.GetFunctions()) {
+        for (const auto& [label, block] : function.GetBlocks()) {
+            for (const auto& instruction : block.GetInstructions()) {
+                // Dst
+                if (instruction.HasDst()) {
+                    const auto& dst = instruction.GetDst();
+                    switch (dst.GetType()) {
+                    case ir::ValueType::AttrMemory:
+                        HandleAMemStore(dst.GetAttrMemory());
+                        break;
+                    default:
+                        break;
+                    }
+                }
 
-ValueBase* MemoryAnalyzer::OpConstMemoryL(const CMem& cmem, DataType data_type,
-                                          bool neg) {
-    HandleCMemLoad(cmem);
-    return nullptr;
-}
+                // Operands
+                for (const auto& operand : instruction.GetOperands()) {
+                    switch (operand.GetType()) {
+                    case ir::ValueType::AttrMemory:
+                        HandleAMemLoad(operand.GetAttrMemory());
+                        break;
+                    case ir::ValueType::ConstMemory:
+                        HandleCMemLoad(operand.GetConstMemory());
+                        break;
+                    default:
+                        break;
+                    }
+                }
 
-void MemoryAnalyzer::OpTextureSample(ValueBase* dstA, ValueBase* dstB,
-                                     ValueBase* dstC, ValueBase* dstD,
-                                     u32 const_buffer_index,
-                                     ValueBase* coords_x, ValueBase* coords_y) {
-    push_unique(textures, const_buffer_index);
-}
-
-void MemoryAnalyzer::OpTextureRead(ValueBase* dstA, ValueBase* dstB,
-                                   ValueBase* dstC, ValueBase* dstD,
-                                   u32 const_buffer_index, ValueBase* coords_x,
-                                   ValueBase* coords_y) {
-    push_unique(textures, const_buffer_index);
+                // Texture
+                switch (instruction.GetOpcode()) {
+                case ir::Opcode::TextureSample:
+                case ir::Opcode::TextureRead: {
+                    const auto const_buffer_index =
+                        instruction.GetOperand(0).GetRawValue<u32>();
+                    push_unique(textures, const_buffer_index);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void MemoryAnalyzer::HandleAMemLoad(const AMem amem) {

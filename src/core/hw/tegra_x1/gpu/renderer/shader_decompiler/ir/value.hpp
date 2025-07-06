@@ -63,19 +63,54 @@ class Value {
         label_t label;
     };
 
+    template <ValueType type_>
+    void AssertType() const {
+        ASSERT_DEBUG(type == type_, ShaderDecompiler, "Invalid value type (expected {}, got {})",
+                     type_, type);
+    }
+
   public:
     GETTER(type, GetType);
+
     template <typename T>
     T GetRawValue() const {
+        AssertType<ValueType::RawValue>();
         return static_cast<T>(raw_value);
     }
-    GETTER(local, GetLocal);
-    GETTER(imm, GetImmediate);
-    GETTER(reg, GetRegister);
-    GETTER(pred, GetPredicate);
-    CONST_REF_GETTER(amem, GetAttributeMemory);
-    CONST_REF_GETTER(cmem, GetConstMemory);
-    GETTER(label, GetLabel);
+    u32 GetImmediate() const {
+        AssertType<ValueType::Immediate>();
+        return imm;
+    }
+    local_t GetLocal() const {
+        AssertType<ValueType::Local>();
+        return local;
+    }
+    reg_t GetRegister() const {
+        AssertType<ValueType::Register>();
+        return reg;
+    }
+    pred_t GetPredicate() const {
+        AssertType<ValueType::Predicate>();
+        return pred;
+    }
+    AMem GetAttrMemory() const {
+        AssertType<ValueType::AttrMemory>();
+        return amem;
+    }
+    CMem GetConstMemory() const {
+        AssertType<ValueType::ConstMemory>();
+        return cmem;
+    }
+    label_t GetLabel() const {
+        AssertType<ValueType::Label>();
+        return label;
+    }
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType, RawValue,
+    "raw value", Immediate, "immediate", Register, "register", Predicate,
+    "predicate", AttrMemory, "attribute memory", ConstMemory, "constant memory",
+    Label, "label")

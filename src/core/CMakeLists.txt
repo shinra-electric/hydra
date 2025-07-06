@@ -381,12 +381,10 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.cpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg_builder.hpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/passes/structurizer_pass.cpp
-    #hw/tegra_x1/gpu/renderer/shader_decompiler/passes/structurizer_pass.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp
+    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.cpp
+    #hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/emitter.hpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.cpp
     #hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/lang_emitter.hpp

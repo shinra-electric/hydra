@@ -50,6 +50,7 @@ struct Instruction {
                 const std::vector<Value>& operands_)
         : opcode{opcode_}, dst{dst_}, operands{operands_} {}
 
+    bool HasDst() const { return dst.has_value(); }
     const Value& GetDst() const { return dst.value(); }
 
     usize GetOperandCount() const { return operands.size(); }
@@ -66,18 +67,15 @@ struct Instruction {
                      "Invalid operand count (expected {}, got {})", expected,
                      GetOperandCount());
     }
-    template <usize index, ValueType value_type>
-    inline void AssertOperandType() const {
-        ASSERT_DEBUG(GetOperand(index).GetType() == value_type,
-                     ShaderDecompiler,
-                     "Invalid operand type (expected {}, got {})", value_type,
-                     GetOperand(index).GetType());
-    }
 
   private:
     Opcode opcode;
     std::optional<Value> dst;
     std::vector<Value> operands;
+
+    public:
+    GETTER(opcode, GetOpcode);
+    CONST_REF_GETTER(operands, GetOperands);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir

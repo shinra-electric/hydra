@@ -24,6 +24,9 @@ class Block {
     inline Value CreateLocal() {
         return Value::Local(local_t(instructions.size()));
     }
+
+  public:
+    CONST_REF_GETTER(instructions, GetInstructions);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
