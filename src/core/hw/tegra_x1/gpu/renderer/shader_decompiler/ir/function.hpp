@@ -7,6 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 class Function {
   public:
     Block& GetBlock(label_t label) { return blocks[label]; }
+    const Block& GetBlock(label_t label) const { return blocks.at(label); }
 
   private:
     std::map<label_t, Block> blocks;

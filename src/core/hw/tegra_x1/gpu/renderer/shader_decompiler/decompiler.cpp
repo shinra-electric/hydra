@@ -136,8 +136,8 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     out_backend = CONFIG_INSTANCE.GetShaderBackend();
     switch (out_backend) {
     case ShaderBackend::Msl: {
-        emitter = new codegen::lang::msl::MslEmitter(context, mem_analyzer, state,
-                                         out_code, out_resource_mapping);
+        emitter = new codegen::lang::msl::MslEmitter(
+            context, mem_analyzer, state, out_code, out_resource_mapping);
         break;
     }
     // case ShaderBackend::Air:

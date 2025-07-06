@@ -3,7 +3,8 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
+    msl {
 
 MslEmitter::MslEmitter(const DecompilerContext& context,
                        const analyzer::MemoryAnalyzer& memory_analyzer,
@@ -71,8 +72,7 @@ void MslEmitter::EmitDeclarations() {
         for (const auto input : memory_analyzer.GetStageInputs()) {
             const auto sv = Sv(SvSemantic::UserInOut, input);
             // TODO: don't hardcode the type
-            Write("float4 {} {};", GetSvStr(sv),
-                  GetSvQualifierStr(sv, false));
+            Write("float4 {} {};", GetSvStr(sv), GetSvQualifierStr(sv, false));
         }
         break;
     default:
@@ -188,6 +188,8 @@ void MslEmitter::EmitMainPrototype() {
     // Output
     Write("StageOut __out;");
     WriteNewline();
+
+    EmitMainFunctionPrologue();
 }
 
 void MslEmitter::EmitExitReturn() {
@@ -245,4 +247,5 @@ std::string MslEmitter::GetSvQualifierStr(const Sv& sv, bool output) {
     }
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL
+} // namespace
+  // hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl

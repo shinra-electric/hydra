@@ -2,7 +2,8 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/emitter.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
+    msl {
 
 class MslEmitter final : public LangEmitter {
   public:
@@ -32,4 +33,5 @@ class MslEmitter final : public LangEmitter {
     std::string GetSvQualifierStr(const Sv& sv, bool output);
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang::MSL
+} // namespace
+  // hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::msl

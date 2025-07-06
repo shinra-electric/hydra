@@ -7,6 +7,10 @@
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
+struct CfgNode;
+}
+
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
 #define INVALID_VALUE "INVALID"
@@ -27,7 +31,10 @@ class LangEmitter : public Emitter {
     virtual void EmitMainPrototype() = 0;
     virtual void EmitExitReturn() = 0;
 
+    void EmitMainFunctionPrologue();
+
     void EmitFunction(const ir::Function& func) override;
+    void EmitNode(const ir::Function& func, const analyzer::CfgNode* node);
 
     // Basic
     void EmitCopy(const ir::Value& dst, const ir::Value& src) override;
@@ -155,7 +162,8 @@ class LangEmitter : public Emitter {
         case DataType::I8:
             return GetImmediateStr<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
         case DataType::I16:
-            return GetImmediateStr<i16>(std::bit_cast<i16>((u16)(imm & 0xffff)));
+            return GetImmediateStr<i16>(
+                std::bit_cast<i16>((u16)(imm & 0xffff)));
         case DataType::I32:
             return GetImmediateStr<i32>(std::bit_cast<i32>(imm));
         case DataType::F16:
@@ -171,7 +179,7 @@ class LangEmitter : public Emitter {
 
     std::string GetLocalStr(local_t local) { return locals.at(local); }
 
-    template<bool load = true>
+    template <bool load = true>
     std::string GetRegisterStr(reg_t reg, DataType data_type = DataType::U32) {
         if (load && reg == RZ)
             return GetImmediateStr(0, data_type);
@@ -179,7 +187,7 @@ class LangEmitter : public Emitter {
         return fmt::format("r[{}].{}", u32(reg), GetTypeSuffixStr(data_type));
     }
 
-    template<bool load = true>
+    template <bool load = true>
     std::string GetPredicateStr(pred_t pred) {
         if (load && pred == PT)
             return GetImmediateStr(true);
@@ -225,22 +233,22 @@ class LangEmitter : public Emitter {
     void StoreValue(const ir::Value& dst, WRITE_ARGS) {
         switch (dst.GetType()) {
         case ir::ValueType::Immediate:
-            WriteStatement("{} = {}", GetImmediateStr(dst.GetImmediate()),
-                           FMT);
+            WriteStatement("{} = {}", GetImmediateStr(dst.GetImmediate()), FMT);
             break;
         case ir::ValueType::Local:
             locals[dst.GetLocal()] = FMT;
             break;
         case ir::ValueType::Register:
-            WriteStatement("{} = {}", GetRegisterStr<false>(dst.GetRegister()), FMT);
-            break;
-        case ir::ValueType::Predicate:
-            WriteStatement("{} = {}", GetPredicateStr<false>(dst.GetPredicate()),
+            WriteStatement("{} = {}", GetRegisterStr<false>(dst.GetRegister()),
                            FMT);
             break;
-        case ir::ValueType::AttrMemory:
+        case ir::ValueType::Predicate:
             WriteStatement("{} = {}",
-                           GetAttrMemoryStr(dst.GetAttrMemory()), FMT);
+                           GetPredicateStr<false>(dst.GetPredicate()), FMT);
+            break;
+        case ir::ValueType::AttrMemory:
+            WriteStatement("{} = {}", GetAttrMemoryStr(dst.GetAttrMemory()),
+                           FMT);
             break;
         default:
             LOG_FATAL(ShaderDecompiler, "Invalid value type {} for dst",

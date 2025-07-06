@@ -2,7 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
@@ -82,10 +82,23 @@ void LangEmitter::Start() {
 
     // Declarations
     EmitDeclarations();
+}
 
-    // Main prototype
-    EmitMainPrototype();
+void LangEmitter::Finish() {
+    ASSERT_DEBUG(indent == 0, ShaderDecompiler,
+                 "Scope not fully exited (indentation: {})", indent);
 
+    // TODO: footer?
+
+    // TODO: avoid copying
+    out_code.resize(code_str.size());
+    std::copy(code_str.begin(), code_str.end(), out_code.begin());
+
+    // Debug
+    LOG_DEBUG(ShaderDecompiler, "decompiled: \"\n{}\"", code_str);
+}
+
+void LangEmitter::EmitMainFunctionPrologue() {
     // Temporary
     EnterScope("union");
     Write("int4 i;");
@@ -146,8 +159,9 @@ void LangEmitter::Start() {
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
             WriteStatement("{} = as_type<uint>({})",                           \
-                           GetAttrMemoryStr({RZ, a_base + c * 0x4}),  \
-                           GetSvAccessQualifiedStr(SvAccess(Sv(sv_semantic, index), c), false));   \
+                           GetAttrMemoryStr({RZ, a_base + c * 0x4}),           \
+                           GetSvAccessQualifiedStr(                            \
+                               SvAccess(Sv(sv_semantic, index), c), false));   \
         }                                                                      \
     }
 
@@ -172,31 +186,87 @@ void LangEmitter::Start() {
         u32 u32_count = size / sizeof(u32);
         for (u32 i = 0; i < u32_count; i++)
             WriteStatement("{} = ubuff{}.data[{}]",
-                           GetConstMemoryStr({index, RZ, i * sizeof(u32)}), index,
-                           i);
+                           GetConstMemoryStr({index, RZ, i * sizeof(u32)}),
+                           index, i);
     }
     WriteNewline();
 }
 
-void LangEmitter::Finish() {
-    // End
+void LangEmitter::EmitFunction(const ir::Function& func) {
+    // TODO: function name
+    std::string name = "main";
+    if (name == "main")
+        EmitMainPrototype();
+    else
+        LOG_FATAL(ShaderDecompiler,
+                  "Custom functions not implemented (name: {})", name);
+
+    // Structurize
+    analyzer::CfgBuilder cfg_builder;
+    auto entry_block = cfg_builder.Build(func);
+    auto entry_node = analyzer::Structurize(entry_block);
+
+    // Emit
+    EmitNode(func, entry_node);
     ExitScopeEmpty();
-    ASSERT_DEBUG(indent == 0, ShaderDecompiler,
-                 "Scope not fully exited (indentation: {})", indent);
-
-    // TODO: footer
-
-    // TODO: avoid copying
-    out_code.resize(code_str.size());
-    std::copy(code_str.begin(), code_str.end(), out_code.begin());
-
-    // Debug
-    LOG_DEBUG(ShaderDecompiler, "decompiled: \"\n{}\"", code_str);
 }
 
-void LangEmitter::EmitFunction(const ir::Function& func) {
-    // TODO
-    abort();
+void LangEmitter::EmitNode(const ir::Function& func,
+                           const analyzer::CfgNode* node) {
+    if (auto code_block = dynamic_cast<const analyzer::CfgCodeBlock*>(node)) {
+        auto& block = func.GetBlock(code_block->label);
+        for (u32 i = 0; i < block.GetInstructions().size() - 1;
+             i++) // Skip last instruction
+            EmitInstruction(block.GetInstructions()[i]);
+
+        switch (code_block->last_statement) {
+        case analyzer::LastStatement::Exit:
+            EmitExit();
+            break;
+        case analyzer::LastStatement::Break:
+            WriteStatement("break");
+            break;
+        case analyzer::LastStatement::Continue:
+            WriteStatement("continue");
+            break;
+        case analyzer::LastStatement::None:
+            break;
+        }
+    } else if (auto block = dynamic_cast<const analyzer::CfgBlock*>(node)) {
+        for (const auto block_node : block->nodes)
+            EmitNode(func, block_node);
+    } else if (auto if_block =
+                   dynamic_cast<const analyzer::CfgIfBlock*>(node)) {
+        // If
+        EnterScope("if ({})", GetValueStr(if_block->cond));
+        EmitNode(func, if_block->then_block);
+        ExitScopeEmpty();
+    } else if (auto if_else_block =
+                   dynamic_cast<const analyzer::CfgIfElseBlock*>(node)) {
+        // If
+        EnterScope("if ({})", GetValueStr(if_else_block->cond));
+        EmitNode(func, if_else_block->then_block);
+        ExitScopeEmpty();
+
+        // Else
+        EnterScope("else");
+        EmitNode(func, if_else_block->else_block);
+        ExitScopeEmpty();
+    } else if (auto while_block =
+                   dynamic_cast<const analyzer::CfgWhileBlock*>(node)) {
+        // While
+        if (!while_block->IsDoWhile()) {
+            EnterScope("while ({})", GetValueStr(if_block->cond));
+            EmitNode(func, while_block->body_block);
+            ExitScopeEmpty();
+        } else {
+            EnterScope("do");
+            EmitNode(func, while_block->body_block);
+            ExitScope("while ({})", GetValueStr(if_block->cond));
+        }
+    } else {
+        LOG_ERROR(ShaderDecompiler, "Invalid structured node");
+    }
 }
 
 void LangEmitter::EmitCopy(const ir::Value& dst, const ir::Value& src) {
@@ -305,7 +375,7 @@ void LangEmitter::EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
 }
 
 void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
-                         const std::vector<ir::Value>& elements) {
+                                      const std::vector<ir::Value>& elements) {
     StoreValue(dst, "({})", fmt::join(elements, ", "));
 }
 
@@ -318,9 +388,9 @@ void LangEmitter::EmitExit() {
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
             WriteStatement("{} = as_type<float>({})",                          \
-                           GetSvAccessQualifiedStr(                           \
+                           GetSvAccessQualifiedStr(                            \
                                SvAccess(Sv(sv_semantic, index), c), true),     \
-                           GetAttrMemoryStr({RZ, a_base + c * 0x4}));  \
+                           GetAttrMemoryStr({RZ, a_base + c * 0x4}));          \
         }                                                                      \
     }
 
@@ -354,4 +424,4 @@ void LangEmitter::EmitExit() {
     EmitExitReturn();
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang
