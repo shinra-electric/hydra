@@ -77,8 +77,15 @@ enum class SvSemantic {
     Invalid,
     Position,
     UserInOut,
+    InstanceID,
+    VertexID,
     // TODO: more
 };
+
+constexpr u32 SV_POSITION_BASE = 0x70;
+constexpr u32 SV_USER_IN_OUT_BASE = 0x80;
+constexpr u32 SV_INSTANCE_ID_BASE = 0x2f8;
+constexpr u32 SV_VERTEX_ID_BASE = 0x2fc;
 
 struct Sv {
     SvSemantic semantic;
@@ -272,7 +279,7 @@ struct fmt::formatter<
         const hydra::hw::tegra_x1::gpu::renderer::shader_decomp::local_t local,
         FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("%{}_{}", local.label, local.id), ctx);
+            fmt::format("%0x{:x}_{}", hydra::u32(local.label), local.id), ctx);
     }
 };
 

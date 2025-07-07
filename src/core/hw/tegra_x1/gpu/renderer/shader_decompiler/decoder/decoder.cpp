@@ -659,8 +659,8 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
-                            ir::Value::Register(coords_y, DataType::F32)});
+            DataType::F32, {ir::Value::Register(coords_x, DataType::I32),
+                            ir::Value::Register(coords_y, DataType::I32)});
         auto res_v = BUILDER.OpTextureRead(const_buffer_index, coords_v);
         BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
                        BUILDER.OpVectorExtract(res_v, 0));
@@ -1894,7 +1894,50 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x3840000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("lop");
+        const auto bin = get_operand_5c40_0(inst);
+        const auto pred_op = get_operand_5c40_1(inst);
+        const auto dst_pred = GET_PRED(48);
+        const auto dst = GET_REG(0);
+        const auto invA = GET_BIT(39);
+        const auto srcA = GET_REG(8);
+        const auto invB = GET_BIT(40);
+        const auto srcB = GET_VALUE_U32(20, 20);
+        COMMENT("lop {} {} {} {}{} {}0x{:x}", bin, pred_op, dst,
+                (invA ? "!" : ""), srcA, (invB ? "!" : ""), srcB);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        // TODO: inv
+        auto srcB_v = ir::Value::Immediate(srcB);
+        auto res =
+            (bin == BitwiseOp::PassB
+                 ? srcB_v
+                 : BUILDER.OpBitwise(bin, ir::Value::Register(srcA), srcB_v));
+        BUILDER.OpCopy(ir::Value::Register(dst), res);
+
+        std::optional<ir::Value> pred_v;
+        switch (pred_op) {
+        case PredOp::False:
+            pred_v = ir::Value::Immediate(0); // TODO: false
+            break;
+        case PredOp::True:
+            pred_v = ir::Value::Immediate(1); // TODO: true
+            break;
+        case PredOp::Zero:
+            pred_v = BUILDER.OpCompare(ComparisonOp::Equal, res,
+                                       ir::Value::Immediate(0));
+            break;
+        case PredOp::NotZero:
+            pred_v = BUILDER.OpCompare(ComparisonOp::NotEqual, res,
+                                       ir::Value::Immediate(0));
+            break;
+        default:
+            pred_v = std::nullopt;
+            break;
+        }
+        BUILDER.OpCopy(ir::Value::Predicate(dst_pred), pred_v.value());
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3838000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul");
@@ -1943,7 +1986,22 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x3810000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iadd");
+        const auto dst = GET_REG(0);
+        const bool negA = GET_BIT(49);
+        const auto srcA = GET_REG(8);
+        const bool negB = GET_BIT(48);
+        const auto srcB = GET_VALUE_U32(20, 20);
+        COMMENT("iadd {} {}{} {}0x{:x}", dst, (negA ? "-" : ""), srcA,
+                (negB ? "-" : ""), srcB);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::I32), negA),
+            NEG_IF(ir::Value::Immediate(srcB, DataType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3808000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");

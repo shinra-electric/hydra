@@ -155,10 +155,19 @@ void MslEmitter::EmitMainPrototype() {
     }
     WriteRaw("StageOut main_(StageIn __in [[stage_in]]");
 
-#define ADD_ARG(f, ...) WriteRaw(", {}", fmt::format(f, __VA_ARGS__))
+#define ADD_ARG(f, ...) WriteRaw(", " f PASS_VA_ARGS(__VA_ARGS__))
 
     // Input SVs
-    // TODO
+    switch (context.type) {
+    case ShaderType::Vertex:
+        ADD_ARG("uint iid [[instance_id]]");
+        ADD_ARG("uint vid [[vertex_id]]");
+        break;
+    case ShaderType::Fragment:
+        break;
+    default:
+        break;
+    }
 
     // Uniform buffers
     for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
@@ -222,6 +231,39 @@ void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                GetValueStr(coords));
 }
 
+std::string MslEmitter::GetSvAccessQualifiedStr(const SvAccess& sv_access,
+                                                bool output) {
+    bool needs_in_out = (sv_access.sv.semantic == SvSemantic::Position ||
+                         sv_access.sv.semantic == SvSemantic::UserInOut);
+    bool is_vec = (sv_access.sv.semantic == SvSemantic::Position ||
+                   sv_access.sv.semantic == SvSemantic::UserInOut);
+
+    // TODO: is it okay to access components just like this?
+    return fmt::format(
+        "{}{}{}", (needs_in_out ? (output ? "__out." : "__in.") : ""),
+        GetSvStr(sv_access.sv),
+        (is_vec ? fmt::format(".{}", GetComponentStrFromIndex(
+                                         sv_access.component_index))
+                : ""));
+}
+
+std::string MslEmitter::GetSvStr(const Sv& sv) {
+    switch (sv.semantic) {
+    case SvSemantic::Position:
+        return "position";
+    case SvSemantic::UserInOut:
+        return fmt::format("user{}", sv.index);
+    case SvSemantic::InstanceID:
+        return "iid";
+    case SvSemantic::VertexID:
+        return "vid";
+    default:
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV {} (index: {})", sv.semantic,
+                            sv.index);
+        return INVALID_VALUE;
+    }
+}
+
 std::string MslEmitter::GetSvQualifierStr(const Sv& sv, bool output) {
     switch (sv.semantic) {
     case SvSemantic::Position:
@@ -241,6 +283,10 @@ std::string MslEmitter::GetSvQualifierStr(const Sv& sv, bool output) {
         default:
             return INVALID_VALUE;
         }
+    case SvSemantic::InstanceID:
+        return "[[instance_id]]";
+    case SvSemantic::VertexID:
+        return "[[vertex_id]]";
     default:
         LOG_ERROR(ShaderDecompiler, "Unknown SV semantic {}", sv.semantic);
         return INVALID_VALUE;

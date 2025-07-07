@@ -28,8 +28,12 @@ class MslEmitter final : public LangEmitter {
     void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                          const ir::Value& coords) override;
 
+    std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
+                                        bool output) override;
+
   private:
     // Helpers
+    std::string GetSvStr(const Sv& sv);
     std::string GetSvQualifierStr(const Sv& sv, bool output);
 };
 

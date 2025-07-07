@@ -121,6 +121,23 @@ void LangEmitter::EmitMainFunctionPrologue() {
 
     // Inputs
     // TODO: these are provided in the shader header, no need for analysis
+
+#define ADD_INPUT(sv_semantic, index, base, c)                                 \
+    {                                                                          \
+        WriteStatement("{} = as_type<uint>({})",                               \
+                       GetAttrMemoryStr({RZ, base + c * 0x4}),                 \
+                       GetSvAccessQualifiedStr(                                \
+                           SvAccess(Sv(sv_semantic, index), c), false));       \
+    }
+#define ADD_INPUT_1(sv_semantic, index, base)                                  \
+    ADD_INPUT(sv_semantic, index, base, 0)
+#define ADD_INPUT_VEC4(sv_semantic, index, base)                               \
+    {                                                                          \
+        for (u32 c = 0; c < 4; c++) {                                          \
+            ADD_INPUT(sv_semantic, index, base, c);                            \
+        }                                                                      \
+    }
+
     switch (context.type) {
     case ShaderType::Vertex:
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
@@ -153,27 +170,24 @@ void LangEmitter::EmitMainFunctionPrologue() {
                                    qualified_name);
             }
         }
+
+        ADD_INPUT_1(SvSemantic::InstanceID, invalid<u8>(), SV_INSTANCE_ID_BASE);
+        ADD_INPUT_1(SvSemantic::VertexID, invalid<u8>(), SV_VERTEX_ID_BASE);
+
         break;
     case ShaderType::Fragment:
-#define ADD_INPUT(sv_semantic, index, a_base)                                  \
-    {                                                                          \
-        for (u32 c = 0; c < 4; c++) {                                          \
-            WriteStatement("{} = as_type<uint>({})",                           \
-                           GetAttrMemoryStr({RZ, a_base + c * 0x4}),           \
-                           GetSvAccessQualifiedStr(                            \
-                               SvAccess(Sv(sv_semantic, index), c), false));   \
-        }                                                                      \
-    }
-
-        ADD_INPUT(SvSemantic::Position, invalid<u8>(), 0x70);
+        ADD_INPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
         for (const auto input : memory_analyzer.GetStageInputs())
-            ADD_INPUT(SvSemantic::UserInOut, input, 0x80 + input * 0x10);
+            ADD_INPUT_VEC4(SvSemantic::UserInOut, input,
+                           SV_USER_IN_OUT_BASE + input * 0x10);
 
-#undef ADD_INPUT
         break;
     default:
         break;
     }
+
+#undef ADD_INPUT
+
     WriteNewline();
 
     // Constant memory
@@ -390,19 +404,26 @@ void LangEmitter::EmitExit() {
     switch (context.type) {
     case ShaderType::Vertex:
         // TODO: don't hardcode the bit cast type
-#define ADD_OUTPUT(sv_semantic, index, a_base)                                 \
+#define ADD_OUTPUT(sv_semantic, index, base, c)                                \
+    {                                                                          \
+        WriteStatement("{} = as_type<float>({})",                              \
+                       GetSvAccessQualifiedStr(                                \
+                           SvAccess(Sv(sv_semantic, index), c), true),         \
+                       GetAttrMemoryStr({RZ, base + c * 0x4}));                \
+    }
+#define ADD_OUTPUT_1(sv_semantic, index, base)                                 \
+    ADD_OUTPUT(sv_semantic, index, base, 0)
+#define ADD_OUTPUT_VEC4(sv_semantic, index, base)                              \
     {                                                                          \
         for (u32 c = 0; c < 4; c++) {                                          \
-            WriteStatement("{} = as_type<float>({})",                          \
-                           GetSvAccessQualifiedStr(                            \
-                               SvAccess(Sv(sv_semantic, index), c), true),     \
-                           GetAttrMemoryStr({RZ, a_base + c * 0x4}));          \
+            ADD_OUTPUT(sv_semantic, index, base, c);                           \
         }                                                                      \
     }
 
-        ADD_OUTPUT(SvSemantic::Position, invalid<u8>(), 0x70);
+        ADD_OUTPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
         for (const auto output : memory_analyzer.GetStageOutputs())
-            ADD_OUTPUT(SvSemantic::UserInOut, output, 0x80 + output * 0x10);
+            ADD_OUTPUT_VEC4(SvSemantic::UserInOut, output,
+                            SV_USER_IN_OUT_BASE + output * 0x10);
 
 #undef ADD_OUTPUT
         break;

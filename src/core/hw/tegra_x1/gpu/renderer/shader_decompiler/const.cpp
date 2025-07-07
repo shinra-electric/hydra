@@ -36,8 +36,10 @@ const SvAccess get_sv_access_from_addr(u64 addr) {
     };
 
     static constexpr SvBase bases[] = {
-        {SvSemantic::UserInOut, 0x80},
-        {SvSemantic::Position, 0x70},
+        {SvSemantic::VertexID, SV_VERTEX_ID_BASE},
+        {SvSemantic::InstanceID, SV_INSTANCE_ID_BASE},
+        {SvSemantic::UserInOut, SV_USER_IN_OUT_BASE},
+        {SvSemantic::Position, SV_POSITION_BASE},
     };
 
     for (const auto& base : bases) {

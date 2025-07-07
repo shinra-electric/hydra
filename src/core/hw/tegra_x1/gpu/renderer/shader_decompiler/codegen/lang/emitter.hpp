@@ -178,7 +178,7 @@ class LangEmitter : public Emitter {
     }
 
     std::string GetLocalStr(local_t local) {
-        return fmt::format("local{}_{}", local.label, local.id);
+        return fmt::format("local0x{:x}_{}", u32(local.label), local.id);
     }
 
     template <bool load = true>
@@ -326,28 +326,8 @@ class LangEmitter : public Emitter {
     //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
     // }
 
-    std::string GetSvStr(const Sv& sv) {
-        switch (sv.semantic) {
-        case SvSemantic::Position:
-            return "position";
-        case SvSemantic::UserInOut:
-            return fmt::format("user{}", sv.index);
-        default:
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "SV {} (index: {})",
-                                sv.semantic, sv.index);
-            return INVALID_VALUE;
-        }
-    }
-
-    std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
-                                        bool output) {
-        // TODO: is it okay to access components just like this?
-        return fmt::format("{}.{}.{}", GetInOutStr(output),
-                           GetSvStr(sv_access.sv),
-                           GetComponentStrFromIndex(sv_access.component_index));
-    }
-
-    std::string GetInOutStr(bool output) { return (output ? "__out" : "__in"); }
+    virtual std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
+                                                bool output) = 0;
 
   private:
     std::string code_str;
