@@ -1,35 +1,12 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/observer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/module.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
-class MemoryAnalyzer : public ObserverBase {
+class MemoryAnalyzer {
   public:
-    // Operations
-
-    // Value
-    ValueBase* OpAttributeMemory(bool load, const AMem& amem,
-                                 DataType data_type = DataType::U32,
-                                 bool neg = false) override;
-    ValueBase* OpConstMemoryL(const CMem& cmem,
-                              DataType data_type = DataType::U32,
-                              bool neg = false) override;
-
-    // Special
-    void OpTextureSample(ValueBase* dstA, ValueBase* dstB, ValueBase* dstC,
-                         ValueBase* dstD, u32 const_buffer_index,
-                         ValueBase* coords_x, ValueBase* coords_y) override;
-
-    // Getters
-    const std::vector<SvSemantic>& GetInputSVs() const { return input_svs; }
-    const std::vector<SvSemantic>& GetOutputSVs() const { return output_svs; }
-    const std::vector<u8>& GetStageInputs() const { return stage_inputs; }
-    const std::vector<u8>& GetStageOutputs() const { return stage_outputs; }
-    const std::map<u32, usize>& GetUniformBuffers() const {
-        return uniform_buffers;
-    }
-    const std::vector<u32>& GetTextures() const { return textures; }
+    void Analyze(const ir::Module& modul);
 
   private:
     std::vector<SvSemantic> input_svs;
@@ -43,6 +20,14 @@ class MemoryAnalyzer : public ObserverBase {
     void HandleAMemLoad(const AMem amem);
     void HandleCMemLoad(const CMem cmem);
     void HandleAMemStore(const AMem amem);
+
+  public:
+    CONST_REF_GETTER(input_svs, GetInputSVs);
+    CONST_REF_GETTER(output_svs, GetOutputSVs);
+    CONST_REF_GETTER(stage_inputs, GetStageInputs);
+    CONST_REF_GETTER(stage_outputs, GetStageOutputs);
+    CONST_REF_GETTER(uniform_buffers, GetUniformBuffers);
+    CONST_REF_GETTER(textures, GetTextures);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

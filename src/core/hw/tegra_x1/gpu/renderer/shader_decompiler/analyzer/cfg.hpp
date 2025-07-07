@@ -1,8 +1,12 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/value.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
+class Function;
+}
+
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 enum class CfgBlockEdgeType {
     None,
@@ -24,7 +28,7 @@ struct CfgBlockEdge {
             CfgBasicBlock* target;
         } branch;
         struct {
-            PredCond pred_cond;
+            ir::Value cond;
             CfgBasicBlock* target_true;
             CfgBasicBlock* target_false;
         } branch_conditional;
@@ -38,8 +42,7 @@ struct CfgBlockEdge {
         case CfgBlockEdgeType::Branch:
             return branch.target == other.branch.target;
         case CfgBlockEdgeType::BranchConditional:
-            return branch_conditional.pred_cond ==
-                       other.branch_conditional.pred_cond &&
+            return branch_conditional.cond == other.branch_conditional.cond &&
                    branch_conditional.target_true ==
                        other.branch_conditional.target_true &&
                    branch_conditional.target_false ==
@@ -50,25 +53,17 @@ struct CfgBlockEdge {
     }
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer
 
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CfgBlockEdgeType,
-    Invalid, "invalid", Branch, "branch", BranchConditional,
-    "branch conditional", Exit, "exit")
+ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::
+                           analyzer::CfgBlockEdgeType,
+                       Invalid, "invalid", Branch, "branch", BranchConditional,
+                       "branch conditional", Exit, "exit")
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
-
-enum class CfgBlockStatus {
-    Unvisited,
-    Visited,
-    Finished,
-};
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 struct CfgBasicBlock {
-    CfgBlockStatus status{CfgBlockStatus::Unvisited};
-    range<u32> code_range;
-    u32 return_sync_point{invalid<u32>()};
+    label_t label;
     CfgBlockEdge edge;
 
     CfgBasicBlock* Clone() const {
@@ -99,10 +94,10 @@ struct CfgBasicBlock {
         if (other == this)
             return true;
 
-        if (other->edge.type != edge.type)
+        if (other->label != label)
             return false;
 
-        if (other->code_range != code_range)
+        if (other->edge.type != edge.type)
             return false;
 
         switch (edge.type) {
@@ -166,42 +161,23 @@ struct CfgBasicBlock {
     // Debug
     void Log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
-                  code_range.begin);
-        if (status == CfgBlockStatus::Unvisited) {
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "UNVISITED",
-                      PASS_INDENT(indent + 1));
-            return;
-        } else if (status == CfgBlockStatus::Visited) {
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "VISITED",
-                      PASS_INDENT(indent + 1));
-            return;
-        }
-
-        LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Code: {}",
-                  PASS_INDENT(indent + 1), code_range);
-        if (return_sync_point != invalid<u32>())
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Return Sync Point: {}",
-                      PASS_INDENT(indent + 1), return_sync_point);
-
+                  label);
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Edge: {}",
                   PASS_INDENT(indent + 1), edge.type);
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
             LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target: {}",
-                      PASS_INDENT(indent + 2),
-                      edge.branch.target->code_range.begin);
+                      PASS_INDENT(indent + 2), edge.branch.target->label);
             break;
         case CfgBlockEdgeType::BranchConditional:
-            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}p{}",
-                      PASS_INDENT(indent + 2),
-                      edge.branch_conditional.pred_cond.not_ ? "!" : "",
-                      edge.branch_conditional.pred_cond.pred);
+            LOG_DEBUG(ShaderDecompiler, INDENT_FMT "if {}",
+                      PASS_INDENT(indent + 2), edge.branch_conditional.cond);
             LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target True: {}",
                       PASS_INDENT(indent + 2),
-                      edge.branch_conditional.target_true->code_range.begin);
+                      edge.branch_conditional.target_true->label);
             LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Target False: {}",
                       PASS_INDENT(indent + 2),
-                      edge.branch_conditional.target_false->code_range.begin);
+                      edge.branch_conditional.target_false->label);
             break;
         default:
             break;
@@ -233,4 +209,20 @@ struct CfgBasicBlock {
     }
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
+class CfgBuilder {
+  public:
+    CfgBasicBlock* Build(const ir::Function& function);
+
+  private:
+    std::map<label_t, CfgBasicBlock*> blocks;
+
+    // Helpers
+    CfgBasicBlock* GetBlock(label_t label) {
+        auto& block = blocks[label];
+        if (!block)
+            block = new CfgBasicBlock{.label = label};
+        return block;
+    }
+};
+
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

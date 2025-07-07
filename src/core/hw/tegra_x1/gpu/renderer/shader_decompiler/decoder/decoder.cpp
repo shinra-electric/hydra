@@ -1,26 +1,40 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/iterator_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/tables.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
+#define BUILDER context.builder
 
-result_t IteratorBase::ParseNextInstruction(ObserverBase* o) {
-    const u32 pc = GetPC();
-    const auto inst = code_reader.Read<instruction_t>();
-    if ((pc % 4) == 0) // Sched
-        return {ResultCode::None};
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
-    o->SetPC(pc);
-    LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
+namespace {
 
-    const auto res = ParseNextInstructionImpl(o, pc, inst);
-    o->ClearPredCond();
-
-    return res;
+inline ir::Value neg_if(ir::Builder& builder, const ir::Value& value,
+                        bool neg) {
+    return neg ? builder.OpNeg(value) : value;
 }
 
-result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
-                                                const instruction_t inst) {
+inline ir::Value not_if(ir::Builder& builder, const ir::Value& value,
+                        bool not_) {
+    return not_ ? builder.OpNot(value) : value;
+}
+
+} // namespace
+
+void Decoder::Decode() {
+    crnt_block = &blocks[0x0];
+    while (crnt_block) {
+        ParseNextInstruction();
+    }
+}
+
+void Decoder::ParseNextInstruction() {
+    const u32 pc = GetPC();
+    const auto inst = context.code_reader.Read<instruction_t>();
+    if ((pc % 4) == 0) // Sched
+        return;
+
+    LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
+
 #define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
 #define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
 
@@ -53,10 +67,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 #define GET_BIT(b) extract_bits<u32, b, 1>(inst)
 
 #define GET_BTARG()                                                            \
-    static_cast<u32>(pc +                                                      \
-                     std::bit_cast<i32>(GET_VALUE_I32_SIGN_EXTEND(20, 24)) /   \
-                         sizeof(instruction_t) +                               \
-                     1)
+    static_cast<label_t>(                                                      \
+        pc +                                                                   \
+        std::bit_cast<i32>(GET_VALUE_I32_SIGN_EXTEND(20, 24)) /                \
+            sizeof(instruction_t) +                                            \
+        1)
 
 #define GET_AMEM()                                                             \
     AMem { GET_REG(8), 0 }
@@ -79,25 +94,36 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
 #define GET_NCGMEM_R(b_reg, count_imm)                                         \
     AMem { GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4 }
 
-#define HANDLE_PRED_COND()                                                     \
+#define NEG_IF(value, neg) neg_if(BUILDER, value, neg)
+#define NOT_IF(value, not_) not_if(BUILDER, value, not_)
+
+#define PRED_COND_NOTHING ((inst & 0x00000000000f0000) == 0x0000000000070000)
+#define PRED_COND_NEVER ((inst & 0x00000000000f0000) == 0x00000000000f0000)
+
+#define HANDLE_PRED_COND_BEGIN()                                               \
     bool conditional = false;                                                  \
-    if ((inst & 0x00000000000f0000) == 0x0000000000070000) { /* nothing */     \
-    } else if ((inst & 0x00000000000f0000) ==                                  \
-               0x00000000000f0000) { /* never */                               \
+    if (PRED_COND_NOTHING) {      /* nothing */                                \
+    } else if (PRED_COND_NEVER) { /* never */                                  \
         COMMENT("never");                                                      \
-        throw; /* TODO: implement */                                           \
-    } else {   /* conditional */                                               \
+        abort(); /* TODO: implement */                                         \
+    } else {     /* conditional */                                             \
         const auto pred = GET_PRED(16);                                        \
         const bool not_ = GET_BIT(19);                                         \
-        COMMENT("if {}p{}", not_ ? "!" : "", pred);                            \
-        o->SetPredCond({pred, not_});                                          \
+        COMMENT("if {}{}", not_ ? "!" : "", pred);                             \
+        BUILDER.OpBeginIf({NOT_IF(ir::Value::Predicate(pred), not_)});         \
         conditional = true;                                                    \
+    }
+#define HANDLE_PRED_COND_END()                                                 \
+    if (conditional) {                                                         \
+        BUILDER.OpEndIf();                                                     \
     }
 
 // TODO: ignore on release
 #define COMMENT_IMPL(log_level, f_comment, f_log, ...)                         \
     {                                                                          \
-        o->OpDebugComment(fmt::format(f_comment PASS_VA_ARGS(__VA_ARGS__)));   \
+        /* TODO: comments */                                                   \
+        /*BUILDER.OpDebugComment(fmt::format(f_comment                         \
+         * PASS_VA_ARGS(__VA_ARGS__)));*/                                      \
         LOG_##log_level(ShaderDecompiler, f_log PASS_VA_ARGS(__VA_ARGS__));    \
     }
 #define COMMENT(f, ...) COMMENT_IMPL(DEBUG, f, f, __VA_ARGS__)
@@ -117,11 +143,25 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         // TODO: f0f8_0
         COMMENT("sync");
 
-        HANDLE_PRED_COND();
+        const auto target = crnt_block->return_sync_point;
+        ASSERT_DEBUG(target != invalid<label_t>(), ShaderDecompiler,
+                     "Invalid sync point");
 
-        o->OpSync();
+        if (PRED_COND_NOTHING) { // Nothing
+            BUILDER.OpBranch(target);
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
+            COMMENT("never");
+            abort(); /* TODO: implement */
+        } else {     // Conditional
+            const auto pred = GET_PRED(16);
+            const bool not_ = GET_BIT(19);
+            COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-        return {ResultCode::EndBlock};
+            BUILDER.OpBranchConditional(
+                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            EndBlock();
+        }
     }
     INST(0xf0f0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("depbar");
@@ -140,19 +180,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     }
     INST(0xeff0000000000000, 0xfff8000000000000) {
         const auto mode = get_operand_eff0_0(inst);
-        auto amem = GET_AMEM_IDX(20);
+        auto dst = GET_AMEM_IDX(20);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
-        COMMENT("st {} a[r{} + 0x{:08x}] r{} r{}", mode, amem.reg, amem.imm,
-                src, todo);
+        COMMENT("st {} a[{} + 0x{:08x}] {} {}", mode, dst.reg, dst.imm, src,
+                todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         for (u32 i = 0; i < get_load_store_count(mode); i++) {
-            o->OpMove(o->OpAttributeMemory(false, amem),
-                      o->OpRegister(true, src + i));
-            amem.imm += sizeof(u32);
+            BUILDER.OpCopy(ir::Value::AttrMemory(dst),
+                           ir::Value::Register(src + i));
+            dst.imm += sizeof(u32);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xefe8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pixld");
@@ -162,16 +204,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         auto src = GET_AMEM_IDX(20);
         const auto todo = GET_REG(39); // TODO: what is this?
-        COMMENT("ld {} r{} a[r{} + 0x{:08x}] r{}", size, dst, src.reg, src.imm,
+        COMMENT("ld {} {} a[{} + 0x{:08x}] {}", size, dst, src.reg, src.imm,
                 todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         for (u32 i = 0; i < get_load_store_count(size); i++) {
-            o->OpMove(o->OpRegister(false, dst + i),
-                      o->OpAttributeMemory(true, src));
+            BUILDER.OpCopy(ir::Value::Register(dst + i),
+                           ir::Value::AttrMemory(src));
             src.imm += sizeof(u32);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xefd0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("isberd");
@@ -185,11 +229,13 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     INST(0xef90000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM_R(36, 8, 16);
-        COMMENT("ld r{} c{}[r{} + 0x{:x}]", dst, src.idx, src.reg, src.imm);
+        COMMENT("ld {} c{}[{} + 0x{:x}]", dst, src.idx, src.reg, src.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpMove(o->OpRegister(false, dst), o->OpConstMemoryL(src));
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xef80000000000000, 0xffe0000000000000) {
         COMMENT_NOT_IMPLEMENTED("cctll");
@@ -210,7 +256,51 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("ld");
     }
     INST(0xef10000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shfl");
+        const auto mode = get_operand_ef10_0(inst);
+        const auto dst_pred = GET_PRED(48);
+        const auto dst = GET_REG(0);
+        const auto srcA = GET_REG(8);
+        COMMENT("shfl {} {} {} {} ...", mode, dst_pred, dst, srcA);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto dst_v = ir::Value::Register(dst);
+        auto dst_pred_v = ir::Value::Predicate(dst_pred);
+        auto srcA_v = ir::Value::Register(srcA);
+        auto srcB_v = ((inst & 0x10000000) == 0x0
+                           ? ir::Value::Register(GET_REG(20))
+                           : ir::Value::Immediate(GET_VALUE_U32(20, 5)));
+        auto srcC_v = ((inst & 0x10000000) == 0x0
+                           ? ir::Value::Register(GET_REG(39))
+                           : ir::Value::Immediate(GET_VALUE_U32(34, 13)));
+
+        std::optional<ir::Value> res_v;
+        std::optional<ir::Value> res_valid_v;
+
+        // HACK
+        res_v = srcA_v;
+        res_valid_v = ir::Value::Predicate(PT);
+        /*
+        switch (mode) {
+        case ShuffleMode::Index:
+            // TODO
+            break;
+        case ShuffleMode::Up:
+            // TODO
+            break;
+        case ShuffleMode::Down:
+            // TODO
+            break;
+        case ShuffleMode::Bfly:
+            // TODO
+            break;
+        }
+        */
+
+        BUILDER.OpCopy(dst_v, res_v.value());
+        BUILDER.OpCopy(dst_pred_v, res_valid_v.value());
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xeef0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("atom");
@@ -225,16 +315,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto size = get_operand_eed0sz(inst);
         const auto dst = GET_REG(0);
         auto src = GET_NCGMEM_R(8, 20);
-        COMMENT("ldg {} r{} a[r{} + 0x{:x}]", size, dst, src.reg, src.imm);
+        COMMENT("ldg {} {} a[{} + 0x{:x}]", size, dst, src.reg, src.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         for (u32 i = 0; i < get_load_store_count(size); i++) {
             // TODO: global memory
-            o->OpMove(o->OpRegister(false, dst + i),
-                      o->OpImmediateL(std::bit_cast<u32>(0.0f)));
+            BUILDER.OpCopy(ir::Value::Register(dst + i),
+                           ir::Value::Immediate(std::bit_cast<u32>(0.0f)));
             src.imm += sizeof(u32);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xeec8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("ldg");
@@ -306,9 +398,11 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         // TODO: f0f8_0
         COMMENT("kil");
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpDiscard();
+        BUILDER.OpDiscard();
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xe320000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("ret");
@@ -320,11 +414,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         // TODO: f0f8_0
         COMMENT("exit");
 
-        HANDLE_PRED_COND();
+        if (PRED_COND_NOTHING) { // Nothing
+            BUILDER.OpExit();
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
+            COMMENT("never");
+            abort(); /* TODO: implement */
+        } else {     // Conditional
+            const auto pred = GET_PRED(16);
+            const bool not_ = GET_BIT(19);
+            COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-        o->OpExit();
-
-        return {ResultCode::EndBlock};
+            BUILDER.OpBeginIf({NOT_IF(ir::Value::Predicate(pred), not_)});
+            BUILDER.OpExit();
+            BUILDER.OpEndIf();
+        }
     }
     INST(0xe2f0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("setlmembase");
@@ -355,11 +459,10 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     }
     INST(0xe290000000000000, 0xfff0000000000020) {
         const auto target = GET_BTARG();
-        COMMENT("ssy 0x{:x}", target);
+        COMMENT("ssy 0x{:x}", u32(target));
 
-        o->OpSetSync(target);
-
-        return {ResultCode::SyncPoint, target};
+        SetReturnSyncPoint(target, crnt_block->return_sync_point);
+        crnt_block->return_sync_point = target;
     }
     INST(0xe280000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("plongjmp");
@@ -391,15 +494,26 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
     INST(0xe240000000000000, 0xfff0000000000020) {
         // TODO: f0f8_0
         const auto target = GET_BTARG();
-        COMMENT("bra 0x{:x}", target);
+        COMMENT("bra 0x{:x}", u32(target));
 
-        HANDLE_PRED_COND();
+        if (PRED_COND_NOTHING) { // Nothing
+            SetReturnSyncPoint(target, crnt_block->return_sync_point);
+            BUILDER.OpBranch(target);
+            EndBlock();
+        } else if (PRED_COND_NEVER) { // Never
+            COMMENT("never");
+            abort(); /* TODO: implement */
+        } else {     // Conditional
+            const auto pred = GET_PRED(16);
+            const bool not_ = GET_BIT(19);
+            COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-        o->OpBranch(target);
-
-        return {conditional ? ResultCode::BranchConditional
-                            : ResultCode::Branch,
-                target};
+            SetReturnSyncPoint(target, crnt_block->return_sync_point);
+            SetReturnSyncPoint(pc + 1, crnt_block->return_sync_point);
+            BUILDER.OpBranchConditional(
+                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            EndBlock();
+        }
     }
     INST(0xe230000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("pexit");
@@ -429,45 +543,46 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto amem = GET_AMEM_IDX(28);
         const auto interp_param = GET_REG(20);
         const auto flag1 = GET_REG(39);
-        COMMENT("ipa {} r{} a[r{} + 0x{:08x}] r{} r{}", op, dst, amem.reg,
-                amem.imm, interp_param, flag1);
+        COMMENT("ipa {} {} a[{} + 0x{:08x}] {} {}", op, dst, amem.reg, amem.imm,
+                interp_param, flag1);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto src_v = o->OpAttributeMemory(true, amem, DataType::F32);
+        auto src_v = ir::Value::AttrMemory(amem, DataType::F32);
 
         // HACK: multiply by position.w
         if (amem.reg == RZ && amem.imm >= 0x80 &&
-            context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4].x ==
-                PixelImapType::Perspective)
-            src_v =
-                o->OpMultiply(src_v, o->OpAttributeMemory(true, AMem{RZ, 0x7c},
-                                                          DataType::F32));
+            context.decomp_context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4]
+                    .x == PixelImapType::Perspective)
+            src_v = BUILDER.OpMultiply(
+                src_v, ir::Value::AttrMemory(AMem{RZ, 0x7c}, DataType::F32));
 
-        auto interp_param_v = o->OpRegister(true, interp_param, DataType::F32);
-        ValueBase* res;
+        auto interp_param_v = ir::Value::Register(interp_param, DataType::F32);
+        std::optional<ir::Value> res_v;
         switch (op) {
         case IpaOp::Pass:
-            res = src_v;
+            res_v = src_v;
             break;
         case IpaOp::Multiply:
-            res = o->OpMultiply(src_v, interp_param_v);
+            res_v = BUILDER.OpMultiply(src_v, interp_param_v);
             break;
         case IpaOp::Constant:
             LOG_NOT_IMPLEMENTED(ShaderDecompiler, "IpaOp Constant");
             // TODO: implement
-            res = src_v;
+            res_v = src_v;
             break;
         case IpaOp::SC:
             LOG_NOT_IMPLEMENTED(ShaderDecompiler, "IpaOp SC");
             // TODO: implement
-            res = src_v;
+            res_v = src_v;
             break;
         default:
-            res = nullptr;
+            res_v = std::nullopt;
             break;
         }
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res_v.value());
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xe000004000000000, 0xff00004000000000) {
         COMMENT_NOT_IMPLEMENTED("ipa");
@@ -501,17 +616,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto coords_y = GET_REG(20);
         const auto todo =
             GET_VALUE_U32(31, 4); // TODO: what is this? (some sort of mask)
-        COMMENT("tex r{} r{} r{} 0x{:x}", dst, coords_x, coords_y, todo);
+        COMMENT("tex {} {} {} 0x{:x}", dst, coords_x, coords_y, todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         // TODO: how does bindless work?
         COMMENT_NOT_IMPLEMENTED("Bindless");
-        // o->OpTextureSample(
-        //     o->OpRegister(false, dst), o->OpRegister(false, dst + 1),
-        //     o->OpRegister(false, dst + 2), o->OpRegister(false, dst + 3),
-        //     const_buffer_index, o->OpRegister(true, coords_x),
-        //     o->OpRegister(true, coords_y));
+        // BUILDER.OpTextureSample(
+        //     ir::Value::Register(dst),
+        //     ir::Value::Register(dst + 1),
+        //     ir::Value::Register(dst + 2),
+        //     ir::Value::Register(dst + 3), const_buffer_index,
+        //     ir::Value::Register(coords_x),
+        //     ir::Value::Register(coords_y));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xde78000000000000, 0xfffc000000000000) {
         COMMENT_NOT_IMPLEMENTED("txd");
@@ -526,10 +645,7 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         COMMENT_NOT_IMPLEMENTED("tld");
     }
     INST(0xd200000000000000, 0xf600000000000000) {
-        COMMENT_NOT_IMPLEMENTED("tlds");
-    }
-    INST(0xd000000000000000, 0xf600000000000000) {
-        // TODO: is the dst correct?
+        // TODO: d200_0
         const auto dst1 = GET_REG(28);
         const auto dst0 = GET_REG(0);
         const auto coords_x = GET_REG(8);
@@ -537,16 +653,53 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto const_buffer_index = GET_VALUE_U32(36, 13);
         // TODO: texture type
         // TODO: component swizzle?
-        COMMENT("texs r{} r{} r{} r{} 0x{:08x}", dst1, dst0, coords_x, coords_y,
+        COMMENT("tlds {} {} {} {} 0x{:08x}", dst1, dst0, coords_x, coords_y,
                 const_buffer_index);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpTextureSample(
-            o->OpRegister(false, dst0), o->OpRegister(false, dst0 + 1),
-            o->OpRegister(false, dst1), o->OpRegister(false, dst1 + 1),
-            const_buffer_index, o->OpRegister(true, coords_x),
-            o->OpRegister(true, coords_y));
+        auto coords_v = BUILDER.OpVectorConstruct(
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
+        auto res_v = BUILDER.OpTextureRead(const_buffer_index, coords_v);
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 0));
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 1));
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 2));
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 3));
+
+        HANDLE_PRED_COND_END();
+    }
+    INST(0xd000000000000000, 0xf600000000000000) {
+        const auto dst1 = GET_REG(28);
+        const auto dst0 = GET_REG(0);
+        const auto coords_x = GET_REG(8);
+        const auto coords_y = GET_REG(20);
+        const auto const_buffer_index = GET_VALUE_U32(36, 13);
+        // TODO: texture type
+        // TODO: component swizzle?
+        COMMENT("texs {} {} {} {} 0x{:08x}", dst1, dst0, coords_x, coords_y,
+                const_buffer_index);
+
+        HANDLE_PRED_COND_BEGIN();
+
+        auto coords_v = BUILDER.OpVectorConstruct(
+            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
+                            ir::Value::Register(coords_y, DataType::F32)});
+        auto res_v = BUILDER.OpTextureSample(const_buffer_index, coords_v);
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 0));
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 1));
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 2));
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
+                       BUILDER.OpVectorExtract(res_v, 3));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0xc838000000000000, 0xfc38000000000000) {
         COMMENT_NOT_IMPLEMENTED("tld4");
@@ -582,18 +735,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB1 = GET_VALUE_F16(30);
         const bool negB0 = GET_BIT(29);
         const auto srcB0 = GET_VALUE_F16(20);
-        COMMENT("hadd2 r{} {}r{} {}0x{:x} {}0x{:x}", dst, negA ? "-" : "", srcA,
+        COMMENT("hadd2 {} {}{} {}0x{:x} {}0x{:x}", dst, negA ? "-" : "", srcA,
                 negB1 ? "-" : "", srcB1, negB0 ? "-" : "", srcB0);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcB_v =
-            o->OpVectorConstruct({o->OpImmediateL(srcB0, DataType::F16, negB0),
-                                  o->OpImmediateL(srcB1, DataType::F16, negB1)},
-                                 DataType::F16);
-        auto res =
-            o->OpAdd(o->OpRegister(false, srcA, DataType::F16X2, negA), srcB_v);
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto srcB_v = BUILDER.OpVectorConstruct(
+            DataType::F16,
+            {NEG_IF(ir::Value::Immediate(srcB0, DataType::F16), negB0),
+             NEG_IF(ir::Value::Immediate(srcB1, DataType::F16), negB1)});
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::F16X2), negA), srcB_v);
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x7a80000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("hadd2");
@@ -620,20 +775,22 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negC = GET_BIT(51);
         // TODO: 2c00_0
         const auto srcC = GET_REG(39);
-        COMMENT("hfma2 r{} r{} {}0x{:x} {}0x{:x} {}r{}", dst, srcA,
+        COMMENT("hfma2 {} {} {}0x{:x} {}0x{:x} {}{}", dst, srcA,
                 negB1 ? "-" : "", srcB1, negB0 ? "-" : "", srcB0,
                 negC ? "-" : "", srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcB_v =
-            o->OpVectorConstruct({o->OpImmediateL(srcB0, DataType::F16, negB0),
-                                  o->OpImmediateL(srcB1, DataType::F16, negB1)},
-                                 DataType::F16);
-        auto res =
-            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2), srcB_v,
-                          o->OpRegister(false, srcC, DataType::F16X2, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto srcB_v = BUILDER.OpVectorConstruct(
+            DataType::F16,
+            {NEG_IF(ir::Value::Immediate(srcB0, DataType::F16), negB0),
+             NEG_IF(ir::Value::Immediate(srcB1, DataType::F16), negB1)});
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F16X2), srcB_v,
+            NEG_IF(ir::Value::Register(srcC, DataType::F16X2), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x6080000000000000, 0xf880000000000000) {
         // TODO: 6080_0
@@ -646,16 +803,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_REG(39);
         const bool negC = GET_BIT(51);
         const auto srcC = GET_CMEM(34, 14);
-        COMMENT("hfma2 r{} r{} {}r{} {}c{}[0x{:x}]", dst, srcA, negB ? "-" : "",
+        COMMENT("hfma2 {} {} {}{} {}c{}[0x{:x}]", dst, srcA, negB ? "-" : "",
                 srcB, negC ? "-" : "", srcC.idx, srcC.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2),
-                          o->OpRegister(false, srcB, DataType::F16X2, negB),
-                          o->OpConstMemoryL(srcC, DataType::F16X2, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F16X2),
+            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB),
+            NEG_IF(ir::Value::ConstMemory(srcC, DataType::F16X2), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5f00000000000000, 0xff00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vmad");
@@ -675,13 +834,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negB = GET_BIT(31);
         // TODO: 5d10_2
         const auto srcB = GET_REG(20);
-        COMMENT("hadd2 r{} r{} {}r{}", dst, srcA, negB ? "-" : "", srcB);
+        COMMENT("hadd2 {} {} {}{}", dst, srcA, negB ? "-" : "", srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F16X2),
-                            o->OpRegister(false, srcB, DataType::F16X2, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto res = BUILDER.OpAdd(
+            ir::Value::Register(srcA, DataType::F16X2),
+            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5d08000000000000, 0xfff8000000000000) {
         // TODO: 6080_0
@@ -692,14 +854,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negB = GET_BIT(31);
         // TODO: 5d10_2
         const auto srcB = GET_REG(20);
-        COMMENT("hmul2 r{} r{} {}r{}", dst, srcA, negB ? "-" : "", srcB);
+        COMMENT("hmul2 {} {} {}{}", dst, srcA, negB ? "-" : "", srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpMultiply(o->OpRegister(false, srcA, DataType::F16X2),
-                          o->OpRegister(false, srcB, DataType::F16X2, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto res = BUILDER.OpMultiply(
+            ir::Value::Register(srcA, DataType::F16X2),
+            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5d00000000000000, 0xfff8000000000000) {
         // TODO: 6080_0
@@ -713,16 +877,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negC = GET_BIT(30);
         // TODO: 5d00_1
         const auto srcC = GET_REG(39);
-        COMMENT("hfma2 r{} r{} {}r{} {}r{}", dst, srcA, negB ? "-" : "", srcB,
+        COMMENT("hfma2 {} {} {}{} {}{}", dst, srcA, negB ? "-" : "", srcB,
                 negC ? "-" : "", srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpFloatFma(o->OpRegister(false, srcA, DataType::F16X2),
-                          o->OpRegister(false, srcB, DataType::F16X2, negB),
-                          o->OpRegister(false, srcC, DataType::F16X2, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F16X2), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F16X2),
+            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB),
+            NEG_IF(ir::Value::Register(srcC, DataType::F16X2), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5cf8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("shf");
@@ -739,12 +905,14 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src_type = get_operand_5ce0_1(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        COMMENT("i2i {} {} r{} r{}", dst_type, src_type, dst, src);
+        COMMENT("i2i {} {} {} {}", dst_type, src_type, dst, src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res = BUILDER.OpCast(ir::Value::Register(src, src_type), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
@@ -756,13 +924,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto neg = GET_BIT(45);
         const auto src = GET_REG(20);
-        COMMENT("i2f {} {} r{} {}r{}", dst_type, src_type, dst, neg ? "-" : "",
+        COMMENT("i2f {} {} {} {}{}", dst_type, src_type, dst, neg ? "-" : "",
                 src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpRegister(true, src, src_type, neg), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res = BUILDER.OpCast(
+            NEG_IF(ir::Value::Register(src, src_type), neg), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5cb0000000000000, 0xfff8000000000000) {
         const auto dst_type = get_operand_5cb0_2(inst);
@@ -771,13 +942,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto neg = GET_BIT(45);
         const auto src = GET_REG(20);
-        COMMENT("f2i {} {} r{} {}r{}", dst_type, src_type, dst, neg ? "-" : "",
+        COMMENT("f2i {} {} {} {}{}", dst_type, src_type, dst, neg ? "-" : "",
                 src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpRegister(true, src, src_type, neg), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res = BUILDER.OpCast(
+            NEG_IF(ir::Value::Register(src, src_type), neg), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5ca8000000000000, 0xfff8000000000000) {
         const auto dst_type = get_operand_5cb0_0(inst);
@@ -785,12 +959,14 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         // TODO: 5ca8_0
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        COMMENT("f2f {} {} r{} r{}", dst_type, src_type, dst, src);
+        COMMENT("f2f {} {} {} {}", dst_type, src_type, dst, src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpRegister(true, src, src_type), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res = BUILDER.OpCast(ir::Value::Register(src, src_type), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5ca0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("sel");
@@ -799,22 +975,26 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
         const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
-        COMMENT("mov r{} r{} 0x{:x}", dst, src, todo);
+        COMMENT("mov {} {} 0x{:x}", dst, src, todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpMove(o->OpRegister(false, dst), o->OpRegister(true, src));
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Register(src));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c90000000000000, 0xfff8000000000000) {
         // TODO: mode
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        COMMENT("rro r{} r{}", dst, src);
+        COMMENT("rro {} {}", dst, src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         // TODO: is it okay to just move?
-        o->OpMove(o->OpRegister(false, dst), o->OpRegister(true, src));
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Register(src));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c88000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("fchk");
@@ -829,30 +1009,34 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
-        COMMENT("fmul r{} r{} r{}", dst, srcA, srcB);
+        COMMENT("fmul {} {} {}", dst, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpMultiply(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpRegister(true, srcB, DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
+                                      ir::Value::Register(srcB, DataType::F32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx r{} r{} r{} p{}", dst, srcA, srcB, pred);
+        COMMENT("fmnmx {} {} {} {}", dst, srcA, srcB, pred);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = o->OpRegister(false, srcA, DataType::F32);
-        auto srcB_v = o->OpRegister(false, srcB, DataType::F32);
-        auto min_v = o->OpMin(srcA_v, srcB_v);
-        auto max_v = o->OpMax(srcA_v, srcB_v);
-        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
-                               min_v); // TODO: correct?
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
+        auto srcB_v = ir::Value::Register(srcB, DataType::F32);
+        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
+        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
+        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
+                                    min_v); // TODO: correct?
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c58000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -860,14 +1044,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(45);
         const auto srcB = GET_REG(20);
-        COMMENT("fadd r{} {}r{} {}r{}", dst, negA ? "-" : "", srcA,
+        COMMENT("fadd {} {}{} {}{}", dst, negA ? "-" : "", srcA,
                 negB ? "-" : "", srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::F32, negA),
-                            o->OpRegister(true, srcB, DataType::F32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -884,41 +1071,42 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto invB = GET_BIT(40);
         const auto srcB = GET_REG(20);
-        COMMENT("lop {} {} r{} {}r{} {}0x{:08x}", bin, pred_op, dst,
-                (invA ? "!" : ""), srcA, (invB ? "!" : ""), srcB);
+        COMMENT("lop {} {} {} {}{} {}{}", bin, pred_op, dst, (invA ? "!" : ""),
+                srcA, (invB ? "!" : ""), srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         // TODO: inv
-        auto srcB_v = o->OpImmediateL(srcB, DataType::U32);
+        auto srcB_v = ir::Value::Register(srcB);
         auto res =
             (bin == BitwiseOp::PassB
                  ? srcB_v
-                 : o->OpBitwise(bin, o->OpRegister(true, srcA, DataType::U32),
-                                srcB_v));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+                 : BUILDER.OpBitwise(bin, ir::Value::Register(srcA), srcB_v));
+        BUILDER.OpCopy(ir::Value::Register(dst), res);
 
-        ValueBase* pred_v;
+        std::optional<ir::Value> pred_v;
         switch (pred_op) {
         case PredOp::False:
-            pred_v = o->OpImmediateL(0, DataType::U32); // TODO: false
+            pred_v = ir::Value::Immediate(0); // TODO: false
             break;
         case PredOp::True:
-            pred_v = o->OpImmediateL(1, DataType::U32); // TODO: true
+            pred_v = ir::Value::Immediate(1); // TODO: true
             break;
         case PredOp::Zero:
-            pred_v = o->OpCompare(ComparisonOp::Equal, res,
-                                  o->OpImmediateL(0, DataType::U32));
+            pred_v = BUILDER.OpCompare(ComparisonOp::Equal, res,
+                                       ir::Value::Immediate(0));
             break;
         case PredOp::NotZero:
-            pred_v = o->OpCompare(ComparisonOp::NotEqual, res,
-                                  o->OpImmediateL(0, DataType::U32));
+            pred_v = BUILDER.OpCompare(ComparisonOp::NotEqual, res,
+                                       ir::Value::Immediate(0));
             break;
         default:
-            pred_v = nullptr;
+            pred_v = std::nullopt;
             break;
         }
-        o->OpMove(o->OpPredicate(false, dst_pred), res);
+        BUILDER.OpCopy(ir::Value::Predicate(dst_pred), pred_v.value());
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c38000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul");
@@ -939,18 +1127,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negB = GET_BIT(48);
         const auto srcB = GET_REG(20);
         const auto shift = GET_VALUE_U32(39, 5);
-        COMMENT("iscadd r{} {}r{} {}r{} 0x{:x}", dst, (negA ? "-" : ""), srcA,
+        COMMENT("iscadd {} {}{} {}{} 0x{:x}", dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB, shift);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = o->OpRegister(true, srcA, DataType::I32);
-        srcA_v = o->OpShiftLeft(srcA_v, shift);
+        auto srcA_v = ir::Value::Register(srcA, DataType::I32);
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, shift);
         // TODO: negA
 
-        auto res =
-            o->OpAdd(srcA_v, o->OpRegister(true, srcB, DataType::I32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::I32), res);
+        auto res = BUILDER.OpAdd(
+            srcA_v, NEG_IF(ir::Value::Register(srcB, DataType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c10000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -958,14 +1148,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(48);
         const auto srcB = GET_REG(20);
-        COMMENT("iadd r{} {}r{} {}r{}", dst, (negA ? "-" : ""), srcA,
+        COMMENT("iadd {} {}{} {}{}", dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::I32, negA),
-                            o->OpRegister(true, srcB, DataType::I32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::I32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::I32), negA),
+            NEG_IF(ir::Value::Register(srcB, DataType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
@@ -999,17 +1192,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         // TODO: pred 39
-        COMMENT("fsetp {} {} p{} p{} r{} r{}", cmp, combine_bin, dst, combine,
-                srcA, srcB);
+        COMMENT("fsetp {} {} {} {} {} {}", cmp, combine_bin, dst, combine, srcA,
+                srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
-                         o->OpRegister(true, srcB, DataType::F32));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
+                              ir::Value::Register(srcB, DataType::F32));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5ba0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
@@ -1029,16 +1224,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         // TODO: pred 39
-        COMMENT("isetp {} {} {} p{} p{} r{} r{}", cmp, type, combine_bin, dst,
+        COMMENT("isetp {} {} {} {} {} {} {}", cmp, type, combine_bin, dst,
                 combine, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = o->OpCompare(cmp, o->OpRegister(true, srcA, type),
-                                    o->OpRegister(true, srcB, type));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
+                                         ir::Value::Register(srcB, type));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5b50000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iset");
@@ -1062,16 +1259,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_REG(20);
         const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        COMMENT("ffma r{} r{} {}r{} {}r{}", dst, srcA, (negB ? "-" : ""), srcB,
+        COMMENT("ffma {} {} {}{} {}{}", dst, srcA, (negB ? "-" : ""), srcB,
                 (negC ? "-" : ""), srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                          o->OpRegister(true, srcB, DataType::F32, negB),
-                          o->OpRegister(true, srcC, DataType::F32, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F32),
+            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB),
+            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
@@ -1086,30 +1285,34 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_REG(20);
         const auto negB = GET_BIT(53);
         // TODO: combine
-        COMMENT("fset {} {} {} r{} {}r{} {}r{}", (bool_float ? "BF" : ""), cmp,
+        COMMENT("fset {} {} {} {} {}{} {}{}", (bool_float ? "BF" : ""), cmp,
                 combine_bin, dst, (negA ? "-" : ""), srcA, (negB ? "-" : ""),
                 srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
-                         o->OpRegister(true, srcB, DataType::F32, negB));
+        auto cmp_res = BUILDER.OpCompare(
+            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
         // TODO: uncomment
-        // auto bin_res = o->OpBitwise(combine_bin, cmp_res,
-        //                    o->OpPredicate(true, combine));
+        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+        //                    ir::Value::Predicate(combine));
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
         if (bool_float) {
-            auto res = o->OpSelect(
+            auto res = BUILDER.OpSelect(
                 cmp_res,
-                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
-                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
-            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
+                                     DataType::F32),
+                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
+                                     DataType::F32));
+            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
         } else {
-            auto res = o->OpCast(cmp_res, DataType::U32);
-            o->OpMove(o->OpRegister(false, dst), res);
+            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
+            BUILDER.OpCopy(ir::Value::Register(dst), res);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5700000000000000, 0xff00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vshl");
@@ -1154,15 +1357,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_REG(39);
         const auto negC = GET_BIT(49);
         const auto srcC = GET_CMEM(34, 14);
-        COMMENT("ffma r{} r{} {}r{} {}c{}[0x{:x}]", dst, srcA,
-                (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC.idx, srcC.imm);
+        COMMENT("ffma {} {} {}{} {}c{}[0x{:x}]", dst, srcA, (negB ? "-" : ""),
+                srcB, (negC ? "-" : ""), srcC.idx, srcC.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                                 o->OpRegister(true, srcB, DataType::F32, negB),
-                                 o->OpConstMemoryL(srcC, DataType::F32, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F32),
+            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB),
+            NEG_IF(ir::Value::ConstMemory(srcC, DataType::F32), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5100000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("xmad");
@@ -1200,17 +1406,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_PRED(12);
         const auto srcB = GET_PRED(29);
         const auto srcC = GET_PRED(39);
-        COMMENT("psetp {} {} p{} p{} p{} p{} p{}", bin, combine_bin, dst,
-                combine, srcA, srcB, srcC);
+        COMMENT("psetp {} {} {} {} {} {} {}", bin, combine_bin, dst, combine,
+                srcA, srcB, srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto bin1_res = o->OpBitwise(bin, o->OpPredicate(true, srcA),
-                                     o->OpPredicate(true, srcB));
-        auto bin2_res = o->OpBitwise(bin, bin1_res, o->OpPredicate(true, srcC));
-        auto bin3_res =
-            o->OpBitwise(combine_bin, bin2_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin3_res);
+        auto bin1_res = BUILDER.OpBitwise(bin, ir::Value::Predicate(srcA),
+                                          ir::Value::Predicate(srcB));
+        auto bin2_res =
+            BUILDER.OpBitwise(bin, bin1_res, ir::Value::Predicate(srcC));
+        auto bin3_res = BUILDER.OpBitwise(combine_bin, bin2_res,
+                                          ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin3_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5088000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pset");
@@ -1219,13 +1428,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto func = get_operand_5080_0(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(8);
-        COMMENT("mufu {} r{} r{}", func, dst, src);
+        COMMENT("mufu {} {} {}", func, dst, src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpMathFunction(func, o->OpRegister(true, src, DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpMathFunction(
+            func, ir::Value::Register(src, DataType::F32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x5000000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("vabsdiff4");
@@ -1245,13 +1456,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src_type = get_operand_5ce0_1(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM(34, 14);
-        COMMENT("i2i {} {} r{} c{}[0x{:x}]", dst_type, src_type, dst, src.idx,
+        COMMENT("i2i {} {} {} c{}[0x{:x}]", dst_type, src_type, dst, src.idx,
                 src.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpConstMemoryL(src, src_type), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res =
+            BUILDER.OpCast(ir::Value::ConstMemory(src, src_type), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
@@ -1263,13 +1477,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto neg = GET_BIT(45);
         const auto src = GET_CMEM(34, 14);
-        COMMENT("i2f {} {} r{} {}c{}[0x{:x}]", dst_type, src_type, dst,
+        COMMENT("i2f {} {} {} {}c{}[0x{:x}]", dst_type, src_type, dst,
                 (neg ? "-" : ""), src.idx, src.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpConstMemoryL(src, src_type, neg), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res = BUILDER.OpCast(
+            NEG_IF(ir::Value::ConstMemory(src, src_type), neg), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4cb0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("f2i");
@@ -1284,11 +1501,13 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto src = GET_CMEM(34, 14);
         const auto todo = GET_VALUE_U32(39, 4);
-        COMMENT("mov r{} c{}[0x{:x}] 0x{:x}", dst, src.idx, src.imm, todo);
+        COMMENT("mov {} c{}[0x{:x}] 0x{:x}", dst, src.idx, src.imm, todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpMove(o->OpRegister(false, dst), o->OpConstMemoryL(src));
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c90000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("rro");
@@ -1306,13 +1525,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fmul r{} r{} c{}[0x{:x}]", dst, srcA, srcB.idx, srcB.imm);
+        COMMENT("fmul {} {} c{}[0x{:x}]", dst, srcA, srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpMultiply(o->OpRegister(false, srcA, DataType::F32),
-                                 o->OpConstMemoryL(srcB, DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res =
+            BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
+                               ir::Value::ConstMemory(srcB, DataType::F32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -1321,18 +1543,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto negB = GET_BIT(45);
         const auto srcB = GET_CMEM(34, 14);
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx r{} {}r{} {}c{}[0x{:x}] p{}", dst, (negA ? "-" : ""),
-                srcA, (negB ? "-" : ""), srcB.idx, srcB.imm, pred);
+        COMMENT("fmnmx {} {}{} {}c{}[0x{:x}] {}", dst, (negA ? "-" : ""), srcA,
+                (negB ? "-" : ""), srcB.idx, srcB.imm, pred);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = o->OpRegister(true, srcA, DataType::F32, negA);
-        auto srcB_v = o->OpConstMemoryL(srcB, DataType::F32, negB);
-        auto min_v = o->OpMin(srcA_v, srcB_v);
-        auto max_v = o->OpMax(srcA_v, srcB_v);
-        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
-                               min_v); // TODO: correct?
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto srcA_v = NEG_IF(ir::Value::Register(srcA, DataType::F32), negA);
+        auto srcB_v = NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB);
+        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
+        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
+        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
+                                    min_v); // TODO: correct?
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c58000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -1340,14 +1564,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(45);
         const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fadd r{} {}r{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
+        COMMENT("fadd {} {}{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32, negA),
-                            o->OpConstMemoryL(srcB, DataType::F32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -1379,14 +1606,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(48);
         const auto srcB = GET_CMEM(34, 14);
-        COMMENT("iadd r{} {}r{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
+        COMMENT("iadd {} {}{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::I32, negA),
-                            o->OpConstMemoryL(srcB, DataType::I32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::I32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::I32), negA),
+            NEG_IF(ir::Value::ConstMemory(srcB, DataType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
@@ -1410,17 +1640,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto srcA = GET_REG(8);
         const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fsetp {} {} p{} p{} r{} c{}[0x{:x}]", cmp, combine_bin, dst,
+        COMMENT("fsetp {} {} {} {} {} c{}[0x{:x}]", cmp, combine_bin, dst,
                 combine, srcA, srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
-                         o->OpConstMemoryL(srcB, DataType::F32));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
+                              ir::Value::ConstMemory(srcB, DataType::F32));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4ba0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
@@ -1440,16 +1672,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto srcB = GET_CMEM(34, 14);
         // TODO: pred 39
-        COMMENT("isetp {} {} {} p{} p{} r{} c{}[0x{:x}]", cmp, type,
-                combine_bin, dst, combine, srcA, srcB.idx, srcB.imm);
+        COMMENT("isetp {} {} {} {} {} {} c{}[0x{:x}]", cmp, type, combine_bin,
+                dst, combine, srcA, srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = o->OpCompare(cmp, o->OpRegister(true, srcA, type),
-                                    o->OpConstMemoryL(srcB, type));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
+                                         ir::Value::ConstMemory(srcB, type));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4b50000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iset");
@@ -1470,16 +1704,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_CMEM(34, 14);
         const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        COMMENT("ffma r{} r{} {}c{}[0x{:x}] {}r{}", dst, srcA,
-                (negB ? "-" : ""), srcB.idx, srcB.imm, (negC ? "-" : ""), srcC);
+        COMMENT("ffma {} {} {}c{}[0x{:x}] {}{}", dst, srcA, (negB ? "-" : ""),
+                srcB.idx, srcB.imm, (negC ? "-" : ""), srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                          o->OpConstMemoryL(srcB, DataType::F32, negB),
-                          o->OpRegister(true, srcC, DataType::F32, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F32),
+            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB),
+            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
@@ -1494,30 +1730,34 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_CMEM(34, 14);
         const auto negB = GET_BIT(53);
         // TODO: combine
-        COMMENT("fset {} {} {} r{} {}r{} {}c{}[0x{:x}]",
-                (bool_float ? "BF" : ""), cmp, combine_bin, dst,
-                (negA ? "-" : ""), srcA, (negB ? "-" : ""), srcB.idx, srcB.imm);
+        COMMENT("fset {} {} {} {} {}{} {}c{}[0x{:x}]", (bool_float ? "BF" : ""),
+                cmp, combine_bin, dst, (negA ? "-" : ""), srcA,
+                (negB ? "-" : ""), srcB.idx, srcB.imm);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
-                         o->OpConstMemoryL(srcB, DataType::F32, negB));
+        auto cmp_res = BUILDER.OpCompare(
+            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
         // TODO: uncomment
-        // auto bin_res = o->OpBitwise(combine_bin, cmp_res,
-        //                    o->OpPredicate(true, combine));
+        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+        //                    ir::Value::Predicate(combine));
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
         if (bool_float) {
-            auto res = o->OpSelect(
+            auto res = BUILDER.OpSelect(
                 cmp_res,
-                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
-                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
-            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
+                                     DataType::F32),
+                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
+                                     DataType::F32));
+            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
         } else {
-            auto res = o->OpCast(cmp_res, DataType::U32);
-            o->OpMove(o->OpRegister(false, dst), res);
+            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
+            BUILDER.OpCopy(ir::Value::Register(dst), res);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x4000000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vset");
@@ -1544,12 +1784,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto src = GET_VALUE_U32(20, 19) |
                          (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("i2i {} {} r{} 0x{:x}", dst_type, src_type, dst, src);
+        COMMENT("i2i {} {} {} 0x{:x}", dst_type, src_type, dst, src);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpCast(o->OpImmediateL(src, src_type), dst_type);
-        o->OpMove(o->OpRegister(false, dst, dst_type), res);
+        auto res =
+            BUILDER.OpCast(ir::Value::Immediate(src, src_type), dst_type);
+        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x38c0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
@@ -1585,30 +1828,35 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_F32();
-        COMMENT("fmul r{} r{} 0x{:08x}", dst, srcA, srcB);
+        COMMENT("fmul {} {} 0x{:08x}", dst, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpMultiply(o->OpRegister(false, srcA, DataType::F32),
-                                 o->OpImmediateL(srcB, DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res =
+            BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
+                               ir::Value::Immediate(srcB, DataType::F32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3860000000000000, 0xfef8000000000000) {
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_F32();
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx r{} r{} 0x{:08x} p{}", dst, srcA, srcB, pred);
+        COMMENT("fmnmx {} {} 0x{:08x} {}", dst, srcA, srcB, pred);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = o->OpRegister(true, srcA, DataType::F32);
-        auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
-        auto min_v = o->OpMin(srcA_v, srcB_v);
-        auto max_v = o->OpMax(srcA_v, srcB_v);
-        auto res = o->OpSelect(o->OpPredicate(true, pred), max_v,
-                               min_v); // TODO: correct?
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
+        auto srcB_v = ir::Value::Immediate(srcB, DataType::F32);
+        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
+        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
+        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
+                                    min_v); // TODO: correct?
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3858000000000000, 0xfef8000000000000) {
         const auto dst = GET_REG(0);
@@ -1616,14 +1864,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const bool negB = GET_BIT(45);
         const auto srcB = GET_VALUE_F32();
-        COMMENT("fadd r{} {}r{} {}0x{:x}", dst, negA ? "-" : "", srcA,
+        COMMENT("fadd {} {}{} {}0x{:x}", dst, negA ? "-" : "", srcA,
                 negB ? "-" : "", srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(false, srcA, DataType::F32, negA),
-                            o->OpImmediateL(srcB, DataType::F32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3850000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -1633,12 +1884,14 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src = GET_REG(8);
         const auto shift = GET_VALUE_U32(20, 19) |
                            (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("shl r{} r{} 0x{:x}", dst, src, shift);
+        COMMENT("shl {} {} 0x{:x}", dst, src, shift);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpShiftLeft(o->OpRegister(true, src), shift);
-        o->OpMove(o->OpRegister(false, dst), res);
+        auto res = BUILDER.OpShiftLeft(ir::Value::Register(src), shift);
+        BUILDER.OpCopy(ir::Value::Register(dst), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3840000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("lop");
@@ -1655,12 +1908,14 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src = GET_REG(8);
         const auto shift = GET_VALUE_U32(20, 19) |
                            (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("shr {} r{} r{} 0x{:x}", type, dst, src, shift);
+        COMMENT("shr {} {} {} 0x{:x}", type, dst, src, shift);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpShiftRight(o->OpRegister(true, src, type), shift);
-        o->OpMove(o->OpRegister(false, dst, type), res);
+        auto res = BUILDER.OpShiftRight(ir::Value::Register(src, type), shift);
+        BUILDER.OpCopy(ir::Value::Register(dst, type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3820000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
@@ -1672,17 +1927,20 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negB = GET_BIT(48);
         const auto srcB = GET_VALUE_I32_SIGN_EXTEND(20, 20);
         const auto shift = GET_VALUE_U32(39, 5);
-        COMMENT("iscadd r{} {}r{} {}0x{:x} 0x{:x}", dst, (negA ? "-" : ""),
-                srcA, (negB ? "-" : ""), srcB, shift);
+        COMMENT("iscadd {} {}{} {}0x{:x} 0x{:x}", dst, (negA ? "-" : ""), srcA,
+                (negB ? "-" : ""), srcB, shift);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = o->OpRegister(true, srcA, DataType::I32);
-        srcA_v = o->OpShiftLeft(srcA_v, shift);
+        auto srcA_v = ir::Value::Register(srcA, DataType::I32);
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, shift);
         // TODO: negA
 
-        auto res = o->OpAdd(srcA_v, o->OpImmediateL(srcB, DataType::I32, negB));
-        o->OpMove(o->OpRegister(false, dst, DataType::I32), res);
+        auto res = BUILDER.OpAdd(
+            srcA_v, NEG_IF(ir::Value::Immediate(srcB, DataType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3810000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd");
@@ -1696,18 +1954,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto src = GET_REG(8);
         const auto bf = GET_VALUE_U32(20, 19) |
                         (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("bfe {} r{} r{} 0x{:x}", type, dst, src, bf);
+        COMMENT("bfe {} {} {} 0x{:x}", type, dst, src, bf);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         auto position = extract_bits<u32, 0, 8>(bf);
         auto size = extract_bits<u32, 8, 8>(bf);
 
-        auto res = o->OpBitwise(
+        auto res = BUILDER.OpBitwise(
             BitwiseOp::And,
-            o->OpShiftRight(o->OpRegister(true, src, type), position),
-            o->OpImmediateL((1 << size) - 1, type)); // TODO: BitfieldExtract
-        o->OpMove(o->OpRegister(false, dst, type), res);
+            BUILDER.OpShiftRight(ir::Value::Register(src, type), position),
+            ir::Value::Immediate((1 << size) - 1,
+                                 type)); // TODO: BitfieldExtract
+        BUILDER.OpCopy(ir::Value::Register(dst, type), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x36f8000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("shf");
@@ -1728,17 +1989,19 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto combine = GET_PRED(0); // TODO: combine?
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_F32();
-        COMMENT("fsetp {} {} p{} p{} r{} 0x{:08x}", cmp, combine_bin, dst,
-                combine, srcA, srcB);
+        COMMENT("fsetp {} {} {} {} {} 0x{:08x}", cmp, combine_bin, dst, combine,
+                srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32),
-                         o->OpImmediateL(srcB, DataType::F32));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
+                              ir::Value::Immediate(srcB, DataType::F32));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x36a0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
@@ -1759,16 +2022,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_VALUE_U32(20, 19) |
                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
         // TODO: pred 39
-        COMMENT("isetp {} {} {} p{} p{} r{} r{}", cmp, type, combine_bin, dst,
+        COMMENT("isetp {} {} {} {} {} {} {}", cmp, type, combine_bin, dst,
                 combine, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = o->OpCompare(cmp, o->OpRegister(true, srcA, type),
-                                    o->OpImmediateL(srcB, type));
-        auto bin_res =
-            o->OpBitwise(combine_bin, cmp_res, o->OpPredicate(true, combine));
-        o->OpMove(o->OpPredicate(false, dst), bin_res);
+        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
+                                         ir::Value::Immediate(srcB, type));
+        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+                                         ir::Value::Predicate(combine));
+        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3650000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iset"); // TODO: needed by Super Mario Odyssey
@@ -1792,16 +2057,18 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_VALUE_F32();
         const auto negC = GET_BIT(49);
         const auto srcC = GET_REG(39);
-        COMMENT("ffma r{} r{} {}0x{:08x} {}r{}", dst, srcA, (negB ? "-" : ""),
+        COMMENT("ffma {} {} {}0x{:08x} {}{}", dst, srcA, (negB ? "-" : ""),
                 srcB, (negC ? "-" : ""), srcC);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res =
-            o->OpFloatFma(o->OpRegister(true, srcA, DataType::F32),
-                          o->OpImmediateL(srcB, DataType::F32, negB),
-                          o->OpRegister(true, srcC, DataType::F32, negC));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpFma(
+            ir::Value::Register(srcA, DataType::F32),
+            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB),
+            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x3200000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
@@ -1816,30 +2083,34 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcB = GET_VALUE_F32();
         const auto negB = GET_BIT(53);
         // TODO: combine
-        COMMENT("fset {} {} {} r{} {}r{} {}0x{:08x}", (bool_float ? "BF" : ""),
+        COMMENT("fset {} {} {} {} {}{} {}0x{:08x}", (bool_float ? "BF" : ""),
                 cmp, combine_bin, dst, (negA ? "-" : ""), srcA,
                 (negB ? "-" : ""), srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res =
-            o->OpCompare(cmp, o->OpRegister(true, srcA, DataType::F32, negA),
-                         o->OpImmediateL(srcB, DataType::F32, negB));
+        auto cmp_res = BUILDER.OpCompare(
+            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
+            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB));
         // TODO: uncomment
-        // auto bin_res = o->OpBitwise(combine_bin, cmp_res,
-        //                    o->OpPredicate(true, combine));
+        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+        //                    ir::Value::Predicate(combine));
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
         if (bool_float) {
-            auto res = o->OpSelect(
+            auto res = BUILDER.OpSelect(
                 cmp_res,
-                o->OpImmediateL(std::bit_cast<u32>(f32(1.0f)), DataType::F32),
-                o->OpImmediateL(std::bit_cast<u32>(f32(0.0f)), DataType::F32));
-            o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
+                                     DataType::F32),
+                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
+                                     DataType::F32));
+            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
         } else {
-            auto res = o->OpCast(cmp_res, DataType::U32);
-            o->OpMove(o->OpRegister(false, dst), res);
+            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
+            BUILDER.OpCopy(ir::Value::Register(dst), res);
         }
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x2c00000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("hadd2_32i");
@@ -1860,14 +2131,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("fmul32i r{} r{} 0x{:08x}", dst, srcA, srcB);
+        COMMENT("fmul32i {} {} 0x{:08x}", dst, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto srcB_v = o->OpImmediateL(srcB, DataType::F32);
-        auto res =
-            o->OpMultiply(o->OpRegister(false, srcA, DataType::F32), srcB_v);
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto srcB_v = ir::Value::Immediate(srcB, DataType::F32);
+        auto res = BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
+                                      srcB_v);
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x1d80000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd32i");
@@ -1877,14 +2150,16 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const bool negA = GET_BIT(56);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("iadd32i r{} {}r{} 0x{:08x}", dst, (negA ? "-" : ""), srcA,
-                srcB);
+        COMMENT("iadd32i {} {}{} 0x{:08x}", dst, (negA ? "-" : ""), srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::I32, negA),
-                            o->OpImmediateL(srcB, DataType::I32));
-        o->OpMove(o->OpRegister(false, dst, DataType::I32), res);
+        auto res = BUILDER.OpAdd(
+            NEG_IF(ir::Value::Register(srcA, DataType::I32), negA),
+            ir::Value::Immediate(srcB, DataType::I32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x1800000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lea");
@@ -1902,13 +2177,15 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("fadd32i r{} r{} 0x{:08x}", dst, srcA, srcB);
+        COMMENT("fadd32i {} {} 0x{:08x}", dst, srcA, srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        auto res = o->OpAdd(o->OpRegister(true, srcA, DataType::F32),
-                            o->OpImmediateL(srcB, DataType::F32));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+        auto res = BUILDER.OpAdd(ir::Value::Register(srcA, DataType::F32),
+                                 ir::Value::Immediate(srcB, DataType::F32));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x0400000000000000, 0xfc00000000000000) {
         const auto bin = get_operand_0400_0(inst);
@@ -1917,19 +2194,21 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto srcA = GET_REG(8);
         const auto invB = GET_BIT(56);
         const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("lop32i {} r{} {}r{} {}0x{:08x}", bin, dst, (invA ? "!" : ""),
+        COMMENT("lop32i {} {} {}{} {}0x{:08x}", bin, dst, (invA ? "!" : ""),
                 srcA, (invB ? "!" : ""), srcB);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
         // TODO: inv
-        auto srcB_v = o->OpImmediateL(srcB, DataType::U32);
+        auto srcB_v = ir::Value::Immediate(srcB, DataType::U32);
         auto res =
             (bin == BitwiseOp::PassB
                  ? srcB_v
-                 : o->OpBitwise(bin, o->OpRegister(true, srcA, DataType::U32),
-                                srcB_v));
-        o->OpMove(o->OpRegister(false, dst, DataType::F32), res);
+                 : BUILDER.OpBitwise(
+                       bin, ir::Value::Register(srcA, DataType::U32), srcB_v));
+        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+
+        HANDLE_PRED_COND_END();
     }
     INST(0x0200000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lop3");
@@ -1939,18 +2218,17 @@ result_t IteratorBase::ParseNextInstructionImpl(ObserverBase* o, const u32 pc,
         const auto value = GET_VALUE_U32(20, 32);
         const auto todo =
             extract_bits<u32, 4, 12>(inst) >> 8; // TODO: what is this?
-        COMMENT("mov32i r{} 0x{:08x} 0x{:08x}", dst, value, todo);
+        COMMENT("mov32i {} 0x{:08x} 0x{:08x}", dst, value, todo);
 
-        HANDLE_PRED_COND();
+        HANDLE_PRED_COND_BEGIN();
 
-        o->OpMove(o->OpRegister(false, dst), o->OpImmediateL(value));
+        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Immediate(value));
+
+        HANDLE_PRED_COND_END();
     }
     else {
         LOG_ERROR(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
-        return {ResultCode::Error};
     }
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
 
-    return {ResultCode::None};
-}
-
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

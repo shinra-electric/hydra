@@ -1,6 +1,6 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/lang/structurizer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
 namespace {
 
@@ -15,7 +15,7 @@ CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
     if (!merge_block) {
         LOG_ERROR(ShaderDecompiler,
                   "Failed to find merge block for if-else block {}",
-                  block->code_range.begin);
+                  block->label);
         return nullptr;
     }
 
@@ -30,7 +30,6 @@ CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
         case CfgBlockEdgeType::BranchConditional:
             if (b->edge.branch_conditional.target_true->IsSameAs(merge_block)) {
                 b->edge.branch_conditional.target_true = new CfgBasicBlock{
-                    .status = CfgBlockStatus::Finished,
                     .edge =
                         {
                             .type = CfgBlockEdgeType::None,
@@ -40,7 +39,6 @@ CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
             if (b->edge.branch_conditional.target_false->IsSameAs(
                     merge_block)) {
                 b->edge.branch_conditional.target_false = new CfgBasicBlock{
-                    .status = CfgBlockStatus::Finished,
                     .edge =
                         {
                             .type = CfgBlockEdgeType::None,
@@ -79,7 +77,7 @@ CfgBasicBlock* TransformLoop(const CfgBasicBlock* entry_block,
     if (!merge_block) {
         LOG_ERROR(ShaderDecompiler,
                   "Failed to find merge block for loop block {}",
-                  entry_block->code_range.begin);
+                  entry_block->label);
         return nullptr;
     }
 
@@ -102,7 +100,7 @@ CfgBlock* ResolveBlock(const CfgBasicBlock* block);
 CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
     switch (block->edge.type) {
     case CfgBlockEdgeType::None:
-        return new CfgCodeBlock(block->code_range);
+        return new CfgCodeBlock(block->label);
     case CfgBlockEdgeType::Branch: {
         auto target = block->edge.branch.target;
         bool is_loop = false;
@@ -117,7 +115,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
 
         if (is_loop) {
             LOG_DEBUG(ShaderDecompiler, "Do-while loop detected (block: {})",
-                      block->code_range.begin);
+                      block->label);
 
             // Do-while loop
 
@@ -128,26 +126,26 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
             auto merge_block = TransformLoop(block, target);
 
             // Structurize
-            auto code_block = new CfgCodeBlock(block->code_range);
+            auto code_block = new CfgCodeBlock(block->label);
             auto target_resolved = ResolveBlock(target);
-            auto while_block = new CfgWhileBlock(
-                true, block->edge.branch_conditional.pred_cond,
-                new CfgBlock({code_block, target_resolved}));
+            auto while_block =
+                new CfgWhileBlock(true, block->edge.branch_conditional.cond,
+                                  new CfgBlock({code_block, target_resolved}));
 
             return new CfgStructuredNodeWithEdge(while_block,
                                                  ResolveBlock(merge_block));
         }
 
         return new CfgStructuredNodeWithEdge(
-            new CfgCodeBlock(block->code_range),
+            new CfgCodeBlock(block->label),
             ResolveBlock(block->edge.branch.target));
     }
     case CfgBlockEdgeType::BranchConditional: {
-        auto pred_cond = block->edge.branch_conditional.pred_cond;
+        const auto& cond = block->edge.branch_conditional.cond;
         auto block_true = block->edge.branch_conditional.target_true;
         auto block_false = block->edge.branch_conditional.target_false;
 
-        auto code_block = new CfgCodeBlock(block->code_range);
+        auto code_block = new CfgCodeBlock(block->label);
 
         bool is_loop = false;
         block_true->Walk([&is_loop, block](CfgBasicBlock* b) {
@@ -161,14 +159,16 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
 
         if (!is_loop) {
             // Check the false branch as well
-            block_false->Walk([&is_loop, &pred_cond, &block_true, &block_false,
-                               block](CfgBasicBlock* b) {
+            block_false->Walk([&is_loop, /*&pred_cond, */ &block_true,
+                               &block_false, block](CfgBasicBlock* b) {
                 if (b == block) {
                     is_loop = true;
 
+                    // TODO: implement
+                    LOG_FATAL(ShaderDecompiler, "Else block loop");
                     // Flip the condition and swap the target blocks
-                    pred_cond.not_ = !pred_cond.not_;
-                    std::swap(block_true, block_false);
+                    // pred_cond.not_ = !pred_cond.not_;
+                    // std::swap(block_true, block_false);
 
                     return false;
                 }
@@ -179,7 +179,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
 
         if (is_loop) {
             LOG_DEBUG(ShaderDecompiler, "While loop detected (block: {})",
-                      block->code_range.begin);
+                      block->label);
 
             // While loop
 
@@ -194,7 +194,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
             if (!resolved_block_true || !resolved_block_false) {
                 LOG_ERROR(ShaderDecompiler,
                           "Failed to resolve branch conditional (block: {})",
-                          block->code_range.begin);
+                          block->label);
                 return nullptr;
             }
 
@@ -204,12 +204,12 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
             // do-while loop)
             // TODO: this is simply not correct, as continue statements won't
             // jump to the prologue
-            auto code_block = new CfgCodeBlock(block->code_range);
+            auto code_block = new CfgCodeBlock(block->label);
             auto while_block = new CfgWhileBlock(
-                true, block->edge.branch_conditional.pred_cond,
+                true, block->edge.branch_conditional.cond,
                 new CfgBlock({resolved_block_true, code_block}));
             auto if_else_block =
-                new CfgIfElseBlock(block->edge.branch_conditional.pred_cond,
+                new CfgIfElseBlock(block->edge.branch_conditional.cond,
                                    while_block, resolved_block_false);
 
             auto base_block = new CfgBlock({code_block, if_else_block});
@@ -233,7 +233,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
         }
 
         auto if_else_block =
-            new CfgIfElseBlock(block_cloned->edge.branch_conditional.pred_cond,
+            new CfgIfElseBlock(block_cloned->edge.branch_conditional.cond,
                                resolved_block_true, resolved_block_false);
         auto base_block = new CfgBlock({code_block, if_else_block});
         if (merge_block) {
@@ -244,14 +244,13 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
         }
     }
     case CfgBlockEdgeType::Exit:
-        return new CfgCodeBlock(block->code_range, LastStatement::Exit);
+        return new CfgCodeBlock(block->label, LastStatement::Exit);
     case CfgBlockEdgeType::Break:
-        return new CfgCodeBlock(block->code_range, LastStatement::Break);
+        return new CfgCodeBlock(block->label, LastStatement::Break);
     case CfgBlockEdgeType::Continue:
-        return new CfgCodeBlock(block->code_range, LastStatement::Continue);
+        return new CfgCodeBlock(block->label, LastStatement::Continue);
     case CfgBlockEdgeType::Invalid:
-        LOG_ERROR(ShaderDecompiler, "Invalid block {}",
-                  block->code_range.begin);
+        LOG_ERROR(ShaderDecompiler, "Invalid block {}", block->label);
         return nullptr;
     }
 
@@ -261,8 +260,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
 CfgBlock* ResolveBlock(const CfgBasicBlock* block) {
     auto resolved_block = ResolveBlockImpl(block);
     if (!resolved_block) {
-        LOG_ERROR(ShaderDecompiler, "Failed to resolve block {}",
-                  block->code_range.begin);
+        LOG_ERROR(ShaderDecompiler, "Failed to resolve block {}", block->label);
         return nullptr;
     }
 
@@ -286,4 +284,4 @@ CfgBlock* Structurize(const CfgBasicBlock* entry_bb) {
     return ResolveBlock(entry_bb);
 }
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::Lang
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer

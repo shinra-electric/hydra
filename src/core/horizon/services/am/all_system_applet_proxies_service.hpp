@@ -18,6 +18,8 @@ class IAllSystemAppletProxiesService : public ServiceBase {
     result_t
     OpenLibraryAppletProxy(add_service_fn_t add_service, u64 _reserved_x0,
                            InHandle<HandleAttr::Copy> crnt_process_handle);
+    // TODO: params
+    result_t OpenSystemApplicationProxy(add_service_fn_t add_service);
 
     // Impl
     result_t OpenLibraryAppletProxyImpl(add_service_fn_t add_service);

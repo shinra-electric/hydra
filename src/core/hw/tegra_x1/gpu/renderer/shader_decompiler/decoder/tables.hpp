@@ -19,7 +19,7 @@
         }                                                                      \
     }
 
-namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
 DEFINE_OPERAND_TABLE(0400_0, BitwiseOp, 0x0060000000000000, 0x0000000000000000,
                      And, 0x0020000000000000, Or, 0x0040000000000000, Xor,
@@ -109,4 +109,8 @@ DEFINE_OPERAND_TABLE(5b60_0, ComparisonOp, 0x000e000000000000,
 DEFINE_OPERAND_TABLE(5c30_0, DataType, 0x0001000000000000, 0x0000000000000000,
                      U32, 0x0001000000000000, I32)
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp
+DEFINE_OPERAND_TABLE(ef10_0, ShuffleMode, 0x00000000c0000000,
+                     0x0000000000000000, Index, 0x0000000040000000, Up,
+                     0x0000000080000000, Down, 0x00000000c0000000, Bfly)
+
+} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
