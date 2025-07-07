@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
+#include "common/time.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
@@ -27,8 +28,8 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     auto& tex = texture_mem.cache.Find(GetTextureHash(descriptor));
     if (!tex.base)
         tex.base = Create(descriptor);
-    else
-        Update(tex.base);
+
+    Update(tex, texture_mem.last_modified);
 
     // If the formats match and swizzle is the default swizzle, return base
     if (descriptor.format == tex.base->GetDescriptor().format &&
@@ -51,6 +52,15 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
     return view;
 }
 
+void TextureCache::NotifyGuestModifiedData(const range<uptr> mem_range) {
+    // TODO: mark all overlapping memories as modified
+    auto it = texture_mem_map.find(mem_range.begin);
+    if (it == texture_mem_map.end())
+        return;
+
+    it->second.MarkModified();
+}
+
 TextureBase* TextureCache::Create(const TextureDescriptor& descriptor) {
     auto desc = descriptor;
     desc.swizzle_channels =
@@ -61,24 +71,42 @@ TextureBase* TextureCache::Create(const TextureDescriptor& descriptor) {
     return texture;
 }
 
-void TextureCache::Update(TextureBase* texture) {
-    // TODO: if data changed
-
+void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
     // HACK: guess if the app is using GPU
     static bool uses_gpu = false;
-    if (!uses_gpu && texture->GetDescriptor().width != 1280 &&
-        texture->GetDescriptor().width != 1920)
+    if (!uses_gpu && tex.base->GetDescriptor().width != 1280 &&
+        tex.base->GetDescriptor().width != 1920)
         uses_gpu = true;
 
+    bool force_upload = false;
+
     // HACK: if homebrew
-    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !uses_gpu) // HACK
-        DecodeTexture(texture);
+    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !uses_gpu) {
+        force_upload = true;
+        ONCE(LOG_WARN(
+            GPU, "Homebrew framebuffer API detected, forcing texture upload"));
+    }
 
     // HACK: if Sonic Mania
     if (KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 &&
-        texture->GetDescriptor().width == 512 &&
-        texture->GetDescriptor().height == 256)
-        DecodeTexture(texture);
+        tex.base->GetDescriptor().width == 512 &&
+        tex.base->GetDescriptor().height == 256) {
+        force_upload = true;
+        ONCE(LOG_WARN(GPU, "Sonic Mania detected, forcing texture upload"));
+    }
+
+    // HACK: if flog
+    if (KERNEL_INSTANCE.GetTitleID() == 0x01008bb00013c000 &&
+        tex.base->GetDescriptor().width == 3712 &&
+        tex.base->GetDescriptor().height == 2160) {
+        force_upload = true;
+        ONCE(LOG_WARN(GPU, "Flog detected, forcing texture upload"));
+    }
+
+    if (tex.upload_timestamp < mem_last_modified.timestamp || force_upload) {
+        DecodeTexture(tex.base);
+        tex.upload_timestamp = get_absolute_time();
+    }
 }
 
 u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {

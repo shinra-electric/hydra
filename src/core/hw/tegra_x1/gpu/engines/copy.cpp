@@ -93,6 +93,10 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
             LOG_NOT_IMPLEMENTED(Engines, "BlockLinear to BlockLinear");
         }
     }
+
+    // TODO: correct?
+    RENDERER_INSTANCE->GetTextureCache().NotifyGuestModifiedData(
+        range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 
 renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize size) {
