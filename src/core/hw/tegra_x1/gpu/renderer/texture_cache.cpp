@@ -8,6 +8,9 @@
 // TODO: remove
 #include "core/horizon/kernel/kernel.hpp"
 
+// HACK
+bool g_uses_gpu = false;
+
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureCache::~TextureCache() {
@@ -72,16 +75,10 @@ TextureBase* TextureCache::Create(const TextureDescriptor& descriptor) {
 }
 
 void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
-    // HACK: guess if the app is using GPU
-    static bool uses_gpu = false;
-    if (!uses_gpu && tex.base->GetDescriptor().width != 1280 &&
-        tex.base->GetDescriptor().width != 1920)
-        uses_gpu = true;
-
     bool force_upload = false;
 
     // HACK: if homebrew
-    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !uses_gpu) {
+    if (KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && !g_uses_gpu) {
         force_upload = true;
         ONCE(LOG_WARN(
             GPU, "Homebrew framebuffer API detected, forcing texture upload"));

@@ -8,6 +8,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
+// HACK
+extern bool g_uses_gpu;
+
 namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
@@ -674,6 +677,9 @@ void ThreeD::ConfigureShaderStage(
 }
 
 bool ThreeD::DrawInternal() {
+    // HACK
+    g_uses_gpu = true;
+
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
         LOG_WARN(Engines, "Vertex B stage not enabled, skipping draw");
         return false;
