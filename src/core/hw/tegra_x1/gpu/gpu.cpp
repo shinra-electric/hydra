@@ -17,7 +17,7 @@ struct SetObjectArg {
 
 SINGLETON_DEFINE_GET_INSTANCE(Gpu, Gpu)
 
-Gpu::Gpu(cpu::IMmu* mmu_) : mmu{mmu_}, gpu_mmu(mmu), pfifo(gpu_mmu) {
+Gpu::Gpu() : pfifo(gpu_mmu) {
     SINGLETON_SET_INSTANCE(Gpu, Gpu);
 
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
@@ -84,7 +84,8 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
     GetEngineAtSubchannel(subchannel)->Method(method, arg);
 }
 
-renderer::TextureBase* Gpu::GetTexture(const NvGraphicsBuffer& buff) {
+renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
+                                       const NvGraphicsBuffer& buff) {
     LOG_DEBUG(Gpu,
               "Map id: {}, width: {}, "
               "height: {}",

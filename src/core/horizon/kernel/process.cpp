@@ -5,6 +5,9 @@
 
 namespace hydra::horizon::kernel {
 
+Process::Process(const std::string_view debug_name)
+    : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()} {}
+
 Process::~Process() {
     if (heap_mem)
         delete heap_mem;

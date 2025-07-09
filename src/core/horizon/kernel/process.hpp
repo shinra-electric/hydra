@@ -9,9 +9,7 @@ namespace hydra::horizon::kernel {
 
 class Process : public SynchronizationObject {
   public:
-    Process(hw::tegra_x1::cpu::IMmu* mmu_,
-            const std::string_view debug_name = "Process")
-        : SynchronizationObject(false, debug_name), mmu{mmu_} {}
+    Process(const std::string_view debug_name = "Process");
     ~Process() override;
 
     // Memory

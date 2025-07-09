@@ -8,22 +8,14 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu {
 
-enum class AsMemorySpace {
-    Host,
-    GuestCPU,
-};
-
 struct AddressSpace {
-    AsMemorySpace space;
-    uptr addr;
+    uptr ptr;
     usize size;
 };
 
 // TODO: free memory
 class GpuMmu : public GenericMmu<GpuMmu, AddressSpace> {
   public:
-    GpuMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
-
     usize ImplGetSize(const AddressSpace& as) const { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
@@ -40,9 +32,6 @@ class GpuMmu : public GenericMmu<GpuMmu, AddressSpace> {
 
     void MapImpl(uptr base, AddressSpace as) {}
     void UnmapImpl(uptr base, AddressSpace as) {}
-
-  private:
-    cpu::IMmu* mmu;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

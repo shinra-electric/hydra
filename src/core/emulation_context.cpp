@@ -55,10 +55,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    // TODO: remove
-    mmu = cpu->CreateMmu();
-
-    gpu = new hw::tegra_x1::gpu::Gpu(mmu);
+    gpu = new hw::tegra_x1::gpu::Gpu();
 
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
@@ -137,7 +134,7 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
-    process = new horizon::kernel::Process(mmu);
+    process = new horizon::kernel::Process();
     loader->LoadProcess(process);
 
     // Check for firmware applets
@@ -340,13 +337,14 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
         if (!std::filesystem::is_directory(patch_path)) {
             // File
-            TryApplyPatch(target_patch_filename, patch_path);
+            TryApplyPatch(process, target_patch_filename, patch_path);
         } else {
             // Directory
             // TODO: iterate recursively
             for (const auto& dir_entry :
                  std::filesystem::directory_iterator{patch_path}) {
-                TryApplyPatch(target_patch_filename, dir_entry.path().string());
+                TryApplyPatch(process, target_patch_filename,
+                              dir_entry.path().string());
             }
         }
     }
@@ -503,6 +501,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     }
 }
 
+// TODO: rework this to support multiple layers and multiple processes
 bool EmulationContext::Present(
     u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
@@ -579,7 +578,7 @@ bool EmulationContext::Present(
     auto renderer = gpu->GetRenderer();
 
     renderer->LockMutex();
-    auto texture = gpu->GetTexture(buffer.nv_buffer);
+    auto texture = gpu->GetTexture(process->GetMmu(), buffer.nv_buffer);
     if (!renderer->AcquireNextSurface()) {
         renderer->UnlockMutex();
         return false;
@@ -593,7 +592,8 @@ bool EmulationContext::Present(
     return true;
 }
 
-void EmulationContext::TryApplyPatch(const std::string_view target_filename,
+void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
+                                     const std::string_view target_filename,
                                      const std::filesystem::path path) {
     if (to_lower(path.filename().string()) != target_filename)
         return;
@@ -610,7 +610,7 @@ void EmulationContext::TryApplyPatch(const std::string_view target_filename,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        mmu->Store<u32>(entry.addr, entry.value);
+        process->GetMmu()->Store<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

@@ -38,7 +38,6 @@ class EmulationContext {
   private:
     // Objects
     hw::tegra_x1::cpu::ICpu* cpu;
-    hw::tegra_x1::cpu::IMmu* mmu; // TODO: remove
     hw::tegra_x1::gpu::Gpu* gpu;
     audio::CoreBase* audio_core;
     horizon::OS* os;
@@ -68,7 +67,8 @@ class EmulationContext {
                  std::vector<std::chrono::nanoseconds>& out_dt_ns_list);
 
     // Helpers
-    void TryApplyPatch(const std::string_view target_filename,
+    void TryApplyPatch(horizon::kernel::Process* process,
+                       const std::string_view target_filename,
                        const std::filesystem::path path);
 };
 

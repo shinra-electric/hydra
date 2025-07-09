@@ -22,7 +22,7 @@ class INvDrvServices : public ServiceBase {
     // Commands
     result_t Open(InBuffer<BufferAttr::MapAlias> path_buffer, u32* out_fd_id,
                   u32* out_error);
-    result_t Ioctl(handle_id_t fd_id, u32 code,
+    result_t Ioctl(kernel::Process* process, handle_id_t fd_id, u32 code,
                    InBuffer<BufferAttr::AutoSelect> in_buffer,
                    NvResult* out_result,
                    OutBuffer<BufferAttr::AutoSelect> out_buffer);
@@ -32,20 +32,20 @@ class INvDrvServices : public ServiceBase {
                         u32 event_id, NvResult* out_result,
                         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
-    result_t Ioctl2(handle_id_t fd_id, u32 code,
+    result_t Ioctl2(kernel::Process* process, handle_id_t fd_id, u32 code,
                     InBuffer<BufferAttr::AutoSelect> in_buffer1,
                     InBuffer<BufferAttr::AutoSelect> in_buffer2,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer);
-    result_t Ioctl3(handle_id_t fd_id, u32 code,
+    result_t Ioctl3(kernel::Process* process, handle_id_t fd_id, u32 code,
                     InBuffer<BufferAttr::AutoSelect> in_buffer,
                     NvResult* out_result,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                     OutBuffer<BufferAttr::AutoSelect> out_buffer2);
     STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 
-    result_t IoctlImpl(handle_id_t fd_id, u32 code, Reader* reader,
-                       Reader* buffer_reader, Writer* writer,
+    result_t IoctlImpl(kernel::Process* process, handle_id_t fd_id, u32 code,
+                       Reader* reader, Reader* buffer_reader, Writer* writer,
                        Writer* buffer_writer, NvResult* out_result);
 };
 

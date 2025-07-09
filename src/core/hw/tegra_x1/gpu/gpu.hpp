@@ -35,7 +35,7 @@ class Gpu {
   public:
     static Gpu& GetInstance();
 
-    Gpu(cpu::IMmu* mmu_);
+    Gpu();
     ~Gpu();
 
     // Memory map
@@ -71,15 +71,12 @@ class Gpu {
     MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }
 
     // Address space
-    uptr CreateAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
+    uptr CreateAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
+        if (ptr == 0x0)
+            ptr = reinterpret_cast<uptr>(malloc(size));
+
         AddressSpace as;
-        if (addr == 0x0) {
-            as.space = AsMemorySpace::Host;
-            as.addr = reinterpret_cast<uptr>(malloc(size));
-        } else {
-            as.space = AsMemorySpace::GuestCPU;
-            as.addr = addr;
-        }
+        as.ptr = ptr;
         as.size = size;
 
         if (gpu_addr == invalid<uptr>()) {
@@ -93,21 +90,20 @@ class Gpu {
     }
 
     uptr AllocatePrivateAddressSpace(usize size, uptr gpu_addr) {
-        return CreateAddressSpace(0, size, gpu_addr);
+        return CreateAddressSpace(0x0, size, gpu_addr);
     }
 
-    uptr MapBufferToAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
-        return CreateAddressSpace(addr, size, gpu_addr);
+    uptr MapBufferToAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
+        return CreateAddressSpace(ptr, size, gpu_addr);
     }
 
     // TODO: correct?
-    void ModifyAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
+    void ModifyAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
         auto& as = gpu_mmu.UnmapAddrToAddressSpace(gpu_addr);
         ASSERT_DEBUG(size == as.size, Gpu, "Size mismatch: {} != {}", size,
                      as.size)
 
-        as.addr = addr;
-        as.space = AsMemorySpace::GuestCPU;
+        as.ptr = ptr;
     }
 
     // Engines
@@ -129,17 +125,15 @@ class Gpu {
     }
 
     // Texture
-    renderer::TextureBase* GetTexture(const NvGraphicsBuffer& buff);
+    renderer::TextureBase* GetTexture(cpu::IMmu* mmu,
+                                      const NvGraphicsBuffer& buff);
 
     // Getters
-    cpu::IMmu* GetMmu() const { return mmu; }
     GpuMmu& GetGpuMmu() { return gpu_mmu; }
     Pfifo& GetPfifo() { return pfifo; }
     renderer::RendererBase* GetRenderer() const { return renderer; }
 
   private:
-    cpu::IMmu* mmu;
-
     // Address space
     GpuMmu gpu_mmu;
     uptr address_space_base{GPU_PAGE_SIZE};
