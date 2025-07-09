@@ -10,17 +10,16 @@ DEFINE_IOCTL_TABLE(
                              ZbcGetActiveSlotMask, 0x1c, GetGpuTime))
 
 NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
-                                   handle_id_t& out_handle_id) {
+                                   kernel::Event*& out_event) {
     switch (event_id_u32) {
     case 0x01:
-        out_handle_id = error_event.id;
+        out_event = error_event;
         break;
     case 0x02:
-        out_handle_id = unknown_event.id;
+        out_event = unknown_event;
         break;
     default:
         LOG_WARN(Services, "Unknown event ID: {:02x}", event_id_u32);
-        out_handle_id = INVALID_HANDLE_ID;
         return NvResult::BadParameter;
     }
 

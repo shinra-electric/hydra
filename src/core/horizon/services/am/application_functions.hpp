@@ -13,14 +13,14 @@ struct DisplayVersion {
 class IApplicationFunctions : public ServiceBase {
   public:
     IApplicationFunctions()
-        : gpu_error_detect_event(new kernel::Event(kernel::EventFlags::None,
-                                                   "GPU error detect event")) {}
+        : gpu_error_detect_event{new kernel::Event(kernel::EventFlags::None,
+                                                   "GPU error detect event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> gpu_error_detect_event;
+    kernel::Event* gpu_error_detect_event;
 
     // Commands
     result_t PopLaunchParameter(add_service_fn_t add_service,
@@ -38,7 +38,8 @@ class IApplicationFunctions : public ServiceBase {
     STUB_REQUEST_COMMAND(SetGamePlayRecordingState);
     result_t EnableApplicationCrashReport(bool enabled);
     result_t
-    GetGpuErrorDetectedSystemEvent(OutHandle<HandleAttr::Copy> out_handle);
+    GetGpuErrorDetectedSystemEvent(kernel::Process* process,
+                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am

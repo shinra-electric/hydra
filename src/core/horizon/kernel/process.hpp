@@ -7,33 +7,73 @@
 
 namespace hydra::horizon::kernel {
 
-constexpr u32 MAX_MAIN_THREAD_ARG_COUNT = 2;
-
-struct ProcessParams {
-    vaddr_t entry_point{0x0};
-    u64 args[MAX_MAIN_THREAD_ARG_COUNT] = {0x0};
-    u8 main_thread_priority{0x2c}; // TODO: default value
-    u8 main_thread_core_number;
-    u32 main_thread_stack_size{0x4000000}; // TODO: default value
-    u32 system_resource_size{0x0};
-};
-
 class Process : public SynchronizationObject {
   public:
-    Process(const ProcessParams& params,
-            const std::string_view debug_name = "Process");
+    Process(hw::tegra_x1::cpu::MMUBase* mmu_,
+            const std::string_view debug_name = "Process")
+        : SynchronizationObject(false, debug_name), mmu{mmu_} {}
     ~Process() override;
+
+    // Memory
+    uptr CreateMemory(usize size, MemoryType type, MemoryPermission perm,
+                      bool add_guard_page, vaddr_t& out_base);
+    // TODO: should the caller be able to specify permissions?
+    uptr CreateExecutableMemory(const std::string_view module_name, usize size,
+                                MemoryPermission perm, bool add_guard_page,
+                                vaddr_t& out_base);
+    hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
+
+    // Thread
+    std::pair<Thread*, handle_id_t>
+    CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
 
     void Run();
 
-  private:
-    HandleWithId<Thread> main_thread;
-    hw::tegra_x1::cpu::MemoryBase* stack_mem;
+    // Helpers
 
-    u32 system_resource_size;
+    // Handles
+    AutoObject* GetHandle(handle_id_t handle_id) {
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
+            return this;
+
+        return handle_pool.Get(handle_id);
+    }
+    handle_id_t AddHandle(AutoObject* handle) {
+        return handle_pool.Add(handle);
+    }
+    void FreeHandle(handle_id_t handle_id) {
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
+            LOG_FATAL(Kernel, "Cannot free current process handle");
+
+        handle_pool.Free(handle_id);
+    }
+
+  private:
+    hw::tegra_x1::cpu::MMUBase* mmu;
+
+    u64 title_id{invalid<u64>()};
+    u32 system_resource_size{invalid<u32>()};
+
+    // Memory
+    hw::tegra_x1::cpu::MemoryBase* heap_mem;
+    std::vector<hw::tegra_x1::cpu::MemoryBase*> executable_mems;
+    hw::tegra_x1::cpu::MemoryBase* main_thread_stack_mem;
+
+    vaddr_t mem_base{0x40000000};
+    vaddr_t tls_mem_base{TLS_REGION_BASE};
+
+    // Thread
+    Thread* main_thread{nullptr};
+
+    // Handles
+    DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?
 
   public:
-    GETTER(system_resource_size, GetSystemResourceSize);
+    GETTER(mmu, GetMmu);
+    REF_GETTER(heap_mem, GetHeapMemory);
+    GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
+    GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,
+                      SetSystemResourceSize);
 };
 
 } // namespace hydra::horizon::kernel

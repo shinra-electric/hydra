@@ -27,7 +27,7 @@ class StateManager {
         msg_queue.push(msg);
 
         // Signal event
-        msg_event.handle->Signal();
+        msg_event->Signal();
     }
 
     void SetFocusState(AppletFocusState focus_state_) {
@@ -65,7 +65,7 @@ class StateManager {
 
         // Clear event
         if (msg_queue.empty())
-            msg_event.handle->Clear();
+            msg_event->Clear();
 
         return msg;
     }
@@ -106,11 +106,6 @@ class StateManager {
         }
     }
 
-    // Getters
-    const kernel::HandleWithId<kernel::Event>& GetMsgEvent() {
-        return msg_event;
-    }
-
   private:
     std::mutex mutex;
     std::queue<AppletMessage> msg_queue;
@@ -121,7 +116,10 @@ class StateManager {
     std::stack<uuid_t> user_ids;
 
     // Events
-    kernel::HandleWithId<kernel::Event> msg_event;
+    kernel::Event* msg_event;
+
+  public:
+    GETTER(msg_event, GetMsgEvent);
 };
 
 } // namespace hydra::horizon

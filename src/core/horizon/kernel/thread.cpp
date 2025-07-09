@@ -1,18 +1,20 @@
 #include "core/horizon/kernel/thread.hpp"
 
 #include "core/debugger/debugger.hpp"
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/cpu_base.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 #include "core/hw/tegra_x1/cpu/thread_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-Thread::Thread(vaddr_t stack_top_addr_, i32 priority_,
+Thread::Thread(Process* process_, vaddr_t stack_top_addr_, i32 priority_,
                const std::string_view debug_name)
-    : SynchronizationObject(false, debug_name),
+    : SynchronizationObject(false, debug_name), process{process_},
       stack_top_addr{stack_top_addr_}, priority{priority_} {
-    tls_mem = KERNEL_INSTANCE.CreateTlsMemory(tls_addr);
+    tls_mem = process->CreateTlsMemory(tls_addr);
+
+    // TODO: notify process
 }
 
 Thread::~Thread() {
@@ -24,6 +26,8 @@ Thread::~Thread() {
     hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(tls_addr,
                                                     tls_mem->GetSize());
     hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(tls_mem);
+
+    // TODO: notify process
 }
 
 void Thread::Run() {
@@ -38,7 +42,8 @@ void Thread::Run() {
 
         thread->Initialize(
             [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
-                return KERNEL_INSTANCE.SupervisorCall(this, thread, id);
+                return KERNEL_INSTANCE.SupervisorCall(process, this, thread,
+                                                      id);
             },
             tls_addr, stack_top_addr);
 

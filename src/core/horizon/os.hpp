@@ -30,8 +30,7 @@ class OS {
   public:
     static OS& GetInstance();
 
-    OS(hw::tegra_x1::cpu::MMUBase* mmu_, audio::CoreBase& audio_core_,
-       ui::HandlerBase& ui_handler_);
+    OS(audio::CoreBase& audio_core_, ui::HandlerBase& ui_handler_);
     ~OS();
 
     // Getters
@@ -48,7 +47,6 @@ class OS {
     }
 
   private:
-    hw::tegra_x1::cpu::MMUBase* mmu;
     audio::CoreBase& audio_core;
     ui::HandlerBase& ui_handler;
 

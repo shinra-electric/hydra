@@ -1,5 +1,6 @@
 #include "core/horizon/services/am/application_functions.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/am/storage.hpp"
 #include "core/horizon/state_manager.hpp"
 
@@ -105,8 +106,8 @@ result_t IApplicationFunctions::EnableApplicationCrashReport(bool enabled) {
 }
 
 result_t IApplicationFunctions::GetGpuErrorDetectedSystemEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = gpu_error_detect_event.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(gpu_error_detect_event);
     return RESULT_SUCCESS;
 }
 

@@ -1,36 +1,75 @@
 #include "core/horizon/kernel/process.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-Process::Process(const ProcessParams& params, const std::string_view debug_name)
-    : SynchronizationObject(false, debug_name),
-      main_thread(
-          new Thread(STACK_REGION_BASE + params.main_thread_stack_size - 0x10,
-                     params.main_thread_priority)),
-      system_resource_size{params.system_resource_size} {
-    // TODO: add main thread handle
-    main_thread.handle->SetEntryPoint(params.entry_point);
-    for (u32 i = 0; i < MAX_MAIN_THREAD_ARG_COUNT; i++)
-        main_thread.handle->SetArg(i, params.args[i]);
+Process::~Process() {
+    if (heap_mem)
+        mmu->FreeMemory(heap_mem);
+    for (auto mem : executable_mems)
+        mmu->FreeMemory(mem);
+    mmu->FreeMemory(main_thread_stack_mem);
+}
+
+uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
+                           bool add_guard_page, vaddr_t& out_base) {
+    size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
+    auto mem = mmu->AllocateMemory(size);
+    mmu->Map(mem_base, mem, {type, MemoryAttribute::None, perm});
+    executable_mems.push_back(mem);
+
+    out_base = mem_base;
+    if (add_guard_page)
+        size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
+    mem_base += size;
+
+    return mmu->GetMemoryPtr(mem);
+}
+
+uptr Process::CreateExecutableMemory(const std::string_view module_name,
+                                     usize size, MemoryPermission perm,
+                                     bool add_guard_page, vaddr_t& out_base) {
+    // TODO: use MemoryType::Static
+    auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
+                            add_guard_page, out_base);
+    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+        {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
+
+    return ptr;
+}
+
+hw::tegra_x1::cpu::MemoryBase* Process::CreateTlsMemory(vaddr_t& base) {
+    constexpr usize TLS_MEM_SIZE = 0x20000;
+
+    auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
+    base = tls_mem_base;
+    mmu->Map(base, mem,
+             {MemoryType::ThreadLocal, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
+    tls_mem_base += TLS_MEM_SIZE;
+
+    return mem;
+}
+
+std::pair<Thread*, handle_id_t>
+Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
+    // Thread
+    main_thread =
+        new Thread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
+    auto handle_id = AddHandle(main_thread);
 
     // Stack memory
     auto& mmu = hw::tegra_x1::cpu::MMUBase::GetInstance();
-    stack_mem = mmu.AllocateMemory(params.main_thread_stack_size);
-    mmu.Map(STACK_REGION_BASE, stack_mem,
+    main_thread_stack_mem = mmu.AllocateMemory(stack_size);
+    mmu.Map(STACK_REGION_BASE, main_thread_stack_mem,
             {MemoryType::Stack, MemoryAttribute::None,
              MemoryPermission::ReadWrite});
+
+    return {main_thread, handle_id};
 }
 
-Process::~Process() {
-    hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(STACK_REGION_BASE,
-                                                    stack_mem->GetSize());
-    hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(stack_mem);
-}
-
-void Process::Run() { main_thread.handle->Run(); }
+void Process::Run() { main_thread->Run(); }
 
 } // namespace hydra::horizon::kernel

@@ -28,7 +28,8 @@ class INvDrvServices : public ServiceBase {
                    OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t Close(u32 fd_id, u32* out_err);
     result_t Initialize(u32 transfer_mem_size, NvResult* out_result);
-    result_t QueryEvent(handle_id_t fd_id, u32 event_id, NvResult* out_result,
+    result_t QueryEvent(kernel::Process* process, handle_id_t fd_id,
+                        u32 event_id, NvResult* out_result,
                         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(SetAruid);
     result_t Ioctl2(handle_id_t fd_id, u32 code,

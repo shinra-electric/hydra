@@ -60,17 +60,17 @@ struct ZCullInfo {
 class NvHostCtrlGpu : public FdBase {
   public:
     NvHostCtrlGpu()
-        : error_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                        "NvHostCtrlGpu error event")),
-          unknown_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                          "NvHostCtrlGpu unknown event")) {}
+        : error_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                        "NvHostCtrlGpu error event")},
+          unknown_event{new kernel::Event(kernel::EventFlags::AutoClear,
+                                          "NvHostCtrlGpu unknown event")} {}
 
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
-    NvResult QueryEvent(u32 event_id_u32, handle_id_t& out_handle_id) override;
+    NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> error_event;
-    kernel::HandleWithId<kernel::Event> unknown_event;
+    kernel::Event* error_event;
+    kernel::Event* unknown_event;
 
     // Ioctls
     NvResult ZCullGetCtxSize(u32* out_size);

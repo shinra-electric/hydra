@@ -30,7 +30,7 @@ class EmulationContext {
     hw::tegra_x1::gpu::GPU* GetGPU() const { return gpu; }
     horizon::OS* GetOS() const { return os; }
 
-    u64 GetTitleID() const { return os->GetKernel().GetTitleID(); }
+    u64 GetTitleID() const { return process->GetTitleID(); }
 
     bool IsRunning() const { return running; }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }

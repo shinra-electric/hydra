@@ -71,7 +71,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    os = new horizon::OS(cpu->GetMMU(), *audio_core, ui_handler);
+    os = new horizon::OS(*audio_core, ui_handler);
     os->GetDisplayDriver().CreateDisplay();
 
     // Filesystem
@@ -134,10 +134,8 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
-    const auto process_params = loader->LoadProcess();
-
-    process = new horizon::kernel::Process(process_params.value());
-    os->GetKernel().AddProcessHandle(process);
+    process = new horizon::kernel::Process(cpu->GetMMU());
+    loader->LoadProcess(process);
 
     // Check for firmware applets
     auto controller = new horizon::services::am::LibraryAppletController(
@@ -330,11 +328,11 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     }
 
     LOG_INFO(Other, "-------- Title info --------");
-    LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
+    LOG_INFO(Other, "Title ID: {:016x}", loader->GetTitleID());
 
     // Patch
     const auto target_patch_filename =
-        fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
+        fmt::format("{:016x}.hatch", loader->GetTitleID());
     // TODO: iterate recursively
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
         if (!std::filesystem::is_directory(patch_path)) {
@@ -514,7 +512,7 @@ bool EmulationContext::Present(
         return false;
 
     // Signal V-Sync
-    display.GetVSyncEvent().handle->Signal();
+    display.GetVSyncEvent()->Signal();
 
     // Get the buffer to present
     u32 binder_id = layer->GetBinderID();
