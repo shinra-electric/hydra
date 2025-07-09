@@ -313,13 +313,13 @@ add_library(hydra-core
     audio/cubeb/core.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
-    hw/tegra_x1/cpu/memory_base.hpp
-    hw/tegra_x1/cpu/mmu_base.cpp
-    hw/tegra_x1/cpu/mmu_base.hpp
-    hw/tegra_x1/cpu/thread_base.cpp
-    hw/tegra_x1/cpu/thread_base.hpp
-    hw/tegra_x1/cpu/cpu_base.cpp
-    hw/tegra_x1/cpu/cpu_base.hpp
+    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/mmu.cpp
+    hw/tegra_x1/cpu/mmu.hpp
+    hw/tegra_x1/cpu/thread.cpp
+    hw/tegra_x1/cpu/thread.hpp
+    hw/tegra_x1/cpu/cpu.cpp
+    hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.hpp

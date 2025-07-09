@@ -1,7 +1,6 @@
 #include "core/horizon/os.hpp"
 
 #include "core/horizon/services/sm/user_interface.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
 
 namespace hydra::horizon {
 

@@ -3,7 +3,7 @@
 #include "core/hw/generic_mmu.hpp"
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
+class IMmu;
 }
 
 namespace hydra::hw::tegra_x1::gpu {
@@ -20,17 +20,17 @@ struct AddressSpace {
 };
 
 // TODO: free memory
-class GpuMMU : public GenericMMU<GpuMMU, AddressSpace> {
+class GpuMmu : public GenericMmu<GpuMmu, AddressSpace> {
   public:
-    GpuMMU(cpu::MMUBase* mmu_) : mmu{mmu_} {}
+    GpuMmu(cpu::IMmu* mmu_) : mmu{mmu_} {}
 
     usize ImplGetSize(const AddressSpace& as) const { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
         usize base;
         auto addr_space = FindAddrImplRef(gpu_addr, base);
-        ASSERT_DEBUG(addr_space, GPU,
-                     "Address space not found for GPU address 0x{:x}",
+        ASSERT_DEBUG(addr_space, Gpu,
+                     "Address space not found for Gpu address 0x{:x}",
                      gpu_addr);
 
         return *addr_space;
@@ -42,7 +42,7 @@ class GpuMMU : public GenericMMU<GpuMMU, AddressSpace> {
     void UnmapImpl(uptr base, AddressSpace as) {}
 
   private:
-    cpu::MMUBase* mmu;
+    cpu::IMmu* mmu;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

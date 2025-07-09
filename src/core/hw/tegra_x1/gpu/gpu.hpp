@@ -10,11 +10,11 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
-#define GPU_INSTANCE hw::tegra_x1::gpu::GPU::GetInstance()
+#define GPU_INSTANCE hw::tegra_x1::gpu::Gpu::GetInstance()
 #define RENDERER_INSTANCE GPU_INSTANCE.GetRenderer()
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
+class IMmu;
 }
 
 namespace hydra::hw::tegra_x1::gpu {
@@ -31,12 +31,12 @@ constexpr usize GPU_PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
 
 constexpr usize SUBCHANNEL_COUNT = 5; // TODO: correct?
 
-class GPU {
+class Gpu {
   public:
-    static GPU& GetInstance();
+    static Gpu& GetInstance();
 
-    GPU(cpu::MMUBase* mmu_);
-    ~GPU();
+    Gpu(cpu::IMmu* mmu_);
+    ~Gpu();
 
     // Memory map
     u32 CreateMap(usize size) {
@@ -84,7 +84,7 @@ class GPU {
 
         if (gpu_addr == invalid<uptr>()) {
             gpu_addr =
-                address_space_base; // TODO: ask the MMU for a base address
+                address_space_base; // TODO: ask the Mmu for a base address
             address_space_base += align(size, GPU_PAGE_SIZE);
         }
         gpu_mmu.Map(gpu_addr, as);
@@ -103,7 +103,7 @@ class GPU {
     // TODO: correct?
     void ModifyAddressSpace(vaddr_t addr, usize size, uptr gpu_addr) {
         auto& as = gpu_mmu.UnmapAddrToAddressSpace(gpu_addr);
-        ASSERT_DEBUG(size == as.size, GPU, "Size mismatch: {} != {}", size,
+        ASSERT_DEBUG(size == as.size, Gpu, "Size mismatch: {} != {}", size,
                      as.size)
 
         as.addr = addr;
@@ -112,11 +112,11 @@ class GPU {
 
     // Engines
     engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
-        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, GPU,
+        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
                      "Invalid subchannel {}", subchannel);
 
         auto engine = subchannels[subchannel];
-        ASSERT_DEBUG(engine, GPU, "Subchannel {} does not have a bound engine",
+        ASSERT_DEBUG(engine, Gpu, "Subchannel {} does not have a bound engine",
                      subchannel);
 
         return engine;
@@ -132,16 +132,16 @@ class GPU {
     renderer::TextureBase* GetTexture(const NvGraphicsBuffer& buff);
 
     // Getters
-    cpu::MMUBase* GetMMU() const { return mmu; }
-    GpuMMU& GetGPUMMU() { return gpu_mmu; }
+    cpu::IMmu* GetMmu() const { return mmu; }
+    GpuMmu& GetGpuMmu() { return gpu_mmu; }
     Pfifo& GetPfifo() { return pfifo; }
     renderer::RendererBase* GetRenderer() const { return renderer; }
 
   private:
-    cpu::MMUBase* mmu;
+    cpu::IMmu* mmu;
 
     // Address space
-    GpuMMU gpu_mmu;
+    GpuMmu gpu_mmu;
     uptr address_space_base{GPU_PAGE_SIZE};
 
     // Pfifo

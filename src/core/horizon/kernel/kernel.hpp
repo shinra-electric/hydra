@@ -10,8 +10,8 @@
 #define KERNEL_INSTANCE hydra::horizon::kernel::Kernel::GetInstance()
 
 namespace hydra::hw::tegra_x1::cpu {
-class MMUBase;
-class ThreadBase;
+class IMmu;
+class IThread;
 } // namespace hydra::hw::tegra_x1::cpu
 
 namespace hydra::hw {
@@ -37,7 +37,7 @@ class Kernel {
     }
 
     bool SupervisorCall(Process* process, Thread* thread,
-                        hw::tegra_x1::cpu::ThreadBase* guest_thread, u64 id);
+                        hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
 
     // SVCs
     result_t svcSetHeapSize(Process* process, usize size, uptr& out_base);
@@ -99,7 +99,7 @@ class Kernel {
     result_t svcConnectToNamedPort(Process* process, const std::string& name,
                                    handle_id_t& out_session_handle_id);
     result_t svcSendSyncRequest(Process* process,
-                                hw::tegra_x1::cpu::MemoryBase* tls_mem,
+                                hw::tegra_x1::cpu::IMemory* tls_mem,
                                 handle_id_t session_handle_id);
     result_t svcGetThreadId(Process* process, handle_id_t thread_handle_id,
                             u64& out_thread_id);

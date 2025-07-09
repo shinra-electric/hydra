@@ -5,9 +5,9 @@
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/kernel/session.hpp"
 #include "core/horizon/kernel/thread.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -18,8 +18,7 @@ Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
 Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
 bool Kernel::SupervisorCall(Process* process, Thread* thread,
-                            hw::tegra_x1::cpu::ThreadBase* guest_thread,
-                            u64 id) {
+                            hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
     result_t res;
     i32 tmp_i32;
     u32 tmp_u32;
@@ -276,7 +275,7 @@ result_t Kernel::svcSetHeapSize(Process* process, usize size, uptr& out_base) {
     // TODO: handle this more cleanly?
     auto& heap_mem = process->GetHeapMemory();
     if (!heap_mem) {
-        heap_mem = process->GetMmu()->AllocateMemory(size);
+        heap_mem = CPU_INSTANCE.AllocateMemory(size);
         process->GetMmu()->Map(HEAP_REGION_BASE, heap_mem,
                                {MemoryType::Normal_1_0_0, MemoryAttribute::None,
                                 MemoryPermission::ReadWriteExecute});
@@ -521,7 +520,7 @@ result_t Kernel::svcMapSharedMemory(Process* process,
     ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
-    shared_mem->MapToRange(range(addr, addr + size), perm);
+    shared_mem->MapToRange(process->GetMmu(), range(addr, addr + size), perm);
 
     return RESULT_SUCCESS;
 }
@@ -817,7 +816,7 @@ result_t Kernel::svcConnectToNamedPort(Process* process,
 }
 
 result_t Kernel::svcSendSyncRequest(Process* process,
-                                    hw::tegra_x1::cpu::MemoryBase* tls_mem,
+                                    hw::tegra_x1::cpu::IMemory* tls_mem,
                                     handle_id_t session_handle_id) {
     LOG_DEBUG(Kernel, "svcSendSyncRequest called (handle: 0x{:x})",
               session_handle_id);
@@ -834,8 +833,7 @@ result_t Kernel::svcSendSyncRequest(Process* process,
 
     ASSERT_DEBUG(session, Kernel, "Handle 0x{:x} is not a session handle",
                  session_handle_id);
-    auto tls_ptr =
-        reinterpret_cast<void*>(process->GetMmu()->GetMemoryPtr(tls_mem));
+    auto tls_ptr = reinterpret_cast<void*>(tls_mem->GetPtr());
 
     // Request
 
@@ -1118,7 +1116,7 @@ result_t Kernel::svcMapPhysicalMemory(Process* process, vaddr_t addr,
           addr < ALIAS_REGION_BASE + ALIAS_REGION_SIZE))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
-    auto mem = process->GetMmu()->AllocateMemory(size);
+    auto mem = CPU_INSTANCE.AllocateMemory(size);
     // TODO: keep track of the memory
     process->GetMmu()->Map(addr, mem,
                            {MemoryType::Alias, MemoryAttribute::None,

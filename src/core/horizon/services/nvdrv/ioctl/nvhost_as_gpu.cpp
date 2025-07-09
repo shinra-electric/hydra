@@ -46,7 +46,7 @@ NvResult NvHostAsGpu::MapBufferEX(MapBufferFlags flags,
     if (any(flags & MapBufferFlags::Modify)) {
         LOG_NOT_IMPLEMENTED(
             Services,
-            "Address space modifying (GPU addr: 0x{:08x}, size: 0x{:08x})",
+            "Address space modifying (Gpu addr: 0x{:08x}, size: 0x{:08x})",
             *inout_addr.data, mapping_size);
         return NvResult::Success;
     }

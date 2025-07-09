@@ -136,7 +136,7 @@ NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
 }
 
 NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp, u64* _out_reserved) {
-    // TODO: is it okay to just return CPU time?
+    // TODO: is it okay to just return Mmu time?
     *out_timestamp = get_absolute_time();
     return NvResult::Success;
 }

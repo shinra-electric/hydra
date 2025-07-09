@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::horizon::services::audio {
 

@@ -4,17 +4,18 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-class MemoryBase;
+class IMemory;
+class IMmu;
 
 typedef std::function<void(vaddr_t)> stack_frame_callback_fn_t;
 
-class ThreadBase {
+class IThread {
   public:
-    ThreadBase(MemoryBase* tls_mem_) : tls_mem{tls_mem_} {}
-    virtual ~ThreadBase() {}
+    IThread(IMmu* mmu_, IMemory* tls_mem_) : mmu{mmu_}, tls_mem{tls_mem_} {}
+    virtual ~IThread() {}
 
     virtual void
-    Initialize(const std::function<bool(ThreadBase*, u64)>& svc_handler,
+    Initialize(const std::function<bool(IThread*, u64)>& svc_handler,
                uptr tls_mem_base, uptr stack_mem_end) = 0;
 
     virtual void Run() = 0;
@@ -26,7 +27,7 @@ class ThreadBase {
     virtual u64 GetFP() = 0;
     virtual u64 GetLR() = 0;
     virtual u64 GetSP() = 0;
-    virtual u64 GetELR() = 0;
+    virtual u64 GetElr() = 0;
 
     u32 GetRegW(u8 reg) const { return static_cast<u32>(GetRegX(reg)); }
     void SetRegW(u8 reg, u32 value) { SetRegX(reg, static_cast<u64>(value)); }
@@ -36,10 +37,11 @@ class ThreadBase {
     void GetStackTrace(stack_frame_callback_fn_t callback);
 
     // Getters
-    MemoryBase* GetTlsMemory() const { return tls_mem; }
+    IMemory* GetTlsMemory() const { return tls_mem; }
 
-  private:
-    MemoryBase* tls_mem;
+  protected:
+    IMmu* mmu;
+    IMemory* tls_mem;
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

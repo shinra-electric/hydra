@@ -18,8 +18,8 @@
 #include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -43,10 +43,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     // Initialize
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-        cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
+        cpu = new hw::tegra_x1::cpu::hypervisor::Cpu();
         break;
     case CpuBackend::Dynarmic:
-        cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
+        cpu = new hw::tegra_x1::cpu::dynarmic::Cpu();
         break;
     default:
         // TODO: return an error instead
@@ -55,7 +55,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    gpu = new hw::tegra_x1::gpu::GPU(cpu->GetMMU());
+    // TODO: remove
+    mmu = cpu->CreateMmu();
+
+    gpu = new hw::tegra_x1::gpu::Gpu(mmu);
 
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
@@ -134,7 +137,7 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
-    process = new horizon::kernel::Process(cpu->GetMMU());
+    process = new horizon::kernel::Process(mmu);
     loader->LoadProcess(process);
 
     // Check for firmware applets
@@ -607,7 +610,7 @@ void EmulationContext::TryApplyPatch(const std::string_view target_filename,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+        mmu->Store<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

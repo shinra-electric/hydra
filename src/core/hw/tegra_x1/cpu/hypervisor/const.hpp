@@ -8,7 +8,12 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr usize APPLE_PAGE_SIZE = 0x4000;
 
-#define HV_ASSERT_SUCCESS(ret) assert((hv_return_t)(ret) == HV_SUCCESS)
+#define HV_ASSERT_SUCCESS(ret)                                                 \
+    {                                                                          \
+        auto res = hv_return_t(ret);                                           \
+        ASSERT(res == HV_SUCCESS, Hypervisor, #ret " failed: 0x{:x}",          \
+               u64(res));                                                      \
+    }
 
 // From Ryujinx
 enum class ApFlags : u64 {

@@ -2,9 +2,9 @@
 
 #include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/process.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -23,9 +23,7 @@ Thread::~Thread() {
         delete t;
     }
 
-    hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(tls_addr,
-                                                    tls_mem->GetSize());
-    hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(tls_mem);
+    delete tls_mem;
 
     // TODO: notify process
 }
@@ -34,14 +32,13 @@ void Thread::Run() {
     ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
 
     t = new std::thread([&]() {
-        hw::tegra_x1::cpu::ThreadBase* thread =
-            hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
+        auto thread = CPU_INSTANCE.CreateThread(process->GetMmu(), tls_mem);
 
         DEBUGGER_INSTANCE.RegisterThisThread("Guest",
                                              thread); // TODO: handle ID?
 
         thread->Initialize(
-            [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
+            [this](hw::tegra_x1::cpu::IThread* thread, u64 id) {
                 return KERNEL_INSTANCE.SupervisorCall(process, this, thread,
                                                       id);
             },

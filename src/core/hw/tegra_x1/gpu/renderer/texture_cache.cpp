@@ -79,7 +79,7 @@ void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
         !g_uses_gpu) {
         force_upload = true;
         ONCE(LOG_WARN(
-            GPU, "Homebrew framebuffer API detected, forcing texture upload"));
+            Gpu, "Homebrew framebuffer API detected, forcing texture upload"));
     }
 
     /*
@@ -88,7 +88,7 @@ void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
         tex.base->GetDescriptor().width == 512 &&
         tex.base->GetDescriptor().height == 256) {
         force_upload = true;
-        ONCE(LOG_WARN(GPU, "Sonic Mania detected, forcing texture upload"));
+        ONCE(LOG_WARN(Gpu, "Sonic Mania detected, forcing texture upload"));
     }
 
     // HACK: if flog
@@ -96,7 +96,7 @@ void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
         tex.base->GetDescriptor().width == 3712 &&
         tex.base->GetDescriptor().height == 2160) {
         force_upload = true;
-        ONCE(LOG_WARN(GPU, "Flog detected, forcing texture upload"));
+        ONCE(LOG_WARN(Gpu, "Flog detected, forcing texture upload"));
     }
     */
 

@@ -6,6 +6,8 @@
 #include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
+#define MMU static_cast<Mmu*>(mmu)
+
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
@@ -88,8 +90,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 
-void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
-                            svc_handler_,
+void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
                         uptr tls_mem_base /*,
    uptr rom_mem_base*/, uptr stack_mem_end) {
     svc_handler = svc_handler_;
@@ -110,8 +111,8 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
     // Trampoline
     SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, mmu->GetUserPageTable().GetBase());
-    SetSysReg(HV_SYS_REG_TTBR1_EL1, mmu->GetKernelPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU->GetUserPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR1_EL1, MMU->GetKernelPageTable().GetBase());
 
     // Initialize the stack pointer
     SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
@@ -134,7 +135,7 @@ void Thread::Initialize(const std::function<bool(ThreadBase*, u64)>&
     SetupVTimer();
 
     // HACK: set LR to loader return address
-    SetReg(HV_REG_LR, 0xffff0000);
+    // SetReg(HV_REG_LR, 0xffff0000);
 }
 
 void Thread::Run() {
@@ -153,12 +154,10 @@ void Thread::Run() {
             case ExceptionClass::HvcAarch64: {
                 u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
-
                 u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
-
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
-                u32 instruction = mmu->Load<u32>(elr);
+                u32 instruction = MMU->Load<u32>(elr);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
@@ -222,9 +221,9 @@ void Thread::Run() {
                           "instruction: "
                           "0x{:08x})",
                           syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
-                          GetSysReg(HV_SYS_REG_ELR_EL1),
                           exit->exception.virtual_address,
-                          exit->exception.physical_address, mmu->Load<u32>(pc));
+                          exit->exception.physical_address,
+                          GetSysReg(HV_SYS_REG_ELR_EL1), MMU->Load<u32>(pc));
 
                 DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exception");
                 break;

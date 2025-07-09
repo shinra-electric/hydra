@@ -2,7 +2,7 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace hydra {
@@ -26,8 +26,8 @@ class EmulationContext {
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
     // Getters
-    hw::tegra_x1::cpu::CPUBase* GetCPU() const { return cpu; }
-    hw::tegra_x1::gpu::GPU* GetGPU() const { return gpu; }
+    hw::tegra_x1::cpu::ICpu* GetCPU() const { return cpu; }
+    hw::tegra_x1::gpu::Gpu* GetGPU() const { return gpu; }
     horizon::OS* GetOS() const { return os; }
 
     u64 GetTitleID() const { return process->GetTitleID(); }
@@ -37,8 +37,9 @@ class EmulationContext {
 
   private:
     // Objects
-    hw::tegra_x1::cpu::CPUBase* cpu;
-    hw::tegra_x1::gpu::GPU* gpu;
+    hw::tegra_x1::cpu::ICpu* cpu;
+    hw::tegra_x1::cpu::IMmu* mmu; // TODO: remove
+    hw::tegra_x1::gpu::Gpu* gpu;
     audio::CoreBase* audio_core;
     horizon::OS* os;
 

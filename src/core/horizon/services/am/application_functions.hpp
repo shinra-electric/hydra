@@ -14,7 +14,7 @@ class IApplicationFunctions : public ServiceBase {
   public:
     IApplicationFunctions()
         : gpu_error_detect_event{new kernel::Event(kernel::EventFlags::None,
-                                                   "GPU error detect event")} {}
+                                                   "Gpu error detect event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;

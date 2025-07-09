@@ -1,28 +1,25 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 
+#include "core/hw/tegra_x1/cpu/dynarmic/memory.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/thread.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-CPU::CPU() {
-    // TODO
+IMmu* Cpu::CreateMmu() { return new Mmu(); }
 
-    // MMU
-    mmu = new MMU();
-}
-
-CPU::~CPU() {
-    // TODO
-}
-
-ThreadBase* CPU::CreateThread(MemoryBase* tls_mem) {
+IThread* Cpu::CreateThread(IMmu* mmu, IMemory* tls_mem) {
     Thread* thread = new Thread(mmu, tls_mem);
     // TODO
 
     return thread;
 }
 
-MMUBase* CPU::GetMMU() const { return mmu; }
+IMemory* Cpu::AllocateMemory(usize size) {
+    size = align(size, GUEST_PAGE_SIZE);
+    auto memory = new Memory(size);
+
+    return memory;
+}
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

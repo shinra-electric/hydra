@@ -2,6 +2,7 @@
 
 #include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/memory.hpp"
 
 /*
@@ -11,6 +12,8 @@
 #define KERNEL_RANGE_MEM_BASE 0x04000000
 #define KERNEL_RANGE_MEM_SIZE 0x1000000
 */
+
+#define CPU (*static_cast<Cpu*>(&CPU_INSTANCE))
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
@@ -77,34 +80,30 @@ inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
 
 } // namespace
 
-MMU::MMU()
+Mmu::Mmu()
     : user_page_table(PHYSICAL_MEMORY_SIZE),
-      kernel_page_table(PHYSICAL_MEMORY_SIZE + 0x20000000) {
-    physical_memory_ptr = allocate_vm_memory(PHYSICAL_MEMORY_SIZE);
-    HV_ASSERT_SUCCESS(hv_vm_map(
-        reinterpret_cast<void*>(physical_memory_ptr), 0x0, PHYSICAL_MEMORY_SIZE,
-        HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
-
+      kernel_page_table(PHYSICAL_MEMORY_SIZE + 0x20000000),
+      kernel_mem(CPU.GetPAMapper(), align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE)) {
     // Kernel memory
-    uptr kernel_mem_ptr = physical_memory_ptr + physical_memory_cur;
-    kernel_page_table.Map(0x0, physical_memory_cur, KERNEL_MEM_SIZE,
+    kernel_page_table.Map(0x0, CPU.GetPAMapper().GetPA(kernel_mem.GetPtr()),
+                          KERNEL_MEM_SIZE,
                           {horizon::kernel::MemoryType::Kernel,
                            horizon::kernel::MemoryAttribute::None,
                            horizon::kernel::MemoryPermission::Execute},
                           ApFlags::UserNoneKernelReadExecute);
-    physical_memory_cur += KERNEL_MEM_SIZE;
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
-        memcpy(reinterpret_cast<void*>(kernel_mem_ptr + offset),
+        memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() + offset),
                exception_handler, sizeof(exception_handler));
     }
-    memcpy(
-        reinterpret_cast<void*>(kernel_mem_ptr + EXCEPTION_TRAMPOLINE_OFFSET),
-        exception_trampoline, sizeof(exception_trampoline));
+    memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() +
+                                   EXCEPTION_TRAMPOLINE_OFFSET),
+           exception_trampoline, sizeof(exception_trampoline));
 
     // Loader return address
     // TODO: this should be done in a backend agnostic way (perhaps in the
     // kernel?)
+    /*
     uptr ret_mem_ptr = physical_memory_ptr + physical_memory_cur;
     user_page_table.Map(0xffff0000, physical_memory_cur, 0x1000,
                         {horizon::kernel::MemoryType::Code,
@@ -114,11 +113,13 @@ MMU::MMU()
     physical_memory_cur += 0x1000;
 
     *reinterpret_cast<u32*>(ret_mem_ptr) = 0xd40000e1; // svcExitProcess
+    */
 
     // Symbols
     DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
-         range<vaddr_t>(KERNEL_REGION_BASE, KERNEL_REGION_BASE + 0x800)});
+         range<vaddr_t>(KERNEL_REGION_BASE,
+                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
     DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
         {"Hypervisor::trampoline",
          range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
@@ -126,57 +127,40 @@ MMU::MMU()
                             sizeof(exception_trampoline))});
 }
 
-MMU::~MMU() { free(reinterpret_cast<void*>(physical_memory_ptr)); }
+Mmu::~Mmu() {}
 
-MemoryBase* MMU::AllocateMemory(usize size) {
-    size = align(size, GUEST_PAGE_SIZE);
-    auto memory = new Memory(physical_memory_cur, size);
-    physical_memory_cur += size;
-
-    return memory;
-}
-
-void MMU::FreeMemory(MemoryBase* memory) {
-    LOG_NOT_IMPLEMENTED(Hypervisor, "Memory freeing");
-
-    delete memory;
-}
-
-uptr MMU::GetMemoryPtr(MemoryBase* memory) const {
-    return physical_memory_ptr + static_cast<Memory*>(memory)->GetBasePa();
-}
-
-void MMU::Map(vaddr_t va, usize size, MemoryBase* memory,
+void Mmu::Map(vaddr_t va, usize size, IMemory* memory,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(va, static_cast<Memory*>(memory)->GetBasePa(), size,
-                        state, to_ap_flags(state.perm));
+    user_page_table.Map(
+        va, CPU.GetPAMapper().GetPA(static_cast<Memory*>(memory)->GetPtr()),
+        size, state, to_ap_flags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
 // physical memory
-void MMU::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
+void Mmu::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
     const auto region = user_page_table.QueryRegion(src_va);
     paddr_t pa = region.UnmapAddr(src_va);
     user_page_table.Map(dst_va, pa, size, region.state,
                         to_ap_flags(region.state.perm));
 }
 
-void MMU::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
+void Mmu::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
 
 // TODO: just improve this...
-void MMU::ResizeHeap(MemoryBase* heap_mem, vaddr_t va, usize size) {
+void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
     const auto region = user_page_table.QueryRegion(va);
     paddr_t pa = region.UnmapAddr(va);
     user_page_table.Map(va, pa, size, region.state,
                         to_ap_flags(region.state.perm));
 }
 
-uptr MMU::UnmapAddr(vaddr_t va) const {
-    return physical_memory_ptr + user_page_table.UnmapAddr(va);
+uptr Mmu::UnmapAddr(vaddr_t va) const {
+    return CPU.GetPAMapper().GetPtr(user_page_table.UnmapAddr(va));
 }
 
-MemoryRegion MMU::QueryRegion(vaddr_t va) const {
+MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     auto region = user_page_table.QueryRegion(va);
 
     return {

@@ -108,9 +108,9 @@ enum class LogLevel {
 
 enum class LogClass {
     Common,
-    MMU,
-    CPU,
-    GPU,
+    Mmu,
+    Cpu,
+    Gpu,
     Engines,
     Macro,
     ShaderDecompiler,
@@ -134,8 +134,8 @@ enum class LogClass {
 ENABLE_ENUM_FORMATTING(hydra::LogLevel, Debug, "D", Info, "I", Stub, "S",
                        Warning, "W", Error, "E", Fatal, "F")
 
-ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", MMU, "MMU", CPU,
-                       "CPU", GPU, "GPU", Engines, "Engines", Macro, "Macro",
+ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", Mmu, "MMU", Cpu,
+                       "CPU", Gpu, "GPU", Engines, "Engines", Macro, "Macro",
                        ShaderDecompiler, "Shader Decompiler", MetalRenderer,
                        "Renderer::Metal", SDL3Window, "Window::SDL3", Horizon,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",

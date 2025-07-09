@@ -3,13 +3,13 @@
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
-#include "core/hw/tegra_x1/cpu/memory_base.hpp"
+#include "core/hw/tegra_x1/cpu/memory.hpp"
 
 namespace hydra::horizon::kernel {
 
 class Process : public SynchronizationObject {
   public:
-    Process(hw::tegra_x1::cpu::MMUBase* mmu_,
+    Process(hw::tegra_x1::cpu::IMmu* mmu_,
             const std::string_view debug_name = "Process")
         : SynchronizationObject(false, debug_name), mmu{mmu_} {}
     ~Process() override;
@@ -21,7 +21,7 @@ class Process : public SynchronizationObject {
     uptr CreateExecutableMemory(const std::string_view module_name, usize size,
                                 MemoryPermission perm, bool add_guard_page,
                                 vaddr_t& out_base);
-    hw::tegra_x1::cpu::MemoryBase* CreateTlsMemory(vaddr_t& base);
+    hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
 
     // Thread
     std::pair<Thread*, handle_id_t>
@@ -49,15 +49,15 @@ class Process : public SynchronizationObject {
     }
 
   private:
-    hw::tegra_x1::cpu::MMUBase* mmu;
+    hw::tegra_x1::cpu::IMmu* mmu;
 
     u64 title_id{invalid<u64>()};
     u32 system_resource_size{invalid<u32>()};
 
     // Memory
-    hw::tegra_x1::cpu::MemoryBase* heap_mem;
-    std::vector<hw::tegra_x1::cpu::MemoryBase*> executable_mems;
-    hw::tegra_x1::cpu::MemoryBase* main_thread_stack_mem;
+    hw::tegra_x1::cpu::IMemory* heap_mem;
+    std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
+    hw::tegra_x1::cpu::IMemory* main_thread_stack_mem;
 
     vaddr_t mem_base{0x40000000};
     vaddr_t tls_mem_base{TLS_REGION_BASE};

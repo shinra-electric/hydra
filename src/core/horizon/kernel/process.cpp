@@ -1,22 +1,22 @@
 #include "core/horizon/kernel/process.hpp"
 
 #include "core/horizon/kernel/thread.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
 
 namespace hydra::horizon::kernel {
 
 Process::~Process() {
     if (heap_mem)
-        mmu->FreeMemory(heap_mem);
+        delete heap_mem;
     for (auto mem : executable_mems)
-        mmu->FreeMemory(mem);
-    mmu->FreeMemory(main_thread_stack_mem);
+        delete mem;
+    delete main_thread_stack_mem;
 }
 
 uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
                            bool add_guard_page, vaddr_t& out_base) {
     size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
-    auto mem = mmu->AllocateMemory(size);
+    auto mem = CPU_INSTANCE.AllocateMemory(size);
     mmu->Map(mem_base, mem, {type, MemoryAttribute::None, perm});
     executable_mems.push_back(mem);
 
@@ -25,7 +25,7 @@ uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
         size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
     mem_base += size;
 
-    return mmu->GetMemoryPtr(mem);
+    return mem->GetPtr();
 }
 
 uptr Process::CreateExecutableMemory(const std::string_view module_name,
@@ -40,10 +40,10 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     return ptr;
 }
 
-hw::tegra_x1::cpu::MemoryBase* Process::CreateTlsMemory(vaddr_t& base) {
+hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
     constexpr usize TLS_MEM_SIZE = 0x20000;
 
-    auto mem = mmu->AllocateMemory(TLS_MEM_SIZE);
+    auto mem = CPU_INSTANCE.AllocateMemory(TLS_MEM_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
@@ -61,11 +61,10 @@ Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     auto handle_id = AddHandle(main_thread);
 
     // Stack memory
-    auto& mmu = hw::tegra_x1::cpu::MMUBase::GetInstance();
-    main_thread_stack_mem = mmu.AllocateMemory(stack_size);
-    mmu.Map(STACK_REGION_BASE, main_thread_stack_mem,
-            {MemoryType::Stack, MemoryAttribute::None,
-             MemoryPermission::ReadWrite});
+    main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
+    mmu->Map(STACK_REGION_BASE, main_thread_stack_mem,
+             {MemoryType::Stack, MemoryAttribute::None,
+              MemoryPermission::ReadWrite});
 
     return {main_thread, handle_id};
 }
