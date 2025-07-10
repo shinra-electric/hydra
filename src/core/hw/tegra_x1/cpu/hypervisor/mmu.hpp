@@ -7,10 +7,6 @@
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 constexpr uptr KERNEL_REGION_BASE = (long)-(1l << 39); // TODO: wht
-constexpr usize KERNEL_REGION_SIZE = 0x10000000;
-constexpr usize KERNEL_MEM_SIZE = 0x1000;
-
-constexpr uptr EXCEPTION_TRAMPOLINE_OFFSET = 0x800;
 
 class Mmu : public IMmu {
   public:
@@ -27,16 +23,11 @@ class Mmu : public IMmu {
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;
 
-    // Getters
-    const PageTable& GetUserPageTable() const { return user_page_table; }
-    const PageTable& GetKernelPageTable() const { return kernel_page_table; }
-
   private:
-    // Page table
     PageTable user_page_table;
-    PageTable kernel_page_table;
 
-    Memory kernel_mem;
+  public:
+    CONST_REF_GETTER(user_page_table, GetUserPageTable);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

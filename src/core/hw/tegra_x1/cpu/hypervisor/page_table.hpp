@@ -87,7 +87,6 @@ class PageTable {
     PageRegion QueryRegion(vaddr_t va) const;
     paddr_t UnmapAddr(vaddr_t va) const;
 
-    // Getters
     paddr_t GetBase() const { return allocator.GetBase(); }
 
   private:

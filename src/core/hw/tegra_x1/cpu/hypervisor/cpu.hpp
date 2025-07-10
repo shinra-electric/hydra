@@ -1,7 +1,9 @@
 #pragma once
 
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/memory.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/pa_mapper.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 
 namespace hydra::horizon {
 class OS;
@@ -28,8 +30,12 @@ class Cpu : public ICpu {
   private:
     PAMapper pa_mapper;
 
+    Memory kernel_mem;
+    PageTable kernel_page_table;
+
   public:
     CONST_REF_GETTER(pa_mapper, GetPAMapper);
+    CONST_REF_GETTER(kernel_page_table, GetKernelPageTable);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

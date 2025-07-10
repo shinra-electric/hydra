@@ -19,30 +19,6 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
-constexpr usize PHYSICAL_MEMORY_SIZE = 0x100000000; // 4GB
-
-const u32 exception_handler[] = {
-    0xd41fffe2u, // hvc #0xFFFF
-    // 0xd69f03e0u, // eret
-    // 0xD2B00000, // mov x0, #0x80000000
-    // 0xD61F0000, // br  x0
-    // Shouldn't happen
-    0xd4200000u, // brk #0
-};
-
-const u32 exception_trampoline[] = {
-    0xd508831fu, // msr spsel, xzr
-
-    // 0x910003e0,  // mov x0, sp
-    // 0xd5384241,  // TODO
-    // 0xd5384202,  // mrs x2, spsel
-    // 0xD4200000u, // brk #0
-
-    0xd69f03e0u, // eret
-    // Shouldn't happen
-    0xd4200000u, // brk #0
-};
-
 inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
     // HACK
     return ApFlags::UserReadWriteExecuteKernelReadWrite;
@@ -78,28 +54,33 @@ inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
     }
 }
 
+// TODO: this is a horrible way to handle this
+static bool page_table_regions[16] = {false};
+
+paddr_t FindFreePageTableRegion() {
+    for (int i = 0; i < 16; i++) {
+        if (!page_table_regions[i]) {
+            page_table_regions[i] = true;
+            return USER_PAGE_TABLE_REGION_BASE + i * PAGE_TABLE_RESERVED_SIZE;
+        }
+    }
+
+    LOG_FATAL(Hypervisor, "No free page table region found");
+    return 0;
+}
+
+void ReleasePageTableRegion(paddr_t addr) {
+    ASSERT(addr >= USER_PAGE_TABLE_REGION_BASE &&
+               addr <
+                   USER_PAGE_TABLE_REGION_BASE + 16 * PAGE_TABLE_RESERVED_SIZE,
+           Hypervisor, "Invalid page table region address 0x{:08x}", addr);
+    page_table_regions[(addr - USER_PAGE_TABLE_REGION_BASE) /
+                       PAGE_TABLE_RESERVED_SIZE] = false;
+}
+
 } // namespace
 
-Mmu::Mmu()
-    : user_page_table(PHYSICAL_MEMORY_SIZE),
-      kernel_page_table(PHYSICAL_MEMORY_SIZE + 0x20000000),
-      kernel_mem(CPU.GetPAMapper(), align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE)) {
-    // Kernel memory
-    kernel_page_table.Map(0x0, CPU.GetPAMapper().GetPA(kernel_mem.GetPtr()),
-                          KERNEL_MEM_SIZE,
-                          {horizon::kernel::MemoryType::Kernel,
-                           horizon::kernel::MemoryAttribute::None,
-                           horizon::kernel::MemoryPermission::Execute},
-                          ApFlags::UserNoneKernelReadExecute);
-
-    for (u64 offset = 0; offset < 0x780; offset += 0x80) {
-        memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() + offset),
-               exception_handler, sizeof(exception_handler));
-    }
-    memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() +
-                                   EXCEPTION_TRAMPOLINE_OFFSET),
-           exception_trampoline, sizeof(exception_trampoline));
-
+Mmu::Mmu() : user_page_table(FindFreePageTableRegion()) {
     // Loader return address
     // TODO: this should be done in a backend agnostic way (perhaps in the
     // kernel?)
@@ -114,20 +95,9 @@ Mmu::Mmu()
 
     *reinterpret_cast<u32*>(ret_mem_ptr) = 0xd40000e1; // svcExitProcess
     */
-
-    // Symbols
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
-        {"Hypervisor::handler",
-         range<vaddr_t>(KERNEL_REGION_BASE,
-                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
-        {"Hypervisor::trampoline",
-         range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
-                        KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
-                            sizeof(exception_trampoline))});
 }
 
-Mmu::~Mmu() {}
+Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 
 void Mmu::Map(vaddr_t va, usize size, IMemory* memory,
               const horizon::kernel::MemoryState state) {

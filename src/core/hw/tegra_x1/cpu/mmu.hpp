@@ -13,6 +13,8 @@ struct MemoryRegion {
     horizon::kernel::MemoryState state;
 };
 
+// This class doesn't really represent a real MMU, but rather the page table, as
+// each process has its own
 class IMmu {
   public:
     virtual ~IMmu() = default;

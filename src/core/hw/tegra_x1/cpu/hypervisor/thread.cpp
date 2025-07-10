@@ -4,9 +4,11 @@
 #include <thread>
 
 #include "core/debugger/debugger.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
-#define MMU static_cast<Mmu*>(mmu)
+#define CPU (*static_cast<Cpu*>(&CPU_INSTANCE))
+#define MMU (*static_cast<Mmu*>(mmu))
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
@@ -111,8 +113,8 @@ void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
     // Trampoline
     SetSysReg(HV_SYS_REG_VBAR_EL1, KERNEL_REGION_BASE);
 
-    SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU->GetUserPageTable().GetBase());
-    SetSysReg(HV_SYS_REG_TTBR1_EL1, MMU->GetKernelPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU.GetUserPageTable().GetBase());
+    SetSysReg(HV_SYS_REG_TTBR1_EL1, CPU.GetKernelPageTable().GetBase());
 
     // Initialize the stack pointer
     SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
@@ -157,7 +159,7 @@ void Thread::Run() {
                 u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
-                u32 instruction = MMU->Load<u32>(elr);
+                u32 instruction = MMU.Load<u32>(elr);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
@@ -223,7 +225,7 @@ void Thread::Run() {
                           syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
                           exit->exception.virtual_address,
                           exit->exception.physical_address,
-                          GetSysReg(HV_SYS_REG_ELR_EL1), MMU->Load<u32>(pc));
+                          GetSysReg(HV_SYS_REG_ELR_EL1), MMU.Load<u32>(pc));
 
                 DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exception");
                 break;
