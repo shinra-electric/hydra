@@ -11,6 +11,7 @@ struct EmulationView: View {
                 startEmulation()
             }
             .onDisappear {
+                print("STOPPING...")
                 stopEmulation()
             }
     }
@@ -28,8 +29,7 @@ struct EmulationView: View {
     }
 
     func stopEmulation() {
-        if let emulationContext = self.emulationContext {
-            hydra_emulation_context_destroy(emulationContext)
-        }
+        hydra_emulation_context_destroy(self.emulationContext!)
+        self.emulationContext = nil
     }
 }

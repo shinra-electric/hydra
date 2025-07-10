@@ -33,6 +33,12 @@ struct MenuCommands: Commands {
             }
         }
 
+        CommandMenu("Emulation") {
+            Button("Stop", systemImage: "stop.fill") {
+                self.activeGame = nil
+            }
+        }
+
         // Remove some items
         // CommandGroup(replacing: .help) {}
         // CommandGroup(replacing: .pasteboard) {}
