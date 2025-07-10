@@ -520,7 +520,8 @@ result_t Kernel::svcMapSharedMemory(Process* process,
     ASSERT_DEBUG(shared_mem, Kernel,
                  "Handle 0x{:x} is not a shared memory handle",
                  shared_mem_handle_id);
-    shared_mem->MapToRange(process->GetMmu(), range(addr, addr + size), perm);
+    shared_mem->MapToRange(process->GetMmu(), range(addr, uptr(addr + size)),
+                           perm);
 
     return RESULT_SUCCESS;
 }

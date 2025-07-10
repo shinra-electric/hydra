@@ -77,7 +77,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
 
     // Create executable memory
     usize executable_size = reader.GetSize() + bss_size;
-    uptr base;
+    vaddr_t base;
     // TODO: module name
     auto ptr = process->CreateExecutableMemory(
         "main.nro", executable_size, kernel::MemoryPermission::ReadWriteExecute,

@@ -19,7 +19,7 @@ class GpuMmu : public GenericMmu<GpuMmu, AddressSpace> {
     usize ImplGetSize(const AddressSpace& as) const { return as.size; }
 
     AddressSpace& UnmapAddrToAddressSpace(uptr gpu_addr) {
-        usize base;
+        uptr base;
         auto addr_space = FindAddrImplRef(gpu_addr, base);
         ASSERT_DEBUG(addr_space, Gpu,
                      "Address space not found for Gpu address 0x{:x}",

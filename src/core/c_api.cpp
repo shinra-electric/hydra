@@ -64,7 +64,8 @@ HYDRA_EXPORT const char* hydra_string_array_option_get(const void* option,
         .c_str();
 }
 
-HYDRA_EXPORT void hydra_string_array_option_resize(void* option, size_t size) {
+HYDRA_EXPORT void hydra_string_array_option_resize(void* option,
+                                                   uint64_t size) {
     static_cast<hydra::ArrayOption<std::string>*>(option)->Resize(size);
 }
 
@@ -172,7 +173,7 @@ HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
 }
 
 HYDRA_EXPORT void hydra_loader_load_icon(void* loader, void** data,
-                                         size_t* width, size_t* height) {
+                                         uint64_t* width, uint64_t* height) {
     return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadIcon(
         *reinterpret_cast<hydra::uchar4**>(data), *width, *height);
 }
@@ -268,7 +269,7 @@ HYDRA_EXPORT void hydra_debugger_unregister_this_thread() {
     hydra::DEBUGGER_INSTANCE.UnregisterThisThread();
 }
 
-HYDRA_EXPORT size_t hydra_debugger_get_thread_count() {
+HYDRA_EXPORT uint64_t hydra_debugger_get_thread_count() {
     return hydra::DEBUGGER_INSTANCE.GetThreadCount();
 }
 
@@ -301,7 +302,7 @@ HYDRA_EXPORT const char* hydra_debugger_thread_get_break_reason(void* thread) {
         .c_str();
 }
 
-HYDRA_EXPORT size_t hydra_debugger_thread_get_message_count(void* thread) {
+HYDRA_EXPORT uint64_t hydra_debugger_thread_get_message_count(void* thread) {
     return static_cast<hydra::debugger::Thread*>(thread)->GetMessageCount();
 }
 
