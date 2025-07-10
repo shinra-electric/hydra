@@ -2,9 +2,9 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 
-SINGLETON_DEFINE_GET_INSTANCE(ICpu, Mmu)
+SINGLETON_DEFINE_GET_INSTANCE(ICpu, Cpu)
 
-ICpu::ICpu() { SINGLETON_SET_INSTANCE(Mmu, Mmu); }
+ICpu::ICpu() { SINGLETON_SET_INSTANCE(Cpu, Cpu); }
 
 ICpu::~ICpu() { SINGLETON_UNSET_INSTANCE(); }
 

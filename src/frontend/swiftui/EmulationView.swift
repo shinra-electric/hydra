@@ -11,7 +11,6 @@ struct EmulationView: View {
                 startEmulation()
             }
             .onDisappear {
-                print("STOPPING...")
                 stopEmulation()
             }
     }

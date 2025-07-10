@@ -300,8 +300,8 @@ add_library(hydra-core
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp
-    audio/stream_base.hpp
-    audio/core_base.hpp
+    audio/stream.hpp
+    audio/core.hpp
     audio/null/stream.cpp
     audio/null/stream.hpp
     audio/null/core.cpp

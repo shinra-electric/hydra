@@ -6,7 +6,7 @@ namespace hydra::horizon {
 
 SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon)
 
-OS::OS(audio::CoreBase& audio_core_, ui::HandlerBase& ui_handler_)
+OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     : audio_core{audio_core_}, ui_handler{ui_handler_} {
     SINGLETON_SET_INSTANCE(OS, Horizon);
 

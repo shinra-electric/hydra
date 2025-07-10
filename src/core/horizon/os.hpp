@@ -9,7 +9,7 @@
 #define INPUT_MANAGER_INSTANCE OS_INSTANCE.GetInputManager()
 
 namespace hydra::audio {
-class CoreBase;
+class ICore;
 }
 
 namespace hydra::horizon {
@@ -30,16 +30,8 @@ class OS {
   public:
     static OS& GetInstance();
 
-    OS(audio::CoreBase& audio_core_, ui::HandlerBase& ui_handler_);
+    OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_);
     ~OS();
-
-    // Getters
-    audio::CoreBase& GetAudioCore() { return audio_core; }
-    ui::HandlerBase& GetUiHandler() { return ui_handler; }
-    kernel::Kernel& GetKernel() { return kernel; }
-    StateManager& GetStateManager() { return state_manager; }
-    display::Driver& GetDisplayDriver() { return display_driver; }
-    InputManager& GetInputManager() { return input_manager; }
 
     bool IsInHandheldMode() const {
         // TODO: make this configurable
@@ -47,7 +39,7 @@ class OS {
     }
 
   private:
-    audio::CoreBase& audio_core;
+    audio::ICore& audio_core;
     ui::HandlerBase& ui_handler;
 
     kernel::Kernel kernel;
@@ -65,6 +57,12 @@ class OS {
         nullptr};
 
   public:
+    REF_GETTER(audio_core, GetAudioCore);
+    REF_GETTER(ui_handler, GetUIHandler);
+    REF_GETTER(kernel, GetKernel);
+    REF_GETTER(state_manager, GetStateManager);
+    REF_GETTER(display_driver, GetDisplayDriver);
+    REF_GETTER(input_manager, GetInputManager);
     GETTER_AND_SETTER(library_applet_self_controller,
                       GetLibraryAppletSelfController,
                       SetLibraryAppletSelfController);

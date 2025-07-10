@@ -4,10 +4,6 @@
 #include "core/horizon/services/audio/const.hpp"
 #include "core/horizon/services/const.hpp"
 
-namespace hydra::audio {
-class StreamBase;
-}
-
 namespace hydra::horizon::services::audio {
 
 namespace {
@@ -31,7 +27,7 @@ class IAudioOut : public ServiceBase {
 
   private:
     kernel::Event* buffer_event;
-    StreamBase* stream;
+    IStream* stream;
 
     std::mutex buffer_mutex;
     std::vector<vaddr_t> released_buffers;

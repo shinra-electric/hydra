@@ -127,7 +127,12 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 }
 
 EmulationContext::~EmulationContext() {
-    // TODO: delete objects
+    delete process;
+
+    delete os;
+    delete audio_core;
+    delete gpu;
+    delete cpu;
 
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }

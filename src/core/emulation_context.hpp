@@ -39,10 +39,10 @@ class EmulationContext {
     // Objects
     hw::tegra_x1::cpu::ICpu* cpu;
     hw::tegra_x1::gpu::Gpu* gpu;
-    audio::CoreBase* audio_core;
+    audio::ICore* audio_core;
     horizon::OS* os;
 
-    horizon::kernel::Process* process;
+    horizon::kernel::Process* process; // TODO: allow multiple processes
 
     // Loading screen assets
     hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
