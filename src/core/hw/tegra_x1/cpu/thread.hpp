@@ -6,17 +6,19 @@ namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory;
 class IMmu;
+class IThread;
 
+typedef std::function<void(IThread*, u64)> svc_handler_fn_t;
+typedef std::function<bool()> stop_requested_fn_t;
 typedef std::function<void(vaddr_t)> stack_frame_callback_fn_t;
 
 class IThread {
   public:
-    IThread(IMmu* mmu_, IMemory* tls_mem_) : mmu{mmu_}, tls_mem{tls_mem_} {}
+    IThread(IMmu* mmu_, const svc_handler_fn_t& svc_handler_,
+            const stop_requested_fn_t& stop_requested_, IMemory* tls_mem_)
+        : mmu{mmu_}, svc_handler{svc_handler_},
+          stop_requested{stop_requested_}, tls_mem{tls_mem_} {}
     virtual ~IThread() {}
-
-    virtual void
-    Initialize(const std::function<bool(IThread*, u64)>& svc_handler,
-               uptr tls_mem_base, uptr stack_mem_end) = 0;
 
     virtual void Run() = 0;
 
@@ -41,6 +43,8 @@ class IThread {
 
   protected:
     IMmu* mmu;
+    svc_handler_fn_t svc_handler;
+    stop_requested_fn_t stop_requested;
     IMemory* tls_mem;
 };
 

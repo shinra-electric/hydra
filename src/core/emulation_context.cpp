@@ -102,7 +102,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     };
 
     const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (!firmware_path.empty()) {
+    if (std::filesystem::exists(firmware_path)) {
         // Iterate over the directory
         for (const auto& entry :
              std::filesystem::directory_iterator(firmware_path)) {
@@ -123,12 +123,15 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
             ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                    "Failed to add firmware entry: {}", res);
         }
+    } else {
+        LOG_ERROR(Other, "Firmware path does not exist");
     }
 }
 
 EmulationContext::~EmulationContext() {
-    delete process;
-
+    ASSERT(!IsRunning(), Other, "Processes still running");
+    for (auto process : processes)
+        delete process;
     delete os;
     delete audio_core;
     delete gpu;
@@ -139,8 +142,9 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
-    process = new horizon::kernel::Process();
+    auto process = new horizon::kernel::Process("Guest process");
     loader->LoadProcess(process);
+    processes.push_back(process);
 
     // Check for firmware applets
     auto controller = new horizon::services::am::LibraryAppletController(
@@ -340,6 +344,11 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
         fmt::format("{:016x}.hatch", loader->GetTitleID());
     // TODO: iterate recursively
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+        if (!std::filesystem::exists(patch_path)) {
+            LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
+            continue;
+        }
+
         if (!std::filesystem::is_directory(patch_path)) {
             // File
             TryApplyPatch(process, target_patch_filename, patch_path);
@@ -355,7 +364,7 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     }
 }
 
-void EmulationContext::Run() {
+void EmulationContext::Start() {
     LOG_INFO(Other, "-------- Config --------");
     CONFIG_INSTANCE.Log();
 
@@ -387,15 +396,37 @@ void EmulationContext::Run() {
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    process->Run();
+    for (auto process : processes)
+        process->Start();
 
-    running = true;
     loading = true;
 
     const auto crnt_time = clock_t::now();
     next_startup_movie_frame_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION +
                                     STARTUP_MOVIE_BREAK_AFTER_FADE_IN_DURATION;
     startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
+}
+
+void EmulationContext::RequestStop() {
+    // We don't request the processes to stop yet, instead we send a message to
+    // all of them and give them some time to react
+    // TODO: send an exit message to all processes
+    LOG_FUNC_NOT_IMPLEMENTED(Other);
+}
+
+void EmulationContext::ForceStop() {
+    // Request all processes to stop immediately
+    for (auto process : processes)
+        process->RequestStop();
+
+    // Wait a small amount of time for all threads to catch up
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Check if all processes have stopped
+    if (IsRunning()) {
+        // If some processes are still running, just abort
+        LOG_FATAL(Other, "Failed to stop process all processes");
+    }
 }
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
@@ -583,7 +614,8 @@ bool EmulationContext::Present(
     auto renderer = gpu->GetRenderer();
 
     renderer->LockMutex();
-    auto texture = gpu->GetTexture(process->GetMmu(), buffer.nv_buffer);
+    auto texture =
+        gpu->GetTexture(processes[0]->GetMmu(), buffer.nv_buffer); // HACK
     if (!renderer->AcquireNextSurface()) {
         renderer->UnlockMutex();
         return false;

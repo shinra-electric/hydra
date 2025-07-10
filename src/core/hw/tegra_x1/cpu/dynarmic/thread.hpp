@@ -18,11 +18,10 @@ class Mmu;
 
 class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
   public:
-    Thread(IMmu* mmu, IMemory* tls_mem) : IThread(mmu, tls_mem) {}
+    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+           vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
-
-    void Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
-                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -42,7 +41,6 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     void LogRegisters(bool simd = false, u32 count = 32) override;
 
   private:
-    std::function<bool(IThread*, u64)> svc_handler;
     u64 tpidrro_el0;
 
     Dynarmic::A64::Jit* jit;
@@ -88,6 +86,12 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     }
 
     u64 GetTicksRemaining() override { return ticks_left; }
+
+    // Helpers
+    void CheckForStopRequest() {
+        if (stop_requested())
+            jit->HaltExecution();
+    }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

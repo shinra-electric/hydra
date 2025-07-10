@@ -17,7 +17,7 @@ Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
 
 Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
-bool Kernel::SupervisorCall(Process* process, Thread* thread,
+void Kernel::SupervisorCall(Process* process, Thread* thread,
                             hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
     result_t res;
     i32 tmp_i32;
@@ -64,9 +64,8 @@ bool Kernel::SupervisorCall(Process* process, Thread* thread,
         guest_thread->SetRegX(1, tmp_u32);
         break;
     case 0x7:
-        svcExitProcess();
-        // TODO: exit all threads?
-        return false;
+        svcExitProcess(process);
+        break;
     case 0x8:
         res = svcCreateThread(
             process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
@@ -82,7 +81,7 @@ bool Kernel::SupervisorCall(Process* process, Thread* thread,
         break;
     case 0xa:
         svcExitThread(thread);
-        return false;
+        break;
     case 0xb:
         svcSleepThread(std::bit_cast<i64>(guest_thread->GetRegX(0)));
         break;
@@ -262,8 +261,6 @@ bool Kernel::SupervisorCall(Process* process, Thread* thread,
         guest_thread->SetRegW(0, res);
         break;
     }
-
-    return true;
 }
 
 result_t Kernel::svcSetHeapSize(Process* process, usize size, uptr& out_base) {
@@ -356,7 +353,12 @@ result_t Kernel::svcQueryMemory(Process* process, uptr addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitProcess() { LOG_DEBUG(Kernel, "svcExitProcess called"); }
+void Kernel::svcExitProcess(Process* process) {
+    LOG_DEBUG(Kernel, "svcExitProcess called");
+
+    // Request stop
+    process->RequestStop();
+}
 
 result_t Kernel::svcCreateThread(Process* process, vaddr_t entry_point,
                                  vaddr_t args_addr, vaddr_t stack_top_addr,
@@ -387,13 +389,16 @@ result_t Kernel::svcStartThread(Process* process,
     auto thread = dynamic_cast<Thread*>(process->GetHandle(thread_handle_id));
     ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
                  thread_handle_id);
-    thread->Run();
+    thread->Start();
 
     return RESULT_SUCCESS;
 }
 
 void Kernel::svcExitThread(Thread* current_thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
+
+    // Request stop
+    current_thread->RequestStop();
 
     // Threads are signalled on exit
     current_thread->Signal();

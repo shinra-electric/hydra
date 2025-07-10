@@ -72,6 +72,12 @@ Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     return {main_thread, handle_id};
 }
 
-void Process::Run() { main_thread->Run(); }
+void Process::Start() { main_thread->Start(); }
+
+void Process::RequestStop() {
+    std::lock_guard lock(thread_mutex);
+    for (auto thread : threads)
+        thread->RequestStop();
+}
 
 } // namespace hydra::horizon::kernel

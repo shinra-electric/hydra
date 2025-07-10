@@ -14,11 +14,10 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
-Thread::~Thread() { delete jit; }
-
-void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
-                        uptr tls_mem_base, uptr stack_mem_end) {
-    svc_handler = svc_handler_;
+Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+               vaddr_t tls_mem_base, vaddr_t stack_mem_end)
+    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
     tpidrro_el0 = tls_mem_base;
 
     // Create JIT
@@ -54,6 +53,8 @@ void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
 
     jit->SetSP(stack_mem_end);
 }
+
+Thread::~Thread() { delete jit; }
 
 void Thread::Run() { jit->Run(); }
 
@@ -117,13 +118,13 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 }
 
 void Thread::CallSVC(u32 svc) {
-    bool running = svc_handler(this, svc);
-    if (!running)
-        jit->HaltExecution();
+    svc_handler(this, svc);
+    CheckForStopRequest();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
     // TODO: handle the exception
+    // TODO: debugger break
     LOG_FATAL(Dynarmic, "Exception");
 }
 

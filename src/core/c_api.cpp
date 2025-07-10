@@ -224,18 +224,22 @@ HYDRA_EXPORT void hydra_emulation_context_load(void* ctx, void* loader) {
         static_cast<hydra::horizon::loader::LoaderBase*>(loader));
 }
 
-HYDRA_EXPORT void hydra_emulation_context_run(void* ctx) {
-    static_cast<hydra::EmulationContext*>(ctx)->Run();
+HYDRA_EXPORT void hydra_emulation_context_start(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->Start();
+}
+
+HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->RequestStop();
+}
+
+HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->ForceStop();
 }
 
 HYDRA_EXPORT void hydra_emulation_context_progress_frame(
     void* ctx, uint32_t width, uint32_t height, bool* out_dt_average_updated) {
     static_cast<hydra::EmulationContext*>(ctx)->ProgressFrame(
         width, height, *out_dt_average_updated);
-}
-
-HYDRA_EXPORT uint64_t hydra_emulation_context_get_title_id(void* ctx) {
-    return static_cast<hydra::EmulationContext*>(ctx)->GetTitleID();
 }
 
 HYDRA_EXPORT bool hydra_emulation_context_is_running(void* ctx) {

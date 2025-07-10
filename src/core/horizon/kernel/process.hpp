@@ -25,7 +25,23 @@ class Process : public SynchronizationObject {
     std::pair<Thread*, handle_id_t>
     CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
 
-    void Run();
+    void RegisterThread(Thread* thread) {
+        std::lock_guard<std::mutex> lock(thread_mutex);
+        threads.push_back(thread);
+    }
+    void UnregisterThread(Thread* thread) {
+        std::lock_guard<std::mutex> lock(thread_mutex);
+        threads.erase(std::remove(threads.begin(), threads.end(), thread),
+                      threads.end());
+    }
+
+    void Start();
+    void RequestStop();
+
+    bool IsRunning() {
+        std::lock_guard<std::mutex> lock(thread_mutex);
+        return !threads.empty();
+    }
 
     // Helpers
 
@@ -62,6 +78,8 @@ class Process : public SynchronizationObject {
 
     // Thread
     Thread* main_thread{nullptr};
+    std::mutex thread_mutex;
+    std::vector<Thread*> threads;
 
     // Handles
     DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?

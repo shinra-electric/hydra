@@ -20,19 +20,21 @@ class EmulationContext {
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
     void Load(horizon::loader::LoaderBase* loader);
-    void Run();
+
+    void Start();
+    void RequestStop();
+    void ForceStop();
 
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
-    // Getters
-    hw::tegra_x1::cpu::ICpu* GetCPU() const { return cpu; }
-    hw::tegra_x1::gpu::Gpu* GetGPU() const { return gpu; }
-    horizon::OS* GetOS() const { return os; }
-
-    u64 GetTitleID() const { return process->GetTitleID(); }
-
-    bool IsRunning() const { return running; }
+    bool IsRunning() const {
+        for (const auto process : processes) {
+            if (process->IsRunning())
+                return true;
+        }
+        return false;
+    }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
   private:
@@ -42,7 +44,7 @@ class EmulationContext {
     audio::ICore* audio_core;
     horizon::OS* os;
 
-    horizon::kernel::Process* process; // TODO: allow multiple processes
+    std::vector<horizon::kernel::Process*> processes;
 
     // Loading screen assets
     hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
@@ -53,7 +55,6 @@ class EmulationContext {
     clock_t::time_point startup_movie_fade_in_time;
     i32 startup_movie_frame{0};
 
-    std::atomic_bool running{false};
     bool loading{false};
 
     // Delta time

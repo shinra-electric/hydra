@@ -147,13 +147,14 @@ void hydra_emulation_context_destroy(void* ctx);
 
 void hydra_emulation_context_set_surface(void* ctx, void* surface);
 void hydra_emulation_context_load(void* ctx, void* loader);
-void hydra_emulation_context_run(void* ctx);
+
+void hydra_emulation_context_start(void* ctx);
+void hydra_emulation_context_request_stop(void* ctx);
+void hydra_emulation_context_force_stop(void* ctx);
 
 void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
                                             uint32_t height,
                                             bool* out_dt_average_updated);
-
-uint64_t hydra_emulation_context_get_title_id(void* ctx);
 
 bool hydra_emulation_context_is_running(void* ctx);
 float hydra_emulation_context_get_last_delta_time_average(void* ctx);

@@ -14,7 +14,8 @@ class Thread : public SynchronizationObject {
            const std::string_view debug_name = "Thread");
     ~Thread() override;
 
-    void Run();
+    void Start();
+    void RequestStop();
 
     // Setters
     void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
@@ -35,7 +36,8 @@ class Thread : public SynchronizationObject {
     vaddr_t entry_point{0};
     u64 args[2] = {0};
 
-    std::thread* t = nullptr;
+    std::thread* thread{nullptr};
+    std::atomic<bool> stop_requested{false};
 };
 
 } // namespace hydra::horizon::kernel

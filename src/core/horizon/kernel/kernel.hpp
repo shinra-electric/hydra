@@ -36,7 +36,7 @@ class Kernel {
         service_ports[std::string(port_name)] = service;
     }
 
-    bool SupervisorCall(Process* process, Thread* thread,
+    void SupervisorCall(Process* process, Thread* thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
 
     // SVCs
@@ -50,7 +50,7 @@ class Kernel {
                             usize size);
     result_t svcQueryMemory(Process* process, uptr addr,
                             MemoryInfo& out_mem_info, u32& out_page_info);
-    void svcExitProcess();
+    void svcExitProcess(Process* process);
     result_t svcCreateThread(Process* process, vaddr_t entry_point,
                              vaddr_t args_addr, vaddr_t stack_top_addr,
                              i32 priority, i32 processor_id,

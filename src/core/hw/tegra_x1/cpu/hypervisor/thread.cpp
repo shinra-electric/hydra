@@ -90,13 +90,10 @@ ENABLE_ENUM_FORMATTING(
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-Thread::~Thread() { hv_vcpu_destroy(vcpu); }
-
-void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
-                        uptr tls_mem_base /*,
-   uptr rom_mem_base*/, uptr stack_mem_end) {
-    svc_handler = svc_handler_;
-
+Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+               vaddr_t tls_mem_base, vaddr_t stack_mem_end)
+    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
@@ -140,10 +137,11 @@ void Thread::Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
     // SetReg(HV_REG_LR, 0xffff0000);
 }
 
+Thread::~Thread() { hv_vcpu_destroy(vcpu); }
+
 void Thread::Run() {
     // Main run loop
-    bool running = true;
-    while (running) {
+    while (true) {
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
@@ -163,7 +161,7 @@ void Thread::Run() {
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
-                    running = svc_handler(this, esr & 0xffff);
+                    svc_handler(this, esr & 0xffff);
                     break;
                 case ExceptionClass::TrappedMsrMrsSystem: {
                     InstructionTrap(esr);
@@ -207,9 +205,8 @@ void Thread::Run() {
             case ExceptionClass::BrkAarch64:
                 LogRegisters(true);
 
-                LOG_FATAL(Hypervisor, "BRK instruction");
-                running = false;
-                break;
+                DEBUGGER_INSTANCE.BreakOnThisThread("BRK instruction");
+                return;
             case ExceptionClass::DataAbortLowerEl:
                 LOG_ERROR(Hypervisor, "This should not happen");
                 AdvancePC();
@@ -240,6 +237,9 @@ void Thread::Run() {
             DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exit reason");
             break;
         }
+
+        if (stop_requested())
+            break;
     }
 }
 

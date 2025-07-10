@@ -18,11 +18,10 @@ class Mmu;
 
 class Thread : public IThread {
   public:
-    Thread(IMmu* mmu, IMemory* tls_mem) : IThread(mmu, tls_mem) {}
+    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
+           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+           vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
-
-    void Initialize(const std::function<bool(IThread*, u64)>& svc_handler_,
-                    uptr tls_mem_base, uptr stack_mem_end) override;
 
     void Run() override;
 
@@ -86,8 +85,6 @@ class Thread : public IThread {
     void LogRegisters(bool simd = false, u32 count = 32) override;
 
   private:
-    std::function<bool(IThread*, u64)> svc_handler;
-
     hv_vcpu_t vcpu;
     hv_vcpu_exit_t* exit;
 
