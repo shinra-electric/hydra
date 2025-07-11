@@ -406,7 +406,10 @@ void EmulationContext::RequestStop() {
     // We don't request the processes to stop yet, instead we send a message to
     // all of them and give them some time to react
     // TODO: send an exit message to all processes
-    LOG_FUNC_NOT_IMPLEMENTED(Other);
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->GetAppletState().SendMessage(
+            horizon::kernel::AppletMessage::Exit);
 }
 
 void EmulationContext::ForceStop() {

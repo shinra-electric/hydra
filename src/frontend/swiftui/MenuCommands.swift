@@ -35,6 +35,9 @@ struct MenuCommands: Commands {
 
         CommandMenu("Emulation") {
             Button("Stop", systemImage: "stop.fill") {
+                // TODO
+                //hydra_emulation_context_request_stop(self.emulationContext!)
+                //hydra_emulation_context_force_stop(self.emulationContext!)
                 self.activeGame = nil
             }
         }

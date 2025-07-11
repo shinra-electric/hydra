@@ -90,7 +90,9 @@ void Debugger::BreakOnThisThread(const std::string_view reason) {
 
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
+    lock.unlock();
     auto stack_trace = GetStackTrace(thread);
+    lock.lock();
     thread.Log({msg, stack_trace});
 }
 

@@ -27,7 +27,6 @@ struct EmulationView: View {
     }
 
     func stopEmulation() {
-        hydra_emulation_context_force_stop(self.emulationContext!)
         hydra_emulation_context_destroy(self.emulationContext!)
         self.emulationContext = nil
     }
