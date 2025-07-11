@@ -69,9 +69,9 @@ class Process : public SynchronizationObject {
     u32 system_resource_size{invalid<u32>()};
 
     // Memory
-    hw::tegra_x1::cpu::IMemory* heap_mem;
+    hw::tegra_x1::cpu::IMemory* heap_mem{nullptr};
     std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
-    hw::tegra_x1::cpu::IMemory* main_thread_stack_mem;
+    hw::tegra_x1::cpu::IMemory* main_thread_stack_mem{nullptr};
 
     vaddr_t mem_base{0x40000000};
     vaddr_t tls_mem_base{TLS_REGION_BASE};

@@ -29,11 +29,7 @@ class EmulationContext {
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
     bool IsRunning() const {
-        for (const auto process : processes) {
-            if (process->IsRunning())
-                return true;
-        }
-        return false;
+        return os->GetKernel().GetProcessManager().HasRunningProcesses();
     }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
@@ -43,8 +39,6 @@ class EmulationContext {
     hw::tegra_x1::gpu::Gpu* gpu;
     audio::ICore* audio_core;
     horizon::OS* os;
-
-    std::vector<horizon::kernel::Process*> processes;
 
     // Loading screen assets
     hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;

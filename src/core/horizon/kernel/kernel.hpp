@@ -4,6 +4,7 @@
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/mutex.hpp"
+#include "core/horizon/kernel/process_manager.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 #include "core/horizon/kernel/transfer_memory.hpp"
 
@@ -56,7 +57,7 @@ class Kernel {
                              i32 priority, i32 processor_id,
                              handle_id_t& out_thread_handle_id);
     result_t svcStartThread(Process* process, handle_id_t thread_handle_id);
-    void svcExitThread(Thread* current_thread);
+    void svcExitThread(Thread* thread);
     void svcSleepThread(i64 nano);
     result_t svcGetThreadPriority(Process* process,
                                   handle_id_t thread_handle_id,
@@ -121,6 +122,7 @@ class Kernel {
 
   private:
     filesystem::Filesystem filesystem;
+    ProcessManager process_manager;
 
     // Services
     std::map<std::string, ServiceBase*> service_ports;
@@ -129,6 +131,9 @@ class Kernel {
     // TODO: use a different container?
     std::map<vaddr_t, Mutex> mutex_map;
     std::map<vaddr_t, std::condition_variable> cond_var_map;
+
+  public:
+    REF_GETTER(process_manager, GetProcessManager);
 };
 
 } // namespace hydra::horizon::kernel

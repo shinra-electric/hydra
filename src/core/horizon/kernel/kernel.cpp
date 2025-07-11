@@ -394,14 +394,14 @@ result_t Kernel::svcStartThread(Process* process,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitThread(Thread* current_thread) {
+void Kernel::svcExitThread(Thread* thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
 
     // Request stop
-    current_thread->RequestStop();
+    thread->RequestStop();
 
     // Threads are signalled on exit
-    current_thread->Signal();
+    thread->Signal();
 }
 
 void Kernel::svcSleepThread(i64 nano) {

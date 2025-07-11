@@ -130,8 +130,6 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 
 EmulationContext::~EmulationContext() {
     ASSERT(!IsRunning(), Other, "Processes still running");
-    for (auto process : processes)
-        delete process;
     delete os;
     delete audio_core;
     delete gpu;
@@ -142,9 +140,9 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     // Process
-    auto process = new horizon::kernel::Process("Guest process");
+    auto process =
+        os->GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(process);
-    processes.push_back(process);
 
     // Check for firmware applets
     auto controller = new horizon::services::am::LibraryAppletController(
@@ -396,8 +394,9 @@ void EmulationContext::Start() {
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    for (auto process : processes)
-        process->Start();
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->Start();
 
     loading = true;
 
@@ -416,8 +415,9 @@ void EmulationContext::RequestStop() {
 
 void EmulationContext::ForceStop() {
     // Request all processes to stop immediately
-    for (auto process : processes)
-        process->RequestStop();
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->RequestStop();
 
     // Wait a small amount of time for all threads to catch up
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -614,8 +614,9 @@ bool EmulationContext::Present(
     auto renderer = gpu->GetRenderer();
 
     renderer->LockMutex();
-    auto texture =
-        gpu->GetTexture(processes[0]->GetMmu(), buffer.nv_buffer); // HACK
+    auto texture = gpu->GetTexture(
+        (*os->GetKernel().GetProcessManager().Begin())->GetMmu(),
+        buffer.nv_buffer); // HACK
     if (!renderer->AcquireNextSurface()) {
         renderer->UnlockMutex();
         return false;
