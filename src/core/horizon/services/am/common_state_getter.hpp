@@ -1,8 +1,8 @@
 #pragma once
 
+#include "core/horizon/kernel/event.hpp"
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/oe/const.hpp"
-#include "core/horizon/state_manager.hpp"
 
 namespace hydra::horizon::services::am {
 
@@ -27,14 +27,16 @@ class ICommonStateGetter : public ServiceBase {
     // Commands
     result_t GetEventHandle(kernel::Process* process,
                             OutHandle<HandleAttr::Copy> out_handle);
-    result_t ReceiveMessage(AppletMessage* out_message);
+    result_t ReceiveMessage(kernel::Process* process,
+                            kernel::AppletMessage* out_message);
     STUB_REQUEST_COMMAND(DisallowToEnterSleep);
     result_t GetOperationMode(OperationMode* out_mode);
     STUB_REQUEST_COMMAND(GetPerformanceMode);
     result_t GetDefaultDisplayResolution(i32* out_width, i32* out_height);
     result_t GetDefaultDisplayResolutionChangeEvent(
         kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle);
-    result_t GetCurrentFocusState(AppletFocusState* out_state);
+    result_t GetCurrentFocusState(kernel::Process* process,
+                                  kernel::AppletFocusState* out_state);
     result_t SetCpuBoostMode(oe::CpuBoostMode mode);
     STUB_REQUEST_COMMAND(
         SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled);

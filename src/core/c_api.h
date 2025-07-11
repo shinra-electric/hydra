@@ -146,9 +146,7 @@ void* hydra_create_emulation_context();
 void hydra_emulation_context_destroy(void* ctx);
 
 void hydra_emulation_context_set_surface(void* ctx, void* surface);
-void hydra_emulation_context_load(void* ctx, void* loader);
-
-void hydra_emulation_context_start(void* ctx);
+void hydra_emulation_context_load_and_start(void* ctx, void* loader);
 void hydra_emulation_context_request_stop(void* ctx);
 void hydra_emulation_context_force_stop(void* ctx);
 

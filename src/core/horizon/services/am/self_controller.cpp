@@ -22,13 +22,13 @@ ISelfController::ISelfController()
           new kernel::Event(kernel::EventFlags::AutoClear,
                             "Accumulated suspended tick changed event")} {}
 
-result_t ISelfController::LockExit() {
-    StateManager::GetInstance().LockExit();
+result_t ISelfController::LockExit(kernel::Process* process) {
+    process->GetAppletState().LockExit();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::UnlockExit() {
-    StateManager::GetInstance().UnlockExit();
+result_t ISelfController::UnlockExit(kernel::Process* process) {
+    process->GetAppletState().UnlockExit();
     return RESULT_SUCCESS;
 }
 

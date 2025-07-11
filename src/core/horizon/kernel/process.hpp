@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/applet_state.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
@@ -65,6 +66,8 @@ class Process : public SynchronizationObject {
   private:
     hw::tegra_x1::cpu::IMmu* mmu;
 
+    AppletState applet_state;
+
     u64 title_id{invalid<u64>()};
     u32 system_resource_size{invalid<u32>()};
 
@@ -86,6 +89,7 @@ class Process : public SynchronizationObject {
 
   public:
     GETTER(mmu, GetMmu);
+    REF_GETTER(applet_state, GetAppletState);
     REF_GETTER(heap_mem, GetHeapMemory);
     GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
     GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,

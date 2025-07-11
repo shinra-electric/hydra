@@ -24,8 +24,8 @@ class ISelfController : public ServiceBase {
 
     // Commands
     STUB_REQUEST_COMMAND(Exit);
-    result_t LockExit();
-    result_t UnlockExit();
+    result_t LockExit(kernel::Process* process);
+    result_t UnlockExit(kernel::Process* process);
     result_t
     GetLibraryAppletLaunchableEvent(kernel::Process* process,
                                     OutHandle<HandleAttr::Copy> out_handle);

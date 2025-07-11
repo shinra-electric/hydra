@@ -15,7 +15,6 @@
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/services/am/library_applet_controller.hpp"
-#include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
@@ -138,7 +137,7 @@ EmulationContext::~EmulationContext() {
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
-void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
+void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
     auto process =
         os->GetKernel().GetProcessManager().CreateProcess("Guest process");
@@ -360,9 +359,7 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
             }
         }
     }
-}
 
-void EmulationContext::Start() {
     LOG_INFO(Other, "-------- Config --------");
     CONFIG_INSTANCE.Log();
 
@@ -372,10 +369,11 @@ void EmulationContext::Start() {
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
 
     // Enter focus
-    auto& state_manager = horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(horizon::AppletMessage::Resume);
-    state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
+    process->GetAppletState().SendMessage(
+        horizon::kernel::AppletMessage::Resume);
+    process->GetAppletState().SetFocusState(
+        horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
     auto user_id = CONFIG_INSTANCE.GetUserID().Get();
@@ -390,13 +388,11 @@ void EmulationContext::Start() {
     }
 
     if (user_id != horizon::services::account::INVALID_USER_ID) {
-        state_manager.PushPreselectedUser(user_id);
+        process->GetAppletState().PushPreselectedUser(user_id);
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    for (auto it = os->GetKernel().GetProcessManager().Begin();
-         it != os->GetKernel().GetProcessManager().End(); ++it)
-        (*it)->Start();
+    process->Start();
 
     loading = true;
 

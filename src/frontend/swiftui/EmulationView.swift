@@ -23,8 +23,7 @@ struct EmulationView: View {
         }
 
         self.emulationContext = emulationContext
-        hydra_emulation_context_load(emulationContext, game.loader)
-        hydra_emulation_context_start(emulationContext)
+        hydra_emulation_context_load_and_start(emulationContext, game.loader)
     }
 
     func stopEmulation() {

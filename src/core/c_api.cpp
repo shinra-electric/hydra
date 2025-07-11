@@ -219,13 +219,10 @@ HYDRA_EXPORT void hydra_emulation_context_set_surface(void* ctx,
     static_cast<hydra::EmulationContext*>(ctx)->SetSurface(surface);
 }
 
-HYDRA_EXPORT void hydra_emulation_context_load(void* ctx, void* loader) {
-    static_cast<hydra::EmulationContext*>(ctx)->Load(
+HYDRA_EXPORT void hydra_emulation_context_load_and_start(void* ctx,
+                                                         void* loader) {
+    static_cast<hydra::EmulationContext*>(ctx)->LoadAndStart(
         static_cast<hydra::horizon::loader::LoaderBase*>(loader));
-}
-
-HYDRA_EXPORT void hydra_emulation_context_start(void* ctx) {
-    static_cast<hydra::EmulationContext*>(ctx)->Start();
 }
 
 HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {

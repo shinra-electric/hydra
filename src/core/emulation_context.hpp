@@ -19,9 +19,7 @@ class EmulationContext {
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
-    void Load(horizon::loader::LoaderBase* loader);
-
-    void Start();
+    void LoadAndStart(horizon::loader::LoaderBase* loader);
     void RequestStop();
     void ForceStop();
 

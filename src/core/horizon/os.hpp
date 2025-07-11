@@ -3,7 +3,6 @@
 #include "core/horizon/display/driver.hpp"
 #include "core/horizon/input_manager.hpp"
 #include "core/horizon/services/account/user_manager.hpp"
-#include "core/horizon/state_manager.hpp"
 
 #define OS_INSTANCE horizon::OS::GetInstance()
 #define INPUT_MANAGER_INSTANCE OS_INSTANCE.GetInputManager()
@@ -48,7 +47,6 @@ class OS {
     services::sm::IUserInterface* sm_user_interface;
 
     // Managers
-    StateManager state_manager;
     display::Driver display_driver;
     InputManager input_manager;
     services::account::UserManager user_manager;
@@ -60,7 +58,6 @@ class OS {
     REF_GETTER(audio_core, GetAudioCore);
     REF_GETTER(ui_handler, GetUIHandler);
     REF_GETTER(kernel, GetKernel);
-    REF_GETTER(state_manager, GetStateManager);
     REF_GETTER(display_driver, GetDisplayDriver);
     REF_GETTER(input_manager, GetInputManager);
     GETTER_AND_SETTER(library_applet_self_controller,

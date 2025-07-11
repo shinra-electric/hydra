@@ -1,8 +1,6 @@
 add_library(hydra-core
     horizon/const.hpp
     horizon/hid.hpp
-    horizon/state_manager.cpp
-    horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
     horizon/os.cpp
@@ -16,6 +14,8 @@ add_library(hydra-core
     horizon/kernel/service_base.hpp
     horizon/kernel/domain_service.cpp
     horizon/kernel/domain_service.hpp
+    horizon/kernel/applet_state.cpp
+    horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp
