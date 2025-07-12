@@ -11,11 +11,23 @@ struct DeviceNickName {
     char name[0x80];
 };
 
+const SettingValue* get_settings_value(const std::string& name,
+                                       const std::string& item_key) {
+    auto key = fmt::format("{}!{}", name, item_key);
+    auto it = settings::nx_settings.find(key);
+    if (it == settings::nx_settings.end()) {
+        LOG_WARN(Services, "Key not found: {}", key);
+        return nullptr;
+    }
+
+    return &it->second;
+}
+
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
-                             GetColorSetId, 38, GetSettingsItemValue, 77,
-                             GetDeviceNickName)
+                             GetColorSetId, 37, GetSettingsItemValueSize, 38,
+                             GetSettingsItemValue, 77, GetDeviceNickName)
 
 result_t ISystemSettingsServer::GetFirmwareVersion(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
@@ -29,34 +41,56 @@ result_t ISystemSettingsServer::GetColorSetId(ColorSetId* out_id) {
     return RESULT_SUCCESS;
 }
 
+result_t ISystemSettingsServer::GetSettingsItemValueSize(
+    InBuffer<BufferAttr::HipcPointer> in_name_buffer,
+    InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size) {
+    auto name = in_name_buffer.reader->ReadString();
+    auto item_key = in_item_key_buffer.reader->ReadString();
+    const auto* value = get_settings_value(name, item_key);
+    if (!value) {
+        // TODO: error
+        return RESULT_SUCCESS;
+    }
+
+    switch (value->type) {
+    case settings::SettingDataType::String:
+        *out_size = value->s.size();
+        break;
+    case settings::SettingDataType::Integer:
+        *out_size = sizeof(value->i);
+        break;
+    case settings::SettingDataType::Boolean:
+        *out_size = sizeof(value->b);
+        break;
+    }
+
+    return RESULT_SUCCESS;
+}
+
 result_t ISystemSettingsServer::GetSettingsItemValue(
     InBuffer<BufferAttr::HipcPointer> in_name_buffer,
     InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     auto name = in_name_buffer.reader->ReadString();
     auto item_key = in_item_key_buffer.reader->ReadString();
-    auto key = fmt::format("{}!{}", name, item_key);
-
-    auto it = settings::nx_settings.find(key);
-    if (it == settings::nx_settings.end()) {
-        LOG_WARN(Services, "Key not found: {}", key);
+    const auto* value = get_settings_value(name, item_key);
+    if (!value) {
         // TODO: error
         return RESULT_SUCCESS;
     }
 
-    const auto& value = it->second;
-    switch (value.type) {
+    switch (value->type) {
     case settings::SettingDataType::String:
-        out_buffer.writer->WritePtr(value.s.data(), value.s.size());
-        *out_size = value.s.size();
+        out_buffer.writer->WritePtr(value->s.data(), value->s.size());
+        *out_size = value->s.size();
         break;
     case settings::SettingDataType::Integer:
-        out_buffer.writer->Write(value.i);
-        *out_size = sizeof(value.i);
+        out_buffer.writer->Write(value->i);
+        *out_size = sizeof(value->i);
         break;
     case settings::SettingDataType::Boolean:
-        out_buffer.writer->Write(value.b);
-        *out_size = sizeof(value.b);
+        out_buffer.writer->Write(value->b);
+        *out_size = sizeof(value->b);
         break;
     }
 

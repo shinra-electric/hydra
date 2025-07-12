@@ -1088,7 +1088,12 @@ result_t Kernel::svcGetInfo(Process* process, InfoType info_type,
     case InfoType::UsedNonSystemMemorySize:
         LOG_NOT_IMPLEMENTED(Kernel, "UsedNonSystemMemorySize");
         // HACK
-        out_info = 16u * 1024u * 1024u;
+        out_info = 1;
+        return RESULT_SUCCESS;
+    case InfoType::IsApplication:
+        LOG_NOT_IMPLEMENTED(Kernel, "IsApplication");
+        // HACK
+        out_info = 0;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");
