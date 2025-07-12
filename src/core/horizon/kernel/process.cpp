@@ -8,13 +8,7 @@ namespace hydra::horizon::kernel {
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()} {}
 
-Process::~Process() {
-    if (heap_mem)
-        delete heap_mem;
-    for (auto mem : executable_mems)
-        delete mem;
-    delete main_thread_stack_mem;
-}
+Process::~Process() { CleanUp(); }
 
 uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
                            bool add_guard_page, vaddr_t& out_base) {
@@ -72,12 +66,38 @@ Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     return {main_thread, handle_id};
 }
 
-void Process::Start() { main_thread->Start(); }
+void Process::Start() {
+    main_thread->Start();
+
+    // Signal
+    SignalStateChange(ProcessState::Started);
+}
 
 void Process::RequestStop() {
     std::lock_guard lock(thread_mutex);
     for (auto thread : threads)
         thread->RequestStop();
+
+    // Signal
+    SignalStateChange(ProcessState::Exiting);
+}
+
+void Process::CleanUp() {
+    if (heap_mem)
+        delete heap_mem;
+    for (auto mem : executable_mems)
+        delete mem;
+    if (main_thread_stack_mem)
+        delete main_thread_stack_mem;
+    handle_pool.CleanUp();
+
+    // Signal
+    SignalStateChange(ProcessState::Exited);
+}
+
+void Process::SignalStateChange(ProcessState new_state) {
+    state = new_state;
+    Signal();
 }
 
 } // namespace hydra::horizon::kernel

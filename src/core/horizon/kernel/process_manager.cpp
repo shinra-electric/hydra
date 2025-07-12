@@ -4,24 +4,22 @@
 
 namespace hydra::horizon::kernel {
 
-ProcessManager::~ProcessManager() { CleanUpFinishedProcesses(); }
+ProcessManager::~ProcessManager() {
+    ASSERT(processes.empty(), Kernel, "Processes are still running");
+}
 
 Process* ProcessManager::CreateProcess(const std::string_view name) {
+    std::lock_guard<std::mutex> lock(mutex);
     Process* process = new Process(name);
     processes.push_back(process);
     return process;
 }
 
-void ProcessManager::CleanUpFinishedProcesses() {
+void ProcessManager::DestroyProcess(Process* process) {
     std::lock_guard<std::mutex> lock(mutex);
-    for (auto it = processes.cbegin(); it != processes.cend();) {
-        if (!(*it)->IsRunning()) {
-            delete *it;
-            it = processes.erase(it);
-        } else {
-            it++;
-        }
-    }
+    processes.erase(std::remove(processes.begin(), processes.end(), process),
+                    processes.end());
+    delete process;
 }
 
 bool ProcessManager::HasRunningProcesses() {

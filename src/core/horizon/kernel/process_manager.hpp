@@ -9,7 +9,7 @@ class ProcessManager {
     ~ProcessManager();
 
     Process* CreateProcess(const std::string_view name);
-    void CleanUpFinishedProcesses();
+    void DestroyProcess(Process* process);
 
     bool HasRunningProcesses();
 

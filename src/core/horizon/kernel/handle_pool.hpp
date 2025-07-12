@@ -11,7 +11,9 @@ class HandlePool {
                   "Type does not inherit from AutoObject");
 
   public:
-    ~HandlePool() {
+    ~HandlePool() { CleanUp(); }
+
+    void CleanUp() {
         for (u32 i = 0; i < pool.GetCapacity(); i++) {
             if (!pool.IsFree(i))
                 pool.Get(i)->Release(); // Decrement ref count

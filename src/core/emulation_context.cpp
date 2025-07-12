@@ -128,7 +128,6 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
 }
 
 EmulationContext::~EmulationContext() {
-    ASSERT(!IsRunning(), Other, "Processes still running");
     delete os;
     delete audio_core;
     delete gpu;
@@ -139,6 +138,7 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
+    // TODO: make sure the process is destroyed
     auto process =
         os->GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(process);

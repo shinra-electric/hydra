@@ -8,6 +8,17 @@
 
 namespace hydra::horizon::kernel {
 
+enum class ProcessState {
+    Created = 0,
+    CreatedAttached = 1,
+    Started = 2,
+    Crashed = 3, // Only in debug mode
+    StartedAttached = 4,
+    Exiting = 5,
+    Exited = 6,
+    DebugSuspended = 7,
+};
+
 class Process : public SynchronizationObject {
   public:
     Process(const std::string_view debug_name = "Process");
@@ -34,6 +45,10 @@ class Process : public SynchronizationObject {
         std::lock_guard<std::mutex> lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
+
+        // Clean up after the last (main) thread exits
+        if (threads.empty())
+            CleanUp();
     }
 
     void Start();
@@ -43,6 +58,8 @@ class Process : public SynchronizationObject {
         std::lock_guard<std::mutex> lock(thread_mutex);
         return !threads.empty();
     }
+
+    ProcessState GetState() const { return state; }
 
     // Helpers
 
@@ -86,6 +103,12 @@ class Process : public SynchronizationObject {
 
     // Handles
     DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?
+
+    std::atomic<ProcessState> state{ProcessState::Created};
+
+    void CleanUp();
+
+    void SignalStateChange(ProcessState new_state);
 
   public:
     GETTER(mmu, GetMmu);
