@@ -5,6 +5,8 @@
 namespace hydra::horizon::loader {
 
 class NroLoader : public LoaderBase {
+    friend class HomebrewLoader;
+
   public:
     NroLoader(filesystem::FileBase* file_);
 

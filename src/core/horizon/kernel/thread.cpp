@@ -50,6 +50,9 @@ void Thread::Start() {
         process->UnregisterThread(this);
         DEBUGGER_INSTANCE.UnregisterThisThread();
 
+        // Signal exit
+        Signal();
+
         delete thread;
     });
 }

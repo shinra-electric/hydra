@@ -356,7 +356,6 @@ result_t Kernel::svcQueryMemory(Process* process, uptr addr,
 void Kernel::svcExitProcess(Process* process) {
     LOG_DEBUG(Kernel, "svcExitProcess called");
 
-    // Request stop
     process->RequestStop();
 }
 
@@ -397,11 +396,7 @@ result_t Kernel::svcStartThread(Process* process,
 void Kernel::svcExitThread(Thread* thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
 
-    // Request stop
     thread->RequestStop();
-
-    // Threads are signalled on exit
-    thread->Signal();
 }
 
 void Kernel::svcSleepThread(i64 nano) {

@@ -3,6 +3,7 @@
 #include <stb_image.h>
 
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/loader/xci_loader.hpp"
