@@ -54,7 +54,8 @@ class AppletBase {
 
     // Interactive data
     Reader PopInteractiveInDataRaw() {
-        controller.GetInteractiveInDataEvent()->Wait();
+        // TODO: wait
+        // controller.GetInteractiveInDataEvent()->Wait();
         auto data = controller.PopInteractiveInData()->GetData();
         return Reader(data.GetPtrU8(), data.GetSize());
     }

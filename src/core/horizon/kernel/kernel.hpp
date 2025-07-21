@@ -84,9 +84,9 @@ class Kernel {
                                      handle_id_t& out_transfer_mem_handle_id);
     result_t svcCloseHandle(Process* process, handle_id_t handle_id);
     result_t svcResetSignal(Process* process, handle_id_t handle_id);
-    result_t svcWaitSynchronization(Process* process, handle_id_t* handle_ids,
-                                    i32 handle_count, i64 timeout,
-                                    u64& out_handle_index);
+    result_t svcWaitSynchronization(Process* process, Thread* thread,
+                                    handle_id_t* handle_ids, i32 handle_count,
+                                    i64 timeout, u64& out_handle_index);
     result_t svcCancelSynchronization(Process* process,
                                       handle_id_t thread_handle_id);
     result_t svcArbitrateLock(Process* process, u32 wait_tag, uptr mutex_addr,

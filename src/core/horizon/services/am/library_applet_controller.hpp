@@ -26,14 +26,11 @@ class LibraryAppletController {
   public:
     LibraryAppletController(const LibraryAppletMode mode_)
         : mode{mode_}, state_changed_event{new kernel::Event(
-                           kernel::EventFlags::None,
-                           "Library applet state changed event")},
-          interactive_in_data_event{
-              new kernel::Event(kernel::EventFlags::AutoClear,
-                                "Library applet interactive in data event")},
-          interactive_out_data_event{
-              new kernel::Event(kernel::EventFlags::None,
-                                "Library applet interactive out data event")} {}
+                           false, "Library applet state changed event")},
+          interactive_in_data_event{new kernel::Event(
+              false, "Library applet interactive in data event")},
+          interactive_out_data_event{new kernel::Event(
+              false, "Library applet interactive out data event")} {}
 
     // Data
 

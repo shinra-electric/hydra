@@ -52,7 +52,7 @@ class Process : public SynchronizationObject {
     }
 
     void Start();
-    void RequestStop();
+    void Stop();
 
     bool IsRunning() {
         std::lock_guard<std::mutex> lock(thread_mutex);

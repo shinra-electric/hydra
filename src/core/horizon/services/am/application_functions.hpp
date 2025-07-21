@@ -13,8 +13,8 @@ struct DisplayVersion {
 class IApplicationFunctions : public ServiceBase {
   public:
     IApplicationFunctions()
-        : gpu_error_detect_event{new kernel::Event(kernel::EventFlags::None,
-                                                   "Gpu error detect event")} {}
+        : gpu_error_detect_event{
+              new kernel::Event(false, "Gpu error detect event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;

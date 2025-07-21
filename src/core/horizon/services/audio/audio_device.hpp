@@ -8,9 +8,7 @@ namespace hydra::horizon::services::audio {
 
 class IAudioDevice : public ServiceBase {
   public:
-    IAudioDevice()
-        : event{new kernel::Event(kernel::EventFlags::AutoClear,
-                                  "IAudioDevice event")} {}
+    IAudioDevice() : event{new kernel::Event(false, "IAudioDevice event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;

@@ -151,7 +151,7 @@ void Kernel::SupervisorCall(Process* process, Thread* thread,
         break;
     case 0x18:
         res = svcWaitSynchronization(
-            process,
+            process, thread,
             reinterpret_cast<handle_id_t*>(
                 process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
             std::bit_cast<i64>(guest_thread->GetRegX(2)),
@@ -356,7 +356,7 @@ result_t Kernel::svcQueryMemory(Process* process, uptr addr,
 void Kernel::svcExitProcess(Process* process) {
     LOG_DEBUG(Kernel, "svcExitProcess called");
 
-    process->RequestStop();
+    process->Stop();
 }
 
 result_t Kernel::svcCreateThread(Process* process, vaddr_t entry_point,
@@ -396,7 +396,7 @@ result_t Kernel::svcStartThread(Process* process,
 void Kernel::svcExitThread(Thread* thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
 
-    thread->RequestStop();
+    thread->Stop();
 }
 
 void Kernel::svcSleepThread(i64 nano) {
@@ -591,7 +591,7 @@ result_t Kernel::svcResetSignal(Process* process, handle_id_t handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcWaitSynchronization(Process* process,
+result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
                                         handle_id_t* handle_ids,
                                         i32 handle_count, i64 timeout,
                                         u64& out_handle_index) {
@@ -610,79 +610,60 @@ result_t Kernel::svcWaitSynchronization(Process* process,
 
         return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
-        // HACK: a super dumb implementation of multiple handles
-        if (handle_count > 1) {
-            ONCE(LOG_WARN(Kernel, "Multiple handles"));
+        SynchronizationObject* sync_objs[handle_count];
+        for (u32 i = 0; i < handle_count; i++) {
+            handle_id_t handle_id = handle_ids[i];
+            auto sync_obj = dynamic_cast<SynchronizationObject*>(
+                process->GetHandle(handle_id));
 
-            auto start_time = std::chrono::high_resolution_clock::now();
-            while (true) {
+            // HACK
+            if (!sync_obj) {
+                LOG_WARN(Kernel, "Handle 0x{:x} is not a SynchronizationObject",
+                         handle_id);
+                std::this_thread::sleep_for(std::chrono::milliseconds(33));
+                out_handle_index = 0;
+                return RESULT_SUCCESS;
+            }
+
+            ASSERT_DEBUG(sync_obj, Kernel,
+                         "Handle 0x{:x} is not a SynchronizationObject",
+                         handle_id);
+
+            LOG_DEBUG(Kernel, "Synchronizing with {}",
+                      sync_obj->GetDebugName());
+
+            if (!sync_obj->AddWaitingThread(thread)) {
+                out_handle_index = i;
+                return RESULT_SUCCESS;
+            }
+
+            sync_objs[i] = sync_obj;
+        }
+
+        const auto action = thread->ProcessMessages(timeout);
+        switch (action.type) {
+        case ThreadActionType::Stop:
+            return RESULT_SUCCESS;
+        case ThreadActionType::Resume: {
+            const auto signalled_obj = action.payload.resume.signalled_obj;
+            if (signalled_obj) {
+                // Find the handle index
+                out_handle_index = -1;
                 for (u32 i = 0; i < handle_count; i++) {
-                    handle_id_t handle_id = handle_ids[i];
-                    auto handle = dynamic_cast<SynchronizationObject*>(
-                        process->GetHandle(handle_id));
-
-                    // HACK
-                    if (!handle) {
-                        LOG_WARN(Kernel,
-                                 "Handle 0x{:x} is not a SynchronizationObject",
-                                 handle_id);
-                        std::this_thread::sleep_for(
-                            std::chrono::milliseconds(33));
-                        return RESULT_SUCCESS;
-                    }
-
-                    ASSERT_DEBUG(handle, Kernel,
-                                 "Handle 0x{:x} is not a SynchronizationObject",
-                                 handle_id);
-
-                    LOG_DEBUG(Kernel, "Synchronizing with {}",
-                              handle->GetDebugName());
-
-                    if (handle->Wait(0)) {
+                    if (sync_objs[i] == signalled_obj) {
                         out_handle_index = i;
-                        return RESULT_SUCCESS;
+                        break;
                     }
                 }
 
-                // Check for timout
-                auto current_time = std::chrono::high_resolution_clock::now();
-                if (std::chrono::duration_cast<std::chrono::nanoseconds>(
-                        current_time - start_time)
-                        .count() > timeout)
-                    return MAKE_RESULT(Svc, Error::TimedOut);
+                return RESULT_SUCCESS;
+            } else {
+                return MAKE_RESULT(Svc, Error::TimedOut);
             }
         }
-
-        handle_id_t handle_id = handle_ids[0];
-
-        // HACK
-        if (handle_id == 0x0 || handle_id == 0x45ad76c0) {
-            LOG_WARN(Kernel, "Invalid handle");
-            out_handle_index = 0;
-            return RESULT_SUCCESS;
-        }
-
-        auto handle =
-            dynamic_cast<SynchronizationObject*>(process->GetHandle(handle_id));
-
-        // HACK
-        if (!handle) {
-            LOG_WARN(Kernel, "Handle 0x{:x} is not a SynchronizationObject",
-                     handle_id);
-            std::this_thread::sleep_for(std::chrono::milliseconds(33));
-            return RESULT_SUCCESS;
-        }
-
-        ASSERT_DEBUG(handle, Kernel,
-                     "Handle 0x{:x} is not a SynchronizationObject", handle_id);
-
-        LOG_DEBUG(Kernel, "Synchronizing with {}", handle->GetDebugName());
-
-        if (handle->Wait(timeout)) {
-            out_handle_index = 0;
-            return RESULT_SUCCESS;
-        } else {
-            return MAKE_RESULT(Svc, Error::TimedOut);
+        default:
+            LOG_FATAL(Kernel, "Thread not resumed properly");
+            return MAKE_RESULT(Svc, Error::TimedOut); // TODO
         }
     }
 }

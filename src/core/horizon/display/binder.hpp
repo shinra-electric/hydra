@@ -87,9 +87,7 @@ struct Binder {
     u32 strong_ref_count = 0;
 
     // TODO: autoclear event?
-    Binder()
-        : event{new kernel::Event(kernel::EventFlags::Signalled,
-                                  "Display event")} {}
+    Binder() : event{new kernel::Event(true, "Display event")} {}
 
     // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);

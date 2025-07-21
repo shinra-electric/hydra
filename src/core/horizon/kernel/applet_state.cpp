@@ -4,8 +4,7 @@
 
 namespace hydra::horizon::kernel {
 
-AppletState::AppletState()
-    : msg_event{new Event(EventFlags::None, "Message event")} {}
+AppletState::AppletState() : msg_event{new Event(false, "Message event")} {}
 AppletState::~AppletState() { msg_event->Release(); }
 
 void AppletState::SendMessage(AppletMessage msg) {

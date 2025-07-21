@@ -73,10 +73,10 @@ void Process::Start() {
     SignalStateChange(ProcessState::Started);
 }
 
-void Process::RequestStop() {
+void Process::Stop() {
     std::lock_guard lock(thread_mutex);
     for (auto thread : threads)
-        thread->RequestStop();
+        thread->Stop();
 
     // Signal
     SignalStateChange(ProcessState::Exiting);
