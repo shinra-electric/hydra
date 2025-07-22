@@ -98,4 +98,6 @@ class IThread : public SynchronizationObject {
     GETTER(state, GetState);
 };
 
+inline thread_local IThread* tls_current_thread;
+
 } // namespace hydra::horizon::kernel

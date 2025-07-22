@@ -68,15 +68,32 @@ class Process : public SynchronizationObject {
     // Helpers
 
     // Handles
-    AutoObject* GetHandle(handle_id_t handle_id) {
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
-            return this;
+    template <typename T>
+    T* GetHandle(handle_id_t handle_id) {
+        static_assert(std::is_base_of<AutoObject, T>::value,
+                      "T must be derived from AutoObject");
 
-        return handle_pool.Get(handle_id);
+        if (handle_id == INVALID_HANDLE_ID)
+            return nullptr;
+
+        AutoObject* obj;
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]]
+            obj = this;
+        else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]]
+            obj = tls_current_thread;
+        else
+            obj = handle_pool.Get(handle_id);
+
+        auto cast_obj = dynamic_cast<T*>(obj);
+        ASSERT_DEBUG(cast_obj != nullptr, Kernel, "Invalid handle type");
+
+        return cast_obj;
     }
+
     handle_id_t AddHandle(AutoObject* handle) {
         return handle_pool.Add(handle);
     }
+
     void FreeHandle(handle_id_t handle_id) {
         if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
             LOG_FATAL(Kernel, "Cannot free current process handle");
