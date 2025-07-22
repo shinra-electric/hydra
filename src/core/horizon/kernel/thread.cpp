@@ -62,7 +62,8 @@ void Thread::Start() {
 }
 
 ThreadAction Thread::ProcessMessages(i64 pause_timeout_ns) {
-    const auto start_time = std::chrono::steady_clock::now();
+    const auto timeout_time = std::chrono::steady_clock::now() +
+                              std::chrono::nanoseconds(pause_timeout_ns);
 
     std::unique_lock<std::mutex> lock(msg_mutex);
     while (!msg_queue.empty()) {
@@ -73,13 +74,13 @@ ThreadAction Thread::ProcessMessages(i64 pause_timeout_ns) {
         if (pause_timeout_ns == INFINITE_TIMEOUT) {
             msg_cv.wait(lock);
         } else {
-            msg_cv.wait_for(lock, std::chrono::nanoseconds(pause_timeout_ns));
+            msg_cv.wait_until(lock, timeout_time);
             const auto crnt_time = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::nanoseconds>(crnt_time -
-                                                                     start_time)
-                    .count() >= pause_timeout_ns)
-                return {.type = ThreadActionType::Resume,
-                        .payload = {.resume = {.signalled_obj = nullptr}}};
+            if (crnt_time >= timeout_time)
+                return {
+                    .type = ThreadActionType::Resume,
+                    .payload = {
+                        .resume = {.reason = ThreadResumeReason::TimedOut}}};
         }
     }
 
