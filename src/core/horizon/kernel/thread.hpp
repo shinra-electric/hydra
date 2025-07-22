@@ -1,8 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/const.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
-#include "core/hw/tegra_x1/cpu/memory.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -55,20 +53,15 @@ struct ThreadAction {
     } payload;
 };
 
-class Thread : public SynchronizationObject {
+class IThread : public SynchronizationObject {
   public:
-    Thread(Process* process_, vaddr_t stack_top_addr_, i32 priority_,
-           const std::string_view debug_name = "Thread");
-    ~Thread() override;
+    IThread(Process* process_, i32 priority_,
+            const std::string_view debug_name = "Thread")
+        : SynchronizationObject(false, debug_name), process{process_},
+          priority{priority_} {}
+    virtual ~IThread() override;
 
     void Start();
-
-    void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
-    void SetArg(u32 index, u64 value) {
-        ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
-               index);
-        args[index] = value;
-    }
 
     // Messages
     void Stop() { SendMessage({.type = ThreadMessageType::Stop}); }
@@ -81,16 +74,13 @@ class Thread : public SynchronizationObject {
     // Must not be called from a different thread
     ThreadAction ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
 
-  private:
+  protected:
     Process* process;
 
-    hw::tegra_x1::cpu::IMemory* tls_mem;
-    vaddr_t tls_addr;
-    vaddr_t stack_top_addr;
-    i32 priority;
+    virtual void Run() = 0;
 
-    vaddr_t entry_point{0};
-    u64 args[2] = {0};
+  private:
+    i32 priority;
 
     std::thread* thread{nullptr};
 

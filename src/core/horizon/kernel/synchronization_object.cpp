@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::kernel {
 
-bool SynchronizationObject::AddWaitingThread(Thread* thread) {
+bool SynchronizationObject::AddWaitingThread(IThread* thread) {
     std::lock_guard<std::mutex> lock(mutex);
     if (!signalled) {
         waiting_threads.push_back(thread);

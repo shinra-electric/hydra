@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::kernel {
 
-class Thread;
+class IThread;
 
 class SynchronizationObject : public AutoObject {
   public:
@@ -13,13 +13,13 @@ class SynchronizationObject : public AutoObject {
         const std::string_view debug_name = "SynchronizationObject")
         : AutoObject(debug_name), signalled{signalled_} {}
 
-    bool AddWaitingThread(Thread* thread);
+    bool AddWaitingThread(IThread* thread);
     void Signal();
     bool Clear();
 
   private:
     std::mutex mutex;
-    std::vector<Thread*> waiting_threads;
+    std::vector<IThread*> waiting_threads;
     bool signalled{false};
 };
 

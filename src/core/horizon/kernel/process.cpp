@@ -1,6 +1,5 @@
 #include "core/horizon/kernel/process.hpp"
 
-#include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 
 namespace hydra::horizon::kernel {
@@ -50,11 +49,11 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
     return mem;
 }
 
-std::pair<Thread*, handle_id_t>
+std::pair<GuestThread*, handle_id_t>
 Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     // Thread
     main_thread =
-        new Thread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
+        new GuestThread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
     auto handle_id = AddHandle(main_thread);
 
     // Stack memory

@@ -22,7 +22,7 @@ class Bus;
 namespace hydra::horizon::kernel {
 
 class ServiceBase;
-class Thread;
+class IThread;
 class Process;
 
 class Kernel {
@@ -37,7 +37,7 @@ class Kernel {
         service_ports[std::string(port_name)] = service;
     }
 
-    void SupervisorCall(Process* process, Thread* thread,
+    void SupervisorCall(Process* process, IThread* thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
 
     // SVCs
@@ -57,7 +57,7 @@ class Kernel {
                              i32 priority, i32 processor_id,
                              handle_id_t& out_thread_handle_id);
     result_t svcStartThread(Process* process, handle_id_t thread_handle_id);
-    void svcExitThread(Thread* thread);
+    void svcExitThread(IThread* thread);
     void svcSleepThread(i64 nano);
     result_t svcGetThreadPriority(Process* process,
                                   handle_id_t thread_handle_id,
@@ -84,7 +84,7 @@ class Kernel {
                                      handle_id_t& out_transfer_mem_handle_id);
     result_t svcCloseHandle(Process* process, handle_id_t handle_id);
     result_t svcResetSignal(Process* process, handle_id_t handle_id);
-    result_t svcWaitSynchronization(Process* process, Thread* thread,
+    result_t svcWaitSynchronization(Process* process, IThread* thread,
                                     handle_id_t* handle_ids, i32 handle_count,
                                     i64 timeout, u64& out_handle_index);
     result_t svcCancelSynchronization(Process* process,

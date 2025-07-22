@@ -6,6 +6,9 @@
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 
+// TODO: remove dependency
+#include "core/horizon/kernel/guest_thread.hpp"
+
 namespace hydra::horizon::kernel {
 
 enum class ProcessState {
@@ -34,14 +37,15 @@ class Process : public SynchronizationObject {
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
 
     // Thread
-    std::pair<Thread*, handle_id_t>
+    // TODO: let the caller create the thread
+    std::pair<GuestThread*, handle_id_t>
     CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
 
-    void RegisterThread(Thread* thread) {
+    void RegisterThread(IThread* thread) {
         std::lock_guard<std::mutex> lock(thread_mutex);
         threads.push_back(thread);
     }
-    void UnregisterThread(Thread* thread) {
+    void UnregisterThread(IThread* thread) {
         std::lock_guard<std::mutex> lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
@@ -97,9 +101,9 @@ class Process : public SynchronizationObject {
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Thread
-    Thread* main_thread{nullptr};
+    GuestThread* main_thread{nullptr};
     std::mutex thread_mutex;
-    std::vector<Thread*> threads;
+    std::vector<IThread*> threads;
 
     // Handles
     DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?

@@ -27,6 +27,8 @@ add_library(hydra-core
     horizon/kernel/shared_memory.hpp
     horizon/kernel/thread.cpp
     horizon/kernel/thread.hpp
+    horizon/kernel/guest_thread.cpp
+    horizon/kernel/guest_thread.hpp
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
     horizon/kernel/handle_pool.hpp

@@ -17,7 +17,7 @@ Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
 
 Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
-void Kernel::SupervisorCall(Process* process, Thread* thread,
+void Kernel::SupervisorCall(Process* process, IThread* thread,
                             hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
     result_t res;
     i32 tmp_i32;
@@ -371,7 +371,7 @@ result_t Kernel::svcCreateThread(Process* process, vaddr_t entry_point,
 
     // Thread
     // TODO: processor ID
-    auto thread = new Thread(process, stack_top_addr, priority);
+    auto thread = new GuestThread(process, stack_top_addr, priority);
     thread->SetEntryPoint(entry_point);
     thread->SetArg(0, args_addr);
     out_thread_handle_id = process->AddHandle(thread);
@@ -385,7 +385,7 @@ result_t Kernel::svcStartThread(Process* process,
               thread_handle_id);
 
     // Start thread
-    auto thread = dynamic_cast<Thread*>(process->GetHandle(thread_handle_id));
+    auto thread = dynamic_cast<IThread*>(process->GetHandle(thread_handle_id));
     ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
                  thread_handle_id);
     thread->Start();
@@ -393,7 +393,7 @@ result_t Kernel::svcStartThread(Process* process,
     return RESULT_SUCCESS;
 }
 
-void Kernel::svcExitThread(Thread* thread) {
+void Kernel::svcExitThread(IThread* thread) {
     LOG_DEBUG(Kernel, "svcExitThread called");
 
     thread->Stop();
@@ -591,7 +591,7 @@ result_t Kernel::svcResetSignal(Process* process, handle_id_t handle_id) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
+result_t Kernel::svcWaitSynchronization(Process* process, IThread* thread,
                                         handle_id_t* handle_ids,
                                         i32 handle_count, i64 timeout,
                                         u64& out_handle_index) {
@@ -603,8 +603,8 @@ result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
 
     if (handle_count == 0) {
         // TODO: allow waiting forever
-        ASSERT(timeout != INFINITE_TIMEOUT, Kernel,
-               "Infinite timeout not implemented");
+        ASSERT_DEBUG(timeout != INFINITE_TIMEOUT, Kernel,
+                     "Infinite timeout not implemented");
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         out_handle_index = 0; // TODO: correct?
 
@@ -648,6 +648,7 @@ result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
             switch (action.payload.resume.reason) {
             case ThreadResumeReason::Signalled: {
                 const auto signalled_obj = action.payload.resume.signalled_obj;
+
                 // Find the handle index
                 out_handle_index = -1;
                 for (u32 i = 0; i < handle_count; i++) {
@@ -667,7 +668,7 @@ result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
         }
         default:
             LOG_FATAL(Kernel, "Thread not resumed properly");
-            return MAKE_RESULT(Svc, Error::TimedOut); // TODO
+            unreachable();
         }
     }
 }
@@ -677,8 +678,8 @@ result_t Kernel::svcCancelSynchronization(Process* process,
     LOG_DEBUG(Kernel, "svcCancelSynchronization called (thread: 0x{:x})",
               thread_handle_id);
 
-    auto thread = dynamic_cast<Thread*>(process->GetHandle(thread_handle_id));
-    ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
+    auto thread = dynamic_cast<IThread*>(process->GetHandle(thread_handle_id));
+    ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not an IThread",
                  thread_handle_id);
     thread->Resume();
 
