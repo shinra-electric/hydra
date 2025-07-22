@@ -38,11 +38,18 @@ enum class ThreadActionType {
     Resume,
 };
 
+enum class ThreadResumeReason {
+    Signalled,
+    TimedOut,
+    Cancelled,
+};
+
 struct ThreadAction {
     ThreadActionType type{ThreadActionType::None};
     union {
         // Resume
         struct {
+            ThreadResumeReason reason;
             SynchronizationObject* signalled_obj;
         } resume;
     } payload;

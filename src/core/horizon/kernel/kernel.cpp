@@ -645,8 +645,9 @@ result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
         case ThreadActionType::Stop:
             return RESULT_SUCCESS;
         case ThreadActionType::Resume: {
-            const auto signalled_obj = action.payload.resume.signalled_obj;
-            if (signalled_obj) {
+            switch (action.payload.resume.reason) {
+            case ThreadResumeReason::Signalled: {
+                const auto signalled_obj = action.payload.resume.signalled_obj;
                 // Find the handle index
                 out_handle_index = -1;
                 for (u32 i = 0; i < handle_count; i++) {
@@ -657,8 +658,11 @@ result_t Kernel::svcWaitSynchronization(Process* process, Thread* thread,
                 }
 
                 return RESULT_SUCCESS;
-            } else {
+            }
+            case ThreadResumeReason::TimedOut:
                 return MAKE_RESULT(Svc, Error::TimedOut);
+            case ThreadResumeReason::Cancelled:
+                return MAKE_RESULT(Svc, Error::Cancelled);
             }
         }
         default:
@@ -673,8 +677,10 @@ result_t Kernel::svcCancelSynchronization(Process* process,
     LOG_DEBUG(Kernel, "svcCancelSynchronization called (thread: 0x{:x})",
               thread_handle_id);
 
-    // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+    auto thread = dynamic_cast<Thread*>(process->GetHandle(thread_handle_id));
+    ASSERT_DEBUG(thread, Kernel, "Handle 0x{:x} is not a Thread",
+                 thread_handle_id);
+    thread->Resume();
 
     return RESULT_SUCCESS;
 }

@@ -105,13 +105,20 @@ ThreadAction Thread::ProcessMessagesImpl() {
             return {.type = ThreadActionType::Stop};
         case ThreadMessageType::Pause:
             state = ThreadState::Paused;
+            action = {};
             break;
-        case ThreadMessageType::Resume:
+        case ThreadMessageType::Resume: {
+            const auto signalled_obj = msg.payload.resume.signalled_obj;
+
             state = ThreadState::Running;
             action.type = ThreadActionType::Resume;
-            action.payload.resume = {.signalled_obj =
-                                         msg.payload.resume.signalled_obj};
+            action.payload.resume = {.reason =
+                                         (signalled_obj != nullptr
+                                              ? ThreadResumeReason::Signalled
+                                              : ThreadResumeReason::Cancelled),
+                                     .signalled_obj = signalled_obj};
             break;
+        }
         }
     }
 
