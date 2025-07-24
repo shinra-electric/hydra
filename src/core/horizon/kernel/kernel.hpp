@@ -19,12 +19,21 @@ namespace hydra::hw {
 class Bus;
 }
 
+// TODO: remove this
+namespace hydra::horizon::services {
+class IService;
+}
+
+namespace hydra::horizon::kernel::hipc {
+class ServerSession;
+class ClientSession;
+class Session;
+} // namespace hydra::horizon::kernel::hipc
+
 namespace hydra::horizon::kernel {
 
-class ServiceBase;
 class IThread;
 class Process;
-class Session;
 
 class Kernel {
   public:
@@ -34,7 +43,7 @@ class Kernel {
     ~Kernel();
 
     void ConnectServiceToPort(const std::string& port_name,
-                              ServiceBase* service) {
+                              services::IService* service) {
         service_ports[std::string(port_name)] = service;
     }
 
@@ -86,10 +95,11 @@ class Kernel {
                                       uptr var_addr, u32 self_tag, i64 timeout);
     result_t SignalProcessWideKey(uptr addr, i32 count);
     void GetSystemTick(u64& out_tick);
-    result_t ConnectToNamedPort(const std::string& name, Session*& out_session);
-    result_t SendSyncRequest(Process* crnt_process,
+    result_t ConnectToNamedPort(const std::string& name,
+                                hipc::ClientSession*& out_client_session);
+    result_t SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                              hw::tegra_x1::cpu::IMemory* tls_mem,
-                             Session* session);
+                             hipc::ClientSession* client_session);
     result_t GetThreadId(IThread* thread, u64& out_thread_id);
     result_t Break(BreakReason reason, uptr buffer_ptr, usize buffer_size);
     result_t OutputDebugString(const char* str, usize len);
@@ -102,13 +112,16 @@ class Kernel {
     result_t WaitForAddress(Process* crnt_process, vaddr_t addr,
                             ArbitrationType arbitration_type, u32 value,
                             u64 timeout);
+    result_t CreateSession(bool is_light, u64 name,
+                           hipc::ServerSession*& out_server_session,
+                           hipc::ClientSession*& out_client_session);
 
   private:
     filesystem::Filesystem filesystem;
     ProcessManager process_manager;
 
     // Services
-    std::map<std::string, ServiceBase*> service_ports;
+    std::map<std::string, services::IService*> service_ports; // TODO: use ports
 
     std::mutex sync_mutex;
     // TODO: use a different container?

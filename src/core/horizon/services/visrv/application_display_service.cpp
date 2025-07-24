@@ -32,28 +32,27 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
                              SetLayerScalingMode, 2102, ConvertScalingMode,
                              5202, GetDisplayVsyncEvent)
 
+result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx) {
+    AddService(*ctx, new hosbinder::IHOSBinderDriver());
+    return RESULT_SUCCESS;
+}
+
 result_t
-IApplicationDisplayService::GetRelayService(add_service_fn_t add_service) {
-    add_service(new hosbinder::IHOSBinderDriver());
+IApplicationDisplayService::GetSystemDisplayService(RequestContext* ctx) {
+    AddService(*ctx, new ISystemDisplayService());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::GetSystemDisplayService(
-    add_service_fn_t add_service) {
-    add_service(new ISystemDisplayService());
-    return RESULT_SUCCESS;
-}
-
-result_t IApplicationDisplayService::GetManagerDisplayService(
-    add_service_fn_t add_service) {
-    add_service(new IManagerDisplayService());
+result_t
+IApplicationDisplayService::GetManagerDisplayService(RequestContext* ctx) {
+    AddService(*ctx, new IManagerDisplayService());
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
-    add_service_fn_t add_service) {
+    RequestContext* ctx) {
     // TODO: how is this different from GetRelayService?
-    add_service(new hosbinder::IHOSBinderDriver());
+    AddService(*ctx, new hosbinder::IHOSBinderDriver());
     return RESULT_SUCCESS;
 }
 

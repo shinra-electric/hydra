@@ -6,9 +6,8 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxyService, 0, OpenApplicationProxy)
 
-result_t
-IApplicationProxyService::OpenApplicationProxy(add_service_fn_t add_service) {
-    add_service(new IApplicationProxy());
+result_t IApplicationProxyService::OpenApplicationProxy(RequestContext* ctx) {
+    AddService(*ctx, new IApplicationProxy());
     return RESULT_SUCCESS;
 }
 

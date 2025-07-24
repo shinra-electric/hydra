@@ -6,7 +6,7 @@
 
 namespace hydra::horizon::services::audio {
 
-class IAudioDevice : public ServiceBase {
+class IAudioDevice : public IService {
   public:
     IAudioDevice() : event{new kernel::Event(false, "IAudioDevice event")} {}
 

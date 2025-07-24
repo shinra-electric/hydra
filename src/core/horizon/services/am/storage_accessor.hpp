@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::am {
 
-class IStorageAccessor : public ServiceBase {
+class IStorageAccessor : public IService {
   public:
     IStorageAccessor(const sized_ptr data_) : data{data_} {}
 

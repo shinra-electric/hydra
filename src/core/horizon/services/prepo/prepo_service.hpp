@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::prepo {
 
-class IPrepoService : public ServiceBase {
+class IPrepoService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

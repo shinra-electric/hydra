@@ -17,12 +17,12 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor() {
     ASSERT(CONTROLLER, Services, "No library applet self controller");
 }
 
-result_t ILibraryAppletSelfAccessor::PopInData(add_service_fn_t add_service) {
-    add_service(CONTROLLER->PopInData());
+result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx) {
+    AddService(*ctx, CONTROLLER->PopInData());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletSelfAccessor::PushOutData(ServiceBase* storage_) {
+result_t ILibraryAppletSelfAccessor::PushOutData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -30,14 +30,13 @@ result_t ILibraryAppletSelfAccessor::PushOutData(ServiceBase* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t
-ILibraryAppletSelfAccessor::PopInteractiveInData(add_service_fn_t add_service) {
-    add_service(CONTROLLER->PopInteractiveInData());
+result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx) {
+    AddService(*ctx, CONTROLLER->PopInteractiveInData());
     return RESULT_SUCCESS;
 }
 
 result_t
-ILibraryAppletSelfAccessor::PushInteractiveOutData(ServiceBase* storage_) {
+ILibraryAppletSelfAccessor::PushInteractiveOutData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 

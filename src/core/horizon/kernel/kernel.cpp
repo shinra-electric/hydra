@@ -1,9 +1,10 @@
 #include "core/horizon/kernel/kernel.hpp"
 
 #include "core/debugger/debugger.hpp"
-#include "core/horizon/kernel/cmif.hpp"
+#include "core/horizon/kernel/hipc/client_session.hpp"
+#include "core/horizon/kernel/hipc/server_session.hpp"
+#include "core/horizon/kernel/hipc/session.hpp"
 #include "core/horizon/kernel/process.hpp"
-#include "core/horizon/kernel/session.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
@@ -209,19 +210,20 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegX(0, tmp_u64);
         break;
     case 0x1f: {
-        Session* session;
+        hipc::ClientSession* client_session;
         res = ConnectToNamedPort(
             reinterpret_cast<const char*>(
                 crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
-            session);
+            client_session);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandle(session));
+        guest_thread->SetRegX(1, crnt_process->AddHandle(client_session));
         break;
     }
     case 0x21:
-        res = SendSyncRequest(
-            crnt_process, guest_thread->GetTlsMemory(),
-            crnt_process->GetHandle<Session>(guest_thread->GetRegX(0)));
+        res = SendSyncRequest(crnt_process, crnt_thread,
+                              guest_thread->GetTlsMemory(),
+                              crnt_process->GetHandle<hipc::ClientSession>(
+                                  guest_thread->GetRegX(0)));
         guest_thread->SetRegW(0, res);
         break;
     case 0x25:
@@ -278,6 +280,17 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             guest_thread->GetRegW(2), guest_thread->GetRegX(3));
         guest_thread->SetRegW(0, res);
         break;
+    case 0x40: {
+        hipc::ServerSession* server_session = nullptr;
+        hipc::ClientSession* client_session = nullptr;
+        res = CreateSession(guest_thread->GetRegW(2) != 0,
+                            guest_thread->GetRegX(3), server_session,
+                            client_session);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, crnt_process->AddHandle(server_session));
+        guest_thread->SetRegW(2, crnt_process->AddHandle(client_session));
+        break;
+    }
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
@@ -731,7 +744,7 @@ void Kernel::GetSystemTick(u64& out_tick) {
 }
 
 result_t Kernel::ConnectToNamedPort(const std::string& name,
-                                    Session*& out_session) {
+                                    hipc::ClientSession*& out_client_session) {
     LOG_DEBUG(Kernel, "ConnectToNamedPort called (name: {})", name);
 
     // TODO: don't construct a new string?
@@ -741,130 +754,31 @@ result_t Kernel::ConnectToNamedPort(const std::string& name,
         return MAKE_RESULT(Svc, Error::NotFound);
     }
 
-    out_session = new Session(it->second);
+    // TODO: the server should already exist
+    auto server_session = new hipc::ServerSession(it->second);
+    out_client_session = new hipc::ClientSession();
+    // TODO: is it fine to just instantiate it like this?
+    new hipc::Session(server_session, out_client_session);
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SendSyncRequest(Process* crnt_process,
+result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                                  hw::tegra_x1::cpu::IMemory* tls_mem,
-                                 Session* session) {
+                                 hipc::ClientSession* client_session) {
     LOG_DEBUG(Kernel, "SendSyncRequest called (session: {})",
-              session->GetDebugName());
+              client_session->GetDebugName());
 
-    auto tls_ptr = reinterpret_cast<void*>(tls_mem->GetPtr());
+    // Pause the thread
+    crnt_thread->Pause();
 
-    // Request
+    // Send request
+    client_session->GetParent()->GetServerSide()->PushRequest(
+        crnt_process, tls_mem->GetPtr(),
+        [crnt_thread]() { crnt_thread->Resume(); });
 
-    // HIPC header
-    auto hipc_in = hipc::parse_request(tls_ptr);
-    auto command_type = static_cast<cmif::CommandType>(hipc_in.meta.type);
-    const bool is_tipc = (command_type >= cmif::CommandType::TipcCommandRegion);
-    if (!is_tipc)
-        hipc_in.data.data_words =
-            cmif::align_data_start(hipc_in.data.data_words);
-
-    // Scratch memory
-    u8 scratch_buffer[0x200];
-    u8 scratch_buffer_objects[0x100];
-    u8 scratch_buffer_copy_handles[0x100];
-    u8 scratch_buffer_move_handles[0x100];
-
-    // Request context
-    hipc::Readers readers(crnt_process->GetMmu(), hipc_in);
-    hipc::Writers writers(crnt_process->GetMmu(), hipc_in, scratch_buffer,
-                          scratch_buffer_objects, scratch_buffer_copy_handles,
-                          scratch_buffer_move_handles);
-    RequestContext context{
-        crnt_process,
-        readers,
-        writers,
-        [&](ServiceBase* service) {
-            auto session = new Session(service);
-            handle_id_t handle_id = crnt_process->AddHandle(session);
-            session->SetHandleId(handle_id);
-            writers.move_handles_writer.Write(handle_id);
-        },
-        [&](handle_id_t handle_id) {
-            return crnt_process->GetHandle<Session>(handle_id)->GetService();
-        },
-    };
-
-    // Dispatch
-    cmif::CommandType response_command_type{cmif::CommandType::Invalid};
-    bool should_respond = true;
-    switch (command_type) {
-    case cmif::CommandType::Close:
-    case cmif::CommandType::TipcClose: // TODO: is this the same as regular
-                                       // close?
-        session->Close();
-        should_respond = false;
-        break;
-    case cmif::CommandType::Request:
-    case cmif::CommandType::RequestWithContext: {
-        // TODO: how is RequestWithContext different?
-        session->Request(context);
-        // TODO: respond command type 0?
-        break;
-    }
-    case cmif::CommandType::Control:
-    case cmif::CommandType::ControlWithContext:
-        // TODO: how is ControlWithContext different?
-        session->Control(crnt_process, readers, writers);
-        break;
-    default:
-        if (command_type >= cmif::CommandType::TipcCommandRegion) {
-            const auto command_id =
-                (u32)command_type - (u32)cmif::CommandType::TipcCommandRegion;
-            session->TipcRequest(context, command_id);
-            response_command_type = command_type; // Same as input
-            break;
-        }
-
-        LOG_WARN(Kernel, "Unknown command {}", command_type);
-        break;
-    }
-
-    // Response
-    if (should_respond) {
-        // HIPC header
-#define GET_ARRAY_SIZE(writer)                                                 \
-    static_cast<u32>(align(writers.writer.GetWrittenSize(), (usize)4) /        \
-                     sizeof(u32))
-
-#define WRITE_ARRAY(writer, ptr)                                               \
-    if (ptr) {                                                                 \
-        memcpy(ptr, writers.writer.GetBase(),                                  \
-               writers.writer.GetWrittenSize());                               \
-    }
-
-        hipc::Metadata meta{
-            .type = (u32)response_command_type,
-            .num_data_words =
-                GET_ARRAY_SIZE(writer) + GET_ARRAY_SIZE(objects_writer),
-            .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
-            .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)};
-        auto response = hipc::make_request(tls_ptr, meta);
-        if (!is_tipc)
-            response.data_words = cmif::align_data_start(response.data_words);
-
-        u8* data_start = reinterpret_cast<u8*>(response.data_words);
-        if (command_type <
-            cmif::CommandType::TipcCommandRegion) // TODO: is this really how it
-                                                  // works?
-            data_start = align_ptr(data_start, 0x10);
-        WRITE_ARRAY(writer, data_start);
-        if (writers.objects_writer.GetWrittenSize() != 0) {
-            memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
-                   writers.objects_writer.GetBase(),
-                   writers.objects_writer.GetWrittenSize());
-        }
-        WRITE_ARRAY(copy_handles_writer, response.copy_handles);
-        WRITE_ARRAY(move_handles_writer, response.move_handles);
-
-#undef GET_ARRAY_SIZE
-#undef WRITE_ARRAY
-    }
+    // Wait for response
+    crnt_thread->ProcessMessages();
 
     return RESULT_SUCCESS;
 }
@@ -1107,6 +1021,22 @@ result_t Kernel::WaitForAddress(Process* crnt_process, vaddr_t addr,
                 }); // TODO: is the timeout correct?
         }
     }
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::CreateSession(bool is_light, u64 name,
+                               hipc::ServerSession*& out_server_session,
+                               hipc::ClientSession*& out_client_session) {
+    LOG_DEBUG(Kernel, "CreateSession called (is_light: {}, name: 0x{:08x})",
+              is_light, name);
+
+    // TODO: what are light sessions?
+    // TODO: what's the purpose of the name?
+    out_server_session = new hipc::ServerSession(nullptr); // TODO: service?
+    out_client_session = new hipc::ClientSession();
+    // TODO: is it fine to just instantiate it like this?
+    new hipc::Session(out_server_session, out_client_session);
 
     return RESULT_SUCCESS;
 }

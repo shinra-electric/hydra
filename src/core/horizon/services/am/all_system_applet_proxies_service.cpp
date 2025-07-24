@@ -12,32 +12,32 @@ DEFINE_SERVICE_COMMAND_TABLE(IAllSystemAppletProxiesService, 100,
                              OpenLibraryAppletProxy, 350,
                              OpenSystemApplicationProxy)
 
-result_t IAllSystemAppletProxiesService::OpenSystemAppletProxy(
-    add_service_fn_t add_service) {
-    add_service(new ISystemAppletProxy());
+result_t
+IAllSystemAppletProxiesService::OpenSystemAppletProxy(RequestContext* ctx) {
+    AddService(*ctx, new ISystemAppletProxy());
     return RESULT_SUCCESS;
 }
 
-result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(
-    add_service_fn_t add_service) {
-    return OpenLibraryAppletProxyImpl(add_service);
+result_t
+IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(RequestContext* ctx) {
+    return OpenLibraryAppletProxyImpl(ctx);
 }
 
 result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
-    add_service_fn_t add_service, u64 _reserved_x0,
+    RequestContext* ctx, u64 _reserved_x0,
     InHandle<HandleAttr::Copy> crnt_process_handle) {
-    return OpenLibraryAppletProxyImpl(add_service);
+    return OpenLibraryAppletProxyImpl(ctx);
 }
 
 result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxyImpl(
-    add_service_fn_t add_service) {
-    add_service(new ILibraryAppletProxy());
+    RequestContext* ctx) {
+    AddService(*ctx, new ILibraryAppletProxy());
     return RESULT_SUCCESS;
 }
 
 result_t IAllSystemAppletProxiesService::OpenSystemApplicationProxy(
-    add_service_fn_t add_service) {
-    add_service(new IApplicationProxy());
+    RequestContext* ctx) {
+    AddService(*ctx, new IApplicationProxy());
     return RESULT_SUCCESS;
 }
 

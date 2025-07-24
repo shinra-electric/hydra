@@ -11,7 +11,7 @@ enum class OperationMode {
     Console,
 };
 
-class ICommonStateGetter : public ServiceBase {
+class ICommonStateGetter : public IService {
   public:
     ICommonStateGetter()
         : default_display_resolution_change_event{new kernel::Event(

@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::am {
 
-class IWindowController : public ServiceBase {
+class IWindowController : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

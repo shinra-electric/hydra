@@ -4,21 +4,21 @@
 
 namespace hydra::horizon::services::am {
 
-class ILibraryAppletProxy : public ServiceBase {
+class ILibraryAppletProxy : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t GetCommonStateGetter(add_service_fn_t add_service);
-    result_t GetSelfController(add_service_fn_t add_service);
-    result_t GetWindowController(add_service_fn_t add_service);
-    result_t GetAudioController(add_service_fn_t add_service);
-    result_t GetDisplayController(add_service_fn_t add_service);
-    result_t GetProcessWindingController(add_service_fn_t add_service);
-    result_t GetLibraryAppletCreator(add_service_fn_t add_service);
-    result_t OpenLibraryAppletSelfAccessor(add_service_fn_t add_service);
-    result_t GetDebugFunctions(add_service_fn_t add_service);
+    result_t GetCommonStateGetter(RequestContext* ctx);
+    result_t GetSelfController(RequestContext* ctx);
+    result_t GetWindowController(RequestContext* ctx);
+    result_t GetAudioController(RequestContext* ctx);
+    result_t GetDisplayController(RequestContext* ctx);
+    result_t GetProcessWindingController(RequestContext* ctx);
+    result_t GetLibraryAppletCreator(RequestContext* ctx);
+    result_t OpenLibraryAppletSelfAccessor(RequestContext* ctx);
+    result_t GetDebugFunctions(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

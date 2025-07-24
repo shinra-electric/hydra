@@ -8,13 +8,13 @@ DEFINE_SERVICE_COMMAND_TABLE(IHardwareOpusDecoderManager, 0,
                              OpenHardwareOpusDecoder, 1, GetWorkBufferSize)
 
 result_t IHardwareOpusDecoderManager::OpenHardwareOpusDecoder(
-    add_service_fn_t add_service, i32 sample_rate, i32 channel_count,
+    RequestContext* ctx, i32 sample_rate, i32 channel_count,
     u32 work_buffer_size) {
     LOG_DEBUG(Services,
               "Sample rate: {}, channel count: {}, work buffer size: 0x{:x}",
               sample_rate, channel_count, work_buffer_size);
 
-    add_service(new IHardwareOpusDecoder());
+    AddService(*ctx, new IHardwareOpusDecoder());
     return RESULT_SUCCESS;
 }
 

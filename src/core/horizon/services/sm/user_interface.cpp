@@ -49,15 +49,14 @@ namespace hydra::horizon::services::sm {
 DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterClient, 1,
                              GetServiceHandle)
 
-result_t IUserInterface::GetServiceHandle(add_service_fn_t add_service,
-                                          u64 name) {
+result_t IUserInterface::GetServiceHandle(RequestContext* ctx, u64 name) {
     LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
 #define SERVICE_CASE_CASE(str) case str_to_u64(str):
 // TODO: don't instantiate the services?
 #define SERVICE_CASE(name, ...)                                                \
     FOR_EACH_0_1(SERVICE_CASE_CASE, __VA_ARGS__)                               \
-    add_service(new name());                                                   \
+    AddService(*ctx, new name());                                              \
     break;
 
     switch (name) {

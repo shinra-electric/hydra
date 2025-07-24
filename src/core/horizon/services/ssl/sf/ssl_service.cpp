@@ -7,12 +7,12 @@ namespace hydra::horizon::services::ssl::sf {
 DEFINE_SERVICE_COMMAND_TABLE(ISslService, 0, CreateContext, 5,
                              SetInterfaceVersion)
 
-result_t ISslService::CreateContext(add_service_fn_t add_service,
+result_t ISslService::CreateContext(RequestContext* ctx,
                                     aligned<SslVersion, 8> version,
                                     u64 pid_placeholder) {
     LOG_DEBUG(Services, "Version: {}", version.Get());
 
-    add_service(new ISslContext(version));
+    AddService(*ctx, new ISslContext(version));
     return RESULT_SUCCESS;
 }
 

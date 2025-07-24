@@ -5,7 +5,7 @@
 
 namespace hydra::horizon::services::am {
 
-class IHomeMenuFunctions : public ServiceBase {
+class IHomeMenuFunctions : public IService {
   public:
     IHomeMenuFunctions()
         : pop_from_general_channel_event{

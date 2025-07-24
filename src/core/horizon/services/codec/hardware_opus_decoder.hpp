@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::codec {
 
-class IHardwareOpusDecoder : public ServiceBase {
+class IHardwareOpusDecoder : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::account {
 
-class IAccountServiceForApplication : public ServiceBase {
+class IAccountServiceForApplication : public IService {
   public:
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
@@ -20,9 +20,9 @@ class IAccountServiceForApplication : public ServiceBase {
     // TODO: correct?
     result_t ListOpenUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetLastOpenedUser(uuid_t* out_user_id);
-    result_t GetProfile(add_service_fn_t add_service, uuid_t user_id);
+    result_t GetProfile(RequestContext* ctx, uuid_t user_id);
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV0);
-    result_t GetBaasAccountManagerForApplication(add_service_fn_t add_service,
+    result_t GetBaasAccountManagerForApplication(RequestContext* ctx,
                                                  uuid_t user_id);
     STUB_REQUEST_COMMAND(InitializeApplicationInfo);
     STUB_REQUEST_COMMAND(IsUserAccountSwitchLocked);

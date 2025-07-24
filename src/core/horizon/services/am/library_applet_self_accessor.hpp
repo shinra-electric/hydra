@@ -16,7 +16,7 @@ struct AppletIdentityInfo {
     u64 application_id;
 };
 
-class ILibraryAppletSelfAccessor : public ServiceBase {
+class ILibraryAppletSelfAccessor : public IService {
   public:
     ILibraryAppletSelfAccessor();
 
@@ -25,10 +25,10 @@ class ILibraryAppletSelfAccessor : public ServiceBase {
 
   private:
     // Commands
-    result_t PopInData(add_service_fn_t add_service);
-    result_t PushOutData(ServiceBase* storage_);
-    result_t PopInteractiveInData(add_service_fn_t add_service);
-    result_t PushInteractiveOutData(ServiceBase* storage_);
+    result_t PopInData(RequestContext* ctx);
+    result_t PushOutData(IService* storage_);
+    result_t PopInteractiveInData(RequestContext* ctx);
+    result_t PushInteractiveOutData(IService* storage_);
     result_t GetLibraryAppletInfo(LibraryAppletInfo* out_info);
     result_t GetCallerAppletIdentityInfo(AppletIdentityInfo* out_info);
 };

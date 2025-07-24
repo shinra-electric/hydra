@@ -18,7 +18,7 @@ struct Buffer {
 
 } // namespace
 
-class IAudioOut : public ServiceBase {
+class IAudioOut : public IService {
   public:
     IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count);
 
