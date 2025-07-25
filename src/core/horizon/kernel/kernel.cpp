@@ -773,6 +773,8 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
     // Wait for response
     crnt_thread->ProcessMessages();
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
     return RESULT_SUCCESS;
 }
 

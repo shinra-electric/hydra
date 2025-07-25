@@ -38,7 +38,6 @@ class Server {
   private:
     kernel::HostThread* thread;
 
-    std::mutex sessions_mutex;
     std::vector<kernel::hipc::ServerSession*> sessions;
 
     void MainLoop(kernel::should_stop_fn_t should_stop);

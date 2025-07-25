@@ -20,7 +20,6 @@ void Server::Start() {
 }
 
 void Server::RegisterSession(kernel::hipc::ServerSession* session) {
-    std::lock_guard<std::mutex> lock(sessions_mutex);
     sessions.push_back(session);
 }
 

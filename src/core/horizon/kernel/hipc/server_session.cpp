@@ -14,6 +14,8 @@ void ServerSession::PushRequest(
 }
 
 void ServerSession::HandleAllRequests(request_handler_fn_t request_handler) {
+    Clear();
+
     {
         std::lock_guard<std::mutex> lock(mutex);
         for (const auto& request : requests) {
@@ -22,8 +24,6 @@ void ServerSession::HandleAllRequests(request_handler_fn_t request_handler) {
         }
         requests.clear();
     }
-
-    Clear();
 }
 
 } // namespace hydra::horizon::kernel::hipc

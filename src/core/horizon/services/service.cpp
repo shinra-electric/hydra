@@ -128,7 +128,6 @@ void IService::HandleRequest(Server& server, kernel::Process* caller_process,
 }
 
 void IService::AddService(RequestContext& context, IService* service) {
-    LOG_INFO(Services, "IS DOMAIN: {}", is_domain);
     if (is_domain) {
         // Convert to domain
         service->is_domain = true;
