@@ -3,6 +3,7 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/handle_pool.hpp"
+#include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/mutex.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
@@ -41,11 +42,6 @@ class Kernel {
 
     Kernel();
     ~Kernel();
-
-    void ConnectServiceToPort(const std::string& port_name,
-                              services::IService* service) {
-        service_ports[std::string(port_name)] = service;
-    }
 
     void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
@@ -95,14 +91,14 @@ class Kernel {
                                       uptr var_addr, u32 self_tag, i64 timeout);
     result_t SignalProcessWideKey(uptr addr, i32 count);
     void GetSystemTick(u64& out_tick);
-    result_t ConnectToNamedPort(const std::string& name,
+    result_t ConnectToNamedPort(const std::string_view name,
                                 hipc::ClientSession*& out_client_session);
     result_t SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                              hw::tegra_x1::cpu::IMemory* tls_mem,
                              hipc::ClientSession* client_session);
     result_t GetThreadId(IThread* thread, u64& out_thread_id);
     result_t Break(BreakReason reason, uptr buffer_ptr, usize buffer_size);
-    result_t OutputDebugString(const char* str, usize len);
+    result_t OutputDebugString(const std::string_view str, usize len);
     result_t GetInfo(Process* crnt_process, InfoType info_type, AutoObject* obj,
                      u64 info_sub_type, u64& out_info);
     result_t MapPhysicalMemory(Process* crnt_process, vaddr_t addr, usize size);
@@ -121,7 +117,7 @@ class Kernel {
     ProcessManager process_manager;
 
     // Services
-    std::map<std::string, services::IService*> service_ports; // TODO: use ports
+    hipc::ServiceManager<std::string> service_manager;
 
     std::mutex sync_mutex;
     // TODO: use a different container?
@@ -130,6 +126,7 @@ class Kernel {
 
   public:
     REF_GETTER(process_manager, GetProcessManager);
+    REF_GETTER(service_manager, GetServiceManager);
 };
 
 } // namespace hydra::horizon::kernel

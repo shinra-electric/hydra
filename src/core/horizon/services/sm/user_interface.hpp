@@ -11,7 +11,8 @@ class IUserInterface : public IService {
   private:
     // Commands
     STUB_REQUEST_COMMAND(RegisterClient);
-    result_t GetServiceHandle(RequestContext* ctx, u64 name);
+    result_t GetServiceHandle(kernel::Process* process, u64 name,
+                              OutHandle<HandleAttr::Move> out_handle);
 };
 
 } // namespace hydra::horizon::services::sm

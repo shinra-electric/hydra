@@ -18,9 +18,12 @@ void IThread::Start() {
     thread = new std::thread([&]() {
         tls_current_thread = this;
 
-        process->RegisterThread(this);
+        // TODO: don't allow null processes
+        if (process)
+            process->RegisterThread(this);
         Run();
-        process->UnregisterThread(this);
+        if (process)
+            process->UnregisterThread(this);
 
         // Signal exit
         state = ThreadState::Stopped;

@@ -22,7 +22,7 @@ struct RequestContext {
 
 class IService {
   public:
-    virtual ~IService() {}
+    virtual ~IService();
 
     void HandleRequest(Server& server, kernel::Process* caller_process,
                        uptr ptr);
@@ -37,7 +37,8 @@ class IService {
   private:
     // Domain
     bool is_domain{false};
-    DynamicPool<IService*> subservice_pool;
+    IService* parent{this};
+    DynamicPool<IService*>* subservice_pool{nullptr};
 
     void Close();
     void Request(RequestContext& context);
@@ -48,6 +49,9 @@ class IService {
     void Clone(Server& server, kernel::Process* caller_process,
                kernel::hipc::Writers& writers);
     void TipcRequest(RequestContext& context, const u32 command_id);
+
+  public:
+    GETTER(is_domain, IsDomain);
 };
 
 } // namespace hydra::horizon::services

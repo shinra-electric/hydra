@@ -593,8 +593,8 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
         for (u32 i = 0; i < sync_objs.size(); i++) {
-            LOG_DEBUG(Kernel, "Synchronizing with {}",
-                      sync_objs[i]->GetDebugName());
+            // LOG_DEBUG(Kernel, "Synchronizing with {}",
+            //           sync_objs[i]->GetDebugName());
 
             if (!sync_objs[i]->AddWaitingThread(crnt_thread)) {
                 out_signalled_index = i;
@@ -743,22 +743,15 @@ void Kernel::GetSystemTick(u64& out_tick) {
     out_tick = get_absolute_time();
 }
 
-result_t Kernel::ConnectToNamedPort(const std::string& name,
+result_t Kernel::ConnectToNamedPort(const std::string_view name,
                                     hipc::ClientSession*& out_client_session) {
     LOG_DEBUG(Kernel, "ConnectToNamedPort called (name: {})", name);
 
-    // TODO: don't construct a new string?
-    auto it = service_ports.find(std::string(name));
-    if (it == service_ports.end()) {
-        LOG_ERROR(Kernel, "Unknown service name \"{}\"", name);
+    out_client_session = service_manager.GetPort(std::string(name));
+    if (!out_client_session) {
+        LOG_ERROR(Kernel, "Failed to connect to service \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
-
-    // TODO: the server should already exist
-    auto server_session = new hipc::ServerSession(it->second);
-    out_client_session = new hipc::ClientSession();
-    // TODO: is it fine to just instantiate it like this?
-    new hipc::Session(server_session, out_client_session);
 
     return RESULT_SUCCESS;
 }
@@ -823,11 +816,11 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::OutputDebugString(const char* str, usize len) {
+result_t Kernel::OutputDebugString(const std::string_view str, usize len) {
     LOG_DEBUG(Kernel, "OutputDebugString called");
     if (len != 0) {
         // TODO: handle differently
-        LOG_INFO(Kernel, "{}", std::string(str, len));
+        LOG_INFO(Kernel, "{}", str);
     }
 
     return RESULT_SUCCESS;

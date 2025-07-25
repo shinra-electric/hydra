@@ -113,13 +113,12 @@ inline std::string to_upper(const std::string_view str) {
     return result;
 }
 
-inline constexpr uint64_t str_to_u64(const char* str, size_t idx = 0,
-                                     uint64_t result = 0) {
+inline constexpr u64 str_to_u64(const char* str, size_t idx = 0,
+                                u64 result = 0) {
     return (str[idx] == '\0' || idx >= 8)
                ? result
                : str_to_u64(str, idx + 1,
-                            result |
-                                (static_cast<uint64_t>(str[idx]) << (idx * 8)));
+                            result | (static_cast<u64>(str[idx]) << (idx * 8)));
 }
 
 inline std::string u64_to_str(u64 value) {

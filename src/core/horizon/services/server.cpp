@@ -1,12 +1,17 @@
 #include "core/horizon/services/server.hpp"
 
-#include "core/horizon/kernel/hipc/server_session.hpp"
+#include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 
 namespace hydra::horizon::services {
 
-Server::Server(IService* service) {
+void Server::Start() {
+    // TODO: clean up as well
+
+    // Process
     // TODO: process
+
+    // Thread
     thread = new kernel::HostThread(
         nullptr, 0x20,
         [this](kernel::should_stop_fn_t should_stop) { MainLoop(should_stop); },
@@ -47,7 +52,6 @@ void Server::ProcessRequests(kernel::hipc::ServerSession* session) {
         [this, session](kernel::Process* caller_process, uptr ptr) {
             session->GetService()->HandleRequest(*this, caller_process, ptr);
         });
-    session->Clear();
 }
 
 } // namespace hydra::horizon::services

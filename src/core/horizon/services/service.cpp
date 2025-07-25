@@ -9,6 +9,11 @@
 
 namespace hydra::horizon::services {
 
+IService::~IService() {
+    if (subservice_pool)
+        delete subservice_pool;
+}
+
 void IService::HandleRequest(Server& server, kernel::Process* caller_process,
                              uptr ptr) {
     // HIPC header
@@ -123,8 +128,13 @@ void IService::HandleRequest(Server& server, kernel::Process* caller_process,
 }
 
 void IService::AddService(RequestContext& context, IService* service) {
+    LOG_INFO(Services, "IS DOMAIN: {}", is_domain);
     if (is_domain) {
-        const auto handle_id = subservice_pool.Add(service);
+        // Convert to domain
+        service->is_domain = true;
+        service->parent = parent;
+
+        const auto handle_id = parent->subservice_pool->Add(service);
         context.writers.objects_writer.Write(handle_id);
     } else {
         // Create new session
@@ -144,7 +154,7 @@ void IService::AddService(RequestContext& context, IService* service) {
 
 IService* IService::GetService(RequestContext& context, handle_id_t handle_id) {
     if (is_domain) {
-        return subservice_pool.Get(handle_id);
+        return parent->subservice_pool->Get(handle_id);
     } else {
         return context.process
             ->GetHandle<kernel::hipc::ClientSession>(handle_id)
@@ -165,7 +175,7 @@ void IService::Request(RequestContext& context) {
         auto cmif_in =
             context.readers.reader.Read<kernel::hipc::cmif::DomainInHeader>();
         // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
-        auto subservice = subservice_pool.Get(cmif_in.object_id);
+        auto subservice = parent->subservice_pool->Get(cmif_in.object_id);
 
         if (cmif_in.num_in_objects != 0) {
             auto objects = context.readers.reader.GetPtr() + cmif_in.data_size;
@@ -182,7 +192,7 @@ void IService::Request(RequestContext& context) {
         }
         case kernel::hipc::cmif::DomainCommandType::Close:
             // TODO: actually free the service
-            subservice_pool.Free(cmif_in.object_id);
+            parent->subservice_pool->Free(cmif_in.object_id);
             LOG_DEBUG(Kernel, "Closed subservice");
             break;
         default:
@@ -218,22 +228,21 @@ void IService::Control(Server& server, kernel::Process* caller_process,
     switch (command) {
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
-        const auto handle_id = subservice_pool.Add(this);
+        subservice_pool = new DynamicPool<IService*>();
+        const auto handle_id = subservice_pool->Add(this);
         writers.writer.Write(handle_id);
         break;
     }
-    case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject: {
+    case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject:
         Clone(server, caller_process, writers);
         break;
-    }
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
         writers.writer.Write(GetPointerBufferSize());
         break;
-    case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx: {
+    case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
         Clone(server, caller_process, writers);
         break;
-    }
     default:
         LOG_ERROR(Services, "Unimplemented control request {}", command);
         break;

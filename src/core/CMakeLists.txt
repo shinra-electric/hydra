@@ -34,6 +34,7 @@ add_library(hydra-core
     horizon/kernel/hipc/client_session.hpp
     horizon/kernel/hipc/session.cpp
     horizon/kernel/hipc/session.hpp
+    horizon/kernel/hipc/service_manager.hpp
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
