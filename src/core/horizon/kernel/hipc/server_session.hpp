@@ -13,8 +13,11 @@ class IService;
 
 namespace hydra::horizon::kernel::hipc {
 
-typedef std::function<void()> request_finished_callback_fn_t;
-typedef std::function<void(Process*, uptr)> request_handler_fn_t;
+struct ServerRequest {
+    Process* client_process;
+    uptr ptr;
+    IThread* client_thread;
+};
 
 class ServerSession : public SynchronizationObject {
   public:
@@ -22,21 +25,19 @@ class ServerSession : public SynchronizationObject {
                   const std::string_view debug_name = "ServerSession")
         : SynchronizationObject(false, debug_name), service{service_} {}
 
-    void PushRequest(Process* caller_process, uptr ptr,
-                     request_finished_callback_fn_t finished_callback);
-    void HandleAllRequests(request_handler_fn_t request_handler);
+    // Server
+    ServerRequest Receive();
+    void Reply();
+
+    // Client
+    void EnqueueRequest(Process* client_process, uptr ptr,
+                        IThread* client_thread);
 
   private:
     services::IService* service;
 
-    struct ServerRequest {
-        Process* caller_process;
-        uptr ptr;
-        request_finished_callback_fn_t finished_callback;
-    };
-
     std::mutex mutex;
-    std::vector<ServerRequest> requests;
+    std::queue<ServerRequest> requests;
 
   public:
     GETTER(service, GetService);

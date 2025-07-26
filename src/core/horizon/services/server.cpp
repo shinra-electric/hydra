@@ -24,6 +24,7 @@ void Server::RegisterSession(kernel::hipc::ServerSession* session) {
 }
 
 void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
+    kernel::hipc::ServerSession* reply_target_session = nullptr;
     while (true) {
         // Wait for incoming requests
         // TODO: don't create a new vector
@@ -31,26 +32,26 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         sync_objs.reserve(sessions.size());
         sync_objs.insert(sync_objs.end(), sessions.begin(), sessions.end());
 
-        u64 signalled_index;
-        const auto res = KERNEL_INSTANCE.WaitSynchronization(
-            thread, sync_objs, kernel::INFINITE_TIMEOUT, signalled_index);
+        i32 signalled_index;
+        const auto res = KERNEL_INSTANCE.ReplyAndReceive(
+            thread, sync_objs, reply_target_session, kernel::INFINITE_TIMEOUT,
+            signalled_index);
         ASSERT_DEBUG(res == RESULT_SUCCESS, Services,
                      "Failed to wait for synchronization: 0x{:08x}", res);
 
         // Process incoming requests
-        ProcessRequests(sessions[signalled_index]);
+        auto session = sessions[signalled_index];
+        const auto request = session->Receive();
+        session->GetService()->HandleRequest(*this, request.client_process,
+                                             request.ptr);
 
         // Check for exit
         if (should_stop())
             break;
-    }
-}
 
-void Server::ProcessRequests(kernel::hipc::ServerSession* session) {
-    session->HandleAllRequests(
-        [this, session](kernel::Process* caller_process, uptr ptr) {
-            session->GetService()->HandleRequest(*this, caller_process, ptr);
-        });
+        // Set the reply target
+        reply_target_session = session;
+    }
 }
 
 } // namespace hydra::horizon::services

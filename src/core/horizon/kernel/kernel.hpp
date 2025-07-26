@@ -82,7 +82,7 @@ class Kernel {
     result_t ResetSignal(SynchronizationObject* sync_object);
     result_t WaitSynchronization(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objects,
-                                 i64 timeout, u64& out_signalled_index);
+                                 i64 timeout, i32& out_signalled_index);
     result_t CancelSynchronization(IThread* thread);
     result_t ArbitrateLock(Process* crnt_process, u32 wait_tag, uptr mutex_addr,
                            u32 self_tag);
@@ -111,6 +111,11 @@ class Kernel {
     result_t CreateSession(bool is_light, u64 name,
                            hipc::ServerSession*& out_server_session,
                            hipc::ClientSession*& out_client_session);
+    // TODO: handles can only be Port or ServerSession
+    result_t ReplyAndReceive(IThread* crnt_thread,
+                             std::span<SynchronizationObject*> sync_objs,
+                             hipc::ServerSession* reply_target_session,
+                             i64 timeout, i32& out_signalled_index);
 
   private:
     filesystem::Filesystem filesystem;

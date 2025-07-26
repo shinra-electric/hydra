@@ -174,9 +174,9 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
 
         res = WaitSynchronization(
             crnt_thread, std::span(sync_objs, num_handles),
-            std::bit_cast<i64>(guest_thread->GetRegX(3)), tmp_u64);
+            std::bit_cast<i64>(guest_thread->GetRegX(3)), tmp_i32);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, tmp_u64);
+        guest_thread->SetRegW(1, tmp_i32);
         break;
     }
     case 0x19:
@@ -289,6 +289,24 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegW(1, crnt_process->AddHandle(server_session));
         guest_thread->SetRegW(2, crnt_process->AddHandle(client_session));
+        break;
+    }
+    case 0x43: {
+        const auto handle_ids = reinterpret_cast<handle_id_t*>(
+            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)));
+        const auto num_handles = std::bit_cast<i64>(guest_thread->GetRegX(2));
+        SynchronizationObject* sync_objs[num_handles];
+        for (auto i = 0; i < num_handles; i++)
+            sync_objs[i] =
+                crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
+
+        res = ReplyAndReceive(crnt_thread, std::span(sync_objs, num_handles),
+                              crnt_process->GetHandle<hipc::ServerSession>(
+                                  guest_thread->GetRegX(3)),
+                              std::bit_cast<i64>(guest_thread->GetRegX(4)),
+                              tmp_i32);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, tmp_i32);
         break;
     }
     default:
@@ -579,7 +597,7 @@ result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
 result_t
 Kernel::WaitSynchronization(IThread* crnt_thread,
                             std::span<SynchronizationObject*> sync_objs,
-                            i64 timeout, u64& out_signalled_index) {
+                            i64 timeout, i32& out_signalled_index) {
     LOG_DEBUG(Kernel,
               "WaitSynchronization called (count: {}, timeout: "
               "{})",
@@ -766,9 +784,8 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
     crnt_thread->Pause();
 
     // Send request
-    client_session->GetParent()->GetServerSide()->PushRequest(
-        crnt_process, tls_mem->GetPtr(),
-        [crnt_thread]() { crnt_thread->Resume(); });
+    client_session->GetParent()->GetServerSide()->EnqueueRequest(
+        crnt_process, tls_mem->GetPtr(), crnt_thread);
 
     // Wait for response
     crnt_thread->ProcessMessages();
@@ -1034,6 +1051,23 @@ result_t Kernel::CreateSession(bool is_light, u64 name,
     new hipc::Session(out_server_session, out_client_session);
 
     return RESULT_SUCCESS;
+}
+
+result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
+                                 std::span<SynchronizationObject*> sync_objs,
+                                 hipc::ServerSession* reply_target_session,
+                                 i64 timeout, i32& out_signalled_index) {
+    LOG_DEBUG(Kernel, "ReplyAndReceive called (count: {}, timeout: {})",
+              sync_objs.size(), timeout);
+
+    if (reply_target_session) {
+        // Reply
+        reply_target_session->Reply();
+    }
+
+    // Receive
+    return WaitSynchronization(crnt_thread, sync_objs, timeout,
+                               out_signalled_index);
 }
 
 } // namespace hydra::horizon::kernel
