@@ -15,6 +15,8 @@ GuestThread::GuestThread(Process* process, vaddr_t stack_top_addr_,
 
 GuestThread::~GuestThread() { delete tls_mem; }
 
+uptr GuestThread::GetTlsPtr() const { return tls_mem->GetPtr(); }
+
 void GuestThread::Run() {
     ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
 

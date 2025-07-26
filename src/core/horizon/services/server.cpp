@@ -41,9 +41,9 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
 
         // Process incoming requests
         auto session = sessions[signalled_index];
-        const auto request = session->Receive();
-        session->GetService()->HandleRequest(*this, request.client_process,
-                                             request.ptr);
+        session->GetService()->HandleRequest(
+            *this, session->GetActiveRequestClientProcess(),
+            thread->GetTlsPtr());
 
         // Check for exit
         if (should_stop())

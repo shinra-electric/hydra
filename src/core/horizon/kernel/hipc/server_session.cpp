@@ -4,15 +4,27 @@
 
 namespace hydra::horizon::kernel::hipc {
 
-ServerRequest ServerSession::Receive() {
+constexpr u64 MSG_BUFFER_MAX_SIZE = 0x2000; // TODO: what should this be?
+
+void ServerSession::Receive(IThread* crnt_thread) {
     std::lock_guard<std::mutex> lock(mutex);
     ASSERT_DEBUG(!requests.empty(), Services, "No request available");
-    return requests.front();
+    const auto& request = requests.front();
+
+    // Copy the message to server TLS
+    memcpy((void*)crnt_thread->GetTlsPtr(), (void*)request.ptr,
+           MSG_BUFFER_MAX_SIZE);
 }
 
-void ServerSession::Reply() {
+void ServerSession::Reply(uptr ptr) {
     std::lock_guard<std::mutex> lock(mutex);
     const auto& request = requests.front();
+
+    // Copy the message to client TLS
+    memcpy((void*)request.client_thread->GetTlsPtr(), (void*)ptr,
+           MSG_BUFFER_MAX_SIZE);
+
+    // Resume the client thread
     request.client_thread->Resume();
     requests.pop();
     if (requests.empty())

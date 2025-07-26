@@ -785,11 +785,12 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
 
     // Send request
     client_session->GetParent()->GetServerSide()->EnqueueRequest(
-        crnt_process, tls_mem->GetPtr(), crnt_thread);
+        crnt_process, crnt_thread->GetTlsPtr(), crnt_thread);
 
     // Wait for response
     crnt_thread->ProcessMessages();
 
+    // HACK
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     return RESULT_SUCCESS;
@@ -1062,12 +1063,22 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
 
     if (reply_target_session) {
         // Reply
-        reply_target_session->Reply();
+        reply_target_session->Reply(crnt_thread->GetTlsPtr());
     }
 
+    // Wait
+    const auto res = WaitSynchronization(crnt_thread, sync_objs, timeout,
+                                         out_signalled_index);
+    if (res != RESULT_SUCCESS)
+        return res;
+
     // Receive
-    return WaitSynchronization(crnt_thread, sync_objs, timeout,
-                               out_signalled_index);
+    auto server_session =
+        dynamic_cast<hipc::ServerSession*>(sync_objs[out_signalled_index]);
+    if (server_session)
+        server_session->Receive(crnt_thread);
+
+    return RESULT_SUCCESS;
 }
 
 } // namespace hydra::horizon::kernel

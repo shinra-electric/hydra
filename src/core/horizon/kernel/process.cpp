@@ -37,14 +37,12 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
 }
 
 hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
-    constexpr usize TLS_MEM_SIZE = 0x20000;
-
-    auto mem = CPU_INSTANCE.AllocateMemory(TLS_MEM_SIZE);
+    auto mem = CPU_INSTANCE.AllocateMemory(TLS_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
-    tls_mem_base += TLS_MEM_SIZE;
+    tls_mem_base += TLS_SIZE;
 
     return mem;
 }

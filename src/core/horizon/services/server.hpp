@@ -41,6 +41,9 @@ class Server {
     std::vector<kernel::hipc::ServerSession*> sessions;
 
     void MainLoop(kernel::should_stop_fn_t should_stop);
+
+  public:
+    GETTER(thread, GetThread);
 };
 
 } // namespace hydra::horizon::services

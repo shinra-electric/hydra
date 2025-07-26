@@ -26,8 +26,19 @@ class ServerSession : public SynchronizationObject {
         : SynchronizationObject(false, debug_name), service{service_} {}
 
     // Server
-    ServerRequest Receive();
-    void Reply();
+    void Receive(IThread* crnt_thread);
+    void Reply(uptr ptr);
+
+    // HACK
+    kernel::Process* GetActiveRequestClientProcess() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return requests.front().client_process;
+    }
+
+    uptr GetPtr() {
+        std::lock_guard<std::mutex> lock(mutex);
+        return requests.front().ptr;
+    }
 
     // Client
     void EnqueueRequest(Process* client_process, uptr ptr,

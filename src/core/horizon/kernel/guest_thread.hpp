@@ -21,6 +21,8 @@ class GuestThread : public IThread {
         args[index] = value;
     }
 
+    uptr GetTlsPtr() const override;
+
   protected:
     void Run() override;
 
