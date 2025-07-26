@@ -610,14 +610,13 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
+        crnt_thread->Pause();
+
         for (u32 i = 0; i < sync_objs.size(); i++) {
             // LOG_DEBUG(Kernel, "Synchronizing with {}",
             //           sync_objs[i]->GetDebugName());
 
-            if (!sync_objs[i]->AddWaitingThread(crnt_thread)) {
-                out_signalled_index = i;
-                return RESULT_SUCCESS;
-            }
+            sync_objs[i]->AddWaitingThread(crnt_thread);
         }
 
         const auto action = crnt_thread->ProcessMessages(timeout);
@@ -789,9 +788,6 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
 
     // Wait for response
     crnt_thread->ProcessMessages();
-
-    // HACK
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     return RESULT_SUCCESS;
 }

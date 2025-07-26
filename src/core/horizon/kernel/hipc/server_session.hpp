@@ -35,11 +35,6 @@ class ServerSession : public SynchronizationObject {
         return requests.front().client_process;
     }
 
-    uptr GetPtr() {
-        std::lock_guard<std::mutex> lock(mutex);
-        return requests.front().ptr;
-    }
-
     // Client
     void EnqueueRequest(Process* client_process, uptr ptr,
                         IThread* client_thread);

@@ -13,7 +13,7 @@ class SynchronizationObject : public AutoObject {
         const std::string_view debug_name = "SynchronizationObject")
         : AutoObject(debug_name), signalled{signalled_} {}
 
-    bool AddWaitingThread(IThread* thread);
+    void AddWaitingThread(IThread* thread);
     void Signal();
     bool Clear();
 
