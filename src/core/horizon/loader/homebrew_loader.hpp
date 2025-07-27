@@ -1,25 +1,20 @@
 #pragma once
 
-#include "core/horizon/loader/loader_base.hpp"
+#include "core/horizon/loader/nro_loader.hpp"
 
 namespace hydra::horizon::loader {
 
-class NroLoader : public LoaderBase {
+class HomebrewLoader : public LoaderBase {
   public:
-    NroLoader(filesystem::FileBase* file_);
+    HomebrewLoader(filesystem::FileBase* file_);
 
     void LoadProcess(kernel::Process* process) override;
 
   private:
     filesystem::FileBase* file;
-    u64 size;
-    u32 text_offset;
-    u32 bss_size;
+    NroLoader nro_loader;
 
     void TryLoadAssetSection(filesystem::FileBase* file);
-
-  public:
-    GETTER(size, GetSize);
 };
 
 } // namespace hydra::horizon::loader

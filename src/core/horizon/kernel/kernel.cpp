@@ -849,6 +849,7 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
               "size: 0x{:08x})",
               reason.type, buffer_ptr, buffer_size);
 
+    // TODO: this should be sent to the debugger instead of being logged
     if (buffer_ptr) {
         if (buffer_size == sizeof(u32)) {
             const u32 result = *reinterpret_cast<u32*>(buffer_ptr);

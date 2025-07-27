@@ -45,7 +45,8 @@ class IService {
 
     void FreeSubservice(handle_id_t handle_id) {
         u32 index = ObjectIDToIndex(handle_id);
-        delete parent->subservice_pool->Get(index);
+        // TODO: should it be deleted?
+        // delete parent->subservice_pool->Get(index);
         parent->subservice_pool->Free(index);
     }
 

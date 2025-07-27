@@ -8,8 +8,10 @@ constexpr u64 MSG_BUFFER_MAX_SIZE = 0x2000; // TODO: what should this be?
 
 ServerSession::~ServerSession() {
     // Resume the client thread if we still have an active request
-    if (auto active_req = active_request)
+    if (auto active_req = active_request) {
+        // TODO: this should return an error on the client side
         active_req->client_thread->Resume();
+    }
 }
 
 void ServerSession::Receive(IThread* crnt_thread) {

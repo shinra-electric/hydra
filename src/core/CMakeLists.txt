@@ -68,6 +68,8 @@ add_library(hydra-core
     horizon/loader/nsp_loader.hpp
     horizon/loader/xci_loader.cpp
     horizon/loader/xci_loader.hpp
+    horizon/loader/homebrew_loader.cpp
+    horizon/loader/homebrew_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.hpp

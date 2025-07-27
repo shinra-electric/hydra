@@ -61,12 +61,9 @@ NroLoader::NroLoader(filesystem::FileBase* file_) : file{file_} {
     ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
            "Invalid NRO magic \"{}\"", header.magic);
 
+    size = header.size;
     text_offset = header.GetSection(NroSectionType::Text).offset;
     bss_size = header.bss_size;
-
-    // Asset section
-    TryLoadAssetSection(new filesystem::FileView(
-        file, header.size, file->GetSize() - header.size));
 
     file->Close(stream);
 }
@@ -86,6 +83,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
     reader.Seek(0);
     reader.ReadPtr(reinterpret_cast<u8*>(ptr), reader.GetSize());
 
+    /*
     // Next load
     // TODO: memory type
     vaddr_t next_load_base;
@@ -142,6 +140,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
         new filesystem::FileView(file, reader.GetOffset(), reader.GetSize()));
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS entry: {}", res);
+    */
 
     // Debug symbols
     // TODO
@@ -153,51 +152,9 @@ void NroLoader::LoadProcess(kernel::Process* process) {
     auto [main_thread, main_thread_id] =
         process->CreateMainThread(0x2c, 0, 0x40000);
     main_thread->SetEntryPoint(base + sizeof(NroHeader) + text_offset);
-    main_thread->SetArg(0, base + config_offset);
-    main_thread->SetArg(1, UINT64_MAX);
-}
-
-namespace {
-
-struct AssetSection {
-    u64 offset;
-    u64 size;
-};
-
-struct AssetHeader {
-    u32 magic;
-    u32 format_version;
-    AssetSection icon_section;
-    AssetSection nacp_section;
-    AssetSection romfs_section;
-};
-
-} // namespace
-
-void NroLoader::TryLoadAssetSection(filesystem::FileBase* file) {
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    // Header
-    const auto header = reader.Read<AssetHeader>();
-    // TODO: is this the correct way to check if the asset section is present?
-    if (header.magic != make_magic4('A', 'S', 'E', 'T'))
-        return;
-
-    LOG_DEBUG(Loader, "Asset section found");
-
-    // Icon
-    if (header.icon_section.size > 0)
-        icon_file = new filesystem::FileView(file, header.icon_section.offset,
-                                             header.icon_section.size);
-
-    // NACP
-    if (header.nacp_section.size > 0) {
-        reader.Seek(header.nacp_section.offset);
-        // TODO: read
-    }
-
-    file->Close(stream);
+    // TODO: args
+    // main_thread->SetArg(0, base + config_offset);
+    // main_thread->SetArg(1, UINT64_MAX);
 }
 
 } // namespace hydra::horizon::loader
