@@ -24,6 +24,7 @@ class ServerSession : public SynchronizationObject {
     ServerSession(services::IService* service_,
                   const std::string_view debug_name = "ServerSession")
         : SynchronizationObject(false, debug_name), service{service_} {}
+    ~ServerSession() override;
 
     // Server
     void Receive(IThread* crnt_thread);
@@ -32,7 +33,7 @@ class ServerSession : public SynchronizationObject {
     // HACK
     kernel::Process* GetActiveRequestClientProcess() {
         std::lock_guard<std::mutex> lock(mutex);
-        return requests.front().client_process;
+        return active_request->client_process;
     }
 
     // Client
@@ -44,6 +45,7 @@ class ServerSession : public SynchronizationObject {
 
     std::mutex mutex;
     std::queue<ServerRequest> requests;
+    std::optional<ServerRequest> active_request;
 
   public:
     GETTER(service, GetService);

@@ -6,29 +6,36 @@ namespace hydra::horizon::kernel::hipc {
 
 constexpr u64 MSG_BUFFER_MAX_SIZE = 0x2000; // TODO: what should this be?
 
+ServerSession::~ServerSession() {
+    // Resume the client thread if we still have an active request
+    if (auto active_req = active_request)
+        active_req->client_thread->Resume();
+}
+
 void ServerSession::Receive(IThread* crnt_thread) {
     std::lock_guard<std::mutex> lock(mutex);
     ASSERT_DEBUG(!requests.empty(), Services, "No request available");
-    const auto& request = requests.front();
+    active_request = requests.front();
+    requests.pop();
 
     // Copy the message to server TLS
-    memcpy((void*)crnt_thread->GetTlsPtr(), (void*)request.ptr,
+    memcpy((void*)crnt_thread->GetTlsPtr(), (void*)active_request->ptr,
            MSG_BUFFER_MAX_SIZE);
+
+    // Clear if no more requests
+    if (requests.empty())
+        Clear();
 }
 
 void ServerSession::Reply(uptr ptr) {
     std::lock_guard<std::mutex> lock(mutex);
-    const auto& request = requests.front();
 
     // Copy the message to client TLS
-    memcpy((void*)request.client_thread->GetTlsPtr(), (void*)ptr,
+    memcpy((void*)active_request->client_thread->GetTlsPtr(), (void*)ptr,
            MSG_BUFFER_MAX_SIZE);
 
     // Resume the client thread
-    request.client_thread->Resume();
-    requests.pop();
-    if (requests.empty())
-        Clear();
+    active_request->client_thread->Resume();
 }
 
 void ServerSession::EnqueueRequest(Process* client_process, uptr ptr,
