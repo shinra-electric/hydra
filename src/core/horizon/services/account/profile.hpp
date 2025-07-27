@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::account {
 
-class IProfile : public ServiceBase {
+class IProfile : public IService {
   public:
     IProfile(uuid_t user_id_) : user_id{user_id_} {}
 

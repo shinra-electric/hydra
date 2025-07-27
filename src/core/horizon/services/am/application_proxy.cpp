@@ -17,45 +17,43 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationProxy, 0, GetCommonStateGetter, 1,
                              GetLibraryAppletCreator, 20,
                              GetApplicationFunctions, 1000, GetDebugFunctions)
 
-result_t IApplicationProxy::GetCommonStateGetter(add_service_fn_t add_service) {
-    add_service(new ICommonStateGetter());
+result_t IApplicationProxy::GetCommonStateGetter(RequestContext* ctx) {
+    AddService(*ctx, new ICommonStateGetter());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationProxy::GetSelfController(add_service_fn_t add_service) {
-    add_service(new ISelfController());
+result_t IApplicationProxy::GetSelfController(RequestContext* ctx) {
+    AddService(*ctx, new ISelfController());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationProxy::GetWindowController(add_service_fn_t add_service) {
-    add_service(new IWindowController());
+result_t IApplicationProxy::GetWindowController(RequestContext* ctx) {
+    AddService(*ctx, new IWindowController());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationProxy::GetAudioController(add_service_fn_t add_service) {
-    add_service(new IAudioController());
+result_t IApplicationProxy::GetAudioController(RequestContext* ctx) {
+    AddService(*ctx, new IAudioController());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationProxy::GetDisplayController(add_service_fn_t add_service) {
-    add_service(new IDisplayController());
+result_t IApplicationProxy::GetDisplayController(RequestContext* ctx) {
+    AddService(*ctx, new IDisplayController());
     return RESULT_SUCCESS;
 }
 
-result_t
-IApplicationProxy::GetLibraryAppletCreator(add_service_fn_t add_service) {
-    add_service(new ILibraryAppletCreator());
+result_t IApplicationProxy::GetLibraryAppletCreator(RequestContext* ctx) {
+    AddService(*ctx, new ILibraryAppletCreator());
     return RESULT_SUCCESS;
 }
 
-result_t
-IApplicationProxy::GetApplicationFunctions(add_service_fn_t add_service) {
-    add_service(new IApplicationFunctions());
+result_t IApplicationProxy::GetApplicationFunctions(RequestContext* ctx) {
+    AddService(*ctx, new IApplicationFunctions());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationProxy::GetDebugFunctions(add_service_fn_t add_service) {
-    add_service(new IDebugFunctions());
+result_t IApplicationProxy::GetDebugFunctions(RequestContext* ctx) {
+    AddService(*ctx, new IDebugFunctions());
     return RESULT_SUCCESS;
 }
 

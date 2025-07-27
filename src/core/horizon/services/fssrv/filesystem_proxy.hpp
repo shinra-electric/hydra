@@ -99,7 +99,7 @@ struct SaveDataFileSystemExtraData {
 };
 #pragma pack(pop)
 
-class IFileSystemProxy : public ServiceBase {
+class IFileSystemProxy : public IService {
   public:
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
@@ -109,45 +109,42 @@ class IFileSystemProxy : public ServiceBase {
 
   private:
     // Commands
-    result_t OpenFileSystem(add_service_fn_t add_service,
-                            FileSystemProxyType type,
+    result_t OpenFileSystem(RequestContext* ctx, FileSystemProxyType type,
                             InBuffer<BufferAttr::HipcPointer> path_buffer);
     STUB_REQUEST_COMMAND(SetCurrentProcess);
     result_t
-    OpenFileSystemWithIdObsolete(add_service_fn_t add_service,
-                                 FileSystemProxyType type, u64 program_id,
+    OpenFileSystemWithIdObsolete(RequestContext* ctx, FileSystemProxyType type,
+                                 u64 program_id,
                                  InBuffer<BufferAttr::HipcPointer> path_buffer);
     result_t
     OpenBisFileSystem(BisPartitionId partition_id,
                       InBuffer<BufferAttr::HipcPointer> unknown_buffer);
-    result_t OpenSdCardFileSystem(add_service_fn_t add_service);
+    result_t OpenSdCardFileSystem(RequestContext* ctx);
     result_t CreateSaveDataFileSystem(SaveDataAttribute attr,
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
         aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
         OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t OpenSaveDataFileSystem(add_service_fn_t add_service,
+    result_t OpenSaveDataFileSystem(RequestContext* ctx,
                                     aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
     result_t
-    OpenReadOnlySaveDataFileSystem(add_service_fn_t add_service,
+    OpenReadOnlySaveDataFileSystem(RequestContext* ctx,
                                    aligned<SaveDataSpaceId, 8> space_id,
                                    SaveDataAttribute attr);
-    result_t
-    OpenSaveDataInfoReaderBySaveDataSpaceId(add_service_fn_t add_service,
-                                            SaveDataSpaceId space_id);
-    result_t OpenDataStorageByProgramId(add_service_fn_t add_service,
-                                        u64 program_id);
-    result_t OpenDataStorageByDataId(add_service_fn_t add_service,
+    result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
+                                                     SaveDataSpaceId space_id);
+    result_t OpenDataStorageByProgramId(RequestContext* ctx, u64 program_id);
+    result_t OpenDataStorageByDataId(RequestContext* ctx,
                                      aligned<ncm::StorageID, 8> storage_id,
                                      u64 data_id);
-    result_t OpenPatchDataStorageByCurrentProcess(add_service_fn_t add_service);
+    result_t OpenPatchDataStorageByCurrentProcess(RequestContext* ctx);
     result_t DisableAutoSaveDataCreation();
     result_t GetGlobalAccessLogMode(u32* out_log_mode);
 
     // Impl
-    result_t OpenSaveDataFileSystemImpl(add_service_fn_t add_service,
+    result_t OpenSaveDataFileSystemImpl(RequestContext* ctx,
                                         SaveDataSpaceId space_id,
                                         SaveDataAttribute attr, bool read_only);
 };

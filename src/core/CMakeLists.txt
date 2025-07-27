@@ -6,22 +6,13 @@ add_library(hydra-core
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
-    horizon/kernel/hipc.cpp
-    horizon/kernel/hipc.hpp
-    horizon/kernel/cmif.hpp
     horizon/kernel/mutex.hpp
-    horizon/kernel/service_base.cpp
-    horizon/kernel/service_base.hpp
-    horizon/kernel/domain_service.cpp
-    horizon/kernel/domain_service.hpp
     horizon/kernel/applet_state.cpp
     horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
     horizon/kernel/synchronization_object.cpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp
-    horizon/kernel/session.cpp
-    horizon/kernel/session.hpp
     horizon/kernel/transfer_memory.hpp
     horizon/kernel/shared_memory.cpp
     horizon/kernel/shared_memory.hpp
@@ -35,6 +26,15 @@ add_library(hydra-core
     horizon/kernel/handle_pool.hpp
     horizon/kernel/process_manager.cpp
     horizon/kernel/process_manager.hpp
+    horizon/kernel/hipc/const.cpp
+    horizon/kernel/hipc/const.hpp
+    horizon/kernel/hipc/cmif.hpp
+    horizon/kernel/hipc/server_session.cpp
+    horizon/kernel/hipc/server_session.hpp
+    horizon/kernel/hipc/client_session.hpp
+    horizon/kernel/hipc/session.cpp
+    horizon/kernel/hipc/session.hpp
+    horizon/kernel/hipc/service_manager.hpp
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
@@ -73,6 +73,10 @@ add_library(hydra-core
     horizon/display/display.hpp
     horizon/display/driver.hpp
     horizon/services/const.hpp
+    horizon/services/service.cpp
+    horizon/services/service.hpp
+    horizon/services/server.cpp
+    horizon/services/server.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp

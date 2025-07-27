@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::spl {
 
-class IRandomInterface : public ServiceBase {
+class IRandomInterface : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

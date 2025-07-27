@@ -45,7 +45,7 @@ result_t ILibraryAppletAccessor::Start() {
 
 result_t ILibraryAppletAccessor::GetResult() { return applet->GetResult(); }
 
-result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
+result_t ILibraryAppletAccessor::PushInData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -53,12 +53,12 @@ result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PopOutData(add_service_fn_t add_service) {
-    add_service(controller.PopOutData());
+result_t ILibraryAppletAccessor::PopOutData(RequestContext* ctx) {
+    AddService(*ctx, controller.PopOutData());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PushInteractiveInData(ServiceBase* storage_) {
+result_t ILibraryAppletAccessor::PushInteractiveInData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -66,9 +66,8 @@ result_t ILibraryAppletAccessor::PushInteractiveInData(ServiceBase* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t
-ILibraryAppletAccessor::PopInteractiveOutData(add_service_fn_t add_service) {
-    add_service(controller.PopInteractiveOutData());
+result_t ILibraryAppletAccessor::PopInteractiveOutData(RequestContext* ctx) {
+    AddService(*ctx, controller.PopInteractiveOutData());
     return RESULT_SUCCESS;
 }
 

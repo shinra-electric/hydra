@@ -11,7 +11,7 @@ enum class SystemClockType {
     EphemeralNetwork,
 };
 
-class ISystemClock : public ServiceBase {
+class ISystemClock : public IService {
   public:
     ISystemClock(SystemClockType type_) : type{type_} {}
 

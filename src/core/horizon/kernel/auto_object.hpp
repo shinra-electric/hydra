@@ -23,7 +23,9 @@ class AutoObject {
         return false;
     }
 
-    const std::string_view GetDebugName() const { return debug_name; }
+    std::string GetDebugName() const {
+        return fmt::format("{} {}", debug_name, (void*)this);
+    }
 
   protected:
     virtual ~AutoObject() {}

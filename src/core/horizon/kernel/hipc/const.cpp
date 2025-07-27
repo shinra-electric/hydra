@@ -1,4 +1,4 @@
-#include "core/horizon/kernel/hipc.hpp"
+#include "core/horizon/kernel/hipc/const.hpp"
 
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 

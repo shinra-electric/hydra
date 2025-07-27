@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::pctl {
 
-class IParentalControlService : public ServiceBase {
+class IParentalControlService : public IService {
     friend class IParentalControlServiceFactory;
 
   protected:

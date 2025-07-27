@@ -5,7 +5,7 @@
 
 namespace hydra::horizon::services::fssrv {
 
-class IFile : public ServiceBase {
+class IFile : public IService {
   public:
     IFile(filesystem::FileBase* file_, filesystem::FileOpenFlags flags);
     ~IFile() override;

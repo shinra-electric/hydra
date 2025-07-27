@@ -5,14 +5,14 @@
 
 namespace hydra::horizon::services::ssl::sf {
 
-class ISslService : public ServiceBase {
+class ISslService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t CreateContext(add_service_fn_t add_service,
-                           aligned<SslVersion, 8> version, u64 pid_placeholder);
+    result_t CreateContext(RequestContext* ctx, aligned<SslVersion, 8> version,
+                           u64 pid_placeholder);
     result_t SetInterfaceVersion(SystemVersion version);
 };
 

@@ -12,7 +12,7 @@ struct VoiceInfoOut {
     u32 voice_drops_count;
 };
 
-class IAudioRenderer : public ServiceBase {
+class IAudioRenderer : public IService {
   public:
     IAudioRenderer(const AudioRendererParameters& params_,
                    const usize work_buffer_size_);

@@ -6,8 +6,8 @@ namespace hydra::horizon::services::mii {
 
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetDatabaseService)
 
-result_t IStaticService::GetDatabaseService(add_service_fn_t add_service) {
-    add_service(new IDatabaseService());
+result_t IStaticService::GetDatabaseService(RequestContext* ctx) {
+    AddService(*ctx, new IDatabaseService());
     return RESULT_SUCCESS;
 }
 

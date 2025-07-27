@@ -13,7 +13,7 @@ enum class RequestState {
     Blocking = 4,
 };
 
-class IRequest : public ServiceBase {
+class IRequest : public IService {
   public:
     IRequest();
 

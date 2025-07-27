@@ -21,6 +21,9 @@ class HandlePool {
     }
 
     handle_id_t Add(T* handle) {
+        if (!handle)
+            return INVALID_HANDLE_ID;
+
         handle->Retain(); // Increment ref count
         u32 index = pool.AllocateForIndex();
         pool.GetRef(index) = handle;

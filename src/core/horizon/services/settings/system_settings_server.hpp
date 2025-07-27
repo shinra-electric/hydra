@@ -9,7 +9,7 @@ enum class ColorSetId : i32 {
     BasicBlack,
 };
 
-class ISystemSettingsServer : public ServiceBase {
+class ISystemSettingsServer : public IService {
   public:
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }

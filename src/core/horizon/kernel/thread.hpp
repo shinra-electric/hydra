@@ -6,6 +6,8 @@ namespace hydra::horizon::kernel {
 
 class Process;
 
+constexpr u64 TLS_SIZE = 0x20000; // TODO: what should this be?
+
 enum class ThreadState {
     Created,
     Running,
@@ -73,6 +75,8 @@ class IThread : public SynchronizationObject {
 
     // Must not be called from a different thread
     ThreadAction ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
+
+    virtual uptr GetTlsPtr() const = 0;
 
   protected:
     Process* process;

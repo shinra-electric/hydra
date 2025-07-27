@@ -6,8 +6,8 @@ namespace hydra::horizon::services::friends {
 
 DEFINE_SERVICE_COMMAND_TABLE(IServiceCreator, 0, CreateFriendService)
 
-result_t IServiceCreator::CreateFriendService(add_service_fn_t add_service) {
-    add_service(new IFriendService());
+result_t IServiceCreator::CreateFriendService(RequestContext* ctx) {
+    AddService(*ctx, new IFriendService());
     return RESULT_SUCCESS;
 }
 

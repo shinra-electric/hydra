@@ -12,6 +12,9 @@ class HostThread : public IThread {
     HostThread(Process* process, i32 priority, run_callback_fn_t run_callback_,
                const std::string_view debug_name = "Thread")
         : IThread(process, priority, debug_name), run_callback{run_callback_} {}
+    ~HostThread() override { delete[] tls; }
+
+    uptr GetTlsPtr() const override { return reinterpret_cast<uptr>(tls); }
 
   protected:
     void Run() override {
@@ -23,6 +26,8 @@ class HostThread : public IThread {
 
   private:
     run_callback_fn_t run_callback;
+
+    u8* tls = new u8[TLS_SIZE]; // TODO: stack allocate
 };
 
 } // namespace hydra::horizon::kernel

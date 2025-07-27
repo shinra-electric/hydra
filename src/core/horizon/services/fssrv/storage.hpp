@@ -6,7 +6,7 @@
 namespace hydra::horizon::services::fssrv {
 
 // TODO: does IStorage always need to be backed by a file?
-class IStorage : public ServiceBase {
+class IStorage : public IService {
   public:
     IStorage(filesystem::FileBase* file_, filesystem::FileOpenFlags flags);
     ~IStorage() override;
