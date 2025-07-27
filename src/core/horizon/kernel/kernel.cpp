@@ -857,10 +857,14 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
             LOG_INFO(Kernel, "Module: {}, description: {}", module,
                      description);
         } else {
-            for (u32 i = 0; i < buffer_size / sizeof(u32); i++) {
+            constexpr u32 MAX_DATA_COUNT = 16;
+            const u32 data_count = buffer_size / sizeof(u32);
+            for (u32 i = 0; i < std::min(data_count, MAX_DATA_COUNT); i++) {
                 const u32 value = reinterpret_cast<u32*>(buffer_ptr)[i];
                 LOG_INFO(Kernel, "0x{:08x}", value);
             }
+            if (data_count > MAX_DATA_COUNT)
+                LOG_INFO(Kernel, "...");
         }
     }
 
