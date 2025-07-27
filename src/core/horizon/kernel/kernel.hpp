@@ -35,6 +35,7 @@ namespace hydra::horizon::kernel {
 
 class IThread;
 class Process;
+class CodeMemory;
 
 class Kernel {
   public:
@@ -116,6 +117,10 @@ class Kernel {
                              std::span<SynchronizationObject*> sync_objs,
                              hipc::ServerSession* reply_target_session,
                              i64 timeout, i32& out_signalled_index);
+    result_t CreateCodeMemory(vaddr_t addr, u64 size,
+                              CodeMemory*& out_code_memory);
+    result_t ControlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,
+                               vaddr_t addr, u64 size, MemoryPermission perm);
 
   private:
     filesystem::Filesystem filesystem;

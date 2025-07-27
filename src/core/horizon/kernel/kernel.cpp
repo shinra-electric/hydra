@@ -1,6 +1,7 @@
 #include "core/horizon/kernel/kernel.hpp"
 
 #include "core/debugger/debugger.hpp"
+#include "core/horizon/kernel/code_memory.hpp"
 #include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/kernel/hipc/server_session.hpp"
 #include "core/horizon/kernel/hipc/session.hpp"
@@ -309,6 +310,22 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegW(1, tmp_i32);
         break;
     }
+    case 0x4b: {
+        CodeMemory* code_mem = nullptr;
+        res = CreateCodeMemory(guest_thread->GetRegX(1),
+                               guest_thread->GetRegX(2), code_mem);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, crnt_process->AddHandle(code_mem));
+        break;
+    }
+    case 0x4c:
+        res = ControlCodeMemory(
+            crnt_process->GetHandle<CodeMemory>(guest_thread->GetRegW(0)),
+            CodeMemoryOperation(guest_thread->GetRegW(1)),
+            guest_thread->GetRegX(2), guest_thread->GetRegX(3),
+            MemoryPermission(guest_thread->GetRegW(4)));
+        guest_thread->SetRegW(0, res);
+        break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
@@ -1073,6 +1090,30 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
         dynamic_cast<hipc::ServerSession*>(sync_objs[out_signalled_index]);
     if (server_session)
         server_session->Receive(crnt_thread);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::CreateCodeMemory(vaddr_t addr, u64 size,
+                                  CodeMemory*& out_code_memory) {
+    LOG_DEBUG(Kernel, "CreateCodeMemory called (addr: 0x{:08x}, size: {})",
+              addr, size);
+
+    out_code_memory = new CodeMemory(addr, size);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::ControlCodeMemory(CodeMemory* code_memory,
+                                   CodeMemoryOperation op, vaddr_t addr,
+                                   u64 size, MemoryPermission perm) {
+    LOG_DEBUG(Kernel,
+              "ControlCodeMemory called (code memory: {}, op: {}, addr: "
+              "0x{:08x}, size: {}, perm: {})",
+              code_memory->GetDebugName(), op, addr, size, perm);
+
+    // TODO: implement
+    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
 
     return RESULT_SUCCESS;
 }

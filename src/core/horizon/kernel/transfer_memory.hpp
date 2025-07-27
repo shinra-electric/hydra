@@ -10,14 +10,15 @@ class TransferMemory : public AutoObject {
                    const std::string_view debug_name = "TransferMemory")
         : AutoObject(debug_name), addr{addr_}, size{size_}, perm{perm_} {}
 
-    vaddr_t GetAddress() const { return addr; }
-    u64 GetSize() const { return size; }
-    MemoryPermission GetPermission() const { return perm; }
-
   private:
     vaddr_t addr;
     u64 size;
     MemoryPermission perm;
+
+  public:
+    GETTER(addr, GetAddress);
+    GETTER(size, GetSize);
+    GETTER(perm, GetPermission);
 };
 
 } // namespace hydra::horizon::kernel

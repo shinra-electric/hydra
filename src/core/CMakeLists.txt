@@ -13,9 +13,10 @@ add_library(hydra-core
     horizon/kernel/synchronization_object.cpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp
-    horizon/kernel/transfer_memory.hpp
     horizon/kernel/shared_memory.cpp
     horizon/kernel/shared_memory.hpp
+    horizon/kernel/transfer_memory.hpp
+    horizon/kernel/code_memory.hpp
     horizon/kernel/thread.cpp
     horizon/kernel/thread.hpp
     horizon/kernel/guest_thread.cpp
