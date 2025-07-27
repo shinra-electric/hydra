@@ -121,6 +121,12 @@ class Kernel {
                               CodeMemory*& out_code_memory);
     result_t ControlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,
                                vaddr_t addr, u64 size, MemoryPermission perm);
+    result_t SetProcessMemoryPermission(Process* process, vaddr_t addr,
+                                        u64 size, MemoryPermission perm);
+    result_t MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+                                  vaddr_t src_addr, u64 size);
+    result_t UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+                                    vaddr_t src_addr, u64 size);
 
   private:
     filesystem::Filesystem filesystem;

@@ -326,6 +326,27 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             MemoryPermission(guest_thread->GetRegW(4)));
         guest_thread->SetRegW(0, res);
         break;
+    case 0x73:
+        res = SetProcessMemoryPermission(
+            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
+            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            MemoryPermission(guest_thread->GetRegW(3)));
+        guest_thread->SetRegW(0, res);
+        break;
+    case 0x77:
+        res = MapProcessCodeMemory(
+            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
+            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            guest_thread->GetRegX(3));
+        guest_thread->SetRegW(0, res);
+        break;
+    case 0x78:
+        res = UnmapProcessCodeMemory(
+            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
+            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
+            guest_thread->GetRegX(3));
+        guest_thread->SetRegW(0, res);
+        break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
         res = MAKE_RESULT(Svc, Error::NotImplemented);
@@ -1114,6 +1135,44 @@ result_t Kernel::ControlCodeMemory(CodeMemory* code_memory,
 
     // TODO: implement
     LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::SetProcessMemoryPermission(Process* process, vaddr_t addr,
+                                            u64 size, MemoryPermission perm) {
+    LOG_DEBUG(Kernel,
+              "SetProcessMemoryPermission called (process: {}, addr: 0x{:08x}, "
+              "size: {}, perm: {})",
+              process->GetDebugName(), addr, size, perm);
+
+    // TODO: implement
+    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+                                      vaddr_t src_addr, u64 size) {
+    LOG_DEBUG(Kernel,
+              "MapProcessCodeMemory called (process: {}, dst_addr: 0x{:08x}, "
+              "src_addr: 0x{:08x}, size: {})",
+              process->GetDebugName(), dst_addr, src_addr, size);
+
+    process->GetMmu()->Map(dst_addr, src_addr, size);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
+                                        vaddr_t src_addr, u64 size) {
+    LOG_DEBUG(Kernel,
+              "UnmapProcessCodeMemory called (process: {}, dst_addr: 0x{:08x}, "
+              "src_addr: 0x{:08x}, size: {})",
+              process->GetDebugName(), dst_addr, src_addr, size);
+
+    // TODO: what's the purpose of src_addr?
+    process->GetMmu()->Unmap(dst_addr, size);
 
     return RESULT_SUCCESS;
 }
