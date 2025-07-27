@@ -13,8 +13,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
                              GetReleasedAudioOutBuffersAuto)
 
 IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
-    : buffer_event{new kernel::Event(kernel::EventFlags::AutoClear,
-                                     "IAudioOut buffer event")} {
+    : buffer_event{new kernel::Event(false, "IAudioOut buffer event")} {
     stream = OS_INSTANCE.GetAudioCore().CreateStream(
         format, sample_rate, channel_count, [&](buffer_id_t buffer_id) {
             {

@@ -39,7 +39,7 @@ struct ToCalendarTimeWithMyRuleOut {
 
 } // namespace
 
-class ITimeZoneService : public ServiceBase {
+class ITimeZoneService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

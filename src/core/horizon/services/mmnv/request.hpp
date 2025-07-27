@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::mmnv {
 
-class IRequest : public ServiceBase {
+class IRequest : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

@@ -6,6 +6,9 @@
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 
+// TODO: remove dependency
+#include "core/horizon/kernel/guest_thread.hpp"
+
 namespace hydra::horizon::kernel {
 
 enum class ProcessState {
@@ -34,14 +37,15 @@ class Process : public SynchronizationObject {
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
 
     // Thread
-    std::pair<Thread*, handle_id_t>
+    // TODO: let the caller create the thread
+    std::pair<GuestThread*, handle_id_t>
     CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
 
-    void RegisterThread(Thread* thread) {
+    void RegisterThread(IThread* thread) {
         std::lock_guard<std::mutex> lock(thread_mutex);
         threads.push_back(thread);
     }
-    void UnregisterThread(Thread* thread) {
+    void UnregisterThread(IThread* thread) {
         std::lock_guard<std::mutex> lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
@@ -52,7 +56,7 @@ class Process : public SynchronizationObject {
     }
 
     void Start();
-    void RequestStop();
+    void Stop();
 
     bool IsRunning() {
         std::lock_guard<std::mutex> lock(thread_mutex);
@@ -64,15 +68,32 @@ class Process : public SynchronizationObject {
     // Helpers
 
     // Handles
-    AutoObject* GetHandle(handle_id_t handle_id) {
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
-            return this;
+    template <typename T>
+    T* GetHandle(handle_id_t handle_id) {
+        static_assert(std::is_base_of<AutoObject, T>::value,
+                      "T must be derived from AutoObject");
 
-        return handle_pool.Get(handle_id);
+        if (handle_id == INVALID_HANDLE_ID)
+            return nullptr;
+
+        AutoObject* obj;
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]]
+            obj = this;
+        else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]]
+            obj = tls_current_thread;
+        else
+            obj = handle_pool.Get(handle_id);
+
+        auto cast_obj = dynamic_cast<T*>(obj);
+        ASSERT_DEBUG(cast_obj != nullptr, Kernel, "Invalid handle type");
+
+        return cast_obj;
     }
+
     handle_id_t AddHandle(AutoObject* handle) {
         return handle_pool.Add(handle);
     }
+
     void FreeHandle(handle_id_t handle_id) {
         if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
             LOG_FATAL(Kernel, "Cannot free current process handle");
@@ -97,9 +118,9 @@ class Process : public SynchronizationObject {
     vaddr_t tls_mem_base{TLS_REGION_BASE};
 
     // Thread
-    Thread* main_thread{nullptr};
+    GuestThread* main_thread{nullptr};
     std::mutex thread_mutex;
-    std::vector<Thread*> threads;
+    std::vector<IThread*> threads;
 
     // Handles
     DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?

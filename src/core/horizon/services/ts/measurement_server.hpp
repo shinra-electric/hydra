@@ -9,7 +9,7 @@ enum class Location {
     External,
 };
 
-class IMeasurementServer : public ServiceBase {
+class IMeasurementServer : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

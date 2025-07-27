@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::lbl {
 
-class ILblController : public ServiceBase {
+class ILblController : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

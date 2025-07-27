@@ -5,7 +5,7 @@
 
 namespace hydra::horizon::services::timesrv {
 
-class IStaticService : public ServiceBase {
+class IStaticService : public IService {
   public:
     IStaticService();
 
@@ -16,12 +16,12 @@ class IStaticService : public ServiceBase {
     kernel::SharedMemory* shared_memory;
 
     // Commands
-    result_t GetStandardUserSystemClock(add_service_fn_t add_service);
-    result_t GetStandardNetworkSystemClock(add_service_fn_t add_service);
-    result_t GetStandardSteadyClock(add_service_fn_t add_service);
-    result_t GetTimeZoneService(add_service_fn_t add_service);
-    result_t GetStandardLocalSystemClock(add_service_fn_t add_service);
-    result_t GetEphemeralNetworkSystemClock(add_service_fn_t add_service);
+    result_t GetStandardUserSystemClock(RequestContext* ctx);
+    result_t GetStandardNetworkSystemClock(RequestContext* ctx);
+    result_t GetStandardSteadyClock(RequestContext* ctx);
+    result_t GetTimeZoneService(RequestContext* ctx);
+    result_t GetStandardLocalSystemClock(RequestContext* ctx);
+    result_t GetEphemeralNetworkSystemClock(RequestContext* ctx);
     result_t
     GetSharedMemoryNativeHandle(kernel::Process* process,
                                 OutHandle<HandleAttr::Copy> out_handle);

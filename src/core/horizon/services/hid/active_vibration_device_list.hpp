@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::hid {
 
-class IActiveVibrationDeviceList : public ServiceBase {
+class IActiveVibrationDeviceList : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

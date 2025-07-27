@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::fatalsrv {
 
-class IService : public ServiceBase {
+class IService : public ::hydra::horizon::services::IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

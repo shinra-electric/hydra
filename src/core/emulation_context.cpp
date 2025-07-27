@@ -416,7 +416,7 @@ void EmulationContext::ForceStop() {
     // Request all processes to stop immediately
     for (auto it = os->GetKernel().GetProcessManager().Begin();
          it != os->GetKernel().GetProcessManager().End(); ++it)
-        (*it)->RequestStop();
+        (*it)->Stop();
 
     // Wait a small amount of time for all threads to catch up
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

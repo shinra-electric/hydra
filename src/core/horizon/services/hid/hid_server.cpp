@@ -19,9 +19,8 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SendVibrationValue, 203, CreateActiveVibrationDeviceList, 206,
     SendVibrationValues, 303, ActivateSevenSixAxisSensor)
 
-result_t IHidServer::CreateAppletResource(kernel::add_service_fn_t add_service,
-                                          u64 aruid) {
-    add_service(new IAppletResource());
+result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
+    AddService(*ctx, new IAppletResource());
 
     return RESULT_SUCCESS;
 }
@@ -69,9 +68,8 @@ result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::CreateActiveVibrationDeviceList(
-    kernel::add_service_fn_t add_service) {
-    add_service(new IActiveVibrationDeviceList());
+result_t IHidServer::CreateActiveVibrationDeviceList(RequestContext* ctx) {
+    AddService(*ctx, new IActiveVibrationDeviceList());
 
     return RESULT_SUCCESS;
 }

@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::psm {
 
-class IPsmSession : public ServiceBase {
+class IPsmSession : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

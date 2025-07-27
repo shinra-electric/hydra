@@ -36,14 +36,13 @@ struct DnsSetting {
 };
 #pragma pack(pop)
 
-class IGeneralService : public ServiceBase {
+class IGeneralService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t CreateRequest(add_service_fn_t add_service,
-                           i32 requirement_preset);
+    result_t CreateRequest(RequestContext* ctx, i32 requirement_preset);
     result_t
     GetCurrentNetworkProfile(OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetCurrentIpAddress(IpV4Address* out_ip);

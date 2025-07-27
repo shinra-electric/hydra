@@ -10,7 +10,7 @@ class Directory;
 
 namespace hydra::horizon::services::fssrv {
 
-class IDirectory : public ServiceBase {
+class IDirectory : public IService {
   public:
     IDirectory(filesystem::Directory* directory_,
                DirectoryFilterFlags filter_flags_)

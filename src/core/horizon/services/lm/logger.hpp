@@ -16,7 +16,7 @@ struct Packet {
     std::string program_name;
 };
 
-class ILogger : public ServiceBase {
+class ILogger : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

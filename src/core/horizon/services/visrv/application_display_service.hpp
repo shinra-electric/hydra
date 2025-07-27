@@ -14,10 +14,10 @@ class IApplicationDisplayService : public DisplayServiceBase {
 
   protected:
     // Commands
-    result_t GetRelayService(add_service_fn_t add_service);
-    result_t GetSystemDisplayService(add_service_fn_t add_service);
-    result_t GetManagerDisplayService(add_service_fn_t add_service);
-    result_t GetIndirectDisplayTransactionService(add_service_fn_t add_service);
+    result_t GetRelayService(RequestContext* ctx);
+    result_t GetSystemDisplayService(RequestContext* ctx);
+    result_t GetManagerDisplayService(RequestContext* ctx);
+    result_t GetIndirectDisplayTransactionService(RequestContext* ctx);
     result_t
     ListDisplays(u64* out_count,
                  OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer);

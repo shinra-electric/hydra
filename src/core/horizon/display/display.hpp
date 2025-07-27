@@ -7,9 +7,7 @@ namespace hydra::horizon::display {
 
 class Display {
   public:
-    Display()
-        : vsync_event{new kernel::Event(kernel::EventFlags::AutoClear,
-                                        "V-Sync event")} {}
+    Display() : vsync_event{new kernel::Event(false, "V-Sync event")} {}
 
     // TODO
     void Open() {}

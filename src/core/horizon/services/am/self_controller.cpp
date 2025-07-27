@@ -17,10 +17,9 @@ DEFINE_SERVICE_COMMAND_TABLE(
 
 ISelfController::ISelfController()
     : library_applet_launchable_event{new kernel::Event(
-          kernel::EventFlags::Signalled, "Library applet launchable event")},
-      accumulated_suspended_tick_changed_event{
-          new kernel::Event(kernel::EventFlags::AutoClear,
-                            "Accumulated suspended tick changed event")} {}
+          true, "Library applet launchable event")},
+      accumulated_suspended_tick_changed_event{new kernel::Event(
+          false, "Accumulated suspended tick changed event")} {}
 
 result_t ISelfController::LockExit(kernel::Process* process) {
     process->GetAppletState().LockExit();

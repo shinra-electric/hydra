@@ -7,15 +7,15 @@ namespace hydra::horizon::services::visrv {
 DEFINE_SERVICE_COMMAND_TABLE(ISystemRootService, 1, GetDisplayService, 3,
                              GetDisplayServiceWithProxyNameExchange)
 
-result_t ISystemRootService::GetDisplayService(add_service_fn_t add_service) {
+result_t ISystemRootService::GetDisplayService(RequestContext* ctx) {
     // TODO: should take input u32
-    add_service(new IApplicationDisplayService());
+    AddService(*ctx, new IApplicationDisplayService());
     return RESULT_SUCCESS;
 }
 
 result_t ISystemRootService::GetDisplayServiceWithProxyNameExchange(
-    add_service_fn_t add_service) {
-    add_service(new IApplicationDisplayService());
+    RequestContext* ctx) {
+    AddService(*ctx, new IApplicationDisplayService());
     return RESULT_SUCCESS;
 }
 

@@ -10,7 +10,7 @@ struct AppletProcessLaunchReason {
     u8 _unknown_x3;
 };
 
-class IProcessWindingController : public ServiceBase {
+class IProcessWindingController : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

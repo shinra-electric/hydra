@@ -6,8 +6,8 @@ namespace hydra::horizon::services::apm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IManagerPrivileged, 0, OpenSession)
 
-result_t IManagerPrivileged::OpenSession(add_service_fn_t add_service) {
-    add_service(new ISession());
+result_t IManagerPrivileged::OpenSession(RequestContext* ctx) {
+    AddService(*ctx, new ISession());
     return RESULT_SUCCESS;
 }
 

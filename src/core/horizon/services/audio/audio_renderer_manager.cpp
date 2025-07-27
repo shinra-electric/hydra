@@ -10,9 +10,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
                              GetAudioDeviceServiceWithRevisionInfo)
 
 result_t IAudioRendererManager::OpenAudioRenderer(
-    add_service_fn_t add_service, aligned<AudioRendererParameters, 56> params,
+    RequestContext* ctx, aligned<AudioRendererParameters, 56> params,
     u64 work_buffer_size, u64 aruid) {
-    add_service(new IAudioRenderer(params, work_buffer_size));
+    AddService(*ctx, new IAudioRenderer(params, work_buffer_size));
     return RESULT_SUCCESS;
 }
 
@@ -79,17 +79,16 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
     return RESULT_SUCCESS;
 }
 
-result_t
-IAudioRendererManager::GetAudioDeviceService(add_service_fn_t add_service,
-                                             u64 aruid) {
-    add_service(new IAudioDevice());
+result_t IAudioRendererManager::GetAudioDeviceService(RequestContext* ctx,
+                                                      u64 aruid) {
+    AddService(*ctx, new IAudioDevice());
     return RESULT_SUCCESS;
 }
 
 result_t IAudioRendererManager::GetAudioDeviceServiceWithRevisionInfo(
-    add_service_fn_t add_service) {
+    RequestContext* ctx) {
     // TODO: revision info
-    add_service(new IAudioDevice());
+    AddService(*ctx, new IAudioDevice());
     return RESULT_SUCCESS;
 }
 
