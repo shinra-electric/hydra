@@ -77,11 +77,11 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
 
     // Additional info
     out_additional_info = {
-        .day_of_week = 0,                   // TODO
-        .day_of_year = 0,                   // TODO
-        .timezone_name = str_to_u64("UTC"), // HACK
-        .dst = 0,                           // TODO
-        .seconds_rel_to_utc = 0,            // TODO
+        .day_of_week = 0,           // TODO
+        .day_of_year = 0,           // TODO
+        .timezone_name = "UTC"_u64, // HACK
+        .dst = 0,                   // TODO
+        .seconds_rel_to_utc = 0,    // TODO
     };
 
     return RESULT_SUCCESS;

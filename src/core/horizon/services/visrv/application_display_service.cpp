@@ -125,7 +125,7 @@ result_t IApplicationDisplayService::OpenLayer(
         .unknown1 = 0x0, // TODO
         .binder_id = layer.GetBinderID(),
         .unknown2 = {0x0},
-        .str = str_to_u64("dispdrv"),
+        .str = "dispdrv"_u64,
         .unknown3 = 0x0,
     });
 

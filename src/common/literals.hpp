@@ -29,8 +29,10 @@ inline constexpr u64 operator"" _u64(const char* str, unsigned long len) {
     return res;
 }
 
+/*
 inline constexpr const char* operator"" _str(u64 value) {
     return reinterpret_cast<const char*>(&value);
 }
+*/
 
 } // namespace hydra
