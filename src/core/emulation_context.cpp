@@ -10,7 +10,6 @@
 #include "core/horizon/applets/err/const.hpp"
 #include "core/horizon/applets/mii/const.hpp"
 #include "core/horizon/applets/swkbd/const.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -71,7 +70,6 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     }
 
     os = new horizon::OS(*audio_core, ui_handler);
-    os->GetDisplayDriver().CreateDisplay();
 
     // Filesystem
     /*
@@ -85,46 +83,6 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
                  root_path.host_path);
     }
     */
-
-    // Content
-
-    FILESYSTEM_INSTANCE.Mount(FS_CONTENT_MOUNT);
-
-    // Firmware
-    std::map<u64, std::string> firmware_titles_map = {
-        {0x010000000000080E, "TimeZoneBinary"},
-        {0x0100000000000810, "FontNintendoExtension"},
-        {0x0100000000000811, "FontStandard"},
-        {0x0100000000000812, "FontKorean"},
-        {0x0100000000000813, "FontChineseTraditional"},
-        {0x0100000000000814, "FontChineseSimple"},
-    };
-
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (std::filesystem::exists(firmware_path)) {
-        // Iterate over the directory
-        for (const auto& entry :
-             std::filesystem::directory_iterator(firmware_path)) {
-            auto file =
-                new horizon::filesystem::HostFile(entry.path().string());
-            horizon::filesystem::ContentArchive content_archive(file);
-            // TODO: find a better way to handle this
-            if (content_archive.GetContentType() ==
-                horizon::filesystem::ContentArchiveContentType::Meta)
-                continue;
-
-            auto it = firmware_titles_map.find(content_archive.GetTitleID());
-            if (it == firmware_titles_map.end())
-                continue;
-
-            auto res = FILESYSTEM_INSTANCE.AddEntry(
-                fmt::format(FS_FIRMWARE_PATH "/{}", it->second), file, true);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Other,
-                   "Failed to add firmware entry: {}", res);
-        }
-    } else {
-        LOG_ERROR(Other, "Firmware path does not exist");
-    }
 }
 
 EmulationContext::~EmulationContext() {

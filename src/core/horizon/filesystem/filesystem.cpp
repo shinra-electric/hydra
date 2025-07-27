@@ -46,6 +46,9 @@ Filesystem::Filesystem() {
     // Cache
     // TODO: support mounting to a real host path as well
     Mount(FS_CACHE_MOUNT);
+
+    // Content
+    Mount(FS_CONTENT_MOUNT);
 }
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
