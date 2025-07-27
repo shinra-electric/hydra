@@ -8,9 +8,9 @@ constexpr u32 IN_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'I');
 constexpr u32 OUT_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'O');
 
 enum class DomainCommandType : u8 {
-    Invalid,
-    SendMessage,
-    Close,
+    Invalid = 0,
+    SendMessage = 1,
+    Close = 2,
 };
 
 enum class CommandType {
@@ -28,11 +28,11 @@ enum class CommandType {
 };
 
 enum class ControlCommandType {
-    ConvertCurrentObjectToDomain,
-    CopyFromCurrentDomain,
-    CloneCurrentObject,
-    QueryPointerBufferSize,
-    CloneCurrentObjectEx,
+    ConvertCurrentObjectToDomain = 0,
+    CopyFromCurrentDomain = 1,
+    CloneCurrentObject = 2,
+    QueryPointerBufferSize = 3,
+    CloneCurrentObjectEx = 4,
 };
 
 struct DomainInHeader {

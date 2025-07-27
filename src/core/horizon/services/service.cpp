@@ -133,7 +133,7 @@ void IService::AddService(RequestContext& context, IService* service) {
         service->is_domain = true;
         service->parent = parent;
 
-        const auto handle_id = parent->subservice_pool->Add(service);
+        const auto handle_id = AddSubservice(service);
         context.writers.objects_writer.Write(handle_id);
     } else {
         // Create new session
@@ -153,7 +153,7 @@ void IService::AddService(RequestContext& context, IService* service) {
 
 IService* IService::GetService(RequestContext& context, handle_id_t handle_id) {
     if (is_domain) {
-        return parent->subservice_pool->Get(handle_id);
+        return GetSubservice(handle_id);
     } else {
         return context.process
             ->GetHandle<kernel::hipc::ClientSession>(handle_id)
@@ -174,7 +174,7 @@ void IService::Request(RequestContext& context) {
         auto cmif_in =
             context.readers.reader.Read<kernel::hipc::cmif::DomainInHeader>();
         // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
-        auto subservice = parent->subservice_pool->Get(cmif_in.object_id);
+        auto subservice = GetSubservice(cmif_in.object_id);
 
         if (cmif_in.num_in_objects != 0) {
             auto objects = context.readers.reader.GetPtr() + cmif_in.data_size;
@@ -191,11 +191,11 @@ void IService::Request(RequestContext& context) {
         }
         case kernel::hipc::cmif::DomainCommandType::Close:
             // TODO: actually free the service
-            parent->subservice_pool->Free(cmif_in.object_id);
+            FreeSubservice(cmif_in.object_id);
             LOG_DEBUG(Kernel, "Closed subservice");
             break;
         default:
-            LOG_WARN(Kernel, "Unknown domain request type {}", cmif_in.type);
+            LOG_WARN(Kernel, "Unknown domain command type {}", cmif_in.type);
             break;
         }
     } else {
@@ -228,7 +228,7 @@ void IService::Control(Server& server, kernel::Process* caller_process,
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
         subservice_pool = new DynamicPool<IService*>();
-        const auto handle_id = subservice_pool->Add(this);
+        const auto handle_id = AddSubservice(this);
         writers.writer.Write(handle_id);
         break;
     }

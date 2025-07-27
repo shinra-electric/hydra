@@ -31,20 +31,20 @@ class HandlePool {
     }
 
     void Free(handle_id_t handle_id) {
-        u32 index = HandleIdToIndex(handle_id);
+        u32 index = HandleIDToIndex(handle_id);
         pool.Get(index)->Release(); // Decrement ref count
         pool.Free(index);
     }
 
     T* Get(handle_id_t handle_id) const {
-        return pool.Get(HandleIdToIndex(handle_id));
+        return pool.Get(HandleIDToIndex(handle_id));
     }
 
   private:
     Pool pool;
 
     // Helpers
-    static u32 HandleIdToIndex(handle_id_t handle_id) {
+    static u32 HandleIDToIndex(handle_id_t handle_id) {
         DEBUGGER_ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
                               "Invalid handle ID");
         return handle_id - 1;
