@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/debugger/debugger.hpp"
 #include "core/horizon/kernel/auto_object.hpp"
 
 namespace hydra::horizon::kernel {
@@ -31,24 +30,26 @@ class HandlePool {
     }
 
     void Free(handle_id_t handle_id) {
+        // TODO: allow invalid handles
+        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
+                     "Invalid handle ID");
         u32 index = HandleIDToIndex(handle_id);
         pool.Get(index)->Release(); // Decrement ref count
         pool.Free(index);
     }
 
     T* Get(handle_id_t handle_id) const {
-        return pool.Get(HandleIDToIndex(handle_id));
+        if (handle_id == INVALID_HANDLE_ID)
+            return nullptr;
+
+        return pool.GetOrDefault(HandleIDToIndex(handle_id));
     }
 
   private:
     Pool pool;
 
     // Helpers
-    static u32 HandleIDToIndex(handle_id_t handle_id) {
-        DEBUGGER_ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
-                              "Invalid handle ID");
-        return handle_id - 1;
-    }
+    static u32 HandleIDToIndex(handle_id_t handle_id) { return handle_id - 1; }
 
     static handle_id_t IndexToHandleID(u32 index) { return index + 1; }
 };

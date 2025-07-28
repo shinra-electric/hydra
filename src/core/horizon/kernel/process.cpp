@@ -1,5 +1,6 @@
 #include "core/horizon/kernel/process.hpp"
 
+#include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 
 namespace hydra::horizon::kernel {

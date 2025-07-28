@@ -615,7 +615,13 @@ result_t Kernel::CreateTransferMemory(Process* crnt_process, uptr addr,
 }
 
 result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
-    LOG_DEBUG(Kernel, "CloseHandle called (handle: 0x{:x})", handle_id);
+    auto obj = crnt_process->GetHandle<AutoObject>(handle_id);
+    if (!obj) {
+        LOG_DEBUG(Kernel, "CloseHandle called (INVALID_HANDLE)");
+        return MAKE_RESULT(Svc, Error::InvalidHandle);
+    }
+
+    LOG_DEBUG(Kernel, "CloseHandle called (handle: {})", obj->GetDebugName());
 
     crnt_process->FreeHandle(handle_id);
     return RESULT_SUCCESS;

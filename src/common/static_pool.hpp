@@ -53,6 +53,13 @@ class StaticPool {
         return objects[index];
     }
 
+    T GetOrDefault(u32 index) const {
+        if (IsFree(index))
+            return {};
+
+        return objects[index];
+    }
+
     T& GetRef(u32 index) {
         AssertIndex(index);
         return objects[index];

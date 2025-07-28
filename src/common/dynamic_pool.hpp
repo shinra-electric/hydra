@@ -5,6 +5,7 @@
 
 namespace hydra {
 
+// TODO: this needs optimizations real bad
 template <typename T>
 class DynamicPool {
   public:
@@ -44,6 +45,13 @@ class DynamicPool {
 
     T Get(u32 index) const {
         AssertIndex(index);
+        return objects[index];
+    }
+
+    T GetOrDefault(u32 index) const {
+        if (IsFree(index))
+            return {};
+
         return objects[index];
     }
 

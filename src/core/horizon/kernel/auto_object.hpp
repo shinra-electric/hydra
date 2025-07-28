@@ -8,7 +8,7 @@ class AutoObject {
   public:
     AutoObject(const std::string_view debug_name_ = "AutoObject")
         : debug_name{fmt::format("{} {}", debug_name_, (void*)this)}, ref_count{
-                                                                          0} {}
+                                                                          1} {}
 
     void Retain() { ref_count++; }
 

@@ -84,6 +84,9 @@ class Process : public SynchronizationObject {
         else
             obj = handle_pool.Get(handle_id);
 
+        if (!obj)
+            return nullptr;
+
         auto cast_obj = dynamic_cast<T*>(obj);
         ASSERT_DEBUG(cast_obj != nullptr, Kernel, "Invalid handle type");
 
@@ -95,10 +98,15 @@ class Process : public SynchronizationObject {
     }
 
     void FreeHandle(handle_id_t handle_id) {
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE)
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) {
             LOG_FATAL(Kernel, "Cannot free current process handle");
-
-        handle_pool.Free(handle_id);
+        } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) {
+            LOG_FATAL(Kernel, "Cannot free current thread handle");
+        } else {
+            auto obj = handle_pool.Get(handle_id);
+            obj->Release();
+            handle_pool.Free(handle_id);
+        }
     }
 
   private:
