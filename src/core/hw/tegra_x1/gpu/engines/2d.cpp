@@ -59,7 +59,7 @@ renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
             renderer::to_texture_format(info.format), info.width) // HACK
     );
 
-    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

@@ -95,7 +95,7 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     }
 
     // TODO: correct?
-    RENDERER_INSTANCE->GetTextureCache().NotifyGuestModifiedData(
+    RENDERER_INSTANCE.GetTextureCache().NotifyGuestModifiedData(
         range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 
@@ -105,7 +105,7 @@ renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize size) {
         .size = size,
     };
 
-    return RENDERER_INSTANCE->GetBufferCache().Find(descriptor);
+    return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
 }
 
 /*
@@ -129,7 +129,7 @@ renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,
     };
     LOG_DEBUG(Engines, "COPYING: {}x{}", descriptor.width, descriptor.height);
 
-    return RENDERER_INSTANCE->GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
 }
 */
 

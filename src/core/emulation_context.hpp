@@ -18,7 +18,7 @@ class EmulationContext {
     EmulationContext(horizon::ui::HandlerBase& ui_handler);
     ~EmulationContext();
 
-    void SetSurface(void* surface) { gpu->GetRenderer()->SetSurface(surface); }
+    void SetSurface(void* surface) { gpu->GetRenderer().SetSurface(surface); }
     void LoadAndStart(horizon::loader::LoaderBase* loader);
     void RequestStop();
     void ForceStop();

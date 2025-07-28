@@ -6,7 +6,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 PipelineBase* PipelineCache::Create(const PipelineDescriptor& descriptor) {
-    return RENDERER_INSTANCE->CreatePipeline(descriptor);
+    return RENDERER_INSTANCE.CreatePipeline(descriptor);
 }
 
 u64 PipelineCache::Hash(const PipelineDescriptor& descriptor) {

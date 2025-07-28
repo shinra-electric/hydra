@@ -73,7 +73,9 @@ add_library(hydra-core
     horizon/loader/homebrew_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
+    horizon/display/layer.cpp
     horizon/display/layer.hpp
+    horizon/display/display.cpp
     horizon/display/display.hpp
     horizon/display/driver.hpp
     horizon/services/const.hpp

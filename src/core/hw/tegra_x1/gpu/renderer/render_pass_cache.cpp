@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 RenderPassBase*
 RenderPassCache::Create(const RenderPassDescriptor& descriptor) {
-    return RENDERER_INSTANCE->CreateRenderPass(descriptor);
+    return RENDERER_INSTANCE.CreateRenderPass(descriptor);
 }
 
 u64 RenderPassCache::Hash(const RenderPassDescriptor& descriptor) {

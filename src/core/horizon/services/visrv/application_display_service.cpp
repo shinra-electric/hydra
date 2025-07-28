@@ -139,8 +139,7 @@ result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     std::unique_lock display_lock(display.GetMutex());
 
-    auto& layer = display.GetLayer(layer_id);
-    layer.Close();
+    display.DestroyLayer(layer_id);
     return RESULT_SUCCESS;
 }
 

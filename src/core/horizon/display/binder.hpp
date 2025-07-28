@@ -86,7 +86,6 @@ struct Binder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    // TODO: autoclear event?
     Binder() : event{new kernel::Event(true, "Display event")} {}
 
     // Buffers

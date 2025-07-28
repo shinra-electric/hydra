@@ -131,7 +131,7 @@ class Gpu {
     // Getters
     GpuMmu& GetGpuMmu() { return gpu_mmu; }
     Pfifo& GetPfifo() { return pfifo; }
-    renderer::RendererBase* GetRenderer() const { return renderer; }
+    renderer::RendererBase& GetRenderer() const { return *renderer; }
 
   private:
     // Address space

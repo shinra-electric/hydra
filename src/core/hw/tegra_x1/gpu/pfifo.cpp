@@ -62,12 +62,12 @@ struct CommandHeader {
 void Pfifo::SubmitEntries(const std::vector<GpfifoEntry>& entries,
                           GpfifoFlags flags) {
     LOG_DEBUG(Gpu, "Flags: {}", flags);
-    RENDERER_INSTANCE->LockMutex();
+    RENDERER_INSTANCE.LockMutex();
     for (const auto& entry : entries) {
         SubmitEntry(entry);
     }
-    RENDERER_INSTANCE->EndCommandBuffer();
-    RENDERER_INSTANCE->UnlockMutex();
+    RENDERER_INSTANCE.EndCommandBuffer();
+    RENDERER_INSTANCE.UnlockMutex();
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {

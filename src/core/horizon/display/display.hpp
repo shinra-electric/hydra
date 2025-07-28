@@ -13,28 +13,29 @@ class Display {
     void Open() {}
     void Close() {}
 
-    u32 CreateLayer(u32 binder_id) {
-        u32 id = layers.size();
-        layers.push_back(new Layer(binder_id));
+    void
+    AcquirePresentTextures(std::vector<std::chrono::nanoseconds>& out_dt_list);
+    bool Present(u32 width, u32 height);
 
+    // Layers
+    u32 CreateLayer(u32 binder_id) {
+        u32 id = layer_pool.AllocateForIndex();
+        layer_pool.GetRef(id) = new Layer(binder_id);
         return id;
     }
 
-    // TODO: should draw to a specific layer
-    Layer* GetPresentableLayer() {
-        if (layers.empty())
-            return nullptr;
-
-        return layers.back();
+    void DestroyLayer(u32 id) {
+        delete layer_pool.Get(id);
+        layer_pool.Free(id);
     }
 
-    Layer& GetLayer(u32 id) { return *layers[id]; }
+    Layer& GetLayer(u32 id) { return *layer_pool.Get(id); }
 
   private:
     std::mutex mutex;
     kernel::Event* vsync_event;
 
-    std::vector<Layer*> layers;
+    StaticPool<Layer*, 8> layer_pool;
 
   public:
     REF_GETTER(mutex, GetMutex);

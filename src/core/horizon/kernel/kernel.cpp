@@ -620,7 +620,7 @@ result_t Kernel::CreateTransferMemory(Process* crnt_process, uptr addr,
 result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
     auto obj = crnt_process->GetHandle<AutoObject>(handle_id);
     if (!obj) {
-        LOG_DEBUG(Kernel, "CloseHandle called (INVALID_HANDLE)");
+        LOG_WARN(Kernel, "CloseHandle called (INVALID_HANDLE)");
         return MAKE_RESULT(Svc, Error::InvalidHandle);
     }
 
@@ -660,6 +660,11 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         crnt_thread->Pause();
 
         for (u32 i = 0; i < sync_objs.size(); i++) {
+            if (!sync_objs[i]) {
+                LOG_WARN(Kernel, "Invalid sync object");
+                return MAKE_RESULT(Svc, Error::InvalidHandle);
+            }
+
             // LOG_DEBUG(Kernel, "Synchronizing with {}",
             //           sync_objs[i]->GetDebugName());
 

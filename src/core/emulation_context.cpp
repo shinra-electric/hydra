@@ -261,7 +261,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
                 width * 4);
-            nintendo_logo = gpu->GetRenderer()->CreateTexture(descriptor);
+            nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
             nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
             free(data);
         }
@@ -279,7 +279,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
                 width * 4);
             startup_movie.reserve(frame_count);
             for (u32 i = 0; i < frame_count; i++) {
-                auto frame = gpu->GetRenderer()->CreateTexture(descriptor);
+                auto frame = gpu->GetRenderer().CreateTexture(descriptor);
                 frame->CopyFrom(
                     reinterpret_cast<uptr>(data + i * height * width));
                 startup_movie.push_back(frame);
@@ -426,10 +426,10 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                     std::chrono::duration_cast<std::chrono::duration<f32>>(
                         STARTUP_MOVIE_FADE_IN_DURATION);
 
-        auto renderer = gpu->GetRenderer();
-        renderer->LockMutex();
-        if (!renderer->AcquireNextSurface()) {
-            renderer->UnlockMutex();
+        auto& renderer = gpu->GetRenderer();
+        renderer.LockMutex();
+        if (!renderer.AcquireNextSurface()) {
+            renderer.UnlockMutex();
             return;
         }
 
@@ -438,8 +438,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             int2 size = {(i32)nintendo_logo->GetDescriptor().width,
                          (i32)nintendo_logo->GetDescriptor().height};
             int2 dst_offset = {32, 32};
-            renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
-                                           {dst_offset, size}, true, opacity);
+            renderer.DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
+                                          {dst_offset, size}, true, opacity);
         }
 
         // Startup movie
@@ -457,13 +457,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                          (i32)frame->GetDescriptor().height};
             int2 dst_offset = {(i32)width - size.x() - 32,
                                (i32)height - size.y() - 32};
-            renderer->DrawTextureToSurface(frame, {{0, 0}, size},
-                                           {dst_offset, size}, true, opacity);
+            renderer.DrawTextureToSurface(frame, {{0, 0}, size},
+                                          {dst_offset, size}, true, opacity);
         }
 
-        renderer->PresentSurface();
-        renderer->EndCommandBuffer();
-        renderer->UnlockMutex();
+        renderer.PresentSurface();
+        renderer.EndCommandBuffer();
+        renderer.UnlockMutex();
         return;
     }
 
@@ -499,92 +499,21 @@ bool EmulationContext::Present(
     u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
     auto& display = os->GetDisplayDriver().GetDisplay(0);
-    std::unique_lock display_lock(display.GetMutex());
+    display.AcquirePresentTextures(out_dt_list);
 
-    // Layer
-    auto layer = display.GetPresentableLayer();
-    if (!layer)
-        return false;
-
-    // Signal V-Sync
-    display.GetVSyncEvent()->Signal();
-
-    // Get the buffer to present
-    u32 binder_id = layer->GetBinderID();
-    auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
-
-    horizon::display::BqBufferInput input;
-    i32 slot = binder.ConsumeBuffer(input, out_dt_list);
-    if (slot == -1)
-        return false;
-    const auto& buffer = binder.GetBuffer(slot);
-
-    // Src rect
-    IntRect2D src_rect;
-    src_rect.origin.x() = input.rect.left;
-    src_rect.origin.y() =
-        input.rect.top; // Convert from top left to bottom left origin
-    src_rect.size.x() = input.rect.right - input.rect.left;
-    src_rect.size.y() = input.rect.bottom - input.rect.top;
-
-    // HACK
-    if (src_rect.size.x() == 0) {
-        src_rect.size.x() = buffer.nv_buffer.planes[0].width;
-        ONCE(LOG_WARN(Other, "Invalid src width"));
-    }
-    if (src_rect.size.y() == 0) {
-        src_rect.size.y() = buffer.nv_buffer.planes[0].height;
-        ONCE(LOG_WARN(Other, "Invalid src height"));
-    }
-
-    if (any(input.transform_flags & horizon::display::TransformFlags::FlipH)) {
-        src_rect.origin.x() += src_rect.size.x();
-        src_rect.size.x() = -src_rect.size.x();
-    }
-    if (any(input.transform_flags & horizon::display::TransformFlags::FlipV)) {
-        src_rect.origin.y() += src_rect.size.y();
-        src_rect.size.y() = -src_rect.size.y();
-    }
-    if (any(input.transform_flags & horizon::display::TransformFlags::Rot90)) {
-        // TODO: how does this work? Is the aspect ratio kept intact?
-        ONCE(LOG_NOT_IMPLEMENTED(Other, "Rotating by 90 degrees"));
-    }
-
-    // Dst rect
-    const auto src_width = abs(src_rect.size.x());
-    const auto src_height = abs(src_rect.size.y());
-
-    IntRect2D dst_rect;
-    auto scale_x = (f32)width / (f32)src_width;
-    auto scale_y = (f32)height / (f32)src_height;
-    if (scale_x > scale_y) {
-        const auto dst_width = static_cast<i32>(src_width * scale_y);
-        dst_rect.origin = int2({static_cast<i32>(width - dst_width) / 2, 0});
-        dst_rect.size = int2({dst_width, static_cast<i32>(height)});
-    } else {
-        const auto dst_height = static_cast<i32>(src_height * scale_x);
-        dst_rect.origin = int2({0, static_cast<i32>(height - dst_height) / 2});
-        dst_rect.size = int2({static_cast<i32>(width), dst_height});
-    }
-
-    // Present
-    auto renderer = gpu->GetRenderer();
-
-    renderer->LockMutex();
-    auto texture = gpu->GetTexture(
-        (*os->GetKernel().GetProcessManager().Begin())->GetMmu(),
-        buffer.nv_buffer); // HACK
-    if (!renderer->AcquireNextSurface()) {
-        renderer->UnlockMutex();
+    RENDERER_INSTANCE.LockMutex();
+    if (!RENDERER_INSTANCE.AcquireNextSurface()) {
+        RENDERER_INSTANCE.UnlockMutex();
         return false;
     }
 
-    renderer->DrawTextureToSurface(texture, src_rect, dst_rect);
+    bool drawn = display.Present(width, height);
 
-    renderer->PresentSurface();
-    renderer->EndCommandBuffer();
-    renderer->UnlockMutex();
-    return true;
+    RENDERER_INSTANCE.PresentSurface();
+    RENDERER_INSTANCE.EndCommandBuffer();
+    RENDERER_INSTANCE.UnlockMutex();
+
+    return drawn;
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
