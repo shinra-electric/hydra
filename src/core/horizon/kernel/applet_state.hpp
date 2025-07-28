@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/const.hpp"
+#include "core/horizon/kernel/event.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -45,13 +45,13 @@ class AppletState {
     std::stack<uuid_t> user_ids;
 
     // Events
-    Event* msg_event;
+    Event msg_event;
 
     // Impl
     void SendMessageImpl(std::lock_guard<std::mutex>& lock, AppletMessage msg);
 
   public:
-    GETTER(msg_event, GetMsgEvent);
+    REF_GETTER(msg_event, GetMsgEvent);
 };
 
 } // namespace hydra::horizon::kernel

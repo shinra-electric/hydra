@@ -10,6 +10,7 @@ add_library(hydra-core
     horizon/kernel/applet_state.cpp
     horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
+    horizon/kernel/strong_ref.hpp
     horizon/kernel/synchronization_object.cpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp

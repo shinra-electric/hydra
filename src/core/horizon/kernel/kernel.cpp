@@ -75,7 +75,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                          std::bit_cast<i32>(guest_thread->GetRegW(4)),
                          std::bit_cast<i32>(guest_thread->GetRegW(5)), thread);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandle(thread));
+        guest_thread->SetRegX(1, crnt_process->AddHandleNoRetain(thread));
         break;
     }
     case 0x9:
@@ -152,7 +152,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             crnt_process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
             static_cast<MemoryPermission>(guest_thread->GetRegX(3)), tmem);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandle(tmem));
+        guest_thread->SetRegX(1, crnt_process->AddHandleNoRetain(tmem));
         break;
     }
     case 0x16:
@@ -217,7 +217,8 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                 crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
             client_session);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandle(client_session));
+        guest_thread->SetRegX(1,
+                              crnt_process->AddHandleNoRetain(client_session));
         break;
     }
     case 0x21:
@@ -288,8 +289,10 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                             guest_thread->GetRegX(3), server_session,
                             client_session);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, crnt_process->AddHandle(server_session));
-        guest_thread->SetRegW(2, crnt_process->AddHandle(client_session));
+        guest_thread->SetRegW(1,
+                              crnt_process->AddHandleNoRetain(server_session));
+        guest_thread->SetRegW(2,
+                              crnt_process->AddHandleNoRetain(client_session));
         break;
     }
     case 0x43: {
@@ -315,7 +318,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         res = CreateCodeMemory(guest_thread->GetRegX(1),
                                guest_thread->GetRegX(2), code_mem);
         guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, crnt_process->AddHandle(code_mem));
+        guest_thread->SetRegW(1, crnt_process->AddHandleNoRetain(code_mem));
         break;
     }
     case 0x4c:
@@ -813,6 +816,8 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
         LOG_ERROR(Kernel, "Failed to connect to service \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
+
+    out_client_session->Retain();
 
     return RESULT_SUCCESS;
 }

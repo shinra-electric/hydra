@@ -93,9 +93,11 @@ class Process : public SynchronizationObject {
         return cast_obj;
     }
 
-    handle_id_t AddHandle(AutoObject* handle) {
-        return handle_pool.Add(handle);
+    handle_id_t AddHandleNoRetain(AutoObject* obj) {
+        return handle_pool.AddNoRetain(obj);
     }
+
+    handle_id_t AddHandle(AutoObject* obj) { return handle_pool.Add(obj); }
 
     void FreeHandle(handle_id_t handle_id) {
         if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) {
@@ -103,8 +105,6 @@ class Process : public SynchronizationObject {
         } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) {
             LOG_FATAL(Kernel, "Cannot free current thread handle");
         } else {
-            auto obj = handle_pool.Get(handle_id);
-            obj->Release();
             handle_pool.Free(handle_id);
         }
     }
@@ -131,7 +131,7 @@ class Process : public SynchronizationObject {
     std::vector<IThread*> threads;
 
     // Handles
-    DynamicHandlePool<AutoObject> handle_pool; // TODO: could be static?
+    DynamicHandlePool handle_pool; // TODO: could be static?
 
     std::atomic<ProcessState> state{ProcessState::Created};
 

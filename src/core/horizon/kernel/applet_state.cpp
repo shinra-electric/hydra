@@ -4,8 +4,8 @@
 
 namespace hydra::horizon::kernel {
 
-AppletState::AppletState() : msg_event{new Event(false, "Message event")} {}
-AppletState::~AppletState() { msg_event->Release(); }
+AppletState::AppletState() : msg_event(false, "Message event") {}
+AppletState::~AppletState() { msg_event.Release(); }
 
 void AppletState::SendMessage(AppletMessage msg) {
     std::lock_guard<std::mutex> lock(mutex);
@@ -38,7 +38,7 @@ AppletMessage AppletState::ReceiveMessage() {
 
     // Clear event
     if (msg_queue.empty())
-        msg_event->Clear();
+        msg_event.Clear();
 
     return msg;
 }
@@ -72,7 +72,7 @@ void AppletState::SendMessageImpl(std::lock_guard<std::mutex>& lock,
     msg_queue.push(msg);
 
     // Signal event
-    msg_event->Signal();
+    msg_event.Signal();
 }
 
 } // namespace hydra::horizon::kernel

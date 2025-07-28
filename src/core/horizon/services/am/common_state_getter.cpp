@@ -15,7 +15,7 @@ DEFINE_SERVICE_COMMAND_TABLE(
 result_t
 ICommonStateGetter::GetEventHandle(kernel::Process* process,
                                    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(process->GetAppletState().GetMsgEvent());
+    out_handle = process->AddHandle(&process->GetAppletState().GetMsgEvent());
     return RESULT_SUCCESS;
 }
 

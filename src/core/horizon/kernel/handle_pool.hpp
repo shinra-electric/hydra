@@ -4,11 +4,8 @@
 
 namespace hydra::horizon::kernel {
 
-template <typename T, typename Pool>
+template <typename Pool>
 class HandlePool {
-    static_assert(std::is_convertible_v<T*, AutoObject*>,
-                  "Type does not inherit from AutoObject");
-
   public:
     ~HandlePool() { CleanUp(); }
 
@@ -19,14 +16,21 @@ class HandlePool {
         }
     }
 
-    handle_id_t Add(T* handle) {
-        if (!handle)
+    handle_id_t AddNoRetain(AutoObject* obj) {
+        if (!obj)
             return INVALID_HANDLE_ID;
 
-        handle->Retain(); // Increment ref count
         u32 index = pool.AllocateForIndex();
-        pool.GetRef(index) = handle;
+        pool.GetRef(index) = obj;
         return IndexToHandleID(index);
+    }
+
+    handle_id_t Add(AutoObject* obj) {
+        if (!obj)
+            return INVALID_HANDLE_ID;
+
+        obj->Retain(); // Increment ref count
+        return AddNoRetain(obj);
     }
 
     void Free(handle_id_t handle_id) {
@@ -38,7 +42,7 @@ class HandlePool {
         pool.Free(index);
     }
 
-    T* Get(handle_id_t handle_id) const {
+    AutoObject* Get(handle_id_t handle_id) const {
         if (handle_id == INVALID_HANDLE_ID)
             return nullptr;
 
@@ -54,10 +58,9 @@ class HandlePool {
     static handle_id_t IndexToHandleID(u32 index) { return index + 1; }
 };
 
-template <typename T, usize size>
-class StaticHandlePool : public HandlePool<T, StaticPool<T*, size>> {};
+template <usize size>
+class StaticHandlePool : public HandlePool<StaticPool<AutoObject*, size>> {};
 
-template <typename T>
-class DynamicHandlePool : public HandlePool<T, DynamicPool<T*>> {};
+class DynamicHandlePool : public HandlePool<DynamicPool<AutoObject*>> {};
 
 } // namespace hydra::horizon::kernel

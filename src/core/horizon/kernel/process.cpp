@@ -81,12 +81,27 @@ void Process::Stop() {
 }
 
 void Process::CleanUp() {
-    if (heap_mem)
+    // Heap memory
+    if (heap_mem) {
         delete heap_mem;
+        heap_mem = nullptr;
+    }
+
+    // Executable memories
     for (auto mem : executable_mems)
         delete mem;
+    executable_mems.clear();
+
+    // Main thread stack memory
     if (main_thread_stack_mem)
         delete main_thread_stack_mem;
+
+    // Main thread
+    if (main_thread) {
+        main_thread->Release();
+        main_thread = nullptr;
+    }
+
     handle_pool.CleanUp();
 
     // Signal
