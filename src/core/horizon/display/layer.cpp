@@ -77,8 +77,6 @@ bool Layer::Present(u32 width, u32 height) {
     // Draw
     RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);
 
-    present_texture = nullptr;
-
     return true;
 }
 
