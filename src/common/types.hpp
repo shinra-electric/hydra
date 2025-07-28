@@ -264,7 +264,7 @@ class small_cache {
     std::map<KeyT, T> slow_cache;
 };
 
-template <typename SubclassT, typename T, typename DescriptorT>
+template <typename Subclass, typename T, typename DescriptorT>
 class CacheBase {
   public:
     ~CacheBase() {

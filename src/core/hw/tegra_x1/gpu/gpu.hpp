@@ -40,20 +40,20 @@ class Gpu {
 
     // Memory map
     u32 CreateMap(usize size) {
-        handle_id_t handle_id = memory_maps.AllocateForIndex();
-        MemoryMap& memory_map = memory_maps.GetRef(handle_id);
+        handle_id_t handle_id = memory_maps.AllocateHandle();
+        MemoryMap& memory_map = memory_maps.Get(handle_id);
         memory_map = {};
         memory_map.size = size;
 
         // HACK: allocate one more index. Games are probably confused with
         // handle IDs and IDs
-        memory_maps.AllocateForIndex();
+        memory_maps.AllocateHandle();
 
         return handle_id;
     }
 
     void AllocateMap(handle_id_t handle_id, uptr addr, bool write) {
-        MemoryMap& memory_map = memory_maps.GetRef(handle_id);
+        MemoryMap& memory_map = memory_maps.Get(handle_id);
         memory_map.addr = addr;
         memory_map.write = write;
     }
@@ -65,7 +65,7 @@ class Gpu {
     handle_id_t GetMapHandleId(u32 id) { return id - 1; }
 
     MemoryMap& GetMap(handle_id_t handle_id) {
-        return memory_maps.GetRef(handle_id);
+        return memory_maps.Get(handle_id);
     }
 
     MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }

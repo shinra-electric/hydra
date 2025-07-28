@@ -8,6 +8,10 @@ class IHOSBinderDriver;
 
 namespace hydra::horizon::services::visrv {
 
+struct DisplayName {
+    char name[0x40];
+};
+
 class IApplicationDisplayService : public DisplayServiceBase {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
@@ -25,7 +29,7 @@ class IApplicationDisplayService : public DisplayServiceBase {
     result_t CloseDisplay(u64 display_id);
     result_t GetDisplayResolution(u64 display_id, i64* out_width,
                                   i64* out_height);
-    result_t OpenLayer(u64 display_name, u64 layer_id, u64 aruid,
+    result_t OpenLayer(DisplayName display_name, u64 layer_id, u64 aruid,
                        u64* out_native_window_size,
                        OutBuffer<BufferAttr::MapAlias> parcel_buffer);
     result_t CloseLayer(u64 layer_id);

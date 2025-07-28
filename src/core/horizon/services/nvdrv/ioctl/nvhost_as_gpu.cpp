@@ -1,6 +1,7 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp"
 
 #include "core/horizon/kernel/process.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {

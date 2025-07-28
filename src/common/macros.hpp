@@ -15,7 +15,8 @@
         }                                                                      \
     }
 
-#define THIS ((SubclassT*)this)
+#define THIS ((Subclass*)this)
+#define CONST_THIS ((const Subclass*)this)
 
 #define PASS_VA_ARGS(...) , ##__VA_ARGS__
 

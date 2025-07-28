@@ -4,7 +4,7 @@
 
 namespace hydra::hw {
 
-template <typename SubclassT, typename Impl>
+template <typename Subclass, typename Impl>
 class GenericMmu {
   public:
     void Map(uptr base, Impl impl) {

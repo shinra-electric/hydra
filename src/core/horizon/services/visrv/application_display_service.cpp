@@ -72,7 +72,7 @@ result_t IApplicationDisplayService::ListDisplays(
 
 result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
     // TODO: what display ID should be used?
-    const auto display_id = 0;
+    const auto display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     std::unique_lock display_lock(display.GetMutex());
     display.Open();
@@ -103,9 +103,10 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
 }
 
 result_t IApplicationDisplayService::OpenLayer(
-    u64 display_name, u64 layer_id, u64 aruid, u64* out_native_window_size,
+    DisplayName display_name, u64 layer_id, u64 aruid,
+    u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
-    u64 display_id = 0; // TODO: get based on the name
+    u64 display_id = 1; // TODO: get based on the name
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     std::unique_lock display_lock(display.GetMutex());
 
@@ -134,7 +135,7 @@ result_t IApplicationDisplayService::OpenLayer(
 }
 
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
-    u64 display_id = 0; // TODO: get from layer ID
+    u64 display_id = 1; // TODO: get from layer ID
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     std::unique_lock display_lock(display.GetMutex());

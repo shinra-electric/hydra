@@ -2,7 +2,6 @@
 
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/event.hpp"
-#include "core/horizon/kernel/handle_pool.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/mutex.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
@@ -15,10 +14,6 @@ namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
 class IThread;
 } // namespace hydra::hw::tegra_x1::cpu
-
-namespace hydra::hw {
-class Bus;
-}
 
 // TODO: remove this
 namespace hydra::horizon::services {

@@ -1,13 +1,16 @@
 #pragma once
 
 #include "core/horizon/kernel/applet_state.hpp"
-#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
 #include "core/horizon/kernel/thread.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 
 // TODO: remove dependency
 #include "core/horizon/kernel/guest_thread.hpp"
+
+namespace hydra::hw::tegra_x1::cpu {
+class IMmu;
+} // namespace hydra::hw::tegra_x1::cpu
 
 namespace hydra::horizon::kernel {
 
@@ -77,15 +80,16 @@ class Process : public SynchronizationObject {
             return nullptr;
 
         AutoObject* obj;
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]]
+        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) [[unlikely]] {
             obj = this;
-        else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]]
+        } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) [[unlikely]] {
             obj = tls_current_thread;
-        else
-            obj = handle_pool.Get(handle_id);
+        } else {
+            if (!handle_pool.IsValid(handle_id))
+                return nullptr;
 
-        if (!obj)
-            return nullptr;
+            obj = handle_pool.Get(handle_id);
+        }
 
         auto cast_obj = dynamic_cast<T*>(obj);
         ASSERT_DEBUG(cast_obj != nullptr, Kernel, "Invalid handle type");
@@ -94,10 +98,13 @@ class Process : public SynchronizationObject {
     }
 
     handle_id_t AddHandleNoRetain(AutoObject* obj) {
-        return handle_pool.AddNoRetain(obj);
+        return handle_pool.Add(obj);
     }
 
-    handle_id_t AddHandle(AutoObject* obj) { return handle_pool.Add(obj); }
+    handle_id_t AddHandle(AutoObject* obj) {
+        obj->Retain();
+        return handle_pool.Add(obj);
+    }
 
     void FreeHandle(handle_id_t handle_id) {
         if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) {
@@ -105,6 +112,7 @@ class Process : public SynchronizationObject {
         } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) {
             LOG_FATAL(Kernel, "Cannot free current thread handle");
         } else {
+            handle_pool.Get(handle_id)->Release();
             handle_pool.Free(handle_id);
         }
     }
@@ -131,7 +139,8 @@ class Process : public SynchronizationObject {
     std::vector<IThread*> threads;
 
     // Handles
-    DynamicHandlePool handle_pool; // TODO: could be static?
+    StaticPool<AutoObject*, 256>
+        handle_pool; // TODO: what is the max number of handles?
 
     std::atomic<ProcessState> state{ProcessState::Created};
 

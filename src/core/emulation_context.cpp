@@ -498,7 +498,10 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 bool EmulationContext::Present(
     u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // TODO: don't hardcode the display id
-    auto& display = os->GetDisplayDriver().GetDisplay(0);
+    auto& display = os->GetDisplayDriver().GetDisplay(1);
+    // TODO: different layers can be presented at different intervals (if at
+    // all). Perhaps layers could have processes associated with them and only
+    // the original processes's dt would be queried?
     display.AcquirePresentTextures(out_dt_list);
 
     RENDERER_INSTANCE.LockMutex();

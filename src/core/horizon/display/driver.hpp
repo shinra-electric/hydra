@@ -9,8 +9,8 @@ class Driver {
   public:
     // Binders
     u32 CreateBinder() {
-        u32 id = binder_pool.AllocateForIndex();
-        binder_pool.GetRef(id) = new Binder();
+        u32 id = binder_pool.AllocateHandle();
+        binder_pool.Get(id) = new Binder();
         return id;
     }
 
@@ -23,8 +23,8 @@ class Driver {
 
     // Displays
     u32 CreateDisplay() {
-        u32 id = display_pool.AllocateForIndex();
-        display_pool.GetRef(id) = new Display();
+        u32 id = display_pool.AllocateHandle();
+        display_pool.Get(id) = new Display();
         return id;
     }
 

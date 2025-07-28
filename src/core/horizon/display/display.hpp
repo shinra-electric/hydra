@@ -19,8 +19,8 @@ class Display {
 
     // Layers
     u32 CreateLayer(u32 binder_id) {
-        u32 id = layer_pool.AllocateForIndex();
-        layer_pool.GetRef(id) = new Layer(binder_id);
+        u32 id = layer_pool.AllocateHandle();
+        layer_pool.Get(id) = new Layer(binder_id);
         return id;
     }
 

@@ -2,6 +2,7 @@
 
 #include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -102,7 +103,11 @@ void Process::CleanUp() {
         main_thread = nullptr;
     }
 
-    handle_pool.CleanUp();
+    for (handle_id_t handle_id = 1; handle_id < handle_pool.GetCapacity() + 1;
+         handle_id++) {
+        if (handle_pool.IsValid(handle_id))
+            handle_pool.Get(handle_id)->Release();
+    }
 
     // Signal
     SignalStateChange(ProcessState::Exited);

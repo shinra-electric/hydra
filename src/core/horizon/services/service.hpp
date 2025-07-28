@@ -38,20 +38,17 @@ class IService {
         if (!service)
             return INVALID_HANDLE_ID;
 
-        u32 index = parent->subservice_pool->AllocateForIndex();
-        parent->subservice_pool->GetRef(index) = service;
-        return IndexToObjectID(index);
+        return parent->subservice_pool->Add(service);
     }
 
     void FreeSubservice(handle_id_t handle_id) {
-        u32 index = ObjectIDToIndex(handle_id);
         // TODO: should it be deleted?
-        // delete parent->subservice_pool->Get(index);
-        parent->subservice_pool->Free(index);
+        // delete parent->subservice_pool->Get(handle_id);
+        parent->subservice_pool->Free(handle_id);
     }
 
     IService* GetSubservice(handle_id_t handle_id) const {
-        return parent->subservice_pool->Get(ObjectIDToIndex(handle_id));
+        return parent->subservice_pool->Get(handle_id);
     }
 
   private:
@@ -69,15 +66,6 @@ class IService {
     void Clone(Server& server, kernel::Process* caller_process,
                kernel::hipc::Writers& writers);
     void TipcRequest(RequestContext& context, const u32 command_id);
-
-    // Helpers
-    static u32 ObjectIDToIndex(handle_id_t handle_id) {
-        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Kernel,
-                     "Invalid handle ID");
-        return handle_id - 1;
-    }
-
-    static u32 IndexToObjectID(u32 index) { return index + 1; }
 
   public:
     GETTER(is_domain, IsDomain);

@@ -1,6 +1,7 @@
 #include "core/horizon/kernel/guest_thread.hpp"
 
 #include "core/debugger/debugger.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
