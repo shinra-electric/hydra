@@ -55,9 +55,6 @@ class EmulationContext {
     u32 dt_sample_count{0};
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
-    bool Present(u32 width, u32 height,
-                 std::vector<std::chrono::nanoseconds>& out_dt_ns_list);
-
     // Helpers
     void TryApplyPatch(horizon::kernel::Process* process,
                        const std::string_view target_filename,

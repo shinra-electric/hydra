@@ -392,8 +392,26 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 
     // Present
+
+    auto& renderer = gpu->GetRenderer();
+    renderer.LockMutex();
+
+    // Acquire present textures
+    // TODO: don't hardcode the display id
+    auto& display = os->GetDisplayDriver().GetDisplay(1);
+    // TODO: different layers can be presented at different intervals (if at
+    // all). Perhaps layers could have processes associated with them and only
+    // the original processes's dt would be queried?
     std::vector<std::chrono::nanoseconds> dt_list;
-    if (Present(width, height, dt_list) && loading) {
+    display.AcquirePresentTextures(dt_list);
+
+    if (!renderer.AcquireNextSurface()) {
+        renderer.UnlockMutex();
+        return;
+    }
+
+    bool drawn = display.Present(width, height);
+    if (drawn && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present
         loading = false;
@@ -426,13 +444,6 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                     std::chrono::duration_cast<std::chrono::duration<f32>>(
                         STARTUP_MOVIE_FADE_IN_DURATION);
 
-        auto& renderer = gpu->GetRenderer();
-        renderer.LockMutex();
-        if (!renderer.AcquireNextSurface()) {
-            renderer.UnlockMutex();
-            return;
-        }
-
         // Nintendo logo
         if (nintendo_logo) {
             int2 size = {(i32)nintendo_logo->GetDescriptor().width,
@@ -460,63 +471,39 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             renderer.DrawTextureToSurface(frame, {{0, 0}, size},
                                           {dst_offset, size}, true, opacity);
         }
-
-        renderer.PresentSurface();
-        renderer.EndCommandBuffer();
-        renderer.UnlockMutex();
-        return;
     }
 
-    // Delta time
-    for (const auto dt : dt_list) {
-        accumulated_dt += dt;
-        dt_sample_count++;
+    if (!loading) {
+        // Delta time
+        for (const auto dt : dt_list) {
+            accumulated_dt += dt;
+            dt_sample_count++;
+        }
+
+        const auto now = clock_t::now();
+        const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
+        if (time_since_last_dt_averaging > 1s) {
+            if (dt_sample_count != 0)
+                last_dt_average =
+                    (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
+                        accumulated_dt)
+                        .count() /
+                    (f32)dt_sample_count;
+            else
+                last_dt_average = 0.f;
+            accumulated_dt = 0ns;
+            dt_sample_count = 0;
+            last_dt_averaging_time = now;
+
+            out_dt_average_updated = true;
+        } else {
+            out_dt_average_updated = false;
+        }
     }
 
-    const auto now = clock_t::now();
-    const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
-    if (time_since_last_dt_averaging > 1s) {
-        if (dt_sample_count != 0)
-            last_dt_average =
-                (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
-                    accumulated_dt)
-                    .count() /
-                (f32)dt_sample_count;
-        else
-            last_dt_average = 0.f;
-        accumulated_dt = 0ns;
-        dt_sample_count = 0;
-        last_dt_averaging_time = now;
-
-        out_dt_average_updated = true;
-    } else {
-        out_dt_average_updated = false;
-    }
-}
-
-// TODO: rework this to support multiple layers and multiple processes
-bool EmulationContext::Present(
-    u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
-    // TODO: don't hardcode the display id
-    auto& display = os->GetDisplayDriver().GetDisplay(1);
-    // TODO: different layers can be presented at different intervals (if at
-    // all). Perhaps layers could have processes associated with them and only
-    // the original processes's dt would be queried?
-    display.AcquirePresentTextures(out_dt_list);
-
-    RENDERER_INSTANCE.LockMutex();
-    if (!RENDERER_INSTANCE.AcquireNextSurface()) {
-        RENDERER_INSTANCE.UnlockMutex();
-        return false;
-    }
-
-    bool drawn = display.Present(width, height);
-
-    RENDERER_INSTANCE.PresentSurface();
-    RENDERER_INSTANCE.EndCommandBuffer();
-    RENDERER_INSTANCE.UnlockMutex();
-
-    return drawn;
+    renderer.PresentSurface();
+    renderer.EndCommandBuffer();
+    renderer.UnlockMutex();
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
