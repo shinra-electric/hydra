@@ -72,7 +72,6 @@ result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
     // TODO: what display ID should be used?
     const auto display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
     display.Open();
 
     *out_display_id = display_id;
@@ -81,7 +80,6 @@ result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
 
 result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
     display.Close();
     return RESULT_SUCCESS;
 }
@@ -92,7 +90,6 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
     LOG_FUNC_STUBBED(Services);
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     // HACK
     *out_width = 1920;
@@ -106,7 +103,6 @@ result_t IApplicationDisplayService::OpenLayer(
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
     u64 display_id = 1; // TODO: get based on the name
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     auto& layer = display.GetLayer(layer_id);
     layer.Open();
@@ -136,7 +132,6 @@ result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     u64 display_id = 1; // TODO: get from layer ID
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     display.DestroyLayer(layer_id);
     return RESULT_SUCCESS;
@@ -157,6 +152,7 @@ result_t IApplicationDisplayService::CreateStrayLayer(
 result_t IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
     // TODO: how is this different from CloseLayer?
     LOG_FUNC_NOT_IMPLEMENTED(Services);
+    CloseLayer(layer_id);
     return RESULT_SUCCESS;
 }
 
@@ -169,7 +165,6 @@ result_t IApplicationDisplayService::GetDisplayVsyncEvent(
     kernel::Process* process, u64 display_id,
     OutHandle<HandleAttr::Move> out_handle) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     out_handle = process->AddHandle(display.GetVSyncEvent());
     return RESULT_SUCCESS;

@@ -8,13 +8,13 @@ AppletState::AppletState() : msg_event(false, "Message event") {}
 AppletState::~AppletState() { msg_event.Release(); }
 
 void AppletState::SendMessage(AppletMessage msg) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     SendMessageImpl(lock, msg);
 }
 
 void AppletState::SetFocusState(AppletFocusState focus_state_) {
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard lock(mutex);
         SendMessageImpl(lock, AppletMessage::FocusStateChanged);
         if (focus_state_ == AppletFocusState::InFocus)
             SendMessageImpl(lock, AppletMessage::ChangeIntoForeground);
@@ -23,12 +23,12 @@ void AppletState::SetFocusState(AppletFocusState focus_state_) {
 }
 
 void AppletState::PushPreselectedUser(uuid_t user_id) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     user_ids.push(user_id);
 }
 
 AppletMessage AppletState::ReceiveMessage() {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     if (msg_queue.empty()) {
         return AppletMessage::None;
     }
@@ -44,7 +44,7 @@ AppletMessage AppletState::ReceiveMessage() {
 }
 
 sized_ptr AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     switch (kind) {
     case LaunchParameterKind::PreselectedUser: {
         if (user_ids.empty()) {

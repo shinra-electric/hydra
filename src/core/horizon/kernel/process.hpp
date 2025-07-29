@@ -45,11 +45,11 @@ class Process : public SynchronizationObject {
     CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
 
     void RegisterThread(IThread* thread) {
-        std::lock_guard<std::mutex> lock(thread_mutex);
+        std::lock_guard lock(thread_mutex);
         threads.push_back(thread);
     }
     void UnregisterThread(IThread* thread) {
-        std::lock_guard<std::mutex> lock(thread_mutex);
+        std::lock_guard lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
 
@@ -62,7 +62,7 @@ class Process : public SynchronizationObject {
     void Stop();
 
     bool IsRunning() {
-        std::lock_guard<std::mutex> lock(thread_mutex);
+        std::lock_guard lock(thread_mutex);
         return !threads.empty();
     }
 

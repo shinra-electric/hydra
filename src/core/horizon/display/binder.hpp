@@ -98,7 +98,7 @@ struct Binder {
 
     // Getters
     const GraphicBuffer& GetBuffer(i32 slot) {
-        std::lock_guard<std::mutex> lock(queue_mutex);
+        std::lock_guard lock(queue_mutex);
         return buffers[slot].buffer;
     }
 

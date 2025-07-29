@@ -3,7 +3,7 @@
 namespace hydra::horizon::display {
 
 void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
-    std::lock_guard<std::mutex> lock(queue_mutex);
+    std::lock_guard lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
@@ -41,7 +41,7 @@ i32 Binder::GetAvailableSlot() {
 }
 
 void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
-    std::lock_guard<std::mutex> lock(queue_mutex);
+    std::lock_guard lock(queue_mutex);
     queued_buffers.push({slot, input});
     buffers[slot].queued = true;
 

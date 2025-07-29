@@ -9,7 +9,6 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
     hosbinder::ParcelWriter& out_parcel_writer) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     // Out
     *out_layer_id = display.CreateLayer(binder_id);

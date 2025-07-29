@@ -58,7 +58,7 @@ ThreadAction IThread::ProcessMessages(i64 pause_timeout_ns) {
 }
 
 void IThread::SendMessage(ThreadMessage msg) {
-    std::lock_guard<std::mutex> lock(msg_mutex);
+    std::lock_guard lock(msg_mutex);
     msg_queue.push(msg);
     msg_cv.notify_all(); // TODO: notify one?
 }

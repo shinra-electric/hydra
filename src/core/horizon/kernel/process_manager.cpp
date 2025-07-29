@@ -9,21 +9,21 @@ ProcessManager::~ProcessManager() {
 }
 
 Process* ProcessManager::CreateProcess(const std::string_view name) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     Process* process = new Process(name);
     processes.push_back(process);
     return process;
 }
 
 void ProcessManager::DestroyProcess(Process* process) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     processes.erase(std::remove(processes.begin(), processes.end(), process),
                     processes.end());
     delete process;
 }
 
 bool ProcessManager::HasRunningProcesses() {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     for (const auto& process : processes) {
         if (process->IsRunning())
             return true;

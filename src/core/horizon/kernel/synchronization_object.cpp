@@ -5,7 +5,7 @@
 namespace hydra::horizon::kernel {
 
 void SynchronizationObject::AddWaitingThread(IThread* thread) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     if (signalled)
         thread->Resume(this);
     else
@@ -13,7 +13,7 @@ void SynchronizationObject::AddWaitingThread(IThread* thread) {
 }
 
 void SynchronizationObject::Signal() {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     signalled = true;
     for (auto thread : waiting_threads)
         thread->Resume(this);

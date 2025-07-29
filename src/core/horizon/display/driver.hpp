@@ -7,36 +7,48 @@ namespace hydra::horizon::display {
 
 class Driver {
   public:
-    // Binders
-    u32 CreateBinder() {
-        u32 id = binder_pool.AllocateHandle();
-        binder_pool.Get(id) = new Binder();
-        return id;
-    }
-
-    void DestroyBinder(u32 id) {
-        delete binder_pool.Get(id);
-        binder_pool.Free(id);
-    }
-
-    Binder& GetBinder(u32 id) { return *binder_pool.Get(id); }
-
     // Displays
     u32 CreateDisplay() {
+        std::lock_guard lock(display_mutex);
         u32 id = display_pool.AllocateHandle();
         display_pool.Get(id) = new Display();
         return id;
     }
 
     void DestroyDisplay(u32 id) {
+        std::lock_guard lock(display_mutex);
         delete display_pool.Get(id);
         display_pool.Free(id);
     }
 
-    Display& GetDisplay(u32 id) { return *display_pool.Get(id); }
+    Display& GetDisplay(u32 id) {
+        std::lock_guard lock(display_mutex);
+        return *display_pool.Get(id);
+    }
+
+    // Binders
+    u32 CreateBinder() {
+        std::lock_guard lock(binder_mutex);
+        u32 id = binder_pool.AllocateHandle();
+        binder_pool.Get(id) = new Binder();
+        return id;
+    }
+
+    void DestroyBinder(u32 id) {
+        std::lock_guard lock(binder_mutex);
+        delete binder_pool.Get(id);
+        binder_pool.Free(id);
+    }
+
+    Binder& GetBinder(u32 id) {
+        std::lock_guard lock(binder_mutex);
+        return *binder_pool.Get(id);
+    }
 
   private:
+    std::mutex display_mutex;
     StaticPool<Display*, 8> display_pool;
+    std::mutex binder_mutex;
     StaticPool<Binder*, 16, true>
         binder_pool; // Allow zero handle (official games expect binder IDs to
                      // behave as indices, e.g. they expect the first binder ID

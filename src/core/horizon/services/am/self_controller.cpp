@@ -42,7 +42,6 @@ result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     // TODO: what display ID should be used?
     const handle_id_t display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     *out_layer_id = display.CreateLayer(binder_id);
     return RESULT_SUCCESS;
@@ -54,7 +53,6 @@ result_t ISelfController::CreateManagedDisplaySeparableLayer(
     // TODO: what display ID should be used?
     const handle_id_t display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     *out_display_layer_id = display.CreateLayer(binder_id);
     // TODO: what is a recording layer?

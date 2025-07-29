@@ -15,7 +15,7 @@ ServerSession::~ServerSession() {
 }
 
 void ServerSession::Receive(IThread* crnt_thread) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
     ASSERT_DEBUG(!requests.empty(), Services, "No request available");
     active_request = requests.front();
     requests.pop();
@@ -30,7 +30,7 @@ void ServerSession::Receive(IThread* crnt_thread) {
 }
 
 void ServerSession::Reply(uptr ptr) {
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard lock(mutex);
 
     // Copy the message to client TLS
     memcpy((void*)active_request->client_thread->GetTlsPtr(), (void*)ptr,
@@ -43,7 +43,7 @@ void ServerSession::Reply(uptr ptr) {
 void ServerSession::EnqueueRequest(Process* client_process, uptr ptr,
                                    IThread* client_thread) {
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard lock(mutex);
         requests.push({client_process, ptr, client_thread});
     }
 

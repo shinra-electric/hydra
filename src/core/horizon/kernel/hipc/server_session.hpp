@@ -32,7 +32,7 @@ class ServerSession : public SynchronizationObject {
 
     // HACK
     kernel::Process* GetActiveRequestClientProcess() {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard lock(mutex);
         return active_request->client_process;
     }
 
