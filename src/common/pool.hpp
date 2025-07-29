@@ -5,7 +5,7 @@
 
 namespace hydra {
 
-template <typename Subclass, typename T>
+template <typename Subclass, typename T, bool allow_zero_handle>
 class Pool {
   public:
     handle_id_t AllocateHandle() {
@@ -45,11 +45,21 @@ class Pool {
                      handle_id);
     }
 
-    static handle_id_t IndexToHandle(u32 index) { return index + 1; }
+    static handle_id_t IndexToHandle(u32 index) {
+        if constexpr (allow_zero_handle)
+            return index;
+        else
+            return index + 1;
+    }
 
     static u32 HandleToIndex(handle_id_t handle_id) {
-        ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Common, "Invalid handle");
-        return handle_id - 1;
+        if constexpr (allow_zero_handle) {
+            return handle_id;
+        } else {
+            ASSERT_DEBUG(handle_id != INVALID_HANDLE_ID, Common,
+                         "Invalid handle");
+            return handle_id - 1;
+        }
     }
 };
 

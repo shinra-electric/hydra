@@ -9,8 +9,8 @@ namespace hydra {
 #define FREE_SLOT(index) free_slots[index / 8]
 #define MASK(index) (1 << index % 8)
 
-template <typename T, u32 size>
-class StaticPool : public Pool<StaticPool<T, size>, T> {
+template <typename T, u32 size, bool allow_zero_handle = false>
+class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
   public:
     u32 _AllocateIndex() {
         if (crnt < size) {

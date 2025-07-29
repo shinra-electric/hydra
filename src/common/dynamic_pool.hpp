@@ -5,8 +5,8 @@
 namespace hydra {
 
 // TODO: this needs optimizations real bad
-template <typename T>
-class DynamicPool : public Pool<DynamicPool<T>, T> {
+template <typename T, bool allow_zero_handle = false>
+class DynamicPool : public Pool<DynamicPool<T>, T, allow_zero_handle> {
   public:
     u32 _AllocateIndex() {
         // TODO: look for a free index first

@@ -37,7 +37,10 @@ class Driver {
 
   private:
     StaticPool<Display*, 8> display_pool;
-    StaticPool<Binder*, 16> binder_pool;
+    StaticPool<Binder*, 16, true>
+        binder_pool; // Allow zero handle (official games expect binder IDs to
+                     // behave as indices, e.g. they expect the first binder ID
+                     // to be 0)
 };
 
 } // namespace hydra::horizon::display
