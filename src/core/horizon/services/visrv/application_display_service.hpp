@@ -33,6 +33,11 @@ class IApplicationDisplayService : public DisplayServiceBase {
                        u64* out_native_window_size,
                        OutBuffer<BufferAttr::MapAlias> parcel_buffer);
     result_t CloseLayer(u64 layer_id);
+    result_t
+    CreateStrayLayer(aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+                     u64* out_native_window_size,
+                     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
+    result_t DestroyStrayLayer(u64 layer_id);
     STUB_REQUEST_COMMAND(SetLayerScalingMode);
     result_t ConvertScalingMode();
     result_t GetDisplayVsyncEvent(kernel::Process* process, u64 display_id,

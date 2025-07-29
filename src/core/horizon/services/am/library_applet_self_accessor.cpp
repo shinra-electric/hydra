@@ -1,5 +1,6 @@
 #include "core/horizon/services/am/library_applet_self_accessor.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/am/library_applet_controller.hpp"
 
@@ -9,8 +10,9 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletSelfAccessor, 0, PopInData, 1,
                              PushOutData, 2, PopInteractiveInData, 3,
-                             PushInteractiveOutData, 11, GetLibraryAppletInfo,
-                             14, GetCallerAppletIdentityInfo)
+                             PushInteractiveOutData, 10, ExitProcessAndReturn,
+                             11, GetLibraryAppletInfo, 14,
+                             GetCallerAppletIdentityInfo)
 
 ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor() {
     // Verify that we have a library applet self controller available
@@ -41,6 +43,14 @@ ILibraryAppletSelfAccessor::PushInteractiveOutData(IService* storage_) {
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
     CONTROLLER->PushInteractiveOutData(storage);
+    return RESULT_SUCCESS;
+}
+
+result_t
+ILibraryAppletSelfAccessor::ExitProcessAndReturn(kernel::Process* process) {
+    // TODO: correct?
+    process->Stop();
+
     return RESULT_SUCCESS;
 }
 

@@ -22,15 +22,13 @@ struct DisplayInfo {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
-                             101, GetSystemDisplayService, 102,
-                             GetManagerDisplayService, 103,
-                             GetIndirectDisplayTransactionService, 1000,
-                             ListDisplays, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 1102, GetDisplayResolution, 2020,
-                             OpenLayer, 2021, CloseLayer, 2101,
-                             SetLayerScalingMode, 2102, ConvertScalingMode,
-                             5202, GetDisplayVsyncEvent)
+DEFINE_SERVICE_COMMAND_TABLE(
+    IApplicationDisplayService, 100, GetRelayService, 101,
+    GetSystemDisplayService, 102, GetManagerDisplayService, 103,
+    GetIndirectDisplayTransactionService, 1000, ListDisplays, 1010, OpenDisplay,
+    1020, CloseDisplay, 1102, GetDisplayResolution, 2020, OpenLayer, 2021,
+    CloseLayer, 2030, CreateStrayLayer, 2031, DestroyStrayLayer, 2101,
+    SetLayerScalingMode, 2102, ConvertScalingMode, 5202, GetDisplayVsyncEvent)
 
 result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx) {
     AddService(*ctx, new hosbinder::IHOSBinderDriver());
@@ -141,6 +139,24 @@ result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
     std::unique_lock display_lock(display.GetMutex());
 
     display.DestroyLayer(layer_id);
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::CreateStrayLayer(
+    aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+    u64* out_native_window_size,
+    OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
+    hosbinder::ParcelWriter parcel_writer(*out_parcel_buffer.writer);
+    auto result = CreateStrayLayerImpl(flags, display_id, out_layer_id,
+                                       out_native_window_size, parcel_writer);
+
+    parcel_writer.Finalize();
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
+    // TODO: how is this different from CloseLayer?
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
     return RESULT_SUCCESS;
 }
 

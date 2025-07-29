@@ -29,6 +29,7 @@ class ILibraryAppletSelfAccessor : public IService {
     result_t PushOutData(IService* storage_);
     result_t PopInteractiveInData(RequestContext* ctx);
     result_t PushInteractiveOutData(IService* storage_);
+    result_t ExitProcessAndReturn(kernel::Process* process);
     result_t GetLibraryAppletInfo(LibraryAppletInfo* out_info);
     result_t GetCallerAppletIdentityInfo(AppletIdentityInfo* out_info);
 };
