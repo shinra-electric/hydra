@@ -4,10 +4,17 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#include "common/log.hpp"
+
 namespace hydra {
 
 inline std::string get_bundle_resource_path(const std::string& filename) {
     CFBundleRef main_bundle = CFBundleGetMainBundle();
+    if (!main_bundle) {
+        LOG_FATAL(Common, APP_NAME " is not a bundle");
+        return "";
+    }
+
     CFStringRef cf_filename = CFStringCreateWithCString(NULL, filename.c_str(),
                                                         kCFStringEncodingUTF8);
     CFURLRef resource_url =
