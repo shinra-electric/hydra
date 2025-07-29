@@ -17,10 +17,8 @@ HomebrewLoader::HomebrewLoader(filesystem::FileBase* file_)
 
 void HomebrewLoader::LoadProcess(kernel::Process* process) {
     // Load hbloader
-    NspLoader hbloader_loader(new filesystem::HostFile(
-        "/Users/samuliak/Downloads/switch_tests/roms/hbl.nsp")); // TODO: don't
-                                                                 // hardcode the
-                                                                 // path
+    NspLoader hbloader_loader(
+        new filesystem::HostFile(get_bundle_resource_path("hbl.nsp")));
     hbloader_loader.LoadProcess(process);
 
     // Map the current homebrew file to sdmc:/hbmenu.nro, as that's what
