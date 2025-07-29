@@ -987,9 +987,8 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = 1;
         return RESULT_SUCCESS;
     case InfoType::IsApplication:
-        LOG_NOT_IMPLEMENTED(Kernel, "IsApplication");
-        // HACK
-        out_info = 0;
+        // TODO: don't always return true
+        out_info = true;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionExtraSize:
         LOG_NOT_IMPLEMENTED(Kernel, "AliasRegionExtraSize");
