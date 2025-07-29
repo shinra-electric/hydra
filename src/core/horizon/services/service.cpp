@@ -14,8 +14,7 @@ IService::~IService() {
         delete subservice_pool;
 }
 
-void IService::HandleRequest(Server& server, kernel::Process* caller_process,
-                             uptr ptr) {
+void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
     // HIPC header
     auto hipc_in = kernel::hipc::parse_request((void*)ptr);
     auto command_type =
@@ -39,7 +38,6 @@ void IService::HandleRequest(Server& server, kernel::Process* caller_process,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
-        server,
         caller_process,
         readers,
         writers,
@@ -66,7 +64,7 @@ void IService::HandleRequest(Server& server, kernel::Process* caller_process,
     case kernel::hipc::cmif::CommandType::Control:
     case kernel::hipc::cmif::CommandType::ControlWithContext:
         // TODO: how is ControlWithContext different?
-        Control(server, caller_process, readers, writers);
+        Control(caller_process, readers, writers);
         break;
     default:
         if (command_type >=
@@ -128,6 +126,7 @@ void IService::HandleRequest(Server& server, kernel::Process* caller_process,
 }
 
 void IService::AddService(RequestContext& context, IService* service) {
+    service->server = server;
     if (is_domain) {
         // Convert to domain
         service->is_domain = true;
@@ -143,7 +142,8 @@ void IService::AddService(RequestContext& context, IService* service) {
             new kernel::hipc::Session(server_session, client_session);
 
         // Register server side
-        context.server.RegisterSession(server_session);
+        if (server)
+            server->RegisterSession(server_session);
 
         // Register client side
         const auto handle_id = context.process->AddHandle(client_session);
@@ -212,7 +212,7 @@ void IService::CmifRequest(RequestContext& context) {
     *result = RequestImpl(context, cmif_in.command_id);
 }
 
-void IService::Control(Server& server, kernel::Process* caller_process,
+void IService::Control(kernel::Process* caller_process,
                        kernel::hipc::Readers& readers,
                        kernel::hipc::Writers& writers) {
     auto cmif_in = readers.reader.Read<kernel::hipc::cmif::InHeader>();
@@ -233,14 +233,14 @@ void IService::Control(Server& server, kernel::Process* caller_process,
         break;
     }
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject:
-        Clone(server, caller_process, writers);
+        Clone(caller_process, writers);
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
         writers.writer.Write(GetPointerBufferSize());
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
-        Clone(server, caller_process, writers);
+        Clone(caller_process, writers);
         break;
     default:
         LOG_ERROR(Services, "Unimplemented control request {}", command);
@@ -248,7 +248,7 @@ void IService::Control(Server& server, kernel::Process* caller_process,
     }
 }
 
-void IService::Clone(Server& server, kernel::Process* caller_process,
+void IService::Clone(kernel::Process* caller_process,
                      kernel::hipc::Writers& writers) {
     // Create new session
     auto server_session = new kernel::hipc::ServerSession(this);
@@ -256,7 +256,8 @@ void IService::Clone(Server& server, kernel::Process* caller_process,
     auto session = new kernel::hipc::Session(server_session, client_session);
 
     // Register server side
-    server.RegisterSession(server_session);
+    if (server)
+        server->RegisterSession(server_session);
 
     // Register client side
     const auto handle_id = caller_process->AddHandle(client_session);

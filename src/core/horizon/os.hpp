@@ -42,35 +42,7 @@ class OS {
 
     // Services
     kernel::hipc::ServiceManager<u64> service_manager;
-
-    services::Server sm_server;
-
-    // services::Server account_server;
-    services::Server hid_server;
-    services::Server am_server;
-    services::Server ns_server;
-    services::Server ppc_server;
-    services::Server glue_server;
-    services::Server audio_server;
-    services::Server bcat_server;
-    services::Server pcv_server;
-    services::Server socket_server;
-    services::Server capsrv_server;
-    services::Server vi_server;
-    services::Server nvnflinger_server;
-    // services::Server error_server;
-    services::Server ptm_server;
-    services::Server fatal_server;
-    services::Server friends_server;
-    services::Server fs_server;
-    services::Server nfc_server;
-    services::Server nifm_server;
     services::Server nvservices_server;
-    services::Server pctl_server;
-    services::Server settings_server;
-    services::Server ssl_server;
-    services::Server spl_server;
-    services::Server unknown_server;
 
     // Managers
     display::Driver display_driver;

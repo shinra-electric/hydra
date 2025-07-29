@@ -41,9 +41,11 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
 
         // Process incoming requests
         auto session = sessions[signalled_index];
-        session->GetService()->HandleRequest(
-            *this, session->GetActiveRequestClientProcess(),
-            thread->GetTlsPtr());
+        auto service = session->GetService();
+        ASSERT_DEBUG(service->HasServer(), Services,
+                     "Service does not have a server");
+        service->HandleRequest(session->GetActiveRequestClientProcess(),
+                               thread->GetTlsPtr());
 
         // Check for exit
         if (should_stop())

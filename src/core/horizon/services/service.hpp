@@ -14,7 +14,6 @@ class Server;
 class IService;
 
 struct RequestContext {
-    Server& server;
     kernel::Process* process;
     kernel::hipc::Readers& readers;
     kernel::hipc::Writers& writers;
@@ -24,11 +23,12 @@ class IService {
   public:
     virtual ~IService();
 
-    void HandleRequest(Server& server, kernel::Process* caller_process,
-                       uptr ptr);
+    void HandleRequest(kernel::Process* caller_process, uptr ptr);
 
     void AddService(RequestContext& context, IService* service);
     IService* GetService(RequestContext& context, handle_id_t handle_id);
+
+    bool HasServer() const { return server != nullptr; }
 
   protected:
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
@@ -52,6 +52,8 @@ class IService {
     }
 
   private:
+    Server* server{nullptr};
+
     // Domain
     bool is_domain{false};
     IService* parent{this};
@@ -60,14 +62,14 @@ class IService {
     void Close();
     void Request(RequestContext& context);
     void CmifRequest(RequestContext& context);
-    void Control(Server& server, kernel::Process* caller_process,
+    void Control(kernel::Process* caller_process,
                  kernel::hipc::Readers& readers,
                  kernel::hipc::Writers& writers);
-    void Clone(Server& server, kernel::Process* caller_process,
-               kernel::hipc::Writers& writers);
+    void Clone(kernel::Process* caller_process, kernel::hipc::Writers& writers);
     void TipcRequest(RequestContext& context, const u32 command_id);
 
   public:
+    SETTER(server, SetServer);
     GETTER(is_domain, IsDomain);
 };
 
