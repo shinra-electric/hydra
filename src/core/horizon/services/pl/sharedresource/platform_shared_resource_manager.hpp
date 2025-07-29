@@ -23,7 +23,7 @@ enum class LoadState : u32 {
     Loaded = 1,
 };
 
-class IPlatformSharedResourceManager : public ServiceBase {
+class IPlatformSharedResourceManager : public IService {
   public:
     IPlatformSharedResourceManager();
 

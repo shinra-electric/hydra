@@ -9,8 +9,10 @@ add_library(hydra-common
     string.hpp
     time.hpp
     memory.hpp
+    pool.hpp
     static_pool.hpp
     dynamic_pool.hpp
+    filesystem.hpp
     log.cpp
     log.hpp
     lz4.cpp

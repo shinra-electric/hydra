@@ -4,25 +4,25 @@
 
 namespace hydra::horizon::services::am {
 
-class IAllSystemAppletProxiesService : public ServiceBase {
+class IAllSystemAppletProxiesService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
     // TODO: params
-    result_t OpenSystemAppletProxy(add_service_fn_t add_service);
+    result_t OpenSystemAppletProxy(RequestContext* ctx);
     // TODO: params
-    result_t OpenLibraryAppletProxyOld(add_service_fn_t add_service);
+    result_t OpenLibraryAppletProxyOld(RequestContext* ctx);
     // TODO: PID and type-0x15 buffer nn::am::AppletAttribute
     result_t
-    OpenLibraryAppletProxy(add_service_fn_t add_service, u64 _reserved_x0,
+    OpenLibraryAppletProxy(RequestContext* ctx, u64 _reserved_x0,
                            InHandle<HandleAttr::Copy> crnt_process_handle);
     // TODO: params
-    result_t OpenSystemApplicationProxy(add_service_fn_t add_service);
+    result_t OpenSystemApplicationProxy(RequestContext* ctx);
 
     // Impl
-    result_t OpenLibraryAppletProxyImpl(add_service_fn_t add_service);
+    result_t OpenLibraryAppletProxyImpl(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

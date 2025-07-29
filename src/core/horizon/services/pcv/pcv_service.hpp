@@ -98,7 +98,7 @@ enum class ModuleId : u32 {
     Count = 88,
 };
 
-class IPcvService : public ServiceBase {
+class IPcvService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

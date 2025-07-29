@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::mii {
 
-class IDatabaseService : public ServiceBase {
+class IDatabaseService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

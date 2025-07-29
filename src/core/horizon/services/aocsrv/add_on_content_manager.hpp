@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::aocsrv {
 
-class IAddOnContentManager : public ServiceBase {
+class IAddOnContentManager : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

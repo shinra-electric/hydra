@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::account {
 
-class IAccountServiceForSystemService : public ServiceBase {
+class IAccountServiceForSystemService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

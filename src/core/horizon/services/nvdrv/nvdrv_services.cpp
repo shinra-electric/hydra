@@ -22,19 +22,19 @@ DEFINE_SERVICE_COMMAND_TABLE(INvDrvServices, 0, Open, 1, Ioctl, 2, Close, 3,
 result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
                               u32* out_fd_id, u32* out_error) {
     auto path = path_buffer.reader->ReadString();
-    handle_id_t fd_id = fd_pool.AllocateForIndex();
+    handle_id_t fd_id = fd_pool.AllocateHandle();
     if (path == "/dev/nvhost-ctrl") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvHostCtrl();
+        fd_pool.Get(fd_id) = new ioctl::NvHostCtrl();
     } else if (path == "/dev/nvmap") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvMap();
+        fd_pool.Get(fd_id) = new ioctl::NvMap();
     } else if (path == "/dev/nvhost-as-gpu") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvHostAsGpu();
+        fd_pool.Get(fd_id) = new ioctl::NvHostAsGpu();
     } else if (path == "/dev/nvhost-ctrl-gpu") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvHostCtrlGpu();
+        fd_pool.Get(fd_id) = new ioctl::NvHostCtrlGpu();
     } else if (path == "/dev/nvhost-gpu") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvHostGpu();
+        fd_pool.Get(fd_id) = new ioctl::NvHostGpu();
     } else if (path == "/dev/nvhost-nvdec") {
-        fd_pool.GetRef(fd_id) = new ioctl::NvHostNvDec();
+        fd_pool.Get(fd_id) = new ioctl::NvHostNvDec();
     } else {
         LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO

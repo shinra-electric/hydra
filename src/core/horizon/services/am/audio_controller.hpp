@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::am {
 
-class IAudioController : public ServiceBase {
+class IAudioController : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

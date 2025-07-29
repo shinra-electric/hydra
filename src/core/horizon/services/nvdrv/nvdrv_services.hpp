@@ -11,7 +11,7 @@ class FdBase;
 
 constexpr usize MAX_FD_COUNT = 256;
 
-class INvDrvServices : public ServiceBase {
+class INvDrvServices : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

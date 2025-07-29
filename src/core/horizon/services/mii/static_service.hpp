@@ -4,13 +4,13 @@
 
 namespace hydra::horizon::services::mii {
 
-class IStaticService : public ServiceBase {
+class IStaticService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t GetDatabaseService(add_service_fn_t add_service);
+    result_t GetDatabaseService(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::mii

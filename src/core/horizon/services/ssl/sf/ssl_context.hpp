@@ -10,7 +10,7 @@ enum class CertificateFormat : u32 {
     Der = 2,
 };
 
-class ISslContext : public ServiceBase {
+class ISslContext : public IService {
   public:
     ISslContext(const SslVersion version_) : version{version_} {}
 

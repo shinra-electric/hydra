@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/service_base.hpp"
+#include "core/horizon/services/service.hpp"
 
 #define SERVICE_COMMAND_CASE(service, id, func)                                \
     case id:                                                                   \
@@ -26,10 +26,6 @@
 namespace hydra::horizon::services {
 
 using result_t = kernel::result_t;
-using add_service_fn_t = kernel::add_service_fn_t;
-using get_service_fn_t = kernel::get_service_fn_t;
-using RequestContext = kernel::RequestContext;
-using ServiceBase = kernel::ServiceBase;
 
 enum class BufferAttr {
     AutoSelect,
@@ -95,6 +91,7 @@ class OutHandle {
 };
 
 enum class ArgumentType {
+    Context,
     Process,
     InData,
     OutData,
@@ -102,13 +99,17 @@ enum class ArgumentType {
     OutBuffer,
     InHandle,
     OutHandle,
-    AddServiceFn,
     InService,
     OutService,
 };
 
 template <typename T>
 struct arg_traits;
+
+template <>
+struct arg_traits<RequestContext*> {
+    static constexpr ArgumentType type = ArgumentType::Context;
+};
 
 template <>
 struct arg_traits<kernel::Process*> {
@@ -147,23 +148,19 @@ struct arg_traits<OutHandle<attr>> {
 };
 
 template <>
-struct arg_traits<add_service_fn_t> {
-    static constexpr ArgumentType type = ArgumentType::AddServiceFn;
-};
-
-template <>
-struct arg_traits<ServiceBase*> {
+struct arg_traits<IService*> {
     static constexpr ArgumentType type = ArgumentType::InService;
 };
 
 template <>
-struct arg_traits<ServiceBase**> {
+struct arg_traits<IService**> {
     static constexpr ArgumentType type = ArgumentType::OutService;
 };
 
-template <typename CommandArguments, u32 in_buffer_index = 0,
+template <typename Class, typename CommandArguments, u32 in_buffer_index = 0,
           u32 out_buffer_index = 0, u32 arg_index = 0>
-void read_arg(RequestContext& context, CommandArguments& args) {
+void read_arg(RequestContext& context, Class& instance,
+              CommandArguments& args) {
     if constexpr (arg_index >= std::tuple_size_v<CommandArguments>) {
         return;
     } else {
@@ -172,26 +169,33 @@ void read_arg(RequestContext& context, CommandArguments& args) {
 
         auto& arg = std::get<arg_index>(args);
 
-        if constexpr (traits::type == ArgumentType::Process) {
+        if constexpr (traits::type == ArgumentType::Context) {
+            arg = &context;
+
+            // Next
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::Process) {
             arg = context.process;
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InData) {
             arg = context.readers.reader.Read<Arg>();
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutData) {
             arg = context.writers.writer.WritePtr<typename traits::BaseType>();
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InBuffer) {
             Reader* reader;
@@ -212,8 +216,8 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             arg = Arg(*reader);
 
             // Next
-            read_arg<CommandArguments, in_buffer_index + 1, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index + 1,
+                     out_buffer_index, arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
             Writer* writer;
@@ -236,8 +240,9 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             arg = Arg(*writer);
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index + 1,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index,
+                     out_buffer_index + 1, arg_index + 1>(context, instance,
+                                                          args);
             return;
         } else if constexpr (traits::type == ArgumentType::InHandle) {
             handle_id_t handle_id;
@@ -254,8 +259,8 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             arg = Arg(handle_id);
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutHandle) {
             handle_id_t* handle_id;
@@ -272,35 +277,29 @@ void read_arg(RequestContext& context, CommandArguments& args) {
             arg = Arg(*handle_id);
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
-            return;
-        } else if constexpr (traits::type == ArgumentType::AddServiceFn) {
-            arg = context.add_service;
-
-            // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InService) {
             ASSERT_DEBUG(context.readers.objects_reader, Services,
                          "Objects reader is null");
             auto service_handle_id =
                 context.readers.objects_reader->Read<handle_id_t>();
-            arg = dynamic_cast<Arg>(context.get_service(service_handle_id));
+            arg = dynamic_cast<Arg>(
+                instance.GetService(context, service_handle_id));
             ASSERT_DEBUG(arg, Services, "Invalid service");
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutService) {
             // TODO: implement
             LOG_FATAL(Services, "OutService");
 
             // Next
-            read_arg<CommandArguments, in_buffer_index, out_buffer_index,
-                     arg_index + 1>(context, args);
+            read_arg<Class, CommandArguments, in_buffer_index, out_buffer_index,
+                     arg_index + 1>(context, instance, args);
             return;
         } else {
             LOG_FATAL(Services, "Invalid argument type");
@@ -315,7 +314,7 @@ result_t invoke_command_with_args(RequestContext& context, Class& instance,
     using traits = function_traits<decltype(func)>;
 
     auto args = std::tuple<typename traits::template arg<Is>::type...>();
-    read_arg(context, args);
+    read_arg(context, instance, args);
 
     auto callable = [&]<typename... CallArgs>(CallArgs&... args) {
         return (instance.*func)(args...);

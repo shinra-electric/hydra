@@ -20,7 +20,7 @@ struct TimeStampRaw {
     u8 _padding_x19[7];
 };
 
-class IFileSystem : public ServiceBase {
+class IFileSystem : public IService {
   public:
     IFileSystem(const std::string_view mount_) : mount{mount_} {}
 
@@ -43,10 +43,9 @@ class IFileSystem : public ServiceBase {
         InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     result_t GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type);
-    result_t OpenFile(add_service_fn_t add_service,
-                      filesystem::FileOpenFlags flags,
+    result_t OpenFile(RequestContext* ctx, filesystem::FileOpenFlags flags,
                       InBuffer<BufferAttr::HipcPointer> in_path_buffer);
-    result_t OpenDirectory(add_service_fn_t add_service,
+    result_t OpenDirectory(RequestContext* ctx,
                            DirectoryFilterFlags filter_flags,
                            InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     STUB_REQUEST_COMMAND(Commit);

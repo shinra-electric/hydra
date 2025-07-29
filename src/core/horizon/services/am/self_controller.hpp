@@ -11,7 +11,7 @@ enum class IdleTimeDetectionExtension : u32 {
     ExtendedUnsafe = 2,
 };
 
-class ISelfController : public ServiceBase {
+class ISelfController : public IService {
   public:
     ISelfController();
 

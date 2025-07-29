@@ -17,10 +17,9 @@ DEFINE_SERVICE_COMMAND_TABLE(
 
 ISelfController::ISelfController()
     : library_applet_launchable_event{new kernel::Event(
-          kernel::EventFlags::Signalled, "Library applet launchable event")},
-      accumulated_suspended_tick_changed_event{
-          new kernel::Event(kernel::EventFlags::AutoClear,
-                            "Accumulated suspended tick changed event")} {}
+          true, "Library applet launchable event")},
+      accumulated_suspended_tick_changed_event{new kernel::Event(
+          false, "Accumulated suspended tick changed event")} {}
 
 result_t ISelfController::LockExit(kernel::Process* process) {
     process->GetAppletState().LockExit();
@@ -41,7 +40,8 @@ result_t ISelfController::GetLibraryAppletLaunchableEvent(
 result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
+    const handle_id_t dsplay_id = 1;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(dsplay_id);
     std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     *out_layer_id = display.CreateLayer(binder_id);
@@ -52,7 +52,8 @@ result_t ISelfController::CreateManagedDisplaySeparableLayer(
     u64* out_display_layer_id, u64* out_recording_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
+    const handle_id_t dsplay_id = 1;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(dsplay_id);
     std::unique_lock<std::mutex> display_lock(display.GetMutex());
 
     *out_display_layer_id = display.CreateLayer(binder_id);

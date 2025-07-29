@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::hid {
 
-class IHidDebugServer : public ServiceBase {
+class IHidDebugServer : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

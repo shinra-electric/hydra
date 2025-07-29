@@ -531,6 +531,13 @@ enum class LaunchParameterKind : u32 {
     Unknown0 = 3,
 };
 
+enum class CodeMemoryOperation {
+    MapOwner = 0,
+    MapSlave = 1,
+    UnmapOwner = 2,
+    UnmapSlave = 3,
+};
+
 } // namespace hydra::horizon::kernel
 
 ENABLE_ENUM_FORMATTING(
@@ -677,3 +684,7 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::LaunchParameterKind, UserChannel,
                        "user channel", PreselectedUser, "preselected user",
                        Unknown0, "unknown0")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::CodeMemoryOperation, MapOwner,
+                       "map owner", MapSlave, "map slave", UnmapOwner,
+                       "unmap owner", UnmapSlave, "unmap slave")

@@ -41,25 +41,25 @@ DEFINE_SERVICE_COMMAND_TABLE(
     1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
-    add_service_fn_t add_service, FileSystemProxyType type,
+    RequestContext* ctx, FileSystemProxyType type,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     // TODO: correct?
     const auto mount = path_buffer.reader->ReadString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
-    add_service(new IFileSystem(mount));
+    AddService(*ctx, new IFileSystem(mount));
 
     return RESULT_SUCCESS;
 }
 
 result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
-    add_service_fn_t add_service, FileSystemProxyType type, u64 program_id,
+    RequestContext* ctx, FileSystemProxyType type, u64 program_id,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     // TODO: correct?
     const auto mount = path_buffer.reader->ReadString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
-    add_service(new IFileSystem(mount));
+    AddService(*ctx, new IFileSystem(mount));
 
     return RESULT_SUCCESS;
 }
@@ -76,9 +76,9 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     return MAKE_RESULT(Fs, 1771);
 }
 
-result_t IFileSystemProxy::OpenSdCardFileSystem(add_service_fn_t add_service) {
+result_t IFileSystemProxy::OpenSdCardFileSystem(RequestContext* ctx) {
     // TODO: correct?
-    add_service(new IFileSystem(FS_SD_MOUNT));
+    AddService(*ctx, new IFileSystem(FS_SD_MOUNT));
     return RESULT_SUCCESS;
 }
 
@@ -107,28 +107,27 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
 }
 
 result_t
-IFileSystemProxy::OpenSaveDataFileSystem(add_service_fn_t add_service,
+IFileSystemProxy::OpenSaveDataFileSystem(RequestContext* ctx,
                                          aligned<SaveDataSpaceId, 8> space_id,
                                          SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(add_service, space_id, attr, false);
+    return OpenSaveDataFileSystemImpl(ctx, space_id, attr, false);
 }
 
 result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
-    add_service_fn_t add_service, aligned<SaveDataSpaceId, 8> space_id,
+    RequestContext* ctx, aligned<SaveDataSpaceId, 8> space_id,
     SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(add_service, space_id, attr, true);
+    return OpenSaveDataFileSystemImpl(ctx, space_id, attr, true);
 }
 
 result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
-    add_service_fn_t add_service, SaveDataSpaceId space_id) {
+    RequestContext* ctx, SaveDataSpaceId space_id) {
     // TODO: space ID
-    add_service(new ISaveDataInfoReader());
+    AddService(*ctx, new ISaveDataInfoReader());
     return RESULT_SUCCESS;
 }
 
-result_t
-IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
-                                             u64 program_id) {
+result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
+                                                      u64 program_id) {
     LOG_DEBUG(Services, "Program ID: {}", program_id);
 
     // TODO: program ID
@@ -141,15 +140,13 @@ IFileSystemProxy::OpenDataStorageByProgramId(add_service_fn_t add_service,
         return MAKE_RESULT(Fs, res);
     }
 
-    add_service(new IStorage(file, filesystem::FileOpenFlags::Read));
+    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
 
     return RESULT_SUCCESS;
 }
 
-result_t
-IFileSystemProxy::OpenDataStorageByDataId(add_service_fn_t add_service,
-                                          aligned<ncm::StorageID, 8> storage_id,
-                                          u64 data_id) {
+result_t IFileSystemProxy::OpenDataStorageByDataId(
+    RequestContext* ctx, aligned<ncm::StorageID, 8> storage_id, u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 
     LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:08x}", storage_id.Get(),
@@ -159,8 +156,8 @@ IFileSystemProxy::OpenDataStorageByDataId(add_service_fn_t add_service,
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
-    add_service_fn_t add_service) {
+result_t
+IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(RequestContext* ctx) {
     LOG_NOT_IMPLEMENTED(Services, "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
@@ -172,7 +169,7 @@ result_t IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(
         return MAKE_RESULT(Fs, res);
     }
 
-    add_service(new IStorage(file, filesystem::FileOpenFlags::Read));
+    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
 
     return RESULT_SUCCESS;
 }
@@ -190,13 +187,14 @@ result_t IFileSystemProxy::GetGlobalAccessLogMode(u32* out_log_mode) {
     return RESULT_SUCCESS;
 }
 
-result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(
-    add_service_fn_t add_service, SaveDataSpaceId space_id,
-    SaveDataAttribute attr, bool read_only) {
+result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(RequestContext* ctx,
+                                                      SaveDataSpaceId space_id,
+                                                      SaveDataAttribute attr,
+                                                      bool read_only) {
     // TODO: support read only
 
     std::string mount = get_save_data_mount(attr);
-    add_service(new IFileSystem(mount));
+    AddService(*ctx, new IFileSystem(mount));
 
     // TODO: correct?
     auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);

@@ -29,7 +29,7 @@ enum class BinderType : i32 {
     Strong = 1,
 };
 
-class IHOSBinderDriver : public ServiceBase {
+class IHOSBinderDriver : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

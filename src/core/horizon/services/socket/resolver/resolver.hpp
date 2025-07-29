@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::socket::Resolver {
 
-class IResolver : public ServiceBase {
+class IResolver : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

@@ -9,14 +9,11 @@ class NvHostGpu : public ChannelBase {
   public:
     NvHostGpu()
         : sm_exception_bpt_int_report_event{new kernel::Event(
-              kernel::EventFlags::AutoClear,
-              "NvHostGpu SM exception BPT int report event")},
+              false, "NvHostGpu SM exception BPT int report event")},
           sm_exception_bpt_pause_report_event{new kernel::Event(
-              kernel::EventFlags::AutoClear,
-              "NvHostGpu SM exception BPT pause report event")},
+              false, "NvHostGpu SM exception BPT pause report event")},
           error_notifier_event{
-              new kernel::Event(kernel::EventFlags::AutoClear,
-                                "NvHostGpu error notifier event")} {}
+              new kernel::Event(false, "NvHostGpu error notifier event")} {}
 
     NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 

@@ -1,16 +1,16 @@
 #pragma once
 
-#include "core/horizon/kernel/hipc.hpp"
+#include "core/horizon/kernel/hipc/const.hpp"
 
-namespace hydra::horizon::kernel::cmif {
+namespace hydra::horizon::kernel::hipc::cmif {
 
 constexpr u32 IN_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'I');
 constexpr u32 OUT_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'O');
 
 enum class DomainCommandType : u8 {
-    Invalid,
-    SendMessage,
-    Close,
+    Invalid = 0,
+    SendMessage = 1,
+    Close = 2,
 };
 
 enum class CommandType {
@@ -28,11 +28,11 @@ enum class CommandType {
 };
 
 enum class ControlCommandType {
-    ConvertCurrentObjectToDomain,
-    CopyFromCurrentDomain,
-    CloneCurrentObject,
-    QueryPointerBufferSize,
-    CloneCurrentObjectEx,
+    ConvertCurrentObjectToDomain = 0,
+    CopyFromCurrentDomain = 1,
+    CloneCurrentObject = 2,
+    QueryPointerBufferSize = 3,
+    CloneCurrentObjectEx = 4,
 };
 
 struct DomainInHeader {
@@ -87,19 +87,20 @@ inline T* align_data_start(T* data_start) {
     return align_ptr(data_start, 0x10); // align to 16 bytes
 }
 
-} // namespace hydra::horizon::kernel::cmif
+} // namespace hydra::horizon::kernel::hipc::cmif
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::DomainCommandType, Invalid,
-                       "invalid", SendMessage, "send message", Close, "close")
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::hipc::cmif::DomainCommandType,
+                       Invalid, "invalid", SendMessage, "send message", Close,
+                       "close")
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::CommandType, Invalid,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::hipc::cmif::CommandType, Invalid,
                        "invalid", LegacyRequest, "legacy request", Close,
                        "close", LegacyControl, "legacy control", Request,
                        "request", Control, "control", RequestWithContext,
                        "request with context", ControlWithContext,
                        "control with context")
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::cmif::ControlCommandType,
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::hipc::cmif::ControlCommandType,
                        ConvertCurrentObjectToDomain,
                        "convert current object to domain",
                        CopyFromCurrentDomain, "copy from current domain",

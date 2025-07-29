@@ -12,10 +12,14 @@ class NroLoader : public LoaderBase {
 
   private:
     filesystem::FileBase* file;
+    u64 size;
     u32 text_offset;
-    usize bss_size;
+    u32 bss_size;
 
     void TryLoadAssetSection(filesystem::FileBase* file);
+
+  public:
+    GETTER(size, GetSize);
 };
 
 } // namespace hydra::horizon::loader

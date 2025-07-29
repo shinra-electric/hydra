@@ -33,6 +33,7 @@ class Window : public horizon::ui::HandlerBase {
     Cursor cursor;
 
     EmulationContext emulation_context;
+    u64 title_id;
 
     void BeginEmulation(const std::string& path);
 

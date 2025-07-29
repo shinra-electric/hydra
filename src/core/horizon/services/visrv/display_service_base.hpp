@@ -14,7 +14,7 @@ struct ParcelData {
     u64 unknown3;
 };
 
-class DisplayServiceBase : public ServiceBase {
+class DisplayServiceBase : public IService {
   protected:
     result_t CreateStrayLayerImpl(u32 flags, u64 display_id, u64* out_layer_id,
                                   u64* out_native_window_size,

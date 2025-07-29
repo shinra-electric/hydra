@@ -24,37 +24,33 @@ DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
 IStaticService::IStaticService()
     : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {}
 
-result_t
-IStaticService::GetStandardUserSystemClock(add_service_fn_t add_service) {
-    add_service(new ISystemClock(SystemClockType::StandardUser));
+result_t IStaticService::GetStandardUserSystemClock(RequestContext* ctx) {
+    AddService(*ctx, new ISystemClock(SystemClockType::StandardUser));
     return RESULT_SUCCESS;
 }
 
-result_t
-IStaticService::GetStandardNetworkSystemClock(add_service_fn_t add_service) {
-    add_service(new ISystemClock(SystemClockType::StandardNetwork));
+result_t IStaticService::GetStandardNetworkSystemClock(RequestContext* ctx) {
+    AddService(*ctx, new ISystemClock(SystemClockType::StandardNetwork));
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetStandardSteadyClock(add_service_fn_t add_service) {
-    add_service(new ISteadyClock());
+result_t IStaticService::GetStandardSteadyClock(RequestContext* ctx) {
+    AddService(*ctx, new ISteadyClock());
     return RESULT_SUCCESS;
 }
 
-result_t IStaticService::GetTimeZoneService(add_service_fn_t add_service) {
-    add_service(new ITimeZoneService());
+result_t IStaticService::GetTimeZoneService(RequestContext* ctx) {
+    AddService(*ctx, new ITimeZoneService());
     return RESULT_SUCCESS;
 }
 
-result_t
-IStaticService::GetStandardLocalSystemClock(add_service_fn_t add_service) {
-    add_service(new ISystemClock(SystemClockType::StandardLocal));
+result_t IStaticService::GetStandardLocalSystemClock(RequestContext* ctx) {
+    AddService(*ctx, new ISystemClock(SystemClockType::StandardLocal));
     return RESULT_SUCCESS;
 }
 
-result_t
-IStaticService::GetEphemeralNetworkSystemClock(add_service_fn_t add_service) {
-    add_service(new ISystemClock(SystemClockType::EphemeralNetwork));
+result_t IStaticService::GetEphemeralNetworkSystemClock(RequestContext* ctx) {
+    AddService(*ctx, new ISystemClock(SystemClockType::EphemeralNetwork));
     return RESULT_SUCCESS;
 }
 

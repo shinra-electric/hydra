@@ -75,15 +75,15 @@ result_t IAccountServiceForApplication::GetLastOpenedUser(uuid_t* out_user_id) {
     return RESULT_SUCCESS;
 }
 
-result_t IAccountServiceForApplication::GetProfile(add_service_fn_t add_service,
+result_t IAccountServiceForApplication::GetProfile(RequestContext* ctx,
                                                    uuid_t user_id) {
-    add_service(new IProfile(user_id));
+    AddService(*ctx, new IProfile(user_id));
     return RESULT_SUCCESS;
 }
 
 result_t IAccountServiceForApplication::GetBaasAccountManagerForApplication(
-    add_service_fn_t add_service, uuid_t user_id) {
-    add_service(new IManagerForApplication(user_id));
+    RequestContext* ctx, uuid_t user_id) {
+    AddService(*ctx, new IManagerForApplication(user_id));
     return RESULT_SUCCESS;
 }
 

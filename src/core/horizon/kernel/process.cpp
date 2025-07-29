@@ -1,7 +1,8 @@
 #include "core/horizon/kernel/process.hpp"
 
-#include "core/horizon/kernel/thread.hpp"
+#include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 
 namespace hydra::horizon::kernel {
 
@@ -38,23 +39,21 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
 }
 
 hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
-    constexpr usize TLS_MEM_SIZE = 0x20000;
-
-    auto mem = CPU_INSTANCE.AllocateMemory(TLS_MEM_SIZE);
+    auto mem = CPU_INSTANCE.AllocateMemory(TLS_SIZE);
     base = tls_mem_base;
     mmu->Map(base, mem,
              {MemoryType::ThreadLocal, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
-    tls_mem_base += TLS_MEM_SIZE;
+    tls_mem_base += TLS_SIZE;
 
     return mem;
 }
 
-std::pair<Thread*, handle_id_t>
+std::pair<GuestThread*, handle_id_t>
 Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     // Thread
     main_thread =
-        new Thread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
+        new GuestThread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
     auto handle_id = AddHandle(main_thread);
 
     // Stack memory
@@ -73,23 +72,42 @@ void Process::Start() {
     SignalStateChange(ProcessState::Started);
 }
 
-void Process::RequestStop() {
+void Process::Stop() {
     std::lock_guard lock(thread_mutex);
     for (auto thread : threads)
-        thread->RequestStop();
+        thread->Stop();
 
     // Signal
     SignalStateChange(ProcessState::Exiting);
 }
 
 void Process::CleanUp() {
-    if (heap_mem)
+    // Heap memory
+    if (heap_mem) {
         delete heap_mem;
+        heap_mem = nullptr;
+    }
+
+    // Executable memories
     for (auto mem : executable_mems)
         delete mem;
+    executable_mems.clear();
+
+    // Main thread stack memory
     if (main_thread_stack_mem)
         delete main_thread_stack_mem;
-    handle_pool.CleanUp();
+
+    // Main thread
+    if (main_thread) {
+        main_thread->Release();
+        main_thread = nullptr;
+    }
+
+    for (handle_id_t handle_id = 1; handle_id < handle_pool.GetCapacity() + 1;
+         handle_id++) {
+        if (handle_pool.IsValid(handle_id))
+            handle_pool.Get(handle_id)->Release();
+    }
 
     // Signal
     SignalStateChange(ProcessState::Exited);

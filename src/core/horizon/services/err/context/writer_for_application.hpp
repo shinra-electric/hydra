@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::err::context {
 
-class IWriterForApplication : public ServiceBase {
+class IWriterForApplication : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

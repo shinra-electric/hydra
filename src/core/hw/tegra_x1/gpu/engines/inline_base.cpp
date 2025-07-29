@@ -26,7 +26,7 @@ void InlineBase::LoadInlineDataImpl(RegsInline& regs, const u32 index,
         memcpy(reinterpret_cast<void*>(dst_ptr), inline_data.data(),
                inline_data.size() * sizeof(u32));
         /*
-        auto dst = RENDERER_INSTANCE->GetBufferCache().Find(
+        auto dst = RENDERER_INSTANCE.GetBufferCache().Find(
             {dst_ptr, inline_data.size() * sizeof(u32)});
 
         dst->CopyFrom(inline_data.data());

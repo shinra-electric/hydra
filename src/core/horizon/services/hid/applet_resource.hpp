@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::hid {
 
-class IAppletResource : public ServiceBase {
+class IAppletResource : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

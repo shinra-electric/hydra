@@ -7,16 +7,15 @@ namespace hydra::horizon::services::pctl {
 DEFINE_SERVICE_COMMAND_TABLE(IParentalControlServiceFactory, 0, CreateService,
                              1, CreateServiceWithoutInitialize)
 
-result_t
-IParentalControlServiceFactory::CreateService(add_service_fn_t add_service) {
+result_t IParentalControlServiceFactory::CreateService(RequestContext* ctx) {
     auto service = new IParentalControlService();
-    add_service(service);
+    AddService(*ctx, service);
     return service->Initialize();
 }
 
 result_t IParentalControlServiceFactory::CreateServiceWithoutInitialize(
-    add_service_fn_t add_service) {
-    add_service(new IParentalControlService());
+    RequestContext* ctx) {
+    AddService(*ctx, new IParentalControlService());
     return RESULT_SUCCESS;
 }
 

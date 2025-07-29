@@ -3,6 +3,8 @@
 #include <stb_image.h>
 
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/loader/homebrew_loader.hpp"
+#include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/loader/xci_loader.hpp"
@@ -87,7 +89,8 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
 
     horizon::loader::LoaderBase* loader{nullptr};
     if (extension == "nro") {
-        loader = new horizon::loader::NroLoader(file);
+        // Assumes that all NROs are Homebrew
+        loader = new horizon::loader::HomebrewLoader(file);
     } else if (extension == "nso") {
         loader = new horizon::loader::NsoLoader(file);
     } else if (extension == "nca") {

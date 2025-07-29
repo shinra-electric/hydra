@@ -9,37 +9,35 @@ class Driver {
   public:
     // Binders
     u32 CreateBinder() {
-        u32 id = binders.size();
-        binders.push_back(new Binder());
-
+        u32 id = binder_pool.AllocateHandle();
+        binder_pool.Get(id) = new Binder();
         return id;
     }
 
     void DestroyBinder(u32 id) {
-        delete binders[id];
-        binders.erase(binders.begin() + id);
+        delete binder_pool.Get(id);
+        binder_pool.Free(id);
     }
 
-    Binder& GetBinder(u32 id) { return *binders[id]; }
+    Binder& GetBinder(u32 id) { return *binder_pool.Get(id); }
 
     // Displays
     u32 CreateDisplay() {
-        u32 id = displays.size();
-        displays.push_back(new Display());
-
+        u32 id = display_pool.AllocateHandle();
+        display_pool.Get(id) = new Display();
         return id;
     }
 
     void DestroyDisplay(u32 id) {
-        delete displays[id];
-        displays.erase(displays.begin() + id);
+        delete display_pool.Get(id);
+        display_pool.Free(id);
     }
 
-    Display& GetDisplay(u32 id) { return *displays[id]; }
+    Display& GetDisplay(u32 id) { return *display_pool.Get(id); }
 
   private:
-    std::vector<Display*> displays;
-    std::vector<Binder*> binders;
+    StaticPool<Display*, 8> display_pool;
+    StaticPool<Binder*, 16> binder_pool;
 };
 
 } // namespace hydra::horizon::display

@@ -17,12 +17,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
 
 result_t
 IApplicationFunctions::PopLaunchParameter(kernel::Process* process,
-                                          add_service_fn_t add_service,
+                                          RequestContext* ctx,
                                           kernel::LaunchParameterKind kind) {
     LOG_DEBUG(Services, "Kind: {}", kind);
 
-    add_service(
-        new IStorage(process->GetAppletState().PopLaunchParameter(kind)));
+    AddService(
+        *ctx, new IStorage(process->GetAppletState().PopLaunchParameter(kind)));
     return RESULT_SUCCESS;
 }
 
@@ -94,7 +94,7 @@ result_t IApplicationFunctions::GetPseudoDeviceId(u128* out_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *out_id = str_to_u64("pseudo_id");
+    *out_id = "dev_id"_u64;
     return RESULT_SUCCESS;
 }
 

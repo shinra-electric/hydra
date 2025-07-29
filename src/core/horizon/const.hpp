@@ -72,25 +72,24 @@ struct ConfigEntry {
 };
 
 enum class LanguageCode : u64 {
-    Japanese = str_to_u64("ja"),
-    AmericanEnglish = str_to_u64("en-US"),
-    French = str_to_u64("fr"),
-    German = str_to_u64("de"),
-    Italian = str_to_u64("it"),
-    Spanish = str_to_u64("es"),
-    Chinese = str_to_u64("zh-CN"),
-    Korean = str_to_u64("ko"),
-    Dutch = str_to_u64("nl"),
-    Portuguese = str_to_u64("pt"),
-    FuckRussia = str_to_u64("ru"), // TODO: should be "Russian"
-    Russian = FuckRussia,
-    Taiwanese = str_to_u64("zh-TW"),
-    BritishEnglish = str_to_u64("en-GB"),
-    CanadianFrench = str_to_u64("fr-CA"),
-    LatinAmericanSpanish = str_to_u64("es-419"),
-    SimplifiedChinese = str_to_u64("zh-Hans"),
-    TraditionalChinese = str_to_u64("zh-Hant"),
-    BrazilianPortugese = str_to_u64("pt-BR"),
+    Japanese = "ja"_u64,
+    AmericanEnglish = "en-US"_u64,
+    French = "fr"_u64,
+    German = "de"_u64,
+    Italian = "it"_u64,
+    Spanish = "es"_u64,
+    Chinese = "zh-CN"_u64,
+    Korean = "ko"_u64,
+    Dutch = "nl"_u64,
+    Portuguese = "pt"_u64,
+    Russian = "ru"_u64,
+    Taiwanese = "zh-TW"_u64,
+    BritishEnglish = "en-GB"_u64,
+    CanadianFrench = "fr-CA"_u64,
+    LatinAmericanSpanish = "es-419"_u64,
+    SimplifiedChinese = "zh-Hans"_u64,
+    TraditionalChinese = "zh-Hant"_u64,
+    BrazilianPortugese = "pt-BR"_u64,
 };
 
 constexpr LanguageCode available_languages[] = {

@@ -6,8 +6,8 @@ namespace hydra::horizon::services::am {
 
 DEFINE_SERVICE_COMMAND_TABLE(IApmManager, 0, OpenSession)
 
-result_t IApmManager::OpenSession(add_service_fn_t add_service) {
-    add_service(new ISession());
+result_t IApmManager::OpenSession(RequestContext* ctx) {
+    AddService(*ctx, new ISession());
     return RESULT_SUCCESS;
 }
 

@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::am {
 
-class IStorage : public ServiceBase {
+class IStorage : public IService {
   public:
     IStorage(const sized_ptr data_) : data{data_} {}
     ~IStorage() override {
@@ -21,7 +21,7 @@ class IStorage : public ServiceBase {
     const sized_ptr data;
 
     // Commands
-    result_t Open(add_service_fn_t add_service);
+    result_t Open(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am
