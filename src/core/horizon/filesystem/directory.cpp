@@ -84,7 +84,7 @@ FsResult Directory::AddEntry(const std::string_view path,
     if (std::filesystem::is_directory(host_path)) {
         entry = new Directory(host_path);
     } else if (std::filesystem::is_regular_file(host_path)) {
-        entry = new HostFile(host_path);
+        entry = new HostFile(host_path, true);
     } else {
         LOG_ERROR(Filesystem, "Invalid host path \"{}\"", host_path);
     }

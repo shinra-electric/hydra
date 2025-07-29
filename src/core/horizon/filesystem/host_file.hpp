@@ -6,7 +6,7 @@ namespace hydra::horizon::filesystem {
 
 class HostFile : public FileBase {
   public:
-    HostFile(const std::string_view host_path_, bool is_mutable_ = true);
+    HostFile(const std::string_view host_path_, bool is_mutable_ = false);
     ~HostFile() override;
 
     void Resize(usize new_size) override;

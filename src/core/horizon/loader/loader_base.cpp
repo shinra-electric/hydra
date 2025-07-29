@@ -83,7 +83,7 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
     }
 
     // Create loader
-    auto file = new horizon::filesystem::HostFile(path, false);
+    auto file = new horizon::filesystem::HostFile(path);
     const auto extension =
         std::string_view(path).substr(path.find_last_of(".") + 1);
 
