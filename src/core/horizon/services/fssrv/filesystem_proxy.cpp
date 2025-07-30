@@ -1,6 +1,7 @@
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 #include "core/horizon/services/fssrv/filesystem.hpp"
 #include "core/horizon/services/fssrv/save_data_info_reader.hpp"
@@ -10,13 +11,14 @@ namespace hydra::horizon::services::fssrv {
 
 namespace {
 
-std::string get_save_data_mount(const SaveDataAttribute& attr) {
+std::string get_save_data_mount(kernel::Process* process,
+                                const SaveDataAttribute& attr) {
     switch (attr.type) {
     case SaveDataType::Account: {
         u64 title_id = attr.title_id;
-        // TODO
-        // if (title_id == 0x0)
-        //    title_id = KERNEL_INSTANCE.GetTitleID();
+        // TODO: is this correct?
+        if (title_id == 0x0)
+            title_id = process->GetTitleID();
         return FS_SAVE_DATA_PATH(title_id, attr.user_id);
     }
     case SaveDataType::Cache:
@@ -82,11 +84,10 @@ result_t IFileSystemProxy::OpenSdCardFileSystem(RequestContext* ctx) {
     return RESULT_SUCCESS;
 }
 
-result_t
-IFileSystemProxy::CreateSaveDataFileSystem(SaveDataAttribute attr,
-                                           SaveDataCreationInfo creation_info,
-                                           SaveDataMetaInfo meta_info) {
-    std::string mount = get_save_data_mount(attr);
+result_t IFileSystemProxy::CreateSaveDataFileSystem(
+    kernel::Process* process, SaveDataAttribute attr,
+    SaveDataCreationInfo creation_info, SaveDataMetaInfo meta_info) {
+    std::string mount = get_save_data_mount(process, attr);
     auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
     // TODO: check res
 
@@ -106,17 +107,16 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     return RESULT_SUCCESS;
 }
 
-result_t
-IFileSystemProxy::OpenSaveDataFileSystem(RequestContext* ctx,
-                                         aligned<SaveDataSpaceId, 8> space_id,
-                                         SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(ctx, space_id, attr, false);
+result_t IFileSystemProxy::OpenSaveDataFileSystem(
+    RequestContext* ctx, kernel::Process* process,
+    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    return OpenSaveDataFileSystemImpl(ctx, process, space_id, attr, false);
 }
 
 result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
-    RequestContext* ctx, aligned<SaveDataSpaceId, 8> space_id,
-    SaveDataAttribute attr) {
-    return OpenSaveDataFileSystemImpl(ctx, space_id, attr, true);
+    RequestContext* ctx, kernel::Process* process,
+    aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr) {
+    return OpenSaveDataFileSystemImpl(ctx, process, space_id, attr, true);
 }
 
 result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
@@ -188,12 +188,13 @@ result_t IFileSystemProxy::GetGlobalAccessLogMode(u32* out_log_mode) {
 }
 
 result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(RequestContext* ctx,
+                                                      kernel::Process* process,
                                                       SaveDataSpaceId space_id,
                                                       SaveDataAttribute attr,
                                                       bool read_only) {
     // TODO: support read only
 
-    std::string mount = get_save_data_mount(attr);
+    std::string mount = get_save_data_mount(process, attr);
     AddService(*ctx, new IFileSystem(mount));
 
     // TODO: correct?

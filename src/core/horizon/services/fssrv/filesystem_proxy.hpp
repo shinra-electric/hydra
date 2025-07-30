@@ -120,19 +120,20 @@ class IFileSystemProxy : public IService {
     OpenBisFileSystem(BisPartitionId partition_id,
                       InBuffer<BufferAttr::HipcPointer> unknown_buffer);
     result_t OpenSdCardFileSystem(RequestContext* ctx);
-    result_t CreateSaveDataFileSystem(SaveDataAttribute attr,
+    result_t CreateSaveDataFileSystem(kernel::Process* process,
+                                      SaveDataAttribute attr,
                                       SaveDataCreationInfo creation_info,
                                       SaveDataMetaInfo meta_info);
     result_t ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
         aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
         OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t OpenSaveDataFileSystem(RequestContext* ctx,
+                                    kernel::Process* process,
                                     aligned<SaveDataSpaceId, 8> space_id,
                                     SaveDataAttribute attr);
-    result_t
-    OpenReadOnlySaveDataFileSystem(RequestContext* ctx,
-                                   aligned<SaveDataSpaceId, 8> space_id,
-                                   SaveDataAttribute attr);
+    result_t OpenReadOnlySaveDataFileSystem(
+        RequestContext* ctx, kernel::Process* process,
+        aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
     result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
                                                      SaveDataSpaceId space_id);
     result_t OpenDataStorageByProgramId(RequestContext* ctx, u64 program_id);
@@ -145,6 +146,7 @@ class IFileSystemProxy : public IService {
 
     // Impl
     result_t OpenSaveDataFileSystemImpl(RequestContext* ctx,
+                                        kernel::Process* process,
                                         SaveDataSpaceId space_id,
                                         SaveDataAttribute attr, bool read_only);
 };
