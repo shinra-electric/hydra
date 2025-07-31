@@ -14,7 +14,8 @@ NvResult NvDispCtrl::NumOutputs(u32* out_num_outputs) {
     return NvResult::Success;
 }
 
-NvResult NvDispCtrl::GetDisplayProperties(std::array<u8, 20> unknown_x0) {
+NvResult NvDispCtrl::GetDisplayProperties(
+    InOutSingle<std::array<u8, 20>> inout_unknown_x0) {
     LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }

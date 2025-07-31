@@ -2,4 +2,6 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
+DEFINE_IOCTL_TABLE(NvSchedCtrl)
+
 } // namespace hydra::horizon::services::nvdrv::ioctl
