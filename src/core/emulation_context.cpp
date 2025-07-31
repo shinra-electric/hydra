@@ -403,15 +403,20 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     // all). Perhaps layers could have processes associated with them and only
     // the original processes's dt would be queried?
     std::vector<std::chrono::nanoseconds> dt_list;
-    display.AcquirePresentTextures(dt_list);
+    bool acquired = display.AcquirePresentTextures(dt_list);
+    // HACK: return if no textures are available
+    if (!acquired) {
+        renderer.UnlockMutex();
+        return;
+    }
 
     if (!renderer.AcquireNextSurface()) {
         renderer.UnlockMutex();
         return;
     }
 
-    bool drawn = display.Present(width, height);
-    if (drawn && loading) {
+    display.Present(width, height);
+    if (acquired && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present
         loading = false;

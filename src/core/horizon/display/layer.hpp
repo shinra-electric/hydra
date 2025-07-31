@@ -17,9 +17,9 @@ class Layer {
     void Open() {}
     void Close() {}
 
-    void
+    bool
     AcquirePresentTexture(std::vector<std::chrono::nanoseconds>& out_dt_list);
-    bool Present(u32 width, u32 height);
+    void Present(u32 width, u32 height);
 
   private:
     u32 binder_id;

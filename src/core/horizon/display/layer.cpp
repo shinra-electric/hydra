@@ -7,24 +7,26 @@
 
 namespace hydra::horizon::display {
 
-void Layer::AcquirePresentTexture(
+bool Layer::AcquirePresentTexture(
     std::vector<std::chrono::nanoseconds>& out_dt_list) {
     // Get the buffer to present
     auto& binder = OS_INSTANCE.GetDisplayDriver().GetBinder(binder_id);
 
     i32 slot = binder.ConsumeBuffer(input, out_dt_list);
     if (slot == -1)
-        return;
+        return false;
     const auto& buffer = binder.GetBuffer(slot);
 
     present_texture = GPU_INSTANCE.GetTexture(
         (*KERNEL_INSTANCE.GetProcessManager().Begin())->GetMmu(),
         buffer.nv_buffer); // HACK
+
+    return true;
 }
 
-bool Layer::Present(u32 width, u32 height) {
+void Layer::Present(u32 width, u32 height) {
     if (!present_texture)
-        return false;
+        return;
 
     // Src rect
     IntRect2D src_rect;
@@ -76,8 +78,6 @@ bool Layer::Present(u32 width, u32 height) {
 
     // Draw
     RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);
-
-    return true;
 }
 
 } // namespace hydra::horizon::display
