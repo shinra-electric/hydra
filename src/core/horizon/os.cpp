@@ -38,6 +38,7 @@
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
+#include "core/horizon/services/psc/pm_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
 #include "core/horizon/services/settings/system_settings_server.hpp"
@@ -244,6 +245,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
                      "pctl:r", "pctl:a", "pctl");
 
     // PSC
+    REGISTER_SERVICE(others, psc::IPmService, "psc:m");
     REGISTER_SERVICE(others, ovln::ISenderService, "ovln:snd");
 
     // Settings

@@ -313,6 +313,10 @@ add_library(hydra-core
     horizon/services/ovln/sender_service.hpp
     horizon/services/ovln/sender.cpp
     horizon/services/ovln/sender.hpp
+    horizon/services/psc/pm_service.cpp
+    horizon/services/psc/pm_service.hpp
+    horizon/services/psc/pm_module.cpp
+    horizon/services/psc/pm_module.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
