@@ -15,8 +15,8 @@ struct DeviceNickName {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
                              GetColorSetId, 37, GetSettingsItemValueSize, 38,
-                             GetSettingsItemValue, 62, GetDebugModeFlag, 77,
-                             GetDeviceNickName)
+                             GetSettingsItemValue, 39, GetTvSettings, 62,
+                             GetDebugModeFlag, 77, GetDeviceNickName)
 
 result_t ISystemSettingsServer::GetFirmwareVersion(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
@@ -83,6 +83,23 @@ result_t ISystemSettingsServer::GetSettingsItemValue(
         break;
     }
 
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemSettingsServer::GetTvSettings(TvSettings* out_settings) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_settings = {
+        .flags = TvFlags::None,
+        .resolution = TvResolution::Auto,
+        .hdmi_content_type = HdmiContentType::Graphics,
+        .rgb_range = RgbRange::Auto,
+        .cmu_mode = CmuMode::None,
+        .tv_underscan = 0,
+        .tv_gamma = 0,
+        .contrast_ratio = 0,
+    };
     return RESULT_SUCCESS;
 }
 
