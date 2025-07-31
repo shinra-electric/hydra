@@ -140,6 +140,12 @@ add_library(hydra-core
     horizon/services/nvdrv/ioctl/nvhost_gpu.hpp
     horizon/services/nvdrv/ioctl/nvhost_nvdec.cpp
     horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp
+    horizon/services/nvdrv/ioctl/nvsched_ctrl.cpp
+    horizon/services/nvdrv/ioctl/nvsched_ctrl.hpp
+    horizon/services/nvdrv/ioctl/nvdisp_ctrl.cpp
+    horizon/services/nvdrv/ioctl/nvdisp_ctrl.hpp
+    horizon/services/nvdrv/ioctl/nvdisp_disp.cpp
+    horizon/services/nvdrv/ioctl/nvdisp_disp.hpp
     horizon/services/settings/nx_settings.cpp
     horizon/services/settings/nx_settings.hpp
     horizon/services/settings/settings_server.cpp

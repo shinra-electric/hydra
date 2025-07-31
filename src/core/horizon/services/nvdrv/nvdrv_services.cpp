@@ -3,12 +3,15 @@
 #include "core/horizon/const.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
+#include "core/horizon/services/nvdrv/ioctl/nvdisp_ctrl.hpp"
+#include "core/horizon/services/nvdrv/ioctl/nvdisp_disp.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_as_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvmap.hpp"
+#include "core/horizon/services/nvdrv/ioctl/nvsched_ctrl.hpp"
 
 namespace hydra::horizon::services::nvdrv {
 
@@ -35,6 +38,14 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
         fd_pool.Get(fd_id) = new ioctl::NvHostGpu();
     } else if (path == "/dev/nvhost-nvdec") {
         fd_pool.Get(fd_id) = new ioctl::NvHostNvDec();
+    } else if (path == "/dev/nvsched-ctrl") {
+        fd_pool.Get(fd_id) = new ioctl::NvSchedCtrl();
+    } else if (path == "/dev/nvdisp-ctrl") {
+        fd_pool.Get(fd_id) = new ioctl::NvDispCtrl();
+    } else if (path == "/dev/nvdisp-disp0") {
+        fd_pool.Get(fd_id) = new ioctl::NvDispDisp(0);
+    } else if (path == "/dev/nvdisp-disp1") {
+        fd_pool.Get(fd_id) = new ioctl::NvDispDisp(1);
     } else {
         LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO
