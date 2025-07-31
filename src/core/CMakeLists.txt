@@ -309,6 +309,10 @@ add_library(hydra-core
     horizon/services/lbl/lbl_controller.hpp
     horizon/services/nsd/manager.cpp
     horizon/services/nsd/manager.hpp
+    horizon/services/ovln/sender_service.cpp
+    horizon/services/ovln/sender_service.hpp
+    horizon/services/ovln/sender.cpp
+    horizon/services/ovln/sender.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

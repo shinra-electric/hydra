@@ -33,6 +33,7 @@
 #include "core/horizon/services/ns/service_getter_interface.hpp"
 #include "core/horizon/services/nsd/manager.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
+#include "core/horizon/services/ovln/sender_service.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
@@ -241,6 +242,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Pctl
     REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",
                      "pctl:r", "pctl:a", "pctl");
+
+    // PSC
+    REGISTER_SERVICE(others, ovln::ISenderService, "ovln:snd");
 
     // Settings
     REGISTER_SERVICE(others, settings::ISettingsServer, "set");
