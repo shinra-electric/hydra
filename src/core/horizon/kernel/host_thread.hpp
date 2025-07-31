@@ -17,12 +17,7 @@ class HostThread : public IThread {
     uptr GetTlsPtr() const override { return reinterpret_cast<uptr>(tls); }
 
   protected:
-    void Run() override {
-        run_callback([this]() {
-            ProcessMessages();
-            return GetState() == ThreadState::Stopping;
-        });
-    }
+    void Run() override;
 
   private:
     run_callback_fn_t run_callback;

@@ -37,8 +37,7 @@ void GuestThread::Run() {
     for (u32 i = 0; i < sizeof_array(args); i++)
         thread->SetRegX(i, args[i]);
 
-    DEBUGGER_INSTANCE.RegisterThisThread("Guest",
-                                         thread); // TODO: handle ID?
+    DEBUGGER_INSTANCE.RegisterThisThread(GetDebugName(), thread);
     thread->Run();
     DEBUGGER_INSTANCE.UnregisterThisThread();
 

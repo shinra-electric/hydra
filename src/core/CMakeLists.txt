@@ -22,6 +22,7 @@ add_library(hydra-core
     horizon/kernel/thread.hpp
     horizon/kernel/guest_thread.cpp
     horizon/kernel/guest_thread.hpp
+    horizon/kernel/host_thread.cpp
     horizon/kernel/host_thread.hpp
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
