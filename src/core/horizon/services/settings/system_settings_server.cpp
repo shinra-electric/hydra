@@ -11,23 +11,12 @@ struct DeviceNickName {
     char name[0x80];
 };
 
-const SettingValue* get_settings_value(const std::string& name,
-                                       const std::string& item_key) {
-    auto key = fmt::format("{}!{}", name, item_key);
-    auto it = settings::nx_settings.find(key);
-    if (it == settings::nx_settings.end()) {
-        LOG_WARN(Services, "Key not found: {}", key);
-        return nullptr;
-    }
-
-    return &it->second;
-}
-
 } // namespace
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
                              GetColorSetId, 37, GetSettingsItemValueSize, 38,
-                             GetSettingsItemValue, 77, GetDeviceNickName)
+                             GetSettingsItemValue, 62, GetDebugModeFlag, 77,
+                             GetDeviceNickName)
 
 result_t ISystemSettingsServer::GetFirmwareVersion(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
@@ -94,6 +83,19 @@ result_t ISystemSettingsServer::GetSettingsItemValue(
         break;
     }
 
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemSettingsServer::GetDebugModeFlag(bool* out_flag) {
+    auto value = get_settings_value("settings_debug", "is_debug_mode_enabled");
+    if (!value) {
+        *out_flag = true;
+        return RESULT_SUCCESS;
+    }
+
+    ASSERT_DEBUG(value->type == settings::SettingDataType::Boolean, Services,
+                 "Invalid type for debug mode flag");
+    *out_flag = value->b;
     return RESULT_SUCCESS;
 }
 

@@ -29,6 +29,7 @@ class ISystemSettingsServer : public IService {
                          InBuffer<BufferAttr::HipcPointer> in_item_key_buffer,
                          u64* out_size,
                          OutBuffer<BufferAttr::MapAlias> out_buffer);
+    result_t GetDebugModeFlag(bool* out_flag);
     result_t GetDeviceNickName(OutBuffer<BufferAttr::MapAlias> out_buffer);
 };
 

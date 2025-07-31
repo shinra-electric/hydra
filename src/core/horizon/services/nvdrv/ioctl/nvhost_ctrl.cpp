@@ -13,7 +13,6 @@ DEFINE_IOCTL_TABLE(NvHostCtrl,
 NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
                                std::array<char, 0x41> key,
                                std::array<u8, 0x101>* out_value) {
-    // TODO: use a different connecting char?
     const auto key_str =
         to_lower(fmt::format("{}!{}", name.data(), key.data()));
     LOG_DEBUG(Services, "Key: {}", key_str);
