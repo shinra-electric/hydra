@@ -102,15 +102,12 @@ void Window::BeginEmulation(const std::string& path) {
     // Connect cursor as a touch screen device
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectTouchScreenDevice("cursor", &cursor);
 
-    // Load
+    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
     // TODO: support loading applets from firmware
     auto loader = horizon::loader::LoaderBase::CreateFromFile(path);
-    emulation_context.Load(loader);
+    emulation_context.LoadAndStart(loader);
+    title_id = loader->GetTitleID();
     delete loader;
-
-    // Begin emulation
-    emulation_context.SetSurface(SDL_GetRenderMetalLayer(renderer));
-    emulation_context.Run();
 }
 
 void Window::UpdateWindowTitle() {
@@ -124,8 +121,7 @@ void Window::UpdateWindowTitle() {
     // TODO: title name
     const auto title =
         fmt::format("Hydra | TODO(TITLE_NAME) - 0x{:016x} | {} | {} FPS",
-                    emulation_context.GetTitleID(),
-                    Config::GetInstance().GetGpuRenderer(), fps_str);
+                    title_id, Config::GetInstance().GetGpuRenderer(), fps_str);
     SetWindowTitle(title);
 }
 

@@ -25,7 +25,7 @@ constexpr usize MAX_FINGER_COUNT = 10;
 }
 
 InputManager::InputManager()
-    : shared_memory(new kernel::SharedMemory(0x40000)) {}
+    : shared_memory(new kernel::SharedMemory(0x40000, "HID shared memory")) {}
 
 #define UPDATE_NPAD_LIFO(type, style_lower)                                    \
     UPDATE_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
@@ -73,7 +73,7 @@ void InputManager::UpdateAndSetNpadAnalogStickStateR(
 }
 
 hid::SharedMemory* InputManager::GetHidSharedMemory() const {
-    return reinterpret_cast<hid::SharedMemory*>(shared_memory.handle->GetPtr());
+    return reinterpret_cast<hid::SharedMemory*>(shared_memory->GetPtr());
 }
 
 void InputManager::UpdateTouchStates() {

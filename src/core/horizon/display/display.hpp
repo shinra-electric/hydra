@@ -7,39 +7,42 @@ namespace hydra::horizon::display {
 
 class Display {
   public:
-    Display()
-        : vsync_event(new kernel::Event(kernel::EventFlags::AutoClear,
-                                        "V-Sync event")) {}
+    Display() : vsync_event{new kernel::Event(false, "V-Sync event")} {}
 
     // TODO
     void Open() {}
     void Close() {}
 
-    u32 CreateLayer(u32 binder_id) {
-        u32 id = layers.size();
-        layers.push_back(new Layer(binder_id));
+    bool
+    AcquirePresentTextures(std::vector<std::chrono::nanoseconds>& out_dt_list);
+    void Present(u32 width, u32 height);
 
+    // Layers
+    u32 CreateLayer(u32 binder_id) {
+        std::lock_guard lock(mutex);
+        u32 id = layer_pool.AllocateHandle();
+        layer_pool.Get(id) = new Layer(binder_id);
         return id;
     }
 
-    // TODO: should draw to a specific layer
-    Layer* GetPresentableLayer() {
-        if (layers.empty())
-            return nullptr;
-
-        return layers.back();
+    void DestroyLayer(u32 id) {
+        std::lock_guard lock(mutex);
+        delete layer_pool.Get(id);
+        layer_pool.Free(id);
     }
 
-    Layer& GetLayer(u32 id) { return *layers[id]; }
+    Layer& GetLayer(u32 id) {
+        std::lock_guard lock(mutex);
+        return *layer_pool.Get(id);
+    }
 
   private:
     std::mutex mutex;
-    kernel::HandleWithId<kernel::Event> vsync_event;
+    kernel::Event* vsync_event;
 
-    std::vector<Layer*> layers;
+    StaticPool<Layer*, 8> layer_pool;
 
   public:
-    REF_GETTER(mutex, GetMutex);
     REF_GETTER(vsync_event, GetVSyncEvent);
 };
 

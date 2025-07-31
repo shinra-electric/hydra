@@ -3,6 +3,7 @@
 namespace hydra::horizon::loader {
 
 NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
+    /*
     // TODO: ticket file
 
     // NCAs
@@ -20,8 +21,24 @@ NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
             largest_entry = {file, file->GetSize()};
     }
 
-    // TODO: needs to be decrypted first
-    // main_nca_loader = new NcaLoader(largest_entry.file);
+    // TODO: check for encryption
+    program_nca_loader = new NcaLoader(largest_entry.file);
+    */
+
+    filesystem::EntryBase* main_entry;
+    const auto res = pfs.GetEntry("main", main_entry);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get main entry");
+        return;
+    }
+
+    auto main_file = dynamic_cast<filesystem::FileBase*>(main_entry);
+    if (!main_file) {
+        LOG_ERROR(Loader, "Main entry is not a file");
+        return;
+    }
+
+    nso_loader = new NsoLoader(main_file);
 }
 
 } // namespace hydra::horizon::loader

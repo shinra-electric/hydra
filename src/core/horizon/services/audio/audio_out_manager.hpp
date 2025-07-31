@@ -6,7 +6,7 @@
 
 namespace hydra::horizon::services::audio {
 
-class IAudioOutManager : public ServiceBase {
+class IAudioOutManager : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
@@ -15,8 +15,8 @@ class IAudioOutManager : public ServiceBase {
     result_t ListAudioOuts(u32* out_count,
                            OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t
-    OpenAudioOut(add_service_fn_t add_service, u32 sample_rate,
-                 u16 channel_count, u16 _reserved, u64 aruid,
+    OpenAudioOut(RequestContext* ctx, u32 sample_rate, u16 channel_count,
+                 u16 _reserved, u64 aruid,
                  InBuffer<BufferAttr::MapAlias> in_device_name_buffer,
                  u32* out_sample_rate, u32* out_channel_count,
                  PcmFormat* out_format, AudioOutState* out_state,
@@ -24,8 +24,8 @@ class IAudioOutManager : public ServiceBase {
     result_t ListAudioOutsAuto(u32* out_count,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t
-    OpenAudioOutAuto(add_service_fn_t add_service, u32 sample_rate,
-                     u16 channel_count, u16 _reserved, u64 aruid,
+    OpenAudioOutAuto(RequestContext* ctx, u32 sample_rate, u16 channel_count,
+                     u16 _reserved, u64 aruid,
                      InBuffer<BufferAttr::AutoSelect> in_device_name_buffer,
                      u32* out_sample_rate, u32* out_channel_count,
                      PcmFormat* out_format, AudioOutState* out_state,
@@ -33,7 +33,7 @@ class IAudioOutManager : public ServiceBase {
 
     // Impl
     result_t ListAudioOutsImpl(u32* out_count, Writer writer);
-    result_t OpenAudioOutImpl(add_service_fn_t add_service, u32 sample_rate,
+    result_t OpenAudioOutImpl(RequestContext* ctx, u32 sample_rate,
                               u16 channel_count, u16 _reserved, u64 aruid,
                               Reader& device_name_reader, u32* out_sample_rate,
                               u32* out_channel_count, PcmFormat* out_format,

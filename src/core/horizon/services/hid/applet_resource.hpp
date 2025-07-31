@@ -4,13 +4,14 @@
 
 namespace hydra::horizon::services::hid {
 
-class IAppletResource : public ServiceBase {
+class IAppletResource : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t GetSharedMemoryHandle(OutHandle<HandleAttr::Copy> out_handle);
+    result_t GetSharedMemoryHandle(kernel::Process* process,
+                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::hid

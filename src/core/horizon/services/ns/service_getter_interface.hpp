@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::ns {
 
-class IServiceGetterInterface : public ServiceBase {
+class IServiceGetterInterface : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

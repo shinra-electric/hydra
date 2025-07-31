@@ -3,7 +3,7 @@
 namespace hydra::horizon::display {
 
 void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
-    std::lock_guard<std::mutex> lock(queue_mutex);
+    std::lock_guard lock(queue_mutex);
     buffers[slot].initialized = true;
     buffers[slot].buffer = buff;
     buffer_count++;
@@ -31,7 +31,7 @@ i32 Binder::GetAvailableSlot() {
 
     // If we reach here, it means that there won't be a slot available the
     // next time, so clear the event
-    event.handle->Clear();
+    event->Clear();
 
     // TODO: remove this?
     if (slot == -1)
@@ -41,7 +41,7 @@ i32 Binder::GetAvailableSlot() {
 }
 
 void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
-    std::lock_guard<std::mutex> lock(queue_mutex);
+    std::lock_guard lock(queue_mutex);
     queued_buffers.push({slot, input});
     buffers[slot].queued = true;
 
@@ -78,7 +78,7 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input,
     queue_cv.notify_all();
 
     // Signal event
-    event.handle->Signal();
+    event->Signal();
 
     return slot;
 }
@@ -97,7 +97,7 @@ void Binder::UnqueueAllBuffers() {
     queue_cv.notify_all();
 
     // Signal event
-    event.handle->Signal();
+    event->Signal();
 }
 
 } // namespace hydra::horizon::display

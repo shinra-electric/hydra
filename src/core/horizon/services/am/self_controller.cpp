@@ -1,5 +1,6 @@
 #include "core/horizon/services/am/self_controller.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 
 namespace hydra::horizon::services::am {
@@ -15,33 +16,32 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetWirelessPriorityMode, 91, GetAccumulatedSuspendedTickChangedEvent)
 
 ISelfController::ISelfController()
-    : library_applet_launchable_event(new kernel::Event(
-          kernel::EventFlags::Signalled, "Library applet launchable event")),
-      accumulated_suspended_tick_changed_event(
-          new kernel::Event(kernel::EventFlags::AutoClear,
-                            "Accumulated suspended tick changed event")) {}
+    : library_applet_launchable_event{new kernel::Event(
+          true, "Library applet launchable event")},
+      accumulated_suspended_tick_changed_event{new kernel::Event(
+          false, "Accumulated suspended tick changed event")} {}
 
-result_t ISelfController::LockExit() {
-    StateManager::GetInstance().LockExit();
+result_t ISelfController::LockExit(kernel::Process* process) {
+    process->GetAppletState().LockExit();
     return RESULT_SUCCESS;
 }
 
-result_t ISelfController::UnlockExit() {
-    StateManager::GetInstance().UnlockExit();
+result_t ISelfController::UnlockExit(kernel::Process* process) {
+    process->GetAppletState().UnlockExit();
     return RESULT_SUCCESS;
 }
 
 result_t ISelfController::GetLibraryAppletLaunchableEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = library_applet_launchable_event.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(library_applet_launchable_event);
     return RESULT_SUCCESS;
 }
 
 result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
-    std::unique_lock<std::mutex> display_lock(display.GetMutex());
+    const handle_id_t display_id = 1;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     *out_layer_id = display.CreateLayer(binder_id);
     return RESULT_SUCCESS;
@@ -51,8 +51,8 @@ result_t ISelfController::CreateManagedDisplaySeparableLayer(
     u64* out_display_layer_id, u64* out_recording_layer_id) {
     u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
     // TODO: what display ID should be used?
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(0);
-    std::unique_lock<std::mutex> display_lock(display.GetMutex());
+    const handle_id_t display_id = 1;
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     *out_display_layer_id = display.CreateLayer(binder_id);
     // TODO: what is a recording layer?
@@ -70,8 +70,8 @@ ISelfController::SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext) {
 }
 
 result_t ISelfController::GetAccumulatedSuspendedTickChangedEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = accumulated_suspended_tick_changed_event.id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(accumulated_suspended_tick_changed_event);
     return RESULT_SUCCESS;
 }
 

@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::friends {
 
-class IFriendService : public ServiceBase {
+class IFriendService : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

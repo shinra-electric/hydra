@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::socket {
 
-class IClient : public ServiceBase {
+class IClient : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

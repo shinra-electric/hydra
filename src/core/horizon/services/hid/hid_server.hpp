@@ -32,12 +32,11 @@ struct VibrationDeviceInfo {
     VibrationDevicePosition position;
 };
 
-class IHidServer : public ServiceBase {
+class IHidServer : public IService {
   public:
-    // TODO: how come is autoclear user specified?
     IHidServer()
-        : npad_style_set_update_event(new kernel::Event(
-              kernel::EventFlags::None, "Npad style set update event")) {}
+        : npad_style_set_update_event{
+              new kernel::Event(false, "Npad style set update event")} {}
 
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
@@ -47,14 +46,13 @@ class IHidServer : public ServiceBase {
 
   private:
     // TODO: one event for each style set
-    kernel::HandleWithId<kernel::Event> npad_style_set_update_event;
+    kernel::Event* npad_style_set_update_event;
 
     ::hydra::horizon::hid::NpadJoyHoldType npad_joy_hold_type{
         ::hydra::horizon::hid::NpadJoyHoldType::Horizontal};
 
     // Commands
-    result_t CreateAppletResource(kernel::add_service_fn_t add_service,
-                                  u64 aruid);
+    result_t CreateAppletResource(RequestContext* ctx, u64 aruid);
     STUB_REQUEST_COMMAND(ActivateDebugPad);
     STUB_REQUEST_COMMAND(ActivateTouchScreen);
     STUB_REQUEST_COMMAND(ActivateMouse);
@@ -68,7 +66,7 @@ class IHidServer : public ServiceBase {
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     result_t AcquireNpadStyleSetUpdateEventHandle(
-        u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+        kernel::Process* process, u32 id, u32 _pad, u64 aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
     // TODO: PID descriptor
@@ -84,8 +82,7 @@ class IHidServer : public ServiceBase {
     result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,
                                     VibrationDeviceInfo* info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
-    result_t
-    CreateActiveVibrationDeviceList(kernel::add_service_fn_t add_service);
+    result_t CreateActiveVibrationDeviceList(RequestContext* ctx);
     STUB_REQUEST_COMMAND(SendVibrationValues);
     STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
 };

@@ -9,7 +9,7 @@ result_t IManagerForApplication::GetAccountId(u64* out_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *out_id = str_to_u64("net ID");
+    *out_id = "net_id"_u64;
     return RESULT_SUCCESS;
 }
 

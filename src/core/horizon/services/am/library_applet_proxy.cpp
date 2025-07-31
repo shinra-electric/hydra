@@ -20,54 +20,49 @@ DEFINE_SERVICE_COMMAND_TABLE(ILibraryAppletProxy, 0, GetCommonStateGetter, 1,
                              OpenLibraryAppletSelfAccessor, 1000,
                              GetDebugFunctions)
 
+result_t ILibraryAppletProxy::GetCommonStateGetter(RequestContext* ctx) {
+    AddService(*ctx, new ICommonStateGetter());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetSelfController(RequestContext* ctx) {
+    AddService(*ctx, new ISelfController());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetWindowController(RequestContext* ctx) {
+    AddService(*ctx, new IWindowController());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetAudioController(RequestContext* ctx) {
+    AddService(*ctx, new IAudioController());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetDisplayController(RequestContext* ctx) {
+    AddService(*ctx, new IDisplayController());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetProcessWindingController(RequestContext* ctx) {
+    AddService(*ctx, new IProcessWindingController());
+    return RESULT_SUCCESS;
+}
+
+result_t ILibraryAppletProxy::GetLibraryAppletCreator(RequestContext* ctx) {
+    AddService(*ctx, new ILibraryAppletCreator());
+    return RESULT_SUCCESS;
+}
+
 result_t
-ILibraryAppletProxy::GetCommonStateGetter(add_service_fn_t add_service) {
-    add_service(new ICommonStateGetter());
+ILibraryAppletProxy::OpenLibraryAppletSelfAccessor(RequestContext* ctx) {
+    AddService(*ctx, new ILibraryAppletSelfAccessor());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletProxy::GetSelfController(add_service_fn_t add_service) {
-    add_service(new ISelfController());
-    return RESULT_SUCCESS;
-}
-
-result_t
-ILibraryAppletProxy::GetWindowController(add_service_fn_t add_service) {
-    add_service(new IWindowController());
-    return RESULT_SUCCESS;
-}
-
-result_t ILibraryAppletProxy::GetAudioController(add_service_fn_t add_service) {
-    add_service(new IAudioController());
-    return RESULT_SUCCESS;
-}
-
-result_t
-ILibraryAppletProxy::GetDisplayController(add_service_fn_t add_service) {
-    add_service(new IDisplayController());
-    return RESULT_SUCCESS;
-}
-
-result_t
-ILibraryAppletProxy::GetProcessWindingController(add_service_fn_t add_service) {
-    add_service(new IProcessWindingController());
-    return RESULT_SUCCESS;
-}
-
-result_t
-ILibraryAppletProxy::GetLibraryAppletCreator(add_service_fn_t add_service) {
-    add_service(new ILibraryAppletCreator());
-    return RESULT_SUCCESS;
-}
-
-result_t ILibraryAppletProxy::OpenLibraryAppletSelfAccessor(
-    add_service_fn_t add_service) {
-    add_service(new ILibraryAppletSelfAccessor());
-    return RESULT_SUCCESS;
-}
-
-result_t ILibraryAppletProxy::GetDebugFunctions(add_service_fn_t add_service) {
-    add_service(new IDebugFunctions());
+result_t ILibraryAppletProxy::GetDebugFunctions(RequestContext* ctx) {
+    AddService(*ctx, new IDebugFunctions());
     return RESULT_SUCCESS;
 }
 

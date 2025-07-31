@@ -9,7 +9,7 @@ enum class ColorSetId : i32 {
     BasicBlack,
 };
 
-class ISystemSettingsServer : public ServiceBase {
+class ISystemSettingsServer : public IService {
   public:
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
@@ -21,7 +21,9 @@ class ISystemSettingsServer : public ServiceBase {
     // Commands
     result_t GetFirmwareVersion(OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetColorSetId(ColorSetId* out_id);
-    // TODO: buffer attrs
+    result_t GetSettingsItemValueSize(
+        InBuffer<BufferAttr::HipcPointer> in_name_buffer,
+        InBuffer<BufferAttr::HipcPointer> in_item_key_buffer, u64* out_size);
     result_t
     GetSettingsItemValue(InBuffer<BufferAttr::HipcPointer> in_name_buffer,
                          InBuffer<BufferAttr::HipcPointer> in_item_key_buffer,

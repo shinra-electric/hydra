@@ -8,14 +8,18 @@ class NroLoader : public LoaderBase {
   public:
     NroLoader(filesystem::FileBase* file_);
 
-    std::optional<kernel::ProcessParams> LoadProcess() override;
+    void LoadProcess(kernel::Process* process) override;
 
   private:
     filesystem::FileBase* file;
+    u64 size;
     u32 text_offset;
-    usize bss_size;
+    u32 bss_size;
 
     void TryLoadAssetSection(filesystem::FileBase* file);
+
+  public:
+    GETTER(size, GetSize);
 };
 
 } // namespace hydra::horizon::loader

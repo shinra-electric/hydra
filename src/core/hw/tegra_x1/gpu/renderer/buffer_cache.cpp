@@ -6,7 +6,7 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 BufferBase* BufferCache::Create(const BufferDescriptor& descriptor) {
-    auto texture = RENDERER_INSTANCE->CreateBuffer(descriptor);
+    auto texture = RENDERER_INSTANCE.CreateBuffer(descriptor);
     // TODO: upload buffer
 
     return texture;

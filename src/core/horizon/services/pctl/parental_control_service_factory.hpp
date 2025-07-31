@@ -4,14 +4,14 @@
 
 namespace hydra::horizon::services::pctl {
 
-class IParentalControlServiceFactory : public ServiceBase {
+class IParentalControlServiceFactory : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t CreateService(add_service_fn_t add_service);
-    result_t CreateServiceWithoutInitialize(add_service_fn_t add_service);
+    result_t CreateService(RequestContext* ctx);
+    result_t CreateServiceWithoutInitialize(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::pctl

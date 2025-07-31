@@ -29,7 +29,7 @@ enum class BinderType : i32 {
     Strong = 1,
 };
 
-class IHOSBinderDriver : public ServiceBase {
+class IHOSBinderDriver : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
@@ -40,7 +40,7 @@ class IHOSBinderDriver : public ServiceBase {
                             OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
     result_t AdjustRefcount(i32 binder_id, i32 add_value, BinderType type);
     result_t
-    GetNativeHandle(i32 binder_id, u32 code,
+    GetNativeHandle(kernel::Process* process, i32 binder_id, u32 code,
                     OutHandle<HandleAttr::Copy>
                         out_handle); // TODO: should code be TransactCode?
     result_t

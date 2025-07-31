@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::services::account {
 
-class IManagerForApplication : public ServiceBase {
+class IManagerForApplication : public IService {
   public:
     IManagerForApplication(uuid_t user_id_) : user_id{user_id_} {}
 

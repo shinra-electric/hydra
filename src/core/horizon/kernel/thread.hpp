@@ -1,36 +1,107 @@
 #pragma once
 
-#include "core/horizon/kernel/const.hpp"
 #include "core/horizon/kernel/synchronization_object.hpp"
-#include "core/hw/tegra_x1/cpu/memory_base.hpp"
 
 namespace hydra::horizon::kernel {
 
-class Thread : public SynchronizationObject {
+class Process;
+
+constexpr u64 TLS_SIZE = 0x20000; // TODO: what should this be?
+
+enum class ThreadState {
+    Created,
+    Running,
+    Stopping,
+    Stopped,
+    Paused,
+};
+
+enum class ThreadMessageType {
+    Stop,
+    Pause,
+    Resume,
+};
+
+struct ThreadMessage {
+    ThreadMessageType type;
+    union {
+        // Resume
+        struct {
+            SynchronizationObject* signalled_obj;
+        } resume;
+    } payload;
+};
+
+enum class ThreadActionType {
+    None,
+    Stop,
+    Resume,
+};
+
+enum class ThreadResumeReason {
+    Signalled,
+    TimedOut,
+    Cancelled,
+};
+
+struct ThreadAction {
+    ThreadActionType type{ThreadActionType::None};
+    union {
+        // Resume
+        struct {
+            ThreadResumeReason reason;
+            SynchronizationObject* signalled_obj;
+        } resume;
+    } payload;
+};
+
+class IThread : public SynchronizationObject {
   public:
-    Thread(vaddr_t stack_top_addr_, i32 priority_,
-           const std::string_view debug_name = "Thread");
-    ~Thread() override;
+    IThread(Process* process_, i32 priority_,
+            const std::string_view debug_name = "Thread")
+        : SynchronizationObject(false, debug_name), process{process_},
+          priority{priority_} {}
+    virtual ~IThread() override;
 
-    void Run();
+    void Start();
 
-    // Setters
-    void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
-    void SetArg(u32 index, u64 value) {
-        ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
-               index);
-        args[index] = value;
+    // Messages
+    void Stop() { SendMessage({.type = ThreadMessageType::Stop}); }
+    void Pause() { SendMessage({.type = ThreadMessageType::Pause}); }
+    void Resume(SynchronizationObject* signalled_obj = nullptr) {
+        SendMessage({.type = ThreadMessageType::Resume,
+                     .payload = {.resume = {.signalled_obj = signalled_obj}}});
     }
 
-  private:
-    hw::tegra_x1::cpu::MemoryBase* tls_mem;
-    vaddr_t tls_addr;
-    vaddr_t stack_top_addr;
-    i32 priority;
-    vaddr_t entry_point{0};
-    u64 args[2] = {0};
+    // Must not be called from a different thread
+    ThreadAction ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
 
-    std::thread* t = nullptr;
+    virtual uptr GetTlsPtr() const = 0;
+
+  protected:
+    Process* process;
+
+    virtual void Run() = 0;
+
+  private:
+    i32 priority;
+
+    std::thread* thread{nullptr};
+
+    ThreadState state{ThreadState::Created}; // TODO: atomic?
+
+    std::mutex msg_mutex;
+    std::condition_variable msg_cv;
+    std::queue<ThreadMessage> msg_queue;
+
+    // Helpers
+    void SendMessage(ThreadMessage msg);
+    ThreadAction ProcessMessagesImpl();
+
+  public:
+    GETTER(state, GetState);
 };
+
+inline thread_local IThread* tls_current_thread;
 
 } // namespace hydra::horizon::kernel

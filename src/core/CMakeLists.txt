@@ -1,34 +1,47 @@
 add_library(hydra-core
     horizon/const.hpp
     horizon/hid.hpp
-    horizon/state_manager.cpp
-    horizon/state_manager.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
-    horizon/kernel/hipc.cpp
-    horizon/kernel/hipc.hpp
-    horizon/kernel/cmif.hpp
     horizon/kernel/mutex.hpp
-    horizon/kernel/service_base.cpp
-    horizon/kernel/service_base.hpp
-    horizon/kernel/domain_service.cpp
-    horizon/kernel/domain_service.hpp
+    horizon/kernel/applet_state.cpp
+    horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
+    horizon/kernel/strong_ref.hpp
+    horizon/kernel/synchronization_object.cpp
     horizon/kernel/synchronization_object.hpp
     horizon/kernel/event.hpp
-    horizon/kernel/session.cpp
-    horizon/kernel/session.hpp
-    horizon/kernel/transfer_memory.hpp
     horizon/kernel/shared_memory.cpp
     horizon/kernel/shared_memory.hpp
+    horizon/kernel/transfer_memory.hpp
+    horizon/kernel/code_memory.hpp
     horizon/kernel/thread.cpp
     horizon/kernel/thread.hpp
+    horizon/kernel/guest_thread.cpp
+    horizon/kernel/guest_thread.hpp
+    horizon/kernel/host_thread.hpp
     horizon/kernel/process.cpp
     horizon/kernel/process.hpp
-    horizon/kernel/handle_pool.hpp
+    horizon/kernel/process_manager.cpp
+    horizon/kernel/process_manager.hpp
+    horizon/kernel/hipc/const.cpp
+    horizon/kernel/hipc/const.hpp
+    horizon/kernel/hipc/cmif.hpp
+    horizon/kernel/hipc/server_port.cpp
+    horizon/kernel/hipc/server_port.hpp
+    horizon/kernel/hipc/client_port.cpp
+    horizon/kernel/hipc/client_port.hpp
+    horizon/kernel/hipc/port.cpp
+    horizon/kernel/hipc/port.hpp
+    horizon/kernel/hipc/server_session.cpp
+    horizon/kernel/hipc/server_session.hpp
+    horizon/kernel/hipc/client_session.hpp
+    horizon/kernel/hipc/session.cpp
+    horizon/kernel/hipc/session.hpp
+    horizon/kernel/hipc/service_manager.hpp
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
@@ -61,12 +74,20 @@ add_library(hydra-core
     horizon/loader/nsp_loader.hpp
     horizon/loader/xci_loader.cpp
     horizon/loader/xci_loader.hpp
+    horizon/loader/homebrew_loader.cpp
+    horizon/loader/homebrew_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
+    horizon/display/layer.cpp
     horizon/display/layer.hpp
+    horizon/display/display.cpp
     horizon/display/display.hpp
     horizon/display/driver.hpp
     horizon/services/const.hpp
+    horizon/services/service.cpp
+    horizon/services/service.hpp
+    horizon/services/server.cpp
+    horizon/services/server.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
     horizon/services/hid/applet_resource.cpp
@@ -300,8 +321,8 @@ add_library(hydra-core
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp
-    audio/stream_base.hpp
-    audio/core_base.hpp
+    audio/stream.hpp
+    audio/core.hpp
     audio/null/stream.cpp
     audio/null/stream.hpp
     audio/null/core.cpp
@@ -313,13 +334,13 @@ add_library(hydra-core
     audio/cubeb/core.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
-    hw/tegra_x1/cpu/memory_base.hpp
-    hw/tegra_x1/cpu/mmu_base.cpp
-    hw/tegra_x1/cpu/mmu_base.hpp
-    hw/tegra_x1/cpu/thread_base.cpp
-    hw/tegra_x1/cpu/thread_base.hpp
-    hw/tegra_x1/cpu/cpu_base.cpp
-    hw/tegra_x1/cpu/cpu_base.hpp
+    hw/tegra_x1/cpu/memory.hpp
+    hw/tegra_x1/cpu/mmu.cpp
+    hw/tegra_x1/cpu/mmu.hpp
+    hw/tegra_x1/cpu/thread.cpp
+    hw/tegra_x1/cpu/thread.hpp
+    hw/tegra_x1/cpu/cpu.cpp
+    hw/tegra_x1/cpu/cpu.hpp
     hw/tegra_x1/cpu/hypervisor/const.hpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
     hw/tegra_x1/cpu/hypervisor/page_allocator.hpp

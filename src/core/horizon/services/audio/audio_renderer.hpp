@@ -12,7 +12,7 @@ struct VoiceInfoOut {
     u32 voice_drops_count;
 };
 
-class IAudioRenderer : public ServiceBase {
+class IAudioRenderer : public IService {
   public:
     IAudioRenderer(const AudioRendererParameters& params_,
                    const usize work_buffer_size_);
@@ -24,7 +24,7 @@ class IAudioRenderer : public ServiceBase {
     AudioRendererParameters params;
     usize work_buffer_size;
 
-    kernel::HandleWithId<kernel::Event> event;
+    kernel::Event* event;
 
     u32 rendering_time_limit{0x1000}; // TODO: what should this be?
     std::vector<VoiceInfoOut> voices;
@@ -35,7 +35,8 @@ class IAudioRenderer : public ServiceBase {
                            OutBuffer<BufferAttr::MapAlias> out_perf_buffer);
     STUB_REQUEST_COMMAND(Start);
     STUB_REQUEST_COMMAND(Stop);
-    result_t QuerySystemEvent(OutHandle<HandleAttr::Copy> out_handle);
+    result_t QuerySystemEvent(kernel::Process* process,
+                              OutHandle<HandleAttr::Copy> out_handle);
     result_t SetRenderingTimeLimit(u32 time_limit);
     result_t GetRenderingTimeLimit(u32* out_time_limit);
     result_t

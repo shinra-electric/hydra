@@ -24,7 +24,7 @@ enum class ConfigItem : u32 {
     Package2Hash,
 };
 
-class IGeneralInterface : public ServiceBase {
+class IGeneralInterface : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

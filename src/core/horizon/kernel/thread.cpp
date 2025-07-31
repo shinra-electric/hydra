@@ -1,57 +1,99 @@
 #include "core/horizon/kernel/thread.hpp"
 
 #include "core/debugger/debugger.hpp"
-#include "core/horizon/kernel/kernel.hpp"
-#include "core/hw/tegra_x1/cpu/cpu_base.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/horizon/kernel/process.hpp"
 
 namespace hydra::horizon::kernel {
 
-Thread::Thread(vaddr_t stack_top_addr_, i32 priority_,
-               const std::string_view debug_name)
-    : SynchronizationObject(false, debug_name),
-      stack_top_addr{stack_top_addr_}, priority{priority_} {
-    tls_mem = KERNEL_INSTANCE.CreateTlsMemory(tls_addr);
+IThread::~IThread() {
+    if (thread) {
+        // Request stop
+        state = ThreadState::Stopping;
+        thread->join();
+        delete thread;
+    }
 }
 
-Thread::~Thread() {
-    if (t) {
-        t->join();
-        delete t;
+void IThread::Start() {
+    thread = new std::thread([&]() {
+        tls_current_thread = this;
+
+        // TODO: don't allow null processes
+        if (process)
+            process->RegisterThread(this);
+        Run();
+        if (process)
+            process->UnregisterThread(this);
+
+        // Signal exit
+        state = ThreadState::Stopped;
+        Signal();
+    });
+}
+
+ThreadAction IThread::ProcessMessages(i64 pause_timeout_ns) {
+    const auto timeout_time = std::chrono::steady_clock::now() +
+                              std::chrono::nanoseconds(pause_timeout_ns);
+
+    std::unique_lock<std::mutex> lock(msg_mutex);
+    while (!msg_queue.empty()) {
+        const auto action = ProcessMessagesImpl();
+        if (state != ThreadState::Paused)
+            return action;
+
+        if (pause_timeout_ns == INFINITE_TIMEOUT) {
+            msg_cv.wait(lock);
+        } else {
+            msg_cv.wait_until(lock, timeout_time);
+            const auto crnt_time = std::chrono::steady_clock::now();
+            if (crnt_time >= timeout_time)
+                return {
+                    .type = ThreadActionType::Resume,
+                    .payload = {
+                        .resume = {.reason = ThreadResumeReason::TimedOut}}};
+        }
     }
 
-    hw::tegra_x1::cpu::MMUBase::GetInstance().Unmap(tls_addr,
-                                                    tls_mem->GetSize());
-    hw::tegra_x1::cpu::MMUBase::GetInstance().FreeMemory(tls_mem);
+    return {};
 }
 
-void Thread::Run() {
-    ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
+void IThread::SendMessage(ThreadMessage msg) {
+    std::lock_guard lock(msg_mutex);
+    msg_queue.push(msg);
+    msg_cv.notify_all(); // TODO: notify one?
+}
 
-    t = new std::thread([&]() {
-        hw::tegra_x1::cpu::ThreadBase* thread =
-            hw::tegra_x1::cpu::CPUBase::GetInstance().CreateThread(tls_mem);
+ThreadAction IThread::ProcessMessagesImpl() {
+    ThreadAction action{};
+    while (!msg_queue.empty()) {
+        auto msg = msg_queue.front();
+        msg_queue.pop();
 
-        DEBUGGER_INSTANCE.RegisterThisThread("Guest",
-                                             thread); // TODO: handle ID?
+        // Process the message
+        switch (msg.type) {
+        case ThreadMessageType::Stop:
+            state = ThreadState::Stopping;
+            return {.type = ThreadActionType::Stop};
+        case ThreadMessageType::Pause:
+            state = ThreadState::Paused;
+            action = {};
+            break;
+        case ThreadMessageType::Resume: {
+            const auto signalled_obj = msg.payload.resume.signalled_obj;
 
-        thread->Initialize(
-            [this](hw::tegra_x1::cpu::ThreadBase* thread, u64 id) {
-                return KERNEL_INSTANCE.SupervisorCall(this, thread, id);
-            },
-            tls_addr, stack_top_addr);
+            state = ThreadState::Running;
+            action.type = ThreadActionType::Resume;
+            action.payload.resume = {.reason =
+                                         (signalled_obj != nullptr
+                                              ? ThreadResumeReason::Signalled
+                                              : ThreadResumeReason::Cancelled),
+                                     .signalled_obj = signalled_obj};
+            break;
+        }
+        }
+    }
 
-        thread->SetPC(entry_point);
-        for (u32 i = 0; i < sizeof_array(args); i++)
-            thread->SetRegX(i, args[i]);
-
-        thread->Run();
-
-        DEBUGGER_INSTANCE.UnregisterThisThread();
-
-        delete thread;
-    });
+    return action;
 }
 
 } // namespace hydra::horizon::kernel

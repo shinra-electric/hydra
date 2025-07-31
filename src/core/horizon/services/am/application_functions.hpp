@@ -10,21 +10,21 @@ struct DisplayVersion {
     char name[0x10];
 };
 
-class IApplicationFunctions : public ServiceBase {
+class IApplicationFunctions : public IService {
   public:
     IApplicationFunctions()
-        : gpu_error_detect_event(new kernel::Event(kernel::EventFlags::None,
-                                                   "GPU error detect event")) {}
+        : gpu_error_detect_event{
+              new kernel::Event(false, "Gpu error detect event")} {}
 
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::HandleWithId<kernel::Event> gpu_error_detect_event;
+    kernel::Event* gpu_error_detect_event;
 
     // Commands
-    result_t PopLaunchParameter(add_service_fn_t add_service,
-                                LaunchParameterKind kind);
+    result_t PopLaunchParameter(kernel::Process* process, RequestContext* ctx,
+                                kernel::LaunchParameterKind kind);
     result_t EnsureSaveData(uuid_t user_id, u64* out_unknown);
     result_t GetDesiredLanguage(LanguageCode* out_language_code);
     result_t SetTerminateResult(result_t result);
@@ -38,7 +38,8 @@ class IApplicationFunctions : public ServiceBase {
     STUB_REQUEST_COMMAND(SetGamePlayRecordingState);
     result_t EnableApplicationCrashReport(bool enabled);
     result_t
-    GetGpuErrorDetectedSystemEvent(OutHandle<HandleAttr::Copy> out_handle);
+    GetGpuErrorDetectedSystemEvent(kernel::Process* process,
+                                   OutHandle<HandleAttr::Copy> out_handle);
 };
 
 } // namespace hydra::horizon::services::am

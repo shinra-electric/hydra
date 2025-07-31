@@ -19,7 +19,7 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
                          host_descriptor.backend, host_descriptor.code,
                          host_descriptor.resource_mapping);
 
-    return RENDERER_INSTANCE->CreateShader(host_descriptor);
+    return RENDERER_INSTANCE.CreateShader(host_descriptor);
 }
 
 u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {

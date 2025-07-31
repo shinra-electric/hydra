@@ -21,8 +21,8 @@ result_t IPsmServer::GetChargerType(ChargerType* out_type) {
     return RESULT_SUCCESS;
 }
 
-result_t IPsmServer::OpenSession(add_service_fn_t add_service) {
-    add_service(new IPsmSession());
+result_t IPsmServer::OpenSession(RequestContext* ctx) {
+    AddService(*ctx, new IPsmSession());
     return RESULT_SUCCESS;
 }
 

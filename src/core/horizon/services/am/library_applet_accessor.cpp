@@ -2,6 +2,7 @@
 
 #include "core/horizon/applets/err/error_applet.hpp"
 #include "core/horizon/applets/swkbd/software_keyboard.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/am/storage.hpp"
 
 namespace hydra::horizon::services::am {
@@ -32,8 +33,8 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
 ILibraryAppletAccessor::~ILibraryAppletAccessor() { delete applet; }
 
 result_t ILibraryAppletAccessor::GetAppletStateChangedEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = controller.GetStateChangedEvent().id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(controller.GetStateChangedEvent());
     return RESULT_SUCCESS;
 }
 
@@ -44,7 +45,7 @@ result_t ILibraryAppletAccessor::Start() {
 
 result_t ILibraryAppletAccessor::GetResult() { return applet->GetResult(); }
 
-result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
+result_t ILibraryAppletAccessor::PushInData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -52,12 +53,12 @@ result_t ILibraryAppletAccessor::PushInData(ServiceBase* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PopOutData(add_service_fn_t add_service) {
-    add_service(controller.PopOutData());
+result_t ILibraryAppletAccessor::PopOutData(RequestContext* ctx) {
+    AddService(*ctx, controller.PopOutData());
     return RESULT_SUCCESS;
 }
 
-result_t ILibraryAppletAccessor::PushInteractiveInData(ServiceBase* storage_) {
+result_t ILibraryAppletAccessor::PushInteractiveInData(IService* storage_) {
     auto storage = dynamic_cast<IStorage*>(storage_);
     ASSERT_DEBUG(storage, Services, "Storage is not of type IStorage");
 
@@ -65,15 +66,14 @@ result_t ILibraryAppletAccessor::PushInteractiveInData(ServiceBase* storage_) {
     return RESULT_SUCCESS;
 }
 
-result_t
-ILibraryAppletAccessor::PopInteractiveOutData(add_service_fn_t add_service) {
-    add_service(controller.PopInteractiveOutData());
+result_t ILibraryAppletAccessor::PopInteractiveOutData(RequestContext* ctx) {
+    AddService(*ctx, controller.PopInteractiveOutData());
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(
-    OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = controller.GetInteractiveOutDataEvent().id;
+    kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
+    out_handle = process->AddHandle(controller.GetInteractiveOutDataEvent());
     return RESULT_SUCCESS;
 }
 

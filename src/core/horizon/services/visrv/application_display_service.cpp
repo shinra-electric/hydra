@@ -1,6 +1,6 @@
 #include "core/horizon/services/visrv/application_display_service.hpp"
 
-#include "core/horizon/kernel/kernel.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
@@ -22,38 +22,35 @@ struct DisplayInfo {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IApplicationDisplayService, 100, GetRelayService,
-                             101, GetSystemDisplayService, 102,
-                             GetManagerDisplayService, 103,
-                             GetIndirectDisplayTransactionService, 1000,
-                             ListDisplays, 1010, OpenDisplay, 1020,
-                             CloseDisplay, 1102, GetDisplayResolution, 2020,
-                             OpenLayer, 2021, CloseLayer, 2101,
-                             SetLayerScalingMode, 2102, ConvertScalingMode,
-                             5202, GetDisplayVsyncEvent)
+DEFINE_SERVICE_COMMAND_TABLE(
+    IApplicationDisplayService, 100, GetRelayService, 101,
+    GetSystemDisplayService, 102, GetManagerDisplayService, 103,
+    GetIndirectDisplayTransactionService, 1000, ListDisplays, 1010, OpenDisplay,
+    1020, CloseDisplay, 1102, GetDisplayResolution, 2020, OpenLayer, 2021,
+    CloseLayer, 2030, CreateStrayLayer, 2031, DestroyStrayLayer, 2101,
+    SetLayerScalingMode, 2102, ConvertScalingMode, 5202, GetDisplayVsyncEvent)
+
+result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx) {
+    AddService(*ctx, new hosbinder::IHOSBinderDriver());
+    return RESULT_SUCCESS;
+}
 
 result_t
-IApplicationDisplayService::GetRelayService(add_service_fn_t add_service) {
-    add_service(new hosbinder::IHOSBinderDriver());
+IApplicationDisplayService::GetSystemDisplayService(RequestContext* ctx) {
+    AddService(*ctx, new ISystemDisplayService());
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationDisplayService::GetSystemDisplayService(
-    add_service_fn_t add_service) {
-    add_service(new ISystemDisplayService());
-    return RESULT_SUCCESS;
-}
-
-result_t IApplicationDisplayService::GetManagerDisplayService(
-    add_service_fn_t add_service) {
-    add_service(new IManagerDisplayService());
+result_t
+IApplicationDisplayService::GetManagerDisplayService(RequestContext* ctx) {
+    AddService(*ctx, new IManagerDisplayService());
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
-    add_service_fn_t add_service) {
+    RequestContext* ctx) {
     // TODO: how is this different from GetRelayService?
-    add_service(new hosbinder::IHOSBinderDriver());
+    AddService(*ctx, new hosbinder::IHOSBinderDriver());
     return RESULT_SUCCESS;
 }
 
@@ -73,9 +70,8 @@ result_t IApplicationDisplayService::ListDisplays(
 
 result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
     // TODO: what display ID should be used?
-    const auto display_id = 0;
+    const auto display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
     display.Open();
 
     *out_display_id = display_id;
@@ -84,7 +80,6 @@ result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
 
 result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
     display.Close();
     return RESULT_SUCCESS;
 }
@@ -95,7 +90,6 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
     LOG_FUNC_STUBBED(Services);
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     // HACK
     *out_width = 1920;
@@ -104,11 +98,11 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
 }
 
 result_t IApplicationDisplayService::OpenLayer(
-    u64 display_name, u64 layer_id, u64 aruid, u64* out_native_window_size,
+    DisplayName display_name, u64 layer_id, u64 aruid,
+    u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
-    u64 display_id = 0; // TODO: get based on the name
+    u64 display_id = 1; // TODO: get based on the name
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
     auto& layer = display.GetLayer(layer_id);
     layer.Open();
@@ -126,7 +120,7 @@ result_t IApplicationDisplayService::OpenLayer(
         .unknown1 = 0x0, // TODO
         .binder_id = layer.GetBinderID(),
         .unknown2 = {0x0},
-        .str = str_to_u64("dispdrv"),
+        .str = "dispdrv"_u64,
         .unknown3 = 0x0,
     });
 
@@ -135,13 +129,30 @@ result_t IApplicationDisplayService::OpenLayer(
 }
 
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
-    u64 display_id = 0; // TODO: get from layer ID
+    u64 display_id = 1; // TODO: get from layer ID
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
-    auto& layer = display.GetLayer(layer_id);
-    layer.Close();
+    display.DestroyLayer(layer_id);
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::CreateStrayLayer(
+    aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
+    u64* out_native_window_size,
+    OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
+    hosbinder::ParcelWriter parcel_writer(*out_parcel_buffer.writer);
+    auto result = CreateStrayLayerImpl(flags, display_id, out_layer_id,
+                                       out_native_window_size, parcel_writer);
+
+    parcel_writer.Finalize();
+    return RESULT_SUCCESS;
+}
+
+result_t IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
+    // TODO: how is this different from CloseLayer?
+    LOG_FUNC_NOT_IMPLEMENTED(Services);
+    CloseLayer(layer_id);
     return RESULT_SUCCESS;
 }
 
@@ -151,11 +162,11 @@ result_t IApplicationDisplayService::ConvertScalingMode() {
 }
 
 result_t IApplicationDisplayService::GetDisplayVsyncEvent(
-    u64 display_id, OutHandle<HandleAttr::Move> out_handle) {
+    kernel::Process* process, u64 display_id,
+    OutHandle<HandleAttr::Move> out_handle) {
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    std::unique_lock display_lock(display.GetMutex());
 
-    out_handle = display.GetVSyncEvent().id;
+    out_handle = process->AddHandle(display.GetVSyncEvent());
     return RESULT_SUCCESS;
 }
 

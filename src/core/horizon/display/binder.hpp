@@ -86,10 +86,7 @@ struct Binder {
     u32 weak_ref_count = 0;
     u32 strong_ref_count = 0;
 
-    // TODO: autoclear event?
-    Binder()
-        : event(new kernel::Event(kernel::EventFlags::Signalled,
-                                  "Display event")) {}
+    Binder() : event{new kernel::Event(true, "Display event")} {}
 
     // Buffers
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
@@ -101,16 +98,14 @@ struct Binder {
 
     // Getters
     const GraphicBuffer& GetBuffer(i32 slot) {
-        std::lock_guard<std::mutex> lock(queue_mutex);
+        std::lock_guard lock(queue_mutex);
         return buffers[slot].buffer;
     }
 
-    const kernel::HandleWithId<kernel::Event>& GetEvent() const {
-        return event;
-    }
+    kernel::Event* GetEvent() const { return event; }
 
   private:
-    kernel::HandleWithId<kernel::Event> event;
+    kernel::Event* event;
 
     Buffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
                                              // max number of buffers?

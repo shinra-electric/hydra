@@ -10,16 +10,14 @@
 #include "core/horizon/applets/err/const.hpp"
 #include "core/horizon/applets/mii/const.hpp"
 #include "core/horizon/applets/swkbd/const.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 #include "core/horizon/services/am/library_applet_controller.hpp"
-#include "core/horizon/state_manager.hpp"
 #include "core/hw/tegra_x1/cpu/dynarmic/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
-#include "core/hw/tegra_x1/cpu/mmu_base.hpp"
-#include "core/hw/tegra_x1/cpu/thread_base.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -43,10 +41,10 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     // Initialize
     switch (CONFIG_INSTANCE.GetCpuBackend()) {
     case CpuBackend::AppleHypervisor:
-        cpu = new hw::tegra_x1::cpu::hypervisor::CPU();
+        cpu = new hw::tegra_x1::cpu::hypervisor::Cpu();
         break;
     case CpuBackend::Dynarmic:
-        cpu = new hw::tegra_x1::cpu::dynarmic::CPU();
+        cpu = new hw::tegra_x1::cpu::dynarmic::Cpu();
         break;
     default:
         // TODO: return an error instead
@@ -55,7 +53,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    gpu = new hw::tegra_x1::gpu::GPU(cpu->GetMMU());
+    gpu = new hw::tegra_x1::gpu::Gpu();
 
     switch (CONFIG_INSTANCE.GetAudioBackend()) {
     case AudioBackend::Null:
@@ -71,8 +69,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
         break;
     }
 
-    os = new horizon::OS(cpu->GetMMU(), *audio_core, ui_handler);
-    os->GetDisplayDriver().CreateDisplay();
+    os = new horizon::OS(*audio_core, ui_handler);
 
     // Filesystem
     /*
@@ -86,58 +83,23 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
                  root_path.host_path);
     }
     */
-
-    // Content
-
-    FILESYSTEM_INSTANCE.Mount(FS_CONTENT_MOUNT);
-
-    // Firmware
-    std::map<u64, std::string> firmware_titles_map = {
-        {0x010000000000080E, "TimeZoneBinary"},
-        {0x0100000000000810, "FontNintendoExtension"},
-        {0x0100000000000811, "FontStandard"},
-        {0x0100000000000812, "FontKorean"},
-        {0x0100000000000813, "FontChineseTraditional"},
-        {0x0100000000000814, "FontChineseSimple"},
-    };
-
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (!firmware_path.empty()) {
-        // Iterate over the directory
-        for (const auto& entry :
-             std::filesystem::directory_iterator(firmware_path)) {
-            auto file =
-                new horizon::filesystem::HostFile(entry.path().string());
-            horizon::filesystem::ContentArchive content_archive(file);
-            // TODO: find a better way to handle this
-            if (content_archive.GetContentType() ==
-                horizon::filesystem::ContentArchiveContentType::Meta)
-                continue;
-
-            auto it = firmware_titles_map.find(content_archive.GetTitleID());
-            if (it == firmware_titles_map.end())
-                continue;
-
-            auto res = FILESYSTEM_INSTANCE.AddEntry(
-                fmt::format(FS_FIRMWARE_PATH "/{}", it->second), file, true);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Other,
-                   "Failed to add firmware entry: {}", res);
-        }
-    }
 }
 
 EmulationContext::~EmulationContext() {
-    // TODO: delete objects
+    delete os;
+    delete audio_core;
+    delete gpu;
+    delete cpu;
 
     LOGGER_INSTANCE.SetOutput(LogOutput::StdOut);
 }
 
-void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
+void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    const auto process_params = loader->LoadProcess();
-
-    process = new horizon::kernel::Process(process_params.value());
-    os->GetKernel().AddProcessHandle(process);
+    // TODO: make sure the process is destroyed
+    auto process =
+        os->GetKernel().GetProcessManager().CreateProcess("Guest process");
+    loader->LoadProcess(process);
 
     // Check for firmware applets
     auto controller = new horizon::services::am::LibraryAppletController(
@@ -299,7 +261,7 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
                 width * 4);
-            nintendo_logo = gpu->GetRenderer()->CreateTexture(descriptor);
+            nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
             nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
             free(data);
         }
@@ -317,7 +279,7 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
                 width * 4);
             startup_movie.reserve(frame_count);
             for (u32 i = 0; i < frame_count; i++) {
-                auto frame = gpu->GetRenderer()->CreateTexture(descriptor);
+                auto frame = gpu->GetRenderer().CreateTexture(descriptor);
                 frame->CopyFrom(
                     reinterpret_cast<uptr>(data + i * height * width));
                 startup_movie.push_back(frame);
@@ -330,28 +292,32 @@ void EmulationContext::Load(horizon::loader::LoaderBase* loader) {
     }
 
     LOG_INFO(Other, "-------- Title info --------");
-    LOG_INFO(Other, "Title ID: {:016x}", os->GetKernel().GetTitleID());
+    LOG_INFO(Other, "Title ID: {:016x}", loader->GetTitleID());
 
     // Patch
     const auto target_patch_filename =
-        fmt::format("{:016x}.hatch", os->GetKernel().GetTitleID());
+        fmt::format("{:016x}.hatch", loader->GetTitleID());
     // TODO: iterate recursively
     for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+        if (!std::filesystem::exists(patch_path)) {
+            LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
+            continue;
+        }
+
         if (!std::filesystem::is_directory(patch_path)) {
             // File
-            TryApplyPatch(target_patch_filename, patch_path);
+            TryApplyPatch(process, target_patch_filename, patch_path);
         } else {
             // Directory
             // TODO: iterate recursively
             for (const auto& dir_entry :
                  std::filesystem::directory_iterator{patch_path}) {
-                TryApplyPatch(target_patch_filename, dir_entry.path().string());
+                TryApplyPatch(process, target_patch_filename,
+                              dir_entry.path().string());
             }
         }
     }
-}
 
-void EmulationContext::Run() {
     LOG_INFO(Other, "-------- Config --------");
     CONFIG_INSTANCE.Log();
 
@@ -361,10 +327,11 @@ void EmulationContext::Run() {
     INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
 
     // Enter focus
-    auto& state_manager = horizon::StateManager::GetInstance();
     // HACK: games expect focus change to be the second message?
-    state_manager.SendMessage(horizon::AppletMessage::Resume);
-    state_manager.SetFocusState(horizon::AppletFocusState::InFocus);
+    process->GetAppletState().SendMessage(
+        horizon::kernel::AppletMessage::Resume);
+    process->GetAppletState().SetFocusState(
+        horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
     auto user_id = CONFIG_INSTANCE.GetUserID().Get();
@@ -379,13 +346,12 @@ void EmulationContext::Run() {
     }
 
     if (user_id != horizon::services::account::INVALID_USER_ID) {
-        state_manager.PushPreselectedUser(user_id);
+        process->GetAppletState().PushPreselectedUser(user_id);
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }
 
-    process->Run();
+    process->Start();
 
-    running = true;
     loading = true;
 
     const auto crnt_time = clock_t::now();
@@ -394,14 +360,63 @@ void EmulationContext::Run() {
     startup_movie_fade_in_time = crnt_time + STARTUP_MOVIE_FADE_IN_DURATION;
 }
 
+void EmulationContext::RequestStop() {
+    // We don't request the processes to stop yet, instead we send a message to
+    // all of them and give them some time to react
+    // TODO: send an exit message to all processes
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->GetAppletState().SendMessage(
+            horizon::kernel::AppletMessage::Exit);
+}
+
+void EmulationContext::ForceStop() {
+    // Request all processes to stop immediately
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->Stop();
+
+    // Wait a small amount of time for all threads to catch up
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Check if all processes have stopped
+    if (IsRunning()) {
+        // If some processes are still running, just abort
+        LOG_FATAL(Other, "Failed to stop process all processes");
+    }
+}
+
 void EmulationContext::ProgressFrame(u32 width, u32 height,
                                      bool& out_dt_average_updated) {
     // Input
     INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 
     // Present
+
+    auto& renderer = gpu->GetRenderer();
+    renderer.LockMutex();
+
+    // Acquire present textures
+    // TODO: don't hardcode the display id
+    auto& display = os->GetDisplayDriver().GetDisplay(1);
+    // TODO: different layers can be presented at different intervals (if at
+    // all). Perhaps layers could have processes associated with them and only
+    // the original processes's dt would be queried?
     std::vector<std::chrono::nanoseconds> dt_list;
-    if (Present(width, height, dt_list) && loading) {
+    bool acquired = display.AcquirePresentTextures(dt_list);
+    // HACK: return if no textures are available
+    if (!acquired) {
+        renderer.UnlockMutex();
+        return;
+    }
+
+    if (!renderer.AcquireNextSurface()) {
+        renderer.UnlockMutex();
+        return;
+    }
+
+    display.Present(width, height);
+    if (acquired && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present
         loading = false;
@@ -434,20 +449,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                     std::chrono::duration_cast<std::chrono::duration<f32>>(
                         STARTUP_MOVIE_FADE_IN_DURATION);
 
-        auto renderer = gpu->GetRenderer();
-        renderer->LockMutex();
-        if (!renderer->AcquireNextSurface()) {
-            renderer->UnlockMutex();
-            return;
-        }
-
         // Nintendo logo
         if (nintendo_logo) {
             int2 size = {(i32)nintendo_logo->GetDescriptor().width,
                          (i32)nintendo_logo->GetDescriptor().height};
             int2 dst_offset = {32, 32};
-            renderer->DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
-                                           {dst_offset, size}, true, opacity);
+            renderer.DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
+                                          {dst_offset, size}, true, opacity);
         }
 
         // Startup movie
@@ -465,134 +473,46 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                          (i32)frame->GetDescriptor().height};
             int2 dst_offset = {(i32)width - size.x() - 32,
                                (i32)height - size.y() - 32};
-            renderer->DrawTextureToSurface(frame, {{0, 0}, size},
-                                           {dst_offset, size}, true, opacity);
+            renderer.DrawTextureToSurface(frame, {{0, 0}, size},
+                                          {dst_offset, size}, true, opacity);
+        }
+    }
+
+    if (!loading) {
+        // Delta time
+        for (const auto dt : dt_list) {
+            accumulated_dt += dt;
+            dt_sample_count++;
         }
 
-        renderer->PresentSurface();
-        renderer->EndCommandBuffer();
-        renderer->UnlockMutex();
-        return;
+        const auto now = clock_t::now();
+        const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
+        if (time_since_last_dt_averaging > 1s) {
+            if (dt_sample_count != 0)
+                last_dt_average =
+                    (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
+                        accumulated_dt)
+                        .count() /
+                    (f32)dt_sample_count;
+            else
+                last_dt_average = 0.f;
+            accumulated_dt = 0ns;
+            dt_sample_count = 0;
+            last_dt_averaging_time = now;
+
+            out_dt_average_updated = true;
+        } else {
+            out_dt_average_updated = false;
+        }
     }
 
-    // Delta time
-    for (const auto dt : dt_list) {
-        accumulated_dt += dt;
-        dt_sample_count++;
-    }
-
-    const auto now = clock_t::now();
-    const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
-    if (time_since_last_dt_averaging > 1s) {
-        if (dt_sample_count != 0)
-            last_dt_average =
-                (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
-                    accumulated_dt)
-                    .count() /
-                (f32)dt_sample_count;
-        else
-            last_dt_average = 0.f;
-        accumulated_dt = 0ns;
-        dt_sample_count = 0;
-        last_dt_averaging_time = now;
-
-        out_dt_average_updated = true;
-    } else {
-        out_dt_average_updated = false;
-    }
+    renderer.PresentSurface();
+    renderer.EndCommandBuffer();
+    renderer.UnlockMutex();
 }
 
-bool EmulationContext::Present(
-    u32 width, u32 height, std::vector<std::chrono::nanoseconds>& out_dt_list) {
-    // TODO: don't hardcode the display id
-    auto& display = os->GetDisplayDriver().GetDisplay(0);
-    std::unique_lock display_lock(display.GetMutex());
-
-    // Layer
-    auto layer = display.GetPresentableLayer();
-    if (!layer)
-        return false;
-
-    // Signal V-Sync
-    display.GetVSyncEvent().handle->Signal();
-
-    // Get the buffer to present
-    u32 binder_id = layer->GetBinderID();
-    auto& binder = os->GetDisplayDriver().GetBinder(binder_id);
-
-    horizon::display::BqBufferInput input;
-    i32 slot = binder.ConsumeBuffer(input, out_dt_list);
-    if (slot == -1)
-        return false;
-    const auto& buffer = binder.GetBuffer(slot);
-
-    // Src rect
-    IntRect2D src_rect;
-    src_rect.origin.x() = input.rect.left;
-    src_rect.origin.y() =
-        input.rect.top; // Convert from top left to bottom left origin
-    src_rect.size.x() = input.rect.right - input.rect.left;
-    src_rect.size.y() = input.rect.bottom - input.rect.top;
-
-    // HACK
-    if (src_rect.size.x() == 0) {
-        src_rect.size.x() = buffer.nv_buffer.planes[0].width;
-        ONCE(LOG_WARN(Other, "Invalid src width"));
-    }
-    if (src_rect.size.y() == 0) {
-        src_rect.size.y() = buffer.nv_buffer.planes[0].height;
-        ONCE(LOG_WARN(Other, "Invalid src height"));
-    }
-
-    if (any(input.transform_flags & horizon::display::TransformFlags::FlipH)) {
-        src_rect.origin.x() += src_rect.size.x();
-        src_rect.size.x() = -src_rect.size.x();
-    }
-    if (any(input.transform_flags & horizon::display::TransformFlags::FlipV)) {
-        src_rect.origin.y() += src_rect.size.y();
-        src_rect.size.y() = -src_rect.size.y();
-    }
-    if (any(input.transform_flags & horizon::display::TransformFlags::Rot90)) {
-        // TODO: how does this work? Is the aspect ratio kept intact?
-        ONCE(LOG_NOT_IMPLEMENTED(Other, "Rotating by 90 degrees"));
-    }
-
-    // Dst rect
-    const auto src_width = abs(src_rect.size.x());
-    const auto src_height = abs(src_rect.size.y());
-
-    IntRect2D dst_rect;
-    auto scale_x = (f32)width / (f32)src_width;
-    auto scale_y = (f32)height / (f32)src_height;
-    if (scale_x > scale_y) {
-        const auto dst_width = static_cast<i32>(src_width * scale_y);
-        dst_rect.origin = int2({static_cast<i32>(width - dst_width) / 2, 0});
-        dst_rect.size = int2({dst_width, static_cast<i32>(height)});
-    } else {
-        const auto dst_height = static_cast<i32>(src_height * scale_x);
-        dst_rect.origin = int2({0, static_cast<i32>(height - dst_height) / 2});
-        dst_rect.size = int2({static_cast<i32>(width), dst_height});
-    }
-
-    // Present
-    auto renderer = gpu->GetRenderer();
-
-    renderer->LockMutex();
-    auto texture = gpu->GetTexture(buffer.nv_buffer);
-    if (!renderer->AcquireNextSurface()) {
-        renderer->UnlockMutex();
-        return false;
-    }
-
-    renderer->DrawTextureToSurface(texture, src_rect, dst_rect);
-
-    renderer->PresentSurface();
-    renderer->EndCommandBuffer();
-    renderer->UnlockMutex();
-    return true;
-}
-
-void EmulationContext::TryApplyPatch(const std::string_view target_filename,
+void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
+                                     const std::string_view target_filename,
                                      const std::filesystem::path path) {
     if (to_lower(path.filename().string()) != target_filename)
         return;
@@ -609,7 +529,7 @@ void EmulationContext::TryApplyPatch(const std::string_view target_filename,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        cpu->GetMMU()->Store<u32>(entry.addr, entry.value);
+        process->GetMmu()->Store<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

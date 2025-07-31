@@ -46,6 +46,9 @@ Filesystem::Filesystem() {
     // Cache
     // TODO: support mounting to a real host path as well
     Mount(FS_CACHE_MOUNT);
+
+    // Content
+    Mount(FS_CONTENT_MOUNT);
 }
 
 Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
@@ -85,11 +88,15 @@ FsResult Filesystem::CreateFile(const std::string_view path, usize size,
     if (mount == FS_SD_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSdCardPath().Get(), entry_path);
-        return AddEntry(path, new HostFile(host_path, size), add_intermediate);
+        auto file = new HostFile(host_path, true);
+        file->Resize(size);
+        return AddEntry(path, file, add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSavePath().Get(), entry_path);
-        return AddEntry(path, new HostFile(host_path, size), add_intermediate);
+        auto file = new HostFile(host_path, true);
+        file->Resize(size);
+        return AddEntry(path, file, add_intermediate);
     } else {
         LOG_WARN(Filesystem,
                  "Could not find host path for path \"{}\", falling back to "

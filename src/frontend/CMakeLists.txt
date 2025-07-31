@@ -36,6 +36,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
+        swiftui/helpers/GameLoader.swift
         swiftui/settings/GeneralSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
         swiftui/settings/GraphicsSettingsView.swift
@@ -57,10 +58,10 @@ endif ()
 target_link_libraries(hydra PRIVATE hydra-common hydra-core "-framework Cocoa" ${LINK_LIBS})
 
 if (MACOS_BUNDLE)
-    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp)
     target_sources(hydra PRIVATE ${RESOURCE_FILES})
     set_target_properties(${PROJECT_NAME} PROPERTIES
-        RESOURCE ${RESOURCE_FILES}
+        RESOURCE "${RESOURCE_FILES}"
         OUTPUT_NAME "Hydra"
         MACOSX_BUNDLE ON
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.${PROJECT_NAME}"
