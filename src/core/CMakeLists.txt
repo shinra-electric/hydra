@@ -307,6 +307,8 @@ add_library(hydra-core
     horizon/services/ns/service_getter_interface.hpp
     horizon/services/lbl/lbl_controller.cpp
     horizon/services/lbl/lbl_controller.hpp
+    horizon/services/nsd/manager.cpp
+    horizon/services/nsd/manager.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

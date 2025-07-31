@@ -31,6 +31,7 @@
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/ns/application_manager_interface.hpp"
 #include "core/horizon/services/ns/service_getter_interface.hpp"
+#include "core/horizon/services/nsd/manager.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
@@ -196,6 +197,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Socket
     REGISTER_SERVICE(others, socket::IClient, "bsd:u", "bsd:s", "bsd:a");
+    REGISTER_SERVICE(others, nsd::IManager, "nsd:u", "nsd:a");
     REGISTER_SERVICE(others, socket::Resolver::IResolver, "sfdnsres");
 
     // Capsrv
