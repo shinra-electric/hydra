@@ -14,7 +14,11 @@ void SynchronizationObject::AddWaitingThread(IThread* thread) {
 
 void SynchronizationObject::Signal() {
     std::lock_guard lock(mutex);
+    if (signalled)
+        return;
+
     signalled = true;
+
     for (auto thread : waiting_threads)
         thread->Resume(this);
     waiting_threads.clear();

@@ -8,7 +8,7 @@ class Session;
 
 class ClientSession : public AutoObject {
   public:
-    ClientSession(const std::string_view debug_name = "ClientSession")
+    ClientSession(const std::string_view debug_name = "Client session")
         : AutoObject(debug_name) {}
 
   private:

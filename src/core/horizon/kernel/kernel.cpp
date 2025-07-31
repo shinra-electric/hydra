@@ -816,13 +816,13 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
                                     hipc::ClientSession*& out_client_session) {
     LOG_DEBUG(Kernel, "ConnectToNamedPort called (name: {})", name);
 
-    out_client_session = service_manager.GetPort(std::string(name));
-    if (!out_client_session) {
-        LOG_ERROR(Kernel, "Failed to connect to service \"{}\"", name);
+    auto port = service_manager.GetPort(std::string(name));
+    if (!port) {
+        LOG_ERROR(Kernel, "Failed to connect to port \"{}\"", name);
         return MAKE_RESULT(Svc, Error::NotFound);
     }
 
-    out_client_session->Retain();
+    out_client_session = port->Connect();
 
     return RESULT_SUCCESS;
 }
@@ -838,7 +838,7 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
 
     // Send request
     client_session->GetParent()->GetServerSide()->EnqueueRequest(
-        crnt_process, crnt_thread->GetTlsPtr(), crnt_thread);
+        crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
 
     // Wait for response
     crnt_thread->ProcessMessages();
@@ -1100,7 +1100,7 @@ result_t Kernel::CreateSession(bool is_light, u64 name,
 
     // TODO: what are light sessions?
     // TODO: what's the purpose of the name?
-    out_server_session = new hipc::ServerSession(nullptr); // TODO: service?
+    out_server_session = new hipc::ServerSession();
     out_client_session = new hipc::ClientSession();
     // TODO: is it fine to just instantiate it like this?
     new hipc::Session(out_server_session, out_client_session);

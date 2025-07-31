@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/horizon/kernel/hipc/client_session.hpp"
+#include "core/horizon/kernel/hipc/client_port.hpp"
 
 namespace hydra::horizon::kernel::hipc {
 
-class ClientSession;
+class ClientPort;
 
 template <typename Key>
 class ServiceManager {
@@ -15,18 +15,21 @@ class ServiceManager {
             port->Release();
     }
 
-    void RegisterPort(const Key& port_name, ClientSession* client_session) {
+    void RegisterPort(const Key& port_name, ClientPort* client_port) {
         std::lock_guard lock(mutex);
-        client_session->Retain();
-        ports[port_name] = client_session;
+        client_port->Retain();
+        ports.insert({port_name, client_port});
     }
 
     void UnregisterPort(const Key& port_name) {
         std::lock_guard lock(mutex);
-        ports.erase(port_name);
+        auto it = ports.find(port_name);
+        ASSERT(it != ports.end(), Kernel, "Port not registered");
+        it->second->Release();
+        ports.erase(it);
     }
 
-    ClientSession* GetPort(const Key& port_name) {
+    ClientPort* GetPort(const Key& port_name) {
         std::lock_guard lock(mutex);
         auto it = ports.find(port_name);
         if (it == ports.end())
@@ -37,7 +40,7 @@ class ServiceManager {
 
   private:
     std::mutex mutex;
-    std::map<Key, ClientSession*> ports;
+    std::map<Key, ClientPort*> ports;
 };
 
 } // namespace hydra::horizon::kernel::hipc

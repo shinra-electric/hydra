@@ -28,8 +28,6 @@ class IService {
     void AddService(RequestContext& context, IService* service);
     IService* GetService(RequestContext& context, handle_id_t handle_id);
 
-    bool HasServer() const { return server != nullptr; }
-
   protected:
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
     virtual usize GetPointerBufferSize() { return 0; }

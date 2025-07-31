@@ -7,23 +7,18 @@ namespace hydra::horizon::kernel {
 class Process;
 }
 
-namespace hydra::horizon::services {
-class IService;
-}
-
 namespace hydra::horizon::kernel::hipc {
 
-struct ServerRequest {
+struct SessionRequest {
     Process* client_process;
-    uptr ptr;
     IThread* client_thread;
+    uptr ptr;
 };
 
 class ServerSession : public SynchronizationObject {
   public:
-    ServerSession(services::IService* service_,
-                  const std::string_view debug_name = "ServerSession")
-        : SynchronizationObject(false, debug_name), service{service_} {}
+    ServerSession(const std::string_view debug_name = "Server session")
+        : SynchronizationObject(false, debug_name) {}
     ~ServerSession() override;
 
     // Server
@@ -37,18 +32,13 @@ class ServerSession : public SynchronizationObject {
     }
 
     // Client
-    void EnqueueRequest(Process* client_process, uptr ptr,
-                        IThread* client_thread);
+    void EnqueueRequest(Process* client_process, IThread* client_thread,
+                        uptr ptr);
 
   private:
-    services::IService* service;
-
     std::mutex mutex;
-    std::queue<ServerRequest> requests;
-    std::optional<ServerRequest> active_request;
-
-  public:
-    GETTER(service, GetService);
+    std::queue<SessionRequest> requests;
+    std::optional<SessionRequest> active_request;
 };
 
 } // namespace hydra::horizon::kernel::hipc

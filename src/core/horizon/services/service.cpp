@@ -136,14 +136,13 @@ void IService::AddService(RequestContext& context, IService* service) {
         context.writers.objects_writer.Write(handle_id);
     } else {
         // Create new session
-        auto server_session = new kernel::hipc::ServerSession(service);
+        auto server_session = new kernel::hipc::ServerSession();
         auto client_session = new kernel::hipc::ClientSession();
         auto session =
             new kernel::hipc::Session(server_session, client_session);
 
         // Register server side
-        if (server)
-            server->RegisterSession(server_session);
+        server->RegisterSession(server_session, service);
 
         // Register client side
         const auto handle_id = context.process->AddHandle(client_session);
@@ -155,11 +154,10 @@ IService* IService::GetService(RequestContext& context, handle_id_t handle_id) {
     if (is_domain) {
         return GetSubservice(handle_id);
     } else {
-        return context.process
-            ->GetHandle<kernel::hipc::ClientSession>(handle_id)
-            ->GetParent()
-            ->GetServerSide()
-            ->GetService();
+        return server->GetServiceForSession(
+            context.process->GetHandle<kernel::hipc::ClientSession>(handle_id)
+                ->GetParent()
+                ->GetServerSide());
     }
 }
 
@@ -251,13 +249,12 @@ void IService::Control(kernel::Process* caller_process,
 void IService::Clone(kernel::Process* caller_process,
                      kernel::hipc::Writers& writers) {
     // Create new session
-    auto server_session = new kernel::hipc::ServerSession(this);
+    auto server_session = new kernel::hipc::ServerSession();
     auto client_session = new kernel::hipc::ClientSession();
     auto session = new kernel::hipc::Session(server_session, client_session);
 
     // Register server side
-    if (server)
-        server->RegisterSession(server_session);
+    server->RegisterSession(server_session, this);
 
     // Register client side
     const auto handle_id = caller_process->AddHandle(client_session);

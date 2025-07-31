@@ -43,6 +43,7 @@ class OS {
     // Services
     kernel::hipc::ServiceManager<u64> service_manager;
     services::Server nvservices_server;
+    services::Server others_server;
 
     // Managers
     display::Driver display_driver;

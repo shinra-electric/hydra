@@ -13,8 +13,8 @@ IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
                                  OutHandle<HandleAttr::Move> out_handle) {
     LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
-    auto client_session = OS_INSTANCE.GetServiceManager().GetPort(name);
-    if (!client_session) {
+    auto client_port = OS_INSTANCE.GetServiceManager().GetPort(name);
+    if (!client_port) {
         LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
         return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
     }
@@ -22,6 +22,7 @@ IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
     // TODO: can it be domain?
     ASSERT_DEBUG(!IsDomain(), Services,
                  "sm::IUserInterface cannot be a domain service");
+    auto client_session = client_port->Connect();
     out_handle = process->AddHandle(client_session);
 
     return RESULT_SUCCESS;

@@ -2,11 +2,6 @@
 
 #include "core/horizon/kernel/thread.hpp"
 
-// NOTE: ServerSession should not be concerned with the actual service
-// implementation, but since we want the option to process requests
-// synchronously, it is necessary
-#include "core/horizon/services/service.hpp"
-
 namespace hydra::horizon::kernel::hipc {
 
 constexpr u64 MSG_BUFFER_MAX_SIZE = 0x2000; // TODO: what should this be?
@@ -21,7 +16,7 @@ ServerSession::~ServerSession() {
 
 void ServerSession::Receive(IThread* crnt_thread) {
     std::lock_guard lock(mutex);
-    ASSERT_DEBUG(!requests.empty(), Services, "No request available");
+    ASSERT_DEBUG(!requests.empty(), Kernel, "No requests");
     active_request = requests.front();
     requests.pop();
 
@@ -45,23 +40,15 @@ void ServerSession::Reply(uptr ptr) {
     active_request->client_thread->Resume();
 }
 
-void ServerSession::EnqueueRequest(Process* client_process, uptr ptr,
-                                   IThread* client_thread) {
-    if (!service || service->HasServer()) {
-        {
-            std::lock_guard lock(mutex);
-            requests.push({client_process, ptr, client_thread});
-        }
-
-        // Signal the server to process the request
-        Signal();
-    } else {
-        // If there is no server, process the request immediately
-        service->HandleRequest(client_process, ptr);
-
-        // Resume the client thread
-        client_thread->Resume();
+void ServerSession::EnqueueRequest(Process* client_process,
+                                   IThread* client_thread, uptr ptr) {
+    {
+        std::lock_guard lock(mutex);
+        requests.push({client_process, client_thread, ptr});
     }
+
+    // Signal the server to process the request
+    Signal();
 }
 
 } // namespace hydra::horizon::kernel::hipc

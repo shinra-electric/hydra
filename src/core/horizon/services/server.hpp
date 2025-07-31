@@ -8,20 +8,35 @@
 #include "core/horizon/services/service.hpp"
 
 namespace hydra::horizon::kernel::hipc {
+class ServerPort;
 class ServerSession;
 } // namespace hydra::horizon::kernel::hipc
 
 namespace hydra::horizon::services {
 
+typedef std::function<IService*()> create_service_fn_t;
+
 class Server {
   public:
     void Start();
 
-    void RegisterSession(kernel::hipc::ServerSession* session);
+    void RegisterPort(kernel::hipc::ServerPort* port,
+                      create_service_fn_t service_creator);
+    void RegisterSession(kernel::hipc::ServerSession* session,
+                         IService* service);
+
+    IService* GetServiceForSession(kernel::hipc::ServerSession* session) {
+        return session_services.at(session);
+    }
 
   private:
     kernel::HostThread* thread;
 
+    std::map<kernel::hipc::ServerPort*, create_service_fn_t>
+        port_service_creators;
+    std::map<kernel::hipc::ServerSession*, IService*> session_services;
+
+    std::vector<kernel::hipc::ServerPort*> ports;
     std::vector<kernel::hipc::ServerSession*> sessions;
 
     void MainLoop(kernel::should_stop_fn_t should_stop);

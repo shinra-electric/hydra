@@ -30,6 +30,12 @@ add_library(hydra-core
     horizon/kernel/hipc/const.cpp
     horizon/kernel/hipc/const.hpp
     horizon/kernel/hipc/cmif.hpp
+    horizon/kernel/hipc/server_port.cpp
+    horizon/kernel/hipc/server_port.hpp
+    horizon/kernel/hipc/client_port.cpp
+    horizon/kernel/hipc/client_port.hpp
+    horizon/kernel/hipc/port.cpp
+    horizon/kernel/hipc/port.hpp
     horizon/kernel/hipc/server_session.cpp
     horizon/kernel/hipc/server_session.hpp
     horizon/kernel/hipc/client_session.hpp

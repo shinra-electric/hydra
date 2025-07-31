@@ -2,6 +2,9 @@
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/kernel/hipc/client_port.hpp"
+#include "core/horizon/kernel/hipc/port.hpp"
+#include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/am/all_system_applet_proxies_service.hpp"
@@ -55,10 +58,8 @@ namespace {
 template <typename Key>
 void RegisterServiceToPort(services::Server* server,
                            kernel::hipc::ServiceManager<Key>& service_manager,
-                           const Key& port_name, services::IService* service) {
-    // Register the server as the server for this service
-    service->SetServer(server);
-
+                           const Key& port_name,
+                           services::create_service_fn_t service_creator) {
     // Debug
     std::string debug_name;
     if constexpr (std::is_same_v<Key, std::string>)
@@ -67,19 +68,18 @@ void RegisterServiceToPort(services::Server* server,
         debug_name = u64_to_str(port_name);
 
     // Session
-    auto server_session = new kernel::hipc::ServerSession(
-        service, fmt::format("\"{}\" server session", debug_name));
-    auto client_session = new kernel::hipc::ClientSession(
-        fmt::format("\"{}\" client session", debug_name));
-    new kernel::hipc::Session(server_session, client_session,
-                              fmt::format("\"{}\" session", debug_name));
+    auto server_port = new kernel::hipc::ServerPort(
+        fmt::format("\"{}\" server port", debug_name));
+    auto client_port = new kernel::hipc::ClientPort(
+        fmt::format("\"{}\" client port", debug_name));
+    new kernel::hipc::Port(server_port, client_port,
+                           fmt::format("\"{}\" port", debug_name));
 
     // Register server side
-    if (server)
-        server->RegisterSession(server_session);
+    server->RegisterPort(server_port, service_creator);
 
     // Register client side
-    service_manager.RegisterPort(port_name, client_session);
+    service_manager.RegisterPort(port_name, client_port);
 }
 
 } // namespace
@@ -137,118 +137,125 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // SM
     RegisterServiceToPort<std::string>(
-        nullptr, kernel.GetServiceManager(),
-        "sm:", new services::sm::IUserInterface());
+        &others_server, kernel.GetServiceManager(), "sm:", [this]() {
+            auto s = new services::sm::IUserInterface();
+            s->SetServer(&others_server);
+            return s;
+        });
 
 #define REGISTER_SERVICE_CASE(server, service, name)                           \
-    RegisterServiceToPort(server, service_manager, name##_u64,                 \
-                          new services::service());
-#define REGISTER_SERVICE_IMPL(server, service, ...)                            \
-    FOR_EACH_2_1(REGISTER_SERVICE_CASE, server, service, __VA_ARGS__)
-
-#define REGISTER_SERVICE(service, ...)                                         \
-    REGISTER_SERVICE_IMPL(nullptr, service, __VA_ARGS__)
-#define REGISTER_SERVICE_TO_SERVER(server_name, service, ...)                  \
-    REGISTER_SERVICE_IMPL(&server_name##_server, service, __VA_ARGS__)
+    RegisterServiceToPort(server, service_manager, name##_u64, [this]() {      \
+        auto s = new services::service();                                      \
+        s->SetServer(server);                                                  \
+        return s;                                                              \
+    });
+#define REGISTER_SERVICE(server_name, service, ...)                            \
+    FOR_EACH_2_1(REGISTER_SERVICE_CASE, &server_name##_server, service,        \
+                 __VA_ARGS__)
 
     // HID
-    REGISTER_SERVICE(hid::IHidServer, "hid");
-    REGISTER_SERVICE(hid::IHidDebugServer, "hid:dbg");
-    REGISTER_SERVICE(hid::IHidSystemServer, "hid:sys");
+    REGISTER_SERVICE(others, hid::IHidServer, "hid");
+    REGISTER_SERVICE(others, hid::IHidDebugServer, "hid:dbg");
+    REGISTER_SERVICE(others, hid::IHidSystemServer, "hid:sys");
 
     // AM
-    REGISTER_SERVICE(am::IApmManager, "apm", "apm:am");
-    REGISTER_SERVICE(am::IApplicationProxyService, "appletOE");
-    REGISTER_SERVICE(am::IAllSystemAppletProxiesService, "appletAE");
+    REGISTER_SERVICE(others, am::IApmManager, "apm", "apm:am");
+    REGISTER_SERVICE(others, am::IApplicationProxyService, "appletOE");
+    REGISTER_SERVICE(others, am::IAllSystemAppletProxiesService, "appletAE");
 
     // NS
-    REGISTER_SERVICE(ns::IApplicationManagerInterface, "ns:am");
-    REGISTER_SERVICE(ns::IServiceGetterInterface, "ns:am2", "ns:ec", "ns:rid",
-                     "ns:rt", "ns:web", "ns:ro", "ns:sweb");
-    REGISTER_SERVICE(aocsrv::IAddOnContentManager, "aoc:u");
-    REGISTER_SERVICE(account::IAccountServiceForApplication, "acc:u0");
-    REGISTER_SERVICE(account::IAccountServiceForSystemService, "acc:u1");
+    REGISTER_SERVICE(others, ns::IApplicationManagerInterface, "ns:am");
+    REGISTER_SERVICE(others, ns::IServiceGetterInterface, "ns:am2", "ns:ec",
+                     "ns:rid", "ns:rt", "ns:web", "ns:ro", "ns:sweb");
+    REGISTER_SERVICE(others, aocsrv::IAddOnContentManager, "aoc:u");
+    REGISTER_SERVICE(others, account::IAccountServiceForApplication, "acc:u0");
+    REGISTER_SERVICE(others, account::IAccountServiceForSystemService,
+                     "acc:u1");
 
     // PPC
-    REGISTER_SERVICE(apm::IManagerPrivileged, "apm:p");
+    REGISTER_SERVICE(others, apm::IManagerPrivileged, "apm:p");
 
     // Glue
-    REGISTER_SERVICE(timesrv::IStaticService, "time:u", "time:a", "time:s");
-    REGISTER_SERVICE(pl::shared_resource::IPlatformSharedResourceManager,
-                     "pl:u");
-    REGISTER_SERVICE(err::context::IWriterForApplication, "ectx:aw");
+    REGISTER_SERVICE(others, timesrv::IStaticService, "time:u", "time:a",
+                     "time:s");
+    REGISTER_SERVICE(
+        others, pl::shared_resource::IPlatformSharedResourceManager, "pl:u");
+    REGISTER_SERVICE(others, err::context::IWriterForApplication, "ectx:aw");
 
     // Audio
-    REGISTER_SERVICE(audio::IAudioOutManager, "audout:u");
-    REGISTER_SERVICE(audio::IAudioRendererManager, "audren:u");
-    REGISTER_SERVICE(codec::IHardwareOpusDecoderManager, "hwopus");
+    REGISTER_SERVICE(others, audio::IAudioOutManager, "audout:u");
+    REGISTER_SERVICE(others, audio::IAudioRendererManager, "audren:u");
+    REGISTER_SERVICE(others, codec::IHardwareOpusDecoderManager, "hwopus");
 
     // Bcat
-    REGISTER_SERVICE(prepo::IPrepoService, "prepo:a", "prepo:a2", "prepo:m",
-                     "prepo:u", "prepo:s");
+    REGISTER_SERVICE(others, prepo::IPrepoService, "prepo:a", "prepo:a2",
+                     "prepo:m", "prepo:u", "prepo:s");
 
     // PCV
-    REGISTER_SERVICE(pcv::IPcvService, "pcv");
+    REGISTER_SERVICE(others, pcv::IPcvService, "pcv");
 
     // Socket
-    REGISTER_SERVICE(socket::IClient, "bsd:u", "bsd:s", "bsd:a");
-    REGISTER_SERVICE(socket::Resolver::IResolver, "sfdnsres");
+    REGISTER_SERVICE(others, socket::IClient, "bsd:u", "bsd:s", "bsd:a");
+    REGISTER_SERVICE(others, socket::Resolver::IResolver, "sfdnsres");
 
     // Capsrv
-    REGISTER_SERVICE(mmnv::IRequest, "mm:u");
+    REGISTER_SERVICE(others, mmnv::IRequest, "mm:u");
 
     // VI
-    REGISTER_SERVICE(visrv::IApplicationRootService, "vi:u");
-    REGISTER_SERVICE(visrv::ISystemRootService, "vi:s");
-    REGISTER_SERVICE(visrv::IManagerRootService, "vi:m");
-    REGISTER_SERVICE(lbl::ILblController, "lbl");
+    REGISTER_SERVICE(others, visrv::IApplicationRootService, "vi:u");
+    REGISTER_SERVICE(others, visrv::ISystemRootService, "vi:s");
+    REGISTER_SERVICE(others, visrv::IManagerRootService, "vi:m");
+    REGISTER_SERVICE(others, lbl::ILblController, "lbl");
 
     // Nvnflinger
-    REGISTER_SERVICE(hosbinder::IHOSBinderDriver, "dispdrv");
+    REGISTER_SERVICE(others, hosbinder::IHOSBinderDriver, "dispdrv");
 
     // PTM
-    REGISTER_SERVICE(psm::IPsmServer, "psm");
-    REGISTER_SERVICE(ts::IMeasurementServer, "ts");
+    REGISTER_SERVICE(others, psm::IPsmServer, "psm");
+    REGISTER_SERVICE(others, ts::IMeasurementServer, "ts");
 
     // Fatal
-    REGISTER_SERVICE(fatalsrv::IService, "fatal:u");
+    REGISTER_SERVICE(others, fatalsrv::IService, "fatal:u");
 
     // Friends
-    REGISTER_SERVICE(friends::IServiceCreator, "friend:u", "friend:v",
+    REGISTER_SERVICE(others, friends::IServiceCreator, "friend:u", "friend:v",
                      "friend:m", "friend:s", "friend:a");
 
     // FS
-    REGISTER_SERVICE(fssrv::IFileSystemProxy, "fsp-srv");
+    REGISTER_SERVICE(others, fssrv::IFileSystemProxy, "fsp-srv");
 
     // NFC
-    REGISTER_SERVICE(nfc::IUserManager, "nfp:user");
+    REGISTER_SERVICE(others, nfc::IUserManager, "nfp:user");
 
     // Nifm
-    REGISTER_SERVICE(nifm::IStaticService, "nifm:a", "nifm:s", "nifm:u");
+    REGISTER_SERVICE(others, nifm::IStaticService, "nifm:a", "nifm:s",
+                     "nifm:u");
 
     // Nvservices
-    REGISTER_SERVICE_TO_SERVER(nvservices, nvdrv::INvDrvServices, "nvdrv",
-                               "nvdrv:a", "nvdrv:s", "nvdrv:t");
+    REGISTER_SERVICE(nvservices, nvdrv::INvDrvServices, "nvdrv", "nvdrv:a",
+                     "nvdrv:s", "nvdrv:t");
     nvservices_server.Start();
 
     // Pctl
-    REGISTER_SERVICE(pctl::IParentalControlServiceFactory, "pctl:s", "pctl:r",
-                     "pctl:a", "pctl");
+    REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",
+                     "pctl:r", "pctl:a", "pctl");
 
     // Settings
-    REGISTER_SERVICE(settings::ISettingsServer, "set");
-    REGISTER_SERVICE(settings::ISystemSettingsServer, "set:sys");
+    REGISTER_SERVICE(others, settings::ISettingsServer, "set");
+    REGISTER_SERVICE(others, settings::ISystemSettingsServer, "set:sys");
 
     // Ssl
-    REGISTER_SERVICE(ssl::sf::ISslService, "ssl");
+    REGISTER_SERVICE(others, ssl::sf::ISslService, "ssl");
 
     // Spl
-    REGISTER_SERVICE(spl::IRandomInterface, "csrng");
-    REGISTER_SERVICE(spl::IGeneralInterface, "spl:");
+    REGISTER_SERVICE(others, spl::IRandomInterface, "csrng");
+    REGISTER_SERVICE(others, spl::IGeneralInterface, "spl:");
 
     // Unknown
-    REGISTER_SERVICE(lm::ILogService, "lm");
-    REGISTER_SERVICE(mii::IStaticService, "mii:u", "mii:e");
+    REGISTER_SERVICE(others, lm::ILogService, "lm");
+    REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
+
+    others_server.Start();
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
