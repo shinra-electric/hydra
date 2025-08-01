@@ -1,6 +1,6 @@
 #include "core/horizon/services/account/account_service_for_application.hpp"
 
-#include "core/horizon/services/account/manager_for_application.hpp"
+#include "core/horizon/services/account/baas/manager_for_application.hpp"
 
 namespace hydra::horizon::services::account {
 
@@ -15,7 +15,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAccountServiceForApplication, 0, GetUserCount, 1,
 
 result_t IAccountServiceForApplication::GetBaasAccountManagerForApplication(
     RequestContext* ctx, uuid_t user_id) {
-    AddService(*ctx, new IManagerForApplication(user_id));
+    AddService(*ctx, new baas::IManagerForApplication(user_id));
     return RESULT_SUCCESS;
 }
 

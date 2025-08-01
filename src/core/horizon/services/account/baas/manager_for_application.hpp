@@ -2,7 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 
-namespace hydra::horizon::services::account {
+namespace hydra::horizon::services::account::baas {
 
 class IManagerForApplication : public IService {
   public:
@@ -19,4 +19,4 @@ class IManagerForApplication : public IService {
     result_t GetAccountId(u64* out_id);
 };
 
-} // namespace hydra::horizon::services::account
+} // namespace hydra::horizon::services::account::baas

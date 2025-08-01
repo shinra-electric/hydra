@@ -19,14 +19,13 @@ result_t IAccountService::GetUserExistence(uuid_t user_id, bool* out_exists) {
 
 result_t
 IAccountService::ListAllUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
-    for (auto user_id = USER_MANAGER_INSTANCE.Begin();
-         user_id != USER_MANAGER_INSTANCE.End(); user_id++) {
+    for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.writer->GetWrittenSize() + sizeof(uuid_t) >
             out_buffer.writer->GetSize())
             continue;
 
-        out_buffer.writer->Write(*user_id);
+        out_buffer.writer->Write(user_id);
     }
 
     return RESULT_SUCCESS;
@@ -38,18 +37,14 @@ result_t
 IAccountService::ListOpenUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_FUNC_STUBBED(Services);
 
-    // HACK: writing any user ID causes Raymen Legends to deadlock
-    /*
-    for (auto user_id = USER_MANAGER_INSTANCE.Begin();
-         user_id != USER_MANAGER_INSTANCE.End(); user_id++) {
+    for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.writer->GetWrittenSize() + sizeof(uuid_t) >
             out_buffer.writer->GetSize())
             continue;
 
-        out_buffer.writer->Write(*user_id);
+        out_buffer.writer->Write(user_id);
     }
-    */
     memset((void*)out_buffer.writer->GetBase(), 0,
            out_buffer.writer->GetSize());
 
@@ -60,7 +55,7 @@ result_t IAccountService::GetLastOpenedUser(uuid_t* out_user_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK: return the first user
-    *out_user_id = *USER_MANAGER_INSTANCE.Begin();
+    *out_user_id = USER_MANAGER_INSTANCE.GetUserIDs()[0];
     return RESULT_SUCCESS;
 }
 

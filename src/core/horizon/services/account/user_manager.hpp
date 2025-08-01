@@ -18,8 +18,14 @@ class UserManager {
 
     void Flush();
 
-    const uuid_t* Begin() { return &users.begin()->first; }
-    const uuid_t* End() { return &users.end()->first; }
+    std::vector<uuid_t> GetUserIDs() const {
+        std::vector<uuid_t> ids;
+        ids.reserve(users.size());
+        for (const auto& [id, _] : users) {
+            ids.push_back(id);
+        }
+        return ids;
+    }
 
     User& Get(uuid_t user_id) { return GetPair(user_id).first; }
     bool Exists(uuid_t user_id) const { return users.contains(user_id); }

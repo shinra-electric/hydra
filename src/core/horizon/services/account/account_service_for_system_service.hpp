@@ -13,6 +13,12 @@ class IAccountServiceForSystemService : public IAccountService {
 
   private:
     // Commands
+    // TODO: correct?
+    result_t GetUserRegistrationNotifier(RequestContext* ctx);
+    // TODO: correct?
+    result_t GetUserStateChangeNotifier(RequestContext* ctx);
+    // TODO: correct?
+    result_t GetBaasAccountManagerForSystemService(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::account

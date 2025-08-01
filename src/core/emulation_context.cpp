@@ -338,7 +338,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     if (user_id == horizon::services::account::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (USER_MANAGER_INSTANCE.GetCount() == 1) {
-            user_id = *USER_MANAGER_INSTANCE.Begin();
+            user_id = USER_MANAGER_INSTANCE.GetUserIDs()[0];
         } else {
             // TODO: launch a select user applet in case the game requires it
             LOG_FATAL(Other, "Multiple user accounts");

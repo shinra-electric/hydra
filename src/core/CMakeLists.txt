@@ -237,8 +237,8 @@ add_library(hydra-core
     horizon/services/account/user_manager.hpp
     horizon/services/account/profile.cpp
     horizon/services/account/profile.hpp
-    horizon/services/account/manager_for_application.cpp
-    horizon/services/account/manager_for_application.hpp
+    horizon/services/account/notifier.cpp
+    horizon/services/account/notifier.hpp
     horizon/services/account/account_service.cpp
     horizon/services/account/account_service.hpp
     horizon/services/account/account_service_for_application.cpp
@@ -247,6 +247,10 @@ add_library(hydra-core
     horizon/services/account/account_service_for_system_service.hpp
     horizon/services/account/baas_access_token_accessor.cpp
     horizon/services/account/baas_access_token_accessor.hpp
+    horizon/services/account/baas/manager_for_application.cpp
+    horizon/services/account/baas/manager_for_application.hpp
+    horizon/services/account/baas/manager_for_system_service.cpp
+    horizon/services/account/baas/manager_for_system_service.hpp
     horizon/services/apm/manager_privileged.cpp
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp
