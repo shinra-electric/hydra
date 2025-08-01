@@ -239,10 +239,14 @@ add_library(hydra-core
     horizon/services/account/profile.hpp
     horizon/services/account/manager_for_application.cpp
     horizon/services/account/manager_for_application.hpp
+    horizon/services/account/account_service.cpp
+    horizon/services/account/account_service.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
     horizon/services/account/account_service_for_system_service.cpp
     horizon/services/account/account_service_for_system_service.hpp
+    horizon/services/account/baas_access_token_accessor.cpp
+    horizon/services/account/baas_access_token_accessor.hpp
     horizon/services/apm/manager_privileged.cpp
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp
@@ -323,6 +327,10 @@ add_library(hydra-core
     horizon/services/psc/pm_service.hpp
     horizon/services/psc/pm_module.cpp
     horizon/services/psc/pm_module.hpp
+    horizon/services/pdm/query_service.cpp
+    horizon/services/pdm/query_service.hpp
+    horizon/services/npns/npns_system.cpp
+    horizon/services/npns/npns_system.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

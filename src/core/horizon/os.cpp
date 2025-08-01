@@ -7,6 +7,7 @@
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
+#include "core/horizon/services/account/baas_access_token_accessor.hpp"
 #include "core/horizon/services/am/all_system_applet_proxies_service.hpp"
 #include "core/horizon/services/am/apm_manager.hpp"
 #include "core/horizon/services/am/application_proxy_service.hpp"
@@ -29,6 +30,7 @@
 #include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
+#include "core/horizon/services/npns/npns_system.hpp"
 #include "core/horizon/services/ns/application_manager_interface.hpp"
 #include "core/horizon/services/ns/service_getter_interface.hpp"
 #include "core/horizon/services/nsd/manager.hpp"
@@ -36,6 +38,7 @@
 #include "core/horizon/services/ovln/sender_service.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
+#include "core/horizon/services/pdm/query_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
@@ -174,6 +177,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, account::IAccountServiceForApplication, "acc:u0");
     REGISTER_SERVICE(others, account::IAccountServiceForSystemService,
                      "acc:u1");
+    REGISTER_SERVICE(others, account::IBaasAccessTokenAccessor, "acc:aa");
+    REGISTER_SERVICE(others, pdm::IQueryService, "pdm:qry");
 
     // PPC
     REGISTER_SERVICE(others, apm::IManagerPrivileged, "apm:p");
@@ -231,9 +236,12 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // NFC
     REGISTER_SERVICE(others, nfc::IUserManager, "nfp:user");
 
-    // Nifm
+    // NIFM
     REGISTER_SERVICE(others, nifm::IStaticService, "nifm:a", "nifm:s",
                      "nifm:u");
+
+    // NPNS
+    REGISTER_SERVICE(others, npns::INpnsSystem, "npns:s");
 
     // Nvservices
     REGISTER_SERVICE(nvservices, nvdrv::INvDrvServices, "nvdrv", "nvdrv:a",

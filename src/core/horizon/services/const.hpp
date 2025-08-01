@@ -307,9 +307,9 @@ void read_arg(RequestContext& context, Class& instance,
     }
 }
 
-template <typename Class, typename... Args, size_t... Is>
+template <typename Class, typename MethodClass, typename... Args, size_t... Is>
 result_t invoke_command_with_args(RequestContext& context, Class& instance,
-                                  result_t (Class::*func)(Args...),
+                                  result_t (MethodClass::*func)(Args...),
                                   std::index_sequence<Is...>) {
     using traits = function_traits<decltype(func)>;
 
@@ -323,9 +323,9 @@ result_t invoke_command_with_args(RequestContext& context, Class& instance,
     return std::apply(callable, args);
 }
 
-template <typename Class, typename... Args>
+template <typename Class, typename MethodClass, typename... Args>
 result_t invoke_command(RequestContext& context, Class& instance,
-                        result_t (Class::*func)(Args...)) {
+                        result_t (MethodClass::*func)(Args...)) {
     using traits = function_traits<decltype(func)>;
 
     constexpr auto indices = std::make_index_sequence<traits::arg_count>{};
