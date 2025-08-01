@@ -2,6 +2,7 @@
 
 #include "core/horizon/services/am/application_proxy.hpp"
 #include "core/horizon/services/am/library_applet_proxy.hpp"
+#include "core/horizon/services/am/overlay_applet_proxy.hpp"
 #include "core/horizon/services/am/system_applet_proxy.hpp"
 
 namespace hydra::horizon::services::am {
@@ -9,7 +10,8 @@ namespace hydra::horizon::services::am {
 DEFINE_SERVICE_COMMAND_TABLE(IAllSystemAppletProxiesService, 100,
                              OpenSystemAppletProxy, 200,
                              OpenLibraryAppletProxyOld, 201,
-                             OpenLibraryAppletProxy, 350,
+                             OpenLibraryAppletProxy, 300,
+                             OpenOverlayAppletProxy, 350,
                              OpenSystemApplicationProxy)
 
 result_t
@@ -32,6 +34,12 @@ result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
 result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxyImpl(
     RequestContext* ctx) {
     AddService(*ctx, new ILibraryAppletProxy());
+    return RESULT_SUCCESS;
+}
+
+result_t
+IAllSystemAppletProxiesService::OpenOverlayAppletProxy(RequestContext* ctx) {
+    AddService(*ctx, new IOverlayAppletProxy());
     return RESULT_SUCCESS;
 }
 

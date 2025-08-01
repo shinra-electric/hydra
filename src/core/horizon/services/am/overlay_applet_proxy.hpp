@@ -4,13 +4,13 @@
 
 namespace hydra::horizon::services::am {
 
-class ILibraryAppletProxy : public IProxy {
+class IOverlayAppletProxy : public IProxy {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
     // Commands
-    result_t OpenLibraryAppletSelfAccessor(RequestContext* ctx);
+    result_t GetOverlayFunctions(RequestContext* ctx);
 };
 
 } // namespace hydra::horizon::services::am

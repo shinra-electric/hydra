@@ -193,6 +193,12 @@ add_library(hydra-core
     horizon/services/am/process_winding_controller.hpp
     horizon/services/am/application_proxy.cpp
     horizon/services/am/application_proxy.hpp
+    horizon/services/am/overlay_applet_proxy.cpp
+    horizon/services/am/overlay_applet_proxy.hpp
+    horizon/services/am/overlay_functions.cpp
+    horizon/services/am/overlay_functions.hpp
+    horizon/services/am/proxy.cpp
+    horizon/services/am/proxy.hpp
     horizon/services/am/storage.cpp
     horizon/services/am/storage.hpp
     horizon/services/am/storage_accessor.cpp
