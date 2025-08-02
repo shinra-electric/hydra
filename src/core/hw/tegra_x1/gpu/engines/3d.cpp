@@ -574,13 +574,27 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
     // Vertex state
 
     // Vertex attribute states
+    bool vertex_arrays_used[VERTEX_ARRAY_COUNT] = {false};
     for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
-        descriptor.vertex_state.vertex_attrib_states[i] =
-            regs.vertex_attrib_states[i];
+        const auto& state = regs.vertex_attrib_states[i];
+        descriptor.vertex_state.vertex_attrib_states[i] = state;
+
+        // Set used vertex array
+        if (state.type == engines::VertexAttribType::None)
+            continue;
+
+        // HACK: how are attributes disabled?
+        if (state.is_fixed)
+            continue;
+
+        vertex_arrays_used[state.buffer_id] = true;
     }
 
     // Vertex arrays
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
+        if (!vertex_arrays_used[i])
+            continue;
+
         const auto& vertex_array = regs.vertex_arrays[i];
         descriptor.vertex_state.vertex_arrays[i] = {
             .enable = vertex_array.config.enable,
