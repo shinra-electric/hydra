@@ -46,6 +46,15 @@ void HostFile::Resize(usize new_size) {
     LOG_FS_ACCESS(host_path, "file resized (size: {})", new_size);
 }
 
+void HostFile::Flush() {
+    ASSERT(is_mutable, Filesystem, "Immutable file cannot be flushed");
+
+    // Flush the file size
+    std::filesystem::resize_file(host_path, size);
+
+    LOG_FS_ACCESS(host_path, "file flushed");
+}
+
 FileStream HostFile::Open(FileOpenFlags flags) {
     std::ios::openmode std_flags = std::ios::binary;
     if (any(flags & FileOpenFlags::Read))

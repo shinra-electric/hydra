@@ -10,6 +10,7 @@ class HostFile : public FileBase {
     ~HostFile() override;
 
     void Resize(usize new_size) override;
+    void Flush() override;
 
     FileStream Open(FileOpenFlags flags) override;
     void Close(FileStream& stream) override;

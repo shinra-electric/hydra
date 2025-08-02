@@ -45,8 +45,10 @@ IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
     const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
-    ASSERT(res == filesystem::FsResult::Success, Services,
-           "Failed to delete file \"{}\": {}", path, res);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Failed to delete file \"{}\": {}", path, res);
+        return MAKE_RESULT(Fs, 1);
+    }
 
     return RESULT_SUCCESS;
 }

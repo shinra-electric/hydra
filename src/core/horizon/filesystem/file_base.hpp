@@ -46,6 +46,7 @@ class FileBase : public EntryBase {
     }
 
     virtual void Resize(usize new_size) = 0;
+    virtual void Flush() {}
 
     virtual FileStream Open(FileOpenFlags flags) = 0;
     virtual void Close(FileStream& stream) = 0;

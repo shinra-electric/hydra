@@ -50,6 +50,11 @@ result_t IFile::Write(u32 option, u32 _pad, i64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
+result_t IFile::Flush() {
+    file->Flush();
+    return RESULT_SUCCESS;
+}
+
 result_t IFile::SetSize(i64 size) {
     file->Resize(size);
     return RESULT_SUCCESS;

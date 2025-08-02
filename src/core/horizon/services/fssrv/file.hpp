@@ -19,7 +19,7 @@ class IFile : public IService {
                   OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t Write(u32 option, u32 _pad, i64 offset, u64 size,
                    InBuffer<BufferAttr::MapAlias> in_buffer);
-    STUB_REQUEST_COMMAND(Flush);
+    result_t Flush();
     result_t SetSize(i64 size);
     result_t GetSize(i64* out_size);
 
