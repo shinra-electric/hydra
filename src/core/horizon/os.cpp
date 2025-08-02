@@ -24,6 +24,7 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
+#include "core/horizon/services/i2c/manager.hpp"
 #include "core/horizon/services/lbl/lbl_controller.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
@@ -232,6 +233,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // FS
     REGISTER_SERVICE(others, fssrv::IFileSystemProxy, "fsp-srv");
+
+    // Bus
+    REGISTER_SERVICE(others, i2c::IManager, "i2c", "i2c:pcv");
 
     // NFC
     REGISTER_SERVICE(others, nfc::IUserManager, "nfp:user");

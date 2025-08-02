@@ -6,9 +6,8 @@ namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles, 3, Cancel, 4,
-                             Submit)
+                             Submit, 6, SetRequirementPreset)
 
-// TODO: how come is the autoclear of the second one user-specified?
 IRequest::IRequest()
     : events{new kernel::Event(false, "IRequest system event 0"),
              new kernel::Event(false, "IRequest system event 1")} {}

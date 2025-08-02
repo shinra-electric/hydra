@@ -341,6 +341,11 @@ add_library(hydra-core
     horizon/services/pdm/query_service.hpp
     horizon/services/npns/npns_system.cpp
     horizon/services/npns/npns_system.hpp
+    horizon/services/i2c/const.hpp
+    horizon/services/i2c/manager.cpp
+    horizon/services/i2c/manager.hpp
+    horizon/services/i2c/session.cpp
+    horizon/services/i2c/session.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

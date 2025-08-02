@@ -32,6 +32,7 @@ class IRequest : public IService {
                                   OutHandle<HandleAttr::Copy> out_handle1);
     STUB_REQUEST_COMMAND(Cancel);
     STUB_REQUEST_COMMAND(Submit);
+    STUB_REQUEST_COMMAND(SetRequirementPreset);
 };
 
 } // namespace hydra::horizon::services::nifm
