@@ -168,10 +168,13 @@ class LangEmitter : public Emitter {
             return GetImmediateStr<i32>(std::bit_cast<i32>(imm));
         case DataType::F16:
             return fmt::format("as_type<f16>((u16)0x{:04x})",
-                               (u16)(imm & 0xffff));
+                               u16(imm & 0xffff));
         case DataType::F32:
             return GetImmediateStr<f32>(std::bit_cast<f32>(imm));
-        // TODO: F16X2
+        case DataType::F16X2:
+            return fmt::format("half2(as_type<f16>((u16)0x{:04x}), "
+                               "as_type<f16>((u16)0x{:04x}))",
+                               u16(imm & 0xffff), u16((imm >> 16) & 0xffff));
         default:
             return INVALID_VALUE;
         }
