@@ -668,14 +668,19 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
         return MAKE_RESULT(Svc, Error::TimedOut);
     } else {
-        crnt_thread->Pause();
-
         for (u32 i = 0; i < sync_objs.size(); i++) {
             if (!sync_objs[i]) {
                 LOG_WARN(Kernel, "Invalid sync object");
-                return MAKE_RESULT(Svc, Error::InvalidHandle);
+                // HACK: Celeste gets stuck in an infinite WaitSynchronization
+                // loop if an error is returned
+                return RESULT_SUCCESS; // MAKE_RESULT(Svc,
+                                       // Error::InvalidHandle);
             }
+        }
 
+        crnt_thread->Pause();
+
+        for (u32 i = 0; i < sync_objs.size(); i++) {
             // LOG_DEBUG(Kernel, "Synchronizing with {}",
             //           sync_objs[i]->GetDebugName());
 
