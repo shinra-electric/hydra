@@ -107,8 +107,8 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
-    DEBUGGER_ASSERT(region.state.type != horizon::kernel::MemoryType::Free,
-                    Hypervisor, "Failed to unmap va 0x{:08x}", va);
+    ASSERT(region.state.type != horizon::kernel::MemoryType::Free, Hypervisor,
+           "Failed to unmap va 0x{:08x}", va);
 
     return region.UnmapAddr(va);
 }

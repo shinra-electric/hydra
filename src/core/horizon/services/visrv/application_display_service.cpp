@@ -2,7 +2,6 @@
 
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/os.hpp"
-#include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/hosbinder/parcel.hpp"
 #include "core/horizon/services/visrv/manager_display_service.hpp"
 #include "core/horizon/services/visrv/system_display_service.hpp"
@@ -31,7 +30,24 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetLayerScalingMode, 2102, ConvertScalingMode, 5202, GetDisplayVsyncEvent)
 
 result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx) {
-    AddService(*ctx, new hosbinder::IHOSBinderDriver());
+    LOG_WARN(Services, "GetRelayService is not implemented properly");
+
+    // TODO: this should wrap dispdrv in a custom class
+
+    const auto name = "dispdrv"_u64;
+    auto client_port = OS_INSTANCE.GetServiceManager().GetPort(name);
+    if (!client_port) {
+        LOG_WARN(Services, "Unknown service name \"{}\"", u64_to_str(name));
+        return MAKE_RESULT(Svc, kernel::Error::NotFound); // TODO: module
+    }
+
+    // TODO: should this work with domains?
+    ASSERT_DEBUG(!IsDomain(), Services,
+                 "GetRelayService cannot be a domain service");
+    auto client_session = client_port->Connect();
+    const auto handle = ctx->process->AddHandle(client_session);
+    ctx->writers.move_handles_writer.Write(handle);
+
     return RESULT_SUCCESS;
 }
 
@@ -49,9 +65,12 @@ IApplicationDisplayService::GetManagerDisplayService(RequestContext* ctx) {
 
 result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
     RequestContext* ctx) {
-    // TODO: how is this different from GetRelayService?
-    AddService(*ctx, new hosbinder::IHOSBinderDriver());
-    return RESULT_SUCCESS;
+    LOG_WARN(
+        Services,
+        "GetIndirectDisplayTransactionService is not implemented properly");
+
+    // HACK
+    return GetRelayService(ctx);
 }
 
 result_t IApplicationDisplayService::ListDisplays(
