@@ -33,6 +33,9 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
     void _FreeByIndex(u32 index) { FREE_SLOT(index) |= MASK(index); }
 
     bool _IsValidByIndex(u32 index) const {
+        if (index >= size)
+            return false;
+
         bool is_free = FREE_SLOT(index) & MASK(index);
         return !is_free;
     }
