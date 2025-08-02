@@ -346,6 +346,8 @@ add_library(hydra-core
     horizon/services/i2c/manager.hpp
     horizon/services/i2c/session.cpp
     horizon/services/i2c/session.hpp
+    horizon/services/pm/boot_mode_interface.cpp
+    horizon/services/pm/boot_mode_interface.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

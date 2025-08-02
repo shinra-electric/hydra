@@ -41,6 +41,7 @@
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pdm/query_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
+#include "core/horizon/services/pm/boot_mode_interface.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
@@ -252,7 +253,10 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
                      "nvdrv:s", "nvdrv:t");
     nvservices_server.Start();
 
-    // Pctl
+    // PM
+    REGISTER_SERVICE(others, pm::IBootModeInterface, "pm:bm");
+
+    // PCTL
     REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",
                      "pctl:r", "pctl:a", "pctl");
 
