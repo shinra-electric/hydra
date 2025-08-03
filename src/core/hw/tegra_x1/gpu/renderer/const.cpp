@@ -56,6 +56,7 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(RG16, Float, Float, Float, Float, RG16Float)
     IMAGE_FORMAT_CASE(RGBA16, Float, Float, Float, Float, RGBA16Float)
     IMAGE_FORMAT_CASE(RGBA32, Float, Float, Float, Float, RGBA32Float)
+    IMAGE_FORMAT_CASE(BC7U, Unorm, Unorm, Unorm, Unorm, BC7_RGBAUnorm)
     else {
         LOG_NOT_IMPLEMENTED(
             Gpu, "Image format {}, components: {}, {}, {}, {}",
