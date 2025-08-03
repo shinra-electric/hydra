@@ -43,6 +43,10 @@ void DeviceManager::Poll() {
         const auto b = make_code(KEYBOARD_DEVICE_ID, Key::K);
         const auto x = make_code(KEYBOARD_DEVICE_ID, Key::I);
         const auto y = make_code(KEYBOARD_DEVICE_ID, Key::J);
+        const auto l = make_code(KEYBOARD_DEVICE_ID, Key::U);
+        const auto r = make_code(KEYBOARD_DEVICE_ID, Key::O);
+        const auto zl = make_code(KEYBOARD_DEVICE_ID, Key::Y);
+        const auto zr = make_code(KEYBOARD_DEVICE_ID, Key::P);
         const auto analog_l_neg_x = make_code(KEYBOARD_DEVICE_ID, Key::A);
         const auto analog_l_pos_x = make_code(KEYBOARD_DEVICE_ID, Key::D);
         const auto analog_l_pos_y = make_code(KEYBOARD_DEVICE_ID, Key::W);
@@ -83,6 +87,14 @@ void DeviceManager::Poll() {
                 buttons |= hid::NpadButtons::X;
             if (device->IsPressed(y))
                 buttons |= hid::NpadButtons::Y;
+            if (device->IsPressed(l))
+                buttons |= hid::NpadButtons::L;
+            if (device->IsPressed(r))
+                buttons |= hid::NpadButtons::R;
+            if (device->IsPressed(zl))
+                buttons |= hid::NpadButtons::ZL;
+            if (device->IsPressed(zr))
+                buttons |= hid::NpadButtons::ZR;
 
             analog_l_x -= device->GetAxisValue(analog_l_neg_x);
             analog_l_x += device->GetAxisValue(analog_l_pos_x);
