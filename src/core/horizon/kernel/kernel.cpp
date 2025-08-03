@@ -643,6 +643,12 @@ result_t Kernel::CloseHandle(Process* crnt_process, handle_id_t handle_id) {
 
 // TODO: can only be ReadableEvent or Process?
 result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
+    if (!sync_obj) {
+        LOG_WARN(Kernel, "ResetSignal called (INVALID_HANDLE)");
+        // HACK
+        return RESULT_SUCCESS; // MAKE_RESULT(Svc, Error::InvalidHandle);
+    }
+
     LOG_DEBUG(Kernel, "ResetSignal called (sync_obj: {})",
               sync_obj->GetDebugName());
 
