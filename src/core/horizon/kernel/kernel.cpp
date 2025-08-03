@@ -680,6 +680,7 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
 
         crnt_thread->Pause();
 
+        // Add waiting thread
         for (u32 i = 0; i < sync_objs.size(); i++) {
             // LOG_DEBUG(Kernel, "Synchronizing with {}",
             //           sync_objs[i]->GetDebugName());
@@ -688,6 +689,13 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         }
 
         const auto action = crnt_thread->ProcessMessages(timeout);
+
+        // Remove waiting thread
+        for (u32 i = 0; i < sync_objs.size(); i++) {
+            sync_objs[i]->RemoveWaitingThread(crnt_thread);
+        }
+
+        // Process the action
         switch (action.type) {
         case ThreadActionType::Stop:
             return RESULT_SUCCESS;

@@ -15,16 +15,17 @@ class SynchronizationObject : public AutoObject {
         const std::string_view debug_name = "SynchronizationObject")
         : AutoObject(debug_name), signalled{signalled_} {}
 
-    void AddWaiter(signal_callback_fn_t waiter);
+    void AddWaitingThread(IThread* thread);
+    void RemoveWaitingThread(IThread* thread);
+    void AddSignalCallback(signal_callback_fn_t callback);
+
     void Signal();
     bool Clear();
 
-    // Helpers
-    void AddWaitingThread(IThread* thread);
-
   private:
     std::mutex mutex;
-    std::vector<signal_callback_fn_t> waiters;
+    LinkedList<IThread*> waiting_threads;
+    std::vector<signal_callback_fn_t> signal_callbacks;
     bool signalled{false};
 };
 

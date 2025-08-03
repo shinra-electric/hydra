@@ -4,12 +4,25 @@
 
 namespace hydra::horizon::kernel {
 
-void SynchronizationObject::AddWaiter(signal_callback_fn_t waiter) {
+void SynchronizationObject::AddWaitingThread(IThread* thread) {
     std::lock_guard lock(mutex);
     if (signalled)
-        waiter();
+        thread->Resume(this);
     else
-        waiters.push_back(waiter);
+        waiting_threads.AddFirst(thread);
+}
+
+void SynchronizationObject::RemoveWaitingThread(IThread* thread) {
+    std::lock_guard lock(mutex);
+    waiting_threads.Remove(thread);
+}
+
+void SynchronizationObject::AddSignalCallback(signal_callback_fn_t callback) {
+    std::lock_guard lock(mutex);
+    if (signalled)
+        callback();
+    else
+        signal_callbacks.push_back(callback);
 }
 
 void SynchronizationObject::Signal() {
@@ -19,9 +32,14 @@ void SynchronizationObject::Signal() {
 
     signalled = true;
 
-    for (auto waiter : waiters)
-        waiter();
-    waiters.clear();
+    for (auto waiting_thread = waiting_threads.GetHead();
+         waiting_thread != nullptr; waiting_thread = waiting_thread->GetNext())
+        waiting_thread->Get()->Resume(this);
+    waiting_threads.Clear();
+
+    for (auto& callback : signal_callbacks)
+        callback();
+    signal_callbacks.clear();
 }
 
 bool SynchronizationObject::Clear() {
@@ -33,10 +51,6 @@ bool SynchronizationObject::Clear() {
     }
 
     return was_signalled;
-}
-
-void SynchronizationObject::AddWaitingThread(IThread* thread) {
-    AddWaiter([this, thread]() { thread->Resume(this); });
 }
 
 } // namespace hydra::horizon::kernel
