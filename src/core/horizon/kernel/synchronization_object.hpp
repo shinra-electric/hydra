@@ -6,6 +6,8 @@ namespace hydra::horizon::kernel {
 
 class IThread;
 
+typedef std::function<void()> signal_callback_fn_t;
+
 class SynchronizationObject : public AutoObject {
   public:
     SynchronizationObject(
@@ -13,13 +15,16 @@ class SynchronizationObject : public AutoObject {
         const std::string_view debug_name = "SynchronizationObject")
         : AutoObject(debug_name), signalled{signalled_} {}
 
-    void AddWaitingThread(IThread* thread);
+    void AddWaiter(signal_callback_fn_t waiter);
     void Signal();
     bool Clear();
 
+    // Helpers
+    void AddWaitingThread(IThread* thread);
+
   private:
     std::mutex mutex;
-    std::vector<IThread*> waiting_threads;
+    std::vector<signal_callback_fn_t> waiters;
     bool signalled{false};
 };
 

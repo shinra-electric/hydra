@@ -4,12 +4,12 @@
 
 namespace hydra::horizon::kernel {
 
-void SynchronizationObject::AddWaitingThread(IThread* thread) {
+void SynchronizationObject::AddWaiter(signal_callback_fn_t waiter) {
     std::lock_guard lock(mutex);
     if (signalled)
-        thread->Resume(this);
+        waiter();
     else
-        waiting_threads.push_back(thread);
+        waiters.push_back(waiter);
 }
 
 void SynchronizationObject::Signal() {
@@ -19,9 +19,9 @@ void SynchronizationObject::Signal() {
 
     signalled = true;
 
-    for (auto thread : waiting_threads)
-        thread->Resume(this);
-    waiting_threads.clear();
+    for (auto waiter : waiters)
+        waiter();
+    waiters.clear();
 }
 
 bool SynchronizationObject::Clear() {
@@ -33,6 +33,10 @@ bool SynchronizationObject::Clear() {
     }
 
     return was_signalled;
+}
+
+void SynchronizationObject::AddWaitingThread(IThread* thread) {
+    AddWaiter([this, thread]() { thread->Resume(this); });
 }
 
 } // namespace hydra::horizon::kernel
