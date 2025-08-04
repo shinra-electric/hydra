@@ -148,6 +148,7 @@ void Decoder::ParseNextInstruction() {
                      "Invalid sync point");
 
         if (PRED_COND_NOTHING) { // Nothing
+            EnsureBlock(target);
             BUILDER.OpBranch(target);
             EndBlock();
         } else if (PRED_COND_NEVER) { // Never
@@ -158,6 +159,8 @@ void Decoder::ParseNextInstruction() {
             const bool not_ = GET_BIT(19);
             COMMENT("if {}{}", not_ ? "!" : "", pred);
 
+            EnsureBlock(target);
+            SetReturnSyncPoint(pc + 1, target);
             BUILDER.OpBranchConditional(
                 NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
             EndBlock();
@@ -461,7 +464,6 @@ void Decoder::ParseNextInstruction() {
         const auto target = GET_BTARG();
         COMMENT("ssy 0x{:x}", u32(target));
 
-        SetReturnSyncPoint(target, crnt_block->return_sync_point);
         crnt_block->return_sync_point = target;
     }
     INST(0xe280000000000020, 0xfff0000000000020) {

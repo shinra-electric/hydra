@@ -15,7 +15,7 @@ enum class BlockStatus {
 
 struct Block {
     BlockStatus status{BlockStatus::Unvisited};
-    label_t return_sync_point{invalid<u32>()};
+    label_t return_sync_point{invalid<label_t>()};
 };
 
 struct DecoderContext {
@@ -63,14 +63,19 @@ class Decoder {
         }
     }
 
-    void SetReturnSyncPoint(label_t label,
-                            label_t return_sync_point = invalid<u32>()) {
+    Block& EnsureBlock(label_t label) {
         auto& block = blocks[label];
         if (block.status == BlockStatus::Unvisited)
             to_visit_queue.push(label);
 
-        if (return_sync_point != invalid<u32>()) {
-            if (block.return_sync_point == invalid<u32>()) {
+        return block;
+    }
+
+    void SetReturnSyncPoint(label_t label,
+                            label_t return_sync_point = invalid<label_t>()) {
+        auto& block = EnsureBlock(label);
+        if (return_sync_point != invalid<label_t>()) {
+            if (block.return_sync_point == invalid<label_t>()) {
                 block.return_sync_point = return_sync_point;
             } else {
                 ASSERT_DEBUG(block.return_sync_point == return_sync_point,
