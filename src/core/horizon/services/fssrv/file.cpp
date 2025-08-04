@@ -26,7 +26,8 @@ result_t IFile::Read(u32 option, u32 _pad, i64 offset, u64 size,
     if (size > max_size) {
         LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
                  size, max_size);
-        size = max_size;
+        // HACK: commented out due to some games aborting
+        // size = max_size;
     }
 
     reader.Seek(offset);

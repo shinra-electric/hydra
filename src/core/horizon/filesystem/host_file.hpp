@@ -22,7 +22,7 @@ class HostFile : public FileBase {
     std::string host_path;
     bool is_mutable;
 
-    usize size;
+    // usize size;
 
     void DeleteImpl() override;
 };

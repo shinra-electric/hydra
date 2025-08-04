@@ -11,7 +11,7 @@ namespace hydra::horizon::filesystem {
 HostFile::HostFile(const std::string_view host_path_, bool is_mutable_)
     : host_path{host_path_}, is_mutable{is_mutable_} {
     if (std::filesystem::exists(host_path)) {
-        size = std::filesystem::file_size(host_path);
+        // size = std::filesystem::file_size(host_path);
     } else {
         ASSERT(is_mutable, Filesystem, "Immutable file \"{}\" does not exist",
                host_path);
@@ -24,7 +24,7 @@ HostFile::HostFile(const std::string_view host_path_, bool is_mutable_)
         // TODO: is there a better way to create an empty file?
         std::ofstream ofs(host_path);
         ofs.close();
-        std::filesystem::resize_file(host_path, size);
+        // std::filesystem::resize_file(host_path, size);
 
         LOG_FS_ACCESS(host_path, "file created");
     }
@@ -32,27 +32,28 @@ HostFile::HostFile(const std::string_view host_path_, bool is_mutable_)
 
 HostFile::~HostFile() {
     // Resize the file to the requested size
-    if (is_mutable && std::filesystem::exists(host_path)) {
-        if (std::filesystem::file_size(host_path) != size)
-            std::filesystem::resize_file(host_path, size);
-    }
+    // if (is_mutable && std::filesystem::exists(host_path)) {
+    //    if (std::filesystem::file_size(host_path) != size)
+    //        std::filesystem::resize_file(host_path, size);
+    //}
 }
 
 void HostFile::Resize(usize new_size) {
     ASSERT(is_mutable, Filesystem, "Immutable file cannot be resized");
 
-    size = new_size;
+    // size = new_size;
+    std::filesystem::resize_file(host_path, new_size);
 
     LOG_FS_ACCESS(host_path, "file resized (size: {})", new_size);
 }
 
 void HostFile::Flush() {
-    ASSERT(is_mutable, Filesystem, "Immutable file cannot be flushed");
+    // ASSERT(is_mutable, Filesystem, "Immutable file cannot be flushed");
 
     // Flush the file size
-    std::filesystem::resize_file(host_path, size);
+    // std::filesystem::resize_file(host_path, size);
 
-    LOG_FS_ACCESS(host_path, "file flushed");
+    // LOG_FS_ACCESS(host_path, "file flushed");
 }
 
 FileStream HostFile::Open(FileOpenFlags flags) {
@@ -67,7 +68,7 @@ FileStream HostFile::Open(FileOpenFlags flags) {
 
     LOG_FS_ACCESS(host_path, "file opened");
 
-    return FileStream(stream, 0, size, flags);
+    return FileStream(stream, 0, GetSize() /*size*/, flags);
 }
 
 void HostFile::Close(FileStream& stream) {
@@ -79,7 +80,10 @@ void HostFile::Close(FileStream& stream) {
     LOG_FS_ACCESS(host_path, "file closed");
 }
 
-usize HostFile::GetSize() { return size; }
+usize HostFile::GetSize() {
+    // return size;
+    return std::filesystem::file_size(host_path);
+}
 
 void HostFile::DeleteImpl() {
     std::filesystem::remove(host_path);
