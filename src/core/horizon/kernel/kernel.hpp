@@ -119,6 +119,8 @@ class Kernel {
                               CodeMemory*& out_code_memory);
     result_t ControlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,
                                vaddr_t addr, u64 size, MemoryPermission perm);
+    result_t GetProcessList(u64* process_id_buffer, u32 process_id_buffer_size,
+                            u32& out_count);
     result_t SetProcessMemoryPermission(Process* process, vaddr_t addr,
                                         u64 size, MemoryPermission perm);
     result_t MapProcessCodeMemory(Process* process, vaddr_t dst_addr,

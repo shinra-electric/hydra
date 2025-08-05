@@ -340,6 +340,14 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             MemoryPermission(guest_thread->GetRegW(4)));
         guest_thread->SetRegW(0, res);
         break;
+    case 0x65:
+        res = GetProcessList(
+            reinterpret_cast<u64*>(
+                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
+            guest_thread->GetRegW(2), tmp_u32);
+        guest_thread->SetRegW(0, res);
+        guest_thread->SetRegW(1, tmp_u32);
+        break;
     case 0x73:
         res = SetProcessMemoryPermission(
             crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
@@ -1195,6 +1203,25 @@ result_t Kernel::ControlCodeMemory(CodeMemory* code_memory,
 
     // TODO: implement
     LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::GetProcessList(u64* process_id_buffer,
+                                u32 process_id_buffer_size, u32& out_count) {
+    LOG_DEBUG(Kernel,
+              "GetProcessList called (process_id_buffer: {}, "
+              "process_id_buffer_size: {})",
+              (void*)process_id_buffer, process_id_buffer_size);
+
+    // TODO: is process_id_buffer_size in bytes or number of process IDs?
+    for (auto it = process_manager.Begin();
+         it != process_manager.End() && process_id_buffer_size >= sizeof(u64);
+         it++) {
+        // TODO: what is a process ID?
+        *process_id_buffer++ = reinterpret_cast<u64>(*it); // HACK
+        process_id_buffer_size -= sizeof(u64);
+    }
 
     return RESULT_SUCCESS;
 }
