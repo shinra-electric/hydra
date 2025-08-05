@@ -10,6 +10,7 @@ class IService : public ::hydra::horizon::services::IService {
 
   private:
     // Commands
+    STUB_REQUEST_COMMAND(ThrowFatalWithPolicy);
     // TODO: PID descriptor
     result_t ThrowFatalWithCpuContext(u64 code, u64 _unknown_x8,
                                       InBuffer<BufferAttr::MapAlias> in_buffer);

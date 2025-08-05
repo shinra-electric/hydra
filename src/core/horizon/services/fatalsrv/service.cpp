@@ -4,7 +4,8 @@
 
 namespace hydra::horizon::services::fatalsrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IService, 2, ThrowFatalWithCpuContext)
+DEFINE_SERVICE_COMMAND_TABLE(IService, 1, ThrowFatalWithPolicy, 2,
+                             ThrowFatalWithCpuContext)
 
 result_t
 IService::ThrowFatalWithCpuContext(u64 code, u64 _unknown_x8,

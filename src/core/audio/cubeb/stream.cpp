@@ -32,8 +32,8 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
     : IStream(format, sample_rate, channel_count, buffer_finished_callback),
       core{core_} {
     // TODO: allow different channel counts
-    ASSERT(channel_count == 2, Cubeb, "Unsupported channel count {}",
-           channel_count);
+    if (channel_count != 2)
+        LOG_NOT_IMPLEMENTED(Cubeb, "Channel count {}", channel_count);
 
     cubeb_stream_params params;
     params.format = to_cubeb_format(format);

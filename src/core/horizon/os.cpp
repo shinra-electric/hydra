@@ -42,6 +42,7 @@
 #include "core/horizon/services/pdm/query_service.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/pm/boot_mode_interface.hpp"
+#include "core/horizon/services/pm/information_interface.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
@@ -52,6 +53,7 @@
 #include "core/horizon/services/socket/resolver/resolver.hpp"
 #include "core/horizon/services/spl/general_interface.hpp"
 #include "core/horizon/services/spl/random_interface.hpp"
+#include "core/horizon/services/spsm/power_state_interface.hpp"
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
 #include "core/horizon/services/ts/measurement_server.hpp"
@@ -170,6 +172,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, am::IApmManager, "apm", "apm:am");
     REGISTER_SERVICE(others, am::IApplicationProxyService, "appletOE");
     REGISTER_SERVICE(others, am::IAllSystemAppletProxiesService, "appletAE");
+    REGISTER_SERVICE(others, spsm::IPowerStateInterface, "spsm");
 
     // NS
     REGISTER_SERVICE(others, ns::IApplicationManagerInterface, "ns:am");
@@ -255,6 +258,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // PM
     REGISTER_SERVICE(others, pm::IBootModeInterface, "pm:bm");
+    REGISTER_SERVICE(others, pm::IInformationInterface, "pm:info");
 
     // PCTL
     REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",
