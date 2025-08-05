@@ -105,6 +105,8 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
 #define DUMP_SHADERS 0
 #if DUMP_SHADERS
+    LOG_INFO(ShaderDecompiler, "Dumping shader 0x{}",
+             (void*)code_reader.GetBase());
     std::ofstream out(
         fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
                     (void*)code_reader.GetBase()),

@@ -143,15 +143,21 @@ void Decoder::ParseNextInstruction() {
         // TODO: f0f8_0
         COMMENT("sync");
 
-        const auto target = crnt_block->return_sync_point;
-        ASSERT_DEBUG(target != invalid<label_t>(), ShaderDecompiler,
-                     "Invalid sync point");
+        ASSERT_DEBUG(!crnt_block->sync_point_stack.empty(), ShaderDecompiler,
+                     "No sync point in stack");
 
+        const auto target = crnt_block->sync_point_stack.top();
         if (PRED_COND_NOTHING) { // Nothing
-            EnsureBlock(target);
+            // Pop and then inherit
+            crnt_block->sync_point_stack.pop();
+            InheritSyncPoints(target);
+
             BUILDER.OpBranch(target);
             EndBlock();
         } else if (PRED_COND_NEVER) { // Never
+            // Pop
+            crnt_block->sync_point_stack.pop();
+
             COMMENT("never");
             abort(); /* TODO: implement */
         } else {     // Conditional
@@ -159,8 +165,12 @@ void Decoder::ParseNextInstruction() {
             const bool not_ = GET_BIT(19);
             COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-            EnsureBlock(target);
-            SetReturnSyncPoint(pc + 1, target);
+            // Inherit for the continuation block, then pop and inherit for sync
+            // block
+            InheritSyncPoints(pc + 1);
+            crnt_block->sync_point_stack.pop();
+            InheritSyncPoints(target);
+
             BUILDER.OpBranchConditional(
                 NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
             EndBlock();
@@ -462,9 +472,9 @@ void Decoder::ParseNextInstruction() {
     }
     INST(0xe290000000000000, 0xfff0000000000020) {
         const auto target = GET_BTARG();
-        COMMENT("ssy 0x{:x}", u32(target));
+        COMMENT("ssy {}", target);
 
-        crnt_block->return_sync_point = target;
+        PushSyncPoint(target);
     }
     INST(0xe280000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("plongjmp");
@@ -496,10 +506,10 @@ void Decoder::ParseNextInstruction() {
     INST(0xe240000000000000, 0xfff0000000000020) {
         // TODO: f0f8_0
         const auto target = GET_BTARG();
-        COMMENT("bra 0x{:x}", u32(target));
+        COMMENT("bra {}", target);
 
         if (PRED_COND_NOTHING) { // Nothing
-            SetReturnSyncPoint(target, crnt_block->return_sync_point);
+            InheritSyncPoints(target);
             BUILDER.OpBranch(target);
             EndBlock();
         } else if (PRED_COND_NEVER) { // Never
@@ -510,8 +520,8 @@ void Decoder::ParseNextInstruction() {
             const bool not_ = GET_BIT(19);
             COMMENT("if {}{}", not_ ? "!" : "", pred);
 
-            SetReturnSyncPoint(target, crnt_block->return_sync_point);
-            SetReturnSyncPoint(pc + 1, crnt_block->return_sync_point);
+            InheritSyncPoints(target);
+            InheritSyncPoints(pc + 1);
             BUILDER.OpBranchConditional(
                 NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
             EndBlock();

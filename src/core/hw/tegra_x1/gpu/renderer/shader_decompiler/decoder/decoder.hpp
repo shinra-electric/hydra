@@ -15,7 +15,7 @@ enum class BlockStatus {
 
 struct Block {
     BlockStatus status{BlockStatus::Unvisited};
-    label_t return_sync_point{invalid<label_t>()};
+    std::stack<label_t> sync_point_stack;
 };
 
 struct DecoderContext {
@@ -54,8 +54,9 @@ class Decoder {
             const auto label = to_visit_queue.front();
             to_visit_queue.pop();
 
-            crnt_block = &blocks[label];
-            if (crnt_block->status == BlockStatus::Unvisited) {
+            auto block = &blocks[label];
+            if (block->status == BlockStatus::Unvisited) {
+                crnt_block = block;
                 context.builder.SetInsertBlock(label);
                 Jump(label);
                 break;
@@ -71,19 +72,14 @@ class Decoder {
         return block;
     }
 
-    void SetReturnSyncPoint(label_t label,
-                            label_t return_sync_point = invalid<label_t>()) {
+    void PushSyncPoint(label_t sync_point) {
+        crnt_block->sync_point_stack.push(sync_point);
+    }
+
+    void InheritSyncPoints(label_t label) {
         auto& block = EnsureBlock(label);
-        if (return_sync_point != invalid<label_t>()) {
-            if (block.return_sync_point == invalid<label_t>()) {
-                block.return_sync_point = return_sync_point;
-            } else {
-                ASSERT_DEBUG(block.return_sync_point == return_sync_point,
-                             ShaderDecompiler,
-                             "Sync points for block {} don't match ({} != {})",
-                             label, block.return_sync_point, return_sync_point);
-            }
-        }
+        // TODO: if the block already has sync points, make sure they match
+        block.sync_point_stack = crnt_block->sync_point_stack;
     }
 };
 
