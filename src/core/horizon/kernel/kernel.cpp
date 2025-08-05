@@ -675,70 +675,62 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
               "{})",
               sync_objs.size(), timeout);
 
-    if (sync_objs.empty()) {
-        // TODO: allow waiting forever
-        ASSERT_DEBUG(timeout != INFINITE_TIMEOUT, Kernel,
-                     "Infinite timeout not implemented");
-        std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
-        return MAKE_RESULT(Svc, Error::TimedOut);
-    } else {
-        for (u32 i = 0; i < sync_objs.size(); i++) {
-            if (!sync_objs[i]) {
-                LOG_WARN(Kernel, "Invalid sync object");
-                // HACK: Celeste gets stuck in an infinite WaitSynchronization
-                // loop if an error is returned
-                return RESULT_SUCCESS; // MAKE_RESULT(Svc,
-                                       // Error::InvalidHandle);
-            }
+    for (u32 i = 0; i < sync_objs.size(); i++) {
+        if (!sync_objs[i]) {
+            LOG_WARN(Kernel, "Invalid sync object");
+            // HACK: Celeste gets stuck in an infinite WaitSynchronization
+            // loop if an error is returned
+            return RESULT_SUCCESS; // MAKE_RESULT(Svc,
+                                   // Error::InvalidHandle);
         }
+    }
 
-        crnt_thread->Pause();
+    crnt_thread->Pause();
 
-        // Add waiting thread
-        for (u32 i = 0; i < sync_objs.size(); i++) {
-            // LOG_DEBUG(Kernel, "Synchronizing with {}",
-            //           sync_objs[i]->GetDebugName());
+    // Add waiting thread
+    for (u32 i = 0; i < sync_objs.size(); i++) {
+        // LOG_DEBUG(Kernel, "Synchronizing with {}",
+        //           sync_objs[i]->GetDebugName());
 
-            sync_objs[i]->AddWaitingThread(crnt_thread);
-        }
+        sync_objs[i]->AddWaitingThread(crnt_thread);
+    }
 
-        const auto action = crnt_thread->ProcessMessages(timeout);
+    const auto action = crnt_thread->ProcessMessages(timeout);
 
-        // Remove waiting thread
-        for (u32 i = 0; i < sync_objs.size(); i++) {
-            sync_objs[i]->RemoveWaitingThread(crnt_thread);
-        }
+    // Remove waiting thread
+    for (u32 i = 0; i < sync_objs.size(); i++) {
+        sync_objs[i]->RemoveWaitingThread(crnt_thread);
+    }
 
-        // Process the action
-        switch (action.type) {
-        case ThreadActionType::Stop:
-            return RESULT_SUCCESS;
-        case ThreadActionType::Resume: {
-            switch (action.payload.resume.reason) {
-            case ThreadResumeReason::Signalled: {
-                const auto signalled_obj = action.payload.resume.signalled_obj;
+    // Process the action
+    switch (action.type) {
+    case ThreadActionType::Stop:
+        return RESULT_SUCCESS;
+    case ThreadActionType::Resume: {
+        switch (action.payload.resume.reason) {
+        case ThreadResumeReason::Signalled: {
+            const auto signalled_obj = action.payload.resume.signalled_obj;
 
-                // Find the handle index
-                out_signalled_index = -1;
-                for (u32 i = 0; i < sync_objs.size(); i++) {
-                    if (sync_objs[i] == signalled_obj) {
-                        out_signalled_index = i;
-                        break;
-                    }
+            // Find the handle index
+            out_signalled_index = -1;
+            for (u32 i = 0; i < sync_objs.size(); i++) {
+                if (sync_objs[i] == signalled_obj) {
+                    out_signalled_index = i;
+                    break;
                 }
+            }
 
-                return RESULT_SUCCESS;
-            }
-            case ThreadResumeReason::TimedOut:
-                return MAKE_RESULT(Svc, Error::TimedOut);
-            case ThreadResumeReason::Cancelled:
-                return MAKE_RESULT(Svc, Error::Cancelled);
-            }
+            return RESULT_SUCCESS;
         }
-        default:
-            LOG_FATAL(Kernel, "Thread not resumed properly");
-            unreachable();
+        case ThreadResumeReason::TimedOut:
+            return MAKE_RESULT(Svc, Error::TimedOut);
+        case ThreadResumeReason::Cancelled:
+            return MAKE_RESULT(Svc, Error::Cancelled);
         }
+    }
+    default:
+        LOG_FATAL(Kernel, "Thread not resumed properly");
+        unreachable();
     }
 }
 
