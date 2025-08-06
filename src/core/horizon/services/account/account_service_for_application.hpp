@@ -17,6 +17,7 @@ class IAccountServiceForApplication : public IAccountService {
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV0);
     result_t GetBaasAccountManagerForApplication(RequestContext* ctx,
                                                  uuid_t user_id);
+    STUB_REQUEST_COMMAND(StoreSaveDataThumbnail);
     STUB_REQUEST_COMMAND(InitializeApplicationInfo);
     STUB_REQUEST_COMMAND(IsUserAccountSwitchLocked);
     STUB_REQUEST_COMMAND(InitializeApplicationInfoV2);

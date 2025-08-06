@@ -79,6 +79,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeSingleByDefault);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
+    STUB_REQUEST_COMMAND(SwapNpadAssignment);
     result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,
                                     VibrationDeviceInfo* info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
