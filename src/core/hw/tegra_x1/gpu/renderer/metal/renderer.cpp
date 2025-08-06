@@ -706,6 +706,7 @@ void Renderer::SetTexture(ShaderType shader_type, u32 index) {
         SetSampler(texture.sampler->GetSampler(), shader_type, index);
 }
 
+// TODO: what about 3D textures?
 void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
                            const usize3 src_size, MTL::Texture* dst,
                            const u32 dst_layer, const float3 dst_origin,
@@ -726,19 +727,17 @@ void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
     // Draw
     encoder->setRenderPipelineState(
         blit_pipeline_cache->Find({src->pixelFormat(), false}));
-    // TODO: viewport
+    encoder->setViewport(MTL::Viewport(f64(dst_origin.x()), f64(dst_origin.y()),
+                                       f64(dst_size.x()), f64(dst_size.y()),
+                                       0.0, 1.0));
     encoder->setVertexBytes(&dst_layer, sizeof(dst_layer), 0);
     // TODO: correct?
-    float2 scale = (float2(src_size) / float2(dst_size)) *
-                   (float2({static_cast<f32>(dst->width()),
-                            static_cast<f32>(dst->height())}) /
-                    float2({static_cast<f32>(src->width()),
-                            static_cast<f32>(src->height())}));
+    float2 scale =
+        (float2(src_size) / float2({static_cast<f32>(src->width()),
+                                    static_cast<f32>(src->height())}));
     BlitParams params = {
-        .src_offset = {static_cast<f32>(src_origin.x()) /
-                           static_cast<f32>(src_size.x()),
-                       static_cast<f32>(src_origin.y()) /
-                           static_cast<f32>(src_size.y())},
+        .src_offset = {f32(src_origin.x()) / f32(src_size.x()),
+                       f32(src_origin.y()) / f32(src_size.y())},
         .src_scale = scale,
     };
     encoder->setFragmentBytes(&params, sizeof(params), 0);

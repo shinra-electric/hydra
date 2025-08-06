@@ -20,20 +20,35 @@ struct Texture2DInfo {
     Iova addr;
 };
 
-struct SplitFloat {
+struct FixedPoint {
     u32 fractional;
     u32 integer;
+
+    explicit operator f64() const {
+        return f64(integer) + f64(fractional) / f64(1llu << 32llu);
+    }
 };
+
+// TODO: operate directly on FixedPoint instead of casting to f64?
+/*
+inline FixedPoint operator*(const FixedPoint& a, const FixedPoint& b) {
+    return FixedPoint{a.fractional * b.fractional, a.integer * b.integer};
+}
+
+inline FixedPoint operator/(const FixedPoint& a, const FixedPoint& b) {
+    return FixedPoint{a.fractional / b.fractional, a.integer / b.integer};
+}
+*/
 
 struct PixelsFromMemory {
     u32 dst_x0;
     u32 dst_y0;
     u32 dst_width;
     u32 dst_height;
-    SplitFloat dudx;
-    SplitFloat dvdy;
-    SplitFloat src_x0;
-    SplitFloat src_y0;
+    FixedPoint dudx;
+    FixedPoint dvdy;
+    FixedPoint src_x0;
+    FixedPoint src_y0;
 };
 
 struct Regs2D {
