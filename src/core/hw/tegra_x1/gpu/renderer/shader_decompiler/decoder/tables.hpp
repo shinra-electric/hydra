@@ -113,4 +113,15 @@ DEFINE_OPERAND_TABLE(ef10_0, ShuffleMode, 0x00000000c0000000,
                      0x0000000000000000, Index, 0x0000000040000000, Up,
                      0x0000000080000000, Down, 0x00000000c0000000, Bfly)
 
+DEFINE_OPERAND_TABLE(d200_2_ff, ComponentMask, 0x001c000ff0000000,
+                     0x0000000ff0000000, R, 0x0004000ff0000000, G,
+                     0x0008000ff0000000, B, 0x000c000ff0000000, A,
+                     0x0010000ff0000000, RG, 0x0014000ff0000000, RA,
+                     0x0018000ff0000000, GA, 0x001c000ff0000000, BA)
+
+DEFINE_OPERAND_TABLE(d200_2_00, ComponentMask, 0x001c000000000000,
+                     0x0000000000000000, RGB, 0x0004000000000000, RGA,
+                     0x0008000000000000, RBA, 0x000c000000000000, GBA,
+                     0x0010000000000000, RGBA)
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

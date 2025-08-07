@@ -692,9 +692,11 @@ void Decoder::ParseNextInstruction() {
         const auto coords_y = GET_REG(20);
         const auto const_buffer_index = GET_VALUE_U32(36, 13);
         // TODO: texture type
-        // TODO: component swizzle?
-        COMMENT("texs {} {} {} {} 0x{:08x}", dst1, dst0, coords_x, coords_y,
-                const_buffer_index);
+        auto component_mask = get_operand_d200_2_ff(inst);
+        if (component_mask == ComponentMask::Invalid)
+            component_mask = get_operand_d200_2_00(inst);
+        COMMENT("texs {} {} {} {} 0x{:08x} {}", dst1, dst0, coords_x, coords_y,
+                const_buffer_index, component_mask);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -702,14 +704,79 @@ void Decoder::ParseNextInstruction() {
             DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
                             ir::Value::Register(coords_y, DataType::F32)});
         auto res_v = BUILDER.OpTextureSample(const_buffer_index, coords_v);
-        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 0));
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 1));
-        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 2));
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 3));
+
+#define C(i) BUILDER.OpVectorExtract(res_v, i)
+
+        const auto zero =
+            ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32);
+        ir::Value c[4] = {zero, zero, zero, zero};
+
+        switch (component_mask) {
+        case ComponentMask::R:
+            c[0] = C(0);
+            break;
+        case ComponentMask::G:
+            c[0] = C(1);
+            break;
+        case ComponentMask::B:
+            c[0] = C(2);
+            break;
+        case ComponentMask::A:
+            c[0] = C(3);
+            break;
+        case ComponentMask::RG:
+            c[0] = C(0);
+            c[1] = C(1);
+            break;
+        case ComponentMask::RA:
+            c[0] = C(0);
+            c[1] = C(3);
+            break;
+        case ComponentMask::GA:
+            c[0] = C(1);
+            c[1] = C(3);
+            break;
+        case ComponentMask::BA:
+            c[0] = C(2);
+            c[1] = C(3);
+            break;
+        case ComponentMask::RGB:
+            c[0] = C(0);
+            c[1] = C(1);
+            c[2] = C(2);
+            break;
+        case ComponentMask::RGA:
+            c[0] = C(0);
+            c[1] = C(1);
+            c[2] = C(3);
+            break;
+        case ComponentMask::RBA:
+            c[0] = C(0);
+            c[1] = C(2);
+            c[2] = C(3);
+            break;
+        case ComponentMask::GBA:
+            c[0] = C(1);
+            c[1] = C(2);
+            c[2] = C(3);
+            break;
+        case ComponentMask::RGBA:
+            c[0] = C(0);
+            c[1] = C(1);
+            c[2] = C(2);
+            c[3] = C(3);
+            break;
+        default:
+            LOG_ERROR(ShaderDecompiler, "Invalid component mask");
+            break;
+        }
+
+        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32), c[0]);
+        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32), c[1]);
+        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32), c[2]);
+        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32), c[3]);
+
+#undef C
 
         HANDLE_PRED_COND_END();
     }

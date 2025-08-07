@@ -193,6 +193,24 @@ enum class PredOp {
     NotZero,
 };
 
+enum class ComponentMask {
+    Invalid,
+
+    R,
+    G,
+    B,
+    A,
+    RG,
+    RA,
+    GA,
+    BA,
+    RGB,
+    RGA,
+    RBA,
+    GBA,
+    RGBA,
+};
+
 enum class IpaOp {
     Invalid,
 
@@ -345,6 +363,11 @@ ENABLE_ENUM_FORMATTING(
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::PredOp, Invalid,
     "invalid", False, "false", True, "true", Zero, "zero", NotZero, "not zero")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComponentMask, Invalid,
+    "invalid", R, "r", G, "g", B, "b", A, "a", RG, "rg", RA, "ra", GA, "ga", BA,
+    "ba", RGB, "rgb", RGA, "rga", RBA, "rba", GBA, "gba", RGBA, "rgba")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",
