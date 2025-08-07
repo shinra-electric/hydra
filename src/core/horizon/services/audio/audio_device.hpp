@@ -23,6 +23,9 @@ class IAudioDevice : public IService {
     SetAudioDeviceOutputVolume(f32 volume,
                                InBuffer<BufferAttr::MapAlias> in_name_buffer);
     result_t
+    GetAudioDeviceOutputVolume(InBuffer<BufferAttr::MapAlias> in_name_buffer,
+                               f32* out_volume);
+    result_t
     GetActiveAudioDeviceName(OutBuffer<BufferAttr::MapAlias> out_buffer);
     // TODO: takes a name?
     // TODO: check handle attrs
@@ -36,12 +39,16 @@ class IAudioDevice : public IService {
                             OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t SetAudioDeviceOutputVolumeAuto(
         f32 volume, InBuffer<BufferAttr::AutoSelect> in_name_buffer);
+    result_t GetAudioDeviceOutputVolumeAuto(
+        InBuffer<BufferAttr::AutoSelect> in_name_buffer, f32* out_volume);
     result_t
     GetActiveAudioDeviceNameAuto(OutBuffer<BufferAttr::AutoSelect> out_buffer);
 
     // Impl
     result_t ListAudioDeviceNameImpl(i32* out_count, Writer& out_writer);
     result_t SetAudioDeviceOutputVolumeImpl(f32 volume, Reader& in_name_reader);
+    result_t GetAudioDeviceOutputVolumeImpl(Reader& in_name_reader,
+                                            f32* out_volume);
     result_t GetActiveAudioDeviceNameImpl(Writer& out_writer);
 };
 

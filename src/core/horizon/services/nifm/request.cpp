@@ -6,7 +6,8 @@ namespace hydra::horizon::services::nifm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, GetRequestState, 1, GetResult, 2,
                              GetSystemEventReadableHandles, 3, Cancel, 4,
-                             Submit, 6, SetRequirementPreset)
+                             Submit, 6, SetRequirementPreset, 11,
+                             SetConnectionConfirmationOption)
 
 IRequest::IRequest()
     : events{new kernel::Event(false, "IRequest system event 0"),
@@ -26,6 +27,15 @@ result_t IRequest::GetSystemEventReadableHandles(
     OutHandle<HandleAttr::Copy> out_handle1) {
     out_handle0 = process->AddHandle(events[0]);
     out_handle1 = process->AddHandle(events[1]);
+    return RESULT_SUCCESS;
+}
+
+result_t
+IRequest::SetConnectionConfirmationOption(ConnectionConfirmationOption option) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Option: {}", option);
+
     return RESULT_SUCCESS;
 }
 

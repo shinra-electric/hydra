@@ -13,6 +13,15 @@ enum class RequestState {
     Blocking = 4,
 };
 
+enum class ConnectionConfirmationOption : u32 {
+    Invalid = 0,
+    Prohibited = 1,
+    NotRequired = 2,
+    Preferred = 3,
+    Required = 4,
+    Forced = 5,
+};
+
 class IRequest : public IService {
   public:
     IRequest();
@@ -33,6 +42,13 @@ class IRequest : public IService {
     STUB_REQUEST_COMMAND(Cancel);
     STUB_REQUEST_COMMAND(Submit);
     STUB_REQUEST_COMMAND(SetRequirementPreset);
+    result_t
+    SetConnectionConfirmationOption(ConnectionConfirmationOption option);
 };
 
 } // namespace hydra::horizon::services::nifm
+
+ENABLE_ENUM_FORMATTING(
+    hydra::horizon::services::nifm::ConnectionConfirmationOption, Invalid,
+    "invalid", Prohibited, "prohibited", NotRequired, "not_required", Preferred,
+    "preferred", Required, "required", Forced, "forced")

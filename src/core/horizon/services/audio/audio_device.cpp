@@ -12,13 +12,12 @@ struct DeviceName {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioDevice, 0, ListAudioDeviceName, 1,
-                             SetAudioDeviceOutputVolume, 3,
-                             GetActiveAudioDeviceName, 4,
-                             QueryAudioDeviceSystemEvent, 5,
-                             GetActiveChannelCount, 6, ListAudioDeviceNameAuto,
-                             7, SetAudioDeviceOutputVolumeAuto, 10,
-                             GetActiveAudioDeviceNameAuto)
+DEFINE_SERVICE_COMMAND_TABLE(
+    IAudioDevice, 0, ListAudioDeviceName, 1, SetAudioDeviceOutputVolume, 2,
+    GetAudioDeviceOutputVolume, 3, GetActiveAudioDeviceName, 4,
+    QueryAudioDeviceSystemEvent, 5, GetActiveChannelCount, 6,
+    ListAudioDeviceNameAuto, 7, SetAudioDeviceOutputVolumeAuto, 8,
+    GetAudioDeviceOutputVolumeAuto, 10, GetActiveAudioDeviceNameAuto)
 
 result_t
 IAudioDevice::ListAudioDeviceName(i32* out_count,
@@ -29,6 +28,11 @@ IAudioDevice::ListAudioDeviceName(i32* out_count,
 result_t IAudioDevice::SetAudioDeviceOutputVolume(
     f32 volume, InBuffer<BufferAttr::MapAlias> in_name_buffer) {
     return SetAudioDeviceOutputVolumeImpl(volume, *in_name_buffer.reader);
+}
+
+result_t IAudioDevice::GetAudioDeviceOutputVolume(
+    InBuffer<BufferAttr::MapAlias> in_name_buffer, f32* out_volume) {
+    return GetAudioDeviceOutputVolumeImpl(*in_name_buffer.reader, out_volume);
 }
 
 result_t IAudioDevice::GetActiveAudioDeviceName(
@@ -63,6 +67,11 @@ result_t IAudioDevice::SetAudioDeviceOutputVolumeAuto(
     return SetAudioDeviceOutputVolumeImpl(volume, *in_name_buffer.reader);
 }
 
+result_t IAudioDevice::GetAudioDeviceOutputVolumeAuto(
+    InBuffer<BufferAttr::AutoSelect> in_name_buffer, f32* out_volume) {
+    return GetAudioDeviceOutputVolumeImpl(*in_name_buffer.reader, out_volume);
+}
+
 result_t IAudioDevice::GetActiveAudioDeviceNameAuto(
     OutBuffer<BufferAttr::AutoSelect> out_buffer) {
     return GetActiveAudioDeviceNameImpl(*out_buffer.writer);
@@ -86,6 +95,19 @@ result_t IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
     const std::string device_name(device_name_raw->name);
     LOG_DEBUG(Services, "Name: {}, volume: {}", device_name, volume);
 
+    return RESULT_SUCCESS;
+}
+
+result_t IAudioDevice::GetAudioDeviceOutputVolumeImpl(Reader& in_name_reader,
+                                                      f32* out_volume) {
+    LOG_FUNC_STUBBED(Services);
+
+    const auto device_name_raw = in_name_reader.ReadPtr<DeviceName>();
+    const std::string device_name(device_name_raw->name);
+    LOG_DEBUG(Services, "Name: {}", device_name);
+
+    // HACK
+    *out_volume = 1.0f;
     return RESULT_SUCCESS;
 }
 
