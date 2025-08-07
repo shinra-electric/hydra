@@ -17,9 +17,11 @@ class Layer {
     void Open() {}
     void Close() {}
 
-    bool
-    AcquirePresentTexture(std::vector<std::chrono::nanoseconds>& out_dt_list);
+    bool AcquirePresentTexture();
     void Present(u32 width, u32 height);
+
+    // Time
+    AccumulatedTime GetAccumulatedDT();
 
   private:
     u32 binder_id;

@@ -13,8 +13,7 @@ class Display {
     void Open() {}
     void Close() {}
 
-    bool
-    AcquirePresentTextures(std::vector<std::chrono::nanoseconds>& out_dt_list);
+    bool AcquirePresentTextures();
     void Present(u32 width, u32 height);
 
     // Layers
@@ -35,6 +34,9 @@ class Display {
         std::lock_guard lock(mutex);
         return *layer_pool.Get(id);
     }
+
+    // Time
+    AccumulatedTime GetAccumulatedDTForMainLayer();
 
   private:
     std::mutex mutex;

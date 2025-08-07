@@ -78,6 +78,31 @@ struct BqBufferOutput {
 
 constexpr usize MAX_BINDER_BUFFER_COUNT = 8; // TODO: what should this be?
 
+struct AccumulatedTime {
+    std::chrono::nanoseconds value{0ns};
+    u32 sample_count{0};
+
+    explicit operator bool() const { return sample_count != 0; }
+
+    explicit operator f32() const {
+        return f32(std::chrono::duration_cast<std::chrono::duration<f32>>(value)
+                       .count()) /
+               f32(sample_count);
+    }
+
+    AccumulatedTime& operator+=(const std::chrono::nanoseconds other) {
+        value += other;
+        sample_count += 1;
+        return *this;
+    }
+
+    AccumulatedTime& operator+=(const AccumulatedTime& other) {
+        value += other.value;
+        sample_count += other.sample_count;
+        return *this;
+    }
+};
+
 struct Binder {
     using clock_t = std::chrono::steady_clock;
 
@@ -92,23 +117,24 @@ struct Binder {
     void AddBuffer(i32 slot, const GraphicBuffer& buff);
     i32 GetAvailableSlot();
     void QueueBuffer(i32 slot, const BqBufferInput& input);
-    i32 ConsumeBuffer(BqBufferInput& out_input,
-                      std::vector<std::chrono::nanoseconds>& out_dt_list);
+    i32 ConsumeBuffer(BqBufferInput& out_input);
     void UnqueueAllBuffers();
 
-    // Getters
     const GraphicBuffer& GetBuffer(i32 slot) {
         std::lock_guard lock(queue_mutex);
         return buffers[slot].buffer;
     }
 
-    kernel::Event* GetEvent() const { return event; }
+    AccumulatedTime GetAccumulatedDT() {
+        const auto tmp = accumulated_dt;
+        accumulated_dt = {};
+        return tmp;
+    }
 
   private:
     kernel::Event* event;
 
-    Buffer buffers[MAX_BINDER_BUFFER_COUNT]; // TODO: what should be the
-                                             // max number of buffers?
+    Buffer buffers[MAX_BINDER_BUFFER_COUNT];
     u32 buffer_count = 0;
     std::queue<std::pair<i32, BqBufferInput>> queued_buffers;
     std::mutex queue_mutex;
@@ -116,7 +142,10 @@ struct Binder {
 
     // Time
     clock_t::time_point last_queue_time{clock_t::now()};
-    std::vector<std::chrono::nanoseconds> dt_queue{};
+    AccumulatedTime accumulated_dt;
+
+  public:
+    GETTER(event, GetEvent);
 };
 
 } // namespace hydra::horizon::display

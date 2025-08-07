@@ -47,14 +47,13 @@ void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
 
     // Time
     const auto now = clock_t::now();
-    dt_queue.push_back(now - last_queue_time);
+    accumulated_dt += now - last_queue_time;
     last_queue_time = now;
 
     queue_cv.notify_all();
 }
 
-i32 Binder::ConsumeBuffer(BqBufferInput& out_input,
-                          std::vector<std::chrono::nanoseconds>& out_dt_list) {
+i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
     // Wait for a buffer to become available
     std::unique_lock<std::mutex> lock(queue_mutex);
     // TODO: should we wait?
@@ -70,10 +69,6 @@ i32 Binder::ConsumeBuffer(BqBufferInput& out_input,
     buffers[slot].queued = false;
 
     out_input = input;
-
-    // Time
-    out_dt_list = dt_queue;
-    dt_queue.clear();
 
     queue_cv.notify_all();
 

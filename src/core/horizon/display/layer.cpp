@@ -7,12 +7,11 @@
 
 namespace hydra::horizon::display {
 
-bool Layer::AcquirePresentTexture(
-    std::vector<std::chrono::nanoseconds>& out_dt_list) {
+bool Layer::AcquirePresentTexture() {
     // Get the buffer to present
     auto& binder = OS_INSTANCE.GetDisplayDriver().GetBinder(binder_id);
 
-    i32 slot = binder.ConsumeBuffer(input, out_dt_list);
+    i32 slot = binder.ConsumeBuffer(input);
     if (slot == -1)
         return false;
     const auto& buffer = binder.GetBuffer(slot);
@@ -78,6 +77,12 @@ void Layer::Present(u32 width, u32 height) {
 
     // Draw
     RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);
+}
+
+AccumulatedTime Layer::GetAccumulatedDT() {
+    return OS_INSTANCE.GetDisplayDriver()
+        .GetBinder(binder_id)
+        .GetAccumulatedDT();
 }
 
 } // namespace hydra::horizon::display

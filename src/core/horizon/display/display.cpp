@@ -2,15 +2,15 @@
 
 namespace hydra::horizon::display {
 
-bool Display::AcquirePresentTextures(
-    std::vector<std::chrono::nanoseconds>& out_dt_list) {
+bool Display::AcquirePresentTextures() {
     std::lock_guard lock(mutex);
     bool acquired = false;
-    for (u32 id = 1; id < layer_pool.GetCapacity() + 1; id++) {
-        if (!layer_pool.IsValid(id))
+    for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
+         layer_id++) {
+        if (!layer_pool.IsValid(layer_id))
             continue;
         acquired =
-            acquired || layer_pool.Get(id)->AcquirePresentTexture(out_dt_list);
+            acquired || layer_pool.Get(layer_id)->AcquirePresentTexture();
     }
 
     return acquired;
@@ -23,12 +23,22 @@ void Display::Present(u32 width, u32 height) {
     // Layers
     {
         std::lock_guard lock(mutex);
-        for (u32 id = 1; id < layer_pool.GetCapacity() + 1; id++) {
-            if (!layer_pool.IsValid(id))
+        for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
+             layer_id++) {
+            if (!layer_pool.IsValid(layer_id))
                 continue;
-            layer_pool.Get(id)->Present(width, height);
+            layer_pool.Get(layer_id)->Present(width, height);
         }
     }
+}
+
+AccumulatedTime Display::GetAccumulatedDTForMainLayer() {
+    // TODO: get the main layer for the main process
+    const auto layer_id = 1;
+    if (!layer_pool.IsValid(layer_id))
+        return {};
+
+    return layer_pool.Get(layer_id)->GetAccumulatedDT();
 }
 
 } // namespace hydra::horizon::display

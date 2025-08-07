@@ -21,8 +21,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
-using namespace std::chrono_literals;
-
 namespace hydra {
 
 namespace {
@@ -397,13 +395,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     renderer.LockMutex();
 
     // Acquire present textures
-    // TODO: don't hardcode the display id
+    // TODO: don't hardcode the display ID
     auto& display = os->GetDisplayDriver().GetDisplay(1);
-    // TODO: different layers can be presented at different intervals (if at
-    // all). Perhaps layers could have processes associated with them and only
-    // the original processes's dt would be queried?
-    std::vector<std::chrono::nanoseconds> dt_list;
-    bool acquired = display.AcquirePresentTextures(dt_list);
+
+    // DT
+    accumulated_dt += display.GetAccumulatedDTForMainLayer();
+
+    bool acquired = display.AcquirePresentTextures();
     // HACK: return if no textures are available
     if (!acquired) {
         renderer.UnlockMutex();
@@ -480,24 +478,14 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     if (!loading) {
         // Delta time
-        for (const auto dt : dt_list) {
-            accumulated_dt += dt;
-            dt_sample_count++;
-        }
-
         const auto now = clock_t::now();
         const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
         if (time_since_last_dt_averaging > 1s) {
-            if (dt_sample_count != 0)
-                last_dt_average =
-                    (f32)std::chrono::duration_cast<std::chrono::duration<f32>>(
-                        accumulated_dt)
-                        .count() /
-                    (f32)dt_sample_count;
+            if (bool(accumulated_dt))
+                last_dt_average = f32(accumulated_dt);
             else
                 last_dt_average = 0.f;
-            accumulated_dt = 0ns;
-            dt_sample_count = 0;
+            accumulated_dt = {};
             last_dt_averaging_time = now;
 
             out_dt_average_updated = true;

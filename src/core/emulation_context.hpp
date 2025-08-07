@@ -51,8 +51,7 @@ class EmulationContext {
 
     // Delta time
     f32 last_dt_average{0.0f};
-    std::chrono::nanoseconds accumulated_dt{0};
-    u32 dt_sample_count{0};
+    horizon::display::AccumulatedTime accumulated_dt;
     clock_t::time_point last_dt_averaging_time{clock_t::now()};
 
     // Helpers
