@@ -18,7 +18,7 @@ DEFINE_SERVICE_COMMAND_TABLE(
     128, SetNpadHandheldActivationMode, 130, SwapNpadAssignment, 200,
     GetVibrationDeviceInfo, 201, SendVibrationValue, 203,
     CreateActiveVibrationDeviceList, 206, SendVibrationValues, 303,
-    ActivateSevenSixAxisSensor)
+    ActivateSevenSixAxisSensor, 1000, SetNpadCommunicationMode)
 
 result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
     AddService(*ctx, new IAppletResource());

@@ -27,15 +27,13 @@ IApplicationFunctions::PopLaunchParameter(kernel::Process* process,
 }
 
 result_t IApplicationFunctions::EnsureSaveData(uuid_t user_id,
-                                               u64* out_unknown) {
+                                               u64* out_required_size) {
     LOG_DEBUG(Services, "User ID: 0x{:016x}", user_id);
 
     LOG_FUNC_STUBBED(Services);
 
-    // HACK
-    // NOTE: writing anything other than 0x0 causes the game to launch the
-    // dataErase LibraryApplet
-    *out_unknown = 0x0;
+    // TODO: check if there is enough space for the save data
+    *out_required_size = 0x0;
     return RESULT_SUCCESS;
 }
 

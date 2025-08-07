@@ -25,7 +25,7 @@ class IApplicationFunctions : public IService {
     // Commands
     result_t PopLaunchParameter(kernel::Process* process, RequestContext* ctx,
                                 kernel::LaunchParameterKind kind);
-    result_t EnsureSaveData(uuid_t user_id, u64* out_unknown);
+    result_t EnsureSaveData(uuid_t user_id, u64* out_required_size);
     result_t GetDesiredLanguage(LanguageCode* out_language_code);
     result_t SetTerminateResult(result_t result);
     result_t GetDisplayVersion(DisplayVersion* out_version);

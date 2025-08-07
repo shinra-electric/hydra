@@ -86,6 +86,7 @@ class IHidServer : public IService {
     result_t CreateActiveVibrationDeviceList(RequestContext* ctx);
     STUB_REQUEST_COMMAND(SendVibrationValues);
     STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
+    STUB_REQUEST_COMMAND(SetNpadCommunicationMode);
 };
 
 } // namespace hydra::horizon::services::hid
