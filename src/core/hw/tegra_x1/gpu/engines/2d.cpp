@@ -24,9 +24,9 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
     usize src_width = pixels.dst_width * dudx;
     usize src_height = pixels.dst_height * dvdy;
 
-    // TODO: src origin
-    dst->BlitFrom(src, regs.src.layer, {0, 0, 0}, {src_width, src_height, 1},
-                  regs.dst.layer, {f32(pixels.dst_x0), f32(pixels.dst_y0), 0},
+    dst->BlitFrom(src, regs.src.layer, {f32(src_x0), f32(src_y0), 0},
+                  {src_width, src_height, 1}, regs.dst.layer,
+                  {f32(pixels.dst_x0), f32(pixels.dst_y0), 0},
                   {pixels.dst_width, pixels.dst_height, 1});
 }
 
