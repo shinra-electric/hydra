@@ -5,6 +5,9 @@ namespace hydra::horizon::services::account {
 
 class IAccountServiceForSystemService : public IAccountService {
   public:
+    IAccountServiceForSystemService()
+        : IAccountService(AccountServiceType::SystemService) {}
+
     // HACK
     usize GetPointerBufferSize() override { return 0x1000; }
 

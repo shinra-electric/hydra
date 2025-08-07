@@ -64,4 +64,10 @@ result_t IAccountService::GetProfile(RequestContext* ctx, uuid_t user_id) {
     return RESULT_SUCCESS;
 }
 
+result_t
+IAccountService::IsUserRegistrationRequestPermitted(bool* out_permitted) {
+    *out_permitted = (type != AccountServiceType::Application);
+    return RESULT_SUCCESS;
+}
+
 } // namespace hydra::horizon::services::account
