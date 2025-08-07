@@ -6,7 +6,8 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 DEFINE_IOCTL_TABLE(NvHostCtrl,
                    DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrl, 0x00, 0x1b, GetConfig,
-                                            0x1d, SyncptWaitEvent, 0x1f,
+                                            0x1d, SyncptWaitEvent, 0x1e,
+                                            SyncptWaitEventEx, 0x1f,
                                             SyncptAllocEvent, 0x20,
                                             SyncptFreeEvent))
 
@@ -41,12 +42,21 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout,
+NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32 timeout,
                                      u32* out_value) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_value = 0;
+    return NvResult::Success;
+}
+
+NvResult NvHostCtrl::SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
+                                       InOutSingle<u32> out_value) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    out_value = 0;
     return NvResult::Success;
 }
 

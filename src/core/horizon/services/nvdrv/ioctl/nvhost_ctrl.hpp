@@ -12,8 +12,9 @@ class NvHostCtrl : public FdBase {
     // Ioctls
     NvResult GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key,
                        std::array<u8, 0x101>* out_value);
-    NvResult SyncptWaitEvent(u32 id, u32 tresh, i32* out_timeout,
-                             u32* out_value);
+    NvResult SyncptWaitEvent(u32 id, u32 tresh, i32 timeout, u32* out_value);
+    NvResult SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
+                               InOutSingle<u32> out_value);
     NvResult SyncptAllocEvent(u32 slot);
     NvResult SyncptFreeEvent(u32 slot);
 };
