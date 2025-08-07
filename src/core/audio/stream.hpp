@@ -22,6 +22,8 @@ class IStream {
 
     virtual void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) = 0;
 
+    StreamState GetState() const { return state; }
+
   protected:
     PcmFormat format;
     u32 sample_rate;

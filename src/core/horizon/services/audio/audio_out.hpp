@@ -33,6 +33,7 @@ class IAudioOut : public IService {
     std::vector<vaddr_t> released_buffers;
 
     // Commands
+    result_t GetAudioOutState(AudioOutState* out_state);
     result_t Start();
     result_t Stop();
     result_t AppendAudioOutBuffer(kernel::Process* process,

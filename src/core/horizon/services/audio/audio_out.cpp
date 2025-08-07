@@ -6,8 +6,8 @@
 
 namespace hydra::horizon::services::audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 1, Start, 2, Stop, 3,
-                             AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
+DEFINE_SERVICE_COMMAND_TABLE(IAudioOut, 0, GetAudioOutState, 1, Start, 2, Stop,
+                             3, AppendAudioOutBuffer, 4, RegisterBufferEvent, 5,
                              GetReleasedAudioOutBuffers, 7,
                              AppendAudioOutBufferAuto, 8,
                              GetReleasedAudioOutBuffersAuto)
@@ -24,6 +24,13 @@ IAudioOut::IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count)
             // Signal event
             buffer_event->Signal();
         });
+}
+
+result_t IAudioOut::GetAudioOutState(AudioOutState* out_state) {
+    *out_state =
+        (stream->GetState() == StreamState::Started ? AudioOutState::Started
+                                                    : AudioOutState::Stopped);
+    return RESULT_SUCCESS;
 }
 
 result_t IAudioOut::Start() {
