@@ -434,6 +434,15 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
         // TODO: correct?
         dst.originY += dst.height;
         dst.height = -dst.height;
+
+        // HACK: if depth range is [0, 0], force it to [0, 1] (Antiquia Lost has
+        // it like this, tho not on Ryujinx)
+        if (dst.znear == 0.0 && dst.zfar == 0.0) {
+            ONCE(LOG_WARN(MetalRenderer,
+                          "Depth range is [0, 0], forcing to [0, 1]"));
+            dst.znear = 0.0;
+            dst.zfar = 1.0;
+        }
     }
     encoder->setViewports(viewports, sizeof_array(viewports));
 

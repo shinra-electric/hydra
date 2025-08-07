@@ -253,8 +253,8 @@ struct Regs3D {
             i16 y;
             i16 height;
         } vertical;
-        float near;
-        float far;
+        f32 near;
+        f32 far;
     } viewports[VIEWPORT_COUNT];
 
     // 0x340 Window rectangle
@@ -281,7 +281,7 @@ struct Regs3D {
 
     // 0x360 Clear data
     uint4 clear_color;
-    float clear_depth;
+    f32 clear_depth;
 
     u32 padding_0x365[0x2];
 
