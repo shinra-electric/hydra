@@ -297,6 +297,8 @@ add_library(hydra-core
     horizon/services/friends/service_creator.hpp
     horizon/services/friends/friend_service.cpp
     horizon/services/friends/friend_service.hpp
+    horizon/services/friends/notification_service.cpp
+    horizon/services/friends/notification_service.hpp
     horizon/services/ts/measurement_server.cpp
     horizon/services/ts/measurement_server.hpp
     horizon/services/nfc/nfc.cpp

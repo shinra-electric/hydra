@@ -11,6 +11,8 @@ class IServiceCreator : public IService {
   private:
     // Commands
     result_t CreateFriendService(RequestContext* ctx);
+    result_t CreateNotificationService(RequestContext* ctx,
+                                       uuid_t user_id); // 2.0.0+
 };
 
 } // namespace hydra::horizon::services::friends
