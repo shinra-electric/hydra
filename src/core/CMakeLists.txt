@@ -364,6 +364,9 @@ add_library(hydra-core
     horizon/applets/mii/const.hpp
     horizon/applets/album/const.hpp
     horizon/applets/controller/const.hpp
+    horizon/applets/player_select/const.hpp
+    horizon/applets/player_select/applet.cpp
+    horizon/applets/player_select/applet.hpp
     horizon/ui/const.hpp
     horizon/ui/handler_base.hpp
     audio/const.hpp
