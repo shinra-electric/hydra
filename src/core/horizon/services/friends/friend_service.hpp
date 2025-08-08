@@ -10,6 +10,7 @@ class IFriendService : public IService {
 
   private:
     // Commands
+    STUB_REQUEST_COMMAND(UpdateUserPresence);
 };
 
 } // namespace hydra::horizon::services::friends
