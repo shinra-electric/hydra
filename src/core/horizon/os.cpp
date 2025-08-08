@@ -30,6 +30,7 @@
 #include "core/horizon/services/mii/static_service.hpp"
 #include "core/horizon/services/mmnv/request.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
+#include "core/horizon/services/nfp/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
 #include "core/horizon/services/npns/npns_system.hpp"
 #include "core/horizon/services/ns/application_manager_interface.hpp"
@@ -242,7 +243,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, i2c::IManager, "i2c", "i2c:pcv");
 
     // NFC
-    REGISTER_SERVICE(others, nfc::IUserManager, "nfp:user");
+    REGISTER_SERVICE(others, nfc::IUserManager, "nfc:user");
+    REGISTER_SERVICE(others, nfp::IUserManager, "nfp:user");
 
     // NIFM
     REGISTER_SERVICE(others, nifm::IStaticService, "nifm:a", "nifm:s",

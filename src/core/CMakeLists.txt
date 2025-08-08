@@ -299,10 +299,18 @@ add_library(hydra-core
     horizon/services/friends/friend_service.hpp
     horizon/services/ts/measurement_server.cpp
     horizon/services/ts/measurement_server.hpp
+    horizon/services/nfc/nfc.cpp
+    horizon/services/nfc/nfc.hpp
+    horizon/services/nfc/user.cpp
+    horizon/services/nfc/user.hpp
     horizon/services/nfc/user_manager.cpp
     horizon/services/nfc/user_manager.hpp
-    horizon/services/nfc/mifare/user.cpp
-    horizon/services/nfc/mifare/user.hpp
+    horizon/services/nfp/nfp.cpp
+    horizon/services/nfp/nfp.hpp
+    horizon/services/nfp/user.cpp
+    horizon/services/nfp/user.hpp
+    horizon/services/nfp/user_manager.cpp
+    horizon/services/nfp/user_manager.hpp
     horizon/services/prepo/prepo_service.cpp
     horizon/services/prepo/prepo_service.hpp
     horizon/services/codec/hardware_opus_decoder.cpp
