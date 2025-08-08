@@ -26,6 +26,8 @@ class Memory : public IMemory {
         usize size = align(GetSize(), APPLE_PAGE_SIZE);
         ptr = allocate_vm_memory(size);
 
+        // Map
+
         // Guest physical memory + offset = host virtual memory
         // TODO: Why does this fail occasionally?
         HV_ASSERT_SUCCESS(
@@ -33,7 +35,12 @@ class Memory : public IMemory {
                       HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
     }
 
-    void Free() { free(reinterpret_cast<void*>(ptr)); }
+    void Free() {
+        // Unmap
+        HV_ASSERT_SUCCESS(hv_vm_unmap(ptr, align(GetSize(), APPLE_PAGE_SIZE)));
+
+        free(reinterpret_cast<void*>(ptr));
+    }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor
