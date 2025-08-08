@@ -42,8 +42,7 @@ void create_vm() {
 } // namespace
 
 Cpu::Cpu()
-    : kernel_mem((create_vm(), pa_mapper),
-                 align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE)),
+    : kernel_mem((create_vm(), align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE))),
       kernel_page_table(KERNEL_PAGE_TABLE_REGION_BASE) {
     // Create GIC
     // hv_gic_config_t gic_config = hv_gic_config_create();
@@ -55,8 +54,7 @@ Cpu::Cpu()
     // simplicity reasons
 
     // Kernel memory
-    kernel_page_table.Map(0x0, pa_mapper.GetPA(kernel_mem.GetPtr()),
-                          KERNEL_MEM_SIZE,
+    kernel_page_table.Map(0x0, kernel_mem.GetPtr(), KERNEL_MEM_SIZE,
                           {horizon::kernel::MemoryType::Kernel,
                            horizon::kernel::MemoryAttribute::None,
                            horizon::kernel::MemoryPermission::Execute},
@@ -94,6 +92,6 @@ IThread* Cpu::CreateThread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
                       stack_mem_end);
 }
 
-IMemory* Cpu::AllocateMemory(usize size) { return new Memory(pa_mapper, size); }
+IMemory* Cpu::AllocateMemory(usize size) { return new Memory(size); }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

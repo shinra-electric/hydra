@@ -6,21 +6,23 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 class Memory : public IMemory {
   public:
-    Memory(usize size) : IMemory(size) {
-        ptr = reinterpret_cast<uptr>(malloc(size));
-    }
-    ~Memory() override { free(reinterpret_cast<void*>(ptr)); }
+    Memory(usize size) : IMemory(size) { Allocate(); }
+    ~Memory() override { Free(); }
 
-    void Resize(usize new_size) {
-        free(reinterpret_cast<void*>(ptr));
-        ptr = reinterpret_cast<uptr>(malloc(new_size));
-    }
-
-    // Getters
     uptr GetPtr() const override { return ptr; }
+
+  protected:
+    void ResizeImpl() override {
+        Free();
+        Allocate();
+    }
 
   private:
     uptr ptr;
+
+    // Helpers
+    void Allocate() { ptr = reinterpret_cast<uptr>(malloc(GetSize())); }
+    void Free() { free(reinterpret_cast<void*>(ptr)); }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

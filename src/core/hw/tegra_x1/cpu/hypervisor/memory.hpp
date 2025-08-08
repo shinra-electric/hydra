@@ -1,34 +1,39 @@
 #pragma once
 
-#include "core/hw/tegra_x1/cpu/hypervisor/pa_mapper.hpp"
+#include "core/hw/tegra_x1/cpu/hypervisor/const.hpp"
 #include "core/hw/tegra_x1/cpu/memory.hpp"
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Memory : public IMemory {
   public:
-    Memory(const PAMapper& pa_mapper, usize size) : IMemory(size) {
-        size = align(size, APPLE_PAGE_SIZE);
-        ptr = allocate_vm_memory(size);
-
-        // Guest physical memory = host virtual memory
-        HV_ASSERT_SUCCESS(
-            hv_vm_map(reinterpret_cast<void*>(ptr), pa_mapper.GetPA(ptr), size,
-                      HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
-    }
-
-    ~Memory() override { free(reinterpret_cast<void*>(ptr)); }
-
-    void Resize(usize new_size) {
-        free(reinterpret_cast<void*>(ptr));
-        ptr = reinterpret_cast<uptr>(
-            allocate_vm_memory(align(new_size, APPLE_PAGE_SIZE)));
-    }
+    Memory(usize size) : IMemory(size) { Allocate(); }
+    ~Memory() override { Free(); }
 
     uptr GetPtr() const override { return ptr; }
 
+  protected:
+    void ResizeImpl() override {
+        Free();
+        Allocate();
+    }
+
   private:
     uptr ptr;
+
+    // Helpers
+    void Allocate() {
+        usize size = align(GetSize(), APPLE_PAGE_SIZE);
+        ptr = allocate_vm_memory(size);
+
+        // Guest physical memory + offset = host virtual memory
+        // TODO: Why does this fail occasionally?
+        HV_ASSERT_SUCCESS(
+            hv_vm_map(reinterpret_cast<void*>(ptr), ptr, size,
+                      HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
+    }
+
+    void Free() { free(reinterpret_cast<void*>(ptr)); }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

@@ -102,9 +102,8 @@ Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 void Mmu::Map(vaddr_t va, usize size, IMemory* memory,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(
-        va, CPU.GetPAMapper().GetPA(static_cast<Memory*>(memory)->GetPtr()),
-        size, state, to_ap_flags(state.perm));
+    user_page_table.Map(va, static_cast<Memory*>(memory)->GetPtr(), size, state,
+                        to_ap_flags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
@@ -126,9 +125,7 @@ void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
                         to_ap_flags(region.state.perm));
 }
 
-uptr Mmu::UnmapAddr(vaddr_t va) const {
-    return CPU.GetPAMapper().GetPtr(user_page_table.UnmapAddr(va));
-}
+uptr Mmu::UnmapAddr(vaddr_t va) const { return user_page_table.UnmapAddr(va); }
 
 MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     auto region = user_page_table.QueryRegion(va);

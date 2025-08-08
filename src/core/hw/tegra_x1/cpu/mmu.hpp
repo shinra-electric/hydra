@@ -27,7 +27,8 @@ class IMmu {
     }
     virtual void Map(vaddr_t dst_va, vaddr_t src_va, usize size) = 0;
     virtual void Unmap(vaddr_t va, usize size) = 0;
-    virtual void ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) = 0;
+    virtual void ResizeHeap(IMemory* heap_mem, vaddr_t va,
+                            usize size) = 0; // TODO: remove this
 
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;

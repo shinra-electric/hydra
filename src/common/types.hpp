@@ -24,12 +24,20 @@ struct range {
         return begin == other.begin && end == other.end;
     }
 
-    bool Contains(const T v) const { return v >= begin && v < end; }
+    bool Contains(const T other) const { return other >= begin && other < end; }
+    bool Contains(const range<T>& other) const {
+        return other.begin >= begin && other.end <= end;
+    }
 
-    // Getters
-    T GetBegin() const { return begin; }
-    T GetEnd() const { return end; }
+    bool Intersects(const range<T>& other) const {
+        return begin < other.end && end > other.begin;
+    }
+
     T GetSize() const { return end - begin; }
+
+  public:
+    GETTER(begin, GetBegin);
+    GETTER(end, GetEnd);
 };
 
 struct sized_ptr {
@@ -41,14 +49,15 @@ struct sized_ptr {
     template <typename T>
     sized_ptr(T* ptr_) : sized_ptr(reinterpret_cast<uptr>(ptr_), sizeof(T)) {}
 
-    // Getters
-    uptr GetPtr() const { return ptr; }
     u8* GetPtrU8() const { return reinterpret_cast<u8*>(ptr); }
-    usize GetSize() const { return size; }
 
   private:
     uptr ptr;
     usize size;
+
+  public:
+    GETTER(ptr, GetPtr);
+    GETTER(size, GetSize);
 };
 
 template <typename T, usize component_count>

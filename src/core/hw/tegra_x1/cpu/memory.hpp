@@ -9,7 +9,16 @@ class IMemory {
     IMemory(usize size_) : size{size_} {}
     virtual ~IMemory() = default;
 
+    // The memory needs to be unmapped before resizing
+    void Resize(usize new_size) {
+        size = new_size;
+        ResizeImpl();
+    }
+
     virtual uptr GetPtr() const = 0;
+
+  protected:
+    virtual void ResizeImpl() = 0;
 
   private:
     usize size;
