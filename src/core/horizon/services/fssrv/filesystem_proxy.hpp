@@ -100,10 +100,6 @@ struct SaveDataFileSystemExtraData {
 #pragma pack(pop)
 
 class IFileSystemProxy : public IService {
-  public:
-    // HACK
-    usize GetPointerBufferSize() override { return 0x1000; }
-
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

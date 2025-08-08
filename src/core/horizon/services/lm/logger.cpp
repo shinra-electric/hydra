@@ -80,7 +80,7 @@ namespace hydra::horizon::services::lm {
 
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
-result_t ILogger::Log(InBuffer<BufferAttr::MapAlias> buffer) {
+result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
     auto& reader = *buffer.reader;
     const auto header = reader.Read<LogPacketHeader>();
 

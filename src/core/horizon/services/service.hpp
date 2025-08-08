@@ -30,7 +30,6 @@ class IService {
 
   protected:
     virtual result_t RequestImpl(RequestContext& context, u32 id) = 0;
-    virtual usize GetPointerBufferSize() { return 0; }
 
     u32 AddSubservice(IService* service) {
         if (!service)

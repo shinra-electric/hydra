@@ -24,7 +24,7 @@ class ILogger : public IService {
     Packet packet{};
 
     // Commands
-    result_t Log(InBuffer<BufferAttr::MapAlias> buffer); // TODO: MapAlias?
+    result_t Log(InBuffer<BufferAttr::AutoSelect> buffer);
 };
 
 } // namespace hydra::horizon::services::lm

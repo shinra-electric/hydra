@@ -9,9 +9,6 @@ class IAccountServiceForApplication : public IAccountService {
     IAccountServiceForApplication()
         : IAccountService(AccountServiceType::Application) {}
 
-    // HACK
-    usize GetPointerBufferSize() override { return 0x1000; }
-
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 

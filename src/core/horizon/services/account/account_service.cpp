@@ -45,8 +45,8 @@ IAccountService::ListOpenUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
 
         out_buffer.writer->Write(user_id);
     }
-    memset((void*)out_buffer.writer->GetBase(), 0,
-           out_buffer.writer->GetSize());
+    // memset((void*)out_buffer.writer->GetBase(), 0,
+    //        out_buffer.writer->GetSize());
 
     return RESULT_SUCCESS;
 }

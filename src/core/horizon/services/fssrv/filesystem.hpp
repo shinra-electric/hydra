@@ -27,9 +27,6 @@ class IFileSystem : public IService {
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
-    // HACK
-    usize GetPointerBufferSize() override { return 0x1000; }
-
   private:
     std::string mount;
 

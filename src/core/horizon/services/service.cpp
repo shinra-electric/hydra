@@ -234,7 +234,9 @@ void IService::Control(kernel::Process* caller_process,
         Clone(caller_process, writers);
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
-        writers.writer.Write(GetPointerBufferSize());
+        // TODO: let the server specify this
+        writers.writer.Write<u16>(0x8000); // The highest known pointer buffer
+                                           // size (used by nvservices)
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
