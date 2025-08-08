@@ -18,6 +18,9 @@ class INfp : public IService {
     // Commands
     result_t Initialize(u64 aruid, u64 zero,
                         InBuffer<BufferAttr::MapAlias> in_version_buffer);
+    // TODO: is the buffer attr correct?
+    result_t ListDevices(i32* out_count,
+                         OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetState(u32* out_state);
 
   private:
