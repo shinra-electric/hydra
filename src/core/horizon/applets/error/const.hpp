@@ -2,7 +2,7 @@
 
 #include "core/horizon/const.hpp"
 
-namespace hydra::horizon::applets::err {
+namespace hydra::horizon::applets::error {
 
 enum class ErrorType : u8 {
     SystemData = 0,
@@ -44,9 +44,9 @@ struct ReturnValue {
     JumpDestination destination{JumpDestination::Nowhere};
 };
 
-} // namespace hydra::horizon::applets::err
+} // namespace hydra::horizon::applets::error
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::applets::err::ErrorType, SystemData,
+ENABLE_ENUM_FORMATTING(hydra::horizon::applets::error::ErrorType, SystemData,
                        "system data", SystemError, "system error",
                        ApplicationError, "application error", Eula, "eula",
                        ParentalControl, "parental control", RecordedSystemData,

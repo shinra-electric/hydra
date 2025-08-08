@@ -355,13 +355,13 @@ add_library(hydra-core
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp
-    horizon/applets/err/const.hpp
-    horizon/applets/err/error_applet.cpp
-    horizon/applets/err/error_applet.hpp
-    horizon/applets/swkbd/const.hpp
-    horizon/applets/swkbd/software_keyboard.cpp
-    horizon/applets/swkbd/software_keyboard.hpp
-    horizon/applets/mii/const.hpp
+    horizon/applets/error/const.hpp
+    horizon/applets/error/applet.cpp
+    horizon/applets/error/applet.hpp
+    horizon/applets/software_keyboard/const.hpp
+    horizon/applets/software_keyboard/applet.cpp
+    horizon/applets/software_keyboard/applet.hpp
+    horizon/applets/mii_edit/const.hpp
     horizon/applets/album/const.hpp
     horizon/applets/controller/const.hpp
     horizon/applets/player_select/const.hpp

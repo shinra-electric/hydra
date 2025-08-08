@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/applets/swkbd/const.hpp"
+#include "core/horizon/applets/software_keyboard/const.hpp"
 #include "core/horizon/ui/const.hpp"
 
 namespace hydra::horizon::ui {
@@ -13,7 +13,7 @@ class HandlerBase {
                                    const std::string& title,
                                    const std::string& message) = 0;
     // TODO: more texts
-    virtual applets::swkbd::SoftwareKeyboardResult
+    virtual applets::software_keyboard::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
                          std::string& out_text) = 0;
 };

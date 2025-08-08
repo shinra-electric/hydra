@@ -2,9 +2,9 @@
 
 #include "core/horizon/applets/applet_base.hpp"
 
-namespace hydra::horizon::applets::err {
+namespace hydra::horizon::applets::error {
 
-class ErrorApplet : public AppletBase {
+class Applet : public AppletBase {
   public:
     using AppletBase::AppletBase;
 
@@ -12,4 +12,4 @@ class ErrorApplet : public AppletBase {
     result_t Run() override;
 };
 
-} // namespace hydra::horizon::applets::err
+} // namespace hydra::horizon::applets::error

@@ -90,12 +90,13 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
     SDL_ShowSimpleMessageBox(flags, title.c_str(), message.c_str(), window);
 }
 
-horizon::applets::swkbd::SoftwareKeyboardResult
+horizon::applets::software_keyboard::SoftwareKeyboardResult
 Window::ShowSoftwareKeyboard(const std::string& header_text,
                              std::string& out_text) {
     return native.ShowInputTextDialog(header_text, out_text)
-               ? horizon::applets::swkbd::SoftwareKeyboardResult::OK
-               : horizon::applets::swkbd::SoftwareKeyboardResult::Cancel;
+               ? horizon::applets::software_keyboard::SoftwareKeyboardResult::OK
+               : horizon::applets::software_keyboard::SoftwareKeyboardResult::
+                     Cancel;
 }
 
 void Window::BeginEmulation(const std::string& path) {

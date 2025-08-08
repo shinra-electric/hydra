@@ -2,7 +2,7 @@
 
 #include "core/horizon/const.hpp"
 
-namespace hydra::horizon::applets::mii {
+namespace hydra::horizon::applets::mii_edit {
 
 enum class AppletMode : u32 {
     ShowMiiEdit = 0,
@@ -23,4 +23,4 @@ struct AppletInput {
     u8 _unused_x9c[0x64];
 };
 
-} // namespace hydra::horizon::applets::mii
+} // namespace hydra::horizon::applets::mii_edit

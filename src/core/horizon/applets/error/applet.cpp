@@ -1,12 +1,12 @@
-#include "core/horizon/applets/err/error_applet.hpp"
+#include "core/horizon/applets/error/applet.hpp"
 
-#include "core/horizon/applets/err/const.hpp"
+#include "core/horizon/applets/error/const.hpp"
 #include "core/horizon/os.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
-namespace hydra::horizon::applets::err {
+namespace hydra::horizon::applets::error {
 
-result_t ErrorApplet::Run() {
+result_t Applet::Run() {
     auto param_reader = PopInDataRaw();
     const auto param_common = param_reader.Read<ParamCommon>();
 
@@ -41,4 +41,4 @@ result_t ErrorApplet::Run() {
     return RESULT_SUCCESS;
 }
 
-} // namespace hydra::horizon::applets::err
+} // namespace hydra::horizon::applets::error

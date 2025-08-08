@@ -2,7 +2,7 @@
 
 #include "core/horizon/const.hpp"
 
-namespace hydra::horizon::applets::swkbd {
+namespace hydra::horizon::applets::software_keyboard {
 
 enum class KeyboardMode : u32 {
     Full = 0,
@@ -129,4 +129,4 @@ enum class SoftwareKeyboardResult : u32 {
     Cancel = 1,
 };
 
-} // namespace hydra::horizon::applets::swkbd
+} // namespace hydra::horizon::applets::software_keyboard

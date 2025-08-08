@@ -7,9 +7,9 @@
 #include "core/horizon/applets/album/const.hpp"
 #include "core/horizon/applets/const.hpp"
 #include "core/horizon/applets/controller/const.hpp"
-#include "core/horizon/applets/err/const.hpp"
-#include "core/horizon/applets/mii/const.hpp"
-#include "core/horizon/applets/swkbd/const.hpp"
+#include "core/horizon/applets/error/const.hpp"
+#include "core/horizon/applets/mii_edit/const.hpp"
+#include "core/horizon/applets/software_keyboard/const.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -170,8 +170,8 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             new horizon::services::am::IStorage(common_args));
 
         // Param common
-        auto param_common = new horizon::applets::err::ParamCommon{
-            .type = horizon::applets::err::ErrorType::ApplicationError,
+        auto param_common = new horizon::applets::error::ParamCommon{
+            .type = horizon::applets::error::ErrorType::ApplicationError,
             .is_jump_enabled = false,
         };
         controller->PushInData(
@@ -179,7 +179,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
         // Param for application error
         auto param_for_application_error =
-            new horizon::applets::err::ParamForApplicationError{
+            new horizon::applets::error::ParamForApplicationError{
                 .version = 1,
                 .error_code_number = MAKE_RESULT(Svc, 0),
                 .language_code = horizon::LanguageCode::AmericanEnglish,
@@ -205,19 +205,20 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             new horizon::services::am::IStorage(common_args));
 
         // Config
-        auto config = new horizon::applets::swkbd::KeyboardConfigCommon{
-            .mode = horizon::applets::swkbd::KeyboardMode::Full,
-            // TODO: more
-        };
+        auto config =
+            new horizon::applets::software_keyboard::KeyboardConfigCommon{
+                .mode = horizon::applets::software_keyboard::KeyboardMode::Full,
+                // TODO: more
+            };
         controller->PushInData(new horizon::services::am::IStorage(config));
 
         break;
     }
     case 0x0100000000001009: { // miiEdit
         // Args
-        auto args = new horizon::applets::mii::AppletInput{
+        auto args = new horizon::applets::mii_edit::AppletInput{
             ._unknown_x0 = 0x3,
-            .mode = horizon::applets::mii::AppletMode::ShowMiiEdit,
+            .mode = horizon::applets::mii_edit::AppletMode::ShowMiiEdit,
         };
         controller->PushInData(new horizon::services::am::IStorage(args));
 

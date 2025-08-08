@@ -198,10 +198,11 @@ class UIHandler : public hydra::horizon::ui::HandlerBase {
     void ShowMessageDialog(const hydra::horizon::ui::MessageDialogType type,
                            const std::string& title,
                            const std::string& message) override {}
-    hydra::horizon::applets::swkbd::SoftwareKeyboardResult
+    hydra::horizon::applets::software_keyboard::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
                          std::string& out_text) override {
-        return hydra::horizon::applets::swkbd::SoftwareKeyboardResult::OK;
+        return hydra::horizon::applets::software_keyboard::
+            SoftwareKeyboardResult::OK;
     }
 };
 
