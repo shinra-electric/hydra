@@ -5,6 +5,16 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
+struct MapCmdBufferHandle {
+    handle_id_t in_map_handle_id;
+    u32 out_phys_addr;
+};
+
+struct UnmapCmdBufferHandle {
+    handle_id_t in_map_handle_id;
+    u32 _reserved_x4;
+};
+
 class ChannelBase : public FdBase {
   public:
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
@@ -13,6 +23,16 @@ class ChannelBase : public FdBase {
     u64 user_data;
 
     // Ioctls
+    // TODO: args
+    NvResult Submit();
+    NvResult GetSyncpoint(u32 module_id, u32* out_value);
+    NvResult GetWaitBase(u32 module_id, u32* out_value);
+    NvResult MapCmdBuffer(u32 num_handles, u32 _reserved_x4, bool is_compressed,
+                          std::array<u8, 3> _padding_x9,
+                          const MapCmdBufferHandle* handles);
+    NvResult UnmapCmdBuffer(u32 num_handles, u32 _reserved_x4,
+                            bool is_compressed, std::array<u8, 3> _padding_x9,
+                            const UnmapCmdBufferHandle* handles);
     NvResult SetUserData(u64 data);
     NvResult GetUserData(u64* out_data);
     NvResult SetNvMapFd(u32 fd_id);
