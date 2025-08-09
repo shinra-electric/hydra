@@ -256,12 +256,25 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
              .count = count,
              .src_index_buffer = nullptr},
             index_type, primitive_type, count);
-    if (index_buffer)
+
+    if (index_buffer) {
+        // Bind index buffer
         RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
-    // TODO: instance count
-    RENDERER_INSTANCE.Draw(primitive_type, regs.vertex_array_start, count, 0,
-                           regs.base_instance, 1, index_buffer != nullptr);
+        // Draw
+
+        // Vertex start is set as vertex base instead, as start is now index
+        // start
+        // TODO: instance count
+        RENDERER_INSTANCE.DrawIndexed(primitive_type, 0, count,
+                                      regs.vertex_array_start,
+                                      regs.base_instance, 1);
+    } else {
+        // Draw
+        // TODO: instance count
+        RENDERER_INSTANCE.Draw(primitive_type, regs.vertex_array_start, count,
+                               regs.base_instance, 1);
+    }
 }
 
 void ThreeD::DrawVertexElements(const u32 index, u32 count) {
@@ -287,12 +300,16 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
          .count = count,
          .src_index_buffer = index_buffer},
         index_type, primitive_type, count);
+
+    // Bind index buffer
     ASSERT_DEBUG(index_buffer, Gpu, "Index buffer not found");
     RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
     // Draw
-    RENDERER_INSTANCE.Draw(primitive_type, regs.vertex_elements_start, count,
-                           regs.base_vertex, regs.base_instance, 1, true);
+    // TODO: instance count
+    RENDERER_INSTANCE.DrawIndexed(primitive_type, regs.vertex_elements_start,
+                                  count, regs.base_vertex, regs.base_instance,
+                                  1);
 }
 
 void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
