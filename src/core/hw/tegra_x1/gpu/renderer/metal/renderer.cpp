@@ -377,15 +377,15 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
     MTL::Viewport viewports[VIEWPORT_COUNT];
     // TODO: move this out of the renderer
     for (u32 i = 0; i < sizeof_array(viewports); i++) {
-        const auto& src = REGS_3D.viewports[i];
-        const auto& t = REGS_3D.viewport_transforms[i];
+        const auto& extent = REGS_3D.viewports[i];
+        const auto& transform = REGS_3D.viewport_transforms[i];
         auto& dst = viewports[i];
         // TODO: correct?
         if (REGS_3D.viewport_transform_enabled) {
             // TODO: render target scale
 
-            auto scale_x = t.scale_x;
-            auto scale_y = t.scale_y;
+            auto scale_x = transform.scale_x;
+            auto scale_y = transform.scale_y;
             if (any(REGS_3D.window_origin_flags &
                     engines::WindowOriginFlags::FlipY))
                 scale_y = -scale_y;
@@ -414,20 +414,21 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
                          t.swizzle.w);
             */
 
-            dst.originX = t.offset_x - scale_x;
-            dst.originY = t.offset_y - scale_y;
+            dst.originX = transform.offset_x - scale_x;
+            dst.originY = transform.offset_y - scale_y;
             dst.width = scale_x * 2.0f;
             dst.height = scale_y * 2.0f;
             // TODO: Z scale and offset
-            dst.znear = src.near;
-            dst.zfar = src.far;
+            dst.znear = extent.near;
+            dst.zfar = extent.far;
         } else {
-            dst.originX = src.horizontal.x;
-            dst.originY = src.vertical.y;
-            dst.width = src.horizontal.width;
-            dst.height = src.vertical.height;
-            dst.znear = src.near;
-            dst.zfar = src.far;
+            const auto& screen_scissor = REGS_3D.screen_scissor;
+            dst.originX = screen_scissor.horizontal.x;
+            dst.originY = screen_scissor.vertical.y;
+            dst.width = screen_scissor.horizontal.width;
+            dst.height = screen_scissor.vertical.height;
+            dst.znear = extent.near;
+            dst.zfar = extent.far;
         }
 
         // Flip Y
@@ -435,7 +436,7 @@ void Renderer::Draw(const engines::PrimitiveType primitive_type,
         dst.originY += dst.height;
         dst.height = -dst.height;
 
-        // HACK: if depth range is [0, 0], force it to [0, 1] (Antiquia Lost has
+        // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
         // it like this, tho not on Ryujinx)
         if (dst.znear == 0.0 && dst.zfar == 0.0) {
             ONCE(LOG_WARN(MetalRenderer,

@@ -324,7 +324,19 @@ struct Regs3D {
     } depth_target_tile_mode;
     u32 depth_target_layer_stride;
 
-    u32 padding_0x3fd[0x53];
+    // 0x3fd screen scissor
+    struct {
+        struct {
+            u16 x;
+            u16 width;
+        } horizontal;
+        struct {
+            u16 y;
+            u16 height;
+        } vertical;
+    } screen_scissor;
+
+    u32 padding_0x3ff[0x51];
     u32 padding_0x450[0x8];
 
     // 0x458 vertex attribute states
