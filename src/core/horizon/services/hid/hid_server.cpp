@@ -9,16 +9,17 @@ namespace hydra::horizon::services::hid {
 DEFINE_SERVICE_COMMAND_TABLE(
     IHidServer, 0, CreateAppletResource, 1, ActivateDebugPad, 11,
     ActivateTouchScreen, 21, ActivateMouse, 31, ActivateKeyboard, 66,
-    StartSixAxisSensor, 67, StopSixAxisSensor, 79, SetGyroscopeZeroDriftMode,
-    100, SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
-    SetSupportedNpadIdType, 103, ActivateNpad, 106,
-    AcquireNpadStyleSetUpdateEventHandle, 108, GetPlayerLedPattern, 109,
+    StartSixAxisSensor, 67, StopSixAxisSensor, 69, EnableSixAxisSensorFusion,
+    79, SetGyroscopeZeroDriftMode, 100, SetSupportedNpadStyleSet, 101,
+    GetSupportedNpadStyleSet, 102, SetSupportedNpadIdType, 103, ActivateNpad,
+    106, AcquireNpadStyleSetUpdateEventHandle, 108, GetPlayerLedPattern, 109,
     ActivateNpadWithRevision, 120, SetNpadJoyHoldType, 121, GetNpadJoyHoldType,
     122, SetNpadJoyAssignmentModeSingleByDefault, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 130,
     SwapNpadAssignment, 200, GetVibrationDeviceInfo, 201, SendVibrationValue,
-    203, CreateActiveVibrationDeviceList, 206, SendVibrationValues, 303,
-    ActivateSevenSixAxisSensor, 1000, SetNpadCommunicationMode)
+    203, CreateActiveVibrationDeviceList, 205, IsVibrationPermitted, 206,
+    SendVibrationValues, 303, ActivateSevenSixAxisSensor, 1000,
+    SetNpadCommunicationMode)
 
 result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
     AddService(*ctx, new IAppletResource());
@@ -111,6 +112,12 @@ result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
 result_t IHidServer::CreateActiveVibrationDeviceList(RequestContext* ctx) {
     AddService(*ctx, new IActiveVibrationDeviceList());
 
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::IsVibrationPermitted(bool* out_permitted) {
+    // TODO: make this configurable
+    *out_permitted = true;
     return RESULT_SUCCESS;
 }
 

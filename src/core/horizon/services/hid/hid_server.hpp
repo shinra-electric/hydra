@@ -56,6 +56,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(ActivateKeyboard);
     STUB_REQUEST_COMMAND(StartSixAxisSensor);
     STUB_REQUEST_COMMAND(StopSixAxisSensor);
+    STUB_REQUEST_COMMAND(EnableSixAxisSensorFusion);
     STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     result_t
@@ -83,6 +84,7 @@ class IHidServer : public IService {
                                     VibrationDeviceInfo* info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
     result_t CreateActiveVibrationDeviceList(RequestContext* ctx);
+    result_t IsVibrationPermitted(bool* out_permitted);
     STUB_REQUEST_COMMAND(SendVibrationValues);
     STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
     STUB_REQUEST_COMMAND(SetNpadCommunicationMode);
