@@ -65,6 +65,8 @@ class IHidServer : public IService {
     result_t AcquireNpadStyleSetUpdateEventHandle(
         kernel::Process* process, u32 id, u32 _pad, u64 aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
+    result_t GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
+                                 u64* out_pattern);
     STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
     // TODO: PID descriptor
     result_t SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
