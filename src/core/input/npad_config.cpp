@@ -231,12 +231,14 @@ void NpadConfig::Serialize() {
         {"AnalogSticks", toml::table{}},
     });
 
+    // Devices
     {
         auto& devices_arr = data["devices"];
         devices_arr = toml::array{};
         devices_arr.as_array().assign(device_names.begin(), device_names.end());
     }
 
+    // Buttons
     {
         auto& buttons = data.at("Buttons");
         for (const auto& mapping : button_mappings) {
@@ -250,6 +252,7 @@ void NpadConfig::Serialize() {
         }
     }
 
+    // Analog sticks
     {
         auto& analog = data.at("AnalogSticks");
         for (const auto& mapping : analog_mappings) {
@@ -277,11 +280,37 @@ void NpadConfig::Deserialize() {
         return;
     }
 
+    auto data = toml::parse(path);
+
+    // Devices
+    {
+        device_names =
+            toml::find_or<std::vector<std::string>>(data, "devices", {});
+    }
+
     // Buttons
-    // TODO
+    if (data.contains("Buttons")) {
+        const auto& buttons = data.at("Buttons");
+        for (const auto& mappings : buttons.as_table()) {
+            const auto button = horizon::hid::to_npad_buttons(mappings.first);
+            for (const auto& mapping : mappings.second.as_array()) {
+                const auto& code = to_code(mapping.as_string());
+                button_mappings.push_back({code, button});
+            }
+        }
+    }
 
     // Analog sticks
-    // TODO
+    if (data.contains("AnalogSticks")) {
+        const auto& analog = data.at("AnalogSticks");
+        for (const auto& mappings : analog.as_table()) {
+            const auto axis = to_analog_stick_axis(mappings.first);
+            for (const auto& mapping : mappings.second.as_array()) {
+                const auto& code = to_code(mapping.as_string());
+                analog_mappings.push_back({code, axis});
+            }
+        }
+    }
 }
 
 } // namespace hydra::input
