@@ -138,13 +138,16 @@ NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
     };
 
     // Analog sticks
-    // TODO
-    /*
-    const auto analog_l_neg_x = Code(DeviceType::Keyboard, Key::A);
-    const auto analog_l_pos_x = Code(DeviceType::Keyboard, Key::D);
-    const auto analog_l_pos_y = Code(DeviceType::Keyboard, Key::W);
-    const auto analog_l_neg_y = Code(DeviceType::Keyboard, Key::S);
-    */
+    // HACK
+    analog_mappings["keyboard"] = {
+        {Code(DeviceType::Keyboard, Key::A),
+         {true, AnalogStickDirection::Left}},
+        {Code(DeviceType::Keyboard, Key::D),
+         {true, AnalogStickDirection::Right}},
+        {Code(DeviceType::Keyboard, Key::W), {true, AnalogStickDirection::Up}},
+        {Code(DeviceType::Keyboard, Key::S),
+         {true, AnalogStickDirection::Down}},
+    };
 }
 
 } // namespace hydra::input

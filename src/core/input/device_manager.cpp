@@ -54,14 +54,45 @@ void DeviceManager::Poll() {
         f32 analog_l_y = 0.0f;
         f32 analog_r_x = 0.0f;
         f32 analog_r_y = 0.0f;
-        // TODO
-        {
-            /*
-            analog_l_x -= device->GetAxisValue(analog_l_neg_x);
-            analog_l_x += device->GetAxisValue(analog_l_pos_x);
-            analog_l_y -= device->GetAxisValue(analog_l_neg_y);
-            analog_l_y += device->GetAxisValue(analog_l_pos_y);
-            */
+        for (const auto& [device_name, mappings] : config.GetAnalogMappings()) {
+            auto device = GetDevice(device_name);
+            if (!device)
+                continue;
+
+            for (const auto& mapping : mappings) {
+                const auto value = device->GetAxisValue(mapping.code);
+                if (mapping.axis.is_left) {
+                    switch (mapping.axis.direction) {
+                    case AnalogStickDirection::Left:
+                        analog_l_x -= value;
+                        break;
+                    case AnalogStickDirection::Right:
+                        analog_l_x += value;
+                        break;
+                    case AnalogStickDirection::Up:
+                        analog_l_y += value;
+                        break;
+                    case AnalogStickDirection::Down:
+                        analog_l_y -= value;
+                        break;
+                    }
+                } else {
+                    switch (mapping.axis.direction) {
+                    case AnalogStickDirection::Left:
+                        analog_r_x -= value;
+                        break;
+                    case AnalogStickDirection::Right:
+                        analog_r_x += value;
+                        break;
+                    case AnalogStickDirection::Up:
+                        analog_r_y += value;
+                        break;
+                    case AnalogStickDirection::Down:
+                        analog_r_y -= value;
+                        break;
+                    }
+                }
+            }
         }
 
         INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(type, buttons);

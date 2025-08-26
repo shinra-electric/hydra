@@ -33,9 +33,21 @@ struct CodeButtonMapping {
     horizon::hid::NpadButtons npad_buttons;
 };
 
+enum class AnalogStickDirection {
+    Left,
+    Right,
+    Up,
+    Down,
+};
+
+struct AnalogStickAxis {
+    bool is_left;
+    AnalogStickDirection direction;
+};
+
 struct CodeAnalogMapping {
     Code code;
-    // TODO
+    AnalogStickAxis axis;
 };
 
 } // namespace hydra::input
