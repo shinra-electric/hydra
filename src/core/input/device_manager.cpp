@@ -36,30 +36,25 @@ void DeviceManager::Poll() {
         const auto type = horizon::hid::NpadIdType(i);
         const auto& config = npad_configs[i];
 
-        // Buttons
         hid::NpadButtons buttons = hid::NpadButtons::None;
-        for (const auto& [device_name, mappings] : config.GetButtonMappings()) {
-            auto device = GetDevice(device_name);
-            if (!device)
-                continue;
-
-            for (const auto& mapping : mappings) {
-                if (device->IsPressed(mapping.code))
-                    buttons |= mapping.npad_buttons;
-            }
-        }
-
-        // Analog sticks
         f32 analog_l_x = 0.0f;
         f32 analog_l_y = 0.0f;
         f32 analog_r_x = 0.0f;
         f32 analog_r_y = 0.0f;
-        for (const auto& [device_name, mappings] : config.GetAnalogMappings()) {
+
+        for (const auto& device_name : config.GetDeviceNames()) {
             auto device = GetDevice(device_name);
             if (!device)
                 continue;
 
-            for (const auto& mapping : mappings) {
+            // Buttons
+            for (const auto& mapping : config.GetButtonMappings()) {
+                if (device->IsPressed(mapping.code))
+                    buttons |= mapping.npad_buttons;
+            }
+
+            // Analog sticks
+            for (const auto& mapping : config.GetAnalogMappings()) {
                 const auto value = device->GetAxisValue(mapping.code);
                 if (mapping.axis.is_left) {
                     switch (mapping.axis.direction) {

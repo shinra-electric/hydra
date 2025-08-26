@@ -6,20 +6,6 @@ namespace hydra::input {
 
 namespace {
 
-struct CodeWithDevice {
-    std::string device_name;
-    Code code;
-
-    CodeWithDevice() {}
-    CodeWithDevice(const std::string_view device_name_, DeviceType device_type_,
-                   u32 value_)
-        : device_name{device_name_}, code(device_type_, value_) {}
-
-    const std::string_view GetDeviceName() const { return device_name; }
-
-    CONST_REF_GETTER(code, GetCode);
-};
-
 u32 to_value(DeviceType type, const std::string_view value_str) {
     switch (type) {
     case DeviceType::Keyboard:
@@ -44,24 +30,15 @@ std::string value_to_string(DeviceType device_type, u32 value) {
     }
 }
 
-CodeWithDevice to_code(const std::string_view str) {
-    const auto first_slash_pos = str.find("/");
-    if (first_slash_pos == std::string::npos) {
+Code to_code(const std::string_view str) {
+    const auto slash_pos = str.find("/");
+    if (slash_pos == std::string::npos) {
         LOG_ERROR(Input, "Invalid input code format: {}", str);
         return {};
     }
-    const auto second_slash_pos = str.find("/", first_slash_pos + 1);
-    if (second_slash_pos == std::string::npos) {
-        LOG_ERROR(Input, "Invalid input code format: {}", str);
-        return {};
-    }
-
-    // Device name
-    const auto device_name = str.substr(0, first_slash_pos);
 
     // Device type
-    const auto device_type_str =
-        str.substr(first_slash_pos + 1, second_slash_pos);
+    const auto device_type_str = str.substr(0, slash_pos);
     const auto device_type = to_device_type(device_type_str);
     if (device_type == DeviceType::Invalid) {
         LOG_ERROR(Input, "Invalid device type: {}", device_type_str);
@@ -69,14 +46,14 @@ CodeWithDevice to_code(const std::string_view str) {
     }
 
     // Value
-    const auto value_str = str.substr(second_slash_pos + 1);
+    const auto value_str = str.substr(slash_pos + 1);
     const auto value = to_value(device_type, value_str);
     if (value == invalid<u32>()) {
         LOG_ERROR(Input, "Invalid value: {}", value_str);
         return {};
     }
 
-    return CodeWithDevice(device_name, device_type, value);
+    return Code(device_type, value);
 }
 
 } // namespace
@@ -86,22 +63,21 @@ CodeWithDevice to_code(const std::string_view str) {
 namespace toml {
 
 template <>
-struct from<hydra::input::CodeWithDevice> {
+struct from<hydra::input::Code> {
     template <typename TC>
-    static hydra::input::CodeWithDevice from_toml(const basic_value<TC>& v) {
+    static hydra::input::Code from_toml(const basic_value<TC>& v) {
         const auto str = v.as_string();
         return to_code(str);
     }
 };
 
 template <>
-struct into<hydra::input::CodeWithDevice> {
+struct into<hydra::input::Code> {
     template <typename TC>
-    static basic_value<TC> into_toml(const hydra::input::CodeWithDevice& obj) {
+    static basic_value<TC> into_toml(const hydra::input::Code& obj) {
         return fmt::format(
-            "{}/{}/{}", obj.GetDeviceName(), obj.GetCode().GetDeviceType(),
-            hydra::input::value_to_string(obj.GetCode().GetDeviceType(),
-                                          obj.GetCode().GetValue()));
+            "{}/{}", obj.GetDeviceType(),
+            hydra::input::value_to_string(obj.GetDeviceType(), obj.GetValue()));
     }
 };
 
@@ -116,10 +92,11 @@ NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
 void NpadConfig::LoadDefaults() {
     switch (type) {
     case horizon::hid::NpadIdType::Handheld: // TODO: No1 instead?
-        // Buttons
+        // Devices
+        device_names = {"keyboard"};
 
-        // Keyboard
-        button_mappings["keyboard"] = {
+        // Buttons
+        button_mappings = {
             {Code(DeviceType::Keyboard, Key::Enter),
              horizon::hid::NpadButtons::Plus},
             {Code(DeviceType::Keyboard, Key::Tab),
@@ -143,9 +120,7 @@ void NpadConfig::LoadDefaults() {
         };
 
         // Analog sticks
-
-        // Keyboard
-        analog_mappings["keyboard"] = {
+        analog_mappings = {
             {Code(DeviceType::Keyboard, Key::A),
              {true, AnalogStickDirection::Left}},
             {Code(DeviceType::Keyboard, Key::D),
