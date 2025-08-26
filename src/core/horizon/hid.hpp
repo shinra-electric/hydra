@@ -235,7 +235,8 @@ enum class ColorAttribute {
 };
 
 enum class NpadButtons : u64 {
-    None,
+    None = 0,
+
     A = BITL(0),
     B = BITL(1),
     X = BITL(2),
@@ -271,6 +272,9 @@ enum class NpadButtons : u64 {
     LagonCUp = BITL(32),
     LagonCRight = BITL(33),
     LagonCDown = BITL(34),
+
+    // HACK: alias
+    Invalid = None,
 };
 ENABLE_ENUM_BITMASK_OPERATORS(NpadButtons)
 
@@ -1162,3 +1166,8 @@ struct SharedMemory {
 };
 
 } // namespace hydra::horizon::hid
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::hid::NpadIdType, No1, "Number 1", No2,
+                       "Number 2", No3, "Number 3", No4, "Number 4", No5,
+                       "Number 5", No6, "Number 6", No7, "Number 7", No8,
+                       "Number 8", Handheld, "Handheld")

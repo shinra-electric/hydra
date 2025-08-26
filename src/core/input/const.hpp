@@ -1,19 +1,56 @@
 #pragma once
 
+#include "core/horizon/hid.hpp"
+
 namespace hydra::input {
 
-using code_t = u32;
+enum class DeviceType : u32 {
+    Invalid = 0,
 
-template <typename Code>
-code_t make_code(u32 device_id, Code code) {
-    return ((device_id & 0xff) << 24) | (static_cast<code_t>(code) & 0xffffff);
-}
+    Keyboard,
+    Cursor,
+};
 
-inline u32 get_code_device_id(code_t code) { return (code >> 24) & 0xff; }
+struct Code {
+    DeviceType device_type;
+    u32 value;
 
-template <typename Code>
-Code get_code_value(code_t code) {
-    return static_cast<Code>(code & 0xffffff);
-}
+    Code() : device_type{DeviceType::Invalid} {}
+    template <typename T = u32>
+    Code(DeviceType device_type_, T value_)
+        : device_type{device_type_}, value{u32(value_)} {}
+
+    GETTER(device_type, GetDeviceType);
+
+    template <typename T = u32>
+    T GetValue() const {
+        return static_cast<T>(value);
+    }
+};
+
+struct CodeButtonMapping {
+    Code code;
+    horizon::hid::NpadButtons npad_buttons;
+};
+
+enum class AnalogStickDirection {
+    XMinus,
+    XPlus,
+    YMinus,
+    YPlus,
+};
+
+struct AnalogStickAxis {
+    bool is_left;
+    AnalogStickDirection direction;
+};
+
+struct CodeAnalogMapping {
+    Code code;
+    AnalogStickAxis axis;
+};
 
 } // namespace hydra::input
+
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::input, DeviceType, device_type,
+                                   Keyboard, "Keyboard", Cursor, "Cursor")

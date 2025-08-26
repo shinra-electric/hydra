@@ -5,7 +5,9 @@
 namespace hydra::input {
 
 enum class Key {
-    Q = 0,
+    Invalid = 0,
+
+    Q,
     W,
     E,
     R,
@@ -56,26 +58,24 @@ enum class Key {
     RightSuper,
 };
 
-constexpr u32 KEYBOARD_DEVICE_ID = 1;
-
 class KeyboardBase : public DeviceBase {
   public:
     bool ActsAsController() const override { return true; }
 
     // Controller
-    bool IsPressed(code_t code) override {
-        if (get_code_device_id(code) != KEYBOARD_DEVICE_ID)
+    bool IsPressed(const Code& code) override {
+        if (code.GetDeviceType() != DeviceType::Keyboard)
             return false;
 
-        const auto key = get_code_value<Key>(code);
+        const auto key = code.GetValue<Key>();
         return IsPressedImpl(key);
     }
 
-    f32 GetAxisValue(code_t code) override {
-        if (get_code_device_id(code) != KEYBOARD_DEVICE_ID)
+    f32 GetAxisValue(const Code& code) override {
+        if (code.GetDeviceType() != DeviceType::Keyboard)
             return 0.0f;
 
-        const auto key = get_code_value<Key>(code);
+        const auto key = code.GetValue<Key>();
         return IsPressedImpl(key) ? 1.0f : 0.0f;
     }
 
@@ -84,3 +84,13 @@ class KeyboardBase : public DeviceBase {
 };
 
 } // namespace hydra::input
+
+ENABLE_ENUM_FORMATTING_AND_CASTING(
+    hydra::input, Key, key, Q, "Q", W, "W", E, "E", R, "R", T, "T", Y, "Y", U,
+    "U", I, "I", O, "O", P, "P", A, "A", S, "S", D, "D", F, "F", G, "G", H, "H",
+    J, "J", K, "K", L, "L", Z, "Z", X, "X", C, "C", V, "V", B, "B", N, "N", M,
+    "M", ArrowLeft, "Left", ArrowRight, "Right", ArrowUp, "Up", ArrowDown,
+    "Down", Enter, "Enter", Tab, "Tab", Backspace, "Backspace", Space, "Space",
+    LeftShift, "Left shift", RightShift, "Right shift", LeftControl,
+    "Left control", RightControl, "Right control", LeftAlt, "Left alt",
+    RightAlt, "Right alt", LeftSuper, "Left super", RightSuper, "Right super")

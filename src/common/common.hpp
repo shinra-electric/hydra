@@ -21,4 +21,5 @@
 #include "common/static_pool.hpp"
 #include "common/string.hpp"
 #include "common/time.hpp"
+#include "common/toml_helper.hpp"
 #include "common/traits.hpp"

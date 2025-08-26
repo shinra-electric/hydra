@@ -63,8 +63,7 @@ bool Keyboard::IsPressedImpl(Key key) {
         KEY_CASE(LeftSuper, LeftGUI)
         KEY_CASE(RightSuper, RightGUI)
     default:
-        // TODO: don't cast to u32
-        LOG_NOT_IMPLEMENTED(Input, "Key {}", (u32)key);
+        LOG_NOT_IMPLEMENTED(Input, "Key {}", key);
         return false;
     }
 

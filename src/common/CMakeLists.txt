@@ -1,4 +1,3 @@
-# TODO: make a precompiled header
 add_library(hydra-common
     macros.hpp
     type_aliases.hpp
@@ -18,13 +17,15 @@ add_library(hydra-common
     log.hpp
     lz4.cpp
     lz4.hpp
+    toml_helper.hpp
     config.cpp
     config.hpp
     common.hpp
     elf.h
     stb.cpp
 )
-target_precompile_headers(hydra-common PUBLIC common.hpp)
 
 target_link_libraries(hydra-common PUBLIC fmt::fmt)
-target_link_libraries(hydra-common PRIVATE toml11::toml11)
+target_link_libraries(hydra-common PUBLIC toml11::toml11)
+
+target_precompile_headers(hydra-common PUBLIC common.hpp)

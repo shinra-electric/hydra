@@ -530,6 +530,8 @@ add_library(hydra-core
     input/device_base.hpp
     input/keyboard_base.hpp
     input/cursor_base.hpp
+    input/npad_config.cpp
+    input/npad_config.hpp
     input/device_list_base.hpp
     input/device_manager.cpp
     input/device_manager.hpp
