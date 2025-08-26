@@ -8,6 +8,16 @@ class NpadConfig {
   public:
     NpadConfig(horizon::hid::NpadIdType type_);
 
+    void Reset() {
+        button_mappings = {};
+        analog_mappings = {};
+    }
+
+    void LoadDefaults();
+
+    void Serialize();
+    void Deserialize();
+
   private:
     horizon::hid::NpadIdType type;
     std::map<std::string, std::vector<CodeButtonMapping>> button_mappings;

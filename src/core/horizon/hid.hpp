@@ -1162,3 +1162,8 @@ struct SharedMemory {
 };
 
 } // namespace hydra::horizon::hid
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::hid::NpadIdType, No1, "Number 1", No2,
+                       "Number 2", No3, "Number 3", No4, "Number 4", No5,
+                       "Number 5", No6, "Number 6", No7, "Number 7", No8,
+                       "Number 8", Handheld, "Handheld")

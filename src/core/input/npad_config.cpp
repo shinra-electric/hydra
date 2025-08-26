@@ -110,44 +110,81 @@ struct into<hydra::input::CodeWithDevice> {
 namespace hydra::input {
 
 NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
-    // TODO: toml
+    Deserialize();
+}
+
+void NpadConfig::LoadDefaults() {
+    switch (type) {
+    case horizon::hid::NpadIdType::Handheld: // TODO: No1 instead?
+        // Buttons
+
+        // Keyboard
+        button_mappings["keyboard"] = {
+            {Code(DeviceType::Keyboard, Key::Enter),
+             horizon::hid::NpadButtons::Plus},
+            {Code(DeviceType::Keyboard, Key::Tab),
+             horizon::hid::NpadButtons::Minus},
+            {Code(DeviceType::Keyboard, Key::ArrowLeft),
+             horizon::hid::NpadButtons::Left},
+            {Code(DeviceType::Keyboard, Key::ArrowRight),
+             horizon::hid::NpadButtons::Right},
+            {Code(DeviceType::Keyboard, Key::ArrowUp),
+             horizon::hid::NpadButtons::Up},
+            {Code(DeviceType::Keyboard, Key::ArrowDown),
+             horizon::hid::NpadButtons::Down},
+            {Code(DeviceType::Keyboard, Key::L), horizon::hid::NpadButtons::A},
+            {Code(DeviceType::Keyboard, Key::K), horizon::hid::NpadButtons::B},
+            {Code(DeviceType::Keyboard, Key::I), horizon::hid::NpadButtons::X},
+            {Code(DeviceType::Keyboard, Key::J), horizon::hid::NpadButtons::Y},
+            {Code(DeviceType::Keyboard, Key::U), horizon::hid::NpadButtons::L},
+            {Code(DeviceType::Keyboard, Key::O), horizon::hid::NpadButtons::R},
+            {Code(DeviceType::Keyboard, Key::Y), horizon::hid::NpadButtons::ZL},
+            {Code(DeviceType::Keyboard, Key::P), horizon::hid::NpadButtons::ZR},
+        };
+
+        // Analog sticks
+
+        // Keyboard
+        analog_mappings["keyboard"] = {
+            {Code(DeviceType::Keyboard, Key::A),
+             {true, AnalogStickDirection::Left}},
+            {Code(DeviceType::Keyboard, Key::D),
+             {true, AnalogStickDirection::Right}},
+            {Code(DeviceType::Keyboard, Key::W),
+             {true, AnalogStickDirection::Up}},
+            {Code(DeviceType::Keyboard, Key::S),
+             {true, AnalogStickDirection::Down}},
+        };
+
+        break;
+    default:
+        break;
+    }
+}
+
+void NpadConfig::Serialize() {
+    // TODO
+    LOG_FUNC_NOT_IMPLEMENTED(Input);
+}
+
+void NpadConfig::Deserialize() {
+    const std::string path =
+        fmt::format("{}/input_config/npads/{}.toml",
+                    CONFIG_INSTANCE.GetAppDataPath(), type);
+
+    // Check if exists
+    bool exists = std::filesystem::exists(path);
+    if (!exists) {
+        LoadDefaults();
+        Serialize();
+        return;
+    }
 
     // Buttons
-    // HACK
-    button_mappings["keyboard"] = {
-        {Code(DeviceType::Keyboard, Key::Enter),
-         horizon::hid::NpadButtons::Plus},
-        {Code(DeviceType::Keyboard, Key::Tab),
-         horizon::hid::NpadButtons::Minus},
-        {Code(DeviceType::Keyboard, Key::ArrowLeft),
-         horizon::hid::NpadButtons::Left},
-        {Code(DeviceType::Keyboard, Key::ArrowRight),
-         horizon::hid::NpadButtons::Right},
-        {Code(DeviceType::Keyboard, Key::ArrowUp),
-         horizon::hid::NpadButtons::Up},
-        {Code(DeviceType::Keyboard, Key::ArrowDown),
-         horizon::hid::NpadButtons::Down},
-        {Code(DeviceType::Keyboard, Key::L), horizon::hid::NpadButtons::A},
-        {Code(DeviceType::Keyboard, Key::K), horizon::hid::NpadButtons::B},
-        {Code(DeviceType::Keyboard, Key::I), horizon::hid::NpadButtons::X},
-        {Code(DeviceType::Keyboard, Key::J), horizon::hid::NpadButtons::Y},
-        {Code(DeviceType::Keyboard, Key::U), horizon::hid::NpadButtons::L},
-        {Code(DeviceType::Keyboard, Key::O), horizon::hid::NpadButtons::R},
-        {Code(DeviceType::Keyboard, Key::Y), horizon::hid::NpadButtons::ZL},
-        {Code(DeviceType::Keyboard, Key::P), horizon::hid::NpadButtons::ZR},
-    };
+    // TODO
 
     // Analog sticks
-    // HACK
-    analog_mappings["keyboard"] = {
-        {Code(DeviceType::Keyboard, Key::A),
-         {true, AnalogStickDirection::Left}},
-        {Code(DeviceType::Keyboard, Key::D),
-         {true, AnalogStickDirection::Right}},
-        {Code(DeviceType::Keyboard, Key::W), {true, AnalogStickDirection::Up}},
-        {Code(DeviceType::Keyboard, Key::S),
-         {true, AnalogStickDirection::Down}},
-    };
+    // TODO
 }
 
 } // namespace hydra::input

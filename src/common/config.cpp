@@ -75,76 +75,79 @@ void Config::Serialize() {
     // TODO: why is the order of everything reversed in the saved config?
 
     std::ofstream config_file(GetConfigPath());
-    if (config_file.is_open()) {
-        toml::value data(toml::table{
-            {"General", toml::table{}},
-            {"CPU", toml::table{}},
-            {"Graphics", toml::table{}},
-            {"Audio", toml::table{}},
-            {"User", toml::table{}},
-            {"System", toml::table{}},
-            {"Debug", toml::table{}},
-        });
-
-        {
-            auto& general = data.at("General");
-
-            auto& game_paths_arr = general["game_paths"];
-            game_paths_arr = toml::array{};
-            game_paths_arr.as_array().assign(game_paths.Get().begin(),
-                                             game_paths.Get().end());
-
-            auto& patch_paths_arr = general["patch_paths"];
-            patch_paths_arr = toml::array{};
-            patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
-                                              patch_paths.Get().end());
-        }
-
-        {
-            auto& cpu = data.at("CPU");
-            cpu["backend"] = cpu_backend.Get();
-        }
-
-        {
-            auto& graphics = data.at("Graphics");
-            graphics["renderer"] = gpu_renderer.Get();
-            graphics["shader_backend"] = shader_backend.Get();
-        }
-
-        {
-            auto& audio = data.at("Audio");
-            audio["backend"] = audio_backend.Get();
-        }
-
-        {
-            auto& user = data.at("User");
-            user["user_id"] = user_id.Get();
-        }
-
-        {
-            auto& system = data.at("System");
-            system["firmware_path"] = firmware_path;
-            system["sd_card_path"] = sd_card_path;
-            system["save_path"] = save_path;
-        }
-
-        {
-            auto& debug = data.at("Debug");
-            debug["log_output"] = log_output.Get();
-            debug["log_fs_access"] = log_fs_access.Get();
-            debug["debug_logging"] = debug_logging.Get();
-            debug["process_args"] = process_args.Get();
-        }
-
-        config_file << toml::format(data);
-        config_file.close();
-    } else {
-        LOG_FATAL(Other, "Failed to create config file");
+    if (!config_file.is_open()) {
+        LOG_ERROR(Common, "Failed to open config file");
+        return;
     }
+
+    toml::value data(toml::table{
+        {"General", toml::table{}},
+        {"CPU", toml::table{}},
+        {"Graphics", toml::table{}},
+        {"Audio", toml::table{}},
+        {"User", toml::table{}},
+        {"System", toml::table{}},
+        {"Debug", toml::table{}},
+    });
+
+    {
+        auto& general = data.at("General");
+
+        auto& game_paths_arr = general["game_paths"];
+        game_paths_arr = toml::array{};
+        game_paths_arr.as_array().assign(game_paths.Get().begin(),
+                                         game_paths.Get().end());
+
+        auto& patch_paths_arr = general["patch_paths"];
+        patch_paths_arr = toml::array{};
+        patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
+                                          patch_paths.Get().end());
+    }
+
+    {
+        auto& cpu = data.at("CPU");
+        cpu["backend"] = cpu_backend.Get();
+    }
+
+    {
+        auto& graphics = data.at("Graphics");
+        graphics["renderer"] = gpu_renderer.Get();
+        graphics["shader_backend"] = shader_backend.Get();
+    }
+
+    {
+        auto& audio = data.at("Audio");
+        audio["backend"] = audio_backend.Get();
+    }
+
+    {
+        auto& user = data.at("User");
+        user["user_id"] = user_id.Get();
+    }
+
+    {
+        auto& system = data.at("System");
+        system["firmware_path"] = firmware_path;
+        system["sd_card_path"] = sd_card_path;
+        system["save_path"] = save_path;
+    }
+
+    {
+        auto& debug = data.at("Debug");
+        debug["log_output"] = log_output.Get();
+        debug["log_fs_access"] = log_fs_access.Get();
+        debug["debug_logging"] = debug_logging.Get();
+        debug["process_args"] = process_args.Get();
+    }
+
+    config_file << toml::format(data);
+    config_file.close();
 }
 
 void Config::Deserialize() {
     const std::string path = GetConfigPath();
+
+    // Check if exists
     bool exists = std::filesystem::exists(path);
     if (!exists) {
         LoadDefaults();
