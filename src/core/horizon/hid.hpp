@@ -235,7 +235,8 @@ enum class ColorAttribute {
 };
 
 enum class NpadButtons : u64 {
-    None,
+    None = 0,
+
     A = BITL(0),
     B = BITL(1),
     X = BITL(2),
@@ -271,6 +272,9 @@ enum class NpadButtons : u64 {
     LagonCUp = BITL(32),
     LagonCRight = BITL(33),
     LagonCDown = BITL(34),
+
+    // HACK: alias
+    Invalid = None,
 };
 ENABLE_ENUM_BITMASK_OPERATORS(NpadButtons)
 

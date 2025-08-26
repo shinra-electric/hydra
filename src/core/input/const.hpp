@@ -34,10 +34,10 @@ struct CodeButtonMapping {
 };
 
 enum class AnalogStickDirection {
-    Left,
-    Right,
-    Up,
-    Down,
+    XMinus,
+    XPlus,
+    YMinus,
+    YPlus,
 };
 
 struct AnalogStickAxis {

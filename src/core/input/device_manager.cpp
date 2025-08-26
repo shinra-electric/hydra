@@ -58,31 +58,31 @@ void DeviceManager::Poll() {
                 const auto value = device->GetAxisValue(mapping.code);
                 if (mapping.axis.is_left) {
                     switch (mapping.axis.direction) {
-                    case AnalogStickDirection::Left:
-                        analog_l_x -= value;
-                        break;
-                    case AnalogStickDirection::Right:
+                    case AnalogStickDirection::XPlus:
                         analog_l_x += value;
                         break;
-                    case AnalogStickDirection::Up:
+                    case AnalogStickDirection::XMinus:
+                        analog_l_x -= value;
+                        break;
+                    case AnalogStickDirection::YPlus:
                         analog_l_y += value;
                         break;
-                    case AnalogStickDirection::Down:
+                    case AnalogStickDirection::YMinus:
                         analog_l_y -= value;
                         break;
                     }
                 } else {
                     switch (mapping.axis.direction) {
-                    case AnalogStickDirection::Left:
-                        analog_r_x -= value;
-                        break;
-                    case AnalogStickDirection::Right:
+                    case AnalogStickDirection::XPlus:
                         analog_r_x += value;
                         break;
-                    case AnalogStickDirection::Up:
+                    case AnalogStickDirection::XMinus:
+                        analog_r_x -= value;
+                        break;
+                    case AnalogStickDirection::YPlus:
                         analog_r_y += value;
                         break;
-                    case AnalogStickDirection::Down:
+                    case AnalogStickDirection::YMinus:
                         analog_r_y -= value;
                         break;
                     }

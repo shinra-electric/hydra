@@ -2,6 +2,19 @@
 
 #include "core/input/keyboard_base.hpp"
 
+ENABLE_ENUM_FORMATTING_AND_CASTING(
+    hydra::horizon::hid, NpadButtons, npad_buttons, A, "a", B, "b", X, "x", Y,
+    "y", StickL, "stick_l", StickR, "stick_r", L, "l", R, "r", ZL, "zl", ZR,
+    "zr", Plus, "plus", Minus, "minus", Left, "left", Up, "up", Right, "right",
+    Down, "down", StickLLeft, "stick_l_left", StickLUp, "stick_l_up",
+    StickLRight, "stick_l_right", StickLDown, "stick_l_down", StickRLeft,
+    "stick_r_left", StickRUp, "stick_r_up", StickRRight, "stick_r_right",
+    StickRDown, "stick_r_down", LeftSL, "left_sl", LeftSR, "left_sr", RightSL,
+    "right_sl", RightSR, "right_sr", Palma, "palma", Verification,
+    "verification", HandheldLeftB, "handheld_left_b", LagonCLeft,
+    "lagon_c_left", LagonCUp, "lagon_c_up", LagonCRight, "lagon_c_right",
+    LagonCDown, "lagon_c_down")
+
 namespace hydra::input {
 
 namespace {
@@ -56,6 +69,49 @@ Code to_code(const std::string_view str) {
     return Code(device_type, value);
 }
 
+AnalogStickAxis to_analog_stick_axis(const std::string_view str) {
+    // TODO: clean this up?
+    if (str == "l_x_plus") {
+        return {true, AnalogStickDirection::XPlus};
+    } else if (str == "l_x_minus") {
+        return {true, AnalogStickDirection::XMinus};
+    } else if (str == "l_y_plus") {
+        return {true, AnalogStickDirection::YPlus};
+    } else if (str == "l_y_minus") {
+        return {true, AnalogStickDirection::YMinus};
+    } else if (str == "r_x_plus") {
+        return {false, AnalogStickDirection::XPlus};
+    } else if (str == "r_x_minus") {
+        return {false, AnalogStickDirection::XMinus};
+    } else if (str == "r_y_plus") {
+        return {false, AnalogStickDirection::YPlus};
+    } else if (str == "r_y_minus") {
+        return {false, AnalogStickDirection::YMinus};
+    } else {
+        LOG_ERROR(Input, "Invalid analog stick axis \"{}\"", str);
+        return {};
+    }
+}
+
+std::string analog_stick_direction_to_string(const AnalogStickDirection& dir) {
+    switch (dir) {
+    case AnalogStickDirection::XPlus:
+        return "x_plus";
+    case AnalogStickDirection::XMinus:
+        return "x_minus";
+    case AnalogStickDirection::YPlus:
+        return "y_plus";
+    case AnalogStickDirection::YMinus:
+        return "y_minus";
+    }
+}
+
+std::string analog_stick_axis_to_string(const AnalogStickAxis& axis) {
+    return fmt::format(
+        "{}_{}", axis.is_left ? "l" : "r",
+        hydra::input::analog_stick_direction_to_string(axis.direction));
+}
+
 } // namespace
 
 } // namespace hydra::input
@@ -81,11 +137,33 @@ struct into<hydra::input::Code> {
     }
 };
 
+template <>
+struct from<hydra::input::AnalogStickAxis> {
+    template <typename TC>
+    static hydra::input::AnalogStickAxis from_toml(const basic_value<TC>& v) {
+        const auto str = v.as_string();
+        return hydra::input::to_analog_stick_axis(str);
+    }
+};
+
+template <>
+struct into<hydra::input::AnalogStickAxis> {
+    template <typename TC>
+    static basic_value<TC>
+    into_toml(const hydra::input::AnalogStickAxis& axis) {
+        return hydra::input::analog_stick_axis_to_string(axis);
+    }
+};
+
 } // namespace toml
 
 namespace hydra::input {
 
 NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
+    const auto path = GetNpadsPath();
+    if (!std::filesystem::exists(path))
+        std::filesystem::create_directory(path);
+
     Deserialize();
 }
 
@@ -121,14 +199,14 @@ void NpadConfig::LoadDefaults() {
 
         // Analog sticks
         analog_mappings = {
-            {Code(DeviceType::Keyboard, Key::A),
-             {true, AnalogStickDirection::Left}},
             {Code(DeviceType::Keyboard, Key::D),
-             {true, AnalogStickDirection::Right}},
+             {true, AnalogStickDirection::XPlus}},
+            {Code(DeviceType::Keyboard, Key::A),
+             {true, AnalogStickDirection::XMinus}},
             {Code(DeviceType::Keyboard, Key::W),
-             {true, AnalogStickDirection::Up}},
+             {true, AnalogStickDirection::YPlus}},
             {Code(DeviceType::Keyboard, Key::S),
-             {true, AnalogStickDirection::Down}},
+             {true, AnalogStickDirection::YMinus}},
         };
 
         break;
@@ -138,14 +216,58 @@ void NpadConfig::LoadDefaults() {
 }
 
 void NpadConfig::Serialize() {
-    // TODO
-    LOG_FUNC_NOT_IMPLEMENTED(Input);
+    // TODO: check if changed?
+
+    // TODO: why is the order of everything reversed in the saved config?
+
+    std::ofstream config_file(GetPath());
+    if (!config_file.is_open()) {
+        LOG_ERROR(Common, "Failed to open npad config file");
+        return;
+    }
+
+    toml::value data(toml::table{
+        {"Buttons", toml::table{}},
+        {"AnalogSticks", toml::table{}},
+    });
+
+    {
+        auto& devices_arr = data["devices"];
+        devices_arr = toml::array{};
+        devices_arr.as_array().assign(device_names.begin(), device_names.end());
+    }
+
+    {
+        auto& buttons = data.at("Buttons");
+        for (const auto& mapping : button_mappings) {
+            const auto npad_buttons_str =
+                fmt::format("{}", mapping.npad_buttons);
+            bool has_entry = buttons.contains(npad_buttons_str);
+            auto& button = buttons[npad_buttons_str];
+            if (!has_entry)
+                button = toml::array{};
+            button.as_array().push_back(mapping.code);
+        }
+    }
+
+    {
+        auto& analog = data.at("AnalogSticks");
+        for (const auto& mapping : analog_mappings) {
+            const auto axis_str = analog_stick_axis_to_string(mapping.axis);
+            bool has_entry = analog.contains(axis_str);
+            auto& axis = analog[axis_str];
+            if (!has_entry)
+                axis = toml::array{};
+            axis.as_array().push_back(mapping.code);
+        }
+    }
+
+    config_file << toml::format(data);
+    config_file.close();
 }
 
 void NpadConfig::Deserialize() {
-    const std::string path =
-        fmt::format("{}/input_config/npads/{}.toml",
-                    CONFIG_INSTANCE.GetAppDataPath(), type);
+    const std::string path = GetPath();
 
     // Check if exists
     bool exists = std::filesystem::exists(path);
