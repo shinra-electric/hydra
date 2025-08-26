@@ -12,8 +12,8 @@ class DeviceBase {
     virtual bool ActsAsTouchScreen() const { return false; };
 
     // Controller
-    virtual bool IsPressed(code_t code) { return false; }
-    virtual f32 GetAxisValue(code_t code) { return 0.0f; }
+    virtual bool IsPressed(const Code& code) { return false; }
+    virtual f32 GetAxisValue(const Code& code) { return 0.0f; }
 
     // Touch screen
     virtual u64 GetNextBeganTouchID() { return invalid<u64>(); };

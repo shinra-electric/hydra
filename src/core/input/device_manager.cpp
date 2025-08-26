@@ -3,14 +3,19 @@
 #include "core/horizon/os.hpp"
 #include "core/input/apple_gc/device_list.hpp"
 
-// TODO: remove dependency
-#include "core/input/keyboard_base.hpp"
-
 namespace hydra::input {
 
 namespace hid = horizon::hid;
 
-DeviceManager::DeviceManager() { device_list = new apple_gc::DeviceList(); }
+DeviceManager::DeviceManager()
+    : npad_configs{
+          horizon::hid::NpadIdType::No1,     horizon::hid::NpadIdType::No2,
+          horizon::hid::NpadIdType::No3,     horizon::hid::NpadIdType::No4,
+          horizon::hid::NpadIdType::No5,     horizon::hid::NpadIdType::No6,
+          horizon::hid::NpadIdType::No7,     horizon::hid::NpadIdType::No8,
+          horizon::hid::NpadIdType::Handheld} {
+    device_list = new apple_gc::DeviceList();
+}
 
 DeviceManager::~DeviceManager() { delete device_list; }
 
@@ -27,85 +32,43 @@ void DeviceManager::ConnectDevices() {
 
 void DeviceManager::Poll() {
     // Npads
-    {
-        // TODO: get npads from the config
-        const auto type = hid::NpadIdType::Handheld;
+    for (u32 i = 0; i < NPAD_COUNT; i++) {
+        const auto type = horizon::hid::NpadIdType(i);
+        const auto& config = npad_configs[i];
 
         // Buttons
-        // TODO: get buttons mappings for this npad from the config
-        const auto plus = make_code(KEYBOARD_DEVICE_ID, Key::Enter);
-        const auto minus = make_code(KEYBOARD_DEVICE_ID, Key::Tab);
-        const auto left = make_code(KEYBOARD_DEVICE_ID, Key::ArrowLeft);
-        const auto right = make_code(KEYBOARD_DEVICE_ID, Key::ArrowRight);
-        const auto up = make_code(KEYBOARD_DEVICE_ID, Key::ArrowUp);
-        const auto down = make_code(KEYBOARD_DEVICE_ID, Key::ArrowDown);
-        const auto a = make_code(KEYBOARD_DEVICE_ID, Key::L);
-        const auto b = make_code(KEYBOARD_DEVICE_ID, Key::K);
-        const auto x = make_code(KEYBOARD_DEVICE_ID, Key::I);
-        const auto y = make_code(KEYBOARD_DEVICE_ID, Key::J);
-        const auto l = make_code(KEYBOARD_DEVICE_ID, Key::U);
-        const auto r = make_code(KEYBOARD_DEVICE_ID, Key::O);
-        const auto zl = make_code(KEYBOARD_DEVICE_ID, Key::Y);
-        const auto zr = make_code(KEYBOARD_DEVICE_ID, Key::P);
-        const auto analog_l_neg_x = make_code(KEYBOARD_DEVICE_ID, Key::A);
-        const auto analog_l_pos_x = make_code(KEYBOARD_DEVICE_ID, Key::D);
-        const auto analog_l_pos_y = make_code(KEYBOARD_DEVICE_ID, Key::W);
-        const auto analog_l_neg_y = make_code(KEYBOARD_DEVICE_ID, Key::S);
-
         hid::NpadButtons buttons = hid::NpadButtons::None;
+        for (const auto& [device_name, mappings] : config.GetButtonMappings()) {
+            auto device = GetDevice(device_name);
+            if (!device)
+                continue;
+
+            for (const auto& mapping : mappings) {
+                if (device->IsPressed(mapping.code))
+                    buttons |= mapping.npad_buttons;
+            }
+        }
+
+        // Analog sticks
         f32 analog_l_x = 0.0f;
         f32 analog_l_y = 0.0f;
         f32 analog_r_x = 0.0f;
         f32 analog_r_y = 0.0f;
-
-        // TODO: get devices for this npad from the config
-        for (u32 i = 0; i < 1; i++) {
-            const auto name = "keyboard";
-
-            auto device = GetDevice(name);
-            if (!device)
-                continue;
-
-            // TODO: clean up
-            if (device->IsPressed(plus))
-                buttons |= hid::NpadButtons::Plus;
-            if (device->IsPressed(minus))
-                buttons |= hid::NpadButtons::Minus;
-            if (device->IsPressed(left))
-                buttons |= hid::NpadButtons::Left;
-            if (device->IsPressed(right))
-                buttons |= hid::NpadButtons::Right;
-            if (device->IsPressed(up))
-                buttons |= hid::NpadButtons::Up;
-            if (device->IsPressed(down))
-                buttons |= hid::NpadButtons::Down;
-            if (device->IsPressed(a))
-                buttons |= hid::NpadButtons::A;
-            if (device->IsPressed(b))
-                buttons |= hid::NpadButtons::B;
-            if (device->IsPressed(x))
-                buttons |= hid::NpadButtons::X;
-            if (device->IsPressed(y))
-                buttons |= hid::NpadButtons::Y;
-            if (device->IsPressed(l))
-                buttons |= hid::NpadButtons::L;
-            if (device->IsPressed(r))
-                buttons |= hid::NpadButtons::R;
-            if (device->IsPressed(zl))
-                buttons |= hid::NpadButtons::ZL;
-            if (device->IsPressed(zr))
-                buttons |= hid::NpadButtons::ZR;
-
+        // TODO
+        {
+            /*
             analog_l_x -= device->GetAxisValue(analog_l_neg_x);
             analog_l_x += device->GetAxisValue(analog_l_pos_x);
             analog_l_y -= device->GetAxisValue(analog_l_neg_y);
             analog_l_y += device->GetAxisValue(analog_l_pos_y);
+            */
         }
+
+        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(type, buttons);
 
         // TODO: normalize analog sticks if the length of the vector is more
         // than 1?
 
-        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(type, buttons);
         INPUT_MANAGER_INSTANCE.UpdateAndSetNpadAnalogStickStateL(
             type,
             {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
@@ -119,9 +82,9 @@ void DeviceManager::Poll() {
         INPUT_MANAGER_INSTANCE.UpdateTouchStates();
 
         // TODO: get name from the config
-        const std::string name = "cursor";
+        const std::string device_name = "cursor";
 
-        auto device = GetDevice(name);
+        auto device = GetDevice(device_name);
         if (!device)
             return;
 
