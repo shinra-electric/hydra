@@ -10,6 +10,9 @@ class IApplicationManagerInterface : public IService {
 
   private:
     // Commands
+    result_t
+    ListApplicationRecord(i32 entry_offset, i32* out_entry_count,
+                          OutBuffer<BufferAttr::MapAlias> out_record_buffer);
 };
 
 } // namespace hydra::horizon::services::ns

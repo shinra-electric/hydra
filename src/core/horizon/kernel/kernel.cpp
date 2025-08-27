@@ -860,6 +860,11 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
 result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
                                  hw::tegra_x1::cpu::IMemory* tls_mem,
                                  hipc::ClientSession* client_session) {
+    if (!client_session) {
+        LOG_WARN(Kernel, "SendSyncRequest called (INVALID_HANDLE)");
+        return MAKE_RESULT(Svc, Error::InvalidHandle);
+    }
+
     LOG_DEBUG(Kernel, "SendSyncRequest called (session: {})",
               client_session->GetDebugName());
 

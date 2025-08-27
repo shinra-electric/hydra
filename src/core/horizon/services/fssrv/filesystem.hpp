@@ -48,6 +48,8 @@ class IFileSystem : public IService {
     STUB_REQUEST_COMMAND(Commit);
     result_t GetFreeSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                               u64* out_size);
+    result_t GetTotalSpaceSize(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+                               u64* out_size);
     result_t
     GetFileTimeStampRaw(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                         TimeStampRaw* out_timestamp); // 3.0.0+
