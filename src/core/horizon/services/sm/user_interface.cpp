@@ -9,7 +9,8 @@
 namespace hydra::horizon::services::sm {
 
 DEFINE_SERVICE_COMMAND_TABLE(IUserInterface, 0, RegisterClient, 1,
-                             GetServiceHandle, 2, RegisterService)
+                             GetServiceHandle, 2, RegisterService, 65100,
+                             AtmosphereHasService, 65101, AtmosphereWaitService)
 
 result_t
 IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
@@ -54,6 +55,20 @@ IUserInterface::RegisterService(kernel::Process* process, u64 name,
     // Register client side
     OS_INSTANCE.GetServiceManager().RegisterPort(name, client_port);
 
+    return RESULT_SUCCESS;
+}
+
+result_t IUserInterface::AtmosphereHasService(u64 name, bool* out_has_service) {
+    LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
+
+    auto client_port = OS_INSTANCE.GetServiceManager().GetPort(name);
+    *out_has_service = (client_port != nullptr);
+    return RESULT_SUCCESS;
+}
+
+result_t IUserInterface::AtmosphereWaitService(u64 name) {
+    // TODO: does this wait for the service to start?
+    LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 

@@ -16,6 +16,10 @@ class IUserInterface : public IService {
     result_t RegisterService(kernel::Process* process, u64 name, bool is_light,
                              i32 max_sessions,
                              OutHandle<HandleAttr::Move> out_port_handle);
+
+    // Atmosphere commands
+    result_t AtmosphereHasService(u64 name, bool* out_has_service);
+    result_t AtmosphereWaitService(u64 name);
 };
 
 } // namespace hydra::horizon::services::sm
