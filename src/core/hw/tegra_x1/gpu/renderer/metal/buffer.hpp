@@ -14,6 +14,7 @@ class Buffer final : public BufferBase {
     // Copying
     void CopyFrom(const uptr data) override;
     void CopyFrom(BufferBase* src) override;
+    void CopyFrom(TextureBase* src) override;
 
     // Getters
     MTL::Buffer* GetBuffer() const { return buffer; }

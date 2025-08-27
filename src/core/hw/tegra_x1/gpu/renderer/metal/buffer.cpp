@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
@@ -32,6 +33,18 @@ void Buffer::CopyFrom(BufferBase* src) {
     auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
     blit_encoder->copyFromBuffer(src_impl->GetBuffer(), 0, buffer, 0,
                                  descriptor.size);
+}
+
+void Buffer::CopyFrom(TextureBase* src) {
+    auto src_impl = static_cast<Texture*>(src);
+
+    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    // TODO: bytes per image
+    blit_encoder->copyFromTexture(
+        src_impl->GetTexture(), 0, 0, MTL::Origin::Make(0, 0, 0),
+        MTL::Size::Make(src_impl->GetDescriptor().width,
+                        src_impl->GetDescriptor().height, 1),
+        buffer, 0, src_impl->GetDescriptor().stride, 0);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

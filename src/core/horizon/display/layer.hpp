@@ -31,6 +31,7 @@ class Layer {
 
   public:
     GETTER(binder_id, GetBinderID);
+    GETTER(present_texture, GetPresentTexture);
 };
 
 } // namespace hydra::horizon::display

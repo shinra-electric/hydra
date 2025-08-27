@@ -19,6 +19,7 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -502,35 +503,41 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 }
 
 void EmulationContext::TakeScreenshot() {
-    LOG_INFO(Other, "TAKING SCREENSHOT");
+    std::thread thread([&]() {
+        // Get the image data
+        // TODO: don't hardcode the display ID
+        auto& display = os->GetDisplayDriver().GetDisplay(1);
+        // TODO: don't hardcode the layer ID
+        auto& layer = display.GetLayer(1);
+        auto texture = layer.GetPresentTexture();
 
-    // Get the image data
-    // HACK
-    u32 width = 256;
-    u32 height = 256;
-    u8* data = new u8[width * height * 3];
-    for (u32 y = 0; y < height; y++) {
-        for (u32 x = 0; x < width; x++) {
-            u32 index = (y * width + x) * 3;
-            data[index] = x;
-            data[index + 1] = y;
-            data[index + 2] = 0;
-        }
-    }
+        RENDERER_INSTANCE.LockMutex();
+        auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
+            texture->GetDescriptor().height * texture->GetDescriptor().width *
+            4);
+        buffer->CopyFrom(texture);
+        RENDERER_INSTANCE.EndCommandBuffer();
+        RENDERER_INSTANCE.UnlockMutex();
 
-    // Save the image to file
-    const auto screenshots_path = CONFIG_INSTANCE.GetScreenshotsPath();
-    if (!std::filesystem::exists(screenshots_path))
-        std::filesystem::create_directories(screenshots_path);
+        // TODO: wait for the command buffer to finish
 
-    // TODO: use title name and date for filename
-    std::string filename = fmt::format("{}/todo.jpg", screenshots_path);
-    if (!stbi_write_jpg(filename.c_str(), width, height, 3, data, 100))
-        LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
+        // Save the image to file
+        const auto screenshots_path = CONFIG_INSTANCE.GetScreenshotsPath();
+        if (!std::filesystem::exists(screenshots_path))
+            std::filesystem::create_directories(screenshots_path);
 
-    delete[] data;
+        // TODO: use title name and date for filename
+        std::string filename = fmt::format("{}/todo.jpg", screenshots_path);
+        if (!stbi_write_jpg(filename.c_str(), texture->GetDescriptor().width,
+                            texture->GetDescriptor().height, 4,
+                            (void*)buffer->GetDescriptor().ptr, 100))
+            LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
 
-    LOG_INFO(Other, "SCREENSHOT SAVED TO {}", filename);
+        RENDERER_INSTANCE.LockMutex();
+        RENDERER_INSTANCE.FreeTemporaryBuffer(buffer);
+        RENDERER_INSTANCE.UnlockMutex();
+    });
+    thread.detach();
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,

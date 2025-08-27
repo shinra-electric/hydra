@@ -60,6 +60,7 @@ class Renderer : public RendererBase {
     Renderer();
     ~Renderer() override;
 
+    // Surface
     void SetSurface(void* surface) override;
 
     bool AcquireNextSurface() override;
