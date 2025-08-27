@@ -33,6 +33,8 @@ void Display::Present(u32 width, u32 height) {
 }
 
 AccumulatedTime Display::GetAccumulatedDTForMainLayer() {
+    std::lock_guard lock(mutex);
+
     // TODO: get the main layer for the main process
     const auto layer_id = 1;
     if (!layer_pool.IsValid(layer_id))
