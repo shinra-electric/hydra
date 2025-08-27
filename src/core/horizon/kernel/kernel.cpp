@@ -355,6 +355,13 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             MemoryPermission(guest_thread->GetRegW(3)));
         guest_thread->SetRegW(0, res);
         break;
+    case 0x74:
+        res = MapProcessMemory(
+            crnt_process, guest_thread->GetRegX(0),
+            crnt_process->GetHandle<Process>(guest_thread->GetRegW(1)),
+            guest_thread->GetRegX(2), guest_thread->GetRegX(3));
+        guest_thread->SetRegW(0, res);
+        break;
     case 0x77:
         res = MapProcessCodeMemory(
             crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
@@ -1232,6 +1239,22 @@ result_t Kernel::SetProcessMemoryPermission(Process* process, vaddr_t addr,
 
     // TODO: implement
     LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
+                                  Process* process, vaddr_t src_addr,
+                                  u64 size) {
+    LOG_DEBUG(Kernel,
+              "MapProcessMemory called (crnt_process: {}, dst_addr: 0x{:08x}, "
+              "process: {}, src_addr: 0x{:08x}, size: {})",
+              crnt_process->GetDebugName(), dst_addr, process->GetDebugName(),
+              src_addr, size);
+
+    // TODO: correct?
+    const auto ptr = process->GetMmu()->UnmapAddr(src_addr);
+    crnt_process->GetMmu()->Map(dst_addr, ptr, size, {}); // TODO: state
 
     return RESULT_SUCCESS;
 }

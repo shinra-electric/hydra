@@ -4,17 +4,15 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-void Mmu::Map(vaddr_t va, usize size, IMemory* memory,
+void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
 
-    auto memory_ptr = static_cast<Memory*>(memory)->GetPtr();
-
-    u64 va_page = va / GUEST_PAGE_SIZE;
+    u64 va_page = dst_va / GUEST_PAGE_SIZE;
     u64 size_page = size / GUEST_PAGE_SIZE;
     u64 va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
-        auto page_ptr = memory_ptr + ((page - va_page) * GUEST_PAGE_SIZE);
+        auto page_ptr = ptr + ((page - va_page) * GUEST_PAGE_SIZE);
         pages[page] = page_ptr;
         states[page] = state;
     }

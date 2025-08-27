@@ -123,6 +123,8 @@ class Kernel {
                             u32& out_count);
     result_t SetProcessMemoryPermission(Process* process, vaddr_t addr,
                                         u64 size, MemoryPermission perm);
+    result_t MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
+                              Process* process, vaddr_t src_addr, u64 size);
     result_t MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
                                   vaddr_t src_addr, u64 size);
     result_t UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,

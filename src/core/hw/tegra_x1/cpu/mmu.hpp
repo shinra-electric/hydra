@@ -19,11 +19,11 @@ class IMmu {
   public:
     virtual ~IMmu() = default;
 
-    virtual void Map(vaddr_t va, usize size, IMemory* memory,
+    virtual void Map(vaddr_t dst_va, uptr ptr, usize size,
                      const horizon::kernel::MemoryState state) = 0;
-    void Map(vaddr_t va, IMemory* memory,
+    void Map(vaddr_t dst_va, IMemory* memory,
              const horizon::kernel::MemoryState state) {
-        Map(va, memory->GetSize(), memory, state);
+        Map(dst_va, memory->GetPtr(), memory->GetSize(), state);
     }
     virtual void Map(vaddr_t dst_va, vaddr_t src_va, usize size) = 0;
     virtual void Unmap(vaddr_t va, usize size) = 0;

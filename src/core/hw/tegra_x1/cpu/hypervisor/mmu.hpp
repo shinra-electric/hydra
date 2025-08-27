@@ -13,7 +13,7 @@ class Mmu : public IMmu {
     Mmu();
     ~Mmu() override;
 
-    void Map(vaddr_t va, usize size, IMemory* memory,
+    void Map(vaddr_t dst_va, uptr ptr, usize size,
              const horizon::kernel::MemoryState state) override;
     void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
     void Unmap(vaddr_t va, usize size) override;

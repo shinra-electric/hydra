@@ -27,8 +27,6 @@ class Memory : public IMemory {
         ptr = allocate_vm_memory(size);
 
         // Map
-
-        // Guest physical memory + offset = host virtual memory
         // TODO: Why does this fail occasionally?
         HV_ASSERT_SUCCESS(
             hv_vm_map(reinterpret_cast<void*>(ptr), ptr, size,

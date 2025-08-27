@@ -99,11 +99,10 @@ Mmu::Mmu() : user_page_table(FindFreePageTableRegion()) {
 
 Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 
-void Mmu::Map(vaddr_t va, usize size, IMemory* memory,
+void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
               const horizon::kernel::MemoryState state) {
     ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(va, static_cast<Memory*>(memory)->GetPtr(), size, state,
-                        to_ap_flags(state.perm));
+    user_page_table.Map(dst_va, ptr, size, state, to_ap_flags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in

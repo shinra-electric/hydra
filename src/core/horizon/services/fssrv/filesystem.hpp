@@ -38,6 +38,8 @@ class IFileSystem : public IService {
     result_t DeleteDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer);
     result_t DeleteDirectoryRecursively(
         InBuffer<BufferAttr::HipcPointer> in_path_buffer);
+    result_t RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+                        InBuffer<BufferAttr::HipcPointer> in_new_path_buffer);
     result_t GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type);
     result_t OpenFile(RequestContext* ctx, filesystem::FileOpenFlags flags,

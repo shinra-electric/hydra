@@ -10,14 +10,15 @@ namespace hydra::horizon::services::fssrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              CreateDirectory, 3, DeleteDirectory, 4,
-                             DeleteDirectoryRecursively, 7, GetEntryType, 8,
-                             OpenFile, 9, OpenDirectory, 10, Commit, 11,
-                             GetFreeSpaceSize, 12, GetTotalSpaceSize, 14,
-                             GetFileTimeStampRaw)
+                             DeleteDirectoryRecursively, 5, RenameFile, 7,
+                             GetEntryType, 8, OpenFile, 9, OpenDirectory, 10,
+                             Commit, 11, GetFreeSpaceSize, 12,
+                             GetTotalSpaceSize, 14, GetFileTimeStampRaw)
 
-#define READ_PATH()                                                            \
-    const auto path = mount + in_path_buffer.reader->ReadString();             \
-    LOG_DEBUG(Services, "Path: {}", path);
+#define READ_PATH_IMPL(path_var, debug_name)                                   \
+    const auto path_var = mount + in_##path_var##_buffer.reader->ReadString(); \
+    LOG_DEBUG(Services, debug_name ": {}", path);
+#define READ_PATH() READ_PATH_IMPL(path, "Path")
 
 result_t
 IFileSystem::CreateFile(CreateOption flags, u64 size,
@@ -87,6 +88,17 @@ result_t IFileSystem::DeleteDirectoryRecursively(
     const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path, true);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory recursively \"{}\": {}", path, res);
+
+    return RESULT_SUCCESS;
+}
+
+result_t
+IFileSystem::RenameFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
+                        InBuffer<BufferAttr::HipcPointer> in_new_path_buffer) {
+    LOG_FUNC_STUBBED(Services);
+
+    READ_PATH();
+    READ_PATH_IMPL(new_path, "New path");
 
     return RESULT_SUCCESS;
 }
