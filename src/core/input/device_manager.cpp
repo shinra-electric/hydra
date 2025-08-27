@@ -90,15 +90,18 @@ void DeviceManager::Poll() {
             }
         }
 
-        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadButtons(type, buttons);
-
         // TODO: normalize analog sticks if the length of the vector is more
         // than 1?
 
-        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadAnalogStickStateL(
+        // Update
+        INPUT_MANAGER_INSTANCE.UpdateNpad(type);
+
+        // Set
+        INPUT_MANAGER_INSTANCE.SetNpadButtons(type, buttons);
+        INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateL(
             type,
             {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
-        INPUT_MANAGER_INSTANCE.UpdateAndSetNpadAnalogStickStateR(
+        INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateR(
             type,
             {std::bit_cast<i32>(analog_r_x), std::bit_cast<i32>(analog_r_y)});
     }

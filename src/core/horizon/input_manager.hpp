@@ -21,12 +21,12 @@ class InputManager {
     // Events
 
     // Npad
-    void UpdateAndSetNpadButtons(hid::NpadIdType type,
-                                 hid::NpadButtons buttons);
-    void UpdateAndSetNpadAnalogStickStateL(hid::NpadIdType type,
-                                           hid::AnalogStickState analog_stick);
-    void UpdateAndSetNpadAnalogStickStateR(hid::NpadIdType type,
-                                           hid::AnalogStickState analog_stick);
+    void UpdateNpad(hid::NpadIdType type);
+    void SetNpadButtons(hid::NpadIdType type, hid::NpadButtons buttons);
+    void SetNpadAnalogStickStateL(hid::NpadIdType type,
+                                  hid::AnalogStickState analog_stick);
+    void SetNpadAnalogStickStateR(hid::NpadIdType type,
+                                  hid::AnalogStickState analog_stick);
 
     // Touch
     void UpdateTouchStates();

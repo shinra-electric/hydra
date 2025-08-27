@@ -27,15 +27,15 @@ constexpr usize MAX_FINGER_COUNT = 10;
 InputManager::InputManager()
     : shared_memory(new kernel::SharedMemory(0x40000, "HID shared memory")) {}
 
-#define UPDATE_NPAD_LIFO(type, style_lower)                                    \
-    UPDATE_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
+#define GET_NPAD_LIFO(type, style_lower)                                       \
+    GET_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
 
 #define SET_NPAD_ENTRY(type, style_upper, style_lower, entry_dst, entry_src)   \
     if (any(GetHidSharedMemory()                                               \
                 ->npad.entries[u32(type)]                                      \
                 .internal_state.style_set &                                    \
             hid::NpadStyleSet::style_upper)) {                                 \
-        UPDATE_NPAD_LIFO(type, style_lower);                                   \
+        GET_NPAD_LIFO(type, style_lower);                                      \
         out_state.entry_dst = entry_src;                                       \
     }
 
@@ -49,25 +49,46 @@ InputManager::InputManager()
 #define SET_NPAD_ENTRIES(type, entry)                                          \
     SET_NPAD_ENTRIES_SEPARATE(type, entry, entry)
 
+#define UPDATE_NPAD_STYLE_LIFO_IMPL(type, style_lower)                         \
+    UPDATE_LIFO(npad.entries[u32(type)].internal_state.style_lower##_lifo)
+
+#define UPDATE_NPAD_STYLE_LIFO(type, style_upper, style_lower)                 \
+    if (any(GetHidSharedMemory()                                               \
+                ->npad.entries[u32(type)]                                      \
+                .internal_state.style_set &                                    \
+            hid::NpadStyleSet::style_upper)) {                                 \
+        UPDATE_NPAD_STYLE_LIFO_IMPL(type, style_lower);                        \
+    }
+
+#define UPDATE_NPAD_LIFO(type)                                                 \
+    UPDATE_NPAD_STYLE_LIFO(type, FullKey, full_key);                           \
+    UPDATE_NPAD_STYLE_LIFO(type, Handheld, handheld);                          \
+    UPDATE_NPAD_STYLE_LIFO(type, JoyDual, joy_dual);                           \
+    UPDATE_NPAD_STYLE_LIFO(type, JoyLeft, joy_left);                           \
+    UPDATE_NPAD_STYLE_LIFO(type, JoyRight, joy_right);
+
 void InputManager::ConnectNpad(hid::NpadIdType type,
                                hid::NpadStyleSet style_set,
                                hid::NpadAttributes attributes) {
     GetHidSharedMemory()->npad.entries[u32(type)].internal_state.style_set =
         style_set;
     SET_NPAD_ENTRIES(type, attributes);
+    UPDATE_NPAD_LIFO(type);
 }
 
-void InputManager::UpdateAndSetNpadButtons(hid::NpadIdType type,
-                                           hid::NpadButtons buttons) {
+void InputManager::UpdateNpad(hid::NpadIdType type) { UPDATE_NPAD_LIFO(type); }
+
+void InputManager::SetNpadButtons(hid::NpadIdType type,
+                                  hid::NpadButtons buttons) {
     SET_NPAD_ENTRIES(type, buttons);
 }
 
-void InputManager::UpdateAndSetNpadAnalogStickStateL(
+void InputManager::SetNpadAnalogStickStateL(
     hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_l, analog_stick);
 }
 
-void InputManager::UpdateAndSetNpadAnalogStickStateR(
+void InputManager::SetNpadAnalogStickStateR(
     hid::NpadIdType type, hid::AnalogStickState analog_stick) {
     SET_NPAD_ENTRIES_SEPARATE(type, analog_stick_r, analog_stick);
 }
