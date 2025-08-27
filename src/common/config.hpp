@@ -113,6 +113,11 @@ class Config {
         return fmt::format("{}/config.toml", app_data_path);
     }
 
+    std::string GetScreenshotsPath() const {
+        // TODO: save in the system Pictures folder?
+        return fmt::format("{}/screenshots", app_data_path);
+    }
+
     // Getters
     ArrayOption<std::string>& GetGamePaths() { return game_paths; }
     ArrayOption<std::string>& GetPatchPaths() { return patch_paths; }

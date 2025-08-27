@@ -1,6 +1,7 @@
 #include "core/emulation_context.hpp"
 
 #include "hatch/hatch.hpp"
+#include <stb_image_write.h>
 
 #include "core/audio/cubeb/core.hpp"
 #include "core/audio/null/core.hpp"
@@ -498,6 +499,38 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     renderer.PresentSurface();
     renderer.EndCommandBuffer();
     renderer.UnlockMutex();
+}
+
+void EmulationContext::TakeScreenshot() {
+    LOG_INFO(Other, "TAKING SCREENSHOT");
+
+    // Get the image data
+    // HACK
+    u32 width = 256;
+    u32 height = 256;
+    u8* data = new u8[width * height * 3];
+    for (u32 y = 0; y < height; y++) {
+        for (u32 x = 0; x < width; x++) {
+            u32 index = (y * width + x) * 3;
+            data[index] = x;
+            data[index + 1] = y;
+            data[index + 2] = 0;
+        }
+    }
+
+    // Save the image to file
+    const auto screenshots_path = CONFIG_INSTANCE.GetScreenshotsPath();
+    if (!std::filesystem::exists(screenshots_path))
+        std::filesystem::create_directories(screenshots_path);
+
+    // TODO: use title name and date for filename
+    std::string filename = fmt::format("{}/todo.jpg", screenshots_path);
+    if (!stbi_write_jpg(filename.c_str(), width, height, 3, data, 100))
+        LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
+
+    delete[] data;
+
+    LOG_INFO(Other, "SCREENSHOT SAVED TO {}", filename);
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
