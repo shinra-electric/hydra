@@ -7,7 +7,7 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 DEFINE_IOCTL_TABLE(NvMap,
                    DEFINE_IOCTL_TABLE_ENTRY(NvMap, 0x01, 0x01, Create, 0x03,
                                             FromId, 0x04, Alloc, 0x05, Free,
-                                            0x09, Param, 0x0E, GetId))
+                                            0x09, Param, 0x0e, GetId))
 
 NvResult NvMap::Create(u32 size, handle_id_t* out_handle_id) {
     *out_handle_id = GPU_INSTANCE.CreateMap(size);
@@ -15,7 +15,8 @@ NvResult NvMap::Create(u32 size, handle_id_t* out_handle_id) {
 }
 
 NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
-    *out_handle_id = GPU_INSTANCE.GetMapHandleId(id);
+    // Handle and ID are the same
+    *out_handle_id = id;
     return NvResult::Success;
 }
 
@@ -71,7 +72,8 @@ NvResult NvMap::Param(handle_id_t handle_id, NvMapParamType type,
 }
 
 NvResult NvMap::GetId(u32* out_id, handle_id_t handle_id) {
-    *out_id = GPU_INSTANCE.GetMapId(handle_id);
+    // Handle and ID are the same
+    *out_id = handle_id;
     return NvResult::Success;
 }
 

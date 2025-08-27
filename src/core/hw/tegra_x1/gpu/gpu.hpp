@@ -45,6 +45,7 @@ class Gpu {
         memory_map = {};
         memory_map.size = size;
 
+        // TODO: is this hack still needed?
         // HACK: allocate one more index. Games are probably confused with
         // handle IDs and IDs
         memory_maps.AllocateHandle();
@@ -60,15 +61,9 @@ class Gpu {
 
     void FreeMap(handle_id_t handle_id) { memory_maps.Free(handle_id); }
 
-    u32 GetMapId(handle_id_t handle_id) { return handle_id + 1; }
-
-    handle_id_t GetMapHandleId(u32 id) { return id - 1; }
-
     MemoryMap& GetMap(handle_id_t handle_id) {
         return memory_maps.Get(handle_id);
     }
-
-    MemoryMap& GetMapById(u32 id) { return GetMap(GetMapHandleId(id)); }
 
     // Address space
     uptr CreateAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
