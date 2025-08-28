@@ -522,19 +522,19 @@ void EmulationContext::TakeScreenshot() {
         // Get the image data
         auto rect = layer->GetSrcRect();
 
-        // Check if the image is flipped vertically
+        // Check if the image is flipped
+        ASSERT(rect.size.x() > 0, Other, "Invalid width {}", rect.size.x());
         bool flip_y = false;
         if (rect.size.y() < 0) {
+            rect.origin.y() += rect.size.y();
             rect.size.y() = -rect.size.y();
-            rect.origin.y() = texture->GetDescriptor().height - rect.origin.y();
             flip_y = true;
         }
 
         // Copy to a buffer
         RENDERER_INSTANCE.LockMutex();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-            texture->GetDescriptor().height * texture->GetDescriptor().width *
-            4);
+            rect.size.y() * rect.size.x() * 4);
         buffer->CopyFrom(texture, rect.origin, rect.size);
         RENDERER_INSTANCE.EndCommandBuffer();
         RENDERER_INSTANCE.UnlockMutex();
@@ -549,8 +549,7 @@ void EmulationContext::TakeScreenshot() {
                         CONFIG_INSTANCE.GetPicturesPath(), now);
 
         stbi_flip_vertically_on_write(flip_y);
-        if (!stbi_write_jpg(filename.c_str(), texture->GetDescriptor().width,
-                            texture->GetDescriptor().height, 4,
+        if (!stbi_write_jpg(filename.c_str(), rect.size.x(), rect.size.y(), 4,
                             (void*)buffer->GetDescriptor().ptr, 100))
             LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
         stbi_flip_vertically_on_write(false);
