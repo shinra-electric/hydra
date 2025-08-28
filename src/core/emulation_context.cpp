@@ -401,14 +401,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     // Acquire present textures
     // TODO: don't hardcode the display ID
     auto& display = os->GetDisplayDriver().GetDisplay(1);
-    auto layer = display.GetMainLayer();
-    if (!layer) {
-        renderer.UnlockMutex();
-        return;
-    }
 
-    // DT
-    accumulated_dt += layer->GetAccumulatedDT();
+    // Delta time
+    {
+        auto layer = display.GetMainLayer();
+        if (layer)
+            accumulated_dt += layer->GetAccumulatedDT();
+    }
 
     bool acquired = display.AcquirePresentTextures();
     // HACK: return if no textures are available
@@ -541,6 +540,7 @@ void EmulationContext::TakeScreenshot() {
 
         // Save the image to file
         auto now = std::chrono::system_clock::now();
+        // TODO: use title name in the filename
         std::string filename =
             fmt::format("{}/screenshot_{:%Y-%m-%d_%H-%M-%S}.jpg",
                         CONFIG_INSTANCE.GetPicturesPath(), now);
