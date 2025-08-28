@@ -1,6 +1,7 @@
 #include "core/emulation_context.hpp"
 
 #include "hatch/hatch.hpp"
+#include <fmt/chrono.h>
 #include <stb_image_write.h>
 
 #include "core/audio/cubeb/core.hpp"
@@ -522,12 +523,11 @@ void EmulationContext::TakeScreenshot() {
         // TODO: wait for the command buffer to finish
 
         // Save the image to file
-        const auto screenshots_path = CONFIG_INSTANCE.GetScreenshotsPath();
-        if (!std::filesystem::exists(screenshots_path))
-            std::filesystem::create_directories(screenshots_path);
+        auto now = std::chrono::system_clock::now();
+        std::string filename =
+            fmt::format("{}/screenshot_{:%Y-%m-%d_%H-%M-%S}.jpg",
+                        CONFIG_INSTANCE.GetPicturesPath(), now);
 
-        // TODO: use title name and date for filename
-        std::string filename = fmt::format("{}/todo.jpg", screenshots_path);
         if (!stbi_write_jpg(filename.c_str(), texture->GetDescriptor().width,
                             texture->GetDescriptor().height, 4,
                             (void*)buffer->GetDescriptor().ptr, 100))

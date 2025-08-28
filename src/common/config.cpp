@@ -20,6 +20,7 @@ Config::Config() {
         app_data_path =
             fmt::format("{}/Library/Application Support/" APP_NAME, home);
         logs_path = fmt::format("{}/Library/Logs/" APP_NAME, home);
+        pictures_path = fmt::format("{}/Pictures/" APP_NAME, home);
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
@@ -27,18 +28,32 @@ Config::Config() {
     // Windows
     if (const char* app_data = std::getenv("APPDATA")) {
         app_data_path = fmt::format("{}/" APP_NAME, app_data);
-        logs_path = app_data_path; // TODO
+        logs_path = fmt::format("{}/logs", app_data_path); // TODO
     } else {
         LOG_FATAL(Other, "Failed to find APPDATA path");
+    }
+
+    if (const char* user_profile = std::getenv("USERPROFILE")) {
+        pictures_path = fmt::format("{}/Pictures", user_profile);
+    } else {
+        LOG_FATAL(Other, "Failed to find USERPROFILE path");
     }
 #else
     // Linux and other Unix-like systems
     if (const char* xdg_config = std::getenv("XDG_CONFIG_HOME")) {
         app_data_path = fmt::format("{}/" APP_NAME, xdg_config);
-        logs_path = app_data_path; // TODO
+        logs_path = fmt::format("{}/logs", app_data_path);
     } else if (const char* home = std::getenv("HOME")) {
         app_data_path = fmt::format("{}/.config/" APP_NAME, home);
-        logs_path = app_data_path; // TODO
+        logs_path = fmt::format("{}/logs", app_data_path);
+    } else {
+        LOG_FATAL(Other, "Failed to find HOME path");
+    }
+
+    if (const char* xdg_pictures = std::getenv("XDG_PICTURES_DIR")) {
+        pictures_path = fmt::format("{}/" APP_NAME, xdg_pictures);
+    } else if (const char* home = std::getenv("HOME")) {
+        pictures_path = fmt::format("{}/Pictures", home);
     } else {
         LOG_FATAL(Other, "Failed to find HOME path");
     }
@@ -47,6 +62,7 @@ Config::Config() {
     // Create directories
     std::filesystem::create_directories(app_data_path);
     std::filesystem::create_directories(logs_path);
+    std::filesystem::create_directories(pictures_path);
 
     LoadDefaults();
     Deserialize();
