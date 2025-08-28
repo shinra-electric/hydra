@@ -27,11 +27,12 @@ class Layer {
     u32 binder_id;
 
     hw::tegra_x1::gpu::renderer::TextureBase* present_texture{nullptr};
-    BqBufferInput input;
+    IntRect2D src_rect;
 
   public:
     GETTER(binder_id, GetBinderID);
     GETTER(present_texture, GetPresentTexture);
+    CONST_REF_GETTER(src_rect, GetSrcRect);
 };
 
 } // namespace hydra::horizon::display

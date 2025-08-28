@@ -401,9 +401,14 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     // Acquire present textures
     // TODO: don't hardcode the display ID
     auto& display = os->GetDisplayDriver().GetDisplay(1);
+    auto layer = display.GetMainLayer();
+    if (!layer) {
+        renderer.UnlockMutex();
+        return;
+    }
 
     // DT
-    accumulated_dt += display.GetAccumulatedDTForMainLayer();
+    accumulated_dt += layer->GetAccumulatedDT();
 
     bool acquired = display.AcquirePresentTextures();
     // HACK: return if no textures are available
@@ -504,19 +509,31 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 }
 
 void EmulationContext::TakeScreenshot() {
-    std::thread thread([&]() {
-        // Get the image data
-        // TODO: don't hardcode the display ID
-        auto& display = os->GetDisplayDriver().GetDisplay(1);
-        // TODO: don't hardcode the layer ID
-        auto& layer = display.GetLayer(1);
-        auto texture = layer.GetPresentTexture();
+    // TODO: don't hardcode the display ID
+    auto& display = os->GetDisplayDriver().GetDisplay(1);
+    auto layer = display.GetMainLayer();
+    if (!layer)
+        return;
 
+    std::thread thread([=]() {
+        // Get the image data
+        auto texture = layer->GetPresentTexture();
+        auto rect = layer->GetSrcRect();
+
+        // Check if the image is flipped vertically
+        bool flip_y = false;
+        if (rect.size.y() < 0) {
+            rect.size.y() = -rect.size.y();
+            rect.origin.y() = texture->GetDescriptor().height - rect.origin.y();
+            flip_y = true;
+        }
+
+        // Copy to a buffer
         RENDERER_INSTANCE.LockMutex();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
             texture->GetDescriptor().height * texture->GetDescriptor().width *
             4);
-        buffer->CopyFrom(texture);
+        buffer->CopyFrom(texture, rect.origin, rect.size);
         RENDERER_INSTANCE.EndCommandBuffer();
         RENDERER_INSTANCE.UnlockMutex();
 
@@ -528,11 +545,14 @@ void EmulationContext::TakeScreenshot() {
             fmt::format("{}/screenshot_{:%Y-%m-%d_%H-%M-%S}.jpg",
                         CONFIG_INSTANCE.GetPicturesPath(), now);
 
+        stbi_flip_vertically_on_write(flip_y);
         if (!stbi_write_jpg(filename.c_str(), texture->GetDescriptor().width,
                             texture->GetDescriptor().height, 4,
                             (void*)buffer->GetDescriptor().ptr, 100))
             LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
+        stbi_flip_vertically_on_write(false);
 
+        // Free the buffer
         RENDERER_INSTANCE.LockMutex();
         RENDERER_INSTANCE.FreeTemporaryBuffer(buffer);
         RENDERER_INSTANCE.UnlockMutex();

@@ -13,11 +13,9 @@ constexpr u64 SDL3_CURSOR_TOUCH_ID = (u64)make_magic4('S', 'D', 'L', '3')
 void Cursor::Poll(SDL_Event e) {
     switch (e.type) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        pressed = true;
         just_began = true;
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-        pressed = false;
         just_ended = true;
         break;
     default:
