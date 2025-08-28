@@ -705,11 +705,10 @@ void Decoder::ParseNextInstruction() {
                             ir::Value::Register(coords_y, DataType::F32)});
         auto res_v = BUILDER.OpTextureSample(const_buffer_index, coords_v);
 
-#define C(i) BUILDER.OpVectorExtract(res_v, i)
+        std::optional<ir::Value> c[4] = {std::nullopt, std::nullopt,
+                                         std::nullopt, std::nullopt};
 
-        const auto zero =
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32);
-        ir::Value c[4] = {zero, zero, zero, zero};
+#define C(i) BUILDER.OpVectorExtract(res_v, i)
 
         switch (component_mask) {
         case ComponentMask::R:
@@ -771,12 +770,14 @@ void Decoder::ParseNextInstruction() {
             break;
         }
 
-        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32), c[0]);
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32), c[1]);
-        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32), c[2]);
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32), c[3]);
-
 #undef C
+
+        reg_t regs[4] = {dst0, dst0 + 1, dst1, dst1 + 1};
+        for (int i = 0; i < 4; i++) {
+            if (auto value = c[i])
+                BUILDER.OpCopy(ir::Value::Register(regs[i], DataType::F32),
+                               *value);
+        }
 
         HANDLE_PRED_COND_END();
     }
