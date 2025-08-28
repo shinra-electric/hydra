@@ -666,10 +666,7 @@ void Renderer::BindDrawState() {
         const auto& extent = REGS_3D.viewports[i];
         const auto& transform = REGS_3D.viewport_transforms[i];
         auto& dst = viewports[i];
-        // TODO: correct?
         if (REGS_3D.viewport_transform_enabled) {
-            // TODO: render target scale
-
             auto scale_x = transform.scale_x;
             auto scale_y = transform.scale_y;
             if (any(REGS_3D.window_origin_flags &
@@ -677,28 +674,29 @@ void Renderer::BindDrawState() {
                 scale_y = -scale_y;
 
             // Swizzle
-            // TODO: uncomment
-            /*
             // TODO: check for viewport swizzle support
-            if (t.swizzle.x == engines::ViewportSwizzle::NegativeX)
+            if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX)
                 scale_x = -scale_x;
             else
-                ASSERT_DEBUG(t.swizzle.x == engines::ViewportSwizzle::PositiveX,
+                ASSERT_DEBUG(transform.swizzle.x ==
+                                 engines::ViewportSwizzle::PositiveX,
                              MetalRenderer, "Unsupported X viewport swizzle {}",
-                             t.swizzle.x);
-            if (t.swizzle.y == engines::ViewportSwizzle::NegativeY)
+                             transform.swizzle.x);
+            if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY)
                 scale_y = -scale_y;
             else
-                ASSERT_DEBUG(t.swizzle.y == engines::ViewportSwizzle::PositiveY,
+                ASSERT_DEBUG(transform.swizzle.y ==
+                                 engines::ViewportSwizzle::PositiveY,
                              MetalRenderer, "Unsupported Y viewport swizzle {}",
-                             t.swizzle.y);
-            ASSERT_DEBUG(t.swizzle.z == engines::ViewportSwizzle::PositiveZ,
+                             transform.swizzle.y);
+            ASSERT_DEBUG(transform.swizzle.z ==
+                             engines::ViewportSwizzle::PositiveZ,
                          MetalRenderer, "Unsupported Z viewport swizzle {}",
-                         t.swizzle.z);
-            ASSERT_DEBUG(t.swizzle.w == engines::ViewportSwizzle::PositiveW,
+                         transform.swizzle.z);
+            ASSERT_DEBUG(transform.swizzle.w ==
+                             engines::ViewportSwizzle::PositiveW,
                          MetalRenderer, "Unsupported W viewport swizzle {}",
-                         t.swizzle.w);
-            */
+                         transform.swizzle.w);
 
             dst.originX = transform.offset_x - scale_x;
             dst.originY = transform.offset_y - scale_y;
@@ -718,9 +716,9 @@ void Renderer::BindDrawState() {
         }
 
         // Flip Y
-        // TODO: correct?
-        dst.originY += dst.height;
-        dst.height = -dst.height;
+        // TODO: why not flip?
+        // dst.originY += dst.height;
+        // dst.height = -dst.height;
 
         // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
         // it like this, tho not on Ryujinx)

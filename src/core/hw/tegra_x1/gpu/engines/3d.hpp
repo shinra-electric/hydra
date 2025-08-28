@@ -230,10 +230,14 @@ struct Regs3D {
         f32 offset_z;
         struct {
             ViewportSwizzle x : 3;
+            u32 unused_x0_x3 : 1;
             ViewportSwizzle y : 3;
+            u32 unused_x0_x7 : 1;
             ViewportSwizzle z : 3;
+            u32 unused_x0_x11 : 1;
             ViewportSwizzle w : 3;
-            u32 unused : 20;
+            u32 unused_x0_x15 : 1;
+            u32 unused_x0_x16 : 16;
         } swizzle;
         struct {
             u32 x : 5;
