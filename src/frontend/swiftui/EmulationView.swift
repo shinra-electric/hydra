@@ -3,7 +3,7 @@ import SwiftUI
 struct EmulationView: View {
     let game: Game
 
-    @State private var emulationContext: UnsafeMutableRawPointer? = nil
+    @Binding var emulationContext: UnsafeMutableRawPointer?
 
     var body: some View {
         MetalView(emulationContext: self.$emulationContext)

@@ -514,9 +514,12 @@ void EmulationContext::TakeScreenshot() {
     if (!layer)
         return;
 
+    auto texture = layer->GetPresentTexture();
+    if (!texture)
+        return;
+
     std::thread thread([=]() {
         // Get the image data
-        auto texture = layer->GetPresentTexture();
         auto rect = layer->GetSrcRect();
 
         // Check if the image is flipped vertically
