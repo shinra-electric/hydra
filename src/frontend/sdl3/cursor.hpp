@@ -15,8 +15,6 @@ class Cursor : public input::CursorBase {
     void GetTouchPosition(u64 id, i32& out_x, i32& out_y) override;
 
   private:
-    bool pressed{false};
-
     bool just_began{false};
     bool just_ended{false};
 };

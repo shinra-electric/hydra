@@ -31,6 +31,8 @@ class EmulationContext {
     }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
+    void TakeScreenshot();
+
   private:
     // Objects
     hw::tegra_x1::cpu::ICpu* cpu;

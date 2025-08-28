@@ -38,6 +38,7 @@ class RendererBase {
     void LockMutex() { mutex.lock(); }
     void UnlockMutex() { mutex.unlock(); }
 
+    // Surface
     virtual void SetSurface(void* surface) = 0;
 
     virtual bool AcquireNextSurface() = 0;

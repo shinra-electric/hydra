@@ -14,14 +14,17 @@ class Buffer final : public BufferBase {
     // Copying
     void CopyFrom(const uptr data) override;
     void CopyFrom(BufferBase* src) override;
-
-    // Getters
-    MTL::Buffer* GetBuffer() const { return buffer; }
+    void CopyFrom(TextureBase* src, const uint3 src_origin,
+                  const uint3 src_size) override;
 
   private:
     MTL::Buffer* buffer;
     u32 offset{0};
     bool owns_buffer{true};
+
+  public:
+    GETTER(buffer, GetBuffer);
+    GETTER(offset, GetOffset);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

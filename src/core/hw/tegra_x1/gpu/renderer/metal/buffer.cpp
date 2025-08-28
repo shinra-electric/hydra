@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
@@ -23,15 +24,29 @@ Buffer::~Buffer() {
 }
 
 void Buffer::CopyFrom(const uptr data) {
-    memcpy(buffer->contents(), reinterpret_cast<void*>(data), descriptor.size);
+    memcpy((u8*)buffer->contents() + offset, reinterpret_cast<void*>(data),
+           descriptor.size);
 }
 
 void Buffer::CopyFrom(BufferBase* src) {
     auto src_impl = static_cast<Buffer*>(src);
 
     auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
-    blit_encoder->copyFromBuffer(src_impl->GetBuffer(), 0, buffer, 0,
-                                 descriptor.size);
+    blit_encoder->copyFromBuffer(src_impl->GetBuffer(), src_impl->GetOffset(),
+                                 buffer, offset, descriptor.size);
+}
+
+void Buffer::CopyFrom(TextureBase* src, const uint3 src_origin,
+                      const uint3 src_size) {
+    auto src_impl = static_cast<Texture*>(src);
+
+    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    // TODO: bytes per image
+    blit_encoder->copyFromTexture(
+        src_impl->GetTexture(), 0, 0,
+        MTL::Origin::Make(src_origin.x(), src_origin.y(), src_origin.z()),
+        MTL::Size::Make(src_size.x(), src_size.y(), src_size.z()), buffer,
+        offset, src_impl->GetDescriptor().stride, 0);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

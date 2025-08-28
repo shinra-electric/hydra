@@ -250,6 +250,10 @@ hydra_emulation_context_get_last_delta_time_average(void* ctx) {
         ->GetLastDeltaTimeAverage();
 }
 
+HYDRA_EXPORT void hydra_emulation_context_take_screenshot(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->TakeScreenshot();
+}
+
 // Debugger
 
 // Debugger

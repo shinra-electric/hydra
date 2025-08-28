@@ -4,6 +4,7 @@ struct MenuCommands: Commands {
     @Environment(\.openWindow) var openWindow
 
     @Binding var activeGame: Game?
+    @Binding var emulationContext: UnsafeMutableRawPointer?
 
     @State var firmwareApplets: [Game] = []
 
@@ -33,6 +34,16 @@ struct MenuCommands: Commands {
             }
         }
 
+        CommandGroup(after: .pasteboard) {
+            Divider()
+
+            Button("Take Screenshot") {
+                guard let emulationContext = self.emulationContext else { return }
+                hydra_emulation_context_take_screenshot(emulationContext)
+            }
+            .keyboardShortcut(KeyEquivalent("t"), modifiers: .command)
+        }
+
         CommandMenu("Emulation") {
             Button("Stop", systemImage: "stop.fill") {
                 // TODO
@@ -43,8 +54,6 @@ struct MenuCommands: Commands {
         }
 
         // Remove some items
-        // CommandGroup(replacing: .help) {}
-        // CommandGroup(replacing: .pasteboard) {}
         CommandGroup(replacing: .undoRedo) {}
         // CommandGroup(replacing: .systemServices) {}
     }

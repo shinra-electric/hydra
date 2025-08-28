@@ -50,6 +50,18 @@ void Window::Run() {
             case SDL_EVENT_DROP_FILE:
                 BeginEmulation(e.drop.data);
                 break;
+            case SDL_EVENT_KEY_DOWN: {
+                SDL_Keymod modifiers = SDL_GetModState();
+#ifdef __APPLE__
+                if (modifiers & SDL_KMOD_GUI) {
+#else
+                if (modifiers & SDL_KMOD_CTRL) {
+#endif
+                    if (e.key.key == SDLK_T)
+                        emulation_context.TakeScreenshot();
+                }
+                break;
+            }
             default:
                 cursor.Poll(e);
                 break;

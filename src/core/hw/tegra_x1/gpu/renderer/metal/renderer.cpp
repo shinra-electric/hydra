@@ -453,7 +453,11 @@ void Renderer::EndEncoding() {
         return;
 
     command_encoder->endEncoding();
-    command_encoder->release(); // TODO: release?
+    // TODO: command encoders are autoreleased. However, we only have one global
+    // autorelease pool, so the encoders will live in the memory until the
+    // thread exits. An ideal solution would be to disable autorelease pools
+    // entirely, but for now we just let the encoders to pollute the memory.
+    // command_encoder->release(); // TODO: release?
     command_encoder = nullptr;
     encoder_type = EncoderType::None;
 

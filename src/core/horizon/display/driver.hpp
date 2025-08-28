@@ -45,6 +45,17 @@ class Driver {
         return *binder_pool.Get(id);
     }
 
+    // Main layer
+    Layer* GetMainLayer() {
+        std::lock_guard lock(display_mutex);
+        // TODO: get the main display for the main process
+        const auto display_id = 1;
+        if (!display_pool.IsValid(display_id))
+            return nullptr;
+
+        return display_pool.Get(display_id)->GetMainLayer();
+    }
+
   private:
     std::mutex display_mutex;
     StaticPool<Display*, 8> display_pool;

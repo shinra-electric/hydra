@@ -35,8 +35,7 @@ class Display {
         return *layer_pool.Get(id);
     }
 
-    // Time
-    AccumulatedTime GetAccumulatedDTForMainLayer();
+    Layer* GetMainLayer();
 
   private:
     std::mutex mutex;

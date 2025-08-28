@@ -11,24 +11,19 @@ bool Layer::AcquirePresentTexture() {
     // Get the buffer to present
     auto& binder = OS_INSTANCE.GetDisplayDriver().GetBinder(binder_id);
 
+    BqBufferInput input;
     i32 slot = binder.ConsumeBuffer(input);
     if (slot == -1)
         return false;
     const auto& buffer = binder.GetBuffer(slot);
 
+    // Texture
     present_texture = GPU_INSTANCE.GetTexture(
         (*KERNEL_INSTANCE.GetProcessManager().Begin())->GetMmu(),
         buffer.nv_buffer); // HACK
 
-    return true;
-}
-
-void Layer::Present(u32 width, u32 height) {
-    if (!present_texture)
-        return;
-
-    // Src rect
-    IntRect2D src_rect;
+    // Rect
+    src_rect = {};
     src_rect.origin.x() = input.rect.left;
     src_rect.origin.y() =
         input.rect.top; // Convert from top left to bottom left origin
@@ -57,6 +52,13 @@ void Layer::Present(u32 width, u32 height) {
         // TODO: how does this work? Is the aspect ratio kept intact?
         ONCE(LOG_NOT_IMPLEMENTED(Other, "Rotating by 90 degrees"));
     }
+
+    return true;
+}
+
+void Layer::Present(u32 width, u32 height) {
+    if (!present_texture)
+        return;
 
     // Dst rect
     const auto src_width = abs(src_rect.size.x());
