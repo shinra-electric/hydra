@@ -8,8 +8,9 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::Resolution, Auto, "auto", _720p, "720p",
-                              _1080p, "1080p", _2160p, "2160p", _4320p, "4320p",
-                              Custom, "custom")
+                              _1080p, "1080p", _1440p, "1440p", _2160p, "2160p",
+                              _4320p, "4320p", AutoExact, "Auto exact", Custom,
+                              "custom")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")

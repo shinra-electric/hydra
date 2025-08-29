@@ -21,7 +21,8 @@ class ICommonStateGetter : public IService {
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::Event* default_display_resolution_change_event;
+    kernel::Event*
+        default_display_resolution_change_event; // TODO: move this to OS
 
     // Commands
     result_t GetEventHandle(kernel::Process* process,

@@ -31,7 +31,8 @@ class OS {
 
     void NotifyOperationModeChanged();
 
-    static uint2 GetDisplayResolution();
+    void SetSurfaceResolution(uint2 resolution);
+    uint2 GetDisplayResolution() const;
 
   private:
     audio::ICore& audio_core;
@@ -51,6 +52,9 @@ class OS {
 
     services::am::LibraryAppletController* library_applet_self_controller{
         nullptr};
+
+    // Display
+    uint2 surface_resolution;
 
   public:
     REF_GETTER(audio_core, GetAudioCore);

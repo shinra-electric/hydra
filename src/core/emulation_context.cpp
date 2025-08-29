@@ -387,6 +387,9 @@ void EmulationContext::ForceStop() {
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
                                      bool& out_dt_average_updated) {
+    // Set the resolution for OS
+    os->SetSurfaceResolution({width, height});
+
     // Input
     INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 

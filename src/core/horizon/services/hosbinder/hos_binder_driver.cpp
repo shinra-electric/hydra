@@ -178,7 +178,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         binder.QueueBuffer(slot, input);
 
         // Buffer output
-        const auto res = OS::GetDisplayResolution();
+        const auto res = OS_INSTANCE.GetDisplayResolution();
         parcel_writer.Write<display::BqBufferOutput>({
             .width = res.x(),
             .height = res.y(),
@@ -198,10 +198,10 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         u32 value = 0;
         switch (what) {
         case NativeWindowAttribute::Width:
-            value = OS::GetDisplayResolution().x();
+            value = OS_INSTANCE.GetDisplayResolution().x();
             break;
         case NativeWindowAttribute::Height:
-            value = OS::GetDisplayResolution().y();
+            value = OS_INSTANCE.GetDisplayResolution().y();
             break;
         case NativeWindowAttribute::Format:
             value = static_cast<u32>(PixelFormat::RGBA8888); // RGBA8888
@@ -219,7 +219,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         auto interface_token = parcel_reader.ReadInterfaceToken();
         LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
-        const auto res = OS::GetDisplayResolution();
+        const auto res = OS_INSTANCE.GetDisplayResolution();
         parcel_writer.Write<display::BqBufferOutput>({
             .width = res.x(),
             .height = res.y(),

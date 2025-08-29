@@ -12,32 +12,34 @@ namespace hydra {
 enum class CpuBackend : u32 {
     Invalid = 0,
 
-    AppleHypervisor = 1,
-    Dynarmic = 2,
+    AppleHypervisor,
+    Dynarmic,
 };
 
 enum class GpuRenderer : u32 {
     Invalid = 0,
 
-    Metal = 1,
+    Metal,
 };
 
 enum class ShaderBackend : u32 {
     Invalid = 0,
 
-    Msl = 1,
-    Air = 2,
+    Msl,
+    Air,
 };
 
 enum class Resolution : u32 {
     Invalid = 0,
 
-    Auto = 1,
-    _720p = 2,
-    _1080p = 3,
-    _2160p = 4,
-    _4320p = 5,
-    Custom = 100,
+    Auto,
+    _720p,
+    _1080p,
+    _1440p,
+    _2160p,
+    _4320p,
+    AutoExact,
+    Custom,
 };
 
 STRONG_TYPEDEF(CustomResolution, uint2);
@@ -45,8 +47,8 @@ STRONG_TYPEDEF(CustomResolution, uint2);
 enum class AudioBackend : u32 {
     Invalid = 0,
 
-    Null = 1,
-    Cubeb = 2,
+    Null,
+    Cubeb,
 };
 
 template <typename T>
@@ -233,8 +235,9 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, resolution, Auto, "auto",
-                                   _720p, "720p", _1080p, "1080p", _2160p,
-                                   "2160p", _4320p, "4320p", Custom, "custom")
+                                   _720p, "720p", _1080p, "1080p", _1440p,
+                                   "1440p", _2160p, "2160p", _4320p, "4320p",
+                                   AutoExact, "Auto exact", Custom, "custom")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",

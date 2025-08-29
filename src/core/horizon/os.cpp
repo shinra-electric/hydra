@@ -95,6 +95,20 @@ void RegisterServiceToPort(services::Server* server,
     service_manager.RegisterPort(port_name, client_port);
 }
 
+uint2 round_up_to_nearest_standard_resolution(uint2 surface_resolution) {
+    // TODO: constexpr
+    static uint2 standard_resolutions[] = {
+        {1280, 720}, {1920, 1080}, {2560, 1440}, {3840, 2160}, {7680, 4320}};
+    for (u32 i = 0; i < sizeof_array(standard_resolutions); i++) {
+        const auto& resolution = standard_resolutions[i];
+        if (surface_resolution.x() <= resolution.x() &&
+            surface_resolution.y() <= resolution.y())
+            return resolution;
+    }
+
+    return standard_resolutions[sizeof_array(standard_resolutions) - 1];
+}
+
 } // namespace
 
 SINGLETON_DEFINE_GET_INSTANCE(OS, Horizon)
@@ -308,21 +322,30 @@ void OS::NotifyOperationModeChanged() {
     }
 }
 
-uint2 OS::GetDisplayResolution() {
+void OS::SetSurfaceResolution(uint2 resolution) {
+    // TODO: signal resolution change event if changed
+    surface_resolution = resolution;
+}
+
+uint2 OS::GetDisplayResolution() const {
     if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
         return {1280, 720}; // Handheld display resolution is fixed
     } else {
         switch (CONFIG_INSTANCE.GetDisplayResolution().Get()) {
         case Resolution::Auto:
-            return {1920, 1080}; // TODO: return the surface size
+            return round_up_to_nearest_standard_resolution(surface_resolution);
         case Resolution::_720p:
             return {1280, 720};
         case Resolution::_1080p:
             return {1920, 1080};
+        case Resolution::_1440p:
+            return {2560, 1440};
         case Resolution::_2160p:
             return {3840, 2160};
         case Resolution::_4320p:
             return {7680, 4320};
+        case Resolution::AutoExact:
+            return surface_resolution;
         case Resolution::Custom:
             return CONFIG_INSTANCE.GetCustomDisplayResolution().Get();
         default:

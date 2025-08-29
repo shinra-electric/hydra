@@ -29,7 +29,7 @@ result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
                                                i32* out_unknown) {
     LOG_FUNC_STUBBED(Services);
 
-    const auto res = OS::GetDisplayResolution();
+    const auto res = OS_INSTANCE.GetDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
     *out_refresh_rate = 60.0f;
