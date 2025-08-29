@@ -142,6 +142,8 @@ add_library(hydra-core
     horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp
     horizon/services/nvdrv/ioctl/nvhost_vic.cpp
     horizon/services/nvdrv/ioctl/nvhost_vic.hpp
+    horizon/services/nvdrv/ioctl/nvhost_nvjpg.cpp
+    horizon/services/nvdrv/ioctl/nvhost_nvjpg.hpp
     horizon/services/nvdrv/ioctl/nvsched_ctrl.cpp
     horizon/services/nvdrv/ioctl/nvsched_ctrl.hpp
     horizon/services/nvdrv/ioctl/nvdisp_ctrl.cpp
@@ -322,6 +324,8 @@ add_library(hydra-core
     horizon/services/codec/hardware_opus_decoder_manager.cpp
     horizon/services/codec/hardware_opus_decoder_manager.hpp
     horizon/services/ncm/const.hpp
+    horizon/services/ncm/content_manager.cpp
+    horizon/services/ncm/content_manager.hpp
     horizon/services/mmnv/request.cpp
     horizon/services/mmnv/request.hpp
     horizon/services/err/context/writer_for_application.cpp
@@ -364,6 +368,7 @@ add_library(hydra-core
     horizon/services/pm/information_interface.hpp
     horizon/services/spsm/power_state_interface.cpp
     horizon/services/spsm/power_state_interface.hpp
+    horizon/services/usb/const.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

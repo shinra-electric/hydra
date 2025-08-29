@@ -58,6 +58,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(StopSixAxisSensor);
     STUB_REQUEST_COMMAND(EnableSixAxisSensorFusion);
     STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
+    STUB_REQUEST_COMMAND(ActivateGesture);
     STUB_REQUEST_COMMAND(SetSupportedNpadStyleSet);
     result_t
     GetSupportedNpadStyleSet(::hydra::horizon::hid::NpadStyleSet* style_set);

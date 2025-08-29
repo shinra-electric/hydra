@@ -30,6 +30,7 @@
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
 #include "core/horizon/services/mmnv/request.hpp"
+#include "core/horizon/services/ncm/content_manager.hpp"
 #include "core/horizon/services/nfc/user_manager.hpp"
 #include "core/horizon/services/nfp/user_manager.hpp"
 #include "core/horizon/services/nifm/static_service.hpp"
@@ -296,6 +297,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Spl
     REGISTER_SERVICE(others, spl::IRandomInterface, "csrng");
     REGISTER_SERVICE(others, spl::IGeneralInterface, "spl:");
+
+    // Ncm
+    REGISTER_SERVICE(others, ncm::IContentManager, "ncm");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");

@@ -8,9 +8,6 @@
 
 namespace hydra::horizon::loader {
 
-static const std::string ROM_VIRTUAL_PATH =
-    FS_SD_MOUNT "/rom.nro"; // TODO: what should this be?
-
 namespace {
 
 enum class NroSectionType {

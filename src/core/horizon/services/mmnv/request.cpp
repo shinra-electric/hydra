@@ -2,13 +2,22 @@
 
 namespace hydra::horizon::services::mmnv {
 
-DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, InitializeOld, 2, SetAndWaitOld, 3,
-                             GetOld, 4, Initialize, 6, SetAndWait, 7, Get)
+DEFINE_SERVICE_COMMAND_TABLE(IRequest, 0, InitializeOld, 1, FinalizeOld, 2,
+                             SetAndWaitOld, 3, GetOld, 4, Initialize, 5,
+                             Finalize, 6, SetAndWait, 7, Get)
 
 result_t IRequest::InitializeOld(Module module, u32 priority,
                                  u32 event_clear_mode) {
     u32 unused;
     return Initialize(module, priority, event_clear_mode, &unused);
+}
+
+result_t IRequest::FinalizeOld(Module module) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Module: {}", module);
+
+    return RESULT_SUCCESS;
 }
 
 result_t IRequest::SetAndWaitOld(Module module, u32 setting_min,
@@ -39,6 +48,14 @@ result_t IRequest::Initialize(Module module, u32 priority, u32 event_clear_mode,
 
     // HACK
     *out_request_id = 1;
+    return RESULT_SUCCESS;
+}
+
+result_t IRequest::Finalize(u32 request_id) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Request ID: {}", request_id);
+
     return RESULT_SUCCESS;
 }
 
