@@ -71,7 +71,6 @@ Config::Config() {
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
     patch_paths = GetDefaultPatchPaths();
-    save_path = GetDefaultSavePath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
@@ -79,6 +78,8 @@ void Config::LoadDefaults() {
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
+    save_path = GetDefaultSavePath();
+    handheld_mode = GetDefaultHandheldMode();
     log_output = GetDefaultLogOutput();
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
@@ -146,6 +147,7 @@ void Config::Serialize() {
         system["firmware_path"] = firmware_path;
         system["sd_card_path"] = sd_card_path;
         system["save_path"] = save_path;
+        system["handheld_mode"] = handheld_mode;
     }
 
     {
@@ -209,6 +211,8 @@ void Config::Deserialize() {
                                                   GetDefaultSdCardPath());
         save_path = toml::find_or<std::string>(system, "save_path",
                                                GetDefaultSavePath());
+        handheld_mode = toml::find_or<bool>(system, "handheld_mode",
+                                            GetDefaultHandheldMode());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
@@ -260,6 +264,7 @@ void Config::Log() {
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
+    LOG_INFO(Other, "Handheld mode: {}", handheld_mode);
     LOG_INFO(Other, "Log output: {}", log_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);

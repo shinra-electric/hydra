@@ -325,9 +325,6 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     LOG_INFO(Other, "-------- Run --------");
 
-    // Connect input devices
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
-
     // Enter focus
     // HACK: games expect focus change to be the second message?
     process->GetAppletState().SendMessage(

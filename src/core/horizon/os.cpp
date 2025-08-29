@@ -5,6 +5,7 @@
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -61,6 +62,7 @@
 #include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
 #include "core/horizon/services/visrv/system_root_service.hpp"
+#include "core/input/device_manager.hpp"
 
 namespace hydra::horizon {
 
@@ -286,8 +288,24 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
 
     others_server.Start();
+
+    // Connect npads
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
+
+void OS::NotifyOperationModeChanged() {
+    // Disconnect and connect npads
+    input_manager.DisconnectAllNpads();
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+
+    // Send a message to all processes
+    for (auto it = kernel.GetProcessManager().Begin();
+         it != kernel.GetProcessManager().End(); it++) {
+        (*it)->GetAppletState().SendMessage(
+            kernel::AppletMessage::OperationModeChanged);
+    }
+}
 
 } // namespace hydra::horizon

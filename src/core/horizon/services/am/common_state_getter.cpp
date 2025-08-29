@@ -32,8 +32,9 @@ ICommonStateGetter::ReceiveMessage(kernel::Process* process,
 }
 
 result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
-    *out_mode = OS::GetInstance().IsInHandheldMode() ? OperationMode::Handheld
-                                                     : OperationMode::Console;
+    *out_mode = CONFIG_INSTANCE.GetHandheldMode().Get()
+                    ? OperationMode::Handheld
+                    : OperationMode::Console;
     return RESULT_SUCCESS;
 }
 

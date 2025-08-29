@@ -22,6 +22,7 @@ class EmulationContext {
     void LoadAndStart(horizon::loader::LoaderBase* loader);
     void RequestStop();
     void ForceStop();
+    void NotifyOperationModeChanged() { os->NotifyOperationModeChanged(); }
 
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);

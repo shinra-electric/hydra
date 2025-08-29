@@ -29,10 +29,7 @@ class OS {
     OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_);
     ~OS();
 
-    bool IsInHandheldMode() const {
-        // TODO: make this configurable
-        return true;
-    }
+    void NotifyOperationModeChanged();
 
   private:
     audio::ICore& audio_core;

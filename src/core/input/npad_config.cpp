@@ -169,7 +169,7 @@ NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
 
 void NpadConfig::LoadDefaults() {
     switch (type) {
-    case horizon::hid::NpadIdType::Handheld: // TODO: No1 instead?
+    case horizon::hid::NpadIdType::No1:
         // Devices
         device_names = {"keyboard"};
 

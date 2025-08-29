@@ -125,6 +125,7 @@ class Config {
     Option<std::string>& GetFirmwarePath() { return firmware_path; }
     Option<std::string>& GetSdCardPath() { return sd_card_path; }
     Option<std::string>& GetSavePath() { return save_path; }
+    Option<bool>& GetHandheldMode() { return handheld_mode; }
     Option<LogOutput>& GetLogOutput() { return log_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
@@ -146,6 +147,7 @@ class Config {
     Option<std::string> firmware_path;
     Option<std::string> sd_card_path;
     Option<std::string> save_path;
+    Option<bool> handheld_mode;
     Option<LogOutput> log_output;
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
@@ -172,6 +174,7 @@ class Config {
     std::string GetDefaultSavePath() const {
         return fmt::format("{}/save", app_data_path);
     }
+    bool GetDefaultHandheldMode() const { return false; }
     LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }

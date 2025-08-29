@@ -204,6 +204,8 @@ enum class NpadIdType : u8 {
     No8,
     Handheld,
     Other,
+
+    Total,
 };
 
 enum class NpadStyleSet : u32 {
@@ -293,6 +295,7 @@ enum class MouseAttribute {
 };
 
 enum class NpadAttributes : u32 {
+    None = 0,
     IsConnected = BIT(0),
     IsWired = BIT(1),
     IsLeftConnected = BIT(2),
@@ -300,6 +303,7 @@ enum class NpadAttributes : u32 {
     IsRightConnected = BIT(4),
     IsRightWired = BIT(5),
 };
+ENABLE_ENUM_BITMASK_OPERATORS(NpadAttributes)
 
 enum class SixAxisSensorAttribute {
     IsConnected = BIT(0),
@@ -1170,4 +1174,4 @@ struct SharedMemory {
 ENABLE_ENUM_FORMATTING(hydra::horizon::hid::NpadIdType, No1, "Number 1", No2,
                        "Number 2", No3, "Number 3", No4, "Number 4", No5,
                        "Number 5", No6, "Number 6", No7, "Number 7", No8,
-                       "Number 8", Handheld, "Handheld")
+                       "Number 8", Handheld, "Handheld", Total, "Invalid")

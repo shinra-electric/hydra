@@ -78,6 +78,8 @@ IHidServer::GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
     case ::hydra::horizon::hid::NpadIdType::Other:
         *out_pattern = 0b0000;
         break;
+    default:
+        unreachable();
     }
 
     return RESULT_SUCCESS;
