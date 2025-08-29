@@ -5,15 +5,13 @@
 
 namespace hydra::horizon::services::am {
 
-DEFINE_SERVICE_COMMAND_TABLE(IApplicationFunctions, 1, PopLaunchParameter, 20,
-                             EnsureSaveData, 21, GetDesiredLanguage, 22,
-                             SetTerminateResult, 23, GetDisplayVersion, 25,
-                             ExtendSaveData, 26, GetSaveDataSize, 40,
-                             NotifyRunning, 50, GetPseudoDeviceId, 66,
-                             InitializeGamePlayRecording, 67,
-                             SetGamePlayRecordingState, 90,
-                             EnableApplicationCrashReport, 130,
-                             GetGpuErrorDetectedSystemEvent)
+DEFINE_SERVICE_COMMAND_TABLE(
+    IApplicationFunctions, 1, PopLaunchParameter, 20, EnsureSaveData, 21,
+    GetDesiredLanguage, 22, SetTerminateResult, 23, GetDisplayVersion, 25,
+    ExtendSaveData, 26, GetSaveDataSize, 32, BeginBlockingHomeButton, 33,
+    EndBlockingHomeButton, 40, NotifyRunning, 50, GetPseudoDeviceId, 66,
+    InitializeGamePlayRecording, 67, SetGamePlayRecordingState, 90,
+    EnableApplicationCrashReport, 130, GetGpuErrorDetectedSystemEvent)
 
 result_t
 IApplicationFunctions::PopLaunchParameter(kernel::Process* process,

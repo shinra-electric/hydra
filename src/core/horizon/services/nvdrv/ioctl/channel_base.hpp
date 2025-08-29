@@ -27,6 +27,7 @@ class ChannelBase : public FdBase {
     NvResult Submit();
     NvResult GetSyncpoint(u32 module_id, u32* out_value);
     NvResult GetWaitBase(u32 module_id, u32* out_value);
+    NvResult SetSubmitTimeout(u32 timeout);
     NvResult MapCmdBuffer(u32 num_handles, u32 _reserved_x4, bool is_compressed,
                           std::array<u8, 3> _padding_x9,
                           const MapCmdBufferHandle* handles);

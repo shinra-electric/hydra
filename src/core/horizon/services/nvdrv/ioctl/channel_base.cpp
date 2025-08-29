@@ -5,8 +5,9 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 DEFINE_IOCTL_TABLE(
     ChannelBase,
     DEFINE_IOCTL_TABLE_ENTRY(ChannelBase, 0x00, 0x01, Submit, 0x02,
-                             GetSyncpoint, 0x03, GetWaitBase, 0x09,
-                             MapCmdBuffer, 0x0a, UnmapCmdBuffer)
+                             GetSyncpoint, 0x03, GetWaitBase, 0x07,
+                             SetSubmitTimeout, 0x09, MapCmdBuffer, 0x0a,
+                             UnmapCmdBuffer)
         DEFINE_IOCTL_TABLE_ENTRY(ChannelBase, 0x47, 0x14, SetUserData, 0x15,
                                  GetUserData)
             DEFINE_IOCTL_TABLE_ENTRY(ChannelBase, 0x48, 0x01, SetNvMapFd, 0x03,
@@ -38,6 +39,14 @@ NvResult ChannelBase::GetWaitBase(u32 module_id, u32* out_value) {
 
     // HACK
     *out_value = 0;
+    return NvResult::Success;
+}
+
+NvResult ChannelBase::SetSubmitTimeout(u32 timeout) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Timeout: {}", timeout);
+
     return NvResult::Success;
 }
 

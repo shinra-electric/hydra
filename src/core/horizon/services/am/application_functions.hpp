@@ -32,6 +32,8 @@ class IApplicationFunctions : public IService {
     result_t ExtendSaveData(u128 user_id, i64 size, i64 journal_size,
                             result_t* out_result);                  // 3.0.0+
     result_t GetSaveDataSize(i64* out_size, i64* out_journal_size); // 3.0.0+
+    STUB_REQUEST_COMMAND(BeginBlockingHomeButton);
+    STUB_REQUEST_COMMAND(EndBlockingHomeButton);
     STUB_REQUEST_COMMAND(NotifyRunning);
     result_t GetPseudoDeviceId(u128* out_id);
     STUB_REQUEST_COMMAND(InitializeGamePlayRecording);
