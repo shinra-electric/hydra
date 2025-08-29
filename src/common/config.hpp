@@ -29,6 +29,8 @@ enum class ShaderBackend : u32 {
     Air = 2,
 };
 
+STRONG_TYPEDEF(Resolution, uint2);
+
 enum class AudioBackend : u32 {
     Invalid = 0,
 
@@ -120,6 +122,7 @@ class Config {
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
+    Option<Resolution>& GetDisplayResolution() { return display_resolution; }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
     Option<std::string>& GetFirmwarePath() { return firmware_path; }
@@ -142,6 +145,7 @@ class Config {
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
+    Option<Resolution> display_resolution;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
     Option<std::string> firmware_path;
@@ -163,6 +167,9 @@ class Config {
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
+    Resolution GetDefaultDisplayResolution() const {
+        return Resolution({1920, 1080});
+    }
     AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID

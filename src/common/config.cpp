@@ -11,6 +11,40 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
 
+namespace toml {
+
+using namespace hydra;
+
+template <>
+struct from<Resolution> {
+    template <typename TC>
+    static Resolution from_toml(const basic_value<TC>& v) {
+        const auto str = v.as_string();
+        const auto x_pos = str.find('x');
+        if (x_pos == std::string::npos)
+            LOG_FATAL(Other, "Invalid display resolution {}", str);
+
+        uint2 res;
+        if (!str_to_num(std::string_view(str).substr(0, x_pos), res.x()))
+            LOG_FATAL(Other, "Invalid display resolution {}", str);
+        if (!str_to_num(std::string_view(str).substr(x_pos + 1), res.y()))
+            LOG_FATAL(Other, "Invalid display resolution {}", str);
+
+        return Resolution(res);
+    }
+};
+
+template <>
+struct into<Resolution> {
+    template <typename TC>
+    static basic_value<TC> into_toml(const Resolution& obj) {
+        return toml::value(
+            fmt::format("{}x{}", hydra::uint2(obj).x(), hydra::uint2(obj).y()));
+    }
+};
+
+} // namespace toml
+
 namespace hydra {
 
 Config::Config() {
@@ -74,6 +108,7 @@ void Config::LoadDefaults() {
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
+    display_resolution = GetDefaultDisplayResolution();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
@@ -110,15 +145,8 @@ void Config::Serialize() {
     {
         auto& general = data.at("General");
 
-        auto& game_paths_arr = general["game_paths"];
-        game_paths_arr = toml::array{};
-        game_paths_arr.as_array().assign(game_paths.Get().begin(),
-                                         game_paths.Get().end());
-
-        auto& patch_paths_arr = general["patch_paths"];
-        patch_paths_arr = toml::array{};
-        patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
-                                          patch_paths.Get().end());
+        general["game_paths"] = game_paths.Get();
+        general["patch_paths"] = patch_paths.Get();
     }
 
     {
@@ -130,6 +158,7 @@ void Config::Serialize() {
         auto& graphics = data.at("Graphics");
         graphics["renderer"] = gpu_renderer.Get();
         graphics["shader_backend"] = shader_backend.Get();
+        graphics["display_resolution"] = display_resolution.Get();
     }
 
     {
@@ -144,10 +173,10 @@ void Config::Serialize() {
 
     {
         auto& system = data.at("System");
-        system["firmware_path"] = firmware_path;
-        system["sd_card_path"] = sd_card_path;
-        system["save_path"] = save_path;
-        system["handheld_mode"] = handheld_mode;
+        system["firmware_path"] = firmware_path.Get();
+        system["sd_card_path"] = sd_card_path.Get();
+        system["save_path"] = save_path.Get();
+        system["handheld_mode"] = handheld_mode.Get();
     }
 
     {
@@ -193,6 +222,8 @@ void Config::Deserialize() {
                                                   GetDefaultGpuRenderer());
         shader_backend = toml::find_or<ShaderBackend>(
             graphics, "shader_backend", GetDefaultShaderBackend());
+        display_resolution = toml::find_or<Resolution>(
+            graphics, "display_resolution", GetDefaultDisplayResolution());
     }
     if (data.contains("Audio")) {
         const auto& audio = data.at("Audio");
@@ -259,6 +290,9 @@ void Config::Log() {
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
+    LOG_INFO(Other, "Display resolution: {}x{}",
+             uint2(display_resolution.Get()).x(),
+             uint2(display_resolution.Get()).y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Firmware path: {}", firmware_path);

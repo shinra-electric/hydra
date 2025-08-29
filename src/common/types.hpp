@@ -181,6 +181,7 @@ class aligned {
 template <typename T>
 class strong_typedef {
   public:
+    strong_typedef() : value{} {}
     strong_typedef(const T& value_) : value{value_} {}
 
     void operator=(const T& new_value) { value = new_value; }

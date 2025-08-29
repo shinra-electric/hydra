@@ -27,9 +27,9 @@ result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
                                                i32* out_unknown) {
     LOG_FUNC_STUBBED(Services);
 
-    // TODO: get this from the display
-    *out_width = 1920;
-    *out_height = 1080;
+    const auto res = uint2(CONFIG_INSTANCE.GetDisplayResolution().Get());
+    *out_width = res.x();
+    *out_height = res.y();
     *out_refresh_rate = 60.0f;
     *out_unknown = 0;
     return RESULT_SUCCESS;
