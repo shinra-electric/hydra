@@ -63,10 +63,9 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::FileBase* file) {
                                              header.icon_section.size);
 
     // NACP
-    if (header.nacp_section.size > 0) {
-        reader.Seek(header.nacp_section.offset);
-        // TODO: read
-    }
+    if (header.nacp_section.size > 0)
+        nacp_file = new filesystem::FileView(file, header.nacp_section.offset,
+                                             header.nacp_section.size);
 
     file->Close(stream);
 }

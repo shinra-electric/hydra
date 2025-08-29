@@ -337,6 +337,8 @@ add_library(hydra-core
     horizon/services/mii/static_service.hpp
     horizon/services/fatalsrv/service.cpp
     horizon/services/fatalsrv/service.hpp
+    horizon/services/ns/const.cpp
+    horizon/services/ns/const.hpp
     horizon/services/ns/application_manager_interface.cpp
     horizon/services/ns/application_manager_interface.hpp
     horizon/services/ns/service_getter_interface.cpp

@@ -194,7 +194,14 @@ HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
         ->GetTitleID();
 }
 
-HYDRA_EXPORT void hydra_loader_load_icon(void* loader, void** data,
+HYDRA_EXPORT bool hydra_loader_load_nacp(void* loader, void* nacp_buffer) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadNacp(
+        *reinterpret_cast<
+            hydra::horizon::services::ns::ApplicationControlProperty*>(
+            nacp_buffer));
+}
+
+HYDRA_EXPORT bool hydra_loader_load_icon(void* loader, void** data,
                                          uint64_t* width, uint64_t* height) {
     return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadIcon(
         *reinterpret_cast<hydra::uchar4**>(data), *width, *height);

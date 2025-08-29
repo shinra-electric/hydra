@@ -13,7 +13,7 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-void LoadImage(filesystem::FileBase* file, uchar4*& out_data, usize& out_width,
+bool LoadImage(filesystem::FileBase* file, uchar4*& out_data, usize& out_width,
                usize& out_height) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
@@ -31,14 +31,15 @@ void LoadImage(filesystem::FileBase* file, uchar4*& out_data, usize& out_width,
     delete[] raw_data;
     if (!out_data) {
         LOG_ERROR(Loader, "Failed to load image");
-        return;
+        return false;
     }
 
     out_width = w;
     out_height = h;
+    return true;
 }
 
-void LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
+bool LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
              std::vector<std::chrono::milliseconds>& out_delays,
              usize& out_width, usize& out_height, u32& out_frame_count) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
@@ -59,7 +60,7 @@ void LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
     delete[] raw_data;
     if (!out_data) {
         LOG_ERROR(Loader, "Failed to load GIF");
-        return;
+        return false;
     }
 
     out_width = w;
@@ -70,6 +71,8 @@ void LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
     for (u32 i = 0; i < f; i++)
         out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
     free(delays_ms);
+
+    return true;
 }
 
 } // namespace
@@ -108,24 +111,47 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
     return loader;
 }
 
-void LoaderBase::LoadIcon(uchar4*& out_data, usize& out_width,
+bool LoaderBase::LoadNacp(
+    horizon::services::ns::ApplicationControlProperty& out_nacp) {
+    if (!nacp_file)
+        return false;
+
+    auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    ASSERT(reader.GetSize() == sizeof(out_nacp), Loader,
+           "Invalid NACP file size 0x{:x}", reader.GetSize());
+    reader.ReadWhole(&out_nacp);
+
+    nacp_file->Close(stream);
+
+    return true;
+}
+
+bool LoaderBase::LoadIcon(uchar4*& out_data, usize& out_width,
                           usize& out_height) {
-    if (icon_file)
-        LoadImage(icon_file, out_data, out_width, out_height);
+    if (!icon_file)
+        return false;
+
+    return LoadImage(icon_file, out_data, out_width, out_height);
 }
 
-void LoaderBase::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
+bool LoaderBase::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
                                   usize& out_height) {
-    if (nintendo_logo_file)
-        LoadImage(nintendo_logo_file, out_data, out_width, out_height);
+    if (!nintendo_logo_file)
+        return false;
+
+    return LoadImage(nintendo_logo_file, out_data, out_width, out_height);
 }
 
-void LoaderBase::LoadStartupMovie(
+bool LoaderBase::LoadStartupMovie(
     uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
     usize& out_width, usize& out_height, u32& out_frame_count) {
-    if (startup_movie_file)
-        LoadGIF(startup_movie_file, out_data, out_delays, out_width, out_height,
-                out_frame_count);
+    if (!startup_movie_file)
+        return false;
+
+    return LoadGIF(startup_movie_file, out_data, out_delays, out_width,
+                   out_height, out_frame_count);
 }
 
 } // namespace hydra::horizon::loader

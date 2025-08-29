@@ -257,8 +257,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     {
         uchar4* data = nullptr;
         usize width, height;
-        loader->LoadNintendoLogo(data, width, height);
-        if (data) {
+        if (loader->LoadNintendoLogo(data, width, height)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
@@ -272,9 +271,8 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         uchar4* data = nullptr;
         usize width, height;
         u32 frame_count;
-        loader->LoadStartupMovie(data, startup_movie_delays, width, height,
-                                 frame_count);
-        if (data) {
+        if (loader->LoadStartupMovie(data, startup_movie_delays, width, height,
+                                     frame_count)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
