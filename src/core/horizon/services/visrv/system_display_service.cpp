@@ -1,5 +1,7 @@
 #include "core/horizon/services/visrv/system_display_service.hpp"
 
+#include "core/horizon/os.hpp"
+
 namespace hydra::horizon::services::visrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(ISystemDisplayService, 2207, SetLayerVisibility,
@@ -27,7 +29,7 @@ result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
                                                i32* out_unknown) {
     LOG_FUNC_STUBBED(Services);
 
-    const auto res = uint2(CONFIG_INSTANCE.GetDisplayResolution().Get());
+    const auto res = OS::GetDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
     *out_refresh_rate = 60.0f;

@@ -29,7 +29,18 @@ enum class ShaderBackend : u32 {
     Air = 2,
 };
 
-STRONG_TYPEDEF(Resolution, uint2);
+enum class Resolution : u32 {
+    Invalid = 0,
+
+    Auto = 1,
+    _720p = 2,
+    _1080p = 3,
+    _2160p = 4,
+    _4320p = 5,
+    Custom = 100,
+};
+
+STRONG_TYPEDEF(CustomResolution, uint2);
 
 enum class AudioBackend : u32 {
     Invalid = 0,
@@ -123,6 +134,9 @@ class Config {
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<Resolution>& GetDisplayResolution() { return display_resolution; }
+    Option<CustomResolution>& GetCustomDisplayResolution() {
+        return custom_display_resolution;
+    }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
     Option<std::string>& GetFirmwarePath() { return firmware_path; }
@@ -146,6 +160,7 @@ class Config {
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
     Option<Resolution> display_resolution;
+    Option<CustomResolution> custom_display_resolution;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
     Option<std::string> firmware_path;
@@ -167,8 +182,9 @@ class Config {
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
-    Resolution GetDefaultDisplayResolution() const {
-        return Resolution({1920, 1080});
+    Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
+    CustomResolution GetDefaultCustomDisplayResolution() const {
+        return CustomResolution({1920, 1080});
     }
     AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
@@ -216,6 +232,9 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
                                    "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, resolution, Auto, "auto",
+                                   _720p, "720p", _1080p, "1080p", _2160p,
+                                   "2160p", _4320p, "4320p", Custom, "custom")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",

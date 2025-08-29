@@ -31,6 +31,8 @@ class OS {
 
     void NotifyOperationModeChanged();
 
+    static uint2 GetDisplayResolution();
+
   private:
     audio::ICore& audio_core;
     ui::HandlerBase& ui_handler;

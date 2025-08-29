@@ -40,7 +40,7 @@ result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
 
 result_t ICommonStateGetter::GetDefaultDisplayResolution(i32* out_width,
                                                          i32* out_height) {
-    const auto res = uint2(CONFIG_INSTANCE.GetDisplayResolution().Get());
+    const auto res = OS::GetDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
     return RESULT_SUCCESS;

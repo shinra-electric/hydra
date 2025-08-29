@@ -7,6 +7,9 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::Resolution, Auto, "auto", _720p, "720p",
+                              _1080p, "1080p", _2160p, "2160p", _4320p, "4320p",
+                              Custom, "custom")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
@@ -16,28 +19,28 @@ namespace toml {
 using namespace hydra;
 
 template <>
-struct from<Resolution> {
+struct from<CustomResolution> {
     template <typename TC>
-    static Resolution from_toml(const basic_value<TC>& v) {
+    static CustomResolution from_toml(const basic_value<TC>& v) {
         const auto str = v.as_string();
         const auto x_pos = str.find('x');
         if (x_pos == std::string::npos)
-            LOG_FATAL(Other, "Invalid display resolution {}", str);
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
 
         uint2 res;
         if (!str_to_num(std::string_view(str).substr(0, x_pos), res.x()))
-            LOG_FATAL(Other, "Invalid display resolution {}", str);
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
         if (!str_to_num(std::string_view(str).substr(x_pos + 1), res.y()))
-            LOG_FATAL(Other, "Invalid display resolution {}", str);
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
 
-        return Resolution(res);
+        return CustomResolution(res);
     }
 };
 
 template <>
-struct into<Resolution> {
+struct into<CustomResolution> {
     template <typename TC>
-    static basic_value<TC> into_toml(const Resolution& obj) {
+    static basic_value<TC> into_toml(const CustomResolution& obj) {
         return toml::value(
             fmt::format("{}x{}", hydra::uint2(obj).x(), hydra::uint2(obj).y()));
     }
@@ -109,6 +112,7 @@ void Config::LoadDefaults() {
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
     display_resolution = GetDefaultDisplayResolution();
+    custom_display_resolution = GetDefaultCustomDisplayResolution();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
@@ -159,6 +163,7 @@ void Config::Serialize() {
         graphics["renderer"] = gpu_renderer.Get();
         graphics["shader_backend"] = shader_backend.Get();
         graphics["display_resolution"] = display_resolution.Get();
+        graphics["custom_display_resolution"] = custom_display_resolution.Get();
     }
 
     {
@@ -224,6 +229,9 @@ void Config::Deserialize() {
             graphics, "shader_backend", GetDefaultShaderBackend());
         display_resolution = toml::find_or<Resolution>(
             graphics, "display_resolution", GetDefaultDisplayResolution());
+        custom_display_resolution = toml::find_or<CustomResolution>(
+            graphics, "custom_display_resolution",
+            GetDefaultCustomDisplayResolution());
     }
     if (data.contains("Audio")) {
         const auto& audio = data.at("Audio");
@@ -277,6 +285,12 @@ void Config::Deserialize() {
         LOG_ERROR(Other, "AIR shader backend is not functional");
     }
 
+    if (display_resolution == Resolution::Invalid) {
+        display_resolution = GetDefaultDisplayResolution();
+        LOG_WARN(Other, "Invalid display resolution, falling back to {}",
+                 display_resolution);
+    }
+
     if (audio_backend == AudioBackend::Invalid) {
         audio_backend = GetDefaultAudioBackend();
         LOG_WARN(Other, "Invalid audio backend, falling back to {}",
@@ -290,9 +304,10 @@ void Config::Log() {
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
-    LOG_INFO(Other, "Display resolution: {}x{}",
-             uint2(display_resolution.Get()).x(),
-             uint2(display_resolution.Get()).y());
+    LOG_INFO(Other, "Display resolution: {}", display_resolution);
+    LOG_INFO(Other, "Custom display resolution: {}x{}",
+             uint2(custom_display_resolution.Get()).x(),
+             uint2(custom_display_resolution.Get()).y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Firmware path: {}", firmware_path);

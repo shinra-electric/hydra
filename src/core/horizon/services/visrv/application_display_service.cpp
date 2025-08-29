@@ -75,7 +75,7 @@ result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
 
 result_t IApplicationDisplayService::ListDisplays(
     u64* out_count, OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
-    const auto res = uint2(CONFIG_INSTANCE.GetDisplayResolution().Get());
+    const auto res = OS::GetDisplayResolution();
     out_display_infos_buffer.writer->Write<DisplayInfo>({
         .name = "Default",
         .has_layer_limit = true,
@@ -110,7 +110,7 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
-    const auto res = uint2(CONFIG_INSTANCE.GetDisplayResolution().Get());
+    const auto res = OS::GetDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
     return RESULT_SUCCESS;

@@ -308,4 +308,27 @@ void OS::NotifyOperationModeChanged() {
     }
 }
 
+uint2 OS::GetDisplayResolution() {
+    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+        return {1280, 720}; // Handheld display resolution is fixed
+    } else {
+        switch (CONFIG_INSTANCE.GetDisplayResolution().Get()) {
+        case Resolution::Auto:
+            return {1920, 1080}; // TODO: return the surface size
+        case Resolution::_720p:
+            return {1280, 720};
+        case Resolution::_1080p:
+            return {1920, 1080};
+        case Resolution::_2160p:
+            return {3840, 2160};
+        case Resolution::_4320p:
+            return {7680, 4320};
+        case Resolution::Custom:
+            return CONFIG_INSTANCE.GetCustomDisplayResolution().Get();
+        default:
+            unreachable();
+        }
+    }
+}
+
 } // namespace hydra::horizon
