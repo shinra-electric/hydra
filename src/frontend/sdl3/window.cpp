@@ -57,8 +57,13 @@ void Window::Run() {
 #else
                 if (modifiers & SDL_KMOD_CTRL) {
 #endif
-                    if (e.key.key == SDLK_T)
+                    if (e.key.key == SDLK_T) {
                         emulation_context.TakeScreenshot();
+                    } else if (e.key.key == SDLK_O) {
+                        auto& handheld_mode = CONFIG_INSTANCE.GetHandheldMode();
+                        handheld_mode = !handheld_mode;
+                        emulation_context.NotifyOperationModeChanged();
+                    }
                 }
                 break;
             }
