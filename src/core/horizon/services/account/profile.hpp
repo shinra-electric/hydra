@@ -18,6 +18,9 @@ class IProfile : public IService {
     result_t Get(ProfileBase* out_base,
                  OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer);
     result_t GetBase(ProfileBase* out_base);
+    result_t GetImageSize(u32* out_size);
+    result_t LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
+                       u32* out_size);
 };
 
 } // namespace hydra::horizon::services::account
