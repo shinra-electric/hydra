@@ -670,7 +670,7 @@ void Renderer::BindDrawState() {
             auto scale_x = transform.scale_x;
             auto scale_y = transform.scale_y;
             if (any(REGS_3D.window_origin_flags &
-                    engines::WindowOriginFlags::FlipY))
+                    engines::WindowOriginFlags::LowerLeft))
                 scale_y = -scale_y;
 
             // Swizzle
@@ -716,9 +716,8 @@ void Renderer::BindDrawState() {
         }
 
         // Flip Y
-        // TODO: why not flip?
-        // dst.originY += dst.height;
-        // dst.height = -dst.height;
+        dst.originY += dst.height;
+        dst.height = -dst.height;
 
         // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
         // it like this, tho not on Ryujinx)

@@ -184,7 +184,7 @@ enum class ViewportZClip : u32 {
 enum class WindowOriginFlags : u32 {
     None = 0,
     LowerLeft = BIT(0),
-    FlipY = BIT(4),
+    FlipY = BIT(4), // Only for the purpose of figuring out polygon winding
 };
 ENABLE_ENUM_BITMASK_OPERATORS(WindowOriginFlags)
 
