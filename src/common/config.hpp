@@ -136,7 +136,7 @@ class Config {
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
     Option<Resolution>& GetDisplayResolution() { return display_resolution; }
-    Option<CustomResolution>& GetCustomDisplayResolution() {
+    Option<uint2>& GetCustomDisplayResolution() {
         return custom_display_resolution;
     }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
@@ -162,7 +162,7 @@ class Config {
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
     Option<Resolution> display_resolution;
-    Option<CustomResolution> custom_display_resolution;
+    Option<uint2> custom_display_resolution;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
     Option<std::string> firmware_path;
@@ -185,9 +185,7 @@ class Config {
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
     Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
-    CustomResolution GetDefaultCustomDisplayResolution() const {
-        return CustomResolution({1920, 1080});
-    }
+    uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
     AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID

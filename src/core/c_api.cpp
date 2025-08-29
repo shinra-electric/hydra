@@ -74,6 +74,16 @@ HYDRA_EXPORT void hydra_string_array_option_set(void* option, uint32_t index,
     static_cast<hydra::ArrayOption<std::string>*>(option)->Set(index, value);
 }
 
+HYDRA_EXPORT uint2 hydra_uint2_option_get(const void* option) {
+    const auto value =
+        static_cast<const hydra::Option<hydra::uint2>*>(option)->Get();
+    return {value.x(), value.y()};
+}
+
+HYDRA_EXPORT void hydra_uint2_option_set(void* option, const uint2 value) {
+    static_cast<hydra::Option<hydra::uint2>*>(option)->Set({value.x, value.y});
+}
+
 // Config
 HYDRA_EXPORT void hydra_config_serialize() {
     hydra::CONFIG_INSTANCE.Serialize();
@@ -103,6 +113,14 @@ HYDRA_EXPORT void* hydra_config_get_shader_backend() {
     return &hydra::CONFIG_INSTANCE.GetShaderBackend();
 }
 
+HYDRA_EXPORT void* hydra_config_get_display_resolution() {
+    return &hydra::CONFIG_INSTANCE.GetDisplayResolution();
+}
+
+HYDRA_EXPORT void* hydra_config_get_custom_display_resolution() {
+    return &hydra::CONFIG_INSTANCE.GetCustomDisplayResolution();
+}
+
 HYDRA_EXPORT void* hydra_config_get_user_id() {
     return &hydra::CONFIG_INSTANCE.GetUserID();
 }
@@ -117,6 +135,10 @@ HYDRA_EXPORT void* hydra_config_get_sd_card_path() {
 
 HYDRA_EXPORT void* hydra_config_get_save_path() {
     return &hydra::CONFIG_INSTANCE.GetSavePath();
+}
+
+HYDRA_EXPORT void* hydra_config_get_handheld_mode() {
+    return &hydra::CONFIG_INSTANCE.GetHandheldMode();
 }
 
 HYDRA_EXPORT void* hydra_config_get_log_output() {
@@ -232,6 +254,11 @@ HYDRA_EXPORT void hydra_emulation_context_request_stop(void* ctx) {
 
 HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
     static_cast<hydra::EmulationContext*>(ctx)->ForceStop();
+}
+
+HYDRA_EXPORT void
+hydra_emulation_context_notify_operation_mode_changed(void* ctx) {
+    static_cast<hydra::EmulationContext*>(ctx)->NotifyOperationModeChanged();
 }
 
 HYDRA_EXPORT void hydra_emulation_context_progress_frame(

@@ -164,7 +164,8 @@ void Config::Serialize() {
         graphics["renderer"] = gpu_renderer.Get();
         graphics["shader_backend"] = shader_backend.Get();
         graphics["display_resolution"] = display_resolution.Get();
-        graphics["custom_display_resolution"] = custom_display_resolution.Get();
+        graphics["custom_display_resolution"] =
+            CustomResolution(custom_display_resolution.Get());
     }
 
     {
@@ -307,8 +308,8 @@ void Config::Log() {
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
     LOG_INFO(Other, "Display resolution: {}", display_resolution);
     LOG_INFO(Other, "Custom display resolution: {}x{}",
-             uint2(custom_display_resolution.Get()).x(),
-             uint2(custom_display_resolution.Get()).y());
+             custom_display_resolution.Get().x(),
+             custom_display_resolution.Get().y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
