@@ -111,21 +111,21 @@ LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
     return loader;
 }
 
-bool LoaderBase::LoadNacp(
-    horizon::services::ns::ApplicationControlProperty& out_nacp) {
+horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
     if (!nacp_file)
-        return false;
+        return nullptr;
 
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
-    ASSERT(reader.GetSize() == sizeof(out_nacp), Loader,
+    auto nacp = new horizon::services::ns::ApplicationControlProperty();
+    ASSERT(reader.GetSize() == sizeof(*nacp), Loader,
            "Invalid NACP file size 0x{:x}", reader.GetSize());
-    reader.ReadWhole(&out_nacp);
+    reader.ReadWhole(nacp);
 
     nacp_file->Close(stream);
 
-    return true;
+    return nacp;
 }
 
 bool LoaderBase::LoadIcon(uchar4*& out_data, usize& out_width,

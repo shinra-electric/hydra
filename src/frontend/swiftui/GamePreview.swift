@@ -17,6 +17,7 @@ struct GamePreview: View {
             }
             Text(game.name)
                 .padding()
+            // TODO: author?
         }
         .contentShape(Rectangle())
         .onTapGesture {

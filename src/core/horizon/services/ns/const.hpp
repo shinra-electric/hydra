@@ -35,6 +35,7 @@ typedef struct {
     u64 memory_size;
 } JitConfiguration;
 
+// TODO: adjust this according to switchbrew
 struct ApplicationControlProperty {
     ApplicationTitle titles[16];
     u8 isbn[0x25];
@@ -71,6 +72,7 @@ struct ApplicationControlProperty {
     char bcat_passphrase[0x41];
     u8 startup_user_account_option;
     u8 reserved_for_user_account_save_data_operation[0x6];
+    u64 user_account_save_data_size_max;
     u64 user_account_save_data_journal_size_max;
     u64 device_save_data_size_max;
     u64 device_save_data_journal_size_max;

@@ -194,11 +194,8 @@ HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
         ->GetTitleID();
 }
 
-HYDRA_EXPORT bool hydra_loader_load_nacp(void* loader, void* nacp_buffer) {
-    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadNacp(
-        *reinterpret_cast<
-            hydra::horizon::services::ns::ApplicationControlProperty*>(
-            nacp_buffer));
+HYDRA_EXPORT void* hydra_loader_load_nacp(void* loader) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadNacp();
 }
 
 HYDRA_EXPORT bool hydra_loader_load_icon(void* loader, void** data,
@@ -218,6 +215,31 @@ HYDRA_EXPORT const char* hydra_nca_loader_get_name(void* nca_loader) {
     return static_cast<hydra::horizon::loader::NcaLoader*>(nca_loader)
         ->GetName()
         .c_str();
+}
+
+// NACP
+HYDRA_EXPORT void hydra_nacp_destroy(void* nacp) {
+    delete static_cast<
+        hydra::horizon::services::ns::ApplicationControlProperty*>(nacp);
+}
+
+HYDRA_EXPORT const void* hydra_nacp_get_title(void* nacp) {
+    return &static_cast<
+                hydra::horizon::services::ns::ApplicationControlProperty*>(nacp)
+                ->GetApplicationTitle();
+}
+
+// NACP title
+HYDRA_EXPORT const char* hydra_nacp_title_get_name(const void* title) {
+    return static_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
+               title)
+        ->name;
+}
+
+HYDRA_EXPORT const char* hydra_nacp_title_get_author(const void* title) {
+    return static_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
+               title)
+        ->author;
 }
 
 // Emulation context

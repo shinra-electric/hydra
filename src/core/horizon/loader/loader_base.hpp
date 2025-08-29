@@ -15,7 +15,7 @@ class LoaderBase {
     virtual u64 GetTitleID() const { return invalid<u64>(); }
 
     virtual void LoadProcess(kernel::Process* process) = 0;
-    bool LoadNacp(horizon::services::ns::ApplicationControlProperty& out_nacp);
+    horizon::services::ns::ApplicationControlProperty* LoadNacp();
     bool LoadIcon(uchar4*& out_data, usize& out_width, usize& out_height);
     bool LoadNintendoLogo(uchar4*& out_data, usize& out_width,
                           usize& out_height);
