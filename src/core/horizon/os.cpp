@@ -26,6 +26,7 @@
 #include "core/horizon/services/hid/hid_system_server.hpp"
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/i2c/manager.hpp"
+#include "core/horizon/services/ins/receiver_manager.hpp"
 #include "core/horizon/services/lbl/lbl_controller.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
@@ -39,6 +40,7 @@
 #include "core/horizon/services/ns/service_getter_interface.hpp"
 #include "core/horizon/services/nsd/manager.hpp"
 #include "core/horizon/services/nvdrv/nvdrv_services.hpp"
+#include "core/horizon/services/omm/operation_mode_manager.hpp"
 #include "core/horizon/services/ovln/sender_service.hpp"
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
@@ -286,6 +288,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // PSC
     REGISTER_SERVICE(others, psc::IPmService, "psc:m");
     REGISTER_SERVICE(others, ovln::ISenderService, "ovln:snd");
+    REGISTER_SERVICE(others, ins::IReceiverManager, "ins:r");
 
     // Settings
     REGISTER_SERVICE(others, settings::ISettingsServer, "set");
@@ -300,6 +303,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Ncm
     REGISTER_SERVICE(others, ncm::IContentManager, "ncm");
+
+    // Omm
+    REGISTER_SERVICE(others, omm::IOperationModeManager, "omm");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");
