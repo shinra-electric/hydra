@@ -2,11 +2,20 @@
 
 namespace hydra::horizon::services::ssl::sf {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISslContext, 4, ImportServerPki)
+DEFINE_SERVICE_COMMAND_TABLE(ISslContext, 4, ImportServerPki, 8,
+                             RegisterInternalPki)
 
 result_t ISslContext::ImportServerPki(CertificateFormat cert_format,
                                       InBuffer<BufferAttr::MapAlias> in_buffer,
                                       u64* out_id) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_id = 0;
+    return RESULT_SUCCESS;
+}
+
+result_t ISslContext::RegisterInternalPki(InternalPki pki, u64* out_id) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK

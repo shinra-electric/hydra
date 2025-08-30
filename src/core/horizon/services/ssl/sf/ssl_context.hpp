@@ -10,6 +10,11 @@ enum class CertificateFormat : u32 {
     Der = 2,
 };
 
+enum class InternalPki : u32 {
+    None = 0,
+    DeviceClientCertDefault = 1,
+};
+
 class ISslContext : public IService {
   public:
     ISslContext(const SslVersion version_) : version{version_} {}
@@ -24,6 +29,7 @@ class ISslContext : public IService {
     result_t ImportServerPki(CertificateFormat cert_format,
                              InBuffer<BufferAttr::MapAlias> in_buffer,
                              u64* out_id);
+    result_t RegisterInternalPki(InternalPki pki, u64* out_id);
 };
 
 } // namespace hydra::horizon::services::ssl::sf

@@ -51,6 +51,7 @@
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
+#include "core/horizon/services/settings/factory_settings_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
 #include "core/horizon/services/settings/system_settings_server.hpp"
 #include "core/horizon/services/sm/user_interface.hpp"
@@ -293,6 +294,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Settings
     REGISTER_SERVICE(others, settings::ISettingsServer, "set");
     REGISTER_SERVICE(others, settings::ISystemSettingsServer, "set:sys");
+    REGISTER_SERVICE(others, settings::IFactorySettingsServer, "set:cal");
 
     // Ssl
     REGISTER_SERVICE(others, ssl::sf::ISslService, "ssl");

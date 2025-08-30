@@ -156,6 +156,8 @@ add_library(hydra-core
     horizon/services/settings/settings_server.hpp
     horizon/services/settings/system_settings_server.cpp
     horizon/services/settings/system_settings_server.hpp
+    horizon/services/settings/factory_settings_server.cpp
+    horizon/services/settings/factory_settings_server.hpp
     horizon/services/am/apm_manager.cpp
     horizon/services/am/apm_manager.hpp
     horizon/services/am/application_proxy_service.cpp

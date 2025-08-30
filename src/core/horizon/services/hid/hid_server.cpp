@@ -42,6 +42,9 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     // TODO: params
     out_handle = process->AddHandle(npad_style_set_update_event);
 
+    // HACK: games expect this to be signalled
+    npad_style_set_update_event->Signal();
+
     return RESULT_SUCCESS;
 }
 
