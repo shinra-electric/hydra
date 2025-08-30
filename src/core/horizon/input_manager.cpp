@@ -76,6 +76,14 @@ void InputManager::ConnectNpad(hid::NpadIdType type,
     UPDATE_NPAD_LIFO(type);
 }
 
+void InputManager::DisconnectAllNpads() {
+    for (u32 i = 0; i < u32(hid::NpadIdType::Total); i++) {
+        const auto type = hid::NpadIdType(i);
+        SET_NPAD_ENTRIES_SEPARATE(type, attributes, hid::NpadAttributes::None);
+        UPDATE_NPAD_LIFO(type);
+    }
+}
+
 void InputManager::UpdateNpad(hid::NpadIdType type) { UPDATE_NPAD_LIFO(type); }
 
 void InputManager::SetNpadButtons(hid::NpadIdType type,

@@ -75,13 +75,13 @@ result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
 
 result_t IApplicationDisplayService::ListDisplays(
     u64* out_count, OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
-    // TODO: don't hardcode
+    const auto res = OS_INSTANCE.GetDisplayResolution();
     out_display_infos_buffer.writer->Write<DisplayInfo>({
         .name = "Default",
         .has_layer_limit = true,
         .layer_count_max = 1,
-        .layer_width_pixel_count_max = 1920,
-        .layer_height_pixel_count_max = 1080,
+        .layer_width_pixel_count_max = res.x(),
+        .layer_height_pixel_count_max = res.y(),
     });
     *out_count = 1;
     return RESULT_SUCCESS;
@@ -110,9 +110,9 @@ result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
 
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
-    // HACK
-    *out_width = 1920;
-    *out_height = 1080;
+    const auto res = OS_INSTANCE.GetDisplayResolution();
+    *out_width = res.x();
+    *out_height = res.y();
     return RESULT_SUCCESS;
 }
 

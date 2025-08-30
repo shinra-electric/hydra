@@ -12,28 +12,43 @@ namespace hydra {
 enum class CpuBackend : u32 {
     Invalid = 0,
 
-    AppleHypervisor = 1,
-    Dynarmic = 2,
+    AppleHypervisor,
+    Dynarmic,
 };
 
 enum class GpuRenderer : u32 {
     Invalid = 0,
 
-    Metal = 1,
+    Metal,
 };
 
 enum class ShaderBackend : u32 {
     Invalid = 0,
 
-    Msl = 1,
-    Air = 2,
+    Msl,
+    Air,
 };
+
+enum class Resolution : u32 {
+    Invalid = 0,
+
+    Auto,
+    _720p,
+    _1080p,
+    _1440p,
+    _2160p,
+    _4320p,
+    AutoExact,
+    Custom,
+};
+
+STRONG_TYPEDEF(CustomResolution, uint2);
 
 enum class AudioBackend : u32 {
     Invalid = 0,
 
-    Null = 1,
-    Cubeb = 2,
+    Null,
+    Cubeb,
 };
 
 template <typename T>
@@ -120,11 +135,16 @@ class Config {
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
+    Option<Resolution>& GetDisplayResolution() { return display_resolution; }
+    Option<uint2>& GetCustomDisplayResolution() {
+        return custom_display_resolution;
+    }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
     Option<std::string>& GetFirmwarePath() { return firmware_path; }
     Option<std::string>& GetSdCardPath() { return sd_card_path; }
     Option<std::string>& GetSavePath() { return save_path; }
+    Option<bool>& GetHandheldMode() { return handheld_mode; }
     Option<LogOutput>& GetLogOutput() { return log_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
@@ -141,11 +161,14 @@ class Config {
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
+    Option<Resolution> display_resolution;
+    Option<uint2> custom_display_resolution;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
     Option<std::string> firmware_path;
     Option<std::string> sd_card_path;
     Option<std::string> save_path;
+    Option<bool> handheld_mode;
     Option<LogOutput> log_output;
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
@@ -161,6 +184,8 @@ class Config {
     }
     GpuRenderer GetDefaultGpuRenderer() const { return GpuRenderer::Metal; }
     ShaderBackend GetDefaultShaderBackend() const { return ShaderBackend::Msl; }
+    Resolution GetDefaultDisplayResolution() const { return Resolution::Auto; }
+    uint2 GetDefaultCustomDisplayResolution() const { return {1920, 1080}; }
     AudioBackend GetDefaultAudioBackend() const { return AudioBackend::Null; }
     uuid_t GetDefaultUserID() const {
         return 0x0; // TODO: INVALID_USER_ID
@@ -172,6 +197,7 @@ class Config {
     std::string GetDefaultSavePath() const {
         return fmt::format("{}/save", app_data_path);
     }
+    bool GetDefaultHandheldMode() const { return false; }
     LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
@@ -206,6 +232,10 @@ ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, GpuRenderer, gpu_renderer, Metal,
                                    "Metal")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, ShaderBackend, shader_backend, Msl,
                                    "MSL", Air, "AIR")
+ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, Resolution, resolution, Auto, "auto",
+                                   _720p, "720p", _1080p, "1080p", _1440p,
+                                   "1440p", _2160p, "2160p", _4320p, "4320p",
+                                   AutoExact, "Auto exact", Custom, "custom")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, AudioBackend, audio_backend, Null,
                                    "Null", Cubeb, "Cubeb")
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra, LogOutput, output, None, "none",

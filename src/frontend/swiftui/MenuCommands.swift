@@ -7,6 +7,7 @@ struct MenuCommands: Commands {
     @Binding var emulationContext: UnsafeMutableRawPointer?
 
     @State var firmwareApplets: [Game] = []
+    @State var handheldMode = false
 
     var body: some Commands {
         CommandGroup(after: .newItem) {
@@ -45,11 +46,24 @@ struct MenuCommands: Commands {
         }
 
         CommandMenu("Emulation") {
-            Button("Stop", systemImage: "stop.fill") {
-                // TODO
-                //hydra_emulation_context_request_stop(self.emulationContext!)
-                //hydra_emulation_context_force_stop(self.emulationContext!)
+            Button("Stop") {
+                guard let emulationContext = self.emulationContext else { return }
+                hydra_emulation_context_request_stop(emulationContext)
+                hydra_emulation_context_force_stop(emulationContext)
                 self.activeGame = nil
+            }
+            Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
+                self.handheldMode = !self.handheldMode
+                let handheldModeOption = hydra_config_get_handheld_mode()
+                hydra_bool_option_set(handheldModeOption, self.handheldMode)
+
+                guard let emulationContext = self.emulationContext else { return }
+                hydra_emulation_context_notify_operation_mode_changed(emulationContext)
+            }
+            .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
+            .onAppear {
+                let handheldModeOption = hydra_config_get_handheld_mode()
+                self.handheldMode = hydra_bool_option_get(handheldModeOption)
             }
         }
 

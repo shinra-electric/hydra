@@ -18,6 +18,9 @@ class InputManager {
     void ConnectNpad(hid::NpadIdType type, hid::NpadStyleSet style_set,
                      hid::NpadAttributes attributes);
 
+    // Device disconnection
+    void DisconnectAllNpads();
+
     // Events
 
     // Npad

@@ -5,105 +5,44 @@
 
 namespace hydra::input {
 
-namespace hid = horizon::hid;
-
 DeviceManager::DeviceManager()
     : npad_configs{
-          horizon::hid::NpadIdType::No1,     horizon::hid::NpadIdType::No2,
-          horizon::hid::NpadIdType::No3,     horizon::hid::NpadIdType::No4,
-          horizon::hid::NpadIdType::No5,     horizon::hid::NpadIdType::No6,
-          horizon::hid::NpadIdType::No7,     horizon::hid::NpadIdType::No8,
-          horizon::hid::NpadIdType::Handheld} {
+          horizon::hid::NpadIdType::No1, horizon::hid::NpadIdType::No2,
+          horizon::hid::NpadIdType::No3, horizon::hid::NpadIdType::No4,
+          horizon::hid::NpadIdType::No5, horizon::hid::NpadIdType::No6,
+          horizon::hid::NpadIdType::No7, horizon::hid::NpadIdType::No8} {
     device_list = new apple_gc::DeviceList();
 }
 
 DeviceManager::~DeviceManager() { delete device_list; }
 
-void DeviceManager::ConnectDevices() {
-    // Connect npads
-    {
+void DeviceManager::ConnectNpads() {
+    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+        INPUT_MANAGER_INSTANCE.ConnectNpad(
+            horizon::hid::NpadIdType::Handheld,
+            horizon::hid::NpadStyleSet::Handheld,
+            horizon::hid::NpadAttributes::IsConnected);
+    } else {
         // TODO: get npads from the config
-        const auto type = hid::NpadIdType::Handheld;
-
-        INPUT_MANAGER_INSTANCE.ConnectNpad(type, hid::NpadStyleSet::Handheld,
-                                           hid::NpadAttributes::IsConnected);
+        std::array<horizon::hid::NpadIdType, 1> npad_types = {
+            horizon::hid::NpadIdType::No1};
+        for (const auto& type : npad_types) {
+            INPUT_MANAGER_INSTANCE.ConnectNpad(
+                type, horizon::hid::NpadStyleSet::Standard,
+                horizon::hid::NpadAttributes::IsConnected);
+        }
     }
 }
 
 void DeviceManager::Poll() {
     // Npads
-    for (u32 i = 0; i < NPAD_COUNT; i++) {
-        const auto type = horizon::hid::NpadIdType(i);
-        const auto& config = npad_configs[i];
-
-        hid::NpadButtons buttons = hid::NpadButtons::None;
-        f32 analog_l_x = 0.0f;
-        f32 analog_l_y = 0.0f;
-        f32 analog_r_x = 0.0f;
-        f32 analog_r_y = 0.0f;
-
-        for (const auto& device_name : config.GetDeviceNames()) {
-            auto device = GetDevice(device_name);
-            if (!device)
-                continue;
-
-            // Buttons
-            for (const auto& mapping : config.GetButtonMappings()) {
-                if (device->IsPressed(mapping.code))
-                    buttons |= mapping.npad_buttons;
-            }
-
-            // Analog sticks
-            for (const auto& mapping : config.GetAnalogMappings()) {
-                const auto value = device->GetAxisValue(mapping.code);
-                if (mapping.axis.is_left) {
-                    switch (mapping.axis.direction) {
-                    case AnalogStickDirection::XPlus:
-                        analog_l_x += value;
-                        break;
-                    case AnalogStickDirection::XMinus:
-                        analog_l_x -= value;
-                        break;
-                    case AnalogStickDirection::YPlus:
-                        analog_l_y += value;
-                        break;
-                    case AnalogStickDirection::YMinus:
-                        analog_l_y -= value;
-                        break;
-                    }
-                } else {
-                    switch (mapping.axis.direction) {
-                    case AnalogStickDirection::XPlus:
-                        analog_r_x += value;
-                        break;
-                    case AnalogStickDirection::XMinus:
-                        analog_r_x -= value;
-                        break;
-                    case AnalogStickDirection::YPlus:
-                        analog_r_y += value;
-                        break;
-                    case AnalogStickDirection::YMinus:
-                        analog_r_y -= value;
-                        break;
-                    }
-                }
-            }
+    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+        PollNpad(horizon::hid::NpadIdType::Handheld, 0);
+    } else {
+        for (u32 i = 0; i < NPAD_COUNT; i++) {
+            const auto type = horizon::hid::NpadIdType(i);
+            PollNpad(type, i);
         }
-
-        // TODO: normalize analog sticks if the length of the vector is more
-        // than 1?
-
-        // Update
-        INPUT_MANAGER_INSTANCE.UpdateNpad(type);
-
-        // Set
-        INPUT_MANAGER_INSTANCE.SetNpadButtons(type, buttons);
-        INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateL(
-            type,
-            {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
-        INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateR(
-            type,
-            {std::bit_cast<i32>(analog_r_x), std::bit_cast<i32>(analog_r_y)});
     }
 
     // Touch screen
@@ -151,6 +90,77 @@ void DeviceManager::Poll() {
             });
         }
     }
+}
+
+void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
+    const auto& config = npad_configs[index];
+
+    horizon::hid::NpadButtons buttons = horizon::hid::NpadButtons::None;
+    f32 analog_l_x = 0.0f;
+    f32 analog_l_y = 0.0f;
+    f32 analog_r_x = 0.0f;
+    f32 analog_r_y = 0.0f;
+
+    for (const auto& device_name : config.GetDeviceNames()) {
+        auto device = GetDevice(device_name);
+        if (!device)
+            continue;
+
+        // Buttons
+        for (const auto& mapping : config.GetButtonMappings()) {
+            if (device->IsPressed(mapping.code))
+                buttons |= mapping.npad_buttons;
+        }
+
+        // Analog sticks
+        for (const auto& mapping : config.GetAnalogMappings()) {
+            const auto value = device->GetAxisValue(mapping.code);
+            if (mapping.axis.is_left) {
+                switch (mapping.axis.direction) {
+                case AnalogStickDirection::XPlus:
+                    analog_l_x += value;
+                    break;
+                case AnalogStickDirection::XMinus:
+                    analog_l_x -= value;
+                    break;
+                case AnalogStickDirection::YPlus:
+                    analog_l_y += value;
+                    break;
+                case AnalogStickDirection::YMinus:
+                    analog_l_y -= value;
+                    break;
+                }
+            } else {
+                switch (mapping.axis.direction) {
+                case AnalogStickDirection::XPlus:
+                    analog_r_x += value;
+                    break;
+                case AnalogStickDirection::XMinus:
+                    analog_r_x -= value;
+                    break;
+                case AnalogStickDirection::YPlus:
+                    analog_r_y += value;
+                    break;
+                case AnalogStickDirection::YMinus:
+                    analog_r_y -= value;
+                    break;
+                }
+            }
+        }
+    }
+
+    // TODO: normalize analog sticks if the length of the vector is more
+    // than 1?
+
+    // Update
+    INPUT_MANAGER_INSTANCE.UpdateNpad(type);
+
+    // Set
+    INPUT_MANAGER_INSTANCE.SetNpadButtons(type, buttons);
+    INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateL(
+        type, {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
+    INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateR(
+        type, {std::bit_cast<i32>(analog_r_x), std::bit_cast<i32>(analog_r_y)});
 }
 
 } // namespace hydra::input

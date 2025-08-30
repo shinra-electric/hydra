@@ -7,7 +7,7 @@
 
 namespace hydra::input {
 
-constexpr u32 NPAD_COUNT = 9; // 8 players + handheld
+constexpr u32 NPAD_COUNT = 8; // 8 players
 
 class DeviceManager {
   public:
@@ -19,7 +19,7 @@ class DeviceManager {
     DeviceManager();
     ~DeviceManager();
 
-    void ConnectDevices();
+    void ConnectNpads();
 
     void Poll();
 
@@ -52,6 +52,8 @@ class DeviceManager {
 
         return it->second;
     }
+
+    void PollNpad(horizon::hid::NpadIdType type, u32 index);
 };
 
 } // namespace hydra::input

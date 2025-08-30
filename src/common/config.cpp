@@ -7,9 +7,47 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::CpuBackend, AppleHypervisor,
                               "Apple Hypervisor", Dynarmic, "dynarmic")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::GpuRenderer, Metal, "Metal")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::ShaderBackend, Msl, "MSL", Air, "AIR")
+TOML11_DEFINE_CONVERSION_ENUM(hydra::Resolution, Auto, "auto", _720p, "720p",
+                              _1080p, "1080p", _1440p, "1440p", _2160p, "2160p",
+                              _4320p, "4320p", AutoExact, "Auto exact", Custom,
+                              "custom")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
+
+namespace toml {
+
+using namespace hydra;
+
+template <>
+struct from<CustomResolution> {
+    template <typename TC>
+    static CustomResolution from_toml(const basic_value<TC>& v) {
+        const auto str = v.as_string();
+        const auto x_pos = str.find('x');
+        if (x_pos == std::string::npos)
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
+
+        uint2 res;
+        if (!str_to_num(std::string_view(str).substr(0, x_pos), res.x()))
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
+        if (!str_to_num(std::string_view(str).substr(x_pos + 1), res.y()))
+            LOG_FATAL(Other, "Invalid custom display resolution {}", str);
+
+        return CustomResolution(res);
+    }
+};
+
+template <>
+struct into<CustomResolution> {
+    template <typename TC>
+    static basic_value<TC> into_toml(const CustomResolution& obj) {
+        return toml::value(
+            fmt::format("{}x{}", hydra::uint2(obj).x(), hydra::uint2(obj).y()));
+    }
+};
+
+} // namespace toml
 
 namespace hydra {
 
@@ -71,14 +109,17 @@ Config::Config() {
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
     patch_paths = GetDefaultPatchPaths();
-    save_path = GetDefaultSavePath();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
+    display_resolution = GetDefaultDisplayResolution();
+    custom_display_resolution = GetDefaultCustomDisplayResolution();
     audio_backend = GetDefaultAudioBackend();
     user_id = GetDefaultUserID();
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
+    save_path = GetDefaultSavePath();
+    handheld_mode = GetDefaultHandheldMode();
     log_output = GetDefaultLogOutput();
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
@@ -109,15 +150,8 @@ void Config::Serialize() {
     {
         auto& general = data.at("General");
 
-        auto& game_paths_arr = general["game_paths"];
-        game_paths_arr = toml::array{};
-        game_paths_arr.as_array().assign(game_paths.Get().begin(),
-                                         game_paths.Get().end());
-
-        auto& patch_paths_arr = general["patch_paths"];
-        patch_paths_arr = toml::array{};
-        patch_paths_arr.as_array().assign(patch_paths.Get().begin(),
-                                          patch_paths.Get().end());
+        general["game_paths"] = game_paths.Get();
+        general["patch_paths"] = patch_paths.Get();
     }
 
     {
@@ -129,6 +163,9 @@ void Config::Serialize() {
         auto& graphics = data.at("Graphics");
         graphics["renderer"] = gpu_renderer.Get();
         graphics["shader_backend"] = shader_backend.Get();
+        graphics["display_resolution"] = display_resolution.Get();
+        graphics["custom_display_resolution"] =
+            CustomResolution(custom_display_resolution.Get());
     }
 
     {
@@ -143,9 +180,10 @@ void Config::Serialize() {
 
     {
         auto& system = data.at("System");
-        system["firmware_path"] = firmware_path;
-        system["sd_card_path"] = sd_card_path;
-        system["save_path"] = save_path;
+        system["firmware_path"] = firmware_path.Get();
+        system["sd_card_path"] = sd_card_path.Get();
+        system["save_path"] = save_path.Get();
+        system["handheld_mode"] = handheld_mode.Get();
     }
 
     {
@@ -191,6 +229,11 @@ void Config::Deserialize() {
                                                   GetDefaultGpuRenderer());
         shader_backend = toml::find_or<ShaderBackend>(
             graphics, "shader_backend", GetDefaultShaderBackend());
+        display_resolution = toml::find_or<Resolution>(
+            graphics, "display_resolution", GetDefaultDisplayResolution());
+        custom_display_resolution = toml::find_or<CustomResolution>(
+            graphics, "custom_display_resolution",
+            GetDefaultCustomDisplayResolution());
     }
     if (data.contains("Audio")) {
         const auto& audio = data.at("Audio");
@@ -209,6 +252,8 @@ void Config::Deserialize() {
                                                   GetDefaultSdCardPath());
         save_path = toml::find_or<std::string>(system, "save_path",
                                                GetDefaultSavePath());
+        handheld_mode = toml::find_or<bool>(system, "handheld_mode",
+                                            GetDefaultHandheldMode());
     }
     if (data.contains("Debug")) {
         const auto& debug = data.at("Debug");
@@ -242,6 +287,12 @@ void Config::Deserialize() {
         LOG_ERROR(Other, "AIR shader backend is not functional");
     }
 
+    if (display_resolution == Resolution::Invalid) {
+        display_resolution = GetDefaultDisplayResolution();
+        LOG_WARN(Other, "Invalid display resolution, falling back to {}",
+                 display_resolution);
+    }
+
     if (audio_backend == AudioBackend::Invalid) {
         audio_backend = GetDefaultAudioBackend();
         LOG_WARN(Other, "Invalid audio backend, falling back to {}",
@@ -255,11 +306,16 @@ void Config::Log() {
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
+    LOG_INFO(Other, "Display resolution: {}", display_resolution);
+    LOG_INFO(Other, "Custom display resolution: {}x{}",
+             custom_display_resolution.Get().x(),
+             custom_display_resolution.Get().y());
     LOG_INFO(Other, "Audio backend: {}", audio_backend);
     LOG_INFO(Other, "User ID: {:032x}", user_id.Get());
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
+    LOG_INFO(Other, "Handheld mode: {}", handheld_mode);
     LOG_INFO(Other, "Log output: {}", log_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);

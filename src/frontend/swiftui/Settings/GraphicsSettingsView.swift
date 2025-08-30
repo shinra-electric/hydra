@@ -3,6 +3,8 @@ import SwiftUI
 struct GraphicsSettingsView: View {
     @State var gpuRenderer: HydraGpuRenderer = HYDRA_GPU_RENDERER_INVALID
     @State var shaderBackend: HydraShaderBackend = HYDRA_SHADER_BACKEND_INVALID
+    @State var displayResolution: HydraResolution = HYDRA_RESOLUTION_INVALID
+    @State var customDisplayResolution: uint2 = uint2(x: 0, y: 0)
 
     var body: some View {
         VStack {
@@ -12,6 +14,28 @@ struct GraphicsSettingsView: View {
             Picker("Shader backend", selection: self.$shaderBackend.rawValue) {
                 Text("MSL (recommended)").tag(HYDRA_SHADER_BACKEND_MSL.rawValue)
                 Text("AIR (broken)").tag(HYDRA_SHADER_BACKEND_AIR.rawValue)
+            }
+            Picker("Display resolution", selection: self.$displayResolution.rawValue) {
+                Text("Auto (recommended)").tag(HYDRA_RESOLUTION_AUTO.rawValue)
+                Text("720p").tag(HYDRA_RESOLUTION_720P.rawValue)
+                Text("1080p").tag(HYDRA_RESOLUTION_1080P.rawValue)
+                Text("1440p").tag(HYDRA_RESOLUTION_1440P.rawValue)
+                Text("2160p").tag(HYDRA_RESOLUTION_2160P.rawValue)
+                Text("4320p").tag(HYDRA_RESOLUTION_4320P.rawValue)
+                Text("Auto exact (not recommended)").tag(HYDRA_RESOLUTION_AUTO_EXACT.rawValue)
+                Text("Custom (not recommended)").tag(HYDRA_RESOLUTION_CUSTOM.rawValue)
+            }
+            if self.displayResolution == HYDRA_RESOLUTION_CUSTOM {
+                HStack {
+                    Text("Custom resolution")
+                    TextField(
+                        "Width", value: self.$customDisplayResolution.x,
+                        format: .number)
+                    Text("x")
+                    TextField(
+                        "Height", value: self.$customDisplayResolution.y,
+                        format: .number)
+                }
             }
         }
         .onAppear {
@@ -28,6 +52,12 @@ struct GraphicsSettingsView: View {
 
         let shaderBackendOption = hydra_config_get_shader_backend()
         self.shaderBackend.rawValue = hydra_u32_option_get(shaderBackendOption)
+
+        let displayResolutionOption = hydra_config_get_display_resolution()
+        self.displayResolution.rawValue = hydra_u32_option_get(displayResolutionOption)
+
+        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
+        self.customDisplayResolution = hydra_uint2_option_get(customDisplayResolutionOption)
     }
 
     func save() {
@@ -36,5 +66,11 @@ struct GraphicsSettingsView: View {
 
         let shaderBackendOption = hydra_config_get_shader_backend()
         hydra_u32_option_set(shaderBackendOption, self.shaderBackend.rawValue)
+
+        let displayResolutionOption = hydra_config_get_display_resolution()
+        hydra_u32_option_set(displayResolutionOption, self.displayResolution.rawValue)
+
+        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
+        hydra_uint2_option_set(customDisplayResolutionOption, self.customDisplayResolution)
     }
 }

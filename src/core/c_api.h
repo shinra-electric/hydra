@@ -30,6 +30,19 @@ typedef enum : uint32_t {
 } HydraShaderBackend;
 
 typedef enum : uint32_t {
+    HYDRA_RESOLUTION_INVALID = 0,
+
+    HYDRA_RESOLUTION_AUTO,
+    HYDRA_RESOLUTION_720P,
+    HYDRA_RESOLUTION_1080P,
+    HYDRA_RESOLUTION_1440P,
+    HYDRA_RESOLUTION_2160P,
+    HYDRA_RESOLUTION_4320P,
+    HYDRA_RESOLUTION_AUTO_EXACT,
+    HYDRA_RESOLUTION_CUSTOM,
+} HydraResolution;
+
+typedef enum : uint32_t {
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_PROGRAM = 0,
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_META = 1,
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_CONTROL = 2,
@@ -105,6 +118,14 @@ void hydra_string_array_option_resize(void* option, uint64_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
                                    const char* value);
 
+typedef struct {
+    uint32_t x;
+    uint32_t y;
+} uint2;
+
+uint2 hydra_uint2_option_get(const void* option);
+void hydra_uint2_option_set(void* option, const uint2 value);
+
 // Config
 void hydra_config_serialize();
 void hydra_config_deserialize();
@@ -114,10 +135,13 @@ void* hydra_config_get_patch_paths();
 void* hydra_config_get_cpu_backend();
 void* hydra_config_get_gpu_renderer();
 void* hydra_config_get_shader_backend();
+void* hydra_config_get_display_resolution();
+void* hydra_config_get_custom_display_resolution();
 void* hydra_config_get_user_id();
 void* hydra_config_get_firmware_path();
 void* hydra_config_get_sd_card_path();
 void* hydra_config_get_save_path();
+void* hydra_config_get_handheld_mode();
 void* hydra_config_get_log_output();
 void* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
@@ -149,6 +173,7 @@ void hydra_emulation_context_set_surface(void* ctx, void* surface);
 void hydra_emulation_context_load_and_start(void* ctx, void* loader);
 void hydra_emulation_context_request_stop(void* ctx);
 void hydra_emulation_context_force_stop(void* ctx);
+void hydra_emulation_context_notify_operation_mode_changed(void* ctx);
 
 void hydra_emulation_context_progress_frame(void* ctx, uint32_t width,
                                             uint32_t height,

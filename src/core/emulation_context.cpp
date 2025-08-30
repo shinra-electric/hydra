@@ -325,9 +325,6 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     LOG_INFO(Other, "-------- Run --------");
 
-    // Connect input devices
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectDevices();
-
     // Enter focus
     // HACK: games expect focus change to be the second message?
     process->GetAppletState().SendMessage(
@@ -390,6 +387,9 @@ void EmulationContext::ForceStop() {
 
 void EmulationContext::ProgressFrame(u32 width, u32 height,
                                      bool& out_dt_average_updated) {
+    // Set the resolution for OS
+    os->SetSurfaceResolution({width, height});
+
     // Input
     INPUT_DEVICE_MANAGER_INSTANCE.Poll();
 

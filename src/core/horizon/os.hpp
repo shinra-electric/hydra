@@ -29,10 +29,10 @@ class OS {
     OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_);
     ~OS();
 
-    bool IsInHandheldMode() const {
-        // TODO: make this configurable
-        return true;
-    }
+    void NotifyOperationModeChanged();
+
+    void SetSurfaceResolution(uint2 resolution);
+    uint2 GetDisplayResolution() const;
 
   private:
     audio::ICore& audio_core;
@@ -52,6 +52,9 @@ class OS {
 
     services::am::LibraryAppletController* library_applet_self_controller{
         nullptr};
+
+    // Display
+    uint2 surface_resolution;
 
   public:
     REF_GETTER(audio_core, GetAudioCore);

@@ -149,4 +149,22 @@ inline std::string demangle(const std::string& mangled_name) {
     return demangle(mangled_name.c_str());
 }
 
+template <typename T>
+bool str_to_num(const std::string_view str, T& value) {
+    if (str.empty())
+        return false;
+
+    const char* first = str.data();
+    const char* last = str.data() + str.length();
+
+    std::from_chars_result res = std::from_chars(first, last, value);
+
+    if (res.ec != std::errc())
+        return false;
+    if (res.ptr != last)
+        return false;
+
+    return true;
+}
+
 } // namespace hydra

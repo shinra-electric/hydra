@@ -5,6 +5,7 @@
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -61,6 +62,7 @@
 #include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
 #include "core/horizon/services/visrv/system_root_service.hpp"
+#include "core/input/device_manager.hpp"
 
 namespace hydra::horizon {
 
@@ -91,6 +93,20 @@ void RegisterServiceToPort(services::Server* server,
 
     // Register client side
     service_manager.RegisterPort(port_name, client_port);
+}
+
+uint2 round_up_to_nearest_standard_resolution(uint2 surface_resolution) {
+    // TODO: constexpr
+    static uint2 standard_resolutions[] = {
+        {1280, 720}, {1920, 1080}, {2560, 1440}, {3840, 2160}, {7680, 4320}};
+    for (u32 i = 0; i < sizeof_array(standard_resolutions); i++) {
+        const auto& resolution = standard_resolutions[i];
+        if (surface_resolution.x() <= resolution.x() &&
+            surface_resolution.y() <= resolution.y())
+            return resolution;
+    }
+
+    return standard_resolutions[sizeof_array(standard_resolutions) - 1];
 }
 
 } // namespace
@@ -286,8 +302,56 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
 
     others_server.Start();
+
+    // Connect npads
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
+
+void OS::NotifyOperationModeChanged() {
+    // Disconnect and connect npads
+    input_manager.DisconnectAllNpads();
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+
+    // Send a message to all processes
+    for (auto it = kernel.GetProcessManager().Begin();
+         it != kernel.GetProcessManager().End(); it++) {
+        (*it)->GetAppletState().SendMessage(
+            kernel::AppletMessage::OperationModeChanged);
+    }
+}
+
+void OS::SetSurfaceResolution(uint2 resolution) {
+    // TODO: signal resolution change event if changed
+    surface_resolution = resolution;
+}
+
+uint2 OS::GetDisplayResolution() const {
+    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+        return {1280, 720}; // Handheld display resolution is fixed
+    } else {
+        switch (CONFIG_INSTANCE.GetDisplayResolution().Get()) {
+        case Resolution::Auto:
+            return round_up_to_nearest_standard_resolution(surface_resolution);
+        case Resolution::_720p:
+            return {1280, 720};
+        case Resolution::_1080p:
+            return {1920, 1080};
+        case Resolution::_1440p:
+            return {2560, 1440};
+        case Resolution::_2160p:
+            return {3840, 2160};
+        case Resolution::_4320p:
+            return {7680, 4320};
+        case Resolution::AutoExact:
+            return surface_resolution;
+        case Resolution::Custom:
+            return CONFIG_INSTANCE.GetCustomDisplayResolution().Get();
+        default:
+            unreachable();
+        }
+    }
+}
 
 } // namespace hydra::horizon
