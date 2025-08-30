@@ -47,6 +47,7 @@ inline DataType to_data_type(TextureFormat format) {
 struct AMem {
     reg_t reg;
     u64 imm;
+    bool is_input;
 
     bool operator==(const AMem& other) const {
         return reg == other.reg && imm == other.imm;
