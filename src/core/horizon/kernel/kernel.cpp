@@ -1013,6 +1013,9 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         // HACK
         out_info = 64 * 1024;
         return RESULT_SUCCESS;
+    case InfoType::ProgramId:
+        out_info = crnt_process->GetTitleID();
+        return RESULT_SUCCESS;
     case InfoType::UserExceptionContextAddress:
         LOG_NOT_IMPLEMENTED(Kernel, "UserExceptionContextAddress");
         // HACK

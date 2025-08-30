@@ -373,6 +373,8 @@ add_library(hydra-core
     horizon/services/spsm/power_state_interface.cpp
     horizon/services/spsm/power_state_interface.hpp
     horizon/services/usb/const.hpp
+    horizon/services/usb/hs/client_root_session.cpp
+    horizon/services/usb/hs/client_root_session.hpp
     horizon/services/omm/operation_mode_manager.cpp
     horizon/services/omm/operation_mode_manager.hpp
     horizon/services/ins/receiver_manager.cpp

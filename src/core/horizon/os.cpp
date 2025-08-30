@@ -63,6 +63,7 @@
 #include "core/horizon/services/ssl/sf/ssl_service.hpp"
 #include "core/horizon/services/timesrv/static_service.hpp"
 #include "core/horizon/services/ts/measurement_server.hpp"
+#include "core/horizon/services/usb/hs/client_root_session.hpp"
 #include "core/horizon/services/visrv/application_root_service.hpp"
 #include "core/horizon/services/visrv/manager_root_service.hpp"
 #include "core/horizon/services/visrv/system_root_service.hpp"
@@ -308,6 +309,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Omm
     REGISTER_SERVICE(others, omm::IOperationModeManager, "omm");
+
+    // Usb
+    REGISTER_SERVICE(others, usb::hs::IClientRootSession, "usb:hs");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");

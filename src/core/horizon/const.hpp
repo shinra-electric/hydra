@@ -22,7 +22,7 @@ struct FirmwareVersion {
 };
 
 constexpr FirmwareVersion FIRMWARE_VERSION = {
-    .major = 1,
+    .major = 4,
     .minor = 0,
     .micro = 0,
     .revision_major = 0,
