@@ -121,6 +121,6 @@ struct MenuCommands: Commands {
             return
         }
 
-        self.firmwareApplets.append(Game(loader: loader, name: name))
+        self.firmwareApplets.append(Game(loader: loader, name: name, author: "Nintendo"))
     }
 }

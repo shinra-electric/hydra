@@ -28,7 +28,8 @@ result_t Applet::Run() {
         std::string output_text_utf8;
         result = OS_INSTANCE.GetUIHandler().ShowSoftwareKeyboard(
             utf16_to_utf8(std::u16string(config.header_text)),
-            output_text_utf8);
+            utf16_to_utf8(std::u16string(config.sub_text)),
+            utf16_to_utf8(std::u16string(config.guide_text)), output_text_utf8);
         output_text = utf8_to_utf16(output_text_utf8);
         if (!config.text_check_enabled)
             break;

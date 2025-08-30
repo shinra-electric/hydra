@@ -73,10 +73,10 @@ void Decoder::ParseNextInstruction() {
             sizeof(instruction_t) +                                            \
         1)
 
-#define GET_AMEM()                                                             \
-    AMem { GET_REG(8), 0 }
-#define GET_AMEM_IDX(b)                                                        \
-    AMem { GET_REG(8), extract_bits<u32, b, 10>(inst) }
+#define GET_AMEM(is_input)                                                     \
+    AMem { GET_REG(8), 0, is_input }
+#define GET_AMEM_IDX(b, is_input)                                              \
+    AMem { GET_REG(8), extract_bits<u32, b, 10>(inst), is_input }
 
 // HACK: why multiply by 4?
 #define GET_CMEM(b_idx, count_imm)                                             \
@@ -91,8 +91,10 @@ void Decoder::ParseNextInstruction() {
     }
 
 // TODO: global memory
-#define GET_NCGMEM_R(b_reg, count_imm)                                         \
-    AMem { GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4 }
+#define GET_NCGMEM_R(b_reg, count_imm, is_input)                               \
+    AMem {                                                                     \
+        GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4, is_input   \
+    }
 
 #define NEG_IF(value, neg) neg_if(BUILDER, value, neg)
 #define NOT_IF(value, not_) not_if(BUILDER, value, not_)
@@ -193,7 +195,7 @@ void Decoder::ParseNextInstruction() {
     }
     INST(0xeff0000000000000, 0xfff8000000000000) {
         const auto mode = get_operand_eff0_0(inst);
-        auto dst = GET_AMEM_IDX(20);
+        auto dst = GET_AMEM_IDX(20, false);
         const auto src = GET_REG(0);
         const auto todo = GET_REG(39); // TODO: what is this?
         COMMENT("st {} a[{} + 0x{:08x}] {} {}", mode, dst.reg, dst.imm, src,
@@ -215,7 +217,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xefd8000000000000, 0xfff8000000000000) {
         const auto size = get_operand_eff0_0(inst);
         const auto dst = GET_REG(0);
-        auto src = GET_AMEM_IDX(20);
+        auto src = GET_AMEM_IDX(20, true);
         const auto todo = GET_REG(39); // TODO: what is this?
         COMMENT("ld {} {} a[{} + 0x{:08x}] {}", size, dst, src.reg, src.imm,
                 todo);
@@ -327,7 +329,7 @@ void Decoder::ParseNextInstruction() {
         // TODO: eed0_0 (CacheLoadOp)
         const auto size = get_operand_eed0sz(inst);
         const auto dst = GET_REG(0);
-        auto src = GET_NCGMEM_R(8, 20);
+        auto src = GET_NCGMEM_R(8, 20, true);
         COMMENT("ldg {} {} a[{} + 0x{:x}]", size, dst, src.reg, src.imm);
 
         HANDLE_PRED_COND_BEGIN();
@@ -552,7 +554,7 @@ void Decoder::ParseNextInstruction() {
         const auto op = get_operand_e000_0(inst);
         // TODO: e000_1 (interpolation attribute)
         const auto dst = GET_REG(0);
-        const auto amem = GET_AMEM_IDX(28);
+        const auto amem = GET_AMEM_IDX(28, true);
         const auto interp_param = GET_REG(20);
         const auto flag1 = GET_REG(39);
         COMMENT("ipa {} {} a[{} + 0x{:08x}] {} {}", op, dst, amem.reg, amem.imm,
@@ -567,7 +569,8 @@ void Decoder::ParseNextInstruction() {
             context.decomp_context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4]
                     .x == PixelImapType::Perspective)
             src_v = BUILDER.OpMultiply(
-                src_v, ir::Value::AttrMemory(AMem{RZ, 0x7c}, DataType::F32));
+                src_v,
+                ir::Value::AttrMemory(AMem{RZ, 0x7c, true}, DataType::F32));
 
         auto interp_param_v = ir::Value::Register(interp_param, DataType::F32);
         std::optional<ir::Value> res_v;

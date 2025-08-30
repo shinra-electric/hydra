@@ -23,10 +23,12 @@ class IRequest : public IService {
   private:
     // Commands
     result_t InitializeOld(Module module, u32 priority, u32 event_clear_mode);
+    result_t FinalizeOld(Module module);
     result_t SetAndWaitOld(Module module, u32 setting_min, u32 setting_max);
     result_t GetOld(Module module, u32* out_setting_current);
     result_t Initialize(Module module, u32 priority, u32 event_clear_mode,
                         u32* out_request_id);
+    result_t Finalize(u32 request_id);
     result_t SetAndWait(u32 request_id, u32 setting_min, u32 setting_max);
     result_t Get(u32 request_id, u32* out_setting_current);
 };

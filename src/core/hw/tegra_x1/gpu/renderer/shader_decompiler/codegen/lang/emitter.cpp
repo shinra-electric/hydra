@@ -116,7 +116,8 @@ void LangEmitter::EmitMainFunctionPrologue() {
     WriteNewline();
 
     // Attribute memory
-    Write("Reg a[0x200];"); // TODO: what should the size be?
+    Write("Reg a_in[0x200];");  // TODO: what should the size be?
+    Write("Reg a_out[0x200];"); // TODO: what should the size be?
     WriteNewline();
 
     // Inputs
@@ -125,7 +126,7 @@ void LangEmitter::EmitMainFunctionPrologue() {
 #define ADD_INPUT(sv_semantic, index, base, c)                                 \
     {                                                                          \
         WriteStatement("{} = as_type<uint>({})",                               \
-                       GetAttrMemoryStr({RZ, base + c * 0x4}),                 \
+                       GetAttrMemoryStr({RZ, base + c * 0x4, true}),           \
                        GetSvAccessQualifiedStr(                                \
                            SvAccess(Sv(sv_semantic, index), c), false));       \
     }
@@ -159,7 +160,7 @@ void LangEmitter::EmitMainFunctionPrologue() {
             const auto sv = Sv(SvSemantic::UserInOut, i);
             for (u32 c = 0; c < 4; c++) {
                 const auto attr =
-                    GetAttrMemoryStr({RZ, 0x80 + i * 0x10 + c * 0x4});
+                    GetAttrMemoryStr({RZ, 0x80 + i * 0x10 + c * 0x4, true});
                 const auto qualified_name =
                     GetSvAccessQualifiedStr(SvAccess(sv, c), false);
                 if (needs_scaling)
@@ -409,7 +410,7 @@ void LangEmitter::EmitExit() {
         WriteStatement("{} = as_type<float>({})",                              \
                        GetSvAccessQualifiedStr(                                \
                            SvAccess(Sv(sv_semantic, index), c), true),         \
-                       GetAttrMemoryStr({RZ, base + c * 0x4}));                \
+                       GetAttrMemoryStr({RZ, base + c * 0x4, false}));         \
     }
 #define ADD_OUTPUT_1(sv_semantic, index, base)                                 \
     ADD_OUTPUT(sv_semantic, index, base, 0)

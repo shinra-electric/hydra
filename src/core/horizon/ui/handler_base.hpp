@@ -15,6 +15,8 @@ class HandlerBase {
     // TODO: more texts
     virtual applets::software_keyboard::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
+                         const std::string& sub_text,
+                         const std::string& guide_text,
                          std::string& out_text) = 0;
 };
 

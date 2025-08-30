@@ -9,7 +9,8 @@ namespace hydra::horizon::services::psm {
 DEFINE_SERVICE_COMMAND_TABLE(IPsmServer, 0, GetBatteryChargePercentage, 1,
                              GetChargerType, 7, OpenSession, 13,
                              GetRawBatteryChargePercentage, 14,
-                             IsEnoughPowerSupplied, 15, GetBatteryAgePercentage)
+                             IsEnoughPowerSupplied, 15, GetBatteryAgePercentage,
+                             17, GetBatteryChargeInfoFields)
 
 result_t IPsmServer::GetBatteryChargePercentage(u32* out_percentage) {
     *out_percentage = 100;
@@ -38,6 +39,12 @@ result_t IPsmServer::IsEnoughPowerSupplied(bool* out_is_enough) {
 
 result_t IPsmServer::GetBatteryAgePercentage(f64* out_percentage) {
     *out_percentage = 0.0;
+    return RESULT_SUCCESS;
+}
+
+result_t
+IPsmServer::GetBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields) {
+    LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 

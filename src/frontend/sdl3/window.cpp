@@ -109,8 +109,11 @@ void Window::ShowMessageDialog(const horizon::ui::MessageDialogType type,
 
 horizon::applets::software_keyboard::SoftwareKeyboardResult
 Window::ShowSoftwareKeyboard(const std::string& header_text,
+                             const std::string& sub_text,
+                             const std::string& guide_text,
                              std::string& out_text) {
-    return native.ShowInputTextDialog(header_text, out_text)
+    return native.ShowInputTextDialog(header_text, sub_text, guide_text,
+                                      out_text)
                ? horizon::applets::software_keyboard::SoftwareKeyboardResult::OK
                : horizon::applets::software_keyboard::SoftwareKeyboardResult::
                      Cancel;

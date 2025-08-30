@@ -194,7 +194,11 @@ HYDRA_EXPORT uint64_t hydra_loader_get_title_id(void* loader) {
         ->GetTitleID();
 }
 
-HYDRA_EXPORT void hydra_loader_load_icon(void* loader, void** data,
+HYDRA_EXPORT void* hydra_loader_load_nacp(void* loader) {
+    return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadNacp();
+}
+
+HYDRA_EXPORT bool hydra_loader_load_icon(void* loader, void** data,
                                          uint64_t* width, uint64_t* height) {
     return static_cast<hydra::horizon::loader::LoaderBase*>(loader)->LoadIcon(
         *reinterpret_cast<hydra::uchar4**>(data), *width, *height);
@@ -213,6 +217,31 @@ HYDRA_EXPORT const char* hydra_nca_loader_get_name(void* nca_loader) {
         .c_str();
 }
 
+// NACP
+HYDRA_EXPORT void hydra_nacp_destroy(void* nacp) {
+    delete static_cast<
+        hydra::horizon::services::ns::ApplicationControlProperty*>(nacp);
+}
+
+HYDRA_EXPORT const void* hydra_nacp_get_title(void* nacp) {
+    return &static_cast<
+                hydra::horizon::services::ns::ApplicationControlProperty*>(nacp)
+                ->GetApplicationTitle();
+}
+
+// NACP title
+HYDRA_EXPORT const char* hydra_nacp_title_get_name(const void* title) {
+    return static_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
+               title)
+        ->name;
+}
+
+HYDRA_EXPORT const char* hydra_nacp_title_get_author(const void* title) {
+    return static_cast<const hydra::horizon::services::ns::ApplicationTitle*>(
+               title)
+        ->author;
+}
+
 // Emulation context
 // TODO: proper UI handler
 class UIHandler : public hydra::horizon::ui::HandlerBase {
@@ -222,6 +251,8 @@ class UIHandler : public hydra::horizon::ui::HandlerBase {
                            const std::string& message) override {}
     hydra::horizon::applets::software_keyboard::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
+                         const std::string& sub_text,
+                         const std::string& guide_text,
                          std::string& out_text) override {
         return hydra::horizon::applets::software_keyboard::
             SoftwareKeyboardResult::OK;

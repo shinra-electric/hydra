@@ -2,12 +2,14 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
-DEFINE_IOCTL_TABLE(
-    NvHostCtrlGpu,
-    DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01, ZCullGetCtxSize, 0x02,
-                             ZCullGetInfo, 0x03, ZbcSetTable, 0x05,
-                             GetCharacteristics, 0x06, GetTpcMasks, 0x14,
-                             ZbcGetActiveSlotMask, 0x1c, GetGpuTime))
+DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
+                   DEFINE_IOCTL_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x01,
+                                            ZCullGetCtxSize, 0x02, ZCullGetInfo,
+                                            0x03, ZbcSetTable, 0x05,
+                                            GetCharacteristics, 0x06,
+                                            GetTpcMasks, 0x14,
+                                            ZbcGetActiveSlotMask, 0x15,
+                                            PmuGetGpuLoad, 0x1c, GetGpuTime))
 
 NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
                                    kernel::Event*& out_event) {
@@ -133,6 +135,14 @@ NvResult NvHostCtrlGpu::ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask) {
     // TODO: correct?
     *out_slot = 0x07;
     *out_mask = 0x01;
+    return NvResult::Success;
+}
+
+NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_load = 0x0;
     return NvResult::Success;
 }
 

@@ -202,9 +202,10 @@ class LangEmitter : public Emitter {
 
     std::string GetAttrMemoryStr(const AMem amem,
                                  DataType data_type = DataType::U32) {
-        // TODO: support indexing with reg
-        return fmt::format("a[{} + 0x{:08x}].{}", GetRegisterStr(amem.reg),
-                           amem.imm / sizeof(u32), GetTypeSuffixStr(data_type));
+        return fmt::format("a_{}[{} + 0x{:08x}].{}",
+                           (amem.is_input ? "in" : "out"),
+                           GetRegisterStr(amem.reg), amem.imm / sizeof(u32),
+                           GetTypeSuffixStr(data_type));
     }
 
     std::string GetConstMemoryStr(const CMem cmem,
@@ -214,7 +215,7 @@ class LangEmitter : public Emitter {
                            GetTypeSuffixStr(data_type));
     }
 
-    std::string GetValueStr(const ir::Value& value, bool load = true) {
+    std::string GetValueStr(const ir::Value& value) {
         switch (value.GetType()) {
         case ir::ValueType::Immediate:
             return GetImmediateStr(value.GetImmediate(), value.GetDataType());

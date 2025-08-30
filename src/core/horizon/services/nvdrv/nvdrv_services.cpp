@@ -10,6 +10,7 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_nvdec.hpp"
+#include "core/horizon/services/nvdrv/ioctl/nvhost_nvjpg.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvhost_vic.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvmap.hpp"
 #include "core/horizon/services/nvdrv/ioctl/nvsched_ctrl.hpp"
@@ -49,6 +50,8 @@ result_t INvDrvServices::Open(InBuffer<BufferAttr::MapAlias> path_buffer,
         fd_pool.Get(fd_id) = new ioctl::NvDispDisp(1);
     } else if (path == "/dev/nvhost-vic") {
         fd_pool.Get(fd_id) = new ioctl::NvHostVic();
+    } else if (path == "/dev/nvhost-nvjpg") {
+        fd_pool.Get(fd_id) = new ioctl::NvHostNvJpg();
     } else {
         LOG_WARN(Services, "Unknown path \"{}\"", path);
         *out_error = MAKE_RESULT(Svc, 0); // TODO

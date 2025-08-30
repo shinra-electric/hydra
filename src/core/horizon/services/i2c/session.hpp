@@ -23,6 +23,8 @@ class ISession : public IService {
     // Commands
     result_t Send(TransactionOption transaction_option,
                   InBuffer<BufferAttr::AutoSelect> in_data_buffer);
+    result_t Receive(TransactionOption transaction_option,
+                     OutBuffer<BufferAttr::AutoSelect> out_data_buffer);
     result_t
     ExecuteCommandList(InBuffer<BufferAttr::HipcPointer> in_command_buffer,
                        OutBuffer<BufferAttr::AutoSelect> out_receive_buffer);
