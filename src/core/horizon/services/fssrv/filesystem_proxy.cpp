@@ -38,9 +38,9 @@ DEFINE_SERVICE_COMMAND_TABLE(
     OpenSaveDataFileSystem, 52,
     ReadSaveDataFileSystemExtraDataBySaveDataSpaceId, 53,
     OpenReadOnlySaveDataFileSystem, 61, OpenSaveDataInfoReaderBySaveDataSpaceId,
-    200, OpenDataStorageByProgramId, 202, OpenDataStorageByDataId, 203,
-    OpenPatchDataStorageByCurrentProcess, 1003, DisableAutoSaveDataCreation,
-    1005, GetGlobalAccessLogMode)
+    200, OpenDataStorageByCurrentProcess, 201, OpenDataStorageByProgramId, 202,
+    OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess, 1003,
+    DisableAutoSaveDataCreation, 1005, GetGlobalAccessLogMode)
 
 result_t IFileSystemProxy::OpenFileSystem(
     RequestContext* ctx, FileSystemProxyType type,
@@ -124,6 +124,12 @@ result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
     // TODO: space ID
     AddService(*ctx, new ISaveDataInfoReader());
     return RESULT_SUCCESS;
+}
+
+result_t
+IFileSystemProxy::OpenDataStorageByCurrentProcess(RequestContext* ctx,
+                                                  kernel::Process* process) {
+    return OpenDataStorageByProgramId(ctx, process->GetTitleID());
 }
 
 result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,

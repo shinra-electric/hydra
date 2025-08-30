@@ -132,6 +132,8 @@ class IFileSystemProxy : public IService {
         aligned<SaveDataSpaceId, 8> space_id, SaveDataAttribute attr);
     result_t OpenSaveDataInfoReaderBySaveDataSpaceId(RequestContext* ctx,
                                                      SaveDataSpaceId space_id);
+    result_t OpenDataStorageByCurrentProcess(RequestContext* ctx,
+                                             kernel::Process* process);
     result_t OpenDataStorageByProgramId(RequestContext* ctx, u64 program_id);
     result_t OpenDataStorageByDataId(RequestContext* ctx,
                                      aligned<ncm::StorageID, 8> storage_id,

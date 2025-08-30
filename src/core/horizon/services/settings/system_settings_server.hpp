@@ -64,6 +64,7 @@ class ISystemSettingsServer : public IService {
   private:
     // Commands
     result_t GetFirmwareVersion(OutBuffer<BufferAttr::HipcPointer> out_buffer);
+    result_t GetFirmwareVersion2(OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetColorSetId(ColorSetId* out_id);
     result_t GetSettingsItemValueSize(
         InBuffer<BufferAttr::HipcPointer> in_name_buffer,

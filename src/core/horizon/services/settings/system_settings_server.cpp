@@ -13,12 +13,25 @@ struct DeviceNickName {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 23,
-                             GetColorSetId, 37, GetSettingsItemValueSize, 38,
-                             GetSettingsItemValue, 39, GetTvSettings, 62,
-                             GetDebugModeFlag, 77, GetDeviceNickName)
+DEFINE_SERVICE_COMMAND_TABLE(ISystemSettingsServer, 3, GetFirmwareVersion, 4,
+                             GetFirmwareVersion2, 23, GetColorSetId, 37,
+                             GetSettingsItemValueSize, 38, GetSettingsItemValue,
+                             39, GetTvSettings, 62, GetDebugModeFlag, 77,
+                             GetDeviceNickName)
 
 result_t ISystemSettingsServer::GetFirmwareVersion(
+    OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    auto firmware_version = FIRMWARE_VERSION;
+
+    // Zero out the revision numbers
+    firmware_version.revision_major = 0;
+    firmware_version.revision_minor = 0;
+
+    out_buffer.writer->Write(firmware_version);
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemSettingsServer::GetFirmwareVersion2(
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     out_buffer.writer->Write(FIRMWARE_VERSION);
     return RESULT_SUCCESS;

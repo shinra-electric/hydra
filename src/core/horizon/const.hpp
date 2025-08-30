@@ -33,44 +33,6 @@ constexpr FirmwareVersion FIRMWARE_VERSION = {
     .display_title = "Hydra firmware 4.0.0",
 };
 
-enum class ConfigEntryType : u32 {
-    EndOfList = 0,        ///< Entry list terminator.
-    MainThreadHandle = 1, ///< Provides the handle to the main thread.
-    NextLoadPath = 2,    ///< Provides a buffer containing information about the
-                         ///< next homebrew application to load.
-    OverrideHeap = 3,    ///< Provides heap override information.
-    OverrideService = 4, ///< Provides service override information.
-    Argv = 5,            ///< Provides argv.
-    SyscallAvailableHint =
-        6,          ///< Provides syscall availability hints (SVCs 0x00..0x7F).
-    AppletType = 7, ///< Provides APT applet type.
-    AppletWorkaround =
-        8, ///< Indicates that APT is broken and should not be used.
-    Reserved9 =
-        9, ///< Unused/reserved entry type, formerly used by StdioSockets.
-    ProcessHandle = 10,  ///< Provides the process handle.
-    LastLoadResult = 11, ///< Provides the last load result.
-    RandomSeed = 14, ///< Provides random data used to seed the pseudo-random
-                     ///< number generator.
-    UserIdStorage =
-        15, ///< Provides persistent storage for the preselected user id.
-    HosVersion = 16, ///< Provides the currently running horizon OS version.
-    SyscallAvailableHint2 =
-        17, ///< Provides syscall availability hints (SVCs 0x80..0xBF).
-};
-
-enum class ConfigEntryFlag : u32 {
-    None = 0,
-    IsMandatory = BIT(0), ///< Specifies that the entry **must** be processed by
-                          ///< the homebrew application.
-};
-
-struct ConfigEntry {
-    ConfigEntryType type;  ///< Type of entry
-    ConfigEntryFlag flags; ///< Entry flags
-    u64 values[2];         ///< Entry arguments (type-specific)
-};
-
 enum class LanguageCode : u64 {
     Japanese = "ja"_u64,
     AmericanEnglish = "en-US"_u64,
