@@ -7,8 +7,9 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 struct PixelFormatInfo {
     MTL::PixelFormat pixel_format;
-    bool has_depth = false;
-    bool has_stencil = false;
+    bool has_depth{false};
+    bool has_stencil{false};
+    uchar4 component_indices;
     // TODO: format decoder
 };
 

@@ -79,8 +79,16 @@ class vec {
         }
     }
 
-    T& operator[](i32 index) { return components[index]; }
+    bool operator==(const vec<T, component_count>& other) const {
+        for (usize i = 0; i < component_count; i++) {
+            if (components[i] != other[i])
+                return false;
+        }
 
+        return true;
+    }
+
+    T& operator[](i32 index) { return components[index]; }
     const T& operator[](i32 index) const { return components[index]; }
 
     T& x() { return components[0]; }

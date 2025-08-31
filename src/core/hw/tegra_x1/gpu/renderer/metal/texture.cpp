@@ -13,10 +13,28 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
 
-    pixel_format = to_mtl_pixel_format(descriptor.format);
-    desc->setPixelFormat(pixel_format);
+    const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
+    desc->setPixelFormat(pixel_format_info.pixel_format);
 
-    mtl_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
+    auto base_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
+    if (pixel_format_info.component_indices == uchar4{0, 1, 2, 3}) {
+        mtl_texture = base_texture;
+    } else {
+        // Swizzle
+        static constexpr MTL::TextureSwizzle swizzle_components[] = {
+            MTL::TextureSwizzleRed, MTL::TextureSwizzleGreen,
+            MTL::TextureSwizzleBlue, MTL::TextureSwizzleAlpha};
+        MTL::TextureSwizzleChannels swizzle_channels(
+            swizzle_components[pixel_format_info.component_indices[0]],
+            swizzle_components[pixel_format_info.component_indices[1]],
+            swizzle_components[pixel_format_info.component_indices[2]],
+            swizzle_components[pixel_format_info.component_indices[3]]);
+
+        mtl_texture = base_texture->newTextureView(
+            pixel_format_info.pixel_format, MTL::TextureType2D, NS::Range(0, 1),
+            NS::Range(0, 1), swizzle_channels);
+        base_texture->release();
+    }
 }
 
 Texture::Texture(const TextureDescriptor& descriptor,
@@ -26,11 +44,19 @@ Texture::Texture(const TextureDescriptor& descriptor,
 Texture::~Texture() { mtl_texture->release(); }
 
 TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
-    MTL::TextureSwizzleChannels swizzle_channels(
+    const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
+
+    // Swizzle
+    MTL::TextureSwizzle swizzle_components[] = {
         to_mtl_swizzle(descriptor.swizzle_channels.r),
         to_mtl_swizzle(descriptor.swizzle_channels.g),
         to_mtl_swizzle(descriptor.swizzle_channels.b),
-        to_mtl_swizzle(descriptor.swizzle_channels.a));
+        to_mtl_swizzle(descriptor.swizzle_channels.a)};
+    MTL::TextureSwizzleChannels swizzle_channels(
+        swizzle_components[pixel_format_info.component_indices[0]],
+        swizzle_components[pixel_format_info.component_indices[1]],
+        swizzle_components[pixel_format_info.component_indices[2]],
+        swizzle_components[pixel_format_info.component_indices[3]]);
 
     // TODO: don't hardcode type, ranges and levels
     auto mtl_view = mtl_texture->newTextureView(

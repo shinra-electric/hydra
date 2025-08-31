@@ -18,6 +18,7 @@
 #define THIS ((Subclass*)this)
 #define CONST_THIS ((const Subclass*)this)
 
+#define PASS(...) __VA_ARGS__
 #define PASS_VA_ARGS(...) , ##__VA_ARGS__
 
 #define SINGLETON_DEFINE_GET_INSTANCE(type, logging_class)                     \
