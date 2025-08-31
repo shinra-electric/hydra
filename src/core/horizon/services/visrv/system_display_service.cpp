@@ -14,32 +14,24 @@ result_t ISystemDisplayService::GetZOrderCountMax(u64 display_id,
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *out_count = 16;
+    *out_count = 15;
     return RESULT_SUCCESS;
 }
 
 result_t ISystemDisplayService::SetLayerPosition(f32 x, f32 y, u64 layer_id) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Layer ID: {}, position: ({}, {})", layer_id, x, y);
-
+    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetPosition({x, y});
     return RESULT_SUCCESS;
 }
 
 result_t ISystemDisplayService::SetLayerSize(u64 layer_id, i64 width,
                                              i64 height) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Layer ID: {}, size: {}x{}", layer_id, width, height);
-
+    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetSize(
+        {u32(width), u32(height)});
     return RESULT_SUCCESS;
 }
 
 result_t ISystemDisplayService::SetLayerZ(u64 layer_id, i64 z) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Layer ID: {}, Z: {}", layer_id, z);
-
+    OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id).SetZ(z);
     return RESULT_SUCCESS;
 }
 

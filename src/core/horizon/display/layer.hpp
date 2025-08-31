@@ -28,12 +28,20 @@ class Layer {
     kernel::Process* process;
     u32 binder_id;
 
+    float2 position{0, 0};
+    uint2 size{0, 0}; // (0, 0) means auto
+    i64 z{0};
+
+    // Present
     hw::tegra_x1::gpu::renderer::TextureBase* present_texture{nullptr};
     IntRect2D src_rect;
 
   public:
     GETTER(process, GetProcess);
     GETTER(binder_id, GetBinderID);
+    SETTER(position, SetPosition);
+    SETTER(size, SetSize);
+    GETTER_AND_SETTER(z, GetZ, SetZ);
     GETTER(present_texture, GetPresentTexture);
     CONST_REF_GETTER(src_rect, GetSrcRect);
 };

@@ -34,12 +34,30 @@ bool Driver::AcquirePresentTextures() {
 
 void Driver::Present(u32 width, u32 height) {
     std::lock_guard lock(layer_mutex);
+    std::vector<Layer*> sorted_layers;
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
          layer_id++) {
         if (!layer_pool.IsValid(layer_id))
             continue;
-        layer_pool.Get(layer_id)->Present(width, height);
+
+        auto layer = layer_pool.Get(layer_id);
+
+        // Find the correct position
+        bool inserted = false;
+        for (u32 i = 0; i < sorted_layers.size(); i++) {
+            if (sorted_layers[i]->GetZ() > layer_pool.Get(layer_id)->GetZ()) {
+                sorted_layers.insert(sorted_layers.begin() + i,
+                                     layer_pool.Get(layer_id));
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted)
+            sorted_layers.push_back(layer_pool.Get(layer_id));
     }
+
+    for (auto layer : sorted_layers)
+        layer->Present(width, height);
 }
 
 Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {
