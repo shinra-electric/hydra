@@ -89,7 +89,7 @@ result_t IApplicationDisplayService::ListDisplays(
 
 result_t IApplicationDisplayService::OpenDisplay(u64* out_display_id) {
     // TODO: what display ID should be used?
-    const auto display_id = 1;
+    const handle_id_t display_id = 1;
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
     display.Open();
 
@@ -120,7 +120,7 @@ result_t IApplicationDisplayService::OpenLayer(
     DisplayName display_name, u64 layer_id, u64 aruid,
     u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
-    u64 display_id = 1; // TODO: get based on the name
+    const handle_id_t display_id = 1; // TODO: get based on the name
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     auto& layer = display.GetLayer(layer_id);
@@ -148,8 +148,7 @@ result_t IApplicationDisplayService::OpenLayer(
 }
 
 result_t IApplicationDisplayService::CloseLayer(u64 layer_id) {
-    u64 display_id = 1; // TODO: get from layer ID
-
+    const handle_id_t display_id = 1; // TODO: what display ID should be used?
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     display.DestroyLayer(layer_id);

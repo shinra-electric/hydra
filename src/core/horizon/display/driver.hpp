@@ -49,7 +49,7 @@ class Driver {
     Layer* GetMainLayer() {
         std::lock_guard lock(display_mutex);
         // TODO: get the main display for the main process
-        const auto display_id = 1;
+        const handle_id_t display_id = 1;
         if (!display_pool.IsValid(display_id))
             return nullptr;
 

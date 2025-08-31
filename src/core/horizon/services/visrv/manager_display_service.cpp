@@ -5,8 +5,8 @@
 namespace hydra::horizon::services::visrv {
 
 DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService, 2010, CreateManagedLayer,
-                             2012, CreateStrayLayer, 6000, AddToLayerStack,
-                             6002, SetLayerVisibility)
+                             2011, DestroyManagedLayer, 2012, CreateStrayLayer,
+                             6000, AddToLayerStack, 6002, SetLayerVisibility)
 
 result_t IManagerDisplayService::CreateManagedLayer(aligned<u32, 8> flags,
                                                     u64 display_id, u64 aruid,
@@ -16,6 +16,13 @@ result_t IManagerDisplayService::CreateManagedLayer(aligned<u32, 8> flags,
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     *out_layer_id = display.CreateLayer(binder_id);
+    return RESULT_SUCCESS;
+}
+
+result_t IManagerDisplayService::DestroyManagedLayer(u64 layer_id) {
+    const handle_id_t display_id = 1; // TODO: what display ID should be used?
+    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    display.DestroyLayer(layer_id);
     return RESULT_SUCCESS;
 }
 
