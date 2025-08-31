@@ -104,6 +104,11 @@ Config::Config() {
 
     LoadDefaults();
     Deserialize();
+
+    // Create directories
+    std::filesystem::create_directories(sd_card_path.Get());
+    std::filesystem::create_directories(save_path.Get());
+    std::filesystem::create_directories(sysmodules_path.Get());
 }
 
 void Config::LoadDefaults() {
@@ -119,6 +124,7 @@ void Config::LoadDefaults() {
     firmware_path = GetDefaultFirmwarePath();
     sd_card_path = GetDefaultSdCardPath();
     save_path = GetDefaultSavePath();
+    sysmodules_path = GetDefaultSysmodulesPath();
     handheld_mode = GetDefaultHandheldMode();
     log_output = GetDefaultLogOutput();
     log_fs_access = GetDefaultLogFsAccess();
@@ -183,6 +189,7 @@ void Config::Serialize() {
         system["firmware_path"] = firmware_path.Get();
         system["sd_card_path"] = sd_card_path.Get();
         system["save_path"] = save_path.Get();
+        system["sysmodules_path"] = sysmodules_path.Get();
         system["handheld_mode"] = handheld_mode.Get();
     }
 
@@ -252,6 +259,8 @@ void Config::Deserialize() {
                                                   GetDefaultSdCardPath());
         save_path = toml::find_or<std::string>(system, "save_path",
                                                GetDefaultSavePath());
+        sysmodules_path = toml::find_or<std::string>(
+            system, "sysmodules_path", GetDefaultSysmodulesPath());
         handheld_mode = toml::find_or<bool>(system, "handheld_mode",
                                             GetDefaultHandheldMode());
     }
@@ -315,6 +324,7 @@ void Config::Log() {
     LOG_INFO(Other, "Firmware path: {}", firmware_path);
     LOG_INFO(Other, "SD card path: {}", sd_card_path);
     LOG_INFO(Other, "Save path: {}", save_path);
+    LOG_INFO(Other, "Sysmodules path: {}", sysmodules_path);
     LOG_INFO(Other, "Handheld mode: {}", handheld_mode);
     LOG_INFO(Other, "Log output: {}", log_output);
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
