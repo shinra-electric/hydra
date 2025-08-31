@@ -25,8 +25,7 @@ bool Driver::AcquirePresentTextures() {
              layer_id++) {
             if (!layer_pool.IsValid(layer_id))
                 continue;
-            acquired =
-                acquired || layer_pool.Get(layer_id)->AcquirePresentTexture();
+            acquired |= layer_pool.Get(layer_id)->AcquirePresentTexture();
         }
     }
 
