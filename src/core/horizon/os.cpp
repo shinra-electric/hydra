@@ -45,6 +45,7 @@
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pdm/query_service.hpp"
+#include "core/horizon/services/pl/detail/platform_service_manager_for_system.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/pm/boot_mode_interface.hpp"
 #include "core/horizon/services/pm/information_interface.hpp"
@@ -161,6 +162,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
         LOG_ERROR(Other, "Firmware path does not exist");
     }
 
+    // Shared font
+    shared_font_manager.LoadFonts();
+
     // Services
 
     // Only some services have dedicated servers so as to avoid creating
@@ -213,8 +217,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Glue
     REGISTER_SERVICE(others, timesrv::IStaticService, "time:u", "time:a",
                      "time:s");
-    REGISTER_SERVICE(
-        others, pl::shared_resource::IPlatformSharedResourceManager, "pl:u");
+    REGISTER_SERVICE(others, pl::sharedresource::IPlatformSharedResourceManager,
+                     "pl:u");
     REGISTER_SERVICE(others, err::context::IWriterForApplication, "ectx:aw");
 
     // Audio
@@ -312,6 +316,10 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Usb
     REGISTER_SERVICE(others, usb::hs::IClientRootSession, "usb:hs");
+
+    // Shared database
+    REGISTER_SERVICE(others, pl::detail::IPlatformServiceManagerForSystem,
+                     "pl:s");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");

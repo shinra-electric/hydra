@@ -3,10 +3,13 @@
 #include "core/horizon/display/driver.hpp"
 #include "core/horizon/input_manager.hpp"
 #include "core/horizon/services/account/user_manager.hpp"
+#include "core/horizon/services/pl/internal/shared_font_manager.hpp"
 #include "core/horizon/services/server.hpp"
 
 #define OS_INSTANCE horizon::OS::GetInstance()
 #define INPUT_MANAGER_INSTANCE OS_INSTANCE.GetInputManager()
+#define USER_MANAGER_INSTANCE OS_INSTANCE.GetUserManager()
+#define SHARED_FONT_MANAGER_INSTANCE OS_INSTANCE.GetSharedFontManager()
 
 namespace hydra::audio {
 class ICore;
@@ -49,6 +52,7 @@ class OS {
     display::Driver display_driver;
     InputManager input_manager;
     services::account::UserManager user_manager;
+    services::pl::internal::SharedFontManager shared_font_manager;
 
     services::am::LibraryAppletController* library_applet_self_controller{
         nullptr};
@@ -63,6 +67,8 @@ class OS {
     REF_GETTER(service_manager, GetServiceManager);
     REF_GETTER(display_driver, GetDisplayDriver);
     REF_GETTER(input_manager, GetInputManager);
+    REF_GETTER(user_manager, GetUserManager);
+    REF_GETTER(shared_font_manager, GetSharedFontManager);
     GETTER_AND_SETTER(library_applet_self_controller,
                       GetLibraryAppletSelfController,
                       SetLibraryAppletSelfController);

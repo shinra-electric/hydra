@@ -1,7 +1,7 @@
 #include "core/horizon/applets/player_select/applet.hpp"
 
 #include "core/horizon/applets/player_select/const.hpp"
-#include "core/horizon/services/account/user_manager.hpp"
+#include "core/horizon/os.hpp"
 
 namespace hydra::horizon::applets::player_select {
 

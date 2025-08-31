@@ -2,17 +2,11 @@
 
 #include "core/horizon/services/account/const.hpp"
 
-#define USER_MANAGER_INSTANCE                                                  \
-    horizon::services::account::UserManager::GetInstance()
-
 namespace hydra::horizon::services::account {
 
 class UserManager {
   public:
-    static UserManager& GetInstance();
-
     UserManager();
-    ~UserManager();
 
     uuid_t Create();
 
