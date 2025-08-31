@@ -1,7 +1,7 @@
 #include "core/horizon/services/account/account_service_for_application.hpp"
 
+#include "core/horizon/os.hpp"
 #include "core/horizon/services/account/profile.hpp"
-#include "core/horizon/services/account/user_manager.hpp"
 
 namespace hydra::horizon::services::account {
 

@@ -7,12 +7,16 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
     case NvColorFormat::color_format:                                          \
         return TextureFormat::texture_format;
 
-    // TODO: more formats
+    // TODO: check
     switch (color_format) {
         NV_COLOR_FORMAT_CASE(A8B8G8R8, RGBA8Unorm)
+        NV_COLOR_FORMAT_CASE(X8B8G8R8, RGBX8Unorm)
+        NV_COLOR_FORMAT_CASE(R8G8B8, Invalid) // Doesn't work
         NV_COLOR_FORMAT_CASE(R5G6B5, B5G6R5Unorm)
-        NV_COLOR_FORMAT_CASE(B5G6R5, B5G6R5Unorm)
-        NV_COLOR_FORMAT_CASE(A8R8G8B8, RGBA8Unorm) // TODO
+        // NV_COLOR_FORMAT_CASE(B5G6R5, R5G6B5Unorm)
+        NV_COLOR_FORMAT_CASE(A8R8G8B8, BGRA8Unorm)
+        NV_COLOR_FORMAT_CASE(R5G5B5A1, A1BGR5Unorm) // Doesn't work
+        NV_COLOR_FORMAT_CASE(A4B4G4R4, RGBA4Unorm)
     default:
         LOG_NOT_IMPLEMENTED(Gpu, "NV color format {}", color_format);
         return TextureFormat::Invalid;

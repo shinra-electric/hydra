@@ -4,8 +4,44 @@
 
 namespace hydra::horizon::services::visrv {
 
-DEFINE_SERVICE_COMMAND_TABLE(ISystemDisplayService, 2207, SetLayerVisibility,
-                             2312, CreateStrayLayer, 3200, GetDisplayMode)
+DEFINE_SERVICE_COMMAND_TABLE(ISystemDisplayService, 1202, GetZOrderCountMax,
+                             2201, SetLayerPosition, 2203, SetLayerSize, 2205,
+                             SetLayerZ, 2207, SetLayerVisibility, 2312,
+                             CreateStrayLayer, 3200, GetDisplayMode)
+
+result_t ISystemDisplayService::GetZOrderCountMax(u64 display_id,
+                                                  i64* out_count) {
+    LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_count = 16;
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemDisplayService::SetLayerPosition(f32 x, f32 y, u64 layer_id) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Layer ID: {}, position: ({}, {})", layer_id, x, y);
+
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemDisplayService::SetLayerSize(u64 layer_id, i64 width,
+                                             i64 height) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Layer ID: {}, size: {}x{}", layer_id, width, height);
+
+    return RESULT_SUCCESS;
+}
+
+result_t ISystemDisplayService::SetLayerZ(u64 layer_id, i64 z) {
+    LOG_FUNC_STUBBED(Services);
+
+    LOG_DEBUG(Services, "Layer ID: {}, Z: {}", layer_id, z);
+
+    return RESULT_SUCCESS;
+}
 
 result_t ISystemDisplayService::CreateStrayLayer(
     aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,

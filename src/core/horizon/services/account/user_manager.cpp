@@ -18,11 +18,7 @@ struct HusrHeader {
 
 } // namespace
 
-SINGLETON_DEFINE_GET_INSTANCE(UserManager, Horizon)
-
 UserManager::UserManager() {
-    SINGLETON_SET_INSTANCE(UserManager, Horizon);
-
     // Create user directory
     std::filesystem::create_directories(GetUserPath());
 
@@ -57,8 +53,6 @@ UserManager::UserManager() {
         Serialize(user_id);
     }
 }
-
-UserManager::~UserManager() { SINGLETON_UNSET_INSTANCE(); }
 
 uuid_t UserManager::Create() {
     // First, find an available ID

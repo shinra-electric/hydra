@@ -23,6 +23,11 @@
         return RESULT_SUCCESS;                                                 \
     }
 
+// TODO: remove
+namespace hydra::horizon::kernel {
+class Event;
+}
+
 namespace hydra::horizon::services {
 
 using result_t = kernel::result_t;

@@ -7,7 +7,7 @@ namespace hydra::horizon::services::visrv {
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     u32 flags, u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     hosbinder::ParcelWriter& out_parcel_writer) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
+    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     // Out

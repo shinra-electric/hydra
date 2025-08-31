@@ -3,6 +3,11 @@
 namespace hydra::horizon::display {
 
 bool Display::AcquirePresentTextures() {
+    // Signal V-Sync
+    // TODO: when should this be signalled?
+    vsync_event->Signal();
+
+    // Layers
     std::lock_guard lock(mutex);
     bool acquired = false;
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
@@ -17,9 +22,6 @@ bool Display::AcquirePresentTextures() {
 }
 
 void Display::Present(u32 width, u32 height) {
-    // Signal V-Sync
-    vsync_event->Signal();
-
     // Layers
     {
         std::lock_guard lock(mutex);

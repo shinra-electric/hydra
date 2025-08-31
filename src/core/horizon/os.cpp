@@ -6,6 +6,7 @@
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/process.hpp"
+#include "core/horizon/loader/nsp_loader.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -45,8 +46,10 @@
 #include "core/horizon/services/pctl/parental_control_service_factory.hpp"
 #include "core/horizon/services/pcv/pcv_service.hpp"
 #include "core/horizon/services/pdm/query_service.hpp"
+#include "core/horizon/services/pl/detail/platform_service_manager_for_system.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/pm/boot_mode_interface.hpp"
+#include "core/horizon/services/pm/debug_monitor_interface.hpp"
 #include "core/horizon/services/pm/information_interface.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
@@ -161,6 +164,21 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
         LOG_ERROR(Other, "Firmware path does not exist");
     }
 
+    // Sysmodules
+    const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath().Get();
+    if (std::filesystem::exists(sysmodules_path)) {
+        auto res = FILESYSTEM_INSTANCE.AddEntry(FS_SYSMODULES_PATH,
+                                                sysmodules_path, true);
+        ASSERT(res == horizon::filesystem::FsResult::Success, Other,
+               "Failed to add sysmodules", res);
+    }
+
+    // Shared font
+    shared_font_manager.LoadFonts();
+
+    // Connect npads
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+
     // Services
 
     // Only some services have dedicated servers so as to avoid creating
@@ -213,8 +231,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Glue
     REGISTER_SERVICE(others, timesrv::IStaticService, "time:u", "time:a",
                      "time:s");
-    REGISTER_SERVICE(
-        others, pl::shared_resource::IPlatformSharedResourceManager, "pl:u");
+    REGISTER_SERVICE(others, pl::sharedresource::IPlatformSharedResourceManager,
+                     "pl:u");
     REGISTER_SERVICE(others, err::context::IWriterForApplication, "ectx:aw");
 
     // Audio
@@ -282,6 +300,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // PM
     REGISTER_SERVICE(others, pm::IBootModeInterface, "pm:bm");
     REGISTER_SERVICE(others, pm::IInformationInterface, "pm:info");
+    REGISTER_SERVICE(others, pm::IDebugMonitorInterface, "pm:dmnt");
 
     // PCTL
     REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",
@@ -313,14 +332,38 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Usb
     REGISTER_SERVICE(others, usb::hs::IClientRootSession, "usb:hs");
 
+    // Shared database
+    REGISTER_SERVICE(others, pl::detail::IPlatformServiceManagerForSystem,
+                     "pl:s");
+
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");
     REGISTER_SERVICE(others, mii::IStaticService, "mii:u", "mii:e");
 
     others_server.Start();
 
-    // Connect npads
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+    // Sysmodules
+    if (std::filesystem::exists(sysmodules_path)) {
+        for (const auto& entry :
+             std::filesystem::directory_iterator(sysmodules_path)) {
+            // Load the sysmodule
+            auto exefs_path =
+                fmt::format("{}/exefs.nsp", entry.path().string());
+            if (!std::filesystem::exists(exefs_path))
+                continue;
+
+            filesystem::HostFile file(exefs_path);
+            loader::NspLoader loader(&file);
+
+            // Start a new process
+            // TODO: get the name from toolbox.json
+            // TODO: get title ID from toolbox.json
+            auto process =
+                kernel.GetProcessManager().CreateProcess("Sysmodule");
+            loader.LoadProcess(process);
+            process->Start();
+        }
+    }
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }

@@ -8,6 +8,7 @@
 #define FS_SAVE_DATA_PATH(title_id, user_id)                                   \
     fmt::format(FS_SAVE_MOUNT "/{:016x}/{:032x}", title_id, user_id)
 #define FS_FIRMWARE_PATH FS_CONTENT_MOUNT "/firmware"
+#define FS_SYSMODULES_PATH FS_SD_MOUNT "/atmosphere/contents"
 
 namespace hydra::horizon::filesystem {
 

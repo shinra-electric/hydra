@@ -228,6 +228,12 @@ add_library(hydra-core
     horizon/services/hosbinder/parcel.hpp
     horizon/services/hosbinder/hos_binder_driver.cpp
     horizon/services/hosbinder/hos_binder_driver.hpp
+    horizon/services/pl/shared_font_manager.cpp
+    horizon/services/pl/shared_font_manager.hpp
+    horizon/services/pl/internal/shared_font_manager.cpp
+    horizon/services/pl/internal/shared_font_manager.hpp
+    horizon/services/pl/detail/platform_service_manager_for_system.cpp
+    horizon/services/pl/detail/platform_service_manager_for_system.hpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.cpp
     horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp
     horizon/services/psm/psm_session.cpp
@@ -370,6 +376,8 @@ add_library(hydra-core
     horizon/services/pm/boot_mode_interface.hpp
     horizon/services/pm/information_interface.cpp
     horizon/services/pm/information_interface.hpp
+    horizon/services/pm/debug_monitor_interface.cpp
+    horizon/services/pm/debug_monitor_interface.hpp
     horizon/services/spsm/power_state_interface.cpp
     horizon/services/spsm/power_state_interface.hpp
     horizon/services/usb/const.hpp
