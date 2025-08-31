@@ -174,13 +174,14 @@ bool Renderer::AcquireNextSurface() {
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
                                     const FloatRect2D src_rect,
-                                    const FloatRect2D dst_rect, f32 opacity) {
+                                    const FloatRect2D dst_rect,
+                                    bool transparent, f32 opacity) {
     auto texture_impl = static_cast<const Texture*>(texture);
     auto encoder = GetRenderCommandEncoderUnchecked();
 
     // Draw
-    encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({drawable->texture()->pixelFormat()}));
+    encoder->setRenderPipelineState(blit_pipeline_cache->Find(
+        {drawable->texture()->pixelFormat(), transparent}));
     encoder->setViewport(MTL::Viewport{
         (f64)dst_rect.origin.x(), (f64)dst_rect.origin.y(),
         (f64)dst_rect.size.x(), (f64)dst_rect.size.y(), 0.0, 1.0});
@@ -626,7 +627,7 @@ void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
 
     // Draw
     encoder->setRenderPipelineState(
-        blit_pipeline_cache->Find({src->pixelFormat()}));
+        blit_pipeline_cache->Find({src->pixelFormat(), false}));
     encoder->setViewport(MTL::Viewport(f64(dst_origin.x()), f64(dst_origin.y()),
                                        f64(dst_size.x()), f64(dst_size.y()),
                                        0.0, 1.0));

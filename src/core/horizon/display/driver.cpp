@@ -76,8 +76,8 @@ void Driver::Present(u32 width, u32 height) {
     }
 
     // Present
-    for (auto layer : sorted_layers)
-        layer->Present(dst_origin, dst_scale);
+    for (u32 i = 0; i < sorted_layers.size(); i++)
+        sorted_layers[i]->Present(dst_origin, dst_scale, i != 0);
 }
 
 Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {

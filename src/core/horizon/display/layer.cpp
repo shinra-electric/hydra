@@ -55,7 +55,7 @@ bool Layer::AcquirePresentTexture() {
     return true;
 }
 
-void Layer::Present(float2 dst_origin, f32 dst_scale) {
+void Layer::Present(float2 dst_origin, f32 dst_scale, bool transparent) {
     if (!present_texture)
         return;
 
@@ -67,7 +67,8 @@ void Layer::Present(float2 dst_origin, f32 dst_scale) {
         dst_scale;
 
     // Draw
-    RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);
+    RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect,
+                                           transparent);
 }
 
 AccumulatedTime Layer::GetAccumulatedDT() {
