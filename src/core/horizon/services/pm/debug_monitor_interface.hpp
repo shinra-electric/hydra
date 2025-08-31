@@ -10,6 +10,8 @@ class IDebugMonitorInterface : public IService {
 
   private:
     // Commands
+    result_t GetProcessId(u64 program_id, u64* out_pid);
+    result_t GetApplicationProcessId(kernel::Process* process, u64* out_pid);
 };
 
 } // namespace hydra::horizon::services::pm

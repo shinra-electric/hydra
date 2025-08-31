@@ -10,8 +10,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IClientRootSession, 0, BindClientProcess, 4,
                              GetInterfaceStateChangeEvent)
 
 IClientRootSession::IClientRootSession()
-    : interface_available_event{new kernel::Event()},
-      interface_state_change_event{new kernel::Event()} {}
+    : interface_available_event{new kernel::Event(
+          false, "usb:hs interface available event")},
+      interface_state_change_event{
+          new kernel::Event(false, "usb:hs interface state change event")} {}
 
 result_t IClientRootSession::BindClientProcess() {
     LOG_FUNC_STUBBED(Services);

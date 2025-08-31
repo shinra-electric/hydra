@@ -10,10 +10,13 @@ class IManagerDisplayService : public DisplayServiceBase {
 
   private:
     // Commands
+    result_t CreateManagedLayer(aligned<u32, 8> flags, u64 display_id,
+                                u64 aruid, u64* out_layer_id);
     result_t
     CreateStrayLayer(aligned<u32, 8> flags, u64 display_id, u64* out_layer_id,
                      u64* out_native_window_size,
                      OutBuffer<BufferAttr::MapAlias> out_parcel_buffer);
+    result_t AddToLayerStack(u32 stack, u64 layer_id);
     result_t SetLayerVisibility(u64 layer_id, bool visible);
 };
 
