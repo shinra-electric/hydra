@@ -60,27 +60,25 @@ struct sized_ptr {
     GETTER(size, GetSize);
 };
 
-template <typename T, usize component_count>
+template <typename T, u32 component_count>
 class vec {
   public:
     vec() = default;
     vec(const T& value) {
-        for (usize i = 0; i < component_count; i++) {
+        for (u32 i = 0; i < component_count; i++)
             components[i] = value;
-        }
     }
     vec(const std::initializer_list<T>& values) {
         std::copy(values.begin(), values.end(), components.begin());
     }
-    template <typename OtherT, usize other_component_count>
+    template <typename OtherT, u32 other_component_count>
     vec(const vec<OtherT, other_component_count>& other) {
-        for (usize i = 0; i < component_count; i++) {
+        for (u32 i = 0; i < component_count; i++)
             components[i] = other[i];
-        }
     }
 
     bool operator==(const vec<T, component_count>& other) const {
-        for (usize i = 0; i < component_count; i++) {
+        for (u32 i = 0; i < component_count; i++) {
             if (components[i] != other[i])
                 return false;
         }
@@ -105,21 +103,77 @@ class vec {
     std::array<T, component_count> components = {0};
 };
 
-template <typename T, usize component_count>
+template <typename T, u32 component_count>
+vec<T, component_count> operator+(const vec<T, component_count>& l, T r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] += r;
+
+    return result;
+}
+
+template <typename T, u32 component_count>
+vec<T, component_count> operator+(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] += r[i];
+
+    return result;
+}
+
+template <typename T, u32 component_count>
+vec<T, component_count> operator-(const vec<T, component_count>& l, T r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] -= r;
+
+    return result;
+}
+
+template <typename T, u32 component_count>
+vec<T, component_count> operator-(const vec<T, component_count>& l,
+                                  const vec<T, component_count>& r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] -= r[i];
+
+    return result;
+}
+
+template <typename T, u32 component_count>
+vec<T, component_count> operator*(const vec<T, component_count>& l, T r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] *= r;
+
+    return result;
+}
+
+template <typename T, u32 component_count>
 vec<T, component_count> operator*(const vec<T, component_count>& l,
                                   const vec<T, component_count>& r) {
     vec<T, component_count> result = l;
-    for (usize i = 0; i < component_count; i++)
+    for (u32 i = 0; i < component_count; i++)
         result[i] *= r[i];
 
     return result;
 }
 
-template <typename T, usize component_count>
+template <typename T, u32 component_count>
+vec<T, component_count> operator/(const vec<T, component_count>& l, T r) {
+    vec<T, component_count> result = l;
+    for (u32 i = 0; i < component_count; i++)
+        result[i] /= r;
+
+    return result;
+}
+
+template <typename T, u32 component_count>
 vec<T, component_count> operator/(const vec<T, component_count>& l,
                                   const vec<T, component_count>& r) {
     vec<T, component_count> result = l;
-    for (usize i = 0; i < component_count; i++)
+    for (u32 i = 0; i < component_count; i++)
         result[i] /= r[i];
 
     return result;
@@ -162,9 +216,19 @@ template <typename Origin, typename Size>
 struct Rect2D {
     vec<Origin, 2> origin;
     vec<Size, 2> size;
+
+    Rect2D() {}
+
+    Rect2D(vec<Origin, 2> origin_, vec<Size, 2> size_)
+        : origin{origin_}, size{size_} {}
+
+    template <typename OtherOrigin, typename OtherSize>
+    Rect2D(const Rect2D<OtherOrigin, OtherSize>& other)
+        : origin{other.origin}, size{other.size} {}
 };
 
 using IntRect2D = Rect2D<i32, i32>;
+using FloatRect2D = Rect2D<f32, f32>;
 
 template <typename T, usize alignment>
 class aligned {
@@ -319,5 +383,22 @@ struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
     auto format(hydra::range<T> range, FormatContext& ctx) const {
         return formatter<string_view>::format(
             fmt::format("<{}...{})", range.begin, range.end), ctx);
+    }
+};
+
+template <typename T, hydra::u32 component_count>
+struct fmt::formatter<hydra::vec<T, component_count>> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(const hydra::vec<T, component_count>& vec,
+                FormatContext& ctx) const {
+        // TODO: optimize
+        std::string str = "(";
+        for (hydra::u32 i = 0; i < component_count; i++) {
+            str += fmt::format("{}", vec[i]);
+            if (i != component_count - 1)
+                str += ", ";
+        }
+        str += ")";
+        return formatter<string_view>::format(str, ctx);
     }
 };

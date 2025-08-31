@@ -19,7 +19,7 @@ class Layer {
     void Close() {}
 
     bool AcquirePresentTexture();
-    void Present(u32 width, u32 height);
+    void Present(float2 dst_origin, f32 dst_scale);
 
     // Time
     AccumulatedTime GetAccumulatedDT();

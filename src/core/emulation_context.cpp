@@ -456,8 +456,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             int2 size = {(i32)nintendo_logo->GetDescriptor().width,
                          (i32)nintendo_logo->GetDescriptor().height};
             int2 dst_offset = {32, 32};
-            renderer.DrawTextureToSurface(nintendo_logo, {{0, 0}, size},
-                                          {dst_offset, size}, opacity);
+            renderer.DrawTextureToSurface(nintendo_logo,
+                                          IntRect2D({0, 0}, size),
+                                          IntRect2D(dst_offset, size), opacity);
         }
 
         // Startup movie
@@ -475,8 +476,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                          (i32)frame->GetDescriptor().height};
             int2 dst_offset = {(i32)width - size.x() - 32,
                                (i32)height - size.y() - 32};
-            renderer.DrawTextureToSurface(frame, {{0, 0}, size},
-                                          {dst_offset, size}, opacity);
+            renderer.DrawTextureToSurface(frame, IntRect2D({0, 0}, size),
+                                          IntRect2D(dst_offset, size), opacity);
         }
     }
 

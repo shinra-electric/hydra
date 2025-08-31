@@ -44,8 +44,8 @@ class RendererBase {
     virtual bool AcquireNextSurface() = 0;
     // Uses lower left origin
     virtual void DrawTextureToSurface(const TextureBase* texture,
-                                      const IntRect2D src_rect,
-                                      const IntRect2D dst_rect,
+                                      const FloatRect2D src_rect,
+                                      const FloatRect2D dst_rect,
                                       f32 opacity = 1.0f) = 0;
     virtual void PresentSurface() = 0;
 

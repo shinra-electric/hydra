@@ -173,8 +173,8 @@ bool Renderer::AcquireNextSurface() {
 }
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
-                                    const IntRect2D src_rect,
-                                    const IntRect2D dst_rect, f32 opacity) {
+                                    const FloatRect2D src_rect,
+                                    const FloatRect2D dst_rect, f32 opacity) {
     auto texture_impl = static_cast<const Texture*>(texture);
     auto encoder = GetRenderCommandEncoderUnchecked();
 
@@ -192,10 +192,10 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
     const auto src_width = texture->GetDescriptor().width;
     const auto src_height = texture->GetDescriptor().height;
     BlitParams params = {
-        .src_offset = {(f32)src_rect.origin.x() / (f32)src_width,
-                       (f32)src_rect.origin.y() / (f32)src_height},
-        .src_scale = {(f32)src_rect.size.x() / (f32)src_width,
-                      (f32)src_rect.size.y() / (f32)src_height},
+        .src_offset = {src_rect.origin.x() / src_width,
+                       src_rect.origin.y() / src_height},
+        .src_scale = {src_rect.size.x() / src_width,
+                      src_rect.size.y() / src_height},
         .opacity = opacity,
     };
 

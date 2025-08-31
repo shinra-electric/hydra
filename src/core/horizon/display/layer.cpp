@@ -55,26 +55,15 @@ bool Layer::AcquirePresentTexture() {
     return true;
 }
 
-void Layer::Present(u32 width, u32 height) {
+void Layer::Present(float2 dst_origin, f32 dst_scale) {
     if (!present_texture)
         return;
 
     // Dst rect
-    const auto src_width = abs(src_rect.size.x());
-    const auto src_height = abs(src_rect.size.y());
-
-    IntRect2D dst_rect;
-    auto scale_x = (f32)width / (f32)src_width;
-    auto scale_y = (f32)height / (f32)src_height;
-    if (scale_x > scale_y) {
-        const auto dst_width = static_cast<i32>(src_width * scale_y);
-        dst_rect.origin = int2({static_cast<i32>(width - dst_width) / 2, 0});
-        dst_rect.size = int2({dst_width, static_cast<i32>(height)});
-    } else {
-        const auto dst_height = static_cast<i32>(src_height * scale_x);
-        dst_rect.origin = int2({0, static_cast<i32>(height - dst_height) / 2});
-        dst_rect.size = int2({static_cast<i32>(width), dst_height});
-    }
+    FloatRect2D dst_rect;
+    dst_rect.origin = dst_origin;
+    dst_rect.size =
+        float2{f32(src_rect.size.x()), f32(src_rect.size.y())} * dst_scale;
 
     // Draw
     RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);

@@ -1,5 +1,7 @@
 #include "core/horizon/display/driver.hpp"
 
+#include "core/horizon/os.hpp"
+
 namespace hydra::horizon::display {
 
 Driver::Driver() { display_pool.Add(new Display()); }
@@ -56,8 +58,26 @@ void Driver::Present(u32 width, u32 height) {
             sorted_layers.push_back(layer_pool.Get(layer_id));
     }
 
+    // Viewport
+    const auto src_size = float2(OS_INSTANCE.GetDisplayResolution());
+    auto scale_x = f32(width) / src_size.x();
+    auto scale_y = f32(height) / src_size.y();
+
+    float2 dst_origin;
+    float dst_scale;
+    if (scale_x > scale_y) {
+        dst_scale = scale_y;
+        const auto dst_width = src_size.x() * dst_scale;
+        dst_origin = {(width - dst_width) / 2.f, 0.f};
+    } else {
+        dst_scale = scale_x;
+        const auto dst_height = src_size.y() * dst_scale;
+        dst_origin = {0.f, (height - dst_height) / 2.f};
+    }
+
+    // Present
     for (auto layer : sorted_layers)
-        layer->Present(width, height);
+        layer->Present(dst_origin, dst_scale);
 }
 
 Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {
