@@ -63,7 +63,8 @@ void Layer::Present(float2 dst_origin, f32 dst_scale) {
     FloatRect2D dst_rect;
     dst_rect.origin = dst_origin;
     dst_rect.size =
-        float2{f32(src_rect.size.x()), f32(src_rect.size.y())} * dst_scale;
+        float2{f32(abs(src_rect.size.x())), f32(abs(src_rect.size.y()))} *
+        dst_scale;
 
     // Draw
     RENDERER_INSTANCE.DrawTextureToSurface(present_texture, src_rect, dst_rect);
