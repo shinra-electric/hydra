@@ -6,6 +6,7 @@
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/process.hpp"
+#include "core/horizon/loader/nsp_loader.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -166,14 +167,17 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Sysmodules
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath().Get();
     if (std::filesystem::exists(sysmodules_path)) {
-        auto res = FILESYSTEM_INSTANCE.AddEntry(
-            FS_SD_MOUNT "/atmosphere/contents", sysmodules_path, true);
+        auto res = FILESYSTEM_INSTANCE.AddEntry(FS_SYSMODULES_PATH,
+                                                sysmodules_path, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                "Failed to add sysmodules", res);
     }
 
     // Shared font
     shared_font_manager.LoadFonts();
+
+    // Connect npads
+    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
 
     // Services
 
@@ -338,8 +342,28 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     others_server.Start();
 
-    // Connect npads
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+    // Sysmodules
+    if (std::filesystem::exists(sysmodules_path)) {
+        for (const auto& entry :
+             std::filesystem::directory_iterator(sysmodules_path)) {
+            // Load the sysmodule
+            auto exefs_path =
+                fmt::format("{}/exefs.nsp", entry.path().string());
+            if (!std::filesystem::exists(exefs_path))
+                continue;
+
+            filesystem::HostFile file(exefs_path);
+            loader::NspLoader loader(&file);
+
+            // Start a new process
+            // TODO: get the name from toolbox.json
+            // TODO: get title ID from toolbox.json
+            auto process =
+                kernel.GetProcessManager().CreateProcess("Sysmodule");
+            loader.LoadProcess(process);
+            process->Start();
+        }
+    }
 }
 
 OS::~OS() { SINGLETON_UNSET_INSTANCE(); }

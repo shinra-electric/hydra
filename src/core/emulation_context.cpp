@@ -97,7 +97,6 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    // TODO: make sure the process is destroyed
     auto process =
         os->GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(process);
