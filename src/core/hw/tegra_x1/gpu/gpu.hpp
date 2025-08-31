@@ -6,7 +6,6 @@
 #include "core/hw/tegra_x1/gpu/engines/compute.hpp"
 #include "core/hw/tegra_x1/gpu/engines/copy.hpp"
 #include "core/hw/tegra_x1/gpu/engines/inline.hpp"
-#include "core/hw/tegra_x1/gpu/gpu_mmu.hpp"
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/renderer_base.hpp"
 
@@ -26,8 +25,6 @@ struct MemoryMap {
     // TODO: alignment
     // TODO: kind
 };
-
-constexpr usize GPU_PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
 
 constexpr usize SUBCHANNEL_COUNT = 5; // TODO: correct?
 
@@ -65,42 +62,6 @@ class Gpu {
         return memory_maps.Get(handle_id);
     }
 
-    // Address space
-    uptr CreateAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
-        if (ptr == 0x0)
-            ptr = reinterpret_cast<uptr>(malloc(size));
-
-        AddressSpace as;
-        as.ptr = ptr;
-        as.size = size;
-
-        if (gpu_addr == invalid<uptr>()) {
-            gpu_addr =
-                address_space_base; // TODO: ask the Mmu for a base address
-            address_space_base += align(size, GPU_PAGE_SIZE);
-        }
-        gpu_mmu.Map(gpu_addr, as);
-
-        return gpu_addr;
-    }
-
-    uptr AllocatePrivateAddressSpace(usize size, uptr gpu_addr) {
-        return CreateAddressSpace(0x0, size, gpu_addr);
-    }
-
-    uptr MapBufferToAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
-        return CreateAddressSpace(ptr, size, gpu_addr);
-    }
-
-    // TODO: correct?
-    void ModifyAddressSpace(uptr ptr, usize size, uptr gpu_addr) {
-        auto& as = gpu_mmu.UnmapAddrToAddressSpace(gpu_addr);
-        ASSERT_DEBUG(size == as.size, Gpu, "Size mismatch: {} != {}", size,
-                     as.size)
-
-        as.ptr = ptr;
-    }
-
     // Engines
     engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
@@ -113,10 +74,10 @@ class Gpu {
         return engine;
     }
 
-    void SubchannelMethod(u32 subchannel, u32 method, u32 arg);
+    void SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg);
 
-    void SubchannelFlushMacro(u32 subchannel) {
-        GetEngineAtSubchannel(subchannel)->FlushMacro();
+    void SubchannelFlushMacro(GMmu& gmmu, u32 subchannel) {
+        GetEngineAtSubchannel(subchannel)->FlushMacro(gmmu);
     }
 
     // Texture
@@ -124,15 +85,10 @@ class Gpu {
                                       const NvGraphicsBuffer& buff);
 
     // Getters
-    GpuMmu& GetGpuMmu() { return gpu_mmu; }
     Pfifo& GetPfifo() { return pfifo; }
     renderer::RendererBase& GetRenderer() const { return *renderer; }
 
   private:
-    // Address space
-    GpuMmu gpu_mmu;
-    uptr address_space_base{GPU_PAGE_SIZE};
-
     // Pfifo
     Pfifo pfifo;
 

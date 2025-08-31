@@ -7,13 +7,14 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 DEFINE_METHOD_TABLE(TwoD, 0x237, 1, Copy, u32)
 
-void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
+void TwoD::Copy(GMmu& gmmu, const u32 index,
+                const u32 pixels_from_memory_src_y0_int) {
     auto& pixels = regs.pixels_from_memory;
     pixels.src_y0.integer = pixels_from_memory_src_y0_int;
 
     // TODO: can these also not be textures?
-    auto src = GetTexture(regs.src);
-    auto dst = GetTexture(regs.dst);
+    auto src = GetTexture(gmmu, regs.src);
+    auto dst = GetTexture(gmmu, regs.dst);
 
     f64 dudx = f64(pixels.dudx);
     f64 dvdy = f64(pixels.dvdy);
@@ -30,9 +31,9 @@ void TwoD::Copy(const u32 index, const u32 pixels_from_memory_src_y0_int) {
                   {pixels.dst_width, pixels.dst_height, 1});
 }
 
-renderer::TextureBase* TwoD::GetTexture(const Texture2DInfo& info) {
+renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info) {
     const renderer::TextureDescriptor descriptor(
-        UNMAP_ADDR(info.addr), renderer::to_texture_format(info.format),
+        gmmu.UnmapAddr(info.addr), renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
         u32(info.width), u32(info.height),
         0, // HACK

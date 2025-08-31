@@ -4,11 +4,11 @@
 
 #define METHOD_CASE(method_begin, method_count, func, arg_type)                \
     case method_begin ...(method_begin + method_count - 1):                    \
-        func(method - method_begin, std::bit_cast<arg_type>(arg));             \
+        func(gmmu, method - method_begin, std::bit_cast<arg_type>(arg));       \
         break;
 
 #define DEFINE_METHOD_TABLE(type, ...)                                         \
-    void type::Method(u32 method, u32 arg) {                                   \
+    void type::Method(GMmu& gmmu, u32 method, u32 arg) {                       \
         if (method >= MACRO_METHODS_REGION) {                                  \
             Macro(method, arg);                                                \
             return;                                                            \
@@ -21,15 +21,19 @@
         }                                                                      \
     }
 
+namespace hydra::hw::tegra_x1::gpu {
+class GMmu;
+}
+
 namespace hydra::hw::tegra_x1::gpu::engines {
 
 class EngineBase {
   public:
     virtual ~EngineBase() = default;
 
-    virtual void Method(u32 method, u32 arg) = 0;
+    virtual void Method(GMmu& gmmu, u32 method, u32 arg) = 0;
 
-    virtual void FlushMacro() {
+    virtual void FlushMacro(GMmu& gmmu) {
         LOG_ERROR(Engines, "This engine does not support macros");
     }
 

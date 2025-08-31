@@ -17,7 +17,7 @@ struct SetObjectArg {
 
 SINGLETON_DEFINE_GET_INSTANCE(Gpu, Gpu)
 
-Gpu::Gpu() : pfifo(gpu_mmu) {
+Gpu::Gpu() {
     SINGLETON_SET_INSTANCE(Gpu, Gpu);
 
     const auto renderer_type = CONFIG_INSTANCE.GetGpuRenderer();
@@ -42,7 +42,7 @@ Gpu::~Gpu() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
+void Gpu::SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
                      "Invalid subchannel {}", subchannel);
@@ -81,7 +81,7 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
         return;
     }
 
-    GetEngineAtSubchannel(subchannel)->Method(method, arg);
+    GetEngineAtSubchannel(subchannel)->Method(gmmu, method, arg);
 }
 
 renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,

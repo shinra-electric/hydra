@@ -9,7 +9,7 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 
-void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
+void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
     // TODO: implement component remapping
     // HACK
     usize src_stride = regs.src.stride;
@@ -34,8 +34,8 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         }
     }
 
-    const auto src_ptr = UNMAP_ADDR(regs.offset_in);
-    const auto dst_ptr = UNMAP_ADDR(regs.offset_out);
+    const auto src_ptr = gmmu.UnmapAddr(regs.offset_in);
+    const auto dst_ptr = gmmu.UnmapAddr(regs.offset_out);
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             for (u32 i = 0; i < regs.line_count; i++)
@@ -56,8 +56,8 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
                 get_block_size_log2(regs.dst.block_size.height),
                 reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
 
-            // memcpy((void*)UNMAP_ADDR(regs.offset_out),
-            //        (void*)UNMAP_ADDR(regs.offset_in), stride *
+            // memcpy((void*)gmmu.UnmapAddr(regs.offset_out),
+            //        (void*)gmmu.UnmapAddr(regs.offset_in), stride *
             //        regs.line_count);
 
             /*
@@ -99,14 +99,15 @@ void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
         range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 
-renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize size) {
-    const renderer::BufferDescriptor descriptor{
-        .ptr = UNMAP_ADDR(addr),
-        .size = size,
+/*
+renderer::BufferBase* Copy::GetBuffer(GMmu& gmmu, const Iova addr, const usize
+size) { const renderer::BufferDescriptor descriptor{ .ptr =
+gmmu.UnmapAddr(addr), .size = size,
     };
 
     return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
 }
+*/
 
 /*
 renderer::TextureBase* Copy::GetTexture(const u32 gpu_addr_lo,

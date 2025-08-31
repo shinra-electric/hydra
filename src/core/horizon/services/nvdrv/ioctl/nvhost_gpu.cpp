@@ -1,5 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_gpu.hpp"
 
+#include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 
@@ -35,11 +36,12 @@ NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
 }
 
 NvResult NvHostGpu::SubmitGpfifo(
-    u64 gpfifo, u32 num_entries,
+    kernel::Process* process, u64 gpfifo, u32 num_entries,
     InOut<hw::tegra_x1::gpu::GpfifoFlags, u32> inout_flags_and_detailed_error,
     InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,
     const hw::tegra_x1::gpu::GpfifoEntry* entries) {
     GPU_INSTANCE.GetPfifo().SubmitEntries(
+        *process->GetGMmu(),
         std::vector<hw::tegra_x1::gpu::GpfifoEntry>(entries,
                                                     entries + num_entries),
         inout_flags_and_detailed_error);

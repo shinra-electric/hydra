@@ -212,7 +212,7 @@ ThreeD::~ThreeD() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void ThreeD::FlushMacro() { macro_driver->Execute(); }
+void ThreeD::FlushMacro(GMmu& gmmu) { macro_driver->Execute(gmmu); }
 
 void ThreeD::Macro(u32 method, u32 arg) {
     u32 index = (method - MACRO_METHODS_REGION) >> 1;
@@ -227,24 +227,28 @@ void ThreeD::Macro(u32 method, u32 arg) {
     }
 }
 
-void ThreeD::LoadMmeInstructionRamPointer(const u32 index, const u32 ptr) {
+void ThreeD::LoadMmeInstructionRamPointer(GMmu& gmmu, const u32 index,
+                                          const u32 ptr) {
     macro_driver->LoadInstructionRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeInstructionRam(const u32 index, const u32 data) {
+void ThreeD::LoadMmeInstructionRam(GMmu& gmmu, const u32 index,
+                                   const u32 data) {
     macro_driver->LoadInstructionRam(data);
 }
 
-void ThreeD::LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr) {
+void ThreeD::LoadMmeStartAddressRamPointer(GMmu& gmmu, const u32 index,
+                                           const u32 ptr) {
     macro_driver->LoadStartAddressRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
+void ThreeD::LoadMmeStartAddressRam(GMmu& gmmu, const u32 index,
+                                    const u32 data) {
     macro_driver->LoadStartAddressRam(data);
 }
 
-void ThreeD::DrawVertexArray(const u32 index, u32 count) {
-    if (!DrawInternal())
+void ThreeD::DrawVertexArray(GMmu& gmmu, const u32 index, u32 count) {
+    if (!DrawInternal(gmmu))
         return;
 
     auto index_type = IndexType::None;
@@ -277,18 +281,17 @@ void ThreeD::DrawVertexArray(const u32 index, u32 count) {
     }
 }
 
-void ThreeD::DrawVertexElements(const u32 index, u32 count) {
-    if (!DrawInternal())
+void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
+    if (!DrawInternal(gmmu))
         return;
 
     // Index buffer
-    gpu_vaddr_t index_buffer_ptr = UNMAP_ADDR(regs.index_buffer_addr);
+    gpu_vaddr_t index_buffer_ptr = gmmu.UnmapAddr(regs.index_buffer_addr);
     // TODO: uncomment?
     usize index_buffer_size =
-        count *
-        get_index_type_size(
-            regs.index_type); // MAKE_ADDR(regs.index_buffer_limit_addr) + 1
-                              // - MAKE_ADDR(regs.index_buffer_addr);
+        count * get_index_type_size(
+                    regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
+                                      // - u64(regs.index_buffer_addr);
     auto index_buffer = RENDERER_INSTANCE.GetBufferCache().Find(
         {index_buffer_ptr, index_buffer_size});
 
@@ -312,7 +315,8 @@ void ThreeD::DrawVertexElements(const u32 index, u32 count) {
                                   1);
 }
 
-void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
+void ThreeD::ClearBuffer(GMmu& gmmu, const u32 index,
+                         const ClearBufferData data) {
     LOG_DEBUG(Gpu,
               "Depth: {}, stencil: {}, color mask: 0x{:x}, target id: {}, "
               "layer id: {}",
@@ -323,7 +327,7 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     // TODO: implement
 
     // Regular clear
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    RENDERER_INSTANCE.BindRenderPass(GetRenderPass(gmmu));
 
     if (data.color_mask != 0x0)
         RENDERER_INSTANCE.ClearColor(data.target_id, data.layer_id,
@@ -336,32 +340,32 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
         RENDERER_INSTANCE.ClearStencil(data.layer_id, regs.clear_stencil);
 }
 
-void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
+void ThreeD::SetReportSemaphore(GMmu& gmmu, const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
-    const uptr ptr = UNMAP_ADDR(regs.report_semaphore_addr);
+    const uptr ptr = gmmu.UnmapAddr(regs.report_semaphore_addr);
 
     // HACK
     *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
-void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
+void ThreeD::FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;
 }
 
-void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
-    const uptr const_buffer_gpu_addr = MAKE_ADDR(regs.const_buffer_selector);
+void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
+    const uptr const_buffer_gpu_addr = u64(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
 
-    Gpu::GetInstance().GetGpuMmu().Store(gpu_addr, data);
+    gmmu.Store(gpu_addr, data);
 
     regs.load_const_buffer_offset += sizeof(u32);
 }
 
-void ThreeD::BindGroup(const u32 index, const u32 data) {
+void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
     const auto shader_stage = static_cast<ShaderStage>(index / 0x8 + 1);
     const auto group = index % 0x8;
 
@@ -374,7 +378,7 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
         bool valid = data & 0x1;
         if (valid) {
             const uptr const_buffer_gpu_ptr =
-                UNMAP_ADDR(regs.const_buffer_selector);
+                gmmu.UnmapAddr(regs.const_buffer_selector);
 
             const auto buffer = RENDERER_INSTANCE.GetBufferCache().Find(
                 {const_buffer_gpu_ptr, regs.const_buffer_selector_size});
@@ -395,26 +399,27 @@ void ThreeD::BindGroup(const u32 index, const u32 data) {
     }
 }
 
-renderer::BufferBase* ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
+renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
+                                              u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
-    if (MAKE_ADDR(vertex_array.addr) == 0x0) {
+    if (u64(vertex_array.addr) == 0x0) {
         ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
         return nullptr;
     }
 
     const renderer::BufferDescriptor descriptor{
-        .ptr = UNMAP_ADDR(vertex_array.addr),
-        .size = MAKE_ADDR(regs.vertex_array_limits[vertex_array_index]) + 1 -
-                MAKE_ADDR(vertex_array.addr),
+        .ptr = gmmu.UnmapAddr(vertex_array.addr),
+        .size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
+                u64(vertex_array.addr),
     };
 
     return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
 }
 
 renderer::TextureBase*
-ThreeD::GetTexture(const TextureImageControl& tic) const {
+ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
     // HACK
     if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
         LOG_ERROR(Engines, "1D buffer");
@@ -448,7 +453,7 @@ ThreeD::GetTexture(const TextureImageControl& tic) const {
     }
 
     const renderer::TextureDescriptor descriptor(
-        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format, kind,
+        gmmu.UnmapAddr(gpu_addr), format, kind,
         static_cast<usize>(tic.width_minus_one + 1),
         static_cast<usize>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
@@ -478,10 +483,10 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
 }
 
 renderer::TextureBase*
-ThreeD::GetColorTargetTexture(u32 render_target_index) const {
+ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
-    const auto gpu_addr = MAKE_ADDR(render_target.addr);
+    const auto gpu_addr = u64(render_target.addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid color render target at index {}",
@@ -491,7 +496,7 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
 
     const auto format = renderer::to_texture_format(render_target.format);
     const renderer::TextureDescriptor descriptor(
-        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format,
+        gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         render_target.width, render_target.height,
         0, // TODO
@@ -500,8 +505,8 @@ ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
 }
 
-renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
-    const auto gpu_addr = MAKE_ADDR(regs.depth_target_addr);
+renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
+    const auto gpu_addr = u64(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
         LOG_ERROR(Engines, "Invalid depth render target");
@@ -510,7 +515,7 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
 
     const auto format = renderer::to_texture_format(regs.depth_target_format);
     const renderer::TextureDescriptor descriptor(
-        Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr), format,
+        gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
         regs.depth_target_width, regs.depth_target_height,
         0, // TODO
@@ -519,21 +524,22 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
     return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
 }
 
-renderer::RenderPassBase* ThreeD::GetRenderPass() const {
+renderer::RenderPassBase* ThreeD::GetRenderPass(GMmu& gmmu) const {
     renderer::RenderPassDescriptor descriptor{};
 
     // Color targets
     for (u32 i = 0; i < regs.color_target_control.count; i++) {
         // TODO: use map0...7 for swizzling?
         descriptor.color_targets[i] = {
-            .texture = GetColorTargetTexture(i),
+            .texture = GetColorTargetTexture(gmmu, i),
         };
     }
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
-        .texture = (regs.depth_target_enabled ? GetDepthStencilTargetTexture()
-                                              : nullptr),
+        .texture =
+            (regs.depth_target_enabled ? GetDepthStencilTargetTexture(gmmu)
+                                       : nullptr),
     };
 
     return RENDERER_INSTANCE.GetRenderPassCache().Find(descriptor);
@@ -543,13 +549,13 @@ renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
     return active_shaders[u32(to_renderer_shader_type(stage))];
 }
 
-renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
+renderer::ShaderBase* ThreeD::GetShader(GMmu& gmmu, ShaderStage stage) {
     const auto& program = regs.shader_programs[usize(stage)];
     if (!program.config.enable)
         return nullptr;
 
-    uptr gpu_addr = MAKE_ADDR(regs.shader_program_region) + program.offset;
-    uptr ptr = Gpu::GetInstance().GetGpuMmu().UnmapAddr(gpu_addr);
+    uptr gpu_addr = u64(regs.shader_program_region) + program.offset;
+    uptr ptr = gmmu.UnmapAddr(gpu_addr);
 
     renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
@@ -564,7 +570,7 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     // Color target formats
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
         const auto& render_target = regs.color_targets[i];
-        const auto addr = MAKE_ADDR(render_target.addr);
+        const auto addr = u64(render_target.addr);
         if (addr == 0x0)
             continue;
 
@@ -578,15 +584,15 @@ renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     return active_shader;
 }
 
-renderer::PipelineBase* ThreeD::GetPipeline() {
+renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
     renderer::PipelineDescriptor descriptor{};
 
     // Shaders
     // TODO: add all shaders
     descriptor.shaders[u32(renderer::ShaderType::Vertex)] =
-        GetShader(ShaderStage::VertexB);
+        GetShader(gmmu, ShaderStage::VertexB);
     descriptor.shaders[u32(renderer::ShaderType::Fragment)] =
-        GetShader(ShaderStage::Fragment);
+        GetShader(gmmu, ShaderStage::Fragment);
 
     // Vertex state
 
@@ -668,7 +674,8 @@ renderer::PipelineBase* ThreeD::GetPipeline() {
 }
 
 void ThreeD::ConfigureShaderStage(
-    const ShaderStage stage, const TextureImageControl* tex_header_pool,
+    GMmu& gmmu, const ShaderStage stage,
+    const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
@@ -690,7 +697,7 @@ void ThreeD::ConfigureShaderStage(
         // Image
         const auto image_handle = get_image_handle(texture_handle);
         const auto& tic = tex_header_pool[image_handle];
-        const auto texture = GetTexture(tic);
+        const auto texture = GetTexture(gmmu, tic);
 
         // Sampler
         const auto sampler_handle = get_sampler_handle(texture_handle);
@@ -707,7 +714,7 @@ void ThreeD::ConfigureShaderStage(
     // TODO: images
 }
 
-bool ThreeD::DrawInternal() {
+bool ThreeD::DrawInternal(GMmu& gmmu) {
     // HACK
     g_uses_gpu = true;
 
@@ -716,9 +723,9 @@ bool ThreeD::DrawInternal() {
         return false;
     }
 
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    RENDERER_INSTANCE.BindRenderPass(GetRenderPass(gmmu));
 
-    RENDERER_INSTANCE.BindPipeline(GetPipeline());
+    RENDERER_INSTANCE.BindPipeline(GetPipeline(gmmu));
     // TODO: viewport and scissor
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
@@ -728,7 +735,7 @@ bool ThreeD::DrawInternal() {
             (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096))
             continue;
 
-        const auto buffer = GetVertexBuffer(i);
+        const auto buffer = GetVertexBuffer(gmmu, i);
         if (!buffer)
             continue;
 
@@ -736,20 +743,19 @@ bool ThreeD::DrawInternal() {
     }
 
     // Configure stages
-    const auto tex_header_pool_gpu_addr = MAKE_ADDR(regs.tex_header_pool);
-    const auto tex_sampler_pool_gpu_addr = MAKE_ADDR(regs.tex_sampler_pool);
+    const auto tex_header_pool_gpu_addr = u64(regs.tex_header_pool);
+    const auto tex_sampler_pool_gpu_addr = u64(regs.tex_sampler_pool);
     // TODO: remove the condition
     if (tex_header_pool_gpu_addr != 0x0 && tex_sampler_pool_gpu_addr != 0x0) {
         const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-            Gpu::GetInstance().GetGpuMmu().UnmapAddr(tex_header_pool_gpu_addr));
+            gmmu.UnmapAddr(tex_header_pool_gpu_addr));
         const auto tex_sampler_pool = reinterpret_cast<TextureSamplerControl*>(
-            Gpu::GetInstance().GetGpuMmu().UnmapAddr(
-                tex_sampler_pool_gpu_addr));
+            gmmu.UnmapAddr(tex_sampler_pool_gpu_addr));
 
         // TODO: configure all stages
-        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
+        ConfigureShaderStage(gmmu, ShaderStage::VertexB, tex_header_pool,
                              tex_sampler_pool);
-        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
+        ConfigureShaderStage(gmmu, ShaderStage::Fragment, tex_header_pool,
                              tex_sampler_pool);
     }
 

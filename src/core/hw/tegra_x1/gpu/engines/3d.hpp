@@ -557,9 +557,9 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     ThreeD();
     ~ThreeD() override;
 
-    void Method(u32 method, u32 arg) override;
+    void Method(GMmu& gmmu, u32 method, u32 arg) override;
 
-    void FlushMacro() override;
+    void FlushMacro(GMmu& gmmu) override;
 
     // Getters
     const Regs3D& GetRegs() const { return regs; }
@@ -581,13 +581,15 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;
 
-    void LoadMmeInstructionRamPointer(const u32 index, const u32 ptr);
-    void LoadMmeInstructionRam(const u32 index, const u32 data);
-    void LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr);
-    void LoadMmeStartAddressRam(const u32 index, const u32 data);
+    void LoadMmeInstructionRamPointer(GMmu& gmmu, const u32 index,
+                                      const u32 ptr);
+    void LoadMmeInstructionRam(GMmu& gmmu, const u32 index, const u32 data);
+    void LoadMmeStartAddressRamPointer(GMmu& gmmu, const u32 index,
+                                       const u32 ptr);
+    void LoadMmeStartAddressRam(GMmu& gmmu, const u32 index, const u32 data);
 
-    void DrawVertexArray(const u32 index, u32 count);
-    void DrawVertexElements(const u32 index, u32 count);
+    void DrawVertexArray(GMmu& gmmu, const u32 index, u32 count);
+    void DrawVertexElements(GMmu& gmmu, const u32 index, u32 count);
 
     struct ClearBufferData {
         bool depth : 1;
@@ -597,32 +599,35 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         u32 layer_id : 11;
     };
 
-    void ClearBuffer(const u32 index, const ClearBufferData data);
+    void ClearBuffer(GMmu& gmmu, const u32 index, const ClearBufferData data);
 
     // HACK
-    void SetReportSemaphore(const u32 index, const u32 data);
+    void SetReportSemaphore(GMmu& gmmu, const u32 index, const u32 data);
 
-    void FirmwareCall4(const u32 index, const u32 data);
+    void FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data);
 
-    void LoadConstBuffer(const u32 index, const u32 data);
-    void BindGroup(const u32 index, const u32 data);
+    void LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data);
+    void BindGroup(GMmu& gmmu, const u32 index, const u32 data);
 
     // Helpers
-    renderer::BufferBase* GetVertexBuffer(u32 vertex_array_index) const;
-    renderer::TextureBase* GetTexture(const TextureImageControl& tic) const;
+    renderer::BufferBase* GetVertexBuffer(GMmu& gmmu,
+                                          u32 vertex_array_index) const;
+    renderer::TextureBase* GetTexture(GMmu& gmmu,
+                                      const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
-    renderer::TextureBase* GetColorTargetTexture(u32 render_target_index) const;
-    renderer::TextureBase* GetDepthStencilTargetTexture() const;
-    renderer::RenderPassBase* GetRenderPass() const;
+    renderer::TextureBase* GetColorTargetTexture(GMmu& gmmu,
+                                                 u32 render_target_index) const;
+    renderer::TextureBase* GetDepthStencilTargetTexture(GMmu& gmmu) const;
+    renderer::RenderPassBase* GetRenderPass(GMmu& gmmu) const;
     renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
-    renderer::ShaderBase* GetShader(ShaderStage stage);
-    renderer::PipelineBase* GetPipeline();
+    renderer::ShaderBase* GetShader(GMmu& gmmu, ShaderStage stage);
+    renderer::PipelineBase* GetPipeline(GMmu& gmmu);
 
-    void ConfigureShaderStage(const ShaderStage stage,
+    void ConfigureShaderStage(GMmu& gmmu, const ShaderStage stage,
                               const TextureImageControl* tex_header_pool,
                               const TextureSamplerControl* tex_sampler_pool);
 
-    bool DrawInternal();
+    bool DrawInternal(GMmu& gmmu);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

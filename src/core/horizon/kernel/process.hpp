@@ -12,6 +12,10 @@ namespace hydra::hw::tegra_x1::cpu {
 class IMmu;
 } // namespace hydra::hw::tegra_x1::cpu
 
+namespace hydra::hw::tegra_x1::gpu {
+class GMmu;
+} // namespace hydra::hw::tegra_x1::gpu
+
 namespace hydra::horizon::kernel {
 
 enum class ProcessState {
@@ -119,6 +123,7 @@ class Process : public SynchronizationObject {
 
   private:
     hw::tegra_x1::cpu::IMmu* mmu;
+    hw::tegra_x1::gpu::GMmu* gmmu;
 
     AppletState applet_state;
 
@@ -150,6 +155,7 @@ class Process : public SynchronizationObject {
 
   public:
     GETTER(mmu, GetMmu);
+    GETTER(gmmu, GetGMmu);
     REF_GETTER(applet_state, GetAppletState);
     REF_GETTER(heap_mem, GetHeapMemory);
     GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);

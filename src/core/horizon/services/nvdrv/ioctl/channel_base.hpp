@@ -39,7 +39,7 @@ class ChannelBase : public FdBase {
     NvResult SetNvMapFd(u32 fd_id);
     NvResult SetTimeout(u32 timeout);
     virtual NvResult
-    SubmitGpfifo(u64 gpfifo, u32 num_entries,
+    SubmitGpfifo(kernel::Process* process, u64 gpfifo, u32 num_entries,
                  InOut<hw::tegra_x1::gpu::GpfifoFlags, u32>
                      inout_flags_and_detailed_error,
                  InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,

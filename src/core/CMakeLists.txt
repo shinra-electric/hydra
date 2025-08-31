@@ -448,8 +448,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/const.hpp
     hw/tegra_x1/gpu/memory_util.cpp
     hw/tegra_x1/gpu/memory_util.hpp
-    hw/tegra_x1/gpu/gpu_mmu.cpp
-    hw/tegra_x1/gpu/gpu_mmu.hpp
+    hw/tegra_x1/gpu/gmmu.cpp
+    hw/tegra_x1/gpu/gmmu.hpp
     hw/tegra_x1/gpu/pfifo.cpp
     hw/tegra_x1/gpu/pfifo.hpp
     hw/tegra_x1/gpu/gpu.cpp

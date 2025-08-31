@@ -2,6 +2,10 @@
 
 #include "core/hw/tegra_x1/gpu/macro/const.hpp"
 
+namespace hydra::hw::tegra_x1::gpu {
+class GMmu;
+}
+
 namespace hydra::hw::tegra_x1::gpu::engines {
 class ThreeD;
 }
@@ -18,7 +22,7 @@ class DriverBase {
     DriverBase(engines::ThreeD* engine_3d_) : engine_3d{engine_3d_} {}
     virtual ~DriverBase() = default;
 
-    void Execute();
+    void Execute(GMmu& gmmu);
 
     void LoadInstructionRamPointer(u32 ptr);
     void LoadInstructionRam(u32 data);
@@ -30,7 +34,7 @@ class DriverBase {
     void LoadParam(u32 data) { param_queue.push(data); }
 
   protected:
-    virtual void ExecuteImpl(u32 pc, u32 param1) = 0;
+    virtual void ExecuteImpl(GMmu& gmmu, u32 pc, u32 param1) = 0;
 
     virtual u32 InstAlu(AluOperation op, u8 rA, u8 rB) = 0;
     virtual u32 InstAddImmediate(u8 rA, i32 imm) = 0;
@@ -40,9 +44,10 @@ class DriverBase {
     virtual u32 InstRead(u8 rA, u32 imm) = 0;
     virtual void InstBranch(BranchCondition cond, u8 rA, i32 imm,
                             bool& branched) = 0;
-    virtual void InstResult(ResultOperation op, u8 rD, u32 value) = 0;
+    virtual void InstResult(GMmu& gmmu, ResultOperation op, u8 rD,
+                            u32 value) = 0;
 
-    bool ParseInstruction(u32 pc);
+    bool ParseInstruction(GMmu& gmmu, u32 pc);
 
     u32 FetchParam() {
         ASSERT_DEBUG(!param_queue.empty(), Macro, "Parameter queue is empty");
@@ -55,7 +60,7 @@ class DriverBase {
 
     u32 Get3DReg(u32 reg_3d);
     void SetMethod(u32 value);
-    void Send(u32 arg);
+    void Send(GMmu& gmmu, u32 arg);
 
   private:
     engines::ThreeD* engine_3d;

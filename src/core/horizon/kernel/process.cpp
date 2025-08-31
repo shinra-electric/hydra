@@ -3,11 +3,13 @@
 #include "core/debugger/debugger.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
+#include "core/hw/tegra_x1/gpu/gmmu.hpp"
 
 namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
-    : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()} {}
+    : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
+      gmmu{new hw::tegra_x1::gpu::GMmu()} {}
 
 Process::~Process() { CleanUp(); }
 

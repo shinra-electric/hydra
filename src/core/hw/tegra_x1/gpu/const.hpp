@@ -2,6 +2,8 @@
 
 namespace hydra::hw::tegra_x1::gpu {
 
+constexpr usize GPU_PAGE_SIZE = 0x20000; // Big page size (TODO: correct?)
+
 enum class NvLayout : u32 {
     Pitch = 1,
     Tiled = 2,

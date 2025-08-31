@@ -2,15 +2,13 @@
 
 #include "core/hw/tegra_x1/gpu/const.hpp"
 
-#define MAKE_ADDR(addr) make_addr(addr.lo, addr.hi)
-#define UNMAP_ADDR(addr)                                                       \
-    Gpu::GetInstance().GetGpuMmu().UnmapAddr(MAKE_ADDR(addr))
-
 namespace hydra::hw::tegra_x1::gpu::engines {
 
 struct Iova {
     u32 hi;
     u32 lo;
+
+    operator u64() const { return u64(hi) << 32 | u64(lo); }
 };
 
 enum class PrimitiveType {

@@ -18,14 +18,15 @@ NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::AllocSpace(u32 pages, u32 page_size,
+NvResult NvHostAsGpu::AllocSpace(kernel::Process* process, u32 pages,
+                                 u32 page_size,
                                  aligned<AllocSpaceFlags, 8> flags,
                                  InOut<u64, gpu_vaddr_t> align_and_offset) {
     uptr gpu_addr = invalid<uptr>();
     if (any(flags & AllocSpaceFlags::FixedOffset))
         gpu_addr = align_and_offset; // TODO: is it really align?
 
-    align_and_offset = GPU_INSTANCE.AllocatePrivateAddressSpace(
+    align_and_offset = process->GetGMmu()->AllocatePrivateAddressSpace(
         static_cast<usize>(pages) * static_cast<usize>(page_size), gpu_addr);
     return NvResult::Success;
 }
@@ -64,7 +65,7 @@ NvResult NvHostAsGpu::MapBufferEX(kernel::Process* process,
     if (any(flags & MapBufferFlags::FixedOffset))
         addr = inout_addr;
 
-    inout_addr = GPU_INSTANCE.MapBufferToAddressSpace(
+    inout_addr = process->GetGMmu()->MapBufferToAddressSpace(
         process->GetMmu()->UnmapAddr(map.addr + buffer_offset), size, addr);
     return NvResult::Success;
 }
@@ -83,17 +84,18 @@ NvResult NvHostAsGpu::GetVaRegions(gpu_vaddr_t buffer_addr,
     return NvResult::Success;
 }
 
-NvResult NvHostAsGpu::AllocAsEX(u32 big_page_size, i32 as_fd, u32 flags,
-                                u32 reserved, u64 va_range_start,
-                                u64 va_range_end, u64 va_range_split) {
+NvResult NvHostAsGpu::AllocAsEX(kernel::Process* process, u32 big_page_size,
+                                i32 as_fd, u32 flags, u32 reserved,
+                                u64 va_range_start, u64 va_range_end,
+                                u64 va_range_split) {
     LOG_DEBUG(Services, "Start: 0x{:08x}, end: 0x{:08x}, split: 0x{:08x}",
               va_range_start, va_range_end, va_range_split);
 
     // TODO: why does nouveau pass 0x0 for all of these?
 
     // TODO: what is split for?
-    GPU_INSTANCE.AllocatePrivateAddressSpace(va_range_end - va_range_start,
-                                             va_range_start);
+    process->GetGMmu()->AllocatePrivateAddressSpace(
+        va_range_end - va_range_start, va_range_start);
     return NvResult::Success;
 }
 
