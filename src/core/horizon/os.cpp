@@ -48,6 +48,7 @@
 #include "core/horizon/services/pl/detail/platform_service_manager_for_system.hpp"
 #include "core/horizon/services/pl/sharedresource/platform_shared_resource_manager.hpp"
 #include "core/horizon/services/pm/boot_mode_interface.hpp"
+#include "core/horizon/services/pm/debug_monitor_interface.hpp"
 #include "core/horizon/services/pm/information_interface.hpp"
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
@@ -286,6 +287,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // PM
     REGISTER_SERVICE(others, pm::IBootModeInterface, "pm:bm");
     REGISTER_SERVICE(others, pm::IInformationInterface, "pm:info");
+    REGISTER_SERVICE(others, pm::IDebugMonitorInterface, "pm:dmnt");
 
     // PCTL
     REGISTER_SERVICE(others, pctl::IParentalControlServiceFactory, "pctl:s",

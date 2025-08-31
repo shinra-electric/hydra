@@ -376,6 +376,8 @@ add_library(hydra-core
     horizon/services/pm/boot_mode_interface.hpp
     horizon/services/pm/information_interface.cpp
     horizon/services/pm/information_interface.hpp
+    horizon/services/pm/debug_monitor_interface.cpp
+    horizon/services/pm/debug_monitor_interface.hpp
     horizon/services/spsm/power_state_interface.cpp
     horizon/services/spsm/power_state_interface.hpp
     horizon/services/usb/const.hpp
