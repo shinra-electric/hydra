@@ -13,38 +13,12 @@ class Display {
     void Open() {}
     void Close() {}
 
-    bool AcquirePresentTextures();
-    void Present(u32 width, u32 height);
-
-    // Layers
-    u32 CreateLayer(u32 binder_id) {
-        std::lock_guard lock(mutex);
-        u32 id = layer_pool.AllocateHandle();
-        layer_pool.Get(id) = new Layer(binder_id);
-        return id;
-    }
-
-    void DestroyLayer(u32 id) {
-        std::lock_guard lock(mutex);
-        delete layer_pool.Get(id);
-        layer_pool.Free(id);
-    }
-
-    Layer& GetLayer(u32 id) {
-        std::lock_guard lock(mutex);
-        return *layer_pool.Get(id);
-    }
-
-    Layer* GetMainLayer();
-
   private:
-    std::mutex mutex;
     kernel::Event* vsync_event;
-
-    StaticPool<Layer*, 8> layer_pool;
+    // TODO: name and resolution
 
   public:
-    REF_GETTER(vsync_event, GetVSyncEvent);
+    GETTER(vsync_event, GetVSyncEvent);
 };
 
 } // namespace hydra::horizon::display

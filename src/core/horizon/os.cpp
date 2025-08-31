@@ -125,9 +125,6 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     : audio_core{audio_core_}, ui_handler{ui_handler_} {
     SINGLETON_SET_INSTANCE(OS, Horizon);
 
-    // Display
-    display_driver.CreateDisplay();
-
     // Firmware
     std::map<u64, std::string> firmware_titles_map = {
         {0x010000000000080E, "TimeZoneBinary"},

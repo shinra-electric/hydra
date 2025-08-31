@@ -396,17 +396,15 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     renderer.LockMutex();
 
     // Acquire present textures
-    // TODO: don't hardcode the display ID
-    auto& display = os->GetDisplayDriver().GetDisplay(1);
 
     // Delta time
     {
-        auto layer = display.GetMainLayer();
+        auto layer = os->GetDisplayDriver().GetMainLayer();
         if (layer)
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
-    bool acquired = display.AcquirePresentTextures();
+    bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
     // HACK: return if no textures are available
     if (!acquired) {
         renderer.UnlockMutex();
@@ -418,7 +416,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         return;
     }
 
-    display.Present(width, height);
+    os->GetDisplayDriver().Present(width, height);
     if (acquired && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present
@@ -505,9 +503,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 }
 
 void EmulationContext::TakeScreenshot() {
-    // TODO: don't hardcode the display ID
-    auto& display = os->GetDisplayDriver().GetDisplay(1);
-    auto layer = display.GetMainLayer();
+    auto layer = os->GetDisplayDriver().GetMainLayer();
     if (!layer)
         return;
 

@@ -8,10 +8,11 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
     u32 flags, u64 display_id, u64* out_layer_id, u64* out_native_window_size,
     hosbinder::ParcelWriter& out_parcel_writer) {
     u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    // TODO: what's the display for?
+    // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
     // Out
-    *out_layer_id = display.CreateLayer(binder_id);
+    *out_layer_id = OS_INSTANCE.GetDisplayDriver().CreateLayer(binder_id);
     *out_native_window_size =
         sizeof(hosbinder::ParcelHeader) + sizeof(ParcelData);
 

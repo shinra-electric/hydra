@@ -13,16 +13,15 @@ result_t IManagerDisplayService::CreateManagedLayer(aligned<u32, 8> flags,
                                                     u64* out_layer_id) {
     // TODO: flags
     u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
+    // TODO: what's the display for?
+    // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
 
-    *out_layer_id = display.CreateLayer(binder_id);
+    *out_layer_id = OS_INSTANCE.GetDisplayDriver().CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 
 result_t IManagerDisplayService::DestroyManagedLayer(u64 layer_id) {
-    const handle_id_t display_id = 1; // TODO: what display ID should be used?
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-    display.DestroyLayer(layer_id);
+    OS_INSTANCE.GetDisplayDriver().DestroyLayer(layer_id);
     return RESULT_SUCCESS;
 }
 

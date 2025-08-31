@@ -7,31 +7,46 @@ namespace hydra::horizon::display {
 
 class Driver {
   public:
+    Driver();
+
     // Displays
-    u32 CreateDisplay() {
-        std::lock_guard lock(display_mutex);
-        u32 id = display_pool.AllocateHandle();
-        display_pool.Get(id) = new Display();
-        return id;
-    }
-
-    void DestroyDisplay(u32 id) {
-        std::lock_guard lock(display_mutex);
-        delete display_pool.Get(id);
-        display_pool.Free(id);
-    }
-
-    Display& GetDisplay(u32 id) {
+    Display& GetDisplay(handle_id_t id) {
         std::lock_guard lock(display_mutex);
         return *display_pool.Get(id);
+    }
+
+    handle_id_t GetDisplayIDFromName(const std::string& name) {
+        LOG_FUNC_NOT_IMPLEMENTED(Horizon);
+
+        // HACK
+        return 1;
+    }
+
+    Display& GetDisplayByName(const std::string& name) {
+        return GetDisplay(GetDisplayIDFromName(name));
+    }
+
+    // Layers
+    u32 CreateLayer(u32 binder_id) {
+        std::lock_guard lock(layer_mutex);
+        return layer_pool.Add(new Layer(binder_id));
+    }
+
+    void DestroyLayer(u32 id) {
+        std::lock_guard lock(layer_mutex);
+        delete layer_pool.Get(id);
+        layer_pool.Free(id);
+    }
+
+    Layer& GetLayer(u32 id) {
+        std::lock_guard lock(layer_mutex);
+        return *layer_pool.Get(id);
     }
 
     // Binders
     u32 CreateBinder() {
         std::lock_guard lock(binder_mutex);
-        u32 id = binder_pool.AllocateHandle();
-        binder_pool.Get(id) = new Binder();
-        return id;
+        return binder_pool.Add(new Binder());
     }
 
     void DestroyBinder(u32 id) {
@@ -45,20 +60,18 @@ class Driver {
         return *binder_pool.Get(id);
     }
 
-    // Main layer
-    Layer* GetMainLayer() {
-        std::lock_guard lock(display_mutex);
-        // TODO: get the main display for the main process
-        const handle_id_t display_id = 1;
-        if (!display_pool.IsValid(display_id))
-            return nullptr;
+    // Presenting
+    bool AcquirePresentTextures();
+    void Present(u32 width, u32 height);
 
-        return display_pool.Get(display_id)->GetMainLayer();
-    }
+    // HACK
+    Layer* GetMainLayer();
 
   private:
     std::mutex display_mutex;
     StaticPool<Display*, 8> display_pool;
+    std::mutex layer_mutex;
+    StaticPool<Layer*, 8> layer_pool;
     std::mutex binder_mutex;
     StaticPool<Binder*, 16, true>
         binder_pool; // Allow zero handle (official games expect binder IDs to

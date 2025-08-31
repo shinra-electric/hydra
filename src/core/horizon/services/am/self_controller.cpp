@@ -38,25 +38,19 @@ result_t ISelfController::GetLibraryAppletLaunchableEvent(
 }
 
 result_t ISelfController::CreateManagedDisplayLayer(u64* out_layer_id) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
-    // TODO: what display ID should be used?
-    const handle_id_t display_id = 1;
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-
-    *out_layer_id = display.CreateLayer(binder_id);
+    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
+    *out_layer_id = OS_INSTANCE.GetDisplayDriver().CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 
 result_t ISelfController::CreateManagedDisplaySeparableLayer(
     u64* out_display_layer_id, u64* out_recording_layer_id) {
-    u32 binder_id = OS::GetInstance().GetDisplayDriver().CreateBinder();
-    // TODO: what display ID should be used?
-    const handle_id_t display_id = 1;
-    auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
-
-    *out_display_layer_id = display.CreateLayer(binder_id);
+    u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
+    *out_display_layer_id =
+        OS_INSTANCE.GetDisplayDriver().CreateLayer(binder_id);
     // TODO: what is a recording layer?
-    *out_recording_layer_id = display.CreateLayer(binder_id);
+    *out_recording_layer_id =
+        OS_INSTANCE.GetDisplayDriver().CreateLayer(binder_id);
     return RESULT_SUCCESS;
 }
 

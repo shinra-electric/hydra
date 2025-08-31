@@ -81,8 +81,8 @@ add_library(hydra-core
     horizon/display/binder.hpp
     horizon/display/layer.cpp
     horizon/display/layer.hpp
-    horizon/display/display.cpp
     horizon/display/display.hpp
+    horizon/display/driver.cpp
     horizon/display/driver.hpp
     horizon/services/const.hpp
     horizon/services/service.cpp
