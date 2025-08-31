@@ -49,7 +49,6 @@ void BlitPipelineCache::Destroy() { pipeline_descriptor->release(); }
 MTL::RenderPipelineState*
 BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     // Source
-    // TODO: only take opacity when transparent?
     auto shader_source = R"(
         #include <metal_stdlib>
         using namespace metal;
@@ -83,18 +82,14 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     pipeline_descriptor->setFragmentFunction(fragment_blit);
     auto color_attachment = pipeline_descriptor->colorAttachments()->object(0);
     color_attachment->setPixelFormat(descriptor.pixel_format);
-    if (descriptor.transparent) {
-        color_attachment->setBlendingEnabled(true);
-        color_attachment->setRgbBlendOperation(MTL::BlendOperationAdd);
-        color_attachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
-        color_attachment->setDestinationRGBBlendFactor(
-            MTL::BlendFactorOneMinusSourceAlpha);
-        color_attachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
-        color_attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-        color_attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorZero);
-    } else {
-        color_attachment->setBlendingEnabled(false);
-    }
+    color_attachment->setBlendingEnabled(true);
+    color_attachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+    color_attachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    color_attachment->setDestinationRGBBlendFactor(
+        MTL::BlendFactorOneMinusSourceAlpha);
+    color_attachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+    color_attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+    color_attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorZero);
 
     fragment_blit->release();
 
@@ -111,7 +106,7 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
 }
 
 u64 BlitPipelineCache::Hash(const BlitPipelineDescriptor& descriptor) {
-    return (u64)descriptor.pixel_format | ((u64)descriptor.transparent << 12);
+    return (u64)descriptor.pixel_format;
 }
 
 void BlitPipelineCache::DestroyElement(MTL::RenderPipelineState* pipeline) {
