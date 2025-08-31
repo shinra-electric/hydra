@@ -11,7 +11,8 @@ namespace hydra::horizon::display {
 // TODO: should have its own framebuffer
 class Layer {
   public:
-    Layer(u32 binder_id_) : binder_id{binder_id_} {}
+    Layer(kernel::Process* process_, u32 binder_id_)
+        : process{process_}, binder_id{binder_id_} {}
 
     // TODO
     void Open() {}
@@ -24,12 +25,14 @@ class Layer {
     AccumulatedTime GetAccumulatedDT();
 
   private:
+    kernel::Process* process;
     u32 binder_id;
 
     hw::tegra_x1::gpu::renderer::TextureBase* present_texture{nullptr};
     IntRect2D src_rect;
 
   public:
+    GETTER(process, GetProcess);
     GETTER(binder_id, GetBinderID);
     GETTER(present_texture, GetPresentTexture);
     CONST_REF_GETTER(src_rect, GetSrcRect);

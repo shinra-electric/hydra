@@ -97,7 +97,8 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    auto process =
+    ASSERT(process == nullptr, Other, "Process already exists");
+    process =
         os->GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(process);
 
@@ -399,7 +400,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     // Delta time
     {
-        auto layer = os->GetDisplayDriver().GetMainLayer();
+        auto layer = os->GetDisplayDriver().GetFirstLayerForProcess(process);
         if (layer)
             accumulated_dt += layer->GetAccumulatedDT();
     }
@@ -503,7 +504,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 }
 
 void EmulationContext::TakeScreenshot() {
-    auto layer = os->GetDisplayDriver().GetMainLayer();
+    auto layer = os->GetDisplayDriver().GetFirstLayerForProcess(process);
     if (!layer)
         return;
 

@@ -42,12 +42,16 @@ void Driver::Present(u32 width, u32 height) {
     }
 }
 
-Layer* Driver::GetMainLayer() {
+Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {
     std::lock_guard lock(layer_mutex);
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
          layer_id++) {
-        if (layer_pool.IsValid(layer_id))
-            return layer_pool.Get(layer_id);
+        if (!layer_pool.IsValid(layer_id))
+            continue;
+
+        auto layer = layer_pool.Get(layer_id);
+        if (layer->GetProcess() == process)
+            return layer;
     }
 
     return nullptr;

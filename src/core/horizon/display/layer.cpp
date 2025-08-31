@@ -18,9 +18,8 @@ bool Layer::AcquirePresentTexture() {
     const auto& buffer = binder.GetBuffer(slot);
 
     // Texture
-    present_texture = GPU_INSTANCE.GetTexture(
-        (*KERNEL_INSTANCE.GetProcessManager().Begin())->GetMmu(),
-        buffer.nv_buffer); // HACK
+    present_texture =
+        GPU_INSTANCE.GetTexture(process->GetMmu(), buffer.nv_buffer);
 
     // Rect
     src_rect = {};

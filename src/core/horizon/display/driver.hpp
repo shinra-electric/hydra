@@ -27,9 +27,9 @@ class Driver {
     }
 
     // Layers
-    u32 CreateLayer(u32 binder_id) {
+    u32 CreateLayer(kernel::Process* process, u32 binder_id) {
         std::lock_guard lock(layer_mutex);
-        return layer_pool.Add(new Layer(binder_id));
+        return layer_pool.Add(new Layer(process, binder_id));
     }
 
     void DestroyLayer(u32 id) {
@@ -64,8 +64,7 @@ class Driver {
     bool AcquirePresentTextures();
     void Present(u32 width, u32 height);
 
-    // HACK
-    Layer* GetMainLayer();
+    Layer* GetFirstLayerForProcess(kernel::Process* process);
 
   private:
     std::mutex display_mutex;

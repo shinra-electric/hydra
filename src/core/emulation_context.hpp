@@ -42,7 +42,7 @@ class EmulationContext {
     horizon::OS* os;
 
     // Loading screen assets
-    hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo = nullptr;
+    hw::tegra_x1::gpu::renderer::TextureBase* nintendo_logo{nullptr};
     std::vector<hw::tegra_x1::gpu::renderer::TextureBase*>
         startup_movie; // TODO: texture array?
     std::vector<std::chrono::milliseconds> startup_movie_delays;
@@ -51,6 +51,9 @@ class EmulationContext {
     i32 startup_movie_frame{0};
 
     bool loading{false};
+
+    // Process
+    horizon::kernel::Process* process{nullptr};
 
     // Delta time
     f32 last_dt_average{0.0f};
