@@ -393,14 +393,14 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     // Present
 
-    auto& renderer = gpu->GetRenderer();
-    renderer.LockMutex();
-
     // Acquire surface
-    if (!renderer.AcquireNextSurface()) {
-        renderer.UnlockMutex();
+    auto& renderer = gpu->GetRenderer();
+    // NOTE: this waits for a surface to be available. We don't lock the mutex,
+    // as that would block all other rendering for a long time. The mutex also
+    // doesn't need to be locked, as all surface related operations are done on
+    // this thread.
+    if (!renderer.AcquireNextSurface())
         return;
-    }
 
     // Delta time
     {
@@ -408,6 +408,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         if (layer)
             accumulated_dt += layer->GetAccumulatedDT();
     }
+
+    renderer.LockMutex();
 
     // Acquire present textures
     bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
