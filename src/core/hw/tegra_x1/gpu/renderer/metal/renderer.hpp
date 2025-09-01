@@ -64,10 +64,12 @@ class Renderer : public RendererBase {
     void SetSurface(void* surface) override;
 
     bool AcquireNextSurface() override;
+    void BeginSurfaceRenderPass() override;
     void DrawTextureToSurface(const TextureBase* texture,
                               const FloatRect2D src_rect,
                               const FloatRect2D dst_rect, bool transparent,
                               f32 opacity) override;
+    void EndSurfaceRenderPass() override;
     void PresentSurface() override;
 
     // Buffer

@@ -396,7 +396,11 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     auto& renderer = gpu->GetRenderer();
     renderer.LockMutex();
 
-    // Acquire present textures
+    // Acquire surface
+    if (!renderer.AcquireNextSurface()) {
+        renderer.UnlockMutex();
+        return;
+    }
 
     // Delta time
     {
@@ -405,6 +409,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
+    // Acquire present textures
     bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
     // HACK: return if no textures are available
     if (!acquired) {
@@ -412,12 +417,11 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         return;
     }
 
-    if (!renderer.AcquireNextSurface()) {
-        renderer.UnlockMutex();
-        return;
-    }
-
+    // Render pass
+    renderer.BeginSurfaceRenderPass();
     os->GetDisplayDriver().Present(width, height);
+    renderer.EndSurfaceRenderPass();
+
     if (acquired && loading) {
         // TODO: till when should the loading screen be shown?
         // Stop the loading screen on the first present

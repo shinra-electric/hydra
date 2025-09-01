@@ -151,25 +151,22 @@ bool Renderer::AcquireNextSurface() {
         return false;
 
     drawable = layer->nextDrawable();
-    if (drawable) {
-        // Render pass
-        auto render_pass_descriptor =
-            MTL::RenderPassDescriptor::alloc()->init();
-        auto color_attachment =
-            render_pass_descriptor->colorAttachments()->object(0);
-        color_attachment->setTexture(drawable->texture());
-        color_attachment->setLoadAction(MTL::LoadActionClear);
-        color_attachment->setClearColor(
-            MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
-        color_attachment->setStoreAction(MTL::StoreActionStore);
+    return (drawable != nullptr);
+}
 
-        auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
-        render_pass_descriptor->release();
+void Renderer::BeginSurfaceRenderPass() {
+    ASSERT_DEBUG(drawable != nullptr, MetalRenderer, "Drawable cannot be null");
 
-        return true;
-    } else {
-        return false;
-    }
+    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
+    auto color_attachment =
+        render_pass_descriptor->colorAttachments()->object(0);
+    color_attachment->setTexture(drawable->texture());
+    color_attachment->setLoadAction(MTL::LoadActionClear);
+    color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
+    color_attachment->setStoreAction(MTL::StoreActionStore);
+
+    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+    render_pass_descriptor->release();
 }
 
 void Renderer::DrawTextureToSurface(const TextureBase* texture,
@@ -207,10 +204,9 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
                             NS::UInteger(3));
 }
 
-void Renderer::PresentSurface() {
-    EndEncoding();
-    command_buffer->presentDrawable(drawable);
-}
+void Renderer::EndSurfaceRenderPass() { EndEncoding(); }
+
+void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);

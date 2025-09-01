@@ -9,7 +9,7 @@ class TextureDecoder {
     TextureDecoder();
     ~TextureDecoder();
 
-    void Decode(const TextureDescriptor& descriptor, u8*& out_data);
+    void Decode(const TextureDescriptor& descriptor, u8* out_data);
 
   private:
 };

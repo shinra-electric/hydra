@@ -42,9 +42,6 @@ class TextureCache {
     // TODO: use a more memory lookup friendly data structure
     std::map<uptr, TextureMem> texture_mem_map;
 
-    // Buffers
-    std::vector<u8> scratch_buffer;
-
     TextureBase* Create(const TextureDescriptor& descriptor);
     void Update(Tex& tex, const ModifyInfo& mem_last_modified);
 

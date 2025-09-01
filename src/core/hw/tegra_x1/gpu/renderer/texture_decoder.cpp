@@ -7,14 +7,12 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 TextureDecoder::TextureDecoder() {}
 TextureDecoder::~TextureDecoder() {}
 
-void TextureDecoder::Decode(const TextureDescriptor& descriptor,
-                            u8*& out_data) {
+void TextureDecoder::Decode(const TextureDescriptor& descriptor, u8* out_data) {
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
 
     switch (descriptor.kind) {
     case NvKind::Pitch:
-        // TODO: correct?
-        out_data = in_data;
+        std::memcpy(out_data, in_data, descriptor.stride * descriptor.height);
         break;
     case NvKind::Generic_16BX2:
         decode_generic_16bx2(descriptor.stride, descriptor.height,

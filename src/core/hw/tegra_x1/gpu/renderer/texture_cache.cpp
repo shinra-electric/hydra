@@ -126,14 +126,10 @@ u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
 }
 
 void TextureCache::DecodeTexture(TextureBase* texture) {
-    scratch_buffer.resize(texture->GetDescriptor().stride *
-                          texture->GetDescriptor().height);
-    auto data = scratch_buffer.data();
-    texture_decoder.Decode(texture->GetDescriptor(), data);
-
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
         texture->GetDescriptor().stride * texture->GetDescriptor().height);
-    tmp_buffer->CopyFrom(reinterpret_cast<uptr>(data));
+    texture_decoder.Decode(texture->GetDescriptor(),
+                           (u8*)tmp_buffer->GetDescriptor().ptr);
     texture->CopyFrom(tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
 }
