@@ -7,19 +7,6 @@ namespace hydra::horizon::display {
 Driver::Driver() { display_pool.Add(new Display()); }
 
 bool Driver::AcquirePresentTextures() {
-    // Signal V-Sync
-    {
-        // NOTE: we signal all displays at once for simplicity
-        std::lock_guard lock(display_mutex);
-        for (u32 display_id = 1; display_id < layer_pool.GetCapacity() + 1;
-             display_id++) {
-            if (!display_pool.IsValid(display_id))
-                continue;
-            display_pool.Get(display_id)->GetVSyncEvent()->Signal();
-        }
-    }
-
-    // Acquire
     bool acquired = false;
     {
         std::lock_guard lock(layer_mutex);
@@ -78,6 +65,17 @@ void Driver::Present(u32 width, u32 height) {
     // Present
     for (u32 i = 0; i < sorted_layers.size(); i++)
         sorted_layers[i]->Present(dst_origin, dst_scale, i != 0);
+}
+
+void Driver::SignalVSync() {
+    // NOTE: we signal all displays at once for simplicity
+    std::lock_guard lock(display_mutex);
+    for (u32 display_id = 1; display_id < layer_pool.GetCapacity() + 1;
+         display_id++) {
+        if (!display_pool.IsValid(display_id))
+            continue;
+        display_pool.Get(display_id)->GetVSyncEvent()->Signal();
+    }
 }
 
 Layer* Driver::GetFirstLayerForProcess(kernel::Process* process) {

@@ -91,6 +91,8 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
         color_attachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
         color_attachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
         color_attachment->setDestinationAlphaBlendFactor(MTL::BlendFactorZero);
+    } else {
+        color_attachment->setBlendingEnabled(false);
     }
 
     fragment_blit->release();

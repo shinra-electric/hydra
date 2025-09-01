@@ -411,16 +411,10 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 
     // Acquire present textures
     bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
-    // HACK: return if no textures are available
-    if (!acquired) {
-        renderer.UnlockMutex();
-        return;
-    }
 
     // Render pass
     renderer.BeginSurfaceRenderPass();
     os->GetDisplayDriver().Present(width, height);
-    renderer.EndSurfaceRenderPass();
 
     if (acquired && loading) {
         // TODO: till when should the loading screen be shown?
@@ -504,9 +498,13 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         }
     }
 
+    renderer.EndSurfaceRenderPass();
     renderer.PresentSurface();
     renderer.EndCommandBuffer();
     renderer.UnlockMutex();
+
+    // Signal V-Sync
+    os->GetDisplayDriver().SignalVSync();
 }
 
 void EmulationContext::TakeScreenshot() {

@@ -63,6 +63,7 @@ class Driver {
     // Presenting
     bool AcquirePresentTextures();
     void Present(u32 width, u32 height);
+    void SignalVSync();
 
     Layer* GetFirstLayerForProcess(kernel::Process* process);
 
