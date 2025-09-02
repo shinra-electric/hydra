@@ -94,17 +94,16 @@ class Writer {
         ptr += str.size() + 1;
     }
 
-    // Getters
-    u8* GetBase() const { return base; }
-    usize GetSize() const { return size; }
-    usize GetWrittenSize() const { return ptr - base; }
-
     bool IsValid() const { return base != nullptr; }
 
   private:
     u8* base;
     u8* ptr;
     usize size;
+
+  public:
+    GETTER(base, GetBase);
+    GETTER(size, GetSize);
 };
 
 class StreamReader {

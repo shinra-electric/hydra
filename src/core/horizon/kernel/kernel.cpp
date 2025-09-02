@@ -236,12 +236,15 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegW(0, res);
         guest_thread->SetRegX(1, tmp_u64);
         break;
-    case 0x26:
-        res = Break(BreakReason(guest_thread->GetRegX(0)),
-                    crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
-                    guest_thread->GetRegX(2));
+    case 0x26: {
+        const vaddr_t addr = guest_thread->GetRegX(1);
+        res =
+            Break(BreakReason(guest_thread->GetRegX(0)),
+                  (addr != 0x0 ? crnt_process->GetMmu()->UnmapAddr(addr) : 0x0),
+                  guest_thread->GetRegX(2));
         guest_thread->SetRegW(0, res);
         break;
+    }
     case 0x27:
         res = OutputDebugString(
             reinterpret_cast<const char*>(

@@ -29,13 +29,13 @@ result_t ISaveDataInfoReader::ReadSaveDataInfo(
 
     auto& writer = *out_entry_buffer.writer;
     for (u32 i = entry_index; i < sizeof_array(entries); i++) {
-        if (writer.GetWrittenSize() + sizeof(SaveDataInfo) > writer.GetSize())
+        if (writer.Tell() + sizeof(SaveDataInfo) > writer.GetSize())
             break;
 
         writer.Write(entries[i]);
     }
 
-    *out_entry_count = writer.GetWrittenSize() / sizeof(SaveDataInfo);
+    *out_entry_count = writer.Tell() / sizeof(SaveDataInfo);
 
     return RESULT_SUCCESS;
 }

@@ -14,9 +14,18 @@ struct ParcelFlattenedObject {
     i32 fd_count;
 };
 
+struct ParcelFlattenedBinder {
+    u32 type;
+    u32 flags;
+    i64 binder_id;
+    i64 cookie;
+    u64 service_name;
+    u64 _unknown_x20;
+};
+
 class ParcelReader {
   public:
-    ParcelReader(Reader& reader_) : reader{reader_} {
+    ParcelReader(const Reader& reader_) : reader{reader_} {
         auto header = Read<ParcelHeader>();
         reader.Seek(header.data_offset);
     }
@@ -79,20 +88,26 @@ class ParcelReader {
     }
 
   private:
-    Reader& reader;
+    Reader reader;
 };
 
 class ParcelWriter {
   public:
-    ParcelWriter(Writer& writer_) : writer{writer_} {
+    ParcelWriter(const Writer& writer_) : writer{writer_} {
         header = writer.WritePtr<ParcelHeader>();
-        header->data_size = 0;
+        header->data_size = 0x0;
         header->data_offset = sizeof(ParcelHeader);
-        header->objects_size = 0;
-        header->objects_offset = 0;
+        header->objects_size = 0x0;
+        header->objects_offset = 0x0;
     }
 
-    void Finalize() { header->data_size = writer.Tell() - header->data_offset; }
+    void Finish() {
+        header->data_size = writer.Tell() - header->data_offset;
+        header->objects_size = objects.size() * sizeof(u32);
+        header->objects_offset = header->data_offset + header->data_size;
+        std::memcpy(writer.GetBase() + header->objects_offset, objects.data(),
+                    header->objects_size);
+    }
 
     template <typename T>
     T* WritePtr(const T* data = nullptr, usize count = 1) {
@@ -124,6 +139,21 @@ class ParcelWriter {
             WriteFlattenedObject(*ptr);
     }
 
+    // TODO: take the object instead of binder ID
+    void WriteObject(u32 binder_id, u64 service_name) {
+        Write(ParcelFlattenedBinder{
+            .type = 0x2,
+            .flags = 0x0,
+            .binder_id = binder_id,
+            .cookie = 0x0,
+            .service_name = service_name,
+            ._unknown_x20 = 0x0,
+        });
+
+        // TODO: what is this?
+        objects.push_back(0x0);
+    }
+
     void WriteString16(const std::string_view str) {
         ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
         Write<i32>(str.size());
@@ -138,10 +168,15 @@ class ParcelWriter {
         WriteString16(token);
     }
 
+    usize GetWrittenSize() const {
+        return sizeof(ParcelHeader) + header->data_size + header->objects_size;
+    }
+
   private:
-    Writer& writer;
+    Writer writer;
 
     ParcelHeader* header;
+    std::vector<u32> objects;
 };
 
 } // namespace hydra::horizon::services::hosbinder

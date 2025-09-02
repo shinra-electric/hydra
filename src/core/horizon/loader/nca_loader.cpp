@@ -160,6 +160,7 @@ void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
         if (filename == "main.npdm") {
             // Do nothing
         } else {
+            LOG_DEBUG(Loader, "Loading {}", filename);
             NsoLoader loader(file, filename, filename == entry_point);
             loader.SetMainThreadParams(main_thread_priority,
                                        main_thread_core_number,

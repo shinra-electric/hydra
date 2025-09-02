@@ -85,13 +85,11 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
     if (should_respond) {
         // HIPC header
 #define GET_ARRAY_SIZE(writer)                                                 \
-    static_cast<u32>(align(writers.writer.GetWrittenSize(), (usize)4) /        \
-                     sizeof(u32))
+    static_cast<u32>(align(writers.writer.Tell(), (usize)4) / sizeof(u32))
 
 #define WRITE_ARRAY(writer, ptr)                                               \
     if (ptr) {                                                                 \
-        memcpy(ptr, writers.writer.GetBase(),                                  \
-               writers.writer.GetWrittenSize());                               \
+        memcpy(ptr, writers.writer.GetBase(), writers.writer.Tell());          \
     }
 
         kernel::hipc::Metadata meta{
@@ -112,10 +110,10 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
                                                                 // works?
             data_start = align_ptr(data_start, 0x10);
         WRITE_ARRAY(writer, data_start);
-        if (writers.objects_writer.GetWrittenSize() != 0) {
+        if (writers.objects_writer.Tell() != 0) {
             memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
                    writers.objects_writer.GetBase(),
-                   writers.objects_writer.GetWrittenSize());
+                   writers.objects_writer.Tell());
         }
         WRITE_ARRAY(copy_handles_writer, response.copy_handles);
         WRITE_ARRAY(move_handles_writer, response.move_handles);

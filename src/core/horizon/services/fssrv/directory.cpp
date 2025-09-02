@@ -30,7 +30,7 @@ result_t IDirectory::Read(u64* out_entry_count,
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
         // Check if the writer has enough space to write the entry
-        if (out_entries.writer->GetWrittenSize() + sizeof(FsDirectoryEntry) >
+        if (out_entries.writer->Tell() + sizeof(FsDirectoryEntry) >
             out_entries.writer->GetSize())
             break;
 
@@ -56,8 +56,7 @@ result_t IDirectory::Read(u64* out_entry_count,
         i++;
     }
 
-    *out_entry_count =
-        out_entries.writer->GetWrittenSize() / sizeof(FsDirectoryEntry);
+    *out_entry_count = out_entries.writer->Tell() / sizeof(FsDirectoryEntry);
 
     return RESULT_SUCCESS;
 }

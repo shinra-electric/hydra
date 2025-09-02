@@ -21,7 +21,7 @@ result_t
 IAccountService::ListAllUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
-        if (out_buffer.writer->GetWrittenSize() + sizeof(uuid_t) >
+        if (out_buffer.writer->Tell() + sizeof(uuid_t) >
             out_buffer.writer->GetSize())
             continue;
 
@@ -39,7 +39,7 @@ IAccountService::ListOpenUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
 
     for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
-        if (out_buffer.writer->GetWrittenSize() + sizeof(uuid_t) >
+        if (out_buffer.writer->Tell() + sizeof(uuid_t) >
             out_buffer.writer->GetSize())
             continue;
 

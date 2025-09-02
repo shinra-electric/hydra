@@ -73,10 +73,7 @@ class Driver {
     std::mutex layer_mutex;
     StaticPool<Layer*, 8> layer_pool;
     std::mutex binder_mutex;
-    StaticPool<Binder*, 16, true>
-        binder_pool; // Allow zero handle (official games expect binder IDs to
-                     // behave as indices, e.g. they expect the first binder ID
-                     // to be 0)
+    StaticPool<Binder*, 16> binder_pool;
 };
 
 } // namespace hydra::horizon::display

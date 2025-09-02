@@ -128,24 +128,13 @@ result_t IApplicationDisplayService::OpenLayer(
     auto& layer = OS_INSTANCE.GetDisplayDriver().GetLayer(layer_id);
     layer.Open();
 
-    // Out
-    // TODO: correct?
-    *out_native_window_size =
-        sizeof(hosbinder::ParcelHeader) + sizeof(ParcelData);
-
     // Parcel
     hosbinder::ParcelWriter parcel_writer(*parcel_buffer.writer);
+    parcel_writer.WriteObject(layer.GetBinderID(), "dispdrv"_u64);
+    parcel_writer.Finish();
 
-    parcel_writer.Write<ParcelData>({
-        .unknown0 = 0x2,
-        .unknown1 = 0x0, // TODO
-        .binder_id = layer.GetBinderID(),
-        .unknown2 = {0x0},
-        .str = "dispdrv"_u64,
-        .unknown3 = 0x0,
-    });
+    *out_native_window_size = parcel_writer.GetWrittenSize();
 
-    parcel_writer.Finalize();
     return RESULT_SUCCESS;
 }
 
@@ -158,12 +147,9 @@ result_t IApplicationDisplayService::CreateStrayLayer(
     kernel::Process* process, aligned<u32, 8> flags, u64 display_id,
     u64* out_layer_id, u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
-    hosbinder::ParcelWriter parcel_writer(*out_parcel_buffer.writer);
-    auto result = CreateStrayLayerImpl(process, flags, display_id, out_layer_id,
-                                       out_native_window_size, parcel_writer);
-
-    parcel_writer.Finalize();
-    return RESULT_SUCCESS;
+    return CreateStrayLayerImpl(process, flags, display_id, out_layer_id,
+                                out_native_window_size,
+                                *out_parcel_buffer.writer);
 }
 
 result_t IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {
