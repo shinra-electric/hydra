@@ -8,7 +8,9 @@ class TextureBase;
 
 namespace hydra::horizon::display {
 
-// TODO: should have its own framebuffer
+#define LAYER_SIZE_AUTO                                                        \
+    uint2 { 0, 0 }
+
 class Layer {
   public:
     Layer(kernel::Process* process_, u32 binder_id_)
@@ -19,7 +21,7 @@ class Layer {
     void Close() {}
 
     bool AcquirePresentTexture();
-    void Present(float2 dst_origin, f32 dst_scale, bool transparent);
+    void Present(FloatRect2D dst_rect, f32 dst_scale, bool transparent);
 
     // Time
     AccumulatedTime GetAccumulatedDT();
@@ -29,7 +31,7 @@ class Layer {
     u32 binder_id;
 
     float2 position{0, 0};
-    uint2 size{0, 0}; // (0, 0) means auto
+    uint2 size{LAYER_SIZE_AUTO};
     i64 z{0};
 
     // Present

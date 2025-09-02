@@ -50,21 +50,23 @@ void Driver::Present(u32 width, u32 height) {
     auto scale_x = f32(width) / src_size.x();
     auto scale_y = f32(height) / src_size.y();
 
-    float2 dst_origin;
+    FloatRect2D dst_rect;
     float dst_scale;
     if (scale_x > scale_y) {
         dst_scale = scale_y;
         const auto dst_width = src_size.x() * dst_scale;
-        dst_origin = {(width - dst_width) / 2.f, 0.f};
+        dst_rect.origin = {(width - dst_width) / 2.f, 0.f};
+        dst_rect.size = {dst_width, f32(height)};
     } else {
         dst_scale = scale_x;
         const auto dst_height = src_size.y() * dst_scale;
-        dst_origin = {0.f, (height - dst_height) / 2.f};
+        dst_rect.origin = {0.f, (height - dst_height) / 2.f};
+        dst_rect.size = {f32(width), dst_height};
     }
 
     // Present
     for (u32 i = 0; i < sorted_layers.size(); i++)
-        sorted_layers[i]->Present(dst_origin, dst_scale, i != 0);
+        sorted_layers[i]->Present(dst_rect, dst_scale, i != 0);
 }
 
 void Driver::SignalVSync() {
