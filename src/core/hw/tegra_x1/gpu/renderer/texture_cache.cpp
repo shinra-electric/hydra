@@ -126,8 +126,10 @@ u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
 }
 
 void TextureCache::DecodeTexture(TextureBase* texture) {
+    // Align the height to 16 bytes (TODO: 16?)
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-        texture->GetDescriptor().stride * texture->GetDescriptor().height);
+        texture->GetDescriptor().stride *
+        align(texture->GetDescriptor().height, 16ull));
     texture_decoder.Decode(texture->GetDescriptor(),
                            (u8*)tmp_buffer->GetDescriptor().ptr);
     texture->CopyFrom(tmp_buffer);
