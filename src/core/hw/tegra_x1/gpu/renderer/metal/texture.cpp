@@ -14,7 +14,8 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setHeight(descriptor.height);
 
     const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
-    desc->setPixelFormat(pixel_format_info.pixel_format);
+    pixel_format = pixel_format_info.pixel_format;
+    desc->setPixelFormat(pixel_format);
 
     auto base_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
     if (pixel_format_info.component_indices == uchar4{0, 1, 2, 3}) {
