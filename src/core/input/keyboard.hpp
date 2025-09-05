@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/device_base.hpp"
+#include "core/input/device.hpp"
 
 namespace hydra::input {
 
@@ -58,7 +58,7 @@ enum class Key {
     RightSuper,
 };
 
-class KeyboardBase : public DeviceBase {
+class IKeyboard : public IDevice {
   public:
     bool ActsAsController() const override { return true; }
 

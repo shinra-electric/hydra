@@ -115,33 +115,34 @@ void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
         // Analog sticks
         for (const auto& mapping : config.GetAnalogMappings()) {
             const auto value = device->GetAxisValue(mapping.code);
+            // TODO: there are also dedicated buttons for this
             if (mapping.axis.is_left) {
                 switch (mapping.axis.direction) {
-                case AnalogStickDirection::XPlus:
+                case AnalogStickDirection::Right:
                     analog_l_x += value;
                     break;
-                case AnalogStickDirection::XMinus:
+                case AnalogStickDirection::Left:
                     analog_l_x -= value;
                     break;
-                case AnalogStickDirection::YPlus:
+                case AnalogStickDirection::Up:
                     analog_l_y += value;
                     break;
-                case AnalogStickDirection::YMinus:
+                case AnalogStickDirection::Down:
                     analog_l_y -= value;
                     break;
                 }
             } else {
                 switch (mapping.axis.direction) {
-                case AnalogStickDirection::XPlus:
+                case AnalogStickDirection::Right:
                     analog_r_x += value;
                     break;
-                case AnalogStickDirection::XMinus:
+                case AnalogStickDirection::Left:
                     analog_r_x -= value;
                     break;
-                case AnalogStickDirection::YPlus:
+                case AnalogStickDirection::Up:
                     analog_r_y += value;
                     break;
-                case AnalogStickDirection::YMinus:
+                case AnalogStickDirection::Down:
                     analog_r_y -= value;
                     break;
                 }

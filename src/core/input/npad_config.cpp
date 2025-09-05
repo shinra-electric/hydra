@@ -1,6 +1,6 @@
 #include "core/input/npad_config.hpp"
 
-#include "core/input/keyboard_base.hpp"
+#include "core/input/keyboard.hpp"
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
     hydra::horizon::hid, NpadButtons, npad_buttons, A, "a", B, "b", X, "x", Y,
@@ -71,22 +71,22 @@ Code to_code(const std::string_view str) {
 
 AnalogStickAxis to_analog_stick_axis(const std::string_view str) {
     // TODO: clean this up?
-    if (str == "l_x_plus") {
-        return {true, AnalogStickDirection::XPlus};
-    } else if (str == "l_x_minus") {
-        return {true, AnalogStickDirection::XMinus};
-    } else if (str == "l_y_plus") {
-        return {true, AnalogStickDirection::YPlus};
-    } else if (str == "l_y_minus") {
-        return {true, AnalogStickDirection::YMinus};
-    } else if (str == "r_x_plus") {
-        return {false, AnalogStickDirection::XPlus};
-    } else if (str == "r_x_minus") {
-        return {false, AnalogStickDirection::XMinus};
-    } else if (str == "r_y_plus") {
-        return {false, AnalogStickDirection::YPlus};
-    } else if (str == "r_y_minus") {
-        return {false, AnalogStickDirection::YMinus};
+    if (str == "l_right") {
+        return {true, AnalogStickDirection::Right};
+    } else if (str == "l_left") {
+        return {true, AnalogStickDirection::Left};
+    } else if (str == "l_up") {
+        return {true, AnalogStickDirection::Up};
+    } else if (str == "l_down") {
+        return {true, AnalogStickDirection::Down};
+    } else if (str == "r_right") {
+        return {false, AnalogStickDirection::Right};
+    } else if (str == "r_left") {
+        return {false, AnalogStickDirection::Left};
+    } else if (str == "r_up") {
+        return {false, AnalogStickDirection::Up};
+    } else if (str == "r_down") {
+        return {false, AnalogStickDirection::Down};
     } else {
         LOG_ERROR(Input, "Invalid analog stick axis \"{}\"", str);
         return {};
@@ -95,14 +95,14 @@ AnalogStickAxis to_analog_stick_axis(const std::string_view str) {
 
 std::string analog_stick_direction_to_string(const AnalogStickDirection& dir) {
     switch (dir) {
-    case AnalogStickDirection::XPlus:
-        return "x_plus";
-    case AnalogStickDirection::XMinus:
-        return "x_minus";
-    case AnalogStickDirection::YPlus:
-        return "y_plus";
-    case AnalogStickDirection::YMinus:
-        return "y_minus";
+    case AnalogStickDirection::Right:
+        return "right";
+    case AnalogStickDirection::Left:
+        return "left";
+    case AnalogStickDirection::Up:
+        return "up";
+    case AnalogStickDirection::Down:
+        return "down";
     }
 }
 
@@ -200,13 +200,13 @@ void NpadConfig::LoadDefaults() {
         // Analog sticks
         analog_mappings = {
             {Code(DeviceType::Keyboard, Key::D),
-             {true, AnalogStickDirection::XPlus}},
+             {true, AnalogStickDirection::Right}},
             {Code(DeviceType::Keyboard, Key::A),
-             {true, AnalogStickDirection::XMinus}},
+             {true, AnalogStickDirection::Left}},
             {Code(DeviceType::Keyboard, Key::W),
-             {true, AnalogStickDirection::YPlus}},
+             {true, AnalogStickDirection::Up}},
             {Code(DeviceType::Keyboard, Key::S),
-             {true, AnalogStickDirection::YMinus}},
+             {true, AnalogStickDirection::Down}},
         };
 
         break;

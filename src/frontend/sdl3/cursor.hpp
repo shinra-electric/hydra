@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/input/cursor_base.hpp"
+#include "core/input/cursor.hpp"
 #include "frontend/sdl3/const.hpp"
 
 namespace hydra::frontend::sdl3 {
 
-class Cursor : public input::CursorBase {
+class Cursor : public input::ICursor {
   public:
     void Poll(SDL_Event e);
 

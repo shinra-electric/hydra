@@ -8,6 +8,7 @@ enum class DeviceType : u32 {
     Invalid = 0,
 
     Keyboard,
+    Controller,
     Cursor,
 };
 
@@ -34,10 +35,10 @@ struct CodeButtonMapping {
 };
 
 enum class AnalogStickDirection {
-    XMinus,
-    XPlus,
-    YMinus,
-    YPlus,
+    Right,
+    Left,
+    Up,
+    Down,
 };
 
 struct AnalogStickAxis {
@@ -53,4 +54,5 @@ struct CodeAnalogMapping {
 } // namespace hydra::input
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(hydra::input, DeviceType, device_type,
-                                   Keyboard, "Keyboard", Cursor, "Cursor")
+                                   Keyboard, "Keyboard", Controller,
+                                   "Controller", Cursor, "Cursor")

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/input/keyboard_base.hpp"
+#include "core/input/keyboard.hpp"
 
 namespace hydra::input::apple_gc {
 
-class Keyboard : public KeyboardBase {
+class Keyboard : public IKeyboard {
   public:
     Keyboard(id handle_) : handle{handle_} {}
 

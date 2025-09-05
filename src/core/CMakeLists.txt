@@ -550,12 +550,13 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     input/const.hpp
-    input/device_base.hpp
-    input/keyboard_base.hpp
-    input/cursor_base.hpp
+    input/device.hpp
+    input/keyboard.hpp
+    input/controller.hpp
+    input/cursor.hpp
     input/npad_config.cpp
     input/npad_config.hpp
-    input/device_list_base.hpp
+    input/device_list.hpp
     input/device_manager.cpp
     input/device_manager.hpp
     input/apple_gc/keyboard.mm

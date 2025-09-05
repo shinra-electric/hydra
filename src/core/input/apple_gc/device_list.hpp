@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/input/device_list_base.hpp"
+#include "core/input/device_list.hpp"
 
 namespace hydra::input::apple_gc {
 
-class DeviceList : public DeviceListBase {
+class DeviceList : public IDeviceList {
   public:
     DeviceList();
     ~DeviceList();

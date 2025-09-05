@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/input/device_list_base.hpp"
+#include "core/input/device_list.hpp"
 #include "core/input/npad_config.hpp"
 
 #define INPUT_DEVICE_MANAGER_INSTANCE input::DeviceManager::GetInstance()
@@ -24,13 +24,13 @@ class DeviceManager {
     void Poll();
 
     // Touch screen devices
-    void ConnectTouchScreenDevice(const std::string& name, DeviceBase* device) {
+    void ConnectTouchScreenDevice(const std::string& name, IDevice* device) {
         ASSERT(device->ActsAsTouchScreen(), Input,
                "Device \"{}\" does not act as a touch screen", name);
         device_list->devices.insert({name, device});
     }
 
-    DeviceBase* DisconnectTouchScreenDevice(const std::string& name) {
+    IDevice* DisconnectTouchScreenDevice(const std::string& name) {
         auto it = device_list->devices.find(name);
         ASSERT(it != device_list->devices.end(), Input,
                "Touch screen \"{}\" not connected", name);
@@ -39,13 +39,13 @@ class DeviceManager {
     }
 
   private:
-    DeviceListBase* device_list;
+    IDeviceList* device_list;
     NpadConfig npad_configs[NPAD_COUNT];
 
     std::map<u64, u32> active_touches;
 
     // Helpers
-    DeviceBase* GetDevice(const std::string& name) {
+    IDevice* GetDevice(const std::string& name) {
         auto it = device_list->devices.find(name);
         if (it == device_list->devices.end())
             return nullptr;

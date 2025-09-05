@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/input/device_base.hpp"
+#include "core/input/device.hpp"
 
 namespace hydra::input {
 
-class CursorBase : public DeviceBase {
+class ICursor : public IDevice {
   public:
     bool ActsAsTouchScreen() const override { return true; }
 };

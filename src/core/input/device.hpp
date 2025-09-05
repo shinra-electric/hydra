@@ -4,9 +4,9 @@
 
 namespace hydra::input {
 
-class DeviceBase {
+class IDevice {
   public:
-    virtual ~DeviceBase() {}
+    virtual ~IDevice() {}
 
     virtual bool ActsAsController() const { return false; };
     virtual bool ActsAsTouchScreen() const { return false; };
