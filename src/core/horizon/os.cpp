@@ -28,6 +28,7 @@
 #include "core/horizon/services/hosbinder/hos_binder_driver.hpp"
 #include "core/horizon/services/i2c/manager.hpp"
 #include "core/horizon/services/ins/receiver_manager.hpp"
+#include "core/horizon/services/irsensor/ir_sensor_server.hpp"
 #include "core/horizon/services/lbl/lbl_controller.hpp"
 #include "core/horizon/services/lm/log_service.hpp"
 #include "core/horizon/services/mii/static_service.hpp"
@@ -204,6 +205,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, hid::IHidServer, "hid");
     REGISTER_SERVICE(others, hid::IHidDebugServer, "hid:dbg");
     REGISTER_SERVICE(others, hid::IHidSystemServer, "hid:sys");
+    REGISTER_SERVICE(others, irsensor::IIrSensorServer, "irs");
 
     // AM
     REGISTER_SERVICE(others, am::IApmManager, "apm", "apm:am");

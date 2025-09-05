@@ -26,7 +26,8 @@
 // TODO: remove
 namespace hydra::horizon::kernel {
 class Event;
-}
+class SharedMemory;
+} // namespace hydra::horizon::kernel
 
 namespace hydra::horizon::services {
 
