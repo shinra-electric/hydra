@@ -7,6 +7,7 @@
 namespace hydra::horizon::applets::error {
 
 result_t Applet::Run() {
+    // TODO: PopInData
     auto param_reader = PopInDataRaw();
     const auto param_common = param_reader.Read<ParamCommon>();
 

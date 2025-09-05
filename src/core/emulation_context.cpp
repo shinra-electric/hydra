@@ -120,7 +120,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             new horizon::services::am::IStorage(common_args));
 
         // Arg
-        horizon::applets::controller::ControllerSupportArg0 arg0{
+        horizon::applets::controller::SupportArg<4> arg{
             .player_count_min = 0,
             .player_count_max = 2,
             .enable_take_over_connection = true,
@@ -128,34 +128,26 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             .enable_permit_joy_dual = true,
             .enable_single_mode = true,
             .enable_identification_color = false,
-        };
-
-        horizon::applets::controller::ControllerSupportArg1 arg1{
             .enable_explain_text = false,
         };
 
         // Private arg
-        auto private_arg =
-            new horizon::applets::controller::ControllerSupportArgPrivate{
-                .size = sizeof(
-                    horizon::applets::controller::ControllerSupportArgPrivate),
-                .controller_support_arg_size = sizeof(arg0) + sizeof(arg1),
-                .flag0 = 0,
-                .flag1 = 0,
-                .mode = horizon::applets::controller::ControllerSupportMode::
-                    ShowControllerSupport,
-                .caller = horizon::applets::controller::
-                    ControllerSupportCaller::Application,
-                .npad_style_set = horizon::hid::NpadStyleSet::JoyDual,
-                .npad_joy_hold_type = horizon::hid::NpadJoyHoldType::Vertical,
-            };
+        auto private_arg = new horizon::applets::controller::ArgPrivate{
+            .size = sizeof(horizon::applets::controller::ArgPrivate),
+            .controller_support_arg_size = sizeof(arg),
+            .flag0 = 0,
+            .flag1 = 0,
+            .mode = horizon::applets::controller::Mode::ShowControllerSupport,
+            .caller = horizon::applets::controller::Caller::Application,
+            .npad_style_set = horizon::hid::NpadStyleSet::JoyDual,
+            .npad_joy_hold_type = horizon::hid::NpadJoyHoldType::Vertical,
+        };
         controller->PushInData(
             new horizon::services::am::IStorage(private_arg));
 
-        auto arg = (u8*)malloc(sizeof(arg0) + sizeof(arg1));
-        memcpy(arg, &arg0, sizeof(arg0));
-        memcpy(arg + sizeof(arg0), &arg1, sizeof(arg1));
-        controller->PushInData(new horizon::services::am::IStorage(arg));
+        auto arg_ptr = (u8*)malloc(sizeof(arg));
+        memcpy(arg_ptr, &arg, sizeof(arg));
+        controller->PushInData(new horizon::services::am::IStorage(arg_ptr));
 
         break;
     }

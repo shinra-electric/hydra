@@ -1,5 +1,6 @@
 #include "core/horizon/services/am/library_applet_accessor.hpp"
 
+#include "core/horizon/applets/controller/applet.hpp"
 #include "core/horizon/applets/error/applet.hpp"
 #include "core/horizon/applets/player_select/applet.hpp"
 #include "core/horizon/applets/software_keyboard/applet.hpp"
@@ -26,6 +27,9 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(const AppletId id,
         break;
     case AppletId::LibraryAppletPlayerSelect:
         applet = new applets::player_select::Applet(controller);
+        break;
+    case AppletId::LibraryAppletController:
+        applet = new applets::controller::Applet(controller);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Services, "Applet ID {}", id);
