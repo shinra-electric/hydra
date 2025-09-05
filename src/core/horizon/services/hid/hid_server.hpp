@@ -46,7 +46,8 @@ class IHidServer : public IService {
     kernel::Event* npad_style_set_update_event;
 
     ::hydra::horizon::hid::NpadJoyHoldType npad_joy_hold_type{
-        ::hydra::horizon::hid::NpadJoyHoldType::Horizontal};
+        ::hydra::horizon::hid::NpadJoyHoldType::Vertical}; // TODO: store
+                                                           // per process
 
     // Commands
     result_t CreateAppletResource(RequestContext* ctx, u64 aruid);
@@ -74,9 +75,9 @@ class IHidServer : public IService {
     result_t SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
                                 i64 aruid);
     // TODO: PID descriptor
-    result_t
-    GetNpadJoyHoldType(i64 aruid,
-                       ::hydra::horizon::hid::NpadJoyHoldType* out_type);
+    result_t GetNpadJoyHoldType(
+        i64 aruid,
+        aligned<::hydra::horizon::hid::NpadJoyHoldType, 8>* out_type);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeSingleByDefault);
     STUB_REQUEST_COMMAND(SetNpadJoyAssignmentModeDual);
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);

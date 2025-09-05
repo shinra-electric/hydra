@@ -97,7 +97,8 @@ IHidServer::SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
 }
 
 result_t IHidServer::GetNpadJoyHoldType(
-    i64 aruid, ::hydra::horizon::hid::NpadJoyHoldType* out_type) {
+    i64 aruid, aligned<::hydra::horizon::hid::NpadJoyHoldType, 8>* out_type) {
+    out_type->ZeroOutPadding();
     *out_type = npad_joy_hold_type;
     return RESULT_SUCCESS;
 }

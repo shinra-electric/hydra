@@ -19,6 +19,10 @@ result_t IAccountService::GetUserExistence(uuid_t user_id, bool* out_exists) {
 
 result_t
 IAccountService::ListAllUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    // Clear buffer
+    std::memset(out_buffer.writer->GetBase(), 0, out_buffer.writer->GetSize());
+
+    // Write user IDs
     for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.writer->Tell() + sizeof(uuid_t) >
@@ -37,6 +41,10 @@ result_t
 IAccountService::ListOpenUsers(OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     LOG_FUNC_STUBBED(Services);
 
+    // Clear buffer
+    std::memset(out_buffer.writer->GetBase(), 0, out_buffer.writer->GetSize());
+
+    // Write user IDs
     for (const auto user_id : USER_MANAGER_INSTANCE.GetUserIDs()) {
         // Check if we cen fit the entry in the buffer
         if (out_buffer.writer->Tell() + sizeof(uuid_t) >

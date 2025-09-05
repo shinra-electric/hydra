@@ -242,12 +242,14 @@ class aligned {
     operator T&() { return value; }
     operator const T&() const { return value; }
 
-    // Getters
-    const T& Get() const { return value; }
+    void ZeroOutPadding() { std::memset(_padding, 0, sizeof_array(_padding)); }
 
   private:
     T value;
-    u8 _pad[alignment - sizeof(T)];
+    u8 _padding[alignment - sizeof(T)];
+
+  public:
+    CONST_REF_GETTER(value, Get);
 } PACKED;
 
 template <typename T>
