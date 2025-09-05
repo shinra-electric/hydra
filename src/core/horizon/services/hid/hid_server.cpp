@@ -20,7 +20,7 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SwapNpadAssignment, 200, GetVibrationDeviceInfo, 201, SendVibrationValue,
     203, CreateActiveVibrationDeviceList, 205, IsVibrationPermitted, 206,
     SendVibrationValues, 303, ActivateSevenSixAxisSensor, 1000,
-    SetNpadCommunicationMode)
+    SetNpadCommunicationMode, 1004, SetTouchScreenOutputRanges)
 
 result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
     AddService(*ctx, new IAppletResource());

@@ -90,6 +90,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(SendVibrationValues);
     STUB_REQUEST_COMMAND(ActivateSevenSixAxisSensor); // 5.0.0+
     STUB_REQUEST_COMMAND(SetNpadCommunicationMode);
+    STUB_REQUEST_COMMAND(SetTouchScreenOutputRanges); // 20.0.0+
 };
 
 } // namespace hydra::horizon::services::hid
