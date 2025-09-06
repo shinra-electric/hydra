@@ -1,6 +1,7 @@
 #include "core/input/npad_config.hpp"
 
 #include "core/input/controller.hpp"
+#include "core/input/device_manager.hpp"
 #include "core/input/keyboard.hpp"
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
@@ -174,12 +175,40 @@ NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
 
 void NpadConfig::LoadDefaults() {
     switch (type) {
-    case horizon::hid::NpadIdType::No1:
-        // Devices
-        device_names = {"keyboard"};
-
+    case horizon::hid::NpadIdType::No1: {
         // Buttons
         button_mappings = {
+            // Controller
+            {Code(DeviceType::Controller, ControllerInput::Plus),
+             horizon::hid::NpadButtons::Plus},
+            {Code(DeviceType::Controller, ControllerInput::Minus),
+             horizon::hid::NpadButtons::Minus},
+            {Code(DeviceType::Controller, ControllerInput::Left),
+             horizon::hid::NpadButtons::Left},
+            {Code(DeviceType::Controller, ControllerInput::Right),
+             horizon::hid::NpadButtons::Right},
+            {Code(DeviceType::Controller, ControllerInput::Up),
+             horizon::hid::NpadButtons::Up},
+            {Code(DeviceType::Controller, ControllerInput::Down),
+             horizon::hid::NpadButtons::Down},
+            {Code(DeviceType::Controller, ControllerInput::A),
+             horizon::hid::NpadButtons::A},
+            {Code(DeviceType::Controller, ControllerInput::B),
+             horizon::hid::NpadButtons::B},
+            {Code(DeviceType::Controller, ControllerInput::X),
+             horizon::hid::NpadButtons::X},
+            {Code(DeviceType::Controller, ControllerInput::Y),
+             horizon::hid::NpadButtons::Y},
+            {Code(DeviceType::Controller, ControllerInput::L),
+             horizon::hid::NpadButtons::L},
+            {Code(DeviceType::Controller, ControllerInput::R),
+             horizon::hid::NpadButtons::R},
+            {Code(DeviceType::Controller, ControllerInput::ZL),
+             horizon::hid::NpadButtons::ZL},
+            {Code(DeviceType::Controller, ControllerInput::ZR),
+             horizon::hid::NpadButtons::ZR},
+
+            // Keyboard
             {Code(DeviceType::Keyboard, Key::Enter),
              horizon::hid::NpadButtons::Plus},
             {Code(DeviceType::Keyboard, Key::Tab),
@@ -204,6 +233,25 @@ void NpadConfig::LoadDefaults() {
 
         // Analog sticks
         analog_mappings = {
+            // Controller
+            {Code(DeviceType::Controller, ControllerInput::StickLRight),
+             {true, AnalogStickDirection::Right}},
+            {Code(DeviceType::Controller, ControllerInput::StickLLeft),
+             {true, AnalogStickDirection::Left}},
+            {Code(DeviceType::Controller, ControllerInput::StickLUp),
+             {true, AnalogStickDirection::Up}},
+            {Code(DeviceType::Controller, ControllerInput::StickLDown),
+             {true, AnalogStickDirection::Down}},
+            {Code(DeviceType::Controller, ControllerInput::StickRRight),
+             {false, AnalogStickDirection::Right}},
+            {Code(DeviceType::Controller, ControllerInput::StickRLeft),
+             {false, AnalogStickDirection::Left}},
+            {Code(DeviceType::Controller, ControllerInput::StickRUp),
+             {false, AnalogStickDirection::Up}},
+            {Code(DeviceType::Controller, ControllerInput::StickRDown),
+             {false, AnalogStickDirection::Down}},
+
+            // Keyboard
             {Code(DeviceType::Keyboard, Key::D),
              {true, AnalogStickDirection::Right}},
             {Code(DeviceType::Keyboard, Key::A),
@@ -215,6 +263,7 @@ void NpadConfig::LoadDefaults() {
         };
 
         break;
+    }
     default:
         break;
     }

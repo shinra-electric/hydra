@@ -22,10 +22,18 @@ bool Controller::IsPressedImpl(ControllerInput input) {
         BUTTON_CASE(R, RightBumper)
         BUTTON_CASE(ZL, LeftTrigger)
         BUTTON_CASE(ZR, RightTrigger)
-        // TODO: plus
-        // TODO: minus
-        // TODO: dpad
-        // TODO: SL, SR
+    // TODO: implement
+    case ControllerInput::Plus:
+    case ControllerInput::Minus:
+    case ControllerInput::Left:
+    case ControllerInput::Up:
+    case ControllerInput::Right:
+    case ControllerInput::Down:
+    case ControllerInput::LeftSL:
+    case ControllerInput::LeftSR:
+    case ControllerInput::RightSL:
+    case ControllerInput::RightSR:
+        break;
     default:
         LOG_NOT_IMPLEMENTED(Input, "Controller button {}", input);
         return false;
