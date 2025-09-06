@@ -2,6 +2,7 @@
 
 #import <GameController/GameController.h>
 
+#include "core/input/apple_gc/controller.hpp"
 #include "core/input/apple_gc/keyboard.hpp"
 
 using DeviceList = hydra::input::apple_gc::DeviceList;
@@ -79,22 +80,16 @@ DeviceList::DeviceList() {
 DeviceList::~DeviceList() { [impl release]; }
 
 void DeviceList::_AddController(id controller) {
-    // TODO: uncomment
-    /*
     // TODO: don't hardcode the name
     devices["controller"] = new Controller(controller);
-    */
 }
 
 void DeviceList::_RemoveController(id controller) {
-    // TODO: uncomment
-    /*
     // TODO: don't hardcode the name
     auto it = devices.find("controller");
     ASSERT(it != devices.end(), Input, "Controller not connected");
     delete it->second;
     devices.erase(it);
-    */
 }
 
 void DeviceList::_AddKeyboard(id keyboard) {

@@ -5,6 +5,19 @@
 
 namespace hydra::input {
 
+namespace {
+
+i32 analog_stick_to_int(f32 value) {
+    if (value < 0.0f)
+        return std::max(i16(value * (-std::numeric_limits<i16>::min())),
+                        std::numeric_limits<i16>::min());
+    else
+        return std::min(i16(value * std::numeric_limits<i16>::max()),
+                        std::numeric_limits<i16>::max());
+}
+
+} // namespace
+
 DeviceManager::DeviceManager()
     : npad_configs{
           horizon::hid::NpadIdType::No1, horizon::hid::NpadIdType::No2,
@@ -159,9 +172,11 @@ void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
     // Set
     INPUT_MANAGER_INSTANCE.SetNpadButtons(type, buttons);
     INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateL(
-        type, {std::bit_cast<i32>(analog_l_x), std::bit_cast<i32>(analog_l_y)});
+        type,
+        {analog_stick_to_int(analog_l_x), analog_stick_to_int(analog_l_y)});
     INPUT_MANAGER_INSTANCE.SetNpadAnalogStickStateR(
-        type, {std::bit_cast<i32>(analog_r_x), std::bit_cast<i32>(analog_r_y)});
+        type,
+        {analog_stick_to_int(analog_r_x), analog_stick_to_int(analog_r_y)});
 }
 
 } // namespace hydra::input

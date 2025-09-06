@@ -565,6 +565,8 @@ add_library(hydra-core
     input/device_manager.hpp
     input/apple_gc/keyboard.mm
     input/apple_gc/keyboard.hpp
+    input/apple_gc/controller.mm
+    input/apple_gc/controller.hpp
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
     # TODO: only build the debugger on debug builds

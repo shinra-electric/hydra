@@ -67,6 +67,8 @@ bool Keyboard::IsPressedImpl(Key key) {
         return false;
     }
 
+#undef KEY_CASE
+
     return [[((GCKeyboard*)handle).keyboardInput buttonForKeyCode:gc_key_code]
         isPressed];
 }

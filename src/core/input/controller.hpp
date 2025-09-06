@@ -5,7 +5,7 @@
 namespace hydra::input {
 
 // Uses Nintendo Switch layout
-enum class ControllerButton {
+enum class ControllerInput {
     Invalid = 0,
 
     A,
@@ -38,6 +38,17 @@ enum class ControllerButton {
     RightSR,
 };
 
+inline bool ControllerInputIsStick(ControllerInput input) {
+    return input == ControllerInput::StickLLeft ||
+           input == ControllerInput::StickLUp ||
+           input == ControllerInput::StickLRight ||
+           input == ControllerInput::StickLDown ||
+           input == ControllerInput::StickRLeft ||
+           input == ControllerInput::StickRUp ||
+           input == ControllerInput::StickRRight ||
+           input == ControllerInput::StickRDown;
+}
+
 class IController : public IDevice {
   public:
     bool ActsAsController() const override { return true; }
@@ -47,30 +58,37 @@ class IController : public IDevice {
         if (code.GetDeviceType() != DeviceType::Controller)
             return false;
 
-        const auto button = code.GetValue<ControllerButton>();
-        return IsPressedImpl(button);
+        const auto input = code.GetValue<ControllerInput>();
+        if (ControllerInputIsStick(input))
+            return GetAxisValueImpl(input) > 0.5f;
+        else
+            return IsPressedImpl(input);
     }
 
     f32 GetAxisValue(const Code& code) override {
         if (code.GetDeviceType() != DeviceType::Controller)
             return 0.0f;
 
-        const auto key = code.GetValue<ControllerButton>();
-        return IsPressedImpl(key) ? 1.0f : 0.0f;
+        const auto input = code.GetValue<ControllerInput>();
+        if (ControllerInputIsStick(input))
+            return GetAxisValueImpl(input);
+        else
+            return IsPressedImpl(input) ? 1.0f : 0.0f;
     }
 
   protected:
-    virtual bool IsPressedImpl(ControllerButton button) = 0;
+    virtual bool IsPressedImpl(ControllerInput input) = 0;
+    virtual f32 GetAxisValueImpl(ControllerInput input) = 0;
 };
 
 } // namespace hydra::input
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
-    hydra::input, Key, key, Q, "Q", W, "W", E, "E", R, "R", T, "T", Y, "Y", U,
-    "U", I, "I", O, "O", P, "P", A, "A", S, "S", D, "D", F, "F", G, "G", H, "H",
-    J, "J", K, "K", L, "L", Z, "Z", X, "X", C, "C", V, "V", B, "B", N, "N", M,
-    "M", ArrowLeft, "Left", ArrowRight, "Right", ArrowUp, "Up", ArrowDown,
-    "Down", Enter, "Enter", Tab, "Tab", Backspace, "Backspace", Space, "Space",
-    LeftShift, "Left shift", RightShift, "Right shift", LeftControl,
-    "Left control", RightControl, "Right control", LeftAlt, "Left alt",
-    RightAlt, "Right alt", LeftSuper, "Left super", RightSuper, "Right super")
+    hydra::input, ControllerInput, controller_input, A, "A", B, "B", X, "X", Y,
+    "Y", StickL, "stick L", StickR, "stick R", L, "L", R, "R", ZL, "ZL", ZR,
+    "ZR", Plus, "+", Minus, "-", Left, "left", Up, "up", Right, "right", Down,
+    "down", StickLLeft, "stick L left", StickLUp, "stick L up", StickLRight,
+    "stick L right", StickLDown, "stick L down", StickRLeft, "stick R left",
+    StickRUp, "stick R up", StickRRight, "stick R right", StickRDown,
+    "stick R down", LeftSL, "left SL", LeftSR, "left SR", RightSL, "right SL",
+    RightSR, "right SR")

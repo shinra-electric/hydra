@@ -1,5 +1,6 @@
 #include "core/input/npad_config.hpp"
 
+#include "core/input/controller.hpp"
 #include "core/input/keyboard.hpp"
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
@@ -23,6 +24,8 @@ u32 to_value(DeviceType type, const std::string_view value_str) {
     switch (type) {
     case DeviceType::Keyboard:
         return u32(to_key(value_str));
+    case DeviceType::Controller:
+        return u32(to_controller_input(value_str));
     case DeviceType::Cursor:
         LOG_ERROR(Input, "Cursor device does not support codes");
         return invalid<u32>();
@@ -35,6 +38,8 @@ std::string value_to_string(DeviceType device_type, u32 value) {
     switch (device_type) {
     case DeviceType::Keyboard:
         return fmt::format("{}", Key(value));
+    case DeviceType::Controller:
+        return fmt::format("{}", ControllerInput(value));
     case DeviceType::Cursor:
         LOG_ERROR(Input, "Cursor device does not support codes");
         return {};
