@@ -73,6 +73,14 @@ using DeviceList = hydra::input::apple_gc::DeviceList;
 
 namespace hydra::input::apple_gc {
 
+namespace {
+
+std::string get_device_name(id device) {
+    return [[device vendorName] UTF8String];
+}
+
+} // namespace
+
 DeviceList::DeviceList() {
     impl = [[DeviceListImpl alloc] initWithParent:this];
 }
@@ -80,26 +88,30 @@ DeviceList::DeviceList() {
 DeviceList::~DeviceList() { [impl release]; }
 
 void DeviceList::_AddController(id controller) {
-    // TODO: don't hardcode the name
-    devices["controller"] = new Controller(controller);
+    auto name = get_device_name(controller);
+    LOG_INFO(Input, "Controller connected: {}", name);
+    devices[name] = new Controller(controller);
 }
 
 void DeviceList::_RemoveController(id controller) {
-    // TODO: don't hardcode the name
-    auto it = devices.find("controller");
+    auto name = get_device_name(controller);
+    LOG_INFO(Input, "Controller disconnected: {}", name);
+    auto it = devices.find(name);
     ASSERT(it != devices.end(), Input, "Controller not connected");
     delete it->second;
     devices.erase(it);
 }
 
 void DeviceList::_AddKeyboard(id keyboard) {
-    // TODO: don't hardcode the name
-    devices["keyboard"] = new Keyboard(keyboard);
+    auto name = get_device_name(keyboard);
+    LOG_INFO(Input, "Keyboard connected: {}", name);
+    devices[name] = new Keyboard(keyboard);
 }
 
 void DeviceList::_RemoveKeyboard(id keyboard) {
-    // TODO: don't hardcode the name
-    auto it = devices.find("keyboard");
+    auto name = get_device_name(keyboard);
+    LOG_INFO(Input, "Keyboard disconnected: {}", name);
+    auto it = devices.find(name);
     ASSERT(it != devices.end(), Input, "Keyboard not connected");
     delete it->second;
     devices.erase(it);

@@ -163,9 +163,6 @@ void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
         }
     }
 
-    // TODO: normalize analog sticks if the length of the vector is more
-    // than 1?
-
     // Update
     INPUT_MANAGER_INSTANCE.UpdateNpad(type);
 
