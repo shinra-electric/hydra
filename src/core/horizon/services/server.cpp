@@ -46,26 +46,66 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         const auto res = KERNEL_INSTANCE.ReplyAndReceive(
             thread, sync_objs, reply_target_session, kernel::INFINITE_TIMEOUT,
             signalled_index);
-        ASSERT_DEBUG(res == RESULT_SUCCESS, Services,
-                     "Failed to wait for synchronization: 0x{:08x}", res);
+        switch (res) {
+        case RESULT_SUCCESS: {
+            if (signalled_index < ports.size()) {
+                // Incomming connection
+                auto port = ports[signalled_index];
+                auto session = port->AcceptSession();
+                RegisterSession(session, port_service_creators.at(port)());
 
-        if (signalled_index < ports.size()) {
-            // Incomming connection
-            auto port = ports[signalled_index];
-            auto session = port->AcceptSession();
-            RegisterSession(session, port_service_creators.at(port)());
+                // Reset the reply target
+                reply_target_session = nullptr;
+            } else {
+                // Incoming request
+                const u32 session_index = signalled_index - ports.size();
+                auto session = sessions[session_index];
+                auto service = session_services.at(session);
+
+                service->HandleRequest(session->GetActiveRequestClientProcess(),
+                                       thread->GetTlsPtr());
+
+                // Set the reply target
+                reply_target_session = session;
+            }
+
+            break;
+        }
+        case MAKE_RESULT(Svc, 123): { // SessionClosed
+            ASSERT_DEBUG(signalled_index >= ports.size(), Services,
+                         "Invalid signalled index {}", signalled_index);
+            const u32 session_index = signalled_index - ports.size();
+            auto session = sessions[session_index];
+            auto service = session_services.at(session);
+
+            // Service
+            service->Release();
+            session_services.erase(session);
+
+            // Session
+
+            // Handle all requests
+            while (session->HasRequests()) {
+                session->Receive(thread);
+                service->HandleRequest(session->GetActiveRequestClientProcess(),
+                                       thread->GetTlsPtr());
+                session->Reply(thread->GetTlsPtr());
+            }
+
+            // Release
+            session->Clear(); // TODO: is this necessary?
+            session->Release();
+            sessions.erase(sessions.begin() + session_index);
 
             // Reset the reply target
             reply_target_session = nullptr;
-        } else {
-            // Incoming request
-            auto session = sessions[signalled_index - ports.size()];
-            auto service = session_services.at(session);
-            service->HandleRequest(session->GetActiveRequestClientProcess(),
-                                   thread->GetTlsPtr());
 
-            // Set the reply target
-            reply_target_session = session;
+            break;
+        }
+        default:
+            LOG_FATAL(Services, "Failed to wait for synchronization: 0x{:08x}",
+                      res);
+            break;
         }
 
         // Check for exit

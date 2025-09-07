@@ -1,5 +1,6 @@
 #include "core/horizon/kernel/hipc/server_session.hpp"
 
+#include "core/horizon/kernel/hipc/session.hpp"
 #include "core/horizon/kernel/thread.hpp"
 
 namespace hydra::horizon::kernel::hipc {
@@ -12,6 +13,16 @@ ServerSession::~ServerSession() {
         // TODO: this should return an error on the client side
         active_req->client_thread->Resume();
     }
+
+    parent->OnServerClose();
+}
+
+void ServerSession::OnClientClose() {
+    std::lock_guard lock(mutex);
+    client_open = false;
+
+    // Signal the server that client has closed
+    Signal();
 }
 
 void ServerSession::Receive(IThread* crnt_thread) {
@@ -38,14 +49,14 @@ void ServerSession::Reply(uptr ptr) {
 
     // Resume the client thread
     active_request->client_thread->Resume();
+
+    active_request = std::nullopt;
 }
 
 void ServerSession::EnqueueRequest(Process* client_process,
                                    IThread* client_thread, uptr ptr) {
-    {
-        std::lock_guard lock(mutex);
-        requests.push({client_process, client_thread, ptr});
-    }
+    std::lock_guard lock(mutex);
+    requests.push({client_process, client_thread, ptr});
 
     // Signal the server to process the request
     Signal();

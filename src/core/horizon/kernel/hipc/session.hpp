@@ -16,7 +16,12 @@ class Session : public AutoObject {
     Session(ServerSession* server_side_, ClientSession* client_side_,
             const std::string_view debug_name = "Session");
 
+    void OnServerClose();
+    void OnClientClose();
+
   private:
+    // TODO: this should be stack allocated, but that wouldn't really work with
+    // the current AutoObject destruction logic
     ServerSession* server_side;
     ClientSession* client_side;
 

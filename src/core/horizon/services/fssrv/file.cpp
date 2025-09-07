@@ -14,7 +14,7 @@ IFile::IFile(filesystem::FileBase* file_, filesystem::FileOpenFlags flags)
 IFile::~IFile() { file->Close(stream); }
 
 // TODO: option
-result_t IFile::Read(u32 option, u32 _pad, i64 offset, u64 size,
+result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
                      u64* out_written_size,
                      OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
@@ -38,7 +38,7 @@ result_t IFile::Read(u32 option, u32 _pad, i64 offset, u64 size,
 }
 
 // TODO: option
-result_t IFile::Write(u32 option, u32 _pad, i64 offset, u64 size,
+result_t IFile::Write(aligned<u32, 8> option, i64 offset, u64 size,
                       InBuffer<BufferAttr::MapAlias> in_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 

@@ -1184,13 +1184,18 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
     if (res != RESULT_SUCCESS)
         return res;
 
-    // Receive
-    auto server_session =
-        dynamic_cast<hipc::ServerSession*>(sync_objs[out_signalled_index]);
-    if (server_session)
-        server_session->Receive(crnt_thread);
-
-    return RESULT_SUCCESS;
+    auto sync_obj = sync_objs[out_signalled_index];
+    if (auto server_session = dynamic_cast<hipc::ServerSession*>(sync_obj)) {
+        if (server_session->IsClientOpen()) {
+            // Receive
+            server_session->Receive(crnt_thread);
+            return RESULT_SUCCESS;
+        } else {
+            return MAKE_RESULT(Svc, 123); // SessionClosed
+        }
+    } else {
+        return RESULT_SUCCESS;
+    }
 }
 
 result_t Kernel::CreateCodeMemory(vaddr_t addr, u64 size,

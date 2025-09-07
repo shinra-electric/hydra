@@ -7,6 +7,7 @@ namespace hydra::horizon::kernel::hipc {
 class ServerPort;
 class ClientPort;
 
+// TODO: implement same lifetime management logic as sessions
 class Port : public AutoObject {
   public:
     Port(ServerPort* server_side_, ClientPort* client_side_,

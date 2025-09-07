@@ -143,7 +143,8 @@ void IService::AddService(RequestContext& context, IService* service) {
         server->RegisterSession(server_session, service);
 
         // Register client side
-        const auto handle_id = context.process->AddHandle(client_session);
+        const auto handle_id =
+            context.process->AddHandleNoRetain(client_session);
         context.writers.move_handles_writer.Write(handle_id);
     }
 }
@@ -186,7 +187,6 @@ void IService::Request(RequestContext& context) {
             break;
         }
         case kernel::hipc::cmif::DomainCommandType::Close:
-            // TODO: actually free the service
             FreeSubservice(cmif_in.object_id);
             LOG_DEBUG(Kernel, "Closed subservice");
             break;
@@ -224,7 +224,7 @@ void IService::Control(kernel::Process* caller_process,
     case kernel::hipc::cmif::ControlCommandType::ConvertCurrentObjectToDomain: {
         is_domain = true;
         subservice_pool = new DynamicPool<IService*>();
-        const auto handle_id = AddSubservice(this);
+        const auto handle_id = AddSubservice(this->Retain());
         writers.writer.Write(handle_id);
         break;
     }
@@ -257,7 +257,7 @@ void IService::Clone(kernel::Process* caller_process,
     server->RegisterSession(server_session, this);
 
     // Register client side
-    const auto handle_id = caller_process->AddHandle(client_session);
+    const auto handle_id = caller_process->AddHandleNoRetain(client_session);
     writers.move_handles_writer.Write(handle_id);
 }
 

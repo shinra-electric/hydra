@@ -183,15 +183,14 @@ class StreamWriter {
                      count * sizeof(T));
     }
 
-    // Getters
-    u64 GetOffset() const { return offset; }
-
-    usize GetSize() const { return size; }
-
   private:
     std::ostream& stream;
     u64 offset;
     usize size;
+
+  public:
+    GETTER(offset, GetOffset);
+    GETTER(size, GetSize);
 };
 
 } // namespace hydra

@@ -27,7 +27,7 @@ IUserInterface::GetServiceHandle(kernel::Process* process, u64 name,
     ASSERT_DEBUG(!IsDomain(), Services,
                  "sm::IUserInterface cannot be a domain service");
     auto client_session = client_port->Connect();
-    out_handle = process->AddHandle(client_session);
+    out_handle = process->AddHandleNoRetain(client_session);
 
     return RESULT_SUCCESS;
 }

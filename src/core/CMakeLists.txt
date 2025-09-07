@@ -39,6 +39,7 @@ add_library(hydra-core
     horizon/kernel/hipc/port.hpp
     horizon/kernel/hipc/server_session.cpp
     horizon/kernel/hipc/server_session.hpp
+    horizon/kernel/hipc/client_session.cpp
     horizon/kernel/hipc/client_session.hpp
     horizon/kernel/hipc/session.cpp
     horizon/kernel/hipc/session.hpp
