@@ -74,6 +74,9 @@ class Builder {
     Value OpMax(const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::Max, {srcA, srcB});
     }
+    Value OpClamp(const Value& srcA, const Value& srcB, const Value& srcC) {
+        return AddInstruction(Opcode::Clamp, {srcA, srcB, srcC});
+    }
     Value OpMathFunction(MathFunc func, const Value& src) {
         return AddInstruction(Opcode::MathFunction,
                               {Value::RawValue(func), src});

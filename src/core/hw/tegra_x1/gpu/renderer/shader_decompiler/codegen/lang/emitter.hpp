@@ -72,6 +72,8 @@ class LangEmitter : public Emitter {
                  const ir::Value& srcB) override;
     void EmitMax(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
+    void EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+                   const ir::Value& srcB, const ir::Value& srcC) override;
     void EmitMathFunction(const ir::Value& dst, MathFunc func,
                           const ir::Value& src) override;
 

@@ -84,6 +84,8 @@ class Emitter {
                          const ir::Value& srcB) = 0;
     virtual void EmitMax(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB) = 0;
+    virtual void EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+                           const ir::Value& srcB, const ir::Value& srcC) = 0;
     virtual void EmitMathFunction(const ir::Value& dst, MathFunc func,
                                   const ir::Value& src) = 0;
 

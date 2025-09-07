@@ -308,7 +308,7 @@ void LangEmitter::EmitMultiply(const ir::Value& dst, const ir::Value& srcA,
 
 void LangEmitter::EmitFma(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB, const ir::Value& srcC) {
-    StoreValue(dst, "({} * {} + {})", GetValueStr(srcA), GetValueStr(srcB),
+    StoreValue(dst, "fma({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
                GetValueStr(srcC));
 }
 
@@ -370,6 +370,12 @@ void LangEmitter::EmitMin(const ir::Value& dst, const ir::Value& srcA,
 void LangEmitter::EmitMax(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB) {
     StoreValue(dst, "max({}, {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+                            const ir::Value& srcB, const ir::Value& srcC) {
+    StoreValue(dst, "clamp({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
+               GetValueStr(srcC));
 }
 
 void LangEmitter::EmitMathFunction(const ir::Value& dst, MathFunc func,

@@ -28,6 +28,7 @@ enum class Opcode {
     // Math
     Min,
     Max,
+    Clamp,
     MathFunction,
 
     // Vector

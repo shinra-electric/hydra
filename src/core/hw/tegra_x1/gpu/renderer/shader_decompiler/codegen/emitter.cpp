@@ -81,6 +81,10 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::Max:
         EmitMax(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
+    case ir::Opcode::Clamp:
+        EmitClamp(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
+                  inst.GetOperand(2));
+        break;
     case ir::Opcode::MathFunction:
         EmitMathFunction(inst.GetDst(),
                          inst.GetOperand(0).GetRawValue<MathFunc>(),
