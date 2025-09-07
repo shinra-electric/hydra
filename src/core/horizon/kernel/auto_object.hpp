@@ -10,13 +10,13 @@ class AutoObject {
         : debug_name{fmt::format("{} {}", debug_name_, (void*)this)}, ref_count{
                                                                           1} {}
 
-    void Retain() { ref_count++; }
+    void Retain() { ref_count.fetch_add(1, std::memory_order_relaxed); }
 
     // Returns true if the object has been deallocated
     bool Release() {
-        // TODO: do only 1 atomic operation
-        ref_count--;
-        if (ref_count == 0) {
+        if (ref_count.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            // TODO: this assumes that the object is heap allocated, but that
+            // may not always be the case
             delete this;
             return true;
         }
