@@ -183,6 +183,8 @@ class StreamWriter {
                      count * sizeof(T));
     }
 
+    void Flush() { stream.flush(); }
+
   private:
     std::ostream& stream;
     u64 offset;

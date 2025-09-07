@@ -53,7 +53,7 @@ void HostFile::Flush() {
     // Flush the file size
     // std::filesystem::resize_file(host_path, size);
 
-    LOG_FS_ACCESS(host_path, "file flushed");
+    // LOG_FS_ACCESS(host_path, "file flushed");
 }
 
 FileStream HostFile::Open(FileOpenFlags flags) {
@@ -66,7 +66,7 @@ FileStream HostFile::Open(FileOpenFlags flags) {
         std_flags |= std::ios::app;
     auto stream = new std::fstream(host_path, std_flags);
 
-    LOG_FS_ACCESS(host_path, "file opened");
+    LOG_FS_ACCESS(host_path, "file opened (flags: {})", flags);
 
     return FileStream(stream, 0, GetSize() /*size*/, flags);
 }

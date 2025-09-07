@@ -20,7 +20,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor() {
 }
 
 result_t ILibraryAppletSelfAccessor::PopInData(RequestContext* ctx) {
-    AddService(*ctx, CONTROLLER->PopInData());
+    AddService(*ctx, CONTROLLER->PopInData()->Retain());
     return RESULT_SUCCESS;
 }
 
@@ -33,7 +33,7 @@ result_t ILibraryAppletSelfAccessor::PushOutData(IService* storage_) {
 }
 
 result_t ILibraryAppletSelfAccessor::PopInteractiveInData(RequestContext* ctx) {
-    AddService(*ctx, CONTROLLER->PopInteractiveInData());
+    AddService(*ctx, CONTROLLER->PopInteractiveInData()->Retain());
     return RESULT_SUCCESS;
 }
 

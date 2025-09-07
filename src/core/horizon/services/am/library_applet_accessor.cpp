@@ -62,7 +62,7 @@ result_t ILibraryAppletAccessor::PushInData(IService* storage_) {
 }
 
 result_t ILibraryAppletAccessor::PopOutData(RequestContext* ctx) {
-    AddService(*ctx, controller.PopOutData());
+    AddService(*ctx, controller.PopOutData()->Retain());
     return RESULT_SUCCESS;
 }
 
@@ -75,7 +75,7 @@ result_t ILibraryAppletAccessor::PushInteractiveInData(IService* storage_) {
 }
 
 result_t ILibraryAppletAccessor::PopInteractiveOutData(RequestContext* ctx) {
-    AddService(*ctx, controller.PopInteractiveOutData());
+    AddService(*ctx, controller.PopInteractiveOutData()->Retain());
     return RESULT_SUCCESS;
 }
 

@@ -708,9 +708,8 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     const auto action = crnt_thread->ProcessMessages(timeout);
 
     // Remove waiting thread
-    for (u32 i = 0; i < sync_objs.size(); i++) {
+    for (u32 i = 0; i < sync_objs.size(); i++)
         sync_objs[i]->RemoveWaitingThread(crnt_thread);
-    }
 
     // Process the action
     switch (action.type) {

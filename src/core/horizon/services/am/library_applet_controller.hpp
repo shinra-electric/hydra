@@ -8,18 +8,26 @@ namespace hydra::horizon::services::am {
 
 class StorageQueue {
   public:
-    void PushData(IStorage* data) { queue.push(data); }
+    ~StorageQueue() {
+        for (auto data : queue)
+            data->Release();
+    }
+
+    void PushData(IStorage* data) {
+        data->Retain();
+        queue.push_back(data);
+    }
 
     IStorage* PopData() {
-        ASSERT(!queue.empty(), Services, "No data");
-        const auto data = queue.front();
-        queue.pop();
+        ASSERT(pop_index < queue.size(), Services, "No data");
+        const auto data = queue[pop_index++];
 
         return data;
     }
 
   private:
-    std::queue<IStorage*> queue;
+    std::vector<IStorage*> queue;
+    u32 pop_index{0};
 };
 
 class LibraryAppletController {
@@ -36,12 +44,10 @@ class LibraryAppletController {
 
     // In
     void PushInData(IStorage* data) { in_data.PushData(data); }
-
     IStorage* PopInData() { return in_data.PopData(); }
 
     // Out
     void PushOutData(IStorage* data) { out_data.PushData(data); }
-
     IStorage* PopOutData() { return out_data.PopData(); }
 
     // Interactive in
@@ -49,7 +55,6 @@ class LibraryAppletController {
         interactive_in_data.PushData(data);
         interactive_in_data_event->Signal();
     }
-
     IStorage* PopInteractiveInData() { return interactive_in_data.PopData(); }
 
     // Interactive out
@@ -57,7 +62,6 @@ class LibraryAppletController {
         interactive_out_data.PushData(data);
         interactive_out_data_event->Signal();
     }
-
     IStorage* PopInteractiveOutData() { return interactive_out_data.PopData(); }
 
     // Events

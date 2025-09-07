@@ -26,7 +26,6 @@ result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
     if (size > max_size) {
         LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
                  size, max_size);
-        // TODO: why does Super Mario World abort when the size is clamped?
         size = max_size;
     }
 
@@ -47,6 +46,7 @@ result_t IFile::Write(aligned<u32, 8> option, i64 offset, u64 size,
     auto writer = stream.CreateWriter();
     writer.Seek(offset);
     writer.WritePtr(in_buffer.reader->GetBase(), size);
+    // writer.Flush();
 
     return RESULT_SUCCESS;
 }
