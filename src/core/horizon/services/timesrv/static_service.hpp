@@ -6,15 +6,10 @@
 namespace hydra::horizon::services::timesrv {
 
 class IStaticService : public IService {
-  public:
-    IStaticService();
-
   protected:
     result_t RequestImpl(RequestContext& context, u32 id) override;
 
   private:
-    kernel::SharedMemory* shared_memory;
-
     // Commands
     result_t GetStandardUserSystemClock(RequestContext* ctx);
     result_t GetStandardNetworkSystemClock(RequestContext* ctx);

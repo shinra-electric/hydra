@@ -114,6 +114,8 @@ add_library(hydra-core
     horizon/services/fssrv/save_data_info_reader.hpp
     horizon/services/fssrv/filesystem_proxy.cpp
     horizon/services/fssrv/filesystem_proxy.hpp
+    horizon/services/timesrv/internal/time_manager.cpp
+    horizon/services/timesrv/internal/time_manager.hpp
     horizon/services/timesrv/static_service.cpp
     horizon/services/timesrv/static_service.hpp
     horizon/services/timesrv/system_clock.cpp

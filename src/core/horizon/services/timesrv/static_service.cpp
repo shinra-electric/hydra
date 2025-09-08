@@ -1,17 +1,12 @@
 #include "core/horizon/services/timesrv/static_service.hpp"
 
 #include "core/horizon/kernel/process.hpp"
+#include "core/horizon/os.hpp"
 #include "core/horizon/services/timesrv/steady_clock.hpp"
 #include "core/horizon/services/timesrv/system_clock.hpp"
 #include "core/horizon/services/timesrv/time_zone_service.hpp"
 
 namespace hydra::horizon::services::timesrv {
-
-namespace {
-
-constexpr usize SHARED_MEMORY_SIZE = 0x1000;
-
-}
 
 DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetStandardNetworkSystemClock, 2,
@@ -20,9 +15,6 @@ DEFINE_SERVICE_COMMAND_TABLE(IStaticService, 0, GetStandardUserSystemClock, 1,
                              GetEphemeralNetworkSystemClock, 20,
                              GetSharedMemoryNativeHandle, 300,
                              CalculateMonotonicSystemClockBaseTimePoint)
-
-IStaticService::IStaticService()
-    : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {}
 
 result_t IStaticService::GetStandardUserSystemClock(RequestContext* ctx) {
     AddService(*ctx, new ISystemClock(SystemClockType::StandardUser));
@@ -56,7 +48,7 @@ result_t IStaticService::GetEphemeralNetworkSystemClock(RequestContext* ctx) {
 
 result_t IStaticService::GetSharedMemoryNativeHandle(
     kernel::Process* process, OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(shared_memory);
+    out_handle = process->AddHandle(TIME_MANAGER_INSTANCE.GetSharedMemory());
     return RESULT_SUCCESS;
 }
 
