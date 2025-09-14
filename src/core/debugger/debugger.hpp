@@ -1,12 +1,12 @@
 #pragma once
 
-#define DEBUGGER_INSTANCE debugger::Debugger::GetInstance()
-
 namespace hydra::hw::tegra_x1::cpu {
 class IThread;
 }
 
 namespace hydra::debugger {
+
+class Debugger;
 
 struct ResolvedStackFrame {
     std::string module;
@@ -20,6 +20,7 @@ enum class StackFrameType {
 };
 
 struct StackFrame {
+    Debugger* debugger;
     StackFrameType type;
     u64 addr;
 
@@ -102,18 +103,9 @@ class SymbolTable {
 };
 
 class Debugger {
+    friend class DebuggerManager;
+
   public:
-    static Debugger& GetInstance() {
-        static Debugger s_instance;
-        return s_instance;
-    }
-
-    Debugger();
-    ~Debugger();
-
-    void Enable();
-    void Disable();
-
     void RegisterThisThread(const std::string_view name,
                             hw::tegra_x1::cpu::IThread* guest_thread = nullptr);
     void UnregisterThisThread();
@@ -124,8 +116,8 @@ class Debugger {
     SymbolTable& GetFunctionTable() { return function_table; }
 
     // API
-    void Lock() { thread_mutex.lock(); }
-    void Unlock() { thread_mutex.unlock(); }
+    void Lock() { mutex.lock(); }
+    void Unlock() { mutex.unlock(); }
 
     usize GetThreadCount() const { return threads.size(); }
     Thread& GetThread(const u32 index) {
@@ -136,7 +128,7 @@ class Debugger {
     }
 
   private:
-    std::mutex thread_mutex;
+    std::mutex mutex;
     std::map<std::thread::id, Thread> threads;
 
     SymbolTable module_table;

@@ -1,6 +1,6 @@
 #include "core/horizon/kernel/guest_thread.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
@@ -37,9 +37,9 @@ void GuestThread::Run() {
     for (u32 i = 0; i < sizeof_array(args); i++)
         thread->SetRegX(i, args[i]);
 
-    DEBUGGER_INSTANCE.RegisterThisThread(GetDebugName(), thread);
+    GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName(), thread);
     thread->Run();
-    DEBUGGER_INSTANCE.UnregisterThisThread();
+    GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
 
     delete thread;
 }

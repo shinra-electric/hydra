@@ -3,7 +3,7 @@
 #include <mach/mach_time.h>
 #include <thread>
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 
@@ -189,7 +189,8 @@ void Thread::Run() {
                         exit->exception.virtual_address,
                         exit->exception.physical_address, instruction);
 
-                    DEBUGGER_INSTANCE.BreakOnThisThread("unknown HVC code");
+                    GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                        "unknown HVC code");
                     break;
                 }
 
@@ -205,7 +206,8 @@ void Thread::Run() {
             case ExceptionClass::BrkAarch64:
                 LogRegisters(true);
 
-                DEBUGGER_INSTANCE.BreakOnThisThread("BRK instruction");
+                GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                    "BRK instruction");
                 return;
             case ExceptionClass::DataAbortLowerEl:
                 LOG_ERROR(Hypervisor, "This should not happen");
@@ -224,7 +226,8 @@ void Thread::Run() {
                           exit->exception.physical_address,
                           GetSysReg(HV_SYS_REG_ELR_EL1), MMU.Load<u32>(pc));
 
-                DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exception");
+                GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                    "unexpected VM exception");
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {
@@ -234,7 +237,8 @@ void Thread::Run() {
             LOG_ERROR(Hypervisor, "Unexpected VM exit reason {}",
                       (u32)exit->reason);
 
-            DEBUGGER_INSTANCE.BreakOnThisThread("unexpected VM exit reason");
+            GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                "unexpected VM exit reason");
             break;
         }
 

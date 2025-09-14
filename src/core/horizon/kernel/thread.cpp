@@ -1,6 +1,6 @@
 #include "core/horizon/kernel/thread.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/process.hpp"
 
 namespace hydra::horizon::kernel {

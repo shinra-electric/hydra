@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/page_table.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 
 #define PTE_TYPE_MASK 0x3ull
 #define PTE_BLOCK(level) ((level == 2 ? 3ull : 1ull) << 0)

@@ -5,12 +5,12 @@
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
 #define GET_THIS_THREAD()                                                      \
-    std::unique_lock lock(thread_mutex);                                       \
+    std::unique_lock lock(mutex);                                              \
     const auto thread_id = std::this_thread::get_id();                         \
     auto it = threads.find(thread_id);                                         \
-    /* We need to do a regular assert so as to avoid infinite log recursion */ \
-    /* TODO: assert_debug */                                                   \
-    assert(it != threads.end() && "Thread {} not registered");                 \
+    ASSERT_DEBUG(it != threads.end(), Debugger,                                \
+                 "Thread {:016x} not registered",                              \
+                 std::bit_cast<u64>(thread_id));                               \
     auto& thread = it->second;
 
 namespace hydra::debugger {
@@ -21,10 +21,8 @@ ResolvedStackFrame StackFrame::Resolve() const {
         // TODO
         return {"libhydra.dylib", "", addr};
     case StackFrameType::Guest: {
-        const auto& module =
-            DEBUGGER_INSTANCE.GetModuleTable().FindSymbol(addr);
-        const auto& function =
-            DEBUGGER_INSTANCE.GetFunctionTable().FindSymbol(addr);
+        const auto& module = debugger->GetModuleTable().FindSymbol(addr);
+        const auto& function = debugger->GetFunctionTable().FindSymbol(addr);
         return {module, function, addr};
     }
     }
@@ -46,27 +44,9 @@ void Thread::Log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
-Debugger::Debugger() { RegisterThisThread("Main"); }
-
-Debugger::~Debugger() { UnregisterThisThread(); }
-
-void Debugger::Enable() {
-    LOGGER_INSTANCE.InstallCallback(
-        [this](const LogMessage& msg) { LogOnThisThread(msg); });
-}
-
-void Debugger::Disable() {
-    std::unique_lock lock(thread_mutex);
-    LOGGER_INSTANCE.UninstallCallback();
-    for (auto& [id, thread] : threads) {
-        std::unique_lock lock(thread.msg_mutex);
-        thread.messages.clear();
-    }
-}
-
 void Debugger::RegisterThisThread(const std::string_view name,
                                   hw::tegra_x1::cpu::IThread* guest_thread) {
-    std::unique_lock lock(thread_mutex);
+    std::unique_lock lock(mutex);
     threads.try_emplace(std::this_thread::get_id(), name, guest_thread);
 }
 
@@ -105,7 +85,7 @@ StackTrace Debugger::GetStackTrace(Thread& thread) {
     // Guest
     if (auto guest_thread = thread.guest_thread) {
         guest_thread->GetStackTrace([&](vaddr_t addr) {
-            stack_trace.frames.emplace_back(StackFrameType::Guest, addr);
+            stack_trace.frames.emplace_back(this, StackFrameType::Guest, addr);
         });
     }
 

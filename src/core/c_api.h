@@ -198,15 +198,20 @@ void hydra_emulation_context_take_screenshot(void* ctx);
 
 // Debugger
 
+// Debugger manager
+void hydra_debugger_manager_lock();
+void hydra_debugger_manager_unlock();
+uint64_t hydra_debugger_manager_get_debugger_count();
+void* hydra_debugger_manager_get_debugger(uint32_t index);
+void* hydra_debugger_manager_get_debugger_for_process(void* process);
+
 // Debugger
-void hydra_debugger_enable();
-void hydra_debugger_disable();
-void hydra_debugger_lock();
-void hydra_debugger_unlock();
-void hydra_debugger_register_this_thread(const char* name);
-void hydra_debugger_unregister_this_thread();
-uint64_t hydra_debugger_get_thread_count();
-void* hydra_debugger_get_thread(uint32_t index);
+void hydra_debugger_lock(void* debugger);
+void hydra_debugger_unlock(void* debugger);
+void hydra_debugger_register_this_thread(void* debugger, const char* name);
+void hydra_debugger_unregister_this_thread(void* debugger);
+uint64_t hydra_debugger_get_thread_count(void* debugger);
+void* hydra_debugger_get_thread(void* debugger, uint32_t index);
 
 // Thread
 void hydra_debugger_thread_lock(void* thread);

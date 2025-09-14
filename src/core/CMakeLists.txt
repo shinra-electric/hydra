@@ -575,6 +575,8 @@ add_library(hydra-core
     # TODO: only build the debugger on debug builds
     debugger/debugger.cpp
     debugger/debugger.hpp
+    debugger/debugger_manager.cpp
+    debugger/debugger_manager.hpp
     emulation_context.cpp
     emulation_context.hpp
     title.hpp

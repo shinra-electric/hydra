@@ -8,7 +8,7 @@ struct GameListView: View {
     var body: some View {
         List {
             ForEach(self.games.indices, id: \.self) { index in
-                GamePreview(game: games[index], activeGame: self.$activeGame)
+                GamePreview(game: self.games[index], activeGame: self.$activeGame)
                     .padding(.vertical, 8)
             }
         }

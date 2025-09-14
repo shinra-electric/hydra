@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 
 namespace hydra::hw {
 

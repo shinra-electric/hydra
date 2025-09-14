@@ -34,6 +34,15 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
         region = QueryRegion(addr);
     }
 
+    // HACK
+    if (info.state.type == horizon::kernel::MemoryType::Free) {
+        info.ipc_ref_count = 0;
+        info.device_ref_count = 0;
+    } else {
+        info.ipc_ref_count = 1;
+        info.device_ref_count = 1;
+    }
+
     return info;
 }
 

@@ -1,6 +1,6 @@
 #include "core/horizon/kernel/kernel.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/code_memory.hpp"
 #include "core/horizon/kernel/hipc/client_session.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
@@ -930,7 +930,7 @@ result_t Kernel::Break(BreakReason reason, uptr buffer_ptr, usize buffer_size) {
     }
 
     if (!reason.notification_only)
-        DEBUGGER_INSTANCE.BreakOnThisThread("Break");
+        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread("Break");
 
     return RESULT_SUCCESS;
 }

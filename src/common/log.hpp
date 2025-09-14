@@ -49,7 +49,7 @@
 #define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
     if (!(condition)) {                                                        \
         /* TODO: log class */                                                  \
-        DEBUGGER_INSTANCE.BreakOnThisThread(                                   \
+        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
             fmt::format(f PASS_VA_ARGS(__VA_ARGS__)));                         \
     }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
@@ -127,6 +127,7 @@ enum class LogClass {
     Hypervisor,
     Dynarmic,
     Input,
+    Debugger,
     Other,
 };
 
@@ -142,7 +143,8 @@ ENABLE_ENUM_FORMATTING(hydra::LogClass, Common, "Common", Mmu, "MMU", Cpu,
                        "Horizon", Kernel, "Kernel", Filesystem, "Filesystem",
                        Loader, "Loader", Services, "Services", Applets,
                        "Applets", Cubeb, "Cubeb", Hypervisor, "Hypervisor",
-                       Dynarmic, "Dynarmic", Input, "input", Other, "")
+                       Dynarmic, "Dynarmic", Input, "Input", Debugger,
+                       "Debugger", Other, "")
 
 namespace hydra {
 
@@ -238,10 +240,17 @@ class Logger {
             }
         }
 
-        if (callback)
-            (*callback)(LogMessage{level, c, std::string(file), line,
-                                   std::string(function),
-                                   fmt::format(f, std::forward<T>(args)...)});
+        if (callback) {
+            static thread_local bool is_in_callback = false;
+
+            if (is_in_callback) {
+                is_in_callback = true;
+                (*callback)(LogMessage{
+                    level, c, std::string(file), line, std::string(function),
+                    fmt::format(f, std::forward<T>(args)...)});
+                is_in_callback = false;
+            }
+        }
     }
 
   private:

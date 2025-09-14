@@ -1,6 +1,6 @@
 #include "core/horizon/kernel/process.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/gmmu.hpp"
@@ -9,9 +9,14 @@ namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu()} {}
+      gmmu{new hw::tegra_x1::gpu::GMmu()} {
+    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(this);
+}
 
-Process::~Process() { CleanUp(); }
+Process::~Process() {
+    CleanUp();
+    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
+}
 
 uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
                            bool add_guard_page, vaddr_t& out_base) {
@@ -34,7 +39,7 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     // TODO: use MemoryType::Static
     auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
                             add_guard_page, out_base);
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+    GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
 
     return ptr;

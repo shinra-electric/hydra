@@ -99,9 +99,10 @@ class IThread : public SynchronizationObject {
     ThreadAction ProcessMessagesImpl();
 
   public:
+    GETTER(process, GetProcess);
     GETTER(state, GetState);
 };
 
-inline thread_local IThread* tls_current_thread;
+inline thread_local IThread* tls_current_thread = nullptr;
 
 } // namespace hydra::horizon::kernel
