@@ -69,6 +69,8 @@ Cpu::Cpu()
            exception_trampoline, sizeof(exception_trampoline));
 
     // Symbols
+    // TODO: this should be registered by the process
+    /*
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
          range<vaddr_t>(KERNEL_REGION_BASE,
@@ -78,6 +80,7 @@ Cpu::Cpu()
          range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
+    */
 }
 
 Cpu::~Cpu() { hv_vm_destroy(); }

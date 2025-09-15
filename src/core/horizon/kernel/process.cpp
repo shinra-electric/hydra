@@ -9,9 +9,17 @@ namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu()} {}
+      gmmu{new hw::tegra_x1::gpu::GMmu()} {
+    // TODO: use title ID and name as debugger name?
+    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
+        this,
+        /*fmt::format("{:016x}", title_id)*/ GetDebugName());
+}
 
-Process::~Process() { CleanUp(); }
+Process::~Process() {
+    CleanUp();
+    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
+}
 
 uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
                            bool add_guard_page, vaddr_t& out_base) {
@@ -34,7 +42,7 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     // TODO: use MemoryType::Static
     auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
                             add_guard_page, out_base);
-    GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
+    DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
         {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
 
     return ptr;
@@ -68,10 +76,6 @@ Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
 }
 
 void Process::Start() {
-    // Debugger
-    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(this,
-                                             fmt::format("{:016x}", title_id));
-
     // Main thread
     main_thread->Start();
 
@@ -115,9 +119,6 @@ void Process::CleanUp() {
         if (handle_pool.IsValid(handle_id))
             handle_pool.Get(handle_id)->Release();
     }
-
-    // Debugger
-    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 
     // Signal
     SignalStateChange(ProcessState::Exited);

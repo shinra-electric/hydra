@@ -243,7 +243,7 @@ class Logger {
         if (callback) {
             static thread_local bool is_in_callback = false;
 
-            if (is_in_callback) {
+            if (!is_in_callback) {
                 is_in_callback = true;
                 (*callback)(LogMessage{
                     level, c, std::string(file), line, std::string(function),

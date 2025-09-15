@@ -14,10 +14,7 @@ namespace hydra::debugger {
 
 class DebuggerManager {
   public:
-    static DebuggerManager& GetInstance() {
-        static DebuggerManager s_instance;
-        return s_instance;
-    }
+    static DebuggerManager& GetInstance();
 
     DebuggerManager();
     ~DebuggerManager();

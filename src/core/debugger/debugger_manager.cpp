@@ -6,6 +6,10 @@ namespace hydra::debugger {
 
 constexpr hydra::horizon::kernel::Process* HYDRA_PROCESS = nullptr;
 
+static DebuggerManager g_instance;
+
+DebuggerManager& DebuggerManager::GetInstance() { return g_instance; }
+
 DebuggerManager::DebuggerManager() : hydra_debugger("Hydra") {
     // Hydra process
     hydra_debugger.RegisterThisThread("Main");
