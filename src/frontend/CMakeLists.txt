@@ -47,7 +47,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/debugger/MessageView.swift
         swiftui/debugger/ThreadDebuggerView.swift
         swiftui/debugger/DebuggerView.swift
-        swiftui/debugger/DebuggerProcessesView.swift
+        swiftui/debugger/DebuggerListView.swift
+        swiftui/debugger/DebuggersView.swift
         # TODO: if macOS
         swiftui/macos/AppDelegate.swift
     )

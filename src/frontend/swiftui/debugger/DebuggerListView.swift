@@ -1,14 +1,16 @@
 import SwiftUI
 
-struct DebuggerProcessesView: View {
+struct DebuggerListView: View {
+    @Binding var activeDebugger: UnsafeMutableRawPointer?
+
     @State private var debuggers: [UnsafeMutableRawPointer] = []
 
     var body: some View {
-        ScrollView(.vertical) {
+        List {
             ForEach(self.debuggers.indices, id: \.self) { index in
                 let debugger = self.debuggers[index]
                 ClickableListItem(onClick: {
-                    abort()
+                    self.activeDebugger = debugger
                 }) {
                     Text(String(cString: hydra_debugger_get_name(debugger)))
                 }
