@@ -6,7 +6,7 @@ namespace hydra::debugger {
 
 constexpr hydra::horizon::kernel::Process* HYDRA_PROCESS = nullptr;
 
-DebuggerManager::DebuggerManager() {
+DebuggerManager::DebuggerManager() : hydra_debugger("Hydra") {
     // Hydra process
     hydra_debugger.RegisterThisThread("Main");
 
@@ -17,7 +17,6 @@ DebuggerManager::DebuggerManager() {
 }
 
 DebuggerManager::~DebuggerManager() {
-    abort();
     // Callback
     LOGGER_INSTANCE.UninstallCallback();
 
@@ -25,13 +24,12 @@ DebuggerManager::~DebuggerManager() {
     hydra_debugger.UnregisterThisThread();
 }
 
-void DebuggerManager::AttachDebugger(hydra::horizon::kernel::Process* process) {
+void DebuggerManager::AttachDebugger(hydra::horizon::kernel::Process* process,
+                                     const std::string_view name) {
     ASSERT(process != HYDRA_PROCESS, Debugger,
            "Debugger already attached to the Hydra process");
 
-    // HACK
-    // debuggers.emplace(process, Debugger());
-    debuggers[process];
+    debuggers.emplace(process, name);
 }
 
 void DebuggerManager::DetachDebugger(hydra::horizon::kernel::Process* process) {

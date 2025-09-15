@@ -206,6 +206,7 @@ void* hydra_debugger_manager_get_debugger(uint32_t index);
 void* hydra_debugger_manager_get_debugger_for_process(void* process);
 
 // Debugger
+const char* hydra_debugger_get_name(void* debugger);
 void hydra_debugger_lock(void* debugger);
 void hydra_debugger_unlock(void* debugger);
 void hydra_debugger_register_this_thread(void* debugger, const char* name);

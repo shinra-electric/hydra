@@ -22,7 +22,8 @@ class DebuggerManager {
     DebuggerManager();
     ~DebuggerManager();
 
-    void AttachDebugger(hydra::horizon::kernel::Process* process);
+    void AttachDebugger(hydra::horizon::kernel::Process* process,
+                        const std::string_view name);
     void DetachDebugger(hydra::horizon::kernel::Process* process);
 
     Debugger& GetDebugger(hydra::horizon::kernel::Process* process);
@@ -32,11 +33,14 @@ class DebuggerManager {
     void Lock() { mutex.lock(); }
     void Unlock() { mutex.unlock(); }
 
-    usize GetDebuggerCount() const { return debuggers.size(); }
+    usize GetDebuggerCount() const { return debuggers.size() + 1; }
     Debugger& GetDebugger(const u32 index) {
+        if (index == 0)
+            return hydra_debugger;
+
         // TODO: not the best way to index into a map
         auto it = debuggers.begin();
-        std::advance(it, index);
+        std::advance(it, index - 1);
         return it->second;
     }
 

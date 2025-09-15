@@ -342,6 +342,12 @@ hydra_debugger_manager_get_debugger_for_process(void* process) {
 }
 
 // Debugger
+HYDRA_EXPORT const char* hydra_debugger_get_name(void* debugger) {
+    return reinterpret_cast<hydra::debugger::Debugger*>(debugger)
+        ->GetName()
+        .c_str();
+}
+
 HYDRA_EXPORT void hydra_debugger_lock(void* debugger) {
     reinterpret_cast<hydra::debugger::Debugger*>(debugger)->Lock();
 }

@@ -106,6 +106,8 @@ class Debugger {
     friend class DebuggerManager;
 
   public:
+    Debugger(const std::string_view name_) : name{name_} {}
+
     void RegisterThisThread(const std::string_view name,
                             hw::tegra_x1::cpu::IThread* guest_thread = nullptr);
     void UnregisterThisThread();
@@ -128,6 +130,8 @@ class Debugger {
     }
 
   private:
+    std::string name;
+
     std::mutex mutex;
     std::map<std::thread::id, Thread> threads;
 
@@ -138,6 +142,9 @@ class Debugger {
 
     // Helpers
     StackTrace GetStackTrace(Thread& thread);
+
+  public:
+    CONST_REF_GETTER(name, GetName);
 };
 
 } // namespace hydra::debugger

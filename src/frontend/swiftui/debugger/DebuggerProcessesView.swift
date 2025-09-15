@@ -6,7 +6,12 @@ struct DebuggerProcessesView: View {
     var body: some View {
         ScrollView(.vertical) {
             ForEach(self.debuggers.indices, id: \.self) { index in
-                // TODO
+                let debugger = self.debuggers[index]
+                ClickableListItem(onClick: {
+                    abort()
+                }) {
+                    Text(String(cString: hydra_debugger_get_name(debugger)))
+                }
             }
         }
         .onAppear {
@@ -20,7 +25,9 @@ struct DebuggerProcessesView: View {
         // Debuggers
         self.debuggers.removeAll()
         for i in 0..<hydra_debugger_manager_get_debugger_count() {
-            self.debuggers.append(hydra_debugger_manager_get_debugger(UInt32(i)))
+            // TODO: name
+            self.debuggers.append(
+                hydra_debugger_manager_get_debugger(UInt32(i)))
         }
 
         hydra_debugger_manager_unlock()

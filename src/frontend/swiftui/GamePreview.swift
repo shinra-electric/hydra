@@ -4,28 +4,20 @@ struct GamePreview: View {
     let game: Game
     @Binding var activeGame: Game?
 
-    @State private var lastClickTime: Date? = nil
-    @State private var navigate = false
-
     var body: some View {
-        HStack {
-            if let nsImage = self.loadIconNS() {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
-            }
-            Text(game.name)
-                .padding()
-            // TODO: author?
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if let lastTime = lastClickTime, Date().timeIntervalSince(lastTime) < 0.3 {
-                activeGame = self.game
-                lastClickTime = nil
-            } else {
-                lastClickTime = Date()
+        ClickableListItem(onClick: {
+            self.activeGame = self.game
+        }) {
+            HStack {
+                if let nsImage = self.loadIconNS() {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                }
+                Text(game.name)
+                    .padding()
+                // TODO: author?
             }
         }
     }

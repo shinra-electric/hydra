@@ -9,14 +9,9 @@ namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu()} {
-    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(this);
-}
+      gmmu{new hw::tegra_x1::gpu::GMmu()} {}
 
-Process::~Process() {
-    CleanUp();
-    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
-}
+Process::~Process() { CleanUp(); }
 
 uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
                            bool add_guard_page, vaddr_t& out_base) {
@@ -73,6 +68,11 @@ Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
 }
 
 void Process::Start() {
+    // Debugger
+    DEBUGGER_MANAGER_INSTANCE.AttachDebugger(this,
+                                             fmt::format("{:016x}", title_id));
+
+    // Main thread
     main_thread->Start();
 
     // Signal
@@ -115,6 +115,9 @@ void Process::CleanUp() {
         if (handle_pool.IsValid(handle_id))
             handle_pool.Get(handle_id)->Release();
     }
+
+    // Debugger
+    DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 
     // Signal
     SignalStateChange(ProcessState::Exited);
