@@ -83,10 +83,7 @@ ThreadAction IThread::ProcessMessagesImpl() {
 
             state = ThreadState::Running;
             action.type = ThreadActionType::Resume;
-            action.payload.resume = {.reason =
-                                         (signalled_obj != nullptr
-                                              ? ThreadResumeReason::Signalled
-                                              : ThreadResumeReason::Cancelled),
+            action.payload.resume = {.reason = ThreadResumeReason::Signalled,
                                      .signalled_obj = signalled_obj};
             break;
         }

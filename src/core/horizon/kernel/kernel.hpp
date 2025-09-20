@@ -84,7 +84,7 @@ class Kernel {
     result_t ArbitrateLock(Process* crnt_process, u32 wait_tag, uptr mutex_addr,
                            u32 self_tag);
     result_t ArbitrateUnlock(Process* crnt_process, uptr mutex_addr);
-    result_t WaitProcessWideKeyAtomic(Process* crnt_process, uptr mutex_addr,
+    result_t WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
                                       uptr var_addr, u32 self_tag, i64 timeout);
     result_t SignalProcessWideKey(uptr addr, i32 count);
     void GetSystemTick(u64& out_tick);
@@ -102,7 +102,7 @@ class Kernel {
     result_t SetThreadActivity(IThread* thread, ThreadActivity activity);
     result_t GetThreadContext3(IThread* thread,
                                ThreadContext& out_thread_context);
-    result_t WaitForAddress(Process* crnt_process, vaddr_t addr,
+    result_t WaitForAddress(IThread* crnt_thread, uptr addr,
                             ArbitrationType arbitration_type, u32 value,
                             u64 timeout);
     result_t CreateSession(bool is_light, u64 name,
@@ -139,8 +139,8 @@ class Kernel {
 
     std::mutex sync_mutex;
     // TODO: use a different container?
-    std::map<vaddr_t, Mutex> mutex_map;
-    std::map<vaddr_t, std::condition_variable> cond_var_map;
+    std::map<uptr, Mutex> mutex_map;
+    std::vector<std::pair<uptr, IThread*>> cond_var_waiters;
 
   public:
     REF_GETTER(process_manager, GetProcessManager);

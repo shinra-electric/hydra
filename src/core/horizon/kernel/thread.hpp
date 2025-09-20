@@ -41,7 +41,6 @@ enum class ThreadActionType {
 enum class ThreadResumeReason {
     Signalled,
     TimedOut,
-    Cancelled,
 };
 
 struct ThreadAction {

@@ -15,6 +15,53 @@
 
 namespace hydra::horizon::kernel {
 
+namespace {
+
+result_t process_thread_action(const auto& action) {
+    switch (action.type) {
+    case ThreadActionType::None:
+    case ThreadActionType::Stop:
+        return RESULT_SUCCESS;
+    case ThreadActionType::Resume: {
+        switch (action.payload.resume.reason) {
+        case ThreadResumeReason::Signalled: {
+            ASSERT_DEBUG(!action.payload.resume.signalled_obj, Kernel,
+                         "Unexpected signalled object");
+            return RESULT_SUCCESS;
+        }
+        case ThreadResumeReason::TimedOut:
+            return MAKE_RESULT(Svc, Error::TimedOut);
+        }
+    }
+    }
+}
+
+result_t
+process_thread_action_with_object(const auto& action,
+                                  SynchronizationObject*& out_signalled_obj) {
+    switch (action.type) {
+    case ThreadActionType::None:
+    case ThreadActionType::Stop:
+        return RESULT_SUCCESS;
+    case ThreadActionType::Resume: {
+        switch (action.payload.resume.reason) {
+        case ThreadResumeReason::Signalled: {
+            if (action.payload.resume.signalled_obj) {
+                out_signalled_obj = action.payload.resume.signalled_obj;
+                return RESULT_SUCCESS;
+            } else {
+                return MAKE_RESULT(Svc, Error::Cancelled);
+            }
+        }
+        case ThreadResumeReason::TimedOut:
+            return MAKE_RESULT(Svc, Error::TimedOut);
+        }
+    }
+    }
+}
+
+} // namespace
+
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
 
 Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
@@ -197,14 +244,17 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x1c:
         res = WaitProcessWideKeyAtomic(
-            crnt_process, guest_thread->GetRegX(0), guest_thread->GetRegX(1),
+            crnt_thread,
+            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
+            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
             guest_thread->GetRegX(2),
             std::bit_cast<i64>(guest_thread->GetRegX(3)));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1d:
-        res = SignalProcessWideKey(guest_thread->GetRegX(0),
-                                   guest_thread->GetRegX(1));
+        res = SignalProcessWideKey(
+            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
+            guest_thread->GetRegX(1));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1e:
@@ -280,7 +330,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x34:
         res = WaitForAddress(
-            crnt_process,
+            crnt_thread,
             crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
             static_cast<ArbitrationType>(guest_thread->GetRegW(1)),
             guest_thread->GetRegW(2), guest_thread->GetRegX(3));
@@ -705,42 +755,21 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         sync_objs[i]->AddWaitingThread(crnt_thread);
     }
 
-    const auto action = crnt_thread->ProcessMessages(timeout);
-
-    // Remove waiting thread
-    for (u32 i = 0; i < sync_objs.size(); i++)
-        sync_objs[i]->RemoveWaitingThread(crnt_thread);
-
-    // Process the action
-    switch (action.type) {
-    case ThreadActionType::Stop:
-        return RESULT_SUCCESS;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled: {
-            const auto signalled_obj = action.payload.resume.signalled_obj;
-
-            // Find the handle index
-            out_signalled_index = -1;
-            for (u32 i = 0; i < sync_objs.size(); i++) {
-                if (sync_objs[i] == signalled_obj) {
-                    out_signalled_index = i;
-                    break;
-                }
+    SynchronizationObject* signalled_obj = nullptr;
+    const auto result = process_thread_action_with_object(
+        crnt_thread->ProcessMessages(timeout), signalled_obj);
+    if (signalled_obj) {
+        // Find the handle index
+        out_signalled_index = -1;
+        for (u32 i = 0; i < sync_objs.size(); i++) {
+            if (sync_objs[i] == signalled_obj) {
+                out_signalled_index = i;
+                break;
             }
+        }
+    }
 
-            return RESULT_SUCCESS;
-        }
-        case ThreadResumeReason::TimedOut:
-            return MAKE_RESULT(Svc, Error::TimedOut);
-        case ThreadResumeReason::Cancelled:
-            return MAKE_RESULT(Svc, Error::Cancelled);
-        }
-    }
-    default:
-        LOG_FATAL(Kernel, "Thread not resumed properly");
-        unreachable();
-    }
+    return result;
 }
 
 result_t Kernel::CancelSynchronization(IThread* thread) {
@@ -792,9 +821,9 @@ result_t Kernel::ArbitrateUnlock(Process* crnt_process, uptr mutex_addr) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
-                                          uptr mutex_addr, uptr var_addr,
-                                          u32 self_tag, i64 timeout) {
+result_t Kernel::WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
+                                          uptr var_addr, u32 self_tag,
+                                          i64 timeout) {
     LOG_DEBUG(
         Kernel,
         "WaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
@@ -803,43 +832,46 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
 
     sync_mutex.lock();
     auto& mutex = mutex_map[mutex_addr];
-    auto& cond_var = cond_var_map[var_addr];
     sync_mutex.unlock();
 
     // TODO: correct?
-    auto& value =
-        *reinterpret_cast<u32*>(crnt_process->GetMmu()->UnmapAddr(mutex_addr));
+    auto& value = *reinterpret_cast<u32*>(mutex_addr);
+
+    crnt_thread->Pause();
+
+    sync_mutex.lock();
+    cond_var_waiters.push_back({var_addr, crnt_thread});
+    sync_mutex.unlock();
+
+    // TODO: correct?
     mutex.Unlock(value);
-
-    {
-        std::unique_lock lock(mutex.GetNativeHandle());
-        if (timeout == INFINITE_TIMEOUT)
-            cond_var.wait(lock);
-        else
-            cond_var.wait_for(lock, std::chrono::nanoseconds(timeout));
-    }
-
+    const auto result =
+        process_thread_action(crnt_thread->ProcessMessages(timeout));
     mutex.Lock(value, self_tag);
 
-    return RESULT_SUCCESS;
+    return result;
 }
 
 result_t Kernel::SignalProcessWideKey(uptr addr, i32 count) {
     LOG_DEBUG(Kernel, "SignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
-    sync_mutex.lock();
-    auto& cond_var = cond_var_map[addr];
-    sync_mutex.unlock();
+    std::lock_guard<std::mutex> lock(sync_mutex);
 
-    if (count == -1) {
-        cond_var.notify_all();
-    } else {
-        ASSERT_DEBUG(count > 0, Kernel, "Invalid signal count {}", count);
+    if (count == -1)
+        count = cond_var_waiters.size();
 
-        // TODO: correct?
-        for (u32 i = 0; i < count; i++)
-            cond_var.notify_one();
+    // TODO: sort by priority
+    for (auto it = cond_var_waiters.begin(); it != cond_var_waiters.end();) {
+        const auto [ptr, thread] = *it;
+        if (ptr == addr) {
+            thread->Resume();
+            it = cond_var_waiters.erase(it);
+            if ((--count) == 0)
+                break;
+        } else {
+            it++;
+        }
     }
 
     return RESULT_SUCCESS;
@@ -885,9 +917,9 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
         crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
 
     // Wait for response
-    crnt_thread->ProcessMessages();
-
-    return RESULT_SUCCESS;
+    SynchronizationObject* signalled_object = nullptr;
+    return process_thread_action_with_object(crnt_thread->ProcessMessages(),
+                                             signalled_object);
 }
 
 result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
@@ -1096,7 +1128,7 @@ result_t Kernel::GetThreadContext3(IThread* thread,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::WaitForAddress(Process* crnt_process, vaddr_t addr,
+result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
                                 ArbitrationType arbitration_type, u32 value,
                                 u64 timeout) {
     LOG_DEBUG(Kernel,
@@ -1104,36 +1136,39 @@ result_t Kernel::WaitForAddress(Process* crnt_process, vaddr_t addr,
               "0x{:x}, timeout: 0x{:08x})",
               addr, arbitration_type, value, timeout);
 
-    sync_mutex.lock();
-    auto& mutex = mutex_map[addr];
-    auto& cond_var = cond_var_map[addr];
-    sync_mutex.unlock();
+    // TODO: should the loads and stores be atomic?
+    const auto current_value = *reinterpret_cast<u32*>(addr);
+    bool wait{false};
+    switch (arbitration_type) {
+    case ArbitrationType::WaitIfLessThan:
+        wait = (current_value < value);
+        break;
+    case ArbitrationType::DecrementAndWaitIfLessThan:
+        wait = (current_value < value);
+        *reinterpret_cast<u32*>(addr) =
+            current_value - 1; // TODO: decrement after?
+        break;
+    case ArbitrationType::WaitIfEqual:
+        wait = (current_value == value);
+        break;
+    }
 
-    {
-        std::unique_lock lock(mutex.GetNativeHandle());
+    if (wait) {
+        crnt_thread->Pause();
 
-        const auto current_value = crnt_process->GetMmu()->Load<u32>(addr);
-        bool wait{false};
-        switch (arbitration_type) {
-        case ArbitrationType::WaitIfLessThan:
-            wait = (current_value < value);
-            break;
-        case ArbitrationType::DecrementAndWaitIfLessThan:
-            wait = (current_value < value);
-            crnt_process->GetMmu()->Store<u32>(
-                addr, current_value - 1); // TODO: decrement after?
-            break;
-        case ArbitrationType::WaitIfEqual:
-            wait = (current_value == value);
-            break;
-        }
+        // TODO
+        // sync_mutex.lock();
+        // mutex_waiters.push_back({addr, crnt_thread});
+        // sync_mutex.unlock();
+        LOG_FATAL(Kernel, "Mutex waiters not implemented");
 
-        if (wait) {
-            cond_var.wait_for(
-                lock, std::chrono::nanoseconds(timeout), [=, this]() {
-                    return crnt_process->GetMmu()->Load<u32>(addr) == value;
-                }); // TODO: is the timeout correct?
-        }
+        const auto result =
+            process_thread_action(crnt_thread->ProcessMessages(timeout));
+
+        if (*reinterpret_cast<u32*>(addr) == value)
+            return result;
+        else
+            return MAKE_RESULT(Svc, Error::InvalidState);
     }
 
     return RESULT_SUCCESS;

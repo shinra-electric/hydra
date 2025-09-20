@@ -6,6 +6,7 @@ namespace hydra::debugger {
 
 constexpr hydra::horizon::kernel::Process* HYDRA_PROCESS = nullptr;
 
+// TODO: lazy initialize or smh
 static DebuggerManager g_instance;
 
 DebuggerManager& DebuggerManager::GetInstance() { return g_instance; }
