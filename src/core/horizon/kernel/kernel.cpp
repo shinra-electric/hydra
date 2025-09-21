@@ -17,6 +17,8 @@ namespace hydra::horizon::kernel {
 
 namespace {
 
+constexpr u32 MUTEX_WAIT_MASK = 0x40000000;
+
 result_t process_thread_action(const auto& action) {
     switch (action.type) {
     case ThreadActionType::None:
@@ -234,12 +236,16 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegW(0, res);
         break;
     case 0x1a:
-        res = ArbitrateLock(crnt_process, guest_thread->GetRegX(0),
-                            guest_thread->GetRegX(1), guest_thread->GetRegX(2));
+        res = ArbitrateLock(
+            crnt_thread,
+            crnt_process->GetHandle<IThread>(guest_thread->GetRegX(0)),
+            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
+            guest_thread->GetRegX(2), guest_thread->GetRegX(0));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1b:
-        res = ArbitrateUnlock(crnt_process, guest_thread->GetRegX(0));
+        res = ArbitrateUnlock(crnt_thread, crnt_process->GetMmu()->UnmapAddr(
+                                               guest_thread->GetRegX(0)));
         guest_thread->SetRegW(0, res);
         break;
     case 0x1c:
@@ -253,6 +259,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x1d:
         res = SignalProcessWideKey(
+            crnt_process,
             crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
             guest_thread->GetRegX(1));
         guest_thread->SetRegW(0, res);
@@ -781,78 +788,65 @@ result_t Kernel::CancelSynchronization(IThread* thread) {
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ArbitrateLock(Process* crnt_process, u32 wait_tag,
-                               uptr mutex_addr, u32 self_tag) {
+result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
+                               uptr mutex_addr, handle_id_t self_handle,
+                               handle_id_t owner_handle) {
     LOG_DEBUG(Kernel,
-              "ArbitrateLock called (wait: 0x{:08x}, mutex: 0x{:08x}, self: "
-              "0x{:08x})",
-              wait_tag, mutex_addr, self_tag);
+              "ArbitrateLock called (owner: {}, mutex: 0x{:08x}, self: "
+              "0x{:x})",
+              owner_thread->GetDebugName(), mutex_addr, self_handle);
 
-    sync_mutex.lock();
-    auto& mutex = mutex_map[mutex_addr];
-    sync_mutex.unlock();
-    mutex.Lock(
-        *reinterpret_cast<u32*>(crnt_process->GetMmu()->UnmapAddr(mutex_addr)),
-        self_tag);
+    crnt_thread->self_handle_for_mutex = self_handle;
+    owner_thread->self_handle_for_mutex = owner_handle;
+
+    // TODO: atomic
+    if (*reinterpret_cast<u32*>(mutex_addr) !=
+        (owner_thread->self_handle_for_mutex | MUTEX_WAIT_MASK))
+        return RESULT_SUCCESS;
+
+    crnt_thread->mutex_wait_addr = mutex_addr;
+
+    crnt_thread->Pause();
+    owner_thread->AddMutexWaiter(crnt_thread);
+    crnt_thread->ProcessMessages();
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::ArbitrateUnlock(Process* crnt_process, uptr mutex_addr) {
+result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
     LOG_DEBUG(Kernel, "ArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
 
-    sync_mutex.lock();
-    auto& mutex = mutex_map[mutex_addr];
-    sync_mutex.unlock();
-    mutex.Unlock(
-        *reinterpret_cast<u32*>(crnt_process->GetMmu()->UnmapAddr(mutex_addr)));
-
-    // HACK
-    /*
-    if (mutex_addr == 0x40bae248) {
-        static bool hack = false;
-        if (!hack) {
-            hack = true;
-            std::this_thread::sleep_for(std::chrono::seconds(20));
-        }
-    }
-    */
+    UnlockMutex(crnt_thread, mutex_addr);
 
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
-                                          uptr var_addr, u32 self_tag,
+                                          uptr var_addr,
+                                          handle_id_t self_handle,
                                           i64 timeout) {
     LOG_DEBUG(
         Kernel,
         "WaitProcessWideKeyAtomic called (mutex: 0x{:08x}, var: 0x{:08x}, "
-        "self: 0x{:08x}, timeout: {})",
-        mutex_addr, var_addr, self_tag, timeout);
+        "self: 0x{:x}, timeout: {})",
+        mutex_addr, var_addr, self_handle, timeout);
 
-    sync_mutex.lock();
-    auto& mutex = mutex_map[mutex_addr];
-    sync_mutex.unlock();
-
-    // TODO: correct?
-    auto& value = *reinterpret_cast<u32*>(mutex_addr);
+    crnt_thread->self_handle_for_mutex = self_handle;
+    crnt_thread->mutex_wait_addr = mutex_addr;
+    crnt_thread->cond_var_wait_addr = var_addr;
 
     crnt_thread->Pause();
 
     sync_mutex.lock();
-    cond_var_waiters.push_back({var_addr, crnt_thread});
+    cond_var_waiters.push_back(crnt_thread);
+    UnlockMutex(crnt_thread, mutex_addr);
     sync_mutex.unlock();
 
-    // TODO: correct?
-    mutex.Unlock(value);
-    const auto result =
-        process_thread_action(crnt_thread->ProcessMessages(timeout));
-    mutex.Lock(value, self_tag);
-
-    return result;
+    return process_thread_action(crnt_thread->ProcessMessages(timeout));
 }
 
-result_t Kernel::SignalProcessWideKey(uptr addr, i32 count) {
+result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
+                                      i32 count) {
     LOG_DEBUG(Kernel, "SignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
@@ -862,13 +856,14 @@ result_t Kernel::SignalProcessWideKey(uptr addr, i32 count) {
         count = cond_var_waiters.size();
 
     // TODO: sort by priority
-    for (auto it = cond_var_waiters.begin(); it != cond_var_waiters.end();) {
-        const auto [ptr, thread] = *it;
-        if (ptr == addr) {
-            thread->Resume();
+    for (auto it = cond_var_waiters.begin();
+         it != cond_var_waiters.end() && count > 0;) {
+        const auto thread = *it;
+        if (thread->cond_var_wait_addr == addr) {
+            thread->cond_var_wait_addr = 0x0;
+            TryLockMutex(crnt_process, thread);
             it = cond_var_waiters.erase(it);
-            if ((--count) == 0)
-                break;
+            count--;
         } else {
             it++;
         }
@@ -1327,6 +1322,62 @@ result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
     process->GetMmu()->Unmap(dst_addr, size);
 
     return RESULT_SUCCESS;
+}
+
+void Kernel::TryLockMutex(Process* crnt_process, IThread* thread) {
+    auto mutex_addr = reinterpret_cast<u32*>(thread->mutex_wait_addr);
+
+    // TODO: atomic
+    u32 value = *mutex_addr;
+    if (value == 0) {
+        // Register this thread as the owner
+        *mutex_addr = thread->self_handle_for_mutex;
+    } else {
+        // Register this thread as a waiter
+        *mutex_addr |= MUTEX_WAIT_MASK;
+    }
+
+    if (value == 0) {
+        // Mutex acquired
+        thread->mutex_wait_addr = 0x0;
+        thread->Resume();
+        return;
+    }
+
+    // Register this thread as a waiter by the owner
+    auto owner = crnt_process->GetHandle<IThread>(value & ~MUTEX_WAIT_MASK);
+    owner->AddMutexWaiter(thread);
+}
+
+void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
+    // TODO: can the mutex value differ?
+    // TODO: atomic
+    /*
+    ASSERT_DEBUG(*reinterpret_cast<u32*>(mutex_addr) ==
+                     (thread->self_handle_for_mutex | MUTEX_WAIT_MASK),
+                 Kernel,
+                 "Invalid mutex value (expected 0x{:08x}, found 0x{:08x})",
+                 thread->self_handle_for_mutex | MUTEX_WAIT_MASK,
+                 *reinterpret_cast<u32*>(mutex_addr));
+    */
+
+    u32 waiter_count;
+    auto new_owner = thread->RelinquishMutex(mutex_addr, waiter_count);
+    if (!new_owner) {
+        // TODO: atomic
+        *reinterpret_cast<u32*>(mutex_addr) = 0;
+        return;
+    }
+
+    u32 value = new_owner->self_handle_for_mutex;
+    if (waiter_count > 0)
+        value |= MUTEX_WAIT_MASK;
+
+    // TODO: atomic
+    *reinterpret_cast<u32*>(mutex_addr) = value;
+
+    // Resume the owner
+    new_owner->Resume();
 }
 
 } // namespace hydra::horizon::kernel

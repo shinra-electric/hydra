@@ -93,4 +93,36 @@ ThreadAction IThread::ProcessMessagesImpl() {
     return action;
 }
 
+void IThread::AddMutexWaiter(IThread* thread) {
+    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    mutex_wait_list.AddLast(thread);
+}
+
+IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
+    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+
+    // Find a new owner
+    IThread* new_owner = nullptr;
+    out_waiter_count = 0;
+    for (auto waiter_node = mutex_wait_list.GetHead();
+         waiter_node != nullptr;) {
+        auto waiter = waiter_node->Get();
+        if (waiter->mutex_wait_addr != mutex_addr) {
+            waiter_node = waiter_node->GetNext();
+            continue;
+        }
+
+        waiter_node = mutex_wait_list.Remove(waiter_node);
+        if (new_owner) {
+            new_owner->AddMutexWaiter(waiter);
+            out_waiter_count++;
+        } else {
+            new_owner = waiter;
+            waiter->mutex_wait_addr = 0x0;
+        }
+    }
+
+    return new_owner;
+}
+
 } // namespace hydra::horizon::kernel

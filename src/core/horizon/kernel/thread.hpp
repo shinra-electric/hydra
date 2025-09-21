@@ -55,6 +55,8 @@ struct ThreadAction {
 };
 
 class IThread : public SynchronizationObject {
+    friend class Kernel;
+
   public:
     IThread(Process* process_, i32 priority_,
             const std::string_view debug_name = "Thread")
@@ -93,9 +95,22 @@ class IThread : public SynchronizationObject {
     std::condition_variable msg_cv;
     std::queue<ThreadMessage> msg_queue;
 
+    // Mutex and cond var
+    uptr mutex_wait_addr{0x0};
+    u32 self_handle_for_mutex{0x0};
+    uptr cond_var_wait_addr{0x0};
+    std::mutex mutex_wait_mutex;
+    DoubleLinkedList<IThread*> mutex_wait_list;
+
     // Helpers
+
+    // Messages
     void SendMessage(ThreadMessage msg);
     ThreadAction ProcessMessagesImpl();
+
+    // Mutex
+    void AddMutexWaiter(IThread* thread);
+    IThread* RelinquishMutex(uptr mutex_addr, u32& out_waiter_count);
 
   public:
     GETTER(process, GetProcess);

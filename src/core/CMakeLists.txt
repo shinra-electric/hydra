@@ -6,7 +6,6 @@ add_library(hydra-core
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
-    horizon/kernel/mutex.hpp
     horizon/kernel/applet_state.cpp
     horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp

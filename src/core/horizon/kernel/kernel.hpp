@@ -3,7 +3,6 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
-#include "core/horizon/kernel/mutex.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
 #include "core/horizon/kernel/shared_memory.hpp"
 #include "core/horizon/kernel/transfer_memory.hpp"
@@ -81,12 +80,14 @@ class Kernel {
                                  std::span<SynchronizationObject*> sync_objects,
                                  i64 timeout, i32& out_signalled_index);
     result_t CancelSynchronization(IThread* thread);
-    result_t ArbitrateLock(Process* crnt_process, u32 wait_tag, uptr mutex_addr,
-                           u32 self_tag);
-    result_t ArbitrateUnlock(Process* crnt_process, uptr mutex_addr);
+    result_t ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
+                           uptr mutex_addr, handle_id_t self_handle,
+                           handle_id_t owner_handle);
+    result_t ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr);
     result_t WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
-                                      uptr var_addr, u32 self_tag, i64 timeout);
-    result_t SignalProcessWideKey(uptr addr, i32 count);
+                                      uptr var_addr, handle_id_t self_handle,
+                                      i64 timeout);
+    result_t SignalProcessWideKey(Process* crnt_process, uptr addr, i32 count);
     void GetSystemTick(u64& out_tick);
     result_t ConnectToNamedPort(const std::string_view name,
                                 hipc::ClientSession*& out_client_session);
@@ -138,9 +139,11 @@ class Kernel {
     hipc::ServiceManager<std::string> service_manager;
 
     std::mutex sync_mutex;
-    // TODO: use a different container?
-    std::map<uptr, Mutex> mutex_map;
-    std::vector<std::pair<uptr, IThread*>> cond_var_waiters;
+    std::vector<IThread*> cond_var_waiters;
+
+    // Helpers
+    void TryLockMutex(Process* crnt_process, IThread* thread);
+    void UnlockMutex(IThread* thread, uptr mutex_addr);
 
   public:
     REF_GETTER(process_manager, GetProcessManager);
