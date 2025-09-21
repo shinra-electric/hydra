@@ -48,8 +48,7 @@ class IMmu {
     template <typename T>
     void StoreExclusive(vaddr_t va, T value) const {
         auto ptr = reinterpret_cast<T*>(UnmapAddr(va));
-        std::atomic<T>* ref = new (ptr) std::atomic<T>(*ptr);
-        ref->store(value, std::memory_order_release); // TODO: correct?
+        atomic_store(ptr, value);
     }
 };
 

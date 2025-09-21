@@ -142,7 +142,7 @@ class Kernel {
     std::vector<IThread*> cond_var_waiters;
 
     // Helpers
-    void TryLockMutex(Process* crnt_process, IThread* thread);
+    void TryAcquireMutex(Process* crnt_process, IThread* thread);
     void UnlockMutex(IThread* thread, uptr mutex_addr);
 
   public:

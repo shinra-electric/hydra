@@ -799,8 +799,7 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
     crnt_thread->self_handle_for_mutex = self_handle;
     owner_thread->self_handle_for_mutex = owner_handle;
 
-    // TODO: atomic
-    if (*reinterpret_cast<u32*>(mutex_addr) !=
+    if (atomic_load(reinterpret_cast<u32*>(mutex_addr)) !=
         (owner_thread->self_handle_for_mutex | MUTEX_WAIT_MASK))
         return RESULT_SUCCESS;
 
@@ -861,7 +860,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
         const auto thread = *it;
         if (thread->cond_var_wait_addr == addr) {
             thread->cond_var_wait_addr = 0x0;
-            TryLockMutex(crnt_process, thread);
+            TryAcquireMutex(crnt_process, thread);
             it = cond_var_waiters.erase(it);
             count--;
         } else {
@@ -1131,7 +1130,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
               "0x{:x}, timeout: 0x{:08x})",
               addr, arbitration_type, value, timeout);
 
-    // TODO: should the loads and stores be atomic?
+    // TODO: atomic?
     const auto current_value = *reinterpret_cast<u32*>(addr);
     bool wait{false};
     switch (arbitration_type) {
@@ -1324,18 +1323,20 @@ result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
     return RESULT_SUCCESS;
 }
 
-void Kernel::TryLockMutex(Process* crnt_process, IThread* thread) {
-    auto mutex_addr = reinterpret_cast<u32*>(thread->mutex_wait_addr);
+void Kernel::TryAcquireMutex(Process* crnt_process, IThread* thread) {
+    auto mutex = reinterpret_cast<u32*>(thread->mutex_wait_addr);
 
-    // TODO: atomic
-    u32 value = *mutex_addr;
-    if (value == 0) {
-        // Register this thread as the owner
-        *mutex_addr = thread->self_handle_for_mutex;
-    } else {
-        // Register this thread as a waiter
-        *mutex_addr |= MUTEX_WAIT_MASK;
-    }
+    u32 value = *mutex;
+    u32 new_value;
+    do {
+        if (value == 0) {
+            // Register this thread as the owner
+            new_value = thread->self_handle_for_mutex;
+        } else {
+            // Register this thread as a waiter
+            new_value = value | MUTEX_WAIT_MASK;
+        }
+    } while (!atomic_compare_exchange_weak(mutex, value, new_value));
 
     if (value == 0) {
         // Mutex acquired
@@ -1350,22 +1351,12 @@ void Kernel::TryLockMutex(Process* crnt_process, IThread* thread) {
 }
 
 void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
-    // TODO: can the mutex value differ?
-    // TODO: atomic
-    /*
-    ASSERT_DEBUG(*reinterpret_cast<u32*>(mutex_addr) ==
-                     (thread->self_handle_for_mutex | MUTEX_WAIT_MASK),
-                 Kernel,
-                 "Invalid mutex value (expected 0x{:08x}, found 0x{:08x})",
-                 thread->self_handle_for_mutex | MUTEX_WAIT_MASK,
-                 *reinterpret_cast<u32*>(mutex_addr));
-    */
+    auto mutex = reinterpret_cast<u32*>(mutex_addr);
 
     u32 waiter_count;
     auto new_owner = thread->RelinquishMutex(mutex_addr, waiter_count);
     if (!new_owner) {
-        // TODO: atomic
-        *reinterpret_cast<u32*>(mutex_addr) = 0;
+        atomic_store(mutex, 0u);
         return;
     }
 
@@ -1373,8 +1364,7 @@ void Kernel::UnlockMutex(IThread* thread, uptr mutex_addr) {
     if (waiter_count > 0)
         value |= MUTEX_WAIT_MASK;
 
-    // TODO: atomic
-    *reinterpret_cast<u32*>(mutex_addr) = value;
+    atomic_store(mutex, value);
 
     // Resume the owner
     new_owner->Resume();
