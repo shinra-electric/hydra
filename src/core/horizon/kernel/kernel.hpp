@@ -141,7 +141,7 @@ class Kernel {
     std::mutex critical_section_mutex;
 
     // Condition variables
-    std::vector<IThread*> cond_var_waiters; // TODO: linked list
+    DoubleLinkedList<IThread*> cond_var_waiters;
 
     // Helpers
     void TryAcquireMutex(Process* crnt_process, IThread* thread);

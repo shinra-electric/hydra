@@ -826,7 +826,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
 
     {
         CriticalSectionLock cs_lock;
-        cond_var_waiters.push_back(crnt_thread);
+        cond_var_waiters.AddLast(crnt_thread);
         UnlockMutex(crnt_thread, mutex_addr);
     }
 
@@ -858,9 +858,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         CriticalSectionLock cs_lock;
 
         // Cond var
-        cond_var_waiters.erase(std::remove(cond_var_waiters.begin(),
-                                           cond_var_waiters.end(), crnt_thread),
-                               cond_var_waiters.end());
+        cond_var_waiters.Remove(crnt_thread);
 
         // Mutex
         auto owner = GetMutexOwner(crnt_process, crnt_thread->mutex_wait_addr);
@@ -879,19 +877,19 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     CriticalSectionLock cs_lock;
 
     if (count == -1)
-        count = cond_var_waiters.size();
+        count = cond_var_waiters.GetSize();
 
     // TODO: sort by priority
-    for (auto it = cond_var_waiters.begin();
-         it != cond_var_waiters.end() && count > 0;) {
-        const auto thread = *it;
+    for (auto thread_node = cond_var_waiters.GetHead();
+         thread_node && count > 0;) {
+        const auto thread = thread_node->Get();
         if (thread->cond_var_wait_addr == addr) {
             thread->cond_var_wait_addr = 0x0;
             TryAcquireMutex(crnt_process, thread);
-            it = cond_var_waiters.erase(it);
+            thread_node = cond_var_waiters.Remove(thread_node);
             count--;
         } else {
-            it++;
+            thread_node = thread_node->GetNext();
         }
     }
 
