@@ -79,12 +79,12 @@ ThreadAction IThread::ProcessMessagesImpl() {
             action = {};
             break;
         case ThreadMessageType::Resume: {
-            const auto signalled_obj = msg.payload.resume.signalled_obj;
+            const auto& payload = msg.payload.resume;
 
             state = ThreadState::Running;
             action.type = ThreadActionType::Resume;
-            action.payload.resume = {.reason = ThreadResumeReason::Signalled,
-                                     .signalled_obj = signalled_obj};
+            action.payload.resume = {.reason = payload.reason,
+                                     .signalled_obj = payload.signalled_obj};
             break;
         }
         }
@@ -96,6 +96,11 @@ ThreadAction IThread::ProcessMessagesImpl() {
 void IThread::AddMutexWaiter(IThread* thread) {
     std::lock_guard<std::mutex> lock(mutex_wait_mutex);
     mutex_wait_list.AddLast(thread);
+}
+
+void IThread::RemoveMutexWaiter(IThread* thread) {
+    std::lock_guard<std::mutex> lock(mutex_wait_mutex);
+    mutex_wait_list.Remove(thread);
 }
 
 IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
@@ -118,11 +123,15 @@ IThread* IThread::RelinquishMutex(uptr mutex_addr, u32& out_waiter_count) {
             out_waiter_count++;
         } else {
             new_owner = waiter;
-            waiter->mutex_wait_addr = 0x0;
+            new_owner->mutex_wait_addr = 0x0;
         }
     }
 
     return new_owner;
+}
+
+IThread* GetMutexOwner(Process* process, u32 mutex) {
+    return process->GetHandle<IThread>(mutex & ~MUTEX_WAIT_MASK);
 }
 
 } // namespace hydra::horizon::kernel

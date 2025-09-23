@@ -7,6 +7,7 @@ namespace hydra::horizon::kernel {
 class Process;
 
 constexpr u64 TLS_SIZE = 0x20000; // TODO: what should this be?
+constexpr u32 MUTEX_WAIT_MASK = 0x40000000;
 
 enum class ThreadState {
     Created,
@@ -22,11 +23,18 @@ enum class ThreadMessageType {
     Resume,
 };
 
+enum class ThreadResumeReason {
+    Signalled,
+    Cancelled,
+    TimedOut,
+};
+
 struct ThreadMessage {
     ThreadMessageType type;
     union {
         // Resume
         struct {
+            ThreadResumeReason reason;
             SynchronizationObject* signalled_obj;
         } resume;
     } payload;
@@ -36,11 +44,6 @@ enum class ThreadActionType {
     None,
     Stop,
     Resume,
-};
-
-enum class ThreadResumeReason {
-    Signalled,
-    TimedOut,
 };
 
 struct ThreadAction {
@@ -70,8 +73,15 @@ class IThread : public SynchronizationObject {
     void Stop() { SendMessage({.type = ThreadMessageType::Stop}); }
     void Pause() { SendMessage({.type = ThreadMessageType::Pause}); }
     void Resume(SynchronizationObject* signalled_obj = nullptr) {
-        SendMessage({.type = ThreadMessageType::Resume,
-                     .payload = {.resume = {.signalled_obj = signalled_obj}}});
+        SendMessage(
+            {.type = ThreadMessageType::Resume,
+             .payload = {.resume = {.reason = ThreadResumeReason::Signalled,
+                                    .signalled_obj = signalled_obj}}});
+    }
+    void CancelSync() {
+        SendMessage(
+            {.type = ThreadMessageType::Resume,
+             .payload = {.resume = {.reason = ThreadResumeReason::Cancelled}}});
     }
 
     // Must not be called from a different thread
@@ -110,6 +120,7 @@ class IThread : public SynchronizationObject {
 
     // Mutex
     void AddMutexWaiter(IThread* thread);
+    void RemoveMutexWaiter(IThread* thread);
     IThread* RelinquishMutex(uptr mutex_addr, u32& out_waiter_count);
 
   public:
@@ -118,5 +129,10 @@ class IThread : public SynchronizationObject {
 };
 
 inline thread_local IThread* tls_current_thread = nullptr;
+
+IThread* GetMutexOwner(Process* process, u32 mutex);
+inline IThread* GetMutexOwner(Process* process, u32* mutex_ptr) {
+    return GetMutexOwner(process, atomic_load(mutex_ptr));
+}
 
 } // namespace hydra::horizon::kernel

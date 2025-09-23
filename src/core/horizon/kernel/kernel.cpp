@@ -15,55 +15,6 @@
 
 namespace hydra::horizon::kernel {
 
-namespace {
-
-constexpr u32 MUTEX_WAIT_MASK = 0x40000000;
-
-result_t process_thread_action(const auto& action) {
-    switch (action.type) {
-    case ThreadActionType::None:
-    case ThreadActionType::Stop:
-        return RESULT_SUCCESS;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled: {
-            ASSERT_DEBUG(!action.payload.resume.signalled_obj, Kernel,
-                         "Unexpected signalled object");
-            return RESULT_SUCCESS;
-        }
-        case ThreadResumeReason::TimedOut:
-            return MAKE_RESULT(Svc, Error::TimedOut);
-        }
-    }
-    }
-}
-
-result_t
-process_thread_action_with_object(const auto& action,
-                                  SynchronizationObject*& out_signalled_obj) {
-    switch (action.type) {
-    case ThreadActionType::None:
-    case ThreadActionType::Stop:
-        return RESULT_SUCCESS;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled: {
-            if (action.payload.resume.signalled_obj) {
-                out_signalled_obj = action.payload.resume.signalled_obj;
-                return RESULT_SUCCESS;
-            } else {
-                return MAKE_RESULT(Svc, Error::Cancelled);
-            }
-        }
-        case ThreadResumeReason::TimedOut:
-            return MAKE_RESULT(Svc, Error::TimedOut);
-        }
-    }
-    }
-}
-
-} // namespace
-
 SINGLETON_DEFINE_GET_INSTANCE(Kernel, Kernel)
 
 Kernel::Kernel() { SINGLETON_SET_INSTANCE(Kernel, Kernel); }
@@ -250,7 +201,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     case 0x1c:
         res = WaitProcessWideKeyAtomic(
-            crnt_thread,
+            crnt_process, crnt_thread,
             crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
             crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
             guest_thread->GetRegX(2),
@@ -755,19 +706,47 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     crnt_thread->Pause();
 
     // Add waiting thread
-    for (u32 i = 0; i < sync_objs.size(); i++) {
+    for (auto sync_obj : sync_objs) {
         // LOG_DEBUG(Kernel, "Synchronizing with {}",
-        //           sync_objs[i]->GetDebugName());
+        //           sync_obj->GetDebugName());
 
-        sync_objs[i]->AddWaitingThread(crnt_thread);
+        sync_obj->AddWaitingThread(crnt_thread);
     }
 
+    const auto action = crnt_thread->ProcessMessages(timeout);
+
     SynchronizationObject* signalled_obj = nullptr;
-    const auto result = process_thread_action_with_object(
-        crnt_thread->ProcessMessages(timeout), signalled_obj);
+    result_t res = RESULT_SUCCESS;
+    switch (action.type) {
+    case ThreadActionType::Stop:
+        break;
+    case ThreadActionType::Resume: {
+        switch (action.payload.resume.reason) {
+        case ThreadResumeReason::Signalled:
+            signalled_obj = action.payload.resume.signalled_obj;
+            break;
+        case ThreadResumeReason::Cancelled:
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+            break;
+        case ThreadResumeReason::TimedOut:
+            res = MAKE_RESULT(Svc, Error::TimedOut);
+            break;
+        }
+        break;
+    default:
+        unreachable();
+    }
+    }
+
+    // Remove the thread from the waiting list
+    for (auto sync_obj : sync_objs) {
+        if (sync_obj != signalled_obj)
+            sync_obj->RemoveWaitingThread(crnt_thread);
+    }
+
+    // Find the handle index
+    out_signalled_index = -1;
     if (signalled_obj) {
-        // Find the handle index
-        out_signalled_index = -1;
         for (u32 i = 0; i < sync_objs.size(); i++) {
             if (sync_objs[i] == signalled_obj) {
                 out_signalled_index = i;
@@ -776,14 +755,14 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         }
     }
 
-    return result;
+    return res;
 }
 
 result_t Kernel::CancelSynchronization(IThread* thread) {
     LOG_DEBUG(Kernel, "CancelSynchronization called (thread: {})",
               thread->GetDebugName());
 
-    thread->Resume();
+    thread->CancelSync();
 
     return RESULT_SUCCESS;
 }
@@ -799,14 +778,19 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
     crnt_thread->self_handle_for_mutex = self_handle;
     owner_thread->self_handle_for_mutex = owner_handle;
 
-    if (atomic_load(reinterpret_cast<u32*>(mutex_addr)) !=
-        (owner_thread->self_handle_for_mutex | MUTEX_WAIT_MASK))
-        return RESULT_SUCCESS;
+    {
+        CriticalSectionLock cs_lock;
 
-    crnt_thread->mutex_wait_addr = mutex_addr;
+        if (atomic_load(reinterpret_cast<u32*>(mutex_addr)) !=
+            (owner_thread->self_handle_for_mutex | MUTEX_WAIT_MASK))
+            return RESULT_SUCCESS;
 
-    crnt_thread->Pause();
-    owner_thread->AddMutexWaiter(crnt_thread);
+        crnt_thread->mutex_wait_addr = mutex_addr;
+
+        crnt_thread->Pause();
+        owner_thread->AddMutexWaiter(crnt_thread);
+    }
+
     crnt_thread->ProcessMessages();
 
     return RESULT_SUCCESS;
@@ -815,12 +799,16 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
 result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
     LOG_DEBUG(Kernel, "ArbitrateUnlock called (mutex: 0x{:08x})", mutex_addr);
 
-    UnlockMutex(crnt_thread, mutex_addr);
+    {
+        CriticalSectionLock cs_lock;
+        UnlockMutex(crnt_thread, mutex_addr);
+    }
 
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
+result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
+                                          IThread* crnt_thread, uptr mutex_addr,
                                           uptr var_addr,
                                           handle_id_t self_handle,
                                           i64 timeout) {
@@ -836,12 +824,51 @@ result_t Kernel::WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
 
     crnt_thread->Pause();
 
-    sync_mutex.lock();
-    cond_var_waiters.push_back(crnt_thread);
-    UnlockMutex(crnt_thread, mutex_addr);
-    sync_mutex.unlock();
+    {
+        CriticalSectionLock cs_lock;
+        cond_var_waiters.push_back(crnt_thread);
+        UnlockMutex(crnt_thread, mutex_addr);
+    }
 
-    return process_thread_action(crnt_thread->ProcessMessages(timeout));
+    const auto action = crnt_thread->ProcessMessages(timeout);
+
+    result_t res = RESULT_SUCCESS;
+    switch (action.type) {
+    case ThreadActionType::Stop:
+        break;
+    case ThreadActionType::Resume: {
+        switch (action.payload.resume.reason) {
+        case ThreadResumeReason::Signalled:
+            break;
+        case ThreadResumeReason::Cancelled:
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+            break;
+        case ThreadResumeReason::TimedOut:
+            res = MAKE_RESULT(Svc, Error::TimedOut);
+            break;
+        }
+        break;
+    default:
+        unreachable();
+    }
+    }
+
+    // Remove this thread from the wait list
+    {
+        CriticalSectionLock cs_lock;
+
+        // Cond var
+        cond_var_waiters.erase(std::remove(cond_var_waiters.begin(),
+                                           cond_var_waiters.end(), crnt_thread),
+                               cond_var_waiters.end());
+
+        // Mutex
+        auto owner = GetMutexOwner(crnt_process, crnt_thread->mutex_wait_addr);
+        if (owner)
+            owner->RemoveMutexWaiter(crnt_thread);
+    }
+
+    return res;
 }
 
 result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
@@ -849,7 +876,7 @@ result_t Kernel::SignalProcessWideKey(Process* crnt_process, uptr addr,
     LOG_DEBUG(Kernel, "SignalProcessWideKey called (addr: 0x{:08x}, count: {})",
               addr, count);
 
-    std::lock_guard<std::mutex> lock(sync_mutex);
+    CriticalSectionLock cs_lock;
 
     if (count == -1)
         count = cond_var_waiters.size();
@@ -911,9 +938,10 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
         crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
 
     // Wait for response
-    SynchronizationObject* signalled_object = nullptr;
-    return process_thread_action_with_object(crnt_thread->ProcessMessages(),
-                                             signalled_object);
+    // TODO: check for errors
+    crnt_thread->ProcessMessages();
+
+    return RESULT_SUCCESS;
 }
 
 result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
@@ -1130,6 +1158,8 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
               "0x{:x}, timeout: 0x{:08x})",
               addr, arbitration_type, value, timeout);
 
+    // TODO
+    /*
     // TODO: atomic?
     const auto current_value = *reinterpret_cast<u32*>(addr);
     bool wait{false};
@@ -1148,22 +1178,21 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     }
 
     if (wait) {
-        crnt_thread->Pause();
+        // crnt_thread->Pause();
 
-        // TODO
         // sync_mutex.lock();
         // mutex_waiters.push_back({addr, crnt_thread});
         // sync_mutex.unlock();
-        LOG_FATAL(Kernel, "Mutex waiters not implemented");
 
-        const auto result =
-            process_thread_action(crnt_thread->ProcessMessages(timeout));
+        crnt_thread->ProcessMessages(timeout);
 
         if (*reinterpret_cast<u32*>(addr) == value)
             return result;
         else
             return MAKE_RESULT(Svc, Error::InvalidState);
     }
+    */
+    LOG_FATAL(Kernel, "Address wait not implemented");
 
     return RESULT_SUCCESS;
 }
@@ -1346,7 +1375,7 @@ void Kernel::TryAcquireMutex(Process* crnt_process, IThread* thread) {
     }
 
     // Register this thread as a waiter by the owner
-    auto owner = crnt_process->GetHandle<IThread>(value & ~MUTEX_WAIT_MASK);
+    auto owner = GetMutexOwner(crnt_process, value);
     owner->AddMutexWaiter(thread);
 }
 

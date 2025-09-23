@@ -20,10 +20,12 @@ void IThread::GetStackTrace(stack_frame_callback_fn_t callback) {
         }
 
         // HACK
-        // if (fp < 0x10000000 || fp >= 0x20000000) {
-        //    LOG_WARN(Mmu, "Currputed stack");
-        //    break;
-        //}
+        /*
+        if (fp < 0x10000000 || fp >= 0x20000000) {
+            LOG_WARN(Mmu, "Currputed stack");
+            break;
+        }
+        */
 
         u64 new_fp = mmu->Load<u64>(fp);
         lr = mmu->Load<u64>(fp + 8);

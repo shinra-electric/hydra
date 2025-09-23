@@ -162,20 +162,17 @@ class LinkedList {
         }
     }
 
-    typename std::enable_if<is_doubly_linked,
-                            LinkedListNode<T, is_doubly_linked>*>::type
+    typename std::enable_if<is_doubly_linked, void>::type
     Remove(const T& target) {
         ASSERT_DEBUG(target, Common, "Invalid node");
-        ASSERT_DEBUG(head, Common, "List is empty");
 
-        // Find the node to remove
-        auto node = head;
-        while (node && node->value != target)
-            node = node->next;
-        ASSERT_DEBUG(node, Common, "Invalid node");
-
-        // Remove the node
-        return Remove(node);
+        // Remove all occurrences of the target
+        for (auto node = head; node;) {
+            if (node->value == target)
+                node = Remove(node);
+            else
+                node = node->next;
+        }
     }
 
     void Clear() {

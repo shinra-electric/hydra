@@ -84,7 +84,8 @@ class Kernel {
                            uptr mutex_addr, handle_id_t self_handle,
                            handle_id_t owner_handle);
     result_t ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr);
-    result_t WaitProcessWideKeyAtomic(IThread* crnt_thread, uptr mutex_addr,
+    result_t WaitProcessWideKeyAtomic(Process* crnt_process,
+                                      IThread* crnt_thread, uptr mutex_addr,
                                       uptr var_addr, handle_id_t self_handle,
                                       i64 timeout);
     result_t SignalProcessWideKey(Process* crnt_process, uptr addr, i32 count);
@@ -134,12 +135,13 @@ class Kernel {
   private:
     filesystem::Filesystem filesystem;
     ProcessManager process_manager;
-
-    // Services
     hipc::ServiceManager<std::string> service_manager;
 
-    std::mutex sync_mutex;
-    std::vector<IThread*> cond_var_waiters;
+    // Critical section
+    std::mutex critical_section_mutex;
+
+    // Condition variables
+    std::vector<IThread*> cond_var_waiters; // TODO: linked list
 
     // Helpers
     void TryAcquireMutex(Process* crnt_process, IThread* thread);
@@ -148,6 +150,16 @@ class Kernel {
   public:
     REF_GETTER(process_manager, GetProcessManager);
     REF_GETTER(service_manager, GetServiceManager);
+    REF_GETTER(critical_section_mutex, GetCriticalSectionMutex);
+};
+
+class CriticalSectionLock {
+  public:
+    CriticalSectionLock() { KERNEL_INSTANCE.GetCriticalSectionMutex().lock(); }
+
+    ~CriticalSectionLock() {
+        KERNEL_INSTANCE.GetCriticalSectionMutex().unlock();
+    }
 };
 
 } // namespace hydra::horizon::kernel
