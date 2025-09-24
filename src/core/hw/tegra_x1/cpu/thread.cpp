@@ -19,16 +19,12 @@ void IThread::GetStackTrace(stack_frame_callback_fn_t callback) {
             break;
         }
 
-        // HACK
-        /*
-        if (fp < 0x10000000 || fp >= 0x20000000) {
-            LOG_WARN(Mmu, "Currputed stack");
+        const auto fp_ptr = mmu->UnmapAddr(fp);
+        if (fp_ptr == 0x0)
             break;
-        }
-        */
 
-        u64 new_fp = mmu->Load<u64>(fp);
-        lr = mmu->Load<u64>(fp + 8);
+        u64 new_fp = *reinterpret_cast<u64*>(fp_ptr);
+        lr = *reinterpret_cast<u64*>(fp_ptr + 8);
 
         fp = new_fp;
     }
