@@ -1,16 +1,16 @@
 #include "core/horizon/kernel/host_thread.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 
 namespace hydra::horizon::kernel {
 
 void HostThread::Run() {
-    DEBUGGER_INSTANCE.RegisterThisThread(GetDebugName());
+    GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName());
     run_callback([this]() {
         ProcessMessages();
         return GetState() == ThreadState::Stopping;
     });
-    DEBUGGER_INSTANCE.UnregisterThisThread();
+    GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
 }
 
 } // namespace hydra::horizon::kernel

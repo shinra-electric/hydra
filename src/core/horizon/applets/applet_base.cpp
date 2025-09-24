@@ -1,6 +1,6 @@
 #include "core/horizon/applets/applet_base.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/applets/const.hpp"
 
 namespace hydra::horizon::applets {
@@ -14,11 +14,13 @@ void AppletBase::Start() {
     ASSERT(common_args.size == sizeof(CommonArguments), Applets,
            "Invalid struct size 0x{:x}", common_args.size);
 
+    // TODO: create process
+
     thread = new std::thread([&]() {
-        DEBUGGER_INSTANCE.RegisterThisThread("Applet");
+        GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Applet");
         result = Run();
         controller.GetStateChangedEvent()->Signal();
-        DEBUGGER_INSTANCE.UnregisterThisThread();
+        GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
     });
 }
 

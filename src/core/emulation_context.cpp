@@ -352,7 +352,6 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 void EmulationContext::RequestStop() {
     // We don't request the processes to stop yet, instead we send a message to
     // all of them and give them some time to react
-    // TODO: send an exit message to all processes
     for (auto it = os->GetKernel().GetProcessManager().Begin();
          it != os->GetKernel().GetProcessManager().End(); ++it)
         (*it)->GetAppletState().SendMessage(
@@ -371,7 +370,7 @@ void EmulationContext::ForceStop() {
     // Check if all processes have stopped
     if (IsRunning()) {
         // If some processes are still running, just abort
-        LOG_FATAL(Other, "Failed to stop process all processes");
+        LOG_FATAL(Other, "Failed to stop all processes");
     }
 }
 

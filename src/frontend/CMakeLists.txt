@@ -36,6 +36,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
+        swiftui/helpers/ClickableListItem.swift
         swiftui/helpers/GameLoader.swift
         swiftui/settings/GeneralSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
@@ -46,6 +47,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/debugger/MessageView.swift
         swiftui/debugger/ThreadDebuggerView.swift
         swiftui/debugger/DebuggerView.swift
+        swiftui/debugger/DebuggerListView.swift
+        swiftui/debugger/DebuggersView.swift
         # TODO: if macOS
         swiftui/macos/AppDelegate.swift
     )

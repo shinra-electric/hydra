@@ -6,7 +6,6 @@ add_library(hydra-core
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
-    horizon/kernel/mutex.hpp
     horizon/kernel/applet_state.cpp
     horizon/kernel/applet_state.hpp
     horizon/kernel/auto_object.hpp
@@ -575,6 +574,8 @@ add_library(hydra-core
     # TODO: only build the debugger on debug builds
     debugger/debugger.cpp
     debugger/debugger.hpp
+    debugger/debugger_manager.cpp
+    debugger/debugger_manager.hpp
     emulation_context.cpp
     emulation_context.hpp
     title.hpp

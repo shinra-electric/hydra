@@ -2,7 +2,7 @@
 
 #include "common/elf.h"
 #include "common/lz4.hpp"
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 
@@ -200,10 +200,12 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     for (const auto& symbol : dyn_sym) {
         std::string_view name(dyn_str.data() + symbol.st_name);
         if (symbol.st_shndx != 0) {
-            DEBUGGER_INSTANCE.GetFunctionTable().RegisterSymbol(
-                {demangle(std::string(name)),
-                 range<vaddr_t>(base + symbol.st_value,
-                                base + symbol.st_value + symbol.st_size)});
+            DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
+                .GetFunctionTable()
+                .RegisterSymbol(
+                    {demangle(std::string(name)),
+                     range<vaddr_t>(base + symbol.st_value,
+                                    base + symbol.st_value + symbol.st_size)});
         }
     }
 

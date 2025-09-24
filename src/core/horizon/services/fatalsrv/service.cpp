@@ -1,6 +1,6 @@
 #include "core/horizon/services/fatalsrv/service.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 
 namespace hydra::horizon::services::fatalsrv {
 
@@ -15,7 +15,7 @@ IService::ThrowFatalWithCpuContext(u64 code, u64 _unknown_x8,
 
     // TODO: stack trace and other stuff in the buffer
 
-    DEBUGGER_INSTANCE.BreakOnThisThread(
+    GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
         "fatalsrv::IService::ThrowFatalWithCpuContext");
 
     return RESULT_SUCCESS;

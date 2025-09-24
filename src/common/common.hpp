@@ -9,6 +9,7 @@
 #include <string_view>
 #include <thread>
 
+#include "common/atomic.hpp"
 #include "common/config.hpp"
 #include "common/dynamic_pool.hpp"
 #include "common/filesystem.hpp"

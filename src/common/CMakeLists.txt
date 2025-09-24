@@ -4,6 +4,7 @@ add_library(hydra-common
     types.hpp
     traits.hpp
     functions.hpp
+    atomic.hpp
     literals.hpp
     string.hpp
     time.hpp

@@ -8,11 +8,6 @@ struct MyApp: App {
     @State private var activeGame: Game? = nil
     @State private var emulationContext: UnsafeMutableRawPointer? = nil
 
-    init() {
-        // TODO: only enable if enabled in the config
-        hydra_debugger_enable()
-    }
-
     var body: some Scene {
         Window("Hydra", id: "main") {
             ContentView(activeGame: self.$activeGame, emulationContext: self.$emulationContext)
@@ -24,7 +19,7 @@ struct MyApp: App {
         }
 
         Window("Debugger", id: "debugger") {
-            DebuggerView()
+            DebuggerProcessesView()
         }
         .defaultLaunchBehavior(.suppressed)
 

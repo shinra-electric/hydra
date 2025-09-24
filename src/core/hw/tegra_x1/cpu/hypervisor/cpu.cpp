@@ -1,6 +1,6 @@
 #include "core/hw/tegra_x1/cpu/hypervisor/cpu.hpp"
 
-#include "core/debugger/debugger.hpp"
+#include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/os.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/hypervisor/thread.hpp"
@@ -69,15 +69,18 @@ Cpu::Cpu()
            exception_trampoline, sizeof(exception_trampoline));
 
     // Symbols
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+    // TODO: this should be registered by the process
+    /*
+    GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
          range<vaddr_t>(KERNEL_REGION_BASE,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
-    DEBUGGER_INSTANCE.GetModuleTable().RegisterSymbol(
+    GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::trampoline",
          range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
+    */
 }
 
 Cpu::~Cpu() { hv_vm_destroy(); }
