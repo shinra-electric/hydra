@@ -21,7 +21,9 @@ Directory::Directory(const std::string_view host_path) {
         if (entry_name == ".DS_Store")
             continue;
 
-        AddEntry(entry_name, entry_path);
+        const auto res = AddEntry(entry_name, entry_path);
+        ASSERT(res == FsResult::Success, Filesystem,
+               "Failed to add entry \"{}\": {}", entry_name, res);
     }
 }
 
@@ -45,13 +47,17 @@ FsResult Directory::Delete(bool recursive) {
 
         if (entry.second->IsDirectory()) {
             auto dir = dynamic_cast<Directory*>(entry.second);
-            ASSERT_DEBUG(dir, Filesystem, "This should not happen");
-            dir->Delete(true);
+            ASSERT(dir, Filesystem, "This should not happen");
+            const auto res = dir->Delete(true);
+            if (res != FsResult::Success)
+                return res;
             delete dir;
         } else {
             auto file = dynamic_cast<FileBase*>(entry.second);
-            ASSERT_DEBUG(file, Filesystem, "This should not happen");
-            file->Delete();
+            ASSERT(file, Filesystem, "This should not happen");
+            const auto res = file->Delete();
+            if (res != FsResult::Success)
+                return res;
             delete file;
         }
     }
@@ -107,6 +113,33 @@ FsResult Directory::GetEntry(const std::string_view path,
     }
 
     return GetEntryImpl(broken_path, out_entry);
+}
+
+FsResult Directory::GetFile(const std::string_view path, FileBase*& out_file) {
+    EntryBase* entry;
+    const auto res = GetEntry(path, entry);
+    if (res != FsResult::Success)
+        return res;
+
+    out_file = dynamic_cast<FileBase*>(entry);
+    if (!out_file)
+        return FsResult::NotAFile;
+
+    return FsResult::Success;
+}
+
+FsResult Directory::GetDirectory(const std::string_view path,
+                                 Directory*& out_directory) {
+    EntryBase* entry;
+    const auto res = GetEntry(path, entry);
+    if (res != FsResult::Success)
+        return res;
+
+    out_directory = dynamic_cast<Directory*>(entry);
+    if (!out_directory)
+        return FsResult::NotADirectory;
+
+    return FsResult::Success;
 }
 
 FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,

@@ -33,4 +33,15 @@ FsResult Device::GetEntry(const std::string_view path, EntryBase*& out_entry) {
     return root->GetEntry(path.substr(1), out_entry);
 }
 
+FsResult Device::GetFile(const std::string_view path, FileBase*& out_file) {
+    VERIFY_PATH(path);
+    return root->GetFile(path.substr(1), out_file);
+}
+
+FsResult Device::GetDirectory(const std::string_view path,
+                              Directory*& out_directory) {
+    VERIFY_PATH(path);
+    return root->GetDirectory(path.substr(1), out_directory);
+}
+
 } // namespace hydra::horizon::filesystem

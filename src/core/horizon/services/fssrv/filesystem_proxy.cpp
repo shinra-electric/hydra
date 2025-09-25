@@ -1,5 +1,6 @@
 #include "core/horizon/services/fssrv/filesystem_proxy.hpp"
 
+#include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
@@ -158,7 +159,23 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
     LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:08x}", storage_id.Get(),
               data_id);
 
-    // TODO: implement
+    filesystem::FileBase* file;
+    switch (storage_id.Get()) {
+    default:
+        LOG_NOT_IMPLEMENTED(Services, "Storage ID {} (data ID: 0x{:08x})",
+                            storage_id.Get(), data_id);
+        return MAKE_RESULT(Svc, 1); // TODO
+    }
+
+    filesystem::ContentArchive content_archive(file);
+    const auto res = content_archive.GetFile("data", file);
+    if (res != filesystem::FsResult::Success) {
+        LOG_WARN(Services, "Data storage does not have romFS");
+        return MAKE_RESULT(Fs, res);
+    }
+
+    AddService(*ctx, new IStorage(file, filesystem::FileOpenFlags::Read));
+
     return RESULT_SUCCESS;
 }
 

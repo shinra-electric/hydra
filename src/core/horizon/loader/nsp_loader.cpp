@@ -25,16 +25,10 @@ NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
     program_nca_loader = new NcaLoader(largest_entry.file);
     */
 
-    filesystem::EntryBase* main_entry;
-    const auto res = pfs.GetEntry("main", main_entry);
+    filesystem::FileBase* main_file;
+    const auto res = pfs.GetFile("main", main_file);
     if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get main entry");
-        return;
-    }
-
-    auto main_file = dynamic_cast<filesystem::FileBase*>(main_entry);
-    if (!main_file) {
-        LOG_ERROR(Loader, "Main entry is not a file");
+        LOG_ERROR(Loader, "Failed to get main file");
         return;
     }
 

@@ -51,17 +51,11 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
     filesystem::ContentArchive content_archive(file);
 
     // Data
-    filesystem::EntryBase* data_entry;
-    res = content_archive.GetEntry("data", data_entry);
+    filesystem::FileBase* data_file;
+    res = content_archive.GetFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} data: {}", font_type,
                   res);
-        return nullptr;
-    }
-
-    auto data_file = dynamic_cast<filesystem::FileBase*>(data_entry);
-    if (!data_file) {
-        LOG_ERROR(Services, "Shared font {} data is not a file", font_type);
         return nullptr;
     }
 
@@ -69,16 +63,10 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
     filesystem::RomFS romfs(data_file);
 
     // Font
-    filesystem::EntryBase* font_entry;
-    res = romfs.GetEntry(name.filename, font_entry);
+    filesystem::FileBase* font_file;
+    res = romfs.GetFile(name.filename, font_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {}: {}", font_type, res);
-        return nullptr;
-    }
-
-    auto font_file = dynamic_cast<filesystem::FileBase*>(font_entry);
-    if (!font_file) {
-        LOG_ERROR(Services, "Shared font {} is not a file", font_type);
         return nullptr;
     }
 

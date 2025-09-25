@@ -128,7 +128,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
 
     // Firmware
     std::map<u64, std::string> firmware_titles_map = {
-        {0x010000000000080E, "TimeZoneBinary"},
+        {0x010000000000080e, "TimeZoneBinary"},
         {0x0100000000000810, "FontNintendoExtension"},
         {0x0100000000000811, "FontStandard"},
         {0x0100000000000812, "FontKorean"},
@@ -149,17 +149,30 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
                 horizon::filesystem::ContentArchiveContentType::Meta)
                 continue;
 
-            auto it = firmware_titles_map.find(content_archive.GetTitleID());
-            if (it == firmware_titles_map.end())
-                continue;
-
             auto res = FILESYSTEM_INSTANCE.AddEntry(
-                fmt::format(FS_FIRMWARE_PATH "/{}", it->second), file, true);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Other,
+                fmt::format(FS_FIRMWARE_PATH "/{:016x}",
+                            content_archive.GetTitleID()),
+                file, true);
+            if (content_archive.GetTitleID() == 0x0100000000000823)
+                abort();
+            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
                    "Failed to add firmware entry: {}", res);
         }
     } else {
-        LOG_ERROR(Other, "Firmware path does not exist");
+        LOG_ERROR(Horizon, "Firmware path does not exist");
+    }
+
+    for (const auto& [title_id, filename] : firmware_titles_map) {
+        filesystem::FileBase* file;
+        auto res = FILESYSTEM_INSTANCE.GetFile(
+            fmt::format(FS_FIRMWARE_PATH "/{:016x}", title_id), file);
+        ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
+               "Failed to get firmware entry {:016x}: {}", title_id, res);
+
+        res = FILESYSTEM_INSTANCE.AddEntry(
+            fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
+        ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
+               "Failed to add firmware entry alias \"{}\": {}", filename, res);
     }
 
     // Sysmodules

@@ -143,16 +143,10 @@ XciLoader::XciLoader(filesystem::FileBase* file) {
 
     // Secure
     {
-        filesystem::EntryBase* secure_entry;
-        if (root_pfs.GetEntry("secure", secure_entry) !=
+        filesystem::FileBase* secure_file;
+        if (root_pfs.GetFile("secure", secure_file) !=
             filesystem::FsResult::Success) {
-            LOG_ERROR(Loader, "Failed to find \"secure\" entry");
-            return;
-        }
-
-        auto secure_file = dynamic_cast<filesystem::FileBase*>(secure_entry);
-        if (!secure_file) {
-            LOG_ERROR(Loader, "Failed to cast \"secure\" entry to FileBase");
+            LOG_ERROR(Loader, "Failed to find \"secure\" file");
             return;
         }
 

@@ -123,30 +123,14 @@ FsResult Filesystem::GetEntry(const std::string_view path,
 }
 
 FsResult Filesystem::GetFile(const std::string_view path, FileBase*& out_file) {
-    EntryBase* entry;
-    const auto res = GetEntry(path, entry);
-    if (res != FsResult::Success)
-        return res;
-
-    out_file = dynamic_cast<FileBase*>(entry);
-    if (!out_file)
-        return FsResult::NotAFile;
-
-    return res;
+    VERIFY_PATH(path);
+    return device.GetFile(entry_path, out_file);
 }
 
 FsResult Filesystem::GetDirectory(const std::string_view path,
                                   Directory*& out_directory) {
-    EntryBase* entry;
-    const auto res = GetEntry(path, entry);
-    if (res != FsResult::Success)
-        return res;
-
-    out_directory = dynamic_cast<Directory*>(entry);
-    if (!out_directory)
-        return FsResult::NotADirectory;
-
-    return res;
+    VERIFY_PATH(path);
+    return device.GetDirectory(entry_path, out_directory);
 }
 
 void Filesystem::MountImpl(const std::string_view mount, Directory* root) {

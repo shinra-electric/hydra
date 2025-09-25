@@ -17,10 +17,16 @@ class Device {
     [[nodiscard]] FsResult AddEntry(const std::string_view path,
                                     const std::string_view host_path,
                                     bool add_intermediate = false);
+
     [[nodiscard]] FsResult DeleteEntry(const std::string_view path,
                                        bool recursive = false);
+
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
                                     EntryBase*& out_entry);
+    [[nodiscard]] FsResult GetFile(const std::string_view path,
+                                   FileBase*& out_file);
+    [[nodiscard]] FsResult GetDirectory(const std::string_view path,
+                                        Directory*& out_directory);
 
   private:
     Directory* root;

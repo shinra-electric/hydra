@@ -49,16 +49,10 @@ struct NpdmMeta {
 
 NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     : content_archive(content_archive_) {
-    filesystem::EntryBase* e;
-    auto res = content_archive.GetEntry("code/main.npdm", e);
+    filesystem::FileBase* file;
+    auto res = content_archive.GetFile("code/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
-        return;
-    }
-
-    auto file = dynamic_cast<filesystem::FileBase*>(e);
-    if (!file) {
-        LOG_ERROR(Loader, "main.npdm is not a file");
         return;
     }
 
@@ -95,32 +89,16 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     system_resource_size = meta.system_resource_size;
 
     // Nintendo logo
-    filesystem::EntryBase* nintendo_logo_entry;
-    res = content_archive.GetEntry(NINTENDO_LOGO_PATH, nintendo_logo_entry);
+    res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
         return;
     }
 
-    nintendo_logo_file =
-        dynamic_cast<filesystem::FileBase*>(nintendo_logo_entry);
-    if (!nintendo_logo_file) {
-        LOG_ERROR(Loader, NINTENDO_LOGO_PATH " is not a file");
-        return;
-    }
-
     // Startup movie
-    filesystem::EntryBase* startup_movie_entry;
-    res = content_archive.GetEntry(STARTUP_MOVIE_PATH, startup_movie_entry);
+    res = content_archive.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
-        return;
-    }
-
-    startup_movie_file =
-        dynamic_cast<filesystem::FileBase*>(startup_movie_entry);
-    if (!startup_movie_file) {
-        LOG_ERROR(Loader, STARTUP_MOVIE_PATH " is not a file");
         return;
     }
 }

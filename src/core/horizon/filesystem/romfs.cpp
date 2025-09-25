@@ -91,8 +91,10 @@ void LoadFile(const RomFSContext& context, Directory* parent, u32 offset) {
         auto [entry, name] =
             context.LoadEntry<FileEntry, &RomFSContext::file_meta>(offset);
 
-        parent->AddEntry(
+        const auto res = parent->AddEntry(
             name, new FileView(context.data_file, entry.offset, entry.size));
+        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                     "Failed to add file");
         offset = entry.sibling;
     }
 }
@@ -109,7 +111,9 @@ void LoadDirectory(const RomFSContext& context, Directory* parent, u32 offset) {
         if (entry.child_dir != ROMFS_ENTRY_EMPTY)
             LoadDirectory(context, dir, entry.child_dir);
 
-        parent->AddEntry(name, dir);
+        const auto res = parent->AddEntry(name, dir);
+        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                     "Failed to add directory");
         offset = entry.sibling;
     }
 }
@@ -142,8 +146,11 @@ RomFS::RomFS(FileBase* file) {
     auto root_dir = dynamic_cast<Directory*>(root);
     ASSERT(root_dir != nullptr, Filesystem, "Root entry is not a directory");
 
-    for (const auto& [name, entry] : root_dir->GetEntries())
-        AddEntry(name, entry);
+    for (const auto& [name, entry] : root_dir->GetEntries()) {
+        const auto res = AddEntry(name, entry);
+        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                     "Failed to add entry");
+    }
 }
 
 } // namespace hydra::horizon::filesystem
