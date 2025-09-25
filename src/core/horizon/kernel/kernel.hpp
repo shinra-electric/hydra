@@ -140,8 +140,9 @@ class Kernel {
     // Critical section
     std::mutex critical_section_mutex;
 
-    // Condition variables
+    // Sync
     DoubleLinkedList<IThread*> cond_var_waiters;
+    DoubleLinkedList<IThread*> arbiters;
 
     // Helpers
     void TryAcquireMutex(Process* crnt_process, IThread* thread);

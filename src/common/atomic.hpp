@@ -34,4 +34,16 @@ bool atomic_compare_exchange_strong(T* ptr, T& expected, T desired) {
     return ref.compare_exchange_strong(expected, desired);
 }
 
+template <typename T>
+T atomic_fetch_add(T* ptr, T value) {
+    std::atomic_ref ref(*ptr);
+    return ref.fetch_add(value);
+}
+
+template <typename T>
+T atomic_fetch_sub(T* ptr, T value) {
+    std::atomic_ref ref(*ptr);
+    return ref.fetch_sub(value);
+}
+
 } // namespace hydra

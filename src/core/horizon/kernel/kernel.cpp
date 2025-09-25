@@ -1156,41 +1156,66 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
               "0x{:x}, timeout: 0x{:08x})",
               addr, arbitration_type, value, timeout);
 
-    // TODO
-    /*
-    // TODO: atomic?
-    const auto current_value = *reinterpret_cast<u32*>(addr);
-    bool wait{false};
-    switch (arbitration_type) {
-    case ArbitrationType::WaitIfLessThan:
-        wait = (current_value < value);
-        break;
-    case ArbitrationType::DecrementAndWaitIfLessThan:
-        wait = (current_value < value);
-        *reinterpret_cast<u32*>(addr) =
-            current_value - 1; // TODO: decrement after?
-        break;
-    case ArbitrationType::WaitIfEqual:
-        wait = (current_value == value);
-        break;
+    bool wait;
+    {
+        CriticalSectionLock cs_lock;
+
+        auto value_ptr = reinterpret_cast<u32*>(addr);
+        u32 current_value;
+        switch (arbitration_type) {
+        case ArbitrationType::WaitIfLessThan:
+            current_value = atomic_load(value_ptr);
+            wait = (current_value < value);
+            break;
+        case ArbitrationType::DecrementAndWaitIfLessThan:
+            current_value = atomic_fetch_sub(value_ptr, 1u);
+            wait = (current_value < value);
+            break;
+        case ArbitrationType::WaitIfEqual:
+            wait = (current_value == value);
+            break;
+        }
+
+        if (wait) {
+            crnt_thread->Pause();
+
+            crnt_thread->mutex_wait_addr = addr;
+            arbiters.AddLast(crnt_thread);
+        }
     }
 
     if (wait) {
-        // crnt_thread->Pause();
+        const auto action = crnt_thread->ProcessMessages(timeout);
 
-        // sync_mutex.lock();
-        // mutex_waiters.push_back({addr, crnt_thread});
-        // sync_mutex.unlock();
+        result_t res = RESULT_SUCCESS;
+        switch (action.type) {
+        case ThreadActionType::Stop:
+            break;
+        case ThreadActionType::Resume: {
+            switch (action.payload.resume.reason) {
+            case ThreadResumeReason::Signalled:
+                break;
+            case ThreadResumeReason::Cancelled:
+                res = MAKE_RESULT(Svc, Error::Cancelled);
+                break;
+            case ThreadResumeReason::TimedOut:
+                res = MAKE_RESULT(Svc, Error::TimedOut);
+                break;
+            }
+            break;
+        default:
+            unreachable();
+        }
+        }
 
-        crnt_thread->ProcessMessages(timeout);
+        // Remove the thread from the arbiter list
+        {
+            CriticalSectionLock cs_lock;
+            arbiters.Remove(crnt_thread);
+        }
 
-        if (*reinterpret_cast<u32*>(addr) == value)
-            return result;
-        else
-            return MAKE_RESULT(Svc, Error::InvalidState);
+        return res;
     }
-    */
-    LOG_FATAL(Kernel, "Address wait not implemented");
 
     return RESULT_SUCCESS;
 }
