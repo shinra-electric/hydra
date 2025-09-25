@@ -553,6 +553,12 @@ void EmulationContext::TakeScreenshot() {
     thread.detach();
 }
 
+void EmulationContext::CaptureGpuFrame() {
+    gpu->GetRenderer().LockMutex();
+    gpu->GetRenderer().CaptureFrame();
+    gpu->GetRenderer().UnlockMutex();
+}
+
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
                                      const std::string_view target_filename,
                                      const std::filesystem::path path) {

@@ -316,6 +316,10 @@ HYDRA_EXPORT void hydra_emulation_context_take_screenshot(void* ctx) {
     reinterpret_cast<hydra::EmulationContext*>(ctx)->TakeScreenshot();
 }
 
+HYDRA_EXPORT void hydra_emulation_context_capture_gpu_frame(void* ctx) {
+    reinterpret_cast<hydra::EmulationContext*>(ctx)->CaptureGpuFrame();
+}
+
 // Debugger
 
 // Debugger manager

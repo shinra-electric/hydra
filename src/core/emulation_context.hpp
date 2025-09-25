@@ -33,6 +33,7 @@ class EmulationContext {
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
     void TakeScreenshot();
+    void CaptureGpuFrame();
 
   private:
     // Objects

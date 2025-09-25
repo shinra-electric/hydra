@@ -40,7 +40,6 @@ class RendererBase {
 
     // Surface
     virtual void SetSurface(void* surface) = 0;
-
     virtual bool AcquireNextSurface() = 0;
     virtual void BeginSurfaceRenderPass() = 0;
     // Uses lower left origin
@@ -49,7 +48,20 @@ class RendererBase {
                                       const FloatRect2D dst_rect,
                                       bool transparent, f32 opacity = 1.0f) = 0;
     virtual void EndSurfaceRenderPass() = 0;
-    virtual void PresentSurface() = 0;
+    void PresentSurface() {
+        PresentSurfaceImpl();
+
+        if (is_capturing) {
+            EndCapture();
+            is_capturing = false;
+        }
+
+        if (begin_capture) {
+            BeginCapture();
+            is_capturing = true;
+            begin_capture = false;
+        }
+    }
 
     // Buffer
     virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
@@ -107,19 +119,18 @@ class RendererBase {
                              const u32 base_vertex, const u32 base_instance,
                              const u32 instance_count) = 0;
 
-    // Getters
-    const Info& GetInfo() const { return info; }
-
-    BufferCache& GetBufferCache() { return buffer_cache; }
-    TextureCache& GetTextureCache() { return texture_cache; }
-    SamplerCache& GetSamplerCache() { return sampler_cache; }
-    RenderPassCache& GetRenderPassCache() { return render_pass_cache; }
-    ShaderCache& GetShaderCache() { return shader_cache; }
-    PipelineCache& GetPipelineCache() { return pipeline_cache; }
-    IndexCache& GetIndexCache() { return index_cache; }
+    // Capture
+    void CaptureFrame() { begin_capture = true; }
 
   protected:
     Info info{};
+
+    // Surface
+    virtual void PresentSurfaceImpl() = 0;
+
+    // Capture
+    virtual void BeginCapture() = 0;
+    virtual void EndCapture() = 0;
 
   private:
     std::mutex mutex;
@@ -132,6 +143,20 @@ class RendererBase {
     ShaderCache shader_cache;
     PipelineCache pipeline_cache;
     IndexCache index_cache;
+
+    // Capture
+    bool begin_capture{false};
+    bool is_capturing{false};
+
+  public:
+    CONST_REF_GETTER(info, GetInfo);
+    REF_GETTER(buffer_cache, GetBufferCache);
+    REF_GETTER(texture_cache, GetTextureCache);
+    REF_GETTER(sampler_cache, GetSamplerCache);
+    REF_GETTER(render_pass_cache, GetRenderPassCache);
+    REF_GETTER(shader_cache, GetShaderCache);
+    REF_GETTER(pipeline_cache, GetPipelineCache);
+    REF_GETTER(index_cache, GetIndexCache);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

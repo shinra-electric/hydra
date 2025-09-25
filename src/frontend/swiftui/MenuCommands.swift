@@ -67,6 +67,14 @@ struct MenuCommands: Commands {
             }
         }
 
+        CommandMenu("Debug") {
+            Button("Capture GPU Frame") {
+                guard let emulationContext = self.emulationContext else { return }
+                hydra_emulation_context_capture_gpu_frame(emulationContext)
+            }
+            .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
+        }
+
         // Remove some items
         CommandGroup(replacing: .undoRedo) {}
         // CommandGroup(replacing: .systemServices) {}

@@ -70,7 +70,7 @@ class Renderer : public RendererBase {
                               const FloatRect2D dst_rect, bool transparent,
                               f32 opacity) override;
     void EndSurfaceRenderPass() override;
-    void PresentSurface() override;
+    void PresentSurfaceImpl() override;
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
@@ -178,8 +178,10 @@ class Renderer : public RendererBase {
                      const u32 dst_layer, const float3 dst_origin,
                      const usize3 dst_size);
 
-    // Getters
-    MTL::Device* GetDevice() const { return device; }
+  protected:
+    // Capture
+    void BeginCapture() override;
+    void EndCapture() override;
 
   private:
     MTL::Device* device;
@@ -223,9 +225,8 @@ class Renderer : public RendererBase {
     // Helpers
     void BindDrawState();
 
-    // Debug
-    void BeginCapture();
-    void EndCapture();
+  public:
+    GETTER(device, GetDevice);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

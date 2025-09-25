@@ -63,6 +63,8 @@ void Window::Run() {
                         auto& handheld_mode = CONFIG_INSTANCE.GetHandheldMode();
                         handheld_mode = !handheld_mode;
                         emulation_context.NotifyOperationModeChanged();
+                    } else if (e.key.key == SDLK_P) {
+                        emulation_context.CaptureGpuFrame();
                     }
                 }
                 break;

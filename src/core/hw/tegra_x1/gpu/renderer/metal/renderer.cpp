@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
+#include "common/config.hpp"
 #include "core/hw/tegra_x1/gpu/engines/3d.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/const.hpp"
@@ -206,7 +207,9 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
 
 void Renderer::EndSurfaceRenderPass() { EndEncoding(); }
 
-void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
+void Renderer::PresentSurfaceImpl() {
+    command_buffer->presentDrawable(drawable);
+}
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
@@ -781,19 +784,20 @@ void Renderer::BeginCapture() {
         desc->setDestination(MTL::CaptureDestinationDeveloperTools);
     } else {
         // TODO: don't hardcode the directory
-        const std::string gpu_capture_dir = "/Users/samuliak/Downloads";
+        const std::string gpu_capture_dir =
+            fmt::format("{}/gpu_captures", CONFIG_INSTANCE.GetAppDataPath());
         if (gpu_capture_dir.empty()) {
             LOG_ERROR(
                 MetalRenderer,
-                "No Gpu capture directory specified, cannot do a Gpu capture");
+                "No GPU capture directory specified, cannot do a Gpu capture");
             return;
         }
 
         // Check if the Gpu trace document destination is available
         if (!capture_manager->supportsDestination(
                 MTL::CaptureDestinationGPUTraceDocument)) {
-            LOG_ERROR(MetalRenderer, "Gpu trace document destination is not "
-                                     "available, cannot do a Gpu capture");
+            LOG_ERROR(MetalRenderer, "GPU trace document destination is not "
+                                     "available, cannot do a GPU capture");
             return;
         }
 
@@ -801,7 +805,7 @@ void Renderer::BeginCapture() {
         auto now = std::chrono::system_clock::now();
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
         std::ostringstream oss;
-        oss << std::put_time(std::localtime(&now_time), "%d.%m.%Y_%H:%M:%S");
+        oss << std::put_time(std::localtime(&now_time), "%Y.%m.%d_%H:%M:%S");
         std::string now_str = oss.str();
 
         std::string capture_path =
@@ -813,7 +817,7 @@ void Renderer::BeginCapture() {
     NS::Error* error = nullptr;
     capture_manager->startCapture(desc, &error);
     if (error) {
-        LOG_ERROR(MetalRenderer, "Failed to start Gpu capture: {}",
+        LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
                   error->localizedDescription()->utf8String());
     }
 

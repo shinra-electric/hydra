@@ -192,6 +192,7 @@ bool hydra_emulation_context_is_running(void* ctx);
 float hydra_emulation_context_get_last_delta_time_average(void* ctx);
 
 void hydra_emulation_context_take_screenshot(void* ctx);
+void hydra_emulation_context_capture_gpu_frame(void* ctx);
 
 // Input
 // TODO
