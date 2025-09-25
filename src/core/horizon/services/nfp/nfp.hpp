@@ -12,9 +12,11 @@ enum class PermissionLevel {
 
 class INfp : public IService {
   public:
-    INfp(PermissionLevel perm_level_) : perm_level{perm_level_} {}
+    INfp(PermissionLevel perm_level_);
 
   protected:
+    kernel::Event* availability_change_event;
+
     // Commands
     result_t Initialize(u64 aruid, u64 zero,
                         InBuffer<BufferAttr::MapAlias> in_version_buffer);
@@ -22,6 +24,9 @@ class INfp : public IService {
     result_t ListDevices(i32* out_count,
                          OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t GetState(u32* out_state);
+    result_t
+    AttachAvailabilityChangeEvent(kernel::Process* process,
+                                  OutHandle<HandleAttr::Copy> out_handle);
 
   private:
     PermissionLevel perm_level;

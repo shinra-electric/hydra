@@ -19,6 +19,7 @@ TimeManager::TimeManager()
     std::memset((void*)shared_memory->GetPtr(), 0, SHARED_MEMORY_SIZE);
 
     // HACK: initialize shared memory
+    /*
     WriteObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4,
                               SteadyClockContext{
                                   .internal_offset = 0,
@@ -56,6 +57,7 @@ TimeManager::TimeManager()
                                                   .clock_source_id = 0x1,
                                               },
                                       }});
+                                      */
 }
 
 } // namespace hydra::horizon::services::timesrv::internal
