@@ -28,8 +28,21 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     hash = std::rotl(hash, 37);
     hash += descriptor.code_ptr;
 
-    // TODO: vertex attribute states
-    // TODO: color target formats
+    // Vertex state
+    if (descriptor.stage == engines::ShaderStage::VertexB) {
+        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+            const auto& vertex_attrib_state =
+                descriptor.state.vertex_attrib_states[i];
+            hash += vertex_attrib_state.is_fixed;
+            hash = std::rotl(hash, 1);
+            hash += static_cast<u32>(vertex_attrib_state.size);
+            hash = std::rotl(hash, 6);
+            hash += static_cast<u32>(vertex_attrib_state.type);
+            hash = std::rotl(hash, 3);
+        }
+    }
+
+    // TODO: color target data types
 
     return hash;
 }

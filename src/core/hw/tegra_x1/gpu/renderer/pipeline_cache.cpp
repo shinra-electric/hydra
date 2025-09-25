@@ -20,23 +20,22 @@ u64 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
     hash = std::rotl(hash, 53);
 
     // Vertex state
+
+    // Vertex attributes
     for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
         const auto& vertex_attrib_state =
             descriptor.vertex_state.vertex_attrib_states[i];
         hash += vertex_attrib_state.buffer_id;
         hash = std::rotl(hash, 5);
-        hash += vertex_attrib_state.is_fixed;
-        hash = std::rotl(hash, 1);
+        // is_fixed is in vertex shader hash
         hash += vertex_attrib_state.offset;
         hash = std::rotl(hash, 14);
-        hash += static_cast<u32>(vertex_attrib_state.size);
-        hash = std::rotl(hash, 6);
-        hash += static_cast<u32>(vertex_attrib_state.type);
-        hash = std::rotl(hash, 3);
+        // size and type are in vertex shader hash
         hash += vertex_attrib_state.bgra;
         hash = std::rotl(hash, 1);
     }
 
+    // Vertex arrays
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
         const auto& vertex_array = descriptor.vertex_state.vertex_arrays[i];
         hash += vertex_array.enable;
@@ -48,6 +47,8 @@ u64 PipelineCache::Hash(const PipelineDescriptor& descriptor) {
         hash += vertex_array.divisor;
         hash = std::rotl(hash, 6);
     }
+
+    // Color state
 
     // Color targets
     for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
