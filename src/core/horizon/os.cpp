@@ -153,26 +153,25 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
                 fmt::format(FS_FIRMWARE_PATH "/{:016x}",
                             content_archive.GetTitleID()),
                 file, true);
-            if (content_archive.GetTitleID() == 0x0100000000000823)
-                abort();
             ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
                    "Failed to add firmware entry: {}", res);
         }
+
+        for (const auto& [title_id, filename] : firmware_titles_map) {
+            filesystem::FileBase* file;
+            auto res = FILESYSTEM_INSTANCE.GetFile(
+                fmt::format(FS_FIRMWARE_PATH "/{:016x}", title_id), file);
+            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
+                   "Failed to get firmware entry {:016x}: {}", title_id, res);
+
+            res = FILESYSTEM_INSTANCE.AddEntry(
+                fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
+            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
+                   "Failed to add firmware entry alias \"{}\": {}", filename,
+                   res);
+        }
     } else {
         LOG_ERROR(Horizon, "Firmware path does not exist");
-    }
-
-    for (const auto& [title_id, filename] : firmware_titles_map) {
-        filesystem::FileBase* file;
-        auto res = FILESYSTEM_INSTANCE.GetFile(
-            fmt::format(FS_FIRMWARE_PATH "/{:016x}", title_id), file);
-        ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-               "Failed to get firmware entry {:016x}: {}", title_id, res);
-
-        res = FILESYSTEM_INSTANCE.AddEntry(
-            fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
-        ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-               "Failed to add firmware entry alias \"{}\": {}", filename, res);
     }
 
     // Sysmodules
