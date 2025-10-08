@@ -75,6 +75,11 @@ HYDRA_EXPORT void hydra_string_array_option_set(void* option, uint32_t index,
                                                                     value);
 }
 
+HYDRA_EXPORT void hydra_string_array_option_append(void* option,
+                                                   const char* value) {
+    reinterpret_cast<hydra::ArrayOption<std::string>*>(option)->Append(value);
+}
+
 HYDRA_EXPORT uint2 hydra_uint2_option_get(const void* option) {
     const auto value =
         reinterpret_cast<const hydra::Option<hydra::uint2>*>(option)->Get();

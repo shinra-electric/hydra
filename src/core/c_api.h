@@ -117,6 +117,7 @@ const char* hydra_string_array_option_get(const void* option, uint32_t index);
 void hydra_string_array_option_resize(void* option, uint64_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
                                    const char* value);
+void hydra_string_array_option_append(void* option, const char* value);
 
 typedef struct {
     uint32_t x;

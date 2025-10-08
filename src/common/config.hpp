@@ -93,6 +93,7 @@ class ArrayOption {
         VerifyIndex(index);
         values[index] = value;
     }
+    void Append(const T& value) { values.push_back(value); }
 
   private:
     std::vector<T> values;

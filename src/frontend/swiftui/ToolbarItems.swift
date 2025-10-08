@@ -1,7 +1,10 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ToolbarItems: ToolbarContent {
     @State private var isFilePickerPresented: Bool = false
+
+    private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
@@ -10,15 +13,18 @@ struct ToolbarItems: ToolbarContent {
             }
             // TODO: change allowedContentTypes to nsp etc
             .fileImporter(
-                isPresented: $isFilePickerPresented, allowedContentTypes: [.data],
+                isPresented: $isFilePickerPresented,
+                allowedContentTypes: [.folder, self.switchType],
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
-                case .success(let fileurls):
-                    print(fileurls.count)
+                case .success(let fileURLs):
+                    for fileURL in fileURLs {
+                        let gamePathsOption = hydra_config_get_game_paths()
+                        hydra_string_array_option_append(
+                            gamePathsOption, fileURL.path.cString(using: .utf8))
 
-                    for fileurl in fileurls {
-                        print(fileurl.path)
+                        hydra_config_serialize()
                     }
 
                 case .failure(let error):
