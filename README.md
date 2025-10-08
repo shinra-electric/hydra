@@ -14,6 +14,8 @@ In order to run official games, you will need to download a set of patches to pr
 
 ## Usage
 
+You can download the latest release from [here](https://github.com/SamoZ256/hydra/releases/latest).
+
 ### Dependencies
 
 You can install Hydra dependencies with a package manager of your choice, like `brew`.
@@ -39,18 +41,14 @@ cmake . -B build -G Ninja -DMACOS_BUNDLE=ON
 ninja -C build
 ```
 
-If you want to use the SwiftUI frontend instead of SDL3, you can use the `-DFRONTEND=SwiftUI` option.
-
-### Running
-
-If you built a macOS bundle, you will find a macOS app at `build/bin/Hydra.app`. Otherwise, you can run the emulator with the following command:
-
-```sh
-build/bin/hydra
-```
-
-For SDL3, you can drag and drop a ROM into the window or provide path to the ROM as an argument when launching the emulator.
+You will find a macOS app at `build/bin/Hydra.app`. If you want to use the SwiftUI frontend instead of `SDL3`, you can use the `-DFRONTEND=SwiftUI` option.
 
 ### Configuring
 
-You can find a config file at `/Users/USER/Library/Application Support/Hydra/config.toml` after launching the emulator at least once.
+You can find a config file at `~/Library/Application Support/Hydra/config.toml` after launching the emulator at least once.
+
+#### Firmware
+
+Some games require firmware files from a Nintendo Switch console to function properly. The firmware files need to be decrypted, which can be done with [this tool](https://github.com/SamoZ256/switch-extract-macos).
+
+To use the firmware, set the `firmware_path` option in the config file to the path of the decrypted firmware files.
