@@ -5,6 +5,15 @@
 namespace hydra::horizon::kernel {
 
 ProcessManager::~ProcessManager() {
+    for (auto process : processes) {
+        if (process->IsRunning()) {
+            LOG_FATAL(Kernel, "{} is still running", process->GetDebugName());
+        } else {
+            ASSERT(process->Release(), Kernel,
+                   "Attempting to destroy {}, which has active references",
+                   process->GetDebugName());
+        }
+    }
     ASSERT(processes.empty(), Kernel, "Processes are still running");
 }
 
@@ -19,12 +28,14 @@ void ProcessManager::DestroyProcess(Process* process) {
     std::lock_guard lock(mutex);
     processes.erase(std::remove(processes.begin(), processes.end(), process),
                     processes.end());
-    delete process;
+    ASSERT(process->Release(), Kernel,
+           "Attempting to destroy {}, which has active references",
+           process->GetDebugName());
 }
 
 bool ProcessManager::HasRunningProcesses() {
     std::lock_guard lock(mutex);
-    for (const auto& process : processes) {
+    for (auto process : processes) {
         if (process->IsRunning())
             return true;
     }

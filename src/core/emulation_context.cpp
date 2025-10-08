@@ -370,7 +370,8 @@ void EmulationContext::ForceStop() {
     // Check if all processes have stopped
     if (IsRunning()) {
         // If some processes are still running, just abort
-        LOG_FATAL(Other, "Failed to stop all processes");
+        LOG_ERROR(Other, "Failed to stop all processes");
+        std::this_thread::sleep_for(std::chrono::hours(1));
     }
 }
 

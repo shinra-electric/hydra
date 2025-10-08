@@ -45,13 +45,13 @@ class AppletState {
     std::stack<uuid_t> user_ids;
 
     // Events
-    Event msg_event;
+    Event* msg_event;
 
     // Impl
     void SendMessageImpl(std::lock_guard<std::mutex>& lock, AppletMessage msg);
 
   public:
-    REF_GETTER(msg_event, GetMsgEvent);
+    GETTER(msg_event, GetMsgEvent);
 };
 
 } // namespace hydra::horizon::kernel

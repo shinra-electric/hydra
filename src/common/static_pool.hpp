@@ -12,6 +12,11 @@ namespace hydra {
 template <typename T, u32 size, bool allow_zero_handle = false>
 class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
   public:
+    StaticPool() {
+        for (u32 i = 0; i < FREE_SIZE; i++)
+            free_slots[i] = std::numeric_limits<u8>::max();
+    }
+
     u32 _AllocateIndex() {
         if (crnt < size) {
             Take(crnt);
@@ -33,7 +38,7 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
     void _FreeByIndex(u32 index) { FREE_SLOT(index) |= MASK(index); }
 
     bool _IsValidByIndex(u32 index) const {
-        if (index >= size)
+        if (index >= crnt)
             return false;
 
         bool is_free = FREE_SLOT(index) & MASK(index);
@@ -48,7 +53,7 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
 
   private:
     T objects[size];
-    u8 free_slots[FREE_SIZE] = {UINT8_MAX};
+    u8 free_slots[FREE_SIZE];
     u32 crnt{0};
 
     void Take(u32 index) { FREE_SLOT(index) &= ~MASK(index); }

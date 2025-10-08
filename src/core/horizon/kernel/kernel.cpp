@@ -148,7 +148,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegW(0, res);
         break;
     case 0x15: {
-        TransferMemory* tmem;
+        TransferMemory* tmem = nullptr;
         res = CreateTransferMemory(
             crnt_process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
             static_cast<MemoryPermission>(guest_thread->GetRegX(3)), tmem);
@@ -220,7 +220,7 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         guest_thread->SetRegX(0, tmp_u64);
         break;
     case 0x1f: {
-        hipc::ClientSession* client_session;
+        hipc::ClientSession* client_session = nullptr;
         res = ConnectToNamedPort(
             reinterpret_cast<const char*>(
                 crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),

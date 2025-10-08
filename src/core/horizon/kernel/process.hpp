@@ -56,10 +56,6 @@ class Process : public SynchronizationObject {
         std::lock_guard lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
-
-        // Clean up after the last (main) thread exits
-        if (threads.empty())
-            CleanUp();
     }
 
     void Start();
@@ -102,23 +98,27 @@ class Process : public SynchronizationObject {
     }
 
     handle_id_t AddHandleNoRetain(AutoObject* obj) {
+        if (!obj) [[unlikely]]
+            return INVALID_HANDLE_ID;
+
         return handle_pool.Add(obj);
     }
 
     handle_id_t AddHandle(AutoObject* obj) {
+        if (!obj) [[unlikely]]
+            return INVALID_HANDLE_ID;
+
         obj->Retain();
         return handle_pool.Add(obj);
     }
 
     void FreeHandle(handle_id_t handle_id) {
-        if (handle_id == CURRENT_PROCESS_PSEUDO_HANDLE) {
-            LOG_FATAL(Kernel, "Cannot free current process handle");
-        } else if (handle_id == CURRENT_THREAD_PSEUDO_HANDLE) {
-            LOG_FATAL(Kernel, "Cannot free current thread handle");
-        } else {
-            handle_pool.Get(handle_id)->Release();
-            handle_pool.Free(handle_id);
-        }
+        ASSERT_DEBUG(handle_id != CURRENT_PROCESS_PSEUDO_HANDLE, Kernel,
+                     "Cannot free current process handle");
+        ASSERT_DEBUG(handle_id != CURRENT_THREAD_PSEUDO_HANDLE, Kernel,
+                     "Cannot free current thread handle");
+        handle_pool.Get(handle_id)->Release();
+        handle_pool.Free(handle_id);
     }
 
   private:
