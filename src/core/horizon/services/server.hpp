@@ -18,7 +18,10 @@ typedef std::function<IService*()> create_service_fn_t;
 
 class Server {
   public:
+    ~Server() { Stop(); }
+
     void Start();
+    void Stop();
 
     void RegisterPort(kernel::hipc::ServerPort* port,
                       create_service_fn_t service_creator);
@@ -30,7 +33,7 @@ class Server {
     }
 
   private:
-    kernel::HostThread* thread;
+    kernel::HostThread* thread{nullptr};
 
     std::map<kernel::hipc::ServerPort*, create_service_fn_t>
         port_service_creators;

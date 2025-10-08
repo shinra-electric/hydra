@@ -719,6 +719,7 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     result_t res = RESULT_SUCCESS;
     switch (action.type) {
     case ThreadActionType::Stop:
+        res = MAKE_RESULT(Svc, Error::Cancelled);
         break;
     case ThreadActionType::Resume: {
         switch (action.payload.resume.reason) {
@@ -733,9 +734,9 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
             break;
         }
         break;
+    }
     default:
         unreachable();
-    }
     }
 
     // Remove the thread from the waiting list
@@ -835,6 +836,7 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
     result_t res = RESULT_SUCCESS;
     switch (action.type) {
     case ThreadActionType::Stop:
+        res = MAKE_RESULT(Svc, Error::Cancelled);
         break;
     case ThreadActionType::Resume: {
         switch (action.payload.resume.reason) {
@@ -1190,6 +1192,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
         result_t res = RESULT_SUCCESS;
         switch (action.type) {
         case ThreadActionType::Stop:
+            res = MAKE_RESULT(Svc, Error::Cancelled);
             break;
         case ThreadActionType::Resume: {
             switch (action.payload.resume.reason) {

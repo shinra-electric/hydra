@@ -7,8 +7,6 @@
 namespace hydra::horizon::services {
 
 void Server::Start() {
-    // TODO: clean up as well
-
     // Process
     // TODO: process
 
@@ -18,6 +16,12 @@ void Server::Start() {
         [this](kernel::should_stop_fn_t should_stop) { MainLoop(should_stop); },
         "Service server thread");
     thread->Start();
+}
+
+void Server::Stop() {
+    thread->Stop();
+    delete thread;
+    thread = nullptr;
 }
 
 void Server::RegisterPort(kernel::hipc::ServerPort* port,
@@ -102,6 +106,8 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
 
             break;
         }
+        case MAKE_RESULT(Svc, kernel::Error::Cancelled):
+            return;
         default:
             LOG_FATAL(Services, "Failed to wait for synchronization: 0x{:08x}",
                       res);
