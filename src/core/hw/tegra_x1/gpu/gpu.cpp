@@ -32,11 +32,6 @@ Gpu::Gpu() {
 }
 
 Gpu::~Gpu() {
-    for (u32 i = 0; i < SUBCHANNEL_COUNT; i++) {
-        if (subchannels[i])
-            delete subchannels[i];
-    }
-
     delete renderer;
 
     SINGLETON_UNSET_INSTANCE();

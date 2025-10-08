@@ -14,7 +14,6 @@ ProcessManager::~ProcessManager() {
                    process->GetDebugName());
         }
     }
-    ASSERT(processes.empty(), Kernel, "Processes are still running");
 }
 
 Process* ProcessManager::CreateProcess(const std::string_view name) {

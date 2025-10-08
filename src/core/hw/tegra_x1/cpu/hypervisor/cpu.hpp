@@ -17,6 +17,12 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 class Mmu;
 class Thread;
 
+class VirtualMachine {
+  public:
+    VirtualMachine();
+    ~VirtualMachine();
+};
+
 class Cpu : public ICpu {
   public:
     Cpu();
@@ -30,6 +36,7 @@ class Cpu : public ICpu {
     IMemory* AllocateMemory(usize size) override;
 
   private:
+    VirtualMachine vm;
     Memory kernel_mem;
     PageTable kernel_page_table;
 

@@ -33,16 +33,14 @@ const u32 exception_trampoline[] = {
     0xd4200000u, // brk #0
 };
 
-void create_vm() {
-    // hv_vm_config_t vm_config = hv_vm_config_create();
-    // hv_vm_config_set_el2_enabled(config, true);
-    HV_ASSERT_SUCCESS(hv_vm_create(nullptr));
-}
-
 } // namespace
 
+VirtualMachine::VirtualMachine() { HV_ASSERT_SUCCESS(hv_vm_create(nullptr)); }
+
+VirtualMachine::~VirtualMachine() { HV_ASSERT_SUCCESS(hv_vm_destroy()); }
+
 Cpu::Cpu()
-    : kernel_mem((create_vm(), align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE))),
+    : kernel_mem(align(KERNEL_MEM_SIZE, APPLE_PAGE_SIZE)),
       kernel_page_table(KERNEL_PAGE_TABLE_REGION_BASE) {
     // Create GIC
     // hv_gic_config_t gic_config = hv_gic_config_create();
@@ -83,7 +81,7 @@ Cpu::Cpu()
     */
 }
 
-Cpu::~Cpu() { hv_vm_destroy(); }
+Cpu::~Cpu() {}
 
 IMmu* Cpu::CreateMmu() { return new Mmu(); }
 

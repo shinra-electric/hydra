@@ -14,6 +14,7 @@ class MetalLayerCoordinator: NSObject {
         super.init()
 
         // TODO: probably not the best way to do this, but it works
+        /*
         let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
         dispatchQueue.async {
             let debugger = hydra_debugger_manager_get_debugger_for_process(nil)
@@ -25,6 +26,7 @@ class MetalLayerCoordinator: NSObject {
             }
             hydra_debugger_unregister_this_thread(debugger)
         }
+        */
     }
 
     deinit {
@@ -38,8 +40,8 @@ class MetalLayerCoordinator: NSObject {
         self.surfaceSet = false
 
         // Display link
-        //self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
-        //self.displayLink?.add(to: .main, forMode: .common)
+        self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
+        self.displayLink?.add(to: .main, forMode: .common)
     }
 
     @objc func handleDisplayLink() {
