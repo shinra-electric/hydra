@@ -22,7 +22,17 @@ struct SettingsView: View {
                     Label("Graphics", systemImage: "star")
                 }
                 .tag(Tabs.graphics)
-            // TODO: user settings
+            AudioSettingsView()
+                .tabItem {
+                    Label("Audio", systemImage: "speaker.wave.2")
+                }
+                .tag(Tabs.graphics)
+            // TODO: user settings?
+            SystemSettingsView()
+                .tabItem {
+                    Label("System", systemImage: "desktopcomputer")
+                }
+                .tag(Tabs.graphics)
             DebugSettingsView()
                 .tabItem {
                     Label("Debug", systemImage: "memorychip")
@@ -31,7 +41,7 @@ struct SettingsView: View {
         }
         .padding(20)
         // TODO: don't hardcode the size
-        .frame(width: 375, height: /*150*/ 400)
+        .frame(width: 500, height: /*150*/ 400)
         .onDisappear {
             // TODO: why is this called before the individual tabs?
             hydra_config_serialize()

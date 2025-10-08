@@ -128,6 +128,10 @@ HYDRA_EXPORT void* hydra_config_get_custom_display_resolution() {
     return &hydra::CONFIG_INSTANCE.GetCustomDisplayResolution();
 }
 
+HYDRA_EXPORT void* hydra_config_get_audio_backend() {
+    return &hydra::CONFIG_INSTANCE.GetAudioBackend();
+}
+
 HYDRA_EXPORT void* hydra_config_get_user_id() {
     return &hydra::CONFIG_INSTANCE.GetUserID();
 }
@@ -144,12 +148,20 @@ HYDRA_EXPORT void* hydra_config_get_save_path() {
     return &hydra::CONFIG_INSTANCE.GetSavePath();
 }
 
+HYDRA_EXPORT void* hydra_config_get_sysmodules_path() {
+    return &hydra::CONFIG_INSTANCE.GetSysmodulesPath();
+}
+
 HYDRA_EXPORT void* hydra_config_get_handheld_mode() {
     return &hydra::CONFIG_INSTANCE.GetHandheldMode();
 }
 
 HYDRA_EXPORT void* hydra_config_get_log_output() {
     return &hydra::CONFIG_INSTANCE.GetLogOutput();
+}
+
+HYDRA_EXPORT void* hydra_config_get_log_fs_access() {
+    return &hydra::CONFIG_INSTANCE.GetLogFsAccess();
 }
 
 HYDRA_EXPORT void* hydra_config_get_debug_logging() {

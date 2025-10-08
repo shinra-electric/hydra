@@ -43,6 +43,13 @@ typedef enum : uint32_t {
 } HydraResolution;
 
 typedef enum : uint32_t {
+    HYDRA_AUDIO_BACKEND_INVALID = 0,
+
+    HYDRA_AUDIO_BACKEND_NULL,
+    HYDRA_AUDIO_BACKEND_CUBEB,
+} HydraAudioBackend;
+
+typedef enum : uint32_t {
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_PROGRAM = 0,
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_META = 1,
     HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_CONTROL = 2,
@@ -138,12 +145,15 @@ void* hydra_config_get_gpu_renderer();
 void* hydra_config_get_shader_backend();
 void* hydra_config_get_display_resolution();
 void* hydra_config_get_custom_display_resolution();
+void* hydra_config_get_audio_backend();
 void* hydra_config_get_user_id();
 void* hydra_config_get_firmware_path();
 void* hydra_config_get_sd_card_path();
 void* hydra_config_get_save_path();
+void* hydra_config_get_sysmodules_path();
 void* hydra_config_get_handheld_mode();
 void* hydra_config_get_log_output();
+void* hydra_config_get_log_fs_access();
 void* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
 

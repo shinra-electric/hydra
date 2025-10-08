@@ -4,8 +4,6 @@ import UniformTypeIdentifiers
 struct GeneralSettingsView: View {
     @State private var gamePaths: [String] = []
     @State private var patchPaths: [String] = []
-    @State private var sdCardPath: String = ""
-    @State private var savePath: String = ""
 
     private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
     private let hatchType = UTType(exportedAs: "com.samoz256.hatch-document", conformingTo: .data)
@@ -19,10 +17,6 @@ struct GeneralSettingsView: View {
             Text("Patch paths")
             EditablePathList(
                 allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths)
-
-            // TODO: make these editable
-            Text("SD card path: \(self.sdCardPath)")
-            Text("Save path: \(self.savePath)")
         }
         .onAppear {
             load()
@@ -50,12 +44,6 @@ struct GeneralSettingsView: View {
                 self.patchPaths.append(patchPath)
             }
         }
-
-        let sdCardPathOption = hydra_config_get_sd_card_path()
-        self.sdCardPath = String(cString: hydra_string_option_get(sdCardPathOption))
-
-        let savePathOption = hydra_config_get_save_path()
-        self.savePath = String(cString: hydra_string_option_get(savePathOption))
     }
 
     func save() {
@@ -64,20 +52,14 @@ struct GeneralSettingsView: View {
         hydra_string_array_option_resize(gamePathsOption, UInt64(self.gamePaths.count))
         for i in 0..<self.gamePaths.count {
             hydra_string_array_option_set(
-                gamePathsOption, UInt32(i), self.gamePaths[i].cString(using: .ascii))
+                gamePathsOption, UInt32(i), self.gamePaths[i].cString(using: .utf8))
         }
 
         let patchPathsOption = hydra_config_get_patch_paths()
         hydra_string_array_option_resize(patchPathsOption, UInt64(self.patchPaths.count))
         for i in 0..<self.patchPaths.count {
             hydra_string_array_option_set(
-                patchPathsOption, UInt32(i), self.patchPaths[i].cString(using: .ascii))
+                patchPathsOption, UInt32(i), self.patchPaths[i].cString(using: .utf8))
         }
-
-        let sdCardPathOption = hydra_config_get_sd_card_path()
-        hydra_string_option_set(sdCardPathOption, self.sdCardPath.cString(using: .ascii))
-
-        let savePathOption = hydra_config_get_save_path()
-        hydra_string_option_set(savePathOption, self.savePath.cString(using: .ascii))
     }
 }
