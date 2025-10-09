@@ -253,8 +253,6 @@ add_library(hydra-core
     horizon/services/pctl/parental_control_service_factory.cpp
     horizon/services/pctl/parental_control_service_factory.hpp
     horizon/services/account/const.hpp
-    horizon/services/account/user_manager.cpp
-    horizon/services/account/user_manager.hpp
     horizon/services/account/profile.cpp
     horizon/services/account/profile.hpp
     horizon/services/account/notifier.cpp
@@ -273,6 +271,9 @@ add_library(hydra-core
     horizon/services/account/baas/manager_for_application.hpp
     horizon/services/account/baas/manager_for_system_service.cpp
     horizon/services/account/baas/manager_for_system_service.hpp
+    horizon/services/account/internal/user.hpp
+    horizon/services/account/internal/user_manager.cpp
+    horizon/services/account/internal/user_manager.hpp
     horizon/services/apm/manager_privileged.cpp
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp

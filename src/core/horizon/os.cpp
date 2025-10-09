@@ -184,6 +184,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
                "Failed to add sysmodules", res);
     }
 
+    // System avatars
+    user_manager.LoadSystemAvatars();
+
     // Shared font
     shared_font_manager.LoadFonts();
 

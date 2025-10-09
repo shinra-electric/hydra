@@ -145,15 +145,14 @@ class StreamReader {
         ReadPtr(ptr, size / sizeof(T));
     }
 
-    // Getters
-    u64 GetOffset() const { return offset; }
-
-    usize GetSize() const { return size; }
-
   private:
     std::istream& stream;
     u64 offset;
     usize size;
+
+  public:
+    GETTER(offset, GetOffset);
+    GETTER(size, GetSize);
 };
 
 class StreamWriter {

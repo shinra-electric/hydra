@@ -2,7 +2,7 @@
 
 #include "core/horizon/display/driver.hpp"
 #include "core/horizon/input_manager.hpp"
-#include "core/horizon/services/account/user_manager.hpp"
+#include "core/horizon/services/account/internal/user_manager.hpp"
 #include "core/horizon/services/pl/internal/shared_font_manager.hpp"
 #include "core/horizon/services/server.hpp"
 #include "core/horizon/services/timesrv/internal/time_manager.hpp"
@@ -53,7 +53,7 @@ class OS {
     // Managers
     display::Driver display_driver;
     InputManager input_manager;
-    services::account::UserManager user_manager;
+    services::account::internal::UserManager user_manager;
     services::pl::internal::SharedFontManager shared_font_manager;
     services::timesrv::internal::TimeManager time_manager;
 
