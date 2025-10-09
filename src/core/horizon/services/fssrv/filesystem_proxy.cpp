@@ -135,7 +135,7 @@ IFileSystemProxy::OpenDataStorageByCurrentProcess(RequestContext* ctx,
 
 result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
                                                       u64 program_id) {
-    LOG_DEBUG(Services, "Program ID: {}", program_id);
+    LOG_DEBUG(Services, "Program ID: 0x{:016x}", program_id);
 
     // TODO: program ID
 
@@ -156,13 +156,13 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
     RequestContext* ctx, aligned<ncm::StorageID, 8> storage_id, u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 
-    LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:08x}", storage_id.Get(),
+    LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:016x}", storage_id.Get(),
               data_id);
 
     filesystem::FileBase* file;
     switch (storage_id.Get()) {
     default:
-        LOG_NOT_IMPLEMENTED(Services, "Storage ID {} (data ID: 0x{:08x})",
+        LOG_NOT_IMPLEMENTED(Services, "Storage ID {} (data ID: 0x{:016x})",
                             storage_id.Get(), data_id);
         return MAKE_RESULT(Svc, 1); // TODO
     }

@@ -261,6 +261,8 @@ add_library(hydra-core
     horizon/services/account/notifier.hpp
     horizon/services/account/account_service.cpp
     horizon/services/account/account_service.hpp
+    horizon/services/account/account_service_for_administrator.cpp
+    horizon/services/account/account_service_for_administrator.hpp
     horizon/services/account/account_service_for_application.cpp
     horizon/services/account/account_service_for_application.hpp
     horizon/services/account/account_service_for_system_service.cpp

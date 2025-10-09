@@ -7,6 +7,7 @@
 #include "core/horizon/kernel/hipc/server_port.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/loader/nsp_loader.hpp"
+#include "core/horizon/services/account/account_service_for_administrator.hpp"
 #include "core/horizon/services/account/account_service_for_application.hpp"
 #include "core/horizon/services/account/account_service_for_system_service.hpp"
 #include "core/horizon/services/account/baas_access_token_accessor.hpp"
@@ -233,6 +234,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     REGISTER_SERVICE(others, account::IAccountServiceForApplication, "acc:u0");
     REGISTER_SERVICE(others, account::IAccountServiceForSystemService,
                      "acc:u1");
+    REGISTER_SERVICE(others, account::IAccountServiceForAdministrator,
+                     "acc:su");
     REGISTER_SERVICE(others, account::IBaasAccessTokenAccessor, "acc:aa");
     REGISTER_SERVICE(others, pdm::IQueryService, "pdm:qry");
 
