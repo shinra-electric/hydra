@@ -27,43 +27,16 @@ result_t IProfile::GetImageSize(u32* out_size) {
     return RESULT_SUCCESS;
 }
 
+// TODO: load without an intermediate buffer?
 result_t IProfile::LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
                              u32* out_size) {
-    // Load images
-    u8* bg_data;
-    USER_MANAGER_INSTANCE.LoadAvatarBackgroundImage(user_id, bg_data);
-    u8* char_data;
-    USER_MANAGER_INSTANCE.LoadAvatarCharacterImage(user_id, char_data);
+    // Load image
+    std::vector<u8> data;
+    USER_MANAGER_INSTANCE.LoadAvatarImage(user_id, data);
 
-    const auto size = USER_MANAGER_INSTANCE.GetAvatarImageSize(user_id);
+    out_buffer.writer->WritePtr(data.data(), data.size());
 
-    // Alpha blend the background and character images
-    for (u32 i = 0; i < size / 4; i++) {
-        u8 r1 = bg_data[i * 4 + 0];
-        u8 g1 = bg_data[i * 4 + 1];
-        u8 b1 = bg_data[i * 4 + 2];
-        u8 a1 = bg_data[i * 4 + 3];
-
-        u8 r2 = char_data[i * 4 + 0];
-        u8 g2 = char_data[i * 4 + 1];
-        u8 b2 = char_data[i * 4 + 2];
-        u8 a2 = char_data[i * 4 + 3];
-
-        u8 r = (r1 * (255 - a2) + r2 * a2) / 255;
-        u8 g = (g1 * (255 - a2) + g2 * a2) / 255;
-        u8 b = (b1 * (255 - a2) + b2 * a2) / 255;
-
-        out_buffer.writer->Write(r);
-        out_buffer.writer->Write(g);
-        out_buffer.writer->Write(b);
-        out_buffer.writer->Write(a1);
-    }
-
-    // Cleanup
-    free(bg_data);
-    free(char_data);
-
-    *out_size = size;
+    *out_size = data.size();
     return RESULT_SUCCESS;
 }
 

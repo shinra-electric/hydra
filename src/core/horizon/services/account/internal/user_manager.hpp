@@ -28,19 +28,17 @@ class UserManager {
 
     // Avatar
     void LoadSystemAvatars();
-    usize GetAvatarImageSize(uuid_t user_id);
-    void LoadAvatarBackgroundImage(uuid_t user_id, u8*& out_data) {
-        LoadAvatarImage(avatar_bgs.at(Get(user_id).avatar.bg_path), out_data);
-    }
-    void LoadAvatarCharacterImage(uuid_t user_id, u8*& out_data) {
-        LoadAvatarImage(avatar_chars.at(Get(user_id).avatar.char_path),
-                        out_data);
+    void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data);
+    // TODO: isn't there a better way?
+    usize GetAvatarImageSize(uuid_t user_id) {
+        std::vector<u8> data;
+        LoadAvatarImage(user_id, data);
+        return data.size();
     }
 
   private:
     std::map<uuid_t, std::pair<User, u64>> users;
-    std::map<std::string, filesystem::FileBase*> avatar_bgs;
-    std::map<std::string, filesystem::FileBase*> avatar_chars;
+    std::map<std::string, filesystem::FileBase*> avatar_images;
 
     // Helpers
     std::pair<User, u64>& GetPair(uuid_t user_id) {
@@ -56,11 +54,6 @@ class UserManager {
 
     void Serialize(uuid_t user_id);
     void Deserialize(uuid_t user_id);
-
-    void LoadSystemAvatarSet(
-        filesystem::Directory* dir,
-        std::map<std::string, filesystem::FileBase*>& out_avatars);
-    void LoadAvatarImage(filesystem::FileBase* file, u8*& out_data);
 };
 
 } // namespace hydra::horizon::services::account::internal

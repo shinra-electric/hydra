@@ -12,6 +12,10 @@ class IQueryService : public IService {
     // Commands
     result_t QueryPlayEvent(i32 entry_index, i32* out_total_entries,
                             OutBuffer<BufferAttr::MapAlias> out_buffer);
+    result_t
+    QueryAccountPlayEvent(i32 entry_index, uuid_t user_id,
+                          i32* out_total_entries,
+                          OutBuffer<BufferAttr::MapAlias> out_buffer); // 4.0.0+
 };
 
 } // namespace hydra::horizon::services::pdm

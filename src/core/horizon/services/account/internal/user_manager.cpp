@@ -1,5 +1,6 @@
 #include "core/horizon/services/account/internal/user_manager.hpp"
 
+#include <stb_image_write.h>
 #include <yaz0.h>
 
 #include "core/horizon/filesystem/content_archive.hpp"
@@ -20,7 +21,14 @@ struct HusrHeader {
     u32 header_size{sizeof(HusrHeader)};
 };
 
-constexpr usize AVATAR_IMAGE_SIZE = 0x40000;
+constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
+constexpr u32 AVATAR_IMAGE_DIMENSION = 256;
+
+static void jpg_to_memory(void* context, void* data, int len) {
+    std::vector<u8>* jpg_image = static_cast<std::vector<u8>*>(context);
+    u8* jpg = static_cast<u8*>(data);
+    jpg_image->insert(jpg_image->end(), jpg, jpg + len);
+}
 
 } // namespace
 
@@ -67,7 +75,7 @@ uuid_t UserManager::Create() {
         user_id = random128();
 
     // Create
-    User new_user(DEFAULT_USER_NAME, {"10000001.szs", "00000001.szs"});
+    User new_user(DEFAULT_USER_NAME, "00000001.szs");
     users.insert({user_id, {new_user, 0}});
 
     return user_id;
@@ -102,23 +110,51 @@ void UserManager::LoadSystemAvatars() {
     auto romfs = new filesystem::RomFS(data_file);
 
     // Background
-    filesystem::Directory* background_dir;
-    res = romfs->GetDirectory("bg", background_dir);
-    ASSERT(res == filesystem::FsResult::Success, Services,
-           "Failed to get \"bg\" avatars directory: {}", res);
-    LoadSystemAvatarSet(background_dir, avatar_bgs);
+    // Not necessary
 
     // Characters
     filesystem::Directory* character_dir;
     res = romfs->GetDirectory("chara", character_dir);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to get \"chara\" avatars directory: {}", res);
-    LoadSystemAvatarSet(character_dir, avatar_chars);
+    for (const auto& [name, entry] : character_dir->GetEntries()) {
+        if (name.ends_with(".szs"))
+            avatar_images[name] = static_cast<filesystem::FileBase*>(entry);
+    }
 }
 
-usize UserManager::GetAvatarImageSize(uuid_t user_id) {
-    // TODO: can the size vary?
-    return AVATAR_IMAGE_SIZE;
+void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
+    // Decompress
+    auto file = avatar_images.at(Get(user_id).avatar_path);
+
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    std::vector<u8> compressed(reader.GetSize());
+    reader.ReadWhole<u8>(compressed.data());
+
+    file->Close(stream);
+
+#define YAZ0_ASSERT(expr)                                                      \
+    {                                                                          \
+        const auto res = expr;                                                 \
+        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
+    }
+    Yaz0Stream* yaz0;
+    YAZ0_ASSERT(yaz0Init(&yaz0));
+    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
+    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
+    std::vector<u8> decompressed(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
+    YAZ0_ASSERT(
+        yaz0Output(yaz0, decompressed.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
+    YAZ0_ASSERT(yaz0Run(yaz0));
+    YAZ0_ASSERT(yaz0Destroy(yaz0));
+#undef YAZ0_ASSERT
+
+    out_data.reserve(0x20000);
+    stbi_write_jpg_to_func(jpg_to_memory, &out_data, AVATAR_IMAGE_DIMENSION,
+                           AVATAR_IMAGE_DIMENSION, 4, decompressed.data(), 80);
+    out_data.shrink_to_fit();
 }
 
 void UserManager::Serialize(uuid_t user_id) {
@@ -141,11 +177,8 @@ void UserManager::Serialize(uuid_t user_id) {
         // Data
         writer.Write(user.base);
         writer.Write(user.data);
-        writer.Write<u32>(user.avatar.bg_path.size());
-        writer.WritePtr(user.avatar.bg_path.data(), user.avatar.bg_path.size());
-        writer.Write<u32>(user.avatar.char_path.size());
-        writer.WritePtr(user.avatar.char_path.data(),
-                        user.avatar.char_path.size());
+        writer.Write<u32>(user.avatar_path.size());
+        writer.WritePtr(user.avatar_path.data(), user.avatar_path.size());
     }
     ofs.close();
 
@@ -187,55 +220,15 @@ void UserManager::Deserialize(uuid_t user_id) {
     // Data
     const auto base = reader.Read<ProfileBase>();
     const auto data = reader.Read<UserData>();
-    Avatar avatar;
+    std::string avatar_path;
     {
         const auto size = reader.Read<u32>();
-        avatar.bg_path.resize(size);
-        reader.ReadPtr(avatar.bg_path.data(), size);
-    }
-    {
-        const auto size = reader.Read<u32>();
-        avatar.char_path.resize(size);
-        reader.ReadPtr(avatar.char_path.data(), size);
+        avatar_path.resize(size);
+        reader.ReadPtr(avatar_path.data(), size);
     }
 
-    User user(base, data, avatar);
+    User user(base, data, avatar_path);
     users.insert({user_id, {user, user.GetLastEditTimestamp()}});
-}
-
-void UserManager::LoadSystemAvatarSet(
-    filesystem::Directory* dir,
-    std::map<std::string, filesystem::FileBase*>& out_avatars) {
-    for (const auto& [name, entry] : dir->GetEntries()) {
-        if (name.ends_with(".szs"))
-            out_avatars[name] = static_cast<filesystem::FileBase*>(entry);
-    }
-}
-
-void UserManager::LoadAvatarImage(filesystem::FileBase* file, u8*& out_data) {
-    // Decompress
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    std::vector<u8> compressed(reader.GetSize());
-    reader.ReadWhole<u8>(compressed.data());
-
-#define YAZ0_ASSERT(expr)                                                      \
-    {                                                                          \
-        const auto res = expr;                                                 \
-        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
-    }
-    Yaz0Stream* yaz0;
-    YAZ0_ASSERT(yaz0Init(&yaz0));
-    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
-    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
-    out_data = reinterpret_cast<u8*>(malloc(AVATAR_IMAGE_SIZE));
-    YAZ0_ASSERT(yaz0Output(yaz0, out_data, AVATAR_IMAGE_SIZE));
-    YAZ0_ASSERT(yaz0Run(yaz0));
-    YAZ0_ASSERT(yaz0Destroy(yaz0));
-#undef YAZ0_ASSERT
-
-    file->Close(stream);
 }
 
 } // namespace hydra::horizon::services::account::internal
