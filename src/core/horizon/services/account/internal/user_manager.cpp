@@ -1,5 +1,7 @@
 #include "core/horizon/services/account/internal/user_manager.hpp"
 
+#include <yaz0.h>
+
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/romfs.hpp"
 
@@ -17,6 +19,8 @@ struct HusrHeader {
     u32 version{CURRENT_HUSR_VERSION};
     u32 header_size{sizeof(HusrHeader)};
 };
+
+constexpr usize AVATAR_IMAGE_SIZE = 0x40000;
 
 } // namespace
 
@@ -84,32 +88,37 @@ void UserManager::LoadSystemAvatars() {
         return;
     }
 
-    filesystem::ContentArchive content_archive(file);
+    auto content_archive = new filesystem::ContentArchive(file);
 
     // Data
     filesystem::FileBase* data_file;
-    res = content_archive.GetFile("data", data_file);
+    res = content_archive->GetFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars data: {}", res);
         return;
     }
 
     // RomFS
-    filesystem::RomFS romfs(data_file);
+    auto romfs = new filesystem::RomFS(data_file);
 
     // Background
     filesystem::Directory* background_dir;
-    res = romfs.GetDirectory("bg", background_dir);
+    res = romfs->GetDirectory("bg", background_dir);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to get \"bg\" avatars directory: {}", res);
     LoadSystemAvatarSet(background_dir, avatar_bgs);
 
     // Characters
     filesystem::Directory* character_dir;
-    res = romfs.GetDirectory("chara", character_dir);
+    res = romfs->GetDirectory("chara", character_dir);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to get \"chara\" avatars directory: {}", res);
     LoadSystemAvatarSet(character_dir, avatar_chars);
+}
+
+usize UserManager::GetAvatarImageSize(uuid_t user_id) {
+    // TODO: can the size vary?
+    return AVATAR_IMAGE_SIZE;
 }
 
 void UserManager::Serialize(uuid_t user_id) {
@@ -198,15 +207,35 @@ void UserManager::LoadSystemAvatarSet(
     filesystem::Directory* dir,
     std::map<std::string, filesystem::FileBase*>& out_avatars) {
     for (const auto& [name, entry] : dir->GetEntries()) {
-        // TODO
-        LOG_INFO(Services, "Avatar: {}", name);
+        if (name.ends_with(".szs"))
+            out_avatars[name] = static_cast<filesystem::FileBase*>(entry);
     }
 }
 
-void UserManager::LoadAvatarImage(filesystem::FileBase* file, u8*& out_data,
-                                  usize& out_size) {
-    // TODO
-    LOG_FATAL(Services, "Not implemented");
+void UserManager::LoadAvatarImage(filesystem::FileBase* file, u8*& out_data) {
+    // Decompress
+    auto stream = file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    std::vector<u8> compressed(reader.GetSize());
+    reader.ReadWhole<u8>(compressed.data());
+
+#define YAZ0_ASSERT(expr)                                                      \
+    {                                                                          \
+        const auto res = expr;                                                 \
+        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
+    }
+    Yaz0Stream* yaz0;
+    YAZ0_ASSERT(yaz0Init(&yaz0));
+    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
+    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
+    out_data = reinterpret_cast<u8*>(malloc(AVATAR_IMAGE_SIZE));
+    YAZ0_ASSERT(yaz0Output(yaz0, out_data, AVATAR_IMAGE_SIZE));
+    YAZ0_ASSERT(yaz0Run(yaz0));
+    YAZ0_ASSERT(yaz0Destroy(yaz0));
+#undef YAZ0_ASSERT
+
+    file->Close(stream);
 }
 
 } // namespace hydra::horizon::services::account::internal

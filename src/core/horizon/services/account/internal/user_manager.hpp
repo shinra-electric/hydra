@@ -28,13 +28,13 @@ class UserManager {
 
     // Avatar
     void LoadSystemAvatars();
-    void LoadAvatarBackgroundImage(const User& user, u8*& out_data,
-                                   usize& out_size) {
-        LoadAvatarImage(avatar_bgs[user.avatar.bg_path], out_data, out_size);
+    usize GetAvatarImageSize(uuid_t user_id);
+    void LoadAvatarBackgroundImage(uuid_t user_id, u8*& out_data) {
+        LoadAvatarImage(avatar_bgs.at(Get(user_id).avatar.bg_path), out_data);
     }
-    void LoadAvatarCharacterImage(const User& user, u8*& out_data,
-                                  usize& out_size) {
-        LoadAvatarImage(avatar_bgs[user.avatar.char_path], out_data, out_size);
+    void LoadAvatarCharacterImage(uuid_t user_id, u8*& out_data) {
+        LoadAvatarImage(avatar_chars.at(Get(user_id).avatar.char_path),
+                        out_data);
     }
 
   private:
@@ -60,8 +60,7 @@ class UserManager {
     void LoadSystemAvatarSet(
         filesystem::Directory* dir,
         std::map<std::string, filesystem::FileBase*>& out_avatars);
-    void LoadAvatarImage(filesystem::FileBase* file, u8*& out_data,
-                         usize& out_size);
+    void LoadAvatarImage(filesystem::FileBase* file, u8*& out_data);
 };
 
 } // namespace hydra::horizon::services::account::internal
