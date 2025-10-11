@@ -11,10 +11,12 @@ class User {
 
   public:
     User(const ProfileBase& base_, const UserData& data_,
+         uchar3 avatar_bg_color_, std::string_view avatar_path_)
+        : base{base_}, data{data_}, avatar_bg_color{avatar_bg_color_},
+          avatar_path{avatar_path_} {}
+    User(const std::string_view nickname, uchar3 avatar_bg_color_,
          std::string_view avatar_path_)
-        : base{base_}, data{data_}, avatar_path{avatar_path_} {}
-    User(const std::string_view nickname, std::string_view avatar_path_)
-        : avatar_path{avatar_path_} {
+        : avatar_bg_color{avatar_bg_color_}, avatar_path{avatar_path_} {
         // TODO: don't use the setters?
         SetNickname(nickname);
     }
@@ -36,7 +38,15 @@ class User {
         NotifyEdit();
     }
 
-    // Image
+    // Avatar background color
+    uchar3 GetAvatarBgColor() const { return avatar_bg_color; }
+
+    void SetAvatarBgColor(uchar3 avatar_bg_color_) {
+        avatar_bg_color = avatar_bg_color_;
+        NotifyEdit();
+    }
+
+    // Avatar path
     std::string_view GetAvatarPath() const { return avatar_path; }
 
     void SetAvatarPath(std::string_view avatar_path_) {
@@ -47,6 +57,7 @@ class User {
   private:
     ProfileBase base;
     UserData data;
+    uchar3 avatar_bg_color;
     std::string avatar_path;
 
     // Helpers

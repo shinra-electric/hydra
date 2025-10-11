@@ -75,7 +75,7 @@ uuid_t UserManager::Create() {
         user_id = random128();
 
     // Create
-    User new_user(DEFAULT_USER_NAME, "00000001.szs");
+    User new_user(DEFAULT_USER_NAME, uchar3({18, 53, 110}), "00000001.szs");
     users.insert({user_id, {new_user, 0}});
 
     return user_id;
@@ -125,7 +125,8 @@ void UserManager::LoadSystemAvatars() {
 
 void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
     // Decompress
-    auto file = avatar_images.at(Get(user_id).avatar_path);
+    const auto& user = Get(user_id);
+    auto file = avatar_images.at(user.avatar_path);
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
@@ -151,6 +152,20 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
     YAZ0_ASSERT(yaz0Destroy(yaz0));
 #undef YAZ0_ASSERT
 
+    // Alpha blend with background color
+    for (u32 i = 0; i < AVATAR_UNCOMPRESSED_IMAGE_SIZE; i += 4) {
+        auto& r = decompressed[i + 0];
+        auto& g = decompressed[i + 1];
+        auto& b = decompressed[i + 2];
+        auto& a = decompressed[i + 3];
+
+        r = (user.avatar_bg_color.x() * (0xff - a) + r * a) / 0xff;
+        g = (user.avatar_bg_color.y() * (0xff - a) + g * a) / 0xff;
+        b = (user.avatar_bg_color.z() * (0xff - a) + b * a) / 0xff;
+        a = 0xff;
+    }
+
+    // Convert to JPEG
     out_data.reserve(0x20000);
     stbi_write_jpg_to_func(jpg_to_memory, &out_data, AVATAR_IMAGE_DIMENSION,
                            AVATAR_IMAGE_DIMENSION, 4, decompressed.data(), 80);
@@ -177,6 +192,7 @@ void UserManager::Serialize(uuid_t user_id) {
         // Data
         writer.Write(user.base);
         writer.Write(user.data);
+        writer.Write(user.avatar_bg_color);
         writer.Write<u32>(user.avatar_path.size());
         writer.WritePtr(user.avatar_path.data(), user.avatar_path.size());
     }
@@ -220,6 +236,7 @@ void UserManager::Deserialize(uuid_t user_id) {
     // Data
     const auto base = reader.Read<ProfileBase>();
     const auto data = reader.Read<UserData>();
+    const auto avatar_bg_color = reader.Read<uchar3>();
     std::string avatar_path;
     {
         const auto size = reader.Read<u32>();
@@ -227,7 +244,7 @@ void UserManager::Deserialize(uuid_t user_id) {
         reader.ReadPtr(avatar_path.data(), size);
     }
 
-    User user(base, data, avatar_path);
+    User user(base, data, avatar_bg_color, avatar_path);
     users.insert({user_id, {user, user.GetLastEditTimestamp()}});
 }
 
