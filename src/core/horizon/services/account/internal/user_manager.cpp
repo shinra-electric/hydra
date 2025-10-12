@@ -63,12 +63,17 @@ UserManager::UserManager() {
     }
 
     if (users.empty()) {
-        auto user_id = Create();
+        auto user_id = CreateUser();
         Serialize(user_id);
     }
 }
 
-uuid_t UserManager::Create() {
+void UserManager::Flush() {
+    for (auto& [user_id, user_pair] : users)
+        Serialize(user_id);
+}
+
+uuid_t UserManager::CreateUser() {
     // First, find an available ID
     uuid_t user_id = random128();
     while (user_id == 0x0 || users.contains(user_id))
@@ -79,11 +84,6 @@ uuid_t UserManager::Create() {
     users.insert({user_id, {new_user, 0}});
 
     return user_id;
-}
-
-void UserManager::Flush() {
-    for (auto& [user_id, user_pair] : users)
-        Serialize(user_id);
 }
 
 void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
@@ -123,9 +123,10 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     }
 }
 
-void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
+void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data,
+                                  usize& out_dimensions) {
     // Load image
-    const auto& user = Get(user_id);
+    const auto& user = GetUser(user_id);
     auto file = avatar_images.at(user.avatar_path);
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
@@ -146,19 +147,19 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
     YAZ0_ASSERT(yaz0Init(&yaz0));
     YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
     YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
-    std::vector<u8> decompressed(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
+    out_data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
     YAZ0_ASSERT(
-        yaz0Output(yaz0, decompressed.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
+        yaz0Output(yaz0, out_data.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
     YAZ0_ASSERT(yaz0Run(yaz0));
     YAZ0_ASSERT(yaz0Destroy(yaz0));
 #undef YAZ0_ASSERT
 
     // Alpha blend with background color
-    for (u32 i = 0; i < decompressed.size(); i += 4) {
-        auto& r = decompressed[i + 0];
-        auto& g = decompressed[i + 1];
-        auto& b = decompressed[i + 2];
-        auto& a = decompressed[i + 3];
+    for (u32 i = 0; i < out_data.size(); i += 4) {
+        auto& r = out_data[i + 0];
+        auto& g = out_data[i + 1];
+        auto& b = out_data[i + 2];
+        auto& a = out_data[i + 3];
 
         r = (user.avatar_bg_color.x() * (0xff - a) + r * a) / 0xff;
         g = (user.avatar_bg_color.y() * (0xff - a) + g * a) / 0xff;
@@ -166,10 +167,20 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
         a = 0xff;
     }
 
+    out_dimensions = AVATAR_IMAGE_DIMENSION;
+}
+
+void UserManager::LoadAvatarImageAsJpeg(uuid_t user_id,
+                                        std::vector<u8>& out_data) {
+    // Load image
+    std::vector<u8> decompressed;
+    usize dimension;
+    LoadAvatarImage(user_id, decompressed, dimension);
+
     // Convert to JPEG
     out_data.reserve(0x20000);
-    stbi_write_jpg_to_func(jpg_to_memory, &out_data, AVATAR_IMAGE_DIMENSION,
-                           AVATAR_IMAGE_DIMENSION, 4, decompressed.data(), 80);
+    stbi_write_jpg_to_func(jpg_to_memory, &out_data, dimension, dimension, 4,
+                           decompressed.data(), 80);
 }
 
 void UserManager::Serialize(uuid_t user_id) {

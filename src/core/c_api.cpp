@@ -4,6 +4,7 @@
 #include "core/emulation_context.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/firmware.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 
@@ -34,12 +35,14 @@ HYDRA_EXPORT void hydra_u32_option_set(void* option, const uint32_t value) {
     reinterpret_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
 }
 
-HYDRA_EXPORT __uint128_t hydra_u128_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<hydra::u128>*>(option)->Get();
+HYDRA_EXPORT u128 hydra_u128_option_get(const void* option) {
+    return std::bit_cast<u128>(
+        reinterpret_cast<const hydra::Option<hydra::u128>*>(option)->Get());
 }
 
-HYDRA_EXPORT void hydra_u128_option_set(void* option, const __uint128_t value) {
-    reinterpret_cast<hydra::Option<hydra::u128>*>(option)->Set(value);
+HYDRA_EXPORT void hydra_u128_option_set(void* option, const u128 value) {
+    reinterpret_cast<hydra::Option<hydra::u128>*>(option)->Set(
+        std::bit_cast<hydra::u128>(value));
 }
 
 HYDRA_EXPORT const char* hydra_string_option_get(const void* option) {
@@ -173,6 +176,19 @@ HYDRA_EXPORT void* hydra_config_get_process_args() {
 }
 
 // Filesystem
+HYDRA_EXPORT void* hydra_create_filesystem() {
+    return new hydra::horizon::filesystem::Filesystem();
+}
+
+HYDRA_EXPORT void hydra_filesystem_destroy(void* fs) {
+    delete reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs);
+}
+
+HYDRA_EXPORT void hydra_try_install_firmware_to_filesystem(void* fs) {
+    hydra::horizon::try_install_firmware_to_filesystem(
+        *reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs));
+}
+
 HYDRA_EXPORT void* hydra_open_file(const char* path) {
     return new hydra::horizon::filesystem::HostFile(std::string(path));
 }
@@ -260,6 +276,77 @@ HYDRA_EXPORT const char* hydra_nacp_title_get_author(const void* title) {
     return reinterpret_cast<
                const hydra::horizon::services::ns::ApplicationTitle*>(title)
         ->author;
+}
+
+// User manager
+HYDRA_EXPORT void* hydra_create_user_manager() {
+    return new hydra::horizon::services::account::internal::UserManager();
+}
+
+HYDRA_EXPORT void hydra_user_manager_destroy(void* user_manager) {
+    delete reinterpret_cast<
+        hydra::horizon::services::account::internal::UserManager*>(
+        user_manager);
+}
+
+HYDRA_EXPORT void hydra_user_manager_flush(void* user_manager) {
+    reinterpret_cast<hydra::horizon::services::account::internal::UserManager*>(
+        user_manager)
+        ->Flush();
+}
+
+HYDRA_EXPORT u128 hydra_user_manager_create_user(void* user_manager) {
+    return std::bit_cast<u128>(
+        reinterpret_cast<
+            hydra::horizon::services::account::internal::UserManager*>(
+            user_manager)
+            ->CreateUser());
+}
+
+HYDRA_EXPORT uint32_t hydra_user_manager_get_user_count(void* user_manager) {
+    return reinterpret_cast<
+               hydra::horizon::services::account::internal::UserManager*>(
+               user_manager)
+        ->GetUserCount();
+}
+
+HYDRA_EXPORT u128 hydra_user_manager_get_user_id(void* user_manager,
+                                                 uint32_t index) {
+    return std::bit_cast<u128>(
+        reinterpret_cast<
+            hydra::horizon::services::account::internal::UserManager*>(
+            user_manager)
+            ->GetUserIDs()[index]);
+}
+
+HYDRA_EXPORT void* hydra_user_manager_get_user(void* user_manager,
+                                               u128 user_id) {
+    return &reinterpret_cast<
+                hydra::horizon::services::account::internal::UserManager*>(
+                user_manager)
+                ->GetUser(std::bit_cast<hydra::u128>(user_id));
+}
+
+HYDRA_EXPORT void hydra_user_manager_load_system_avatars(void* user_manager,
+                                                         void* fs) {
+    reinterpret_cast<hydra::horizon::services::account::internal::UserManager*>(
+        user_manager)
+        ->LoadSystemAvatars(
+            *reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs));
+}
+
+// TODO: implement without an intermediate buffer?
+HYDRA_EXPORT void
+hydra_user_manager_load_avatar_image(void* user_manager, u128 user_id,
+                                     void** out_data,
+                                     uint64_t* out_dimensions) {
+    std::vector<hydra::u8> data;
+    reinterpret_cast<hydra::horizon::services::account::internal::UserManager*>(
+        user_manager)
+        ->LoadAvatarImage(std::bit_cast<hydra::u128>(user_id), data,
+                          *out_dimensions);
+    *out_data = malloc(data.size());
+    memcpy(*out_data, data.data(), data.size());
 }
 
 // Emulation context

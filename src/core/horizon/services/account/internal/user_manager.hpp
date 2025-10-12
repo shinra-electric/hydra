@@ -8,10 +8,11 @@ namespace hydra::horizon::services::account::internal {
 class UserManager {
   public:
     UserManager();
-
-    uuid_t Create();
+    ~UserManager() { Flush(); }
 
     void Flush();
+
+    uuid_t CreateUser();
 
     std::vector<uuid_t> GetUserIDs() const {
         std::vector<uuid_t> ids;
@@ -22,17 +23,25 @@ class UserManager {
         return ids;
     }
 
-    User& Get(uuid_t user_id) { return GetPair(user_id).first; }
-    bool Exists(uuid_t user_id) const { return users.contains(user_id); }
-    usize GetCount() const { return users.size(); }
+    usize GetUserCount() const { return users.size(); }
+    User& GetUser(uuid_t user_id) { return GetPair(user_id).first; }
+    bool UserExists(uuid_t user_id) const { return users.contains(user_id); }
 
     // Avatar
     void LoadSystemAvatars(filesystem::Filesystem& fs);
-    void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data);
+    void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data,
+                         usize& out_dimensions);
+    void LoadAvatarImageAsJpeg(uuid_t user_id, std::vector<u8>& out_data);
     // TODO: isn't there a better way?
     usize GetAvatarImageSize(uuid_t user_id) {
         std::vector<u8> data;
-        LoadAvatarImage(user_id, data);
+        usize dimensions;
+        LoadAvatarImage(user_id, data, dimensions);
+        return data.size();
+    }
+    usize GetAvatarImageAsJpegSize(uuid_t user_id) {
+        std::vector<u8> data;
+        LoadAvatarImageAsJpeg(user_id, data);
         return data.size();
     }
 

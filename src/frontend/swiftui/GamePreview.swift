@@ -29,6 +29,8 @@ struct GamePreview: View {
             return nil
         }
 
+        defer { free(data) }
+
         guard
             let context = CGContext(
                 data: data,

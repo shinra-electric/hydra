@@ -27,7 +27,11 @@ struct SettingsView: View {
                     Label("Audio", systemImage: "speaker.wave.2")
                 }
                 .tag(Tabs.graphics)
-            // TODO: user settings?
+            UserSettingsView()
+                .tabItem {
+                    Label("User", systemImage: "person")
+                }
+                .tag(Tabs.graphics)
             SystemSettingsView()
                 .tabItem {
                     Label("System", systemImage: "desktopcomputer")
