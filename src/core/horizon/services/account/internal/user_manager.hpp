@@ -27,7 +27,7 @@ class UserManager {
     usize GetCount() const { return users.size(); }
 
     // Avatar
-    void LoadSystemAvatars();
+    void LoadSystemAvatars(filesystem::Filesystem& fs);
     void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data);
     // TODO: isn't there a better way?
     usize GetAvatarImageSize(uuid_t user_id) {

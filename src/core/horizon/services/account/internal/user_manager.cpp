@@ -86,10 +86,10 @@ void UserManager::Flush() {
         Serialize(user_id);
 }
 
-void UserManager::LoadSystemAvatars() {
+void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     // NCA
     filesystem::FileBase* file;
-    auto res = FILESYSTEM_INSTANCE.GetFile(
+    auto res = fs.GetFile(
         fmt::format(FS_FIRMWARE_PATH "/{:016x}", 0x010000000000080a), file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars file: {}", res);
@@ -124,7 +124,7 @@ void UserManager::LoadSystemAvatars() {
 }
 
 void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
-    // Decompress
+    // Load image
     const auto& user = Get(user_id);
     auto file = avatar_images.at(user.avatar_path);
 
@@ -136,6 +136,7 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
 
     file->Close(stream);
 
+    // Decompress
 #define YAZ0_ASSERT(expr)                                                      \
     {                                                                          \
         const auto res = expr;                                                 \
@@ -153,7 +154,7 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
 #undef YAZ0_ASSERT
 
     // Alpha blend with background color
-    for (u32 i = 0; i < AVATAR_UNCOMPRESSED_IMAGE_SIZE; i += 4) {
+    for (u32 i = 0; i < decompressed.size(); i += 4) {
         auto& r = decompressed[i + 0];
         auto& g = decompressed[i + 1];
         auto& b = decompressed[i + 2];
@@ -169,7 +170,6 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data) {
     out_data.reserve(0x20000);
     stbi_write_jpg_to_func(jpg_to_memory, &out_data, AVATAR_IMAGE_DIMENSION,
                            AVATAR_IMAGE_DIMENSION, 4, decompressed.data(), 80);
-    out_data.shrink_to_fit();
 }
 
 void UserManager::Serialize(uuid_t user_id) {
