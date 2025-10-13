@@ -33,6 +33,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/EmulationView.swift
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
+        swiftui/helpers/String.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift

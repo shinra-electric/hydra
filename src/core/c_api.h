@@ -12,12 +12,23 @@ extern "C" {
 typedef struct {
     uint64_t lo;
     uint64_t hi;
-} u128;
+} hydra_u128;
 
 typedef struct {
     uint32_t x;
     uint32_t y;
-} uint2;
+} hydra_uint2;
+
+typedef struct {
+    uint8_t x;
+    uint8_t y;
+    uint8_t z;
+} hydra_uchar3;
+
+typedef struct {
+    const char* data;
+    size_t size;
+} hydra_string;
 
 // Enums
 typedef enum : uint32_t {
@@ -124,8 +135,8 @@ void hydra_i32_option_set(void* option, const int32_t value);
 uint32_t hydra_u32_option_get(const void* option);
 void hydra_u32_option_set(void* option, const uint32_t value);
 
-u128 hydra_u128_option_get(const void* option);
-void hydra_u128_option_set(void* option, const u128 value);
+hydra_u128 hydra_u128_option_get(const void* option);
+void hydra_u128_option_set(void* option, const hydra_u128 value);
 
 const char* hydra_string_option_get(const void* option);
 void hydra_string_option_set(void* option, const char* value);
@@ -137,8 +148,8 @@ void hydra_string_array_option_set(void* option, uint32_t index,
                                    const char* value);
 void hydra_string_array_option_append(void* option, const char* value);
 
-uint2 hydra_uint2_option_get(const void* option);
-void hydra_uint2_option_set(void* option, const uint2 value);
+hydra_uint2 hydra_uint2_option_get(const void* option);
+void hydra_uint2_option_set(void* option, const hydra_uint2 value);
 
 // Config
 void hydra_config_serialize();
@@ -199,14 +210,21 @@ const char* hydra_nacp_title_get_author(const void* title);
 void* hydra_create_user_manager();
 void hydra_user_manager_destroy(void* user_manager);
 void hydra_user_manager_flush(void* user_manager);
-u128 hydra_user_manager_create_user(void* user_manager);
+hydra_u128 hydra_user_manager_create_user(void* user_manager);
 uint32_t hydra_user_manager_get_user_count(void* user_manager);
-u128 hydra_user_manager_get_user_id(void* user_manager, uint32_t index);
-void* hydra_user_manager_get_user(void* user_manager, u128 user_id);
+hydra_u128 hydra_user_manager_get_user_id(void* user_manager, uint32_t index);
+void* hydra_user_manager_get_user(void* user_manager, hydra_u128 user_id);
 void hydra_user_manager_load_system_avatars(void* user_manager, void* fs);
-void hydra_user_manager_load_avatar_image(void* user_manager, u128 user_id,
-                                          void** out_data,
+void hydra_user_manager_load_avatar_image(void* user_manager,
+                                          hydra_u128 user_id, void** out_data,
                                           uint64_t* out_dimensions);
+
+hydra_string hydra_user_get_nickname(void* user);
+void hydra_user_set_nickname(void* user, hydra_string nickname);
+hydra_uchar3 hydra_user_get_avatar_bg_color(void* user);
+void hydra_user_set_avatar_bg_color(void* user, hydra_uchar3 color);
+hydra_string hydra_user_get_avatar_path(void* user);
+void hydra_user_set_avatar_path(void* user, hydra_string path);
 
 // Emulation context
 void* hydra_create_emulation_context();

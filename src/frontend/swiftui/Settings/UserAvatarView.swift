@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UserAvatarView: View {
     let userManager: UnsafeMutableRawPointer
-    let userID: u128
+    let userID: hydra_u128
 
     var body: some View {
         VStack {

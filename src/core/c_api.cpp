@@ -10,6 +10,18 @@
 
 #define HYDRA_EXPORT extern "C" __attribute__((visibility("default")))
 
+namespace {
+
+hydra_string string_from_string_view(std::string_view str) {
+    return hydra_string{str.data(), str.size()};
+}
+
+std::string_view string_view_from_string(hydra_string str) {
+    return std::string_view(str.data, str.size);
+}
+
+} // namespace
+
 // Options
 HYDRA_EXPORT bool hydra_bool_option_get(const void* option) {
     return reinterpret_cast<const hydra::Option<bool>*>(option)->Get();
@@ -35,12 +47,12 @@ HYDRA_EXPORT void hydra_u32_option_set(void* option, const uint32_t value) {
     reinterpret_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
 }
 
-HYDRA_EXPORT u128 hydra_u128_option_get(const void* option) {
-    return std::bit_cast<u128>(
+HYDRA_EXPORT hydra_u128 hydra_u128_option_get(const void* option) {
+    return std::bit_cast<hydra_u128>(
         reinterpret_cast<const hydra::Option<hydra::u128>*>(option)->Get());
 }
 
-HYDRA_EXPORT void hydra_u128_option_set(void* option, const u128 value) {
+HYDRA_EXPORT void hydra_u128_option_set(void* option, const hydra_u128 value) {
     reinterpret_cast<hydra::Option<hydra::u128>*>(option)->Set(
         std::bit_cast<hydra::u128>(value));
 }
@@ -83,13 +95,14 @@ HYDRA_EXPORT void hydra_string_array_option_append(void* option,
     reinterpret_cast<hydra::ArrayOption<std::string>*>(option)->Append(value);
 }
 
-HYDRA_EXPORT uint2 hydra_uint2_option_get(const void* option) {
+HYDRA_EXPORT hydra_uint2 hydra_uint2_option_get(const void* option) {
     const auto value =
         reinterpret_cast<const hydra::Option<hydra::uint2>*>(option)->Get();
     return {value.x(), value.y()};
 }
 
-HYDRA_EXPORT void hydra_uint2_option_set(void* option, const uint2 value) {
+HYDRA_EXPORT void hydra_uint2_option_set(void* option,
+                                         const hydra_uint2 value) {
     reinterpret_cast<hydra::Option<hydra::uint2>*>(option)->Set(
         {value.x, value.y});
 }
@@ -295,8 +308,8 @@ HYDRA_EXPORT void hydra_user_manager_flush(void* user_manager) {
         ->Flush();
 }
 
-HYDRA_EXPORT u128 hydra_user_manager_create_user(void* user_manager) {
-    return std::bit_cast<u128>(
+HYDRA_EXPORT hydra_u128 hydra_user_manager_create_user(void* user_manager) {
+    return std::bit_cast<hydra_u128>(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
             user_manager)
@@ -310,9 +323,9 @@ HYDRA_EXPORT uint32_t hydra_user_manager_get_user_count(void* user_manager) {
         ->GetUserCount();
 }
 
-HYDRA_EXPORT u128 hydra_user_manager_get_user_id(void* user_manager,
-                                                 uint32_t index) {
-    return std::bit_cast<u128>(
+HYDRA_EXPORT hydra_u128 hydra_user_manager_get_user_id(void* user_manager,
+                                                       uint32_t index) {
+    return std::bit_cast<hydra_u128>(
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
             user_manager)
@@ -320,7 +333,7 @@ HYDRA_EXPORT u128 hydra_user_manager_get_user_id(void* user_manager,
 }
 
 HYDRA_EXPORT void* hydra_user_manager_get_user(void* user_manager,
-                                               u128 user_id) {
+                                               hydra_u128 user_id) {
     return &reinterpret_cast<
                 hydra::horizon::services::account::internal::UserManager*>(
                 user_manager)
@@ -337,7 +350,7 @@ HYDRA_EXPORT void hydra_user_manager_load_system_avatars(void* user_manager,
 
 // TODO: implement without an intermediate buffer?
 HYDRA_EXPORT void
-hydra_user_manager_load_avatar_image(void* user_manager, u128 user_id,
+hydra_user_manager_load_avatar_image(void* user_manager, hydra_u128 user_id,
                                      void** out_data,
                                      uint64_t* out_dimensions) {
     std::vector<hydra::u8> data;
@@ -347,6 +360,43 @@ hydra_user_manager_load_avatar_image(void* user_manager, u128 user_id,
                           *out_dimensions);
     *out_data = malloc(data.size());
     memcpy(*out_data, data.data(), data.size());
+}
+
+HYDRA_EXPORT hydra_string hydra_user_get_nickname(void* user) {
+    return string_from_string_view(
+        reinterpret_cast<hydra::horizon::services::account::internal::User*>(
+            user)
+            ->GetNickname());
+}
+
+HYDRA_EXPORT void hydra_user_set_nickname(void* user, hydra_string nickname) {
+    reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
+        ->SetNickname(string_view_from_string(nickname));
+}
+
+HYDRA_EXPORT hydra_uchar3 hydra_user_get_avatar_bg_color(void* user) {
+    return std::bit_cast<hydra_uchar3>(
+        reinterpret_cast<hydra::horizon::services::account::internal::User*>(
+            user)
+            ->GetAvatarBgColor());
+}
+
+HYDRA_EXPORT void hydra_user_set_avatar_bg_color(void* user,
+                                                 hydra_uchar3 color) {
+    reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
+        ->SetAvatarBgColor(std::bit_cast<hydra::uchar3>(color));
+}
+
+HYDRA_EXPORT hydra_string hydra_user_get_avatar_path(void* user) {
+    return string_from_string_view(
+        reinterpret_cast<hydra::horizon::services::account::internal::User*>(
+            user)
+            ->GetAvatarPath());
+}
+
+HYDRA_EXPORT void hydra_user_set_avatar_path(void* user, hydra_string path) {
+    reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
+        ->SetAvatarPath(string_view_from_string(path));
 }
 
 // Emulation context
