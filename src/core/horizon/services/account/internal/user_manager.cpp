@@ -22,7 +22,7 @@ struct HusrHeader {
 };
 
 constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
-constexpr u32 AVATAR_IMAGE_DIMENSION = 256;
+constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
 
 static void jpg_to_memory(void* context, void* data, int len) {
     std::vector<u8>* jpg_image = static_cast<std::vector<u8>*>(context);
@@ -119,67 +119,43 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
            "Failed to get \"chara\" avatars directory: {}", res);
     for (const auto& [name, entry] : character_dir->GetEntries()) {
         if (name.ends_with(".szs"))
-            avatar_images[name] = static_cast<filesystem::FileBase*>(entry);
+            avatars[name] = {static_cast<filesystem::FileBase*>(entry)};
     }
 }
 
-void UserManager::LoadAvatarImage(const User& user, std::vector<u8>& out_data,
-                                  usize& out_dimensions) {
+const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
+                                                        usize& out_dimensions) {
     // Load image
-    auto file = avatar_images.at(user.avatar_path);
+    auto& avatar = avatars[std::string(path)];
+    PreloadAvatar(avatar);
 
-    auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
-
-    std::vector<u8> compressed(reader.GetSize());
-    reader.ReadWhole<u8>(compressed.data());
-
-    file->Close(stream);
-
-    // Decompress
-#define YAZ0_ASSERT(expr)                                                      \
-    {                                                                          \
-        const auto res = expr;                                                 \
-        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
-    }
-    Yaz0Stream* yaz0;
-    YAZ0_ASSERT(yaz0Init(&yaz0));
-    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
-    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
-    out_data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
-    YAZ0_ASSERT(
-        yaz0Output(yaz0, out_data.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
-    YAZ0_ASSERT(yaz0Run(yaz0));
-    YAZ0_ASSERT(yaz0Destroy(yaz0));
-#undef YAZ0_ASSERT
-
-    // Alpha blend with background color
-    for (u32 i = 0; i < out_data.size(); i += 4) {
-        auto& r = out_data[i + 0];
-        auto& g = out_data[i + 1];
-        auto& b = out_data[i + 2];
-        auto& a = out_data[i + 3];
-
-        r = (user.avatar_bg_color.x() * (0xff - a) + r * a) / 0xff;
-        g = (user.avatar_bg_color.y() * (0xff - a) + g * a) / 0xff;
-        b = (user.avatar_bg_color.z() * (0xff - a) + b * a) / 0xff;
-        a = 0xff;
-    }
-
-    out_dimensions = AVATAR_IMAGE_DIMENSION;
+    out_dimensions = avatar.dimensions;
+    return avatar.data;
 }
 
-void UserManager::LoadAvatarImageAsJpeg(const User& user,
+void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                         std::vector<u8>& out_data) {
     // Load image
-    std::vector<u8> decompressed;
     usize dimension;
-    LoadAvatarImage(user, decompressed, dimension);
+    auto data = LoadAvatarImage(path, dimension);
+
+    // Alpha blend with background color
+    for (auto& pixel : data) {
+        auto& r = pixel.x();
+        auto& g = pixel.y();
+        auto& b = pixel.z();
+        auto& a = pixel.w();
+
+        r = (bg_color.x() * (0xff - a) + r * a) / 0xff;
+        g = (bg_color.y() * (0xff - a) + g * a) / 0xff;
+        b = (bg_color.z() * (0xff - a) + b * a) / 0xff;
+        a = 0xff;
+    }
 
     // Convert to JPEG
     out_data.reserve(0x20000);
     stbi_write_jpg_to_func(jpg_to_memory, &out_data, dimension, dimension, 4,
-                           decompressed.data(), 80);
+                           data.data(), 80);
 }
 
 void UserManager::Serialize(uuid_t user_id) {
@@ -256,6 +232,38 @@ void UserManager::Deserialize(uuid_t user_id) {
 
     User user(base, data, avatar_bg_color, avatar_path);
     users.insert({user_id, {user, user.GetLastEditTimestamp()}});
+}
+
+void UserManager::PreloadAvatar(Avatar& avatar) {
+    if (!avatar.data.empty())
+        return;
+
+    auto stream = avatar.file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    std::vector<u8> compressed(reader.GetSize());
+    reader.ReadWhole<u8>(compressed.data());
+
+    avatar.file->Close(stream);
+
+    // Decompress
+#define YAZ0_ASSERT(expr)                                                      \
+    {                                                                          \
+        const auto res = expr;                                                 \
+        ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
+    }
+    Yaz0Stream* yaz0;
+    YAZ0_ASSERT(yaz0Init(&yaz0));
+    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
+    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
+    avatar.data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
+    YAZ0_ASSERT(
+        yaz0Output(yaz0, avatar.data.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
+    YAZ0_ASSERT(yaz0Run(yaz0));
+    YAZ0_ASSERT(yaz0Destroy(yaz0));
+#undef YAZ0_ASSERT
+
+    avatar.dimensions = AVATAR_IMAGE_DIMENSIONS;
 }
 
 } // namespace hydra::horizon::services::account::internal

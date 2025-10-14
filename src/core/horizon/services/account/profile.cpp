@@ -22,19 +22,26 @@ result_t IProfile::GetBase(ProfileBase* out_base) {
     return RESULT_SUCCESS;
 }
 
+// TODO: get the size without loading the whole image?
 result_t IProfile::GetImageSize(u32* out_size) {
-    *out_size = USER_MANAGER_INSTANCE.GetAvatarImageAsJpegSize(
-        USER_MANAGER_INSTANCE.GetUser(user_id));
+    const auto& user = USER_MANAGER_INSTANCE.GetUser(user_id);
+
+    std::vector<u8> data;
+    USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(user.GetAvatarPath(),
+                                                user.GetAvatarBgColor(), data);
+
+    *out_size = data.size();
     return RESULT_SUCCESS;
 }
 
-// TODO: load without an intermediate buffer?
 result_t IProfile::LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
                              u32* out_size) {
+    const auto& user = USER_MANAGER_INSTANCE.GetUser(user_id);
+
     // Load image
     std::vector<u8> data;
-    USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(
-        USER_MANAGER_INSTANCE.GetUser(user_id), data);
+    USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(user.GetAvatarPath(),
+                                                user.GetAvatarBgColor(), data);
 
     out_buffer.writer->WritePtr(data.data(), data.size());
 

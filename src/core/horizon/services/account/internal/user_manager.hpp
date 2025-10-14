@@ -5,6 +5,12 @@
 
 namespace hydra::horizon::services::account::internal {
 
+struct Avatar {
+    filesystem::FileBase* file;
+    std::vector<uchar4> data;
+    usize dimensions{0};
+};
+
 class UserManager {
   public:
     UserManager();
@@ -29,25 +35,14 @@ class UserManager {
 
     // Avatar
     void LoadSystemAvatars(filesystem::Filesystem& fs);
-    void LoadAvatarImage(const User& user, std::vector<u8>& out_data,
-                         usize& out_dimensions);
-    void LoadAvatarImageAsJpeg(const User& user, std::vector<u8>& out_data);
-    // TODO: isn't there a better way?
-    usize GetAvatarImageSize(const User& user) {
-        std::vector<u8> data;
-        usize dimensions;
-        LoadAvatarImage(user, data, dimensions);
-        return data.size();
-    }
-    usize GetAvatarImageAsJpegSize(const User& user) {
-        std::vector<u8> data;
-        LoadAvatarImageAsJpeg(user, data);
-        return data.size();
-    }
+    const std::vector<uchar4>& LoadAvatarImage(std::string_view path,
+                                               usize& out_dimensions);
+    void LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
+                               std::vector<u8>& out_data);
 
   private:
     std::map<uuid_t, std::pair<User, u64>> users;
-    std::map<std::string, filesystem::FileBase*> avatar_images;
+    std::map<std::string, Avatar> avatars;
 
     // Helpers
     std::pair<User, u64>& GetPair(uuid_t user_id) {
@@ -63,6 +58,8 @@ class UserManager {
 
     void Serialize(uuid_t user_id);
     void Deserialize(uuid_t user_id);
+
+    void PreloadAvatar(Avatar& avatar);
 };
 
 } // namespace hydra::horizon::services::account::internal

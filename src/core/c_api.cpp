@@ -348,20 +348,16 @@ HYDRA_EXPORT void hydra_user_manager_load_system_avatars(void* user_manager,
             *reinterpret_cast<hydra::horizon::filesystem::Filesystem*>(fs));
 }
 
-// TODO: implement without an intermediate buffer?
 HYDRA_EXPORT void
-hydra_user_manager_load_avatar_image(void* user_manager, const void* user,
-                                     void** out_data,
+hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
+                                     const void** out_data,
                                      uint64_t* out_dimensions) {
-    std::vector<hydra::u8> data;
-    reinterpret_cast<hydra::horizon::services::account::internal::UserManager*>(
-        user_manager)
-        ->LoadAvatarImage(
-            *reinterpret_cast<
-                const hydra::horizon::services::account::internal::User*>(user),
-            data, *out_dimensions);
-    *out_data = malloc(data.size());
-    memcpy(*out_data, data.data(), data.size());
+    const auto& data =
+        reinterpret_cast<
+            hydra::horizon::services::account::internal::UserManager*>(
+            user_manager)
+            ->LoadAvatarImage(string_view_from_string(path), *out_dimensions);
+    *out_data = data.data();
 }
 
 HYDRA_EXPORT hydra_string hydra_user_get_nickname(void* user) {

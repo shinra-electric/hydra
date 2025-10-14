@@ -16,29 +16,38 @@ struct UserAvatarView: View {
     }
 
     private func loadAvatar(dimensions: inout UInt64) -> CGImage? {
-        var data: UnsafeMutableRawPointer?
-        hydra_user_manager_load_avatar_image(self.userManager, self.user, &data, &dimensions)
+        var data: UnsafeRawPointer?
+        hydra_user_manager_load_avatar_image(
+            self.userManager, hydra_user_get_avatar_path(self.user), &data, &dimensions)
         guard let data = data else {
             return nil
         }
 
-        defer { free(data) }
+        let dataProvider = CGDataProvider(
+            dataInfo: nil,
+            data: data,
+            size: Int(dimensions) * Int(dimensions) * 4,
+            releaseData: { _, _, _ in })!
 
         guard
-            let context = CGContext(
-                data: data,
+            let cgImage = CGImage(
                 width: Int(dimensions),
                 height: Int(dimensions),
                 bitsPerComponent: 8,
+                bitsPerPixel: 32,
                 bytesPerRow: Int(dimensions) * 4,
                 space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                provider: dataProvider,
+                decode: nil,
+                shouldInterpolate: false,
+                intent: .defaultIntent
             )
         else {
             return nil
         }
 
-        return context.makeImage()
+        return cgImage
     }
 
     private func loadAvatarNS() -> NSImage? {
