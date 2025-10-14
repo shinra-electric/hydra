@@ -29,19 +29,19 @@ class UserManager {
 
     // Avatar
     void LoadSystemAvatars(filesystem::Filesystem& fs);
-    void LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data,
+    void LoadAvatarImage(const User& user, std::vector<u8>& out_data,
                          usize& out_dimensions);
-    void LoadAvatarImageAsJpeg(uuid_t user_id, std::vector<u8>& out_data);
+    void LoadAvatarImageAsJpeg(const User& user, std::vector<u8>& out_data);
     // TODO: isn't there a better way?
-    usize GetAvatarImageSize(uuid_t user_id) {
+    usize GetAvatarImageSize(const User& user) {
         std::vector<u8> data;
         usize dimensions;
-        LoadAvatarImage(user_id, data, dimensions);
+        LoadAvatarImage(user, data, dimensions);
         return data.size();
     }
-    usize GetAvatarImageAsJpegSize(uuid_t user_id) {
+    usize GetAvatarImageAsJpegSize(const User& user) {
         std::vector<u8> data;
-        LoadAvatarImageAsJpeg(user_id, data);
+        LoadAvatarImageAsJpeg(user, data);
         return data.size();
     }
 

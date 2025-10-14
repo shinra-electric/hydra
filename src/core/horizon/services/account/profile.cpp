@@ -23,7 +23,8 @@ result_t IProfile::GetBase(ProfileBase* out_base) {
 }
 
 result_t IProfile::GetImageSize(u32* out_size) {
-    *out_size = USER_MANAGER_INSTANCE.GetAvatarImageAsJpegSize(user_id);
+    *out_size = USER_MANAGER_INSTANCE.GetAvatarImageAsJpegSize(
+        USER_MANAGER_INSTANCE.GetUser(user_id));
     return RESULT_SUCCESS;
 }
 
@@ -32,7 +33,8 @@ result_t IProfile::LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
                              u32* out_size) {
     // Load image
     std::vector<u8> data;
-    USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(user_id, data);
+    USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(
+        USER_MANAGER_INSTANCE.GetUser(user_id), data);
 
     out_buffer.writer->WritePtr(data.data(), data.size());
 

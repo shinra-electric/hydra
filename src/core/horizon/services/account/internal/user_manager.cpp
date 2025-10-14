@@ -123,10 +123,9 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     }
 }
 
-void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data,
+void UserManager::LoadAvatarImage(const User& user, std::vector<u8>& out_data,
                                   usize& out_dimensions) {
     // Load image
-    const auto& user = GetUser(user_id);
     auto file = avatar_images.at(user.avatar_path);
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
@@ -170,12 +169,12 @@ void UserManager::LoadAvatarImage(uuid_t user_id, std::vector<u8>& out_data,
     out_dimensions = AVATAR_IMAGE_DIMENSION;
 }
 
-void UserManager::LoadAvatarImageAsJpeg(uuid_t user_id,
+void UserManager::LoadAvatarImageAsJpeg(const User& user,
                                         std::vector<u8>& out_data) {
     // Load image
     std::vector<u8> decompressed;
     usize dimension;
-    LoadAvatarImage(user_id, decompressed, dimension);
+    LoadAvatarImage(user, decompressed, dimension);
 
     // Convert to JPEG
     out_data.reserve(0x20000);

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UserAvatarView: View {
     let userManager: UnsafeMutableRawPointer
-    let userID: hydra_u128
+    let user: UnsafeMutableRawPointer
 
     var body: some View {
         VStack {
@@ -17,7 +17,7 @@ struct UserAvatarView: View {
 
     private func loadAvatar(dimensions: inout UInt64) -> CGImage? {
         var data: UnsafeMutableRawPointer?
-        hydra_user_manager_load_avatar_image(self.userManager, self.userID, &data, &dimensions)
+        hydra_user_manager_load_avatar_image(self.userManager, self.user, &data, &dimensions)
         guard let data = data else {
             return nil
         }
