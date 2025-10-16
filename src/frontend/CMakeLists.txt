@@ -45,6 +45,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/AudioSettingsView.swift
         swiftui/settings/UserAvatarView.swift
         swiftui/settings/UserPreview.swift
+        swiftui/settings/UserAvatarEditorView.swift
         swiftui/settings/UserEditorView.swift
         swiftui/settings/UserSettingsView.swift
         swiftui/settings/SystemSettingsView.swift

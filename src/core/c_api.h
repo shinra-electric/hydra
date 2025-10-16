@@ -218,6 +218,9 @@ void hydra_user_manager_load_system_avatars(void* user_manager, void* fs);
 void hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
                                           const void** out_data,
                                           uint64_t* out_dimensions);
+uint32_t hydra_user_manager_get_avatar_count(void* user_manager);
+void hydra_user_manager_get_avatar_paths(void* user_manager,
+                                         hydra_string* path_buffer);
 
 hydra_string hydra_user_get_nickname(void* user);
 void hydra_user_set_nickname(void* user, hydra_string nickname);

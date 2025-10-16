@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UserAvatarView: View {
     let userManager: UnsafeMutableRawPointer
-    let user: UnsafeMutableRawPointer
+    let avatarPath: hydra_string
 
     var body: some View {
         VStack {
@@ -10,7 +10,6 @@ struct UserAvatarView: View {
                 Image(nsImage: nsImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode
             }
         }
     }
@@ -18,7 +17,7 @@ struct UserAvatarView: View {
     private func loadAvatar(dimensions: inout UInt64) -> CGImage? {
         var data: UnsafeRawPointer?
         hydra_user_manager_load_avatar_image(
-            self.userManager, hydra_user_get_avatar_path(self.user), &data, &dimensions)
+            self.userManager, self.avatarPath, &data, &dimensions)
         guard let data = data else {
             return nil
         }

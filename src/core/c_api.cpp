@@ -12,11 +12,11 @@
 
 namespace {
 
-hydra_string string_from_string_view(std::string_view str) {
+hydra_string hydra_string_from_string_view(std::string_view str) {
     return hydra_string{str.data(), str.size()};
 }
 
-std::string_view string_view_from_string(hydra_string str) {
+std::string_view string_view_from_hydra_string(hydra_string str) {
     return std::string_view(str.data, str.size);
 }
 
@@ -356,12 +356,34 @@ hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
         reinterpret_cast<
             hydra::horizon::services::account::internal::UserManager*>(
             user_manager)
-            ->LoadAvatarImage(string_view_from_string(path), *out_dimensions);
+            ->LoadAvatarImage(string_view_from_hydra_string(path),
+                              *out_dimensions);
     *out_data = data.data();
 }
 
+HYDRA_EXPORT uint32_t hydra_user_manager_get_avatar_count(void* user_manager) {
+    return reinterpret_cast<
+               hydra::horizon::services::account::internal::UserManager*>(
+               user_manager)
+        ->GetAvatars()
+        .size();
+}
+
+// TODO: don't allocate intermediate buffer?
+HYDRA_EXPORT void
+hydra_user_manager_get_avatar_paths(void* user_manager,
+                                    hydra_string* path_buffer) {
+    auto paths = reinterpret_cast<
+                     hydra::horizon::services::account::internal::UserManager*>(
+                     user_manager)
+                     ->GetAvatarPaths();
+    // TODO: free the strings as well
+    for (size_t i = 0; i < paths.size(); i++)
+        path_buffer[i] = hydra_string_from_string_view(paths[i]);
+}
+
 HYDRA_EXPORT hydra_string hydra_user_get_nickname(void* user) {
-    return string_from_string_view(
+    return hydra_string_from_string_view(
         reinterpret_cast<hydra::horizon::services::account::internal::User*>(
             user)
             ->GetNickname());
@@ -369,7 +391,7 @@ HYDRA_EXPORT hydra_string hydra_user_get_nickname(void* user) {
 
 HYDRA_EXPORT void hydra_user_set_nickname(void* user, hydra_string nickname) {
     reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
-        ->SetNickname(string_view_from_string(nickname));
+        ->SetNickname(string_view_from_hydra_string(nickname));
 }
 
 HYDRA_EXPORT hydra_uchar3 hydra_user_get_avatar_bg_color(void* user) {
@@ -386,7 +408,7 @@ HYDRA_EXPORT void hydra_user_set_avatar_bg_color(void* user,
 }
 
 HYDRA_EXPORT hydra_string hydra_user_get_avatar_path(void* user) {
-    return string_from_string_view(
+    return hydra_string_from_string_view(
         reinterpret_cast<hydra::horizon::services::account::internal::User*>(
             user)
             ->GetAvatarPath());
@@ -394,7 +416,7 @@ HYDRA_EXPORT hydra_string hydra_user_get_avatar_path(void* user) {
 
 HYDRA_EXPORT void hydra_user_set_avatar_path(void* user, hydra_string path) {
     reinterpret_cast<hydra::horizon::services::account::internal::User*>(user)
-        ->SetAvatarPath(string_view_from_string(path));
+        ->SetAvatarPath(string_view_from_hydra_string(path));
 }
 
 // Emulation context

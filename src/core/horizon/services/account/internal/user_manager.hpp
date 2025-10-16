@@ -40,6 +40,15 @@ class UserManager {
     void LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                std::vector<u8>& out_data);
 
+    std::vector<std::string_view> GetAvatarPaths() const {
+        std::vector<std::string_view> paths;
+        paths.reserve(avatars.size());
+        for (const auto& [path, _] : avatars)
+            paths.push_back(path);
+
+        return paths;
+    }
+
   private:
     std::map<uuid_t, std::pair<User, u64>> users;
     std::map<std::string, Avatar> avatars;
@@ -60,6 +69,9 @@ class UserManager {
     void Deserialize(uuid_t user_id);
 
     void PreloadAvatar(Avatar& avatar);
+
+  public:
+    CONST_REF_GETTER(avatars, GetAvatars);
 };
 
 } // namespace hydra::horizon::services::account::internal
