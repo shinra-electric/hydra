@@ -4,7 +4,7 @@ struct MenuCommands: Commands {
     @Environment(\.openWindow) var openWindow
 
     @Binding var activeGame: Game?
-    @Binding var emulationContext: UnsafeMutableRawPointer?
+    @Binding var emulationContext: HydraEmulationContext?
 
     @State var firmwareApplets: [Game] = []
     @State var handheldMode = false
@@ -12,7 +12,7 @@ struct MenuCommands: Commands {
     var body: some Commands {
         CommandGroup(after: .newItem) {
             Button("Load from file") {
-                // TODO: Implement
+                // TODO: implement
                 print("NOT IMPLEMENTED")
             }
             .keyboardShortcut(KeyEquivalent("l"), modifiers: .command)
@@ -29,9 +29,7 @@ struct MenuCommands: Commands {
                 self.loadFirmware()
             }
             .onDisappear {
-                for firmwareApplet in self.firmwareApplets {
-                    hydra_loader_destroy(firmwareApplet.loader)
-                }
+                self.firmwareApplets.removeAll()
             }
         }
 
@@ -40,7 +38,7 @@ struct MenuCommands: Commands {
 
             Button("Take Screenshot") {
                 guard let emulationContext = self.emulationContext else { return }
-                hydra_emulation_context_take_screenshot(emulationContext)
+                emulationContext.takeScreenshot()
             }
             .keyboardShortcut(KeyEquivalent("t"), modifiers: .command)
         }
@@ -48,29 +46,30 @@ struct MenuCommands: Commands {
         CommandMenu("Emulation") {
             Button("Stop") {
                 guard let emulationContext = self.emulationContext else { return }
-                hydra_emulation_context_request_stop(emulationContext)
-                hydra_emulation_context_force_stop(emulationContext)
+                emulationContext.requestStop()
+                // TODO: wait a bit?
+                emulationContext.forceStop()
                 self.activeGame = nil
             }
             Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
                 self.handheldMode = !self.handheldMode
-                let handheldModeOption = hydra_config_get_handheld_mode()
-                hydra_bool_option_set(handheldModeOption, self.handheldMode)
+                var handheldModeOption = hydraConfigGetHandheldMode()
+                handheldModeOption.value = self.handheldMode
 
                 guard let emulationContext = self.emulationContext else { return }
-                hydra_emulation_context_notify_operation_mode_changed(emulationContext)
+                emulationContext.notifyOperationModeChanged()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
             .onAppear {
-                let handheldModeOption = hydra_config_get_handheld_mode()
-                self.handheldMode = hydra_bool_option_get(handheldModeOption)
+                let handheldModeOption = hydraConfigGetHandheldMode()
+                self.handheldMode = handheldModeOption.value
             }
         }
 
         CommandMenu("Debug") {
             Button("Capture GPU Frame") {
                 guard let emulationContext = self.emulationContext else { return }
-                hydra_emulation_context_capture_gpu_frame(emulationContext)
+                emulationContext.captureGpuFrame()
             }
             .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)
         }
@@ -81,8 +80,8 @@ struct MenuCommands: Commands {
     }
 
     func loadFirmware() {
-        let firmwarePathOption = hydra_config_get_firmware_path()
-        let firmwarePath = String(cString: hydra_string_option_get(firmwarePathOption))
+        let firmwarePathOption = hydraConfigGetFirmwarePath()
+        let firmwarePath = firmwarePathOption.value.value
         if firmwarePath == "" {
             return
         }
@@ -104,27 +103,18 @@ struct MenuCommands: Commands {
     }
 
     func addFirmwareApplet(path: String) {
-        guard let file = hydra_open_file(path) else {
-            return
-        }
-        //defer { hydra_file_close(file) }
+        let file = HydraFile(path: HydraString(path))
+        let contentArchive = HydraContentArchive(file: file)
 
-        guard let contentArchive = hydra_create_content_archive(file) else {
-            return
-        }
-        defer { hydra_content_archive_destroy(contentArchive) }
-
-        if hydra_content_archive_get_content_type(contentArchive)
+        if contentArchive.contentType
             != HYDRA_CONTENT_ARCHIVE_CONTENT_TYPE_PROGRAM
         {
             return
         }
 
-        guard let loader = hydra_create_nca_loader_from_content_archive(contentArchive) else {
-            return
-        }
+        let loader = HydraNcaLoader(contentArchive: contentArchive)
 
-        let name = String(cString: hydra_nca_loader_get_name(loader))
+        let name = loader.name.value
         if name == "" {
             return
         }

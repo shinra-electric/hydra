@@ -47,30 +47,30 @@ struct GraphicsSettingsView: View {
     }
 
     func load() {
-        let gpuRendererOption = hydra_config_get_gpu_renderer()
-        self.gpuRenderer.rawValue = hydra_u32_option_get(gpuRendererOption)
+        let gpuRendererOption = hydraConfigGetGpuRenderer()
+        self.gpuRenderer.rawValue = gpuRendererOption.value
 
-        let shaderBackendOption = hydra_config_get_shader_backend()
-        self.shaderBackend.rawValue = hydra_u32_option_get(shaderBackendOption)
+        let shaderBackendOption = hydraConfigGetShaderBackend()
+        self.shaderBackend.rawValue = shaderBackendOption.value
 
-        let displayResolutionOption = hydra_config_get_display_resolution()
-        self.displayResolution.rawValue = hydra_u32_option_get(displayResolutionOption)
+        let displayResolutionOption = hydraConfigGetDisplayResolution()
+        self.displayResolution.rawValue = displayResolutionOption.value
 
-        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
-        self.customDisplayResolution = hydra_uint2_option_get(customDisplayResolutionOption)
+        let customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+        self.customDisplayResolution = customDisplayResolutionOption.value
     }
 
     func save() {
-        let gpuRendererOption = hydra_config_get_gpu_renderer()
-        hydra_u32_option_set(gpuRendererOption, self.gpuRenderer.rawValue)
+        var gpuRendererOption = hydraConfigGetGpuRenderer()
+        gpuRendererOption.value = self.gpuRenderer.rawValue
 
-        let shaderBackendOption = hydra_config_get_shader_backend()
-        hydra_u32_option_set(shaderBackendOption, self.shaderBackend.rawValue)
+        var shaderBackendOption = hydraConfigGetShaderBackend()
+        shaderBackendOption.value = self.shaderBackend.rawValue
 
-        let displayResolutionOption = hydra_config_get_display_resolution()
-        hydra_u32_option_set(displayResolutionOption, self.displayResolution.rawValue)
+        var displayResolutionOption = hydraConfigGetDisplayResolution()
+        displayResolutionOption.value = self.displayResolution.rawValue
 
-        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
-        hydra_uint2_option_set(customDisplayResolutionOption, self.customDisplayResolution)
+        var customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+        customDisplayResolutionOption.value = self.customDisplayResolution
     }
 }

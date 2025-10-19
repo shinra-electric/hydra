@@ -1,17 +1,16 @@
+import Foundation
+
 func createGameFromFile(path: String) -> Game? {
-    guard let loader = hydra_create_loader_from_file(path) else {
-        return nil
-    }
+    let loader = HydraLoader(path: HydraString(path))
 
     // Get name and author
     var name = ""
     var author = ""
-    let nacp = hydra_loader_load_nacp(loader)
+    let nacp = loader.loadNacp()
     if let nacp = nacp {
-        let title = hydra_nacp_get_title(nacp)
-        name = String(cString: hydra_nacp_title_get_name(title))
-        author = String(cString: hydra_nacp_title_get_author(title))
-        hydra_nacp_destroy(nacp)
+        let title = nacp.title
+        name = title.name.value
+        author = title.author.value
     } else {
         name = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
         author = "Unknown"

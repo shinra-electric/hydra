@@ -35,30 +35,30 @@ struct SystemSettingsView: View {
     }
 
     func load() {
-        let firmwarePathOption = hydra_config_get_firmware_path()
-        self.firmwarePath = String(cString: hydra_string_option_get(firmwarePathOption))
+        let firmwarePathOption = hydraConfigGetFirmwarePath()
+        self.firmwarePath = firmwarePathOption.value.value
 
-        let sdCardPathOption = hydra_config_get_sd_card_path()
-        self.sdCardPath = String(cString: hydra_string_option_get(sdCardPathOption))
+        let sdCardPathOption = hydraConfigGetSdCardPath()
+        self.sdCardPath = sdCardPathOption.value.value
 
-        let savePathOption = hydra_config_get_save_path()
-        self.savePath = String(cString: hydra_string_option_get(savePathOption))
+        let savePathOption = hydraConfigGetSavePath()
+        self.savePath = savePathOption.value.value
 
-        let sysmodulesPathOption = hydra_config_get_sysmodules_path()
-        self.sysmodulesPath = String(cString: hydra_string_option_get(sysmodulesPathOption))
+        let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+        self.sysmodulesPath = sysmodulesPathOption.value.value
     }
 
     func save() {
-        let firmwarePathOption = hydra_config_get_firmware_path()
-        hydra_string_option_set(firmwarePathOption, self.firmwarePath.cString(using: .utf8))
+        let firmwarePathOption = hydraConfigGetFirmwarePath()
+        firmwarePathOption.value.value = self.firmwarePath
 
-        let sdCardPathOption = hydra_config_get_sd_card_path()
-        hydra_string_option_set(sdCardPathOption, self.sdCardPath.cString(using: .utf8))
+        let sdCardPathOption = hydraConfigGetSdCardPath()
+        sdCardPathOption.value.value = self.sdCardPath
 
-        let savePathOption = hydra_config_get_save_path()
-        hydra_string_option_set(savePathOption, self.savePath.cString(using: .utf8))
+        let savePathOption = hydraConfigGetSavePath()
+        savePathOption.value.value = self.savePath
 
-        let sysmodulesPathOption = hydra_config_get_sysmodules_path()
-        hydra_string_option_set(sysmodulesPathOption, self.sysmodulesPath.cString(using: .utf8))
+        let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+        sysmodulesPathOption.value.value = self.sysmodulesPath
     }
 }

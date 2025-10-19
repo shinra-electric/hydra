@@ -20,11 +20,11 @@ struct ToolbarItems: ToolbarContent {
                 switch result {
                 case .success(let fileURLs):
                     for fileURL in fileURLs {
-                        let gamePathsOption = hydra_config_get_game_paths()
-                        hydra_string_array_option_append(
-                            gamePathsOption, fileURL.path.cString(using: .utf8))
+                        let gamePathsOption = hydraConfigGetGamePaths()
+                        gamePathsOption.append(
+                            value: HydraString(fileURL.path))
 
-                        hydra_config_serialize()
+                        hydraConfigSerialize()
                     }
 
                 case .failure(let error):

@@ -2,7 +2,7 @@ import SwiftUI
 
 // TODO: don't store the messages in a separate array?
 struct ThreadDebuggerView: View {
-    let thread: UnsafeMutableRawPointer
+    let thread: HydraDebuggerThread
 
     @State private var status = HYDRA_DEBUGGER_THREAD_STATUS_RUNNING
     @State private var breakReason = ""
@@ -10,7 +10,7 @@ struct ThreadDebuggerView: View {
 
     var body: some View {
         VStack {
-            Text(String(cString: hydra_debugger_thread_get_name(self.thread)))
+            Text(self.thread.name.value)
                 .bold()
             ZStack {
                 Color.black
@@ -34,34 +34,31 @@ struct ThreadDebuggerView: View {
             load()
         }
         .onDisappear {
-            for msg in self.messages {
-                hydra_debugger_stack_trace_destroy(msg.stack_trace)
-            }
+            self.messages.removeAll()
         }
     }
 
     func load() {
-        hydra_debugger_thread_lock(self.thread)
+        self.thread.lock()
 
         // Status
-        self.status = hydra_debugger_thread_get_status(self.thread)
-        self.breakReason = String(cString: hydra_debugger_thread_get_break_reason(self.thread))
+        self.status = self.thread.status
+        self.breakReason = self.thread.breakReason.value
 
         // Messages
-        self.messages.removeAll()
-        for i in 0..<hydra_debugger_thread_get_message_count(self.thread) {
-            let message = hydra_debugger_thread_get_message(self.thread, UInt32(i))
-            let log_level = hydra_debugger_message_get_log_level(message)
-            let function = String(cString: hydra_debugger_message_get_function(message))
-            let str = String(cString: hydra_debugger_message_get_string(message))
-            let stack_trace = hydra_debugger_stack_trace_copy(
-                hydra_debugger_message_get_stack_trace(message))!
+        self.messages.removeAll()  // TODO: is this necessary?
+        for i in 0..<self.thread.messageCount {
+            let message = self.thread.getMessage(at: i)
+            let log_level = message.logLevel
+            let function = message.function.value
+            let str = message.str.value
+            let stack_trace = message.stackTrace
 
             let msg = Message(
                 log_level: log_level, function: function, str: str, stack_trace: stack_trace)
             self.messages.append(msg)
         }
 
-        hydra_debugger_thread_unlock(self.thread)
+        self.thread.unlock()
     }
 }

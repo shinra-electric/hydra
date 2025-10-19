@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct UserPreview: View {
-    let userManager: UnsafeMutableRawPointer
-    let user: UnsafeMutableRawPointer
+    let userManager: HydraUserManager
+    let user: HydraUser
 
     var body: some View {
         HStack {
             ZStack {
-                let avatarBgColor = hydra_user_get_avatar_bg_color(self.user)
+                let avatarBgColor = self.user.avatarBgColor
                 Rectangle()
                     .fill(
                         Color(
@@ -15,11 +15,11 @@ struct UserPreview: View {
                             green: Double(avatarBgColor.y) / 255.0,
                             blue: Double(avatarBgColor.z) / 255.0))
                 UserAvatarView(
-                    userManager: self.userManager, avatarPath: hydra_user_get_avatar_path(self.user)
+                    userManager: self.userManager, avatarPath: self.user.avatarPath
                 )
             }
             .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode?
-            Text(toSwiftString(hydra_user_get_nickname(self.user))!)
+            Text(self.user.nickname.value)
         }
     }
 }

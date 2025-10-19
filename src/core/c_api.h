@@ -138,15 +138,15 @@ void hydra_u32_option_set(void* option, const uint32_t value);
 hydra_u128 hydra_u128_option_get(const void* option);
 void hydra_u128_option_set(void* option, const hydra_u128 value);
 
-const char* hydra_string_option_get(const void* option);
-void hydra_string_option_set(void* option, const char* value);
+hydra_string hydra_string_option_get(const void* option);
+void hydra_string_option_set(void* option, hydra_string value);
 
 uint32_t hydra_string_array_option_get_count(const void* option);
-const char* hydra_string_array_option_get(const void* option, uint32_t index);
+hydra_string hydra_string_array_option_get(const void* option, uint32_t index);
 void hydra_string_array_option_resize(void* option, uint64_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
-                                   const char* value);
-void hydra_string_array_option_append(void* option, const char* value);
+                                   hydra_string value);
+void hydra_string_array_option_append(void* option, hydra_string value);
 
 hydra_uint2 hydra_uint2_option_get(const void* option);
 void hydra_uint2_option_set(void* option, const hydra_uint2 value);
@@ -179,7 +179,7 @@ void* hydra_create_filesystem();
 void hydra_filesystem_destroy(void* fs);
 void hydra_try_install_firmware_to_filesystem(void* fs);
 
-void* hydra_open_file(const char* path);
+void* hydra_open_file(hydra_string path);
 void hydra_file_close(void* file);
 
 void* hydra_create_content_archive(void* file);
@@ -188,23 +188,22 @@ HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive);
 
 // Loader
-void* hydra_create_loader_from_file(const char* path);
+void* hydra_create_loader_from_file(hydra_string path);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);
-bool hydra_loader_load_icon(void* loader, void** data, uint64_t* width,
-                            uint64_t* height);
+void* hydra_loader_load_icon(void* loader, uint64_t* width, uint64_t* height);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
-const char* hydra_nca_loader_get_name(void* nca_loader);
+hydra_string hydra_nca_loader_get_name(void* nca_loader);
 
 // NACP
 void hydra_nacp_destroy(void* nacp);
 const void* hydra_nacp_get_title(void* nacp);
 
 // NACP title
-const char* hydra_nacp_title_get_name(const void* title);
-const char* hydra_nacp_title_get_author(const void* title);
+hydra_string hydra_nacp_title_get_name(const void* title);
+hydra_string hydra_nacp_title_get_author(const void* title);
 
 // User manager
 void* hydra_create_user_manager();
@@ -215,12 +214,12 @@ uint32_t hydra_user_manager_get_user_count(void* user_manager);
 hydra_u128 hydra_user_manager_get_user_id(void* user_manager, uint32_t index);
 void* hydra_user_manager_get_user(void* user_manager, hydra_u128 user_id);
 void hydra_user_manager_load_system_avatars(void* user_manager, void* fs);
-void hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
-                                          const void** out_data,
-                                          uint64_t* out_dimensions);
+const void* hydra_user_manager_load_avatar_image(void* user_manager,
+                                                 hydra_string path,
+                                                 uint64_t* out_dimensions);
 uint32_t hydra_user_manager_get_avatar_count(void* user_manager);
-void hydra_user_manager_get_avatar_paths(void* user_manager,
-                                         hydra_string* path_buffer);
+hydra_string hydra_user_manager_get_avatar_path(void* user_manager,
+                                                uint32_t index);
 
 hydra_string hydra_user_get_nickname(void* user);
 void hydra_user_set_nickname(void* user, hydra_string nickname);
@@ -262,30 +261,30 @@ void* hydra_debugger_manager_get_debugger(uint32_t index);
 void* hydra_debugger_manager_get_debugger_for_process(void* process);
 
 // Debugger
-const char* hydra_debugger_get_name(void* debugger);
+hydra_string hydra_debugger_get_name(void* debugger);
 void hydra_debugger_lock(void* debugger);
 void hydra_debugger_unlock(void* debugger);
-void hydra_debugger_register_this_thread(void* debugger, const char* name);
+void hydra_debugger_register_this_thread(void* debugger, hydra_string name);
 void hydra_debugger_unregister_this_thread(void* debugger);
 uint64_t hydra_debugger_get_thread_count(void* debugger);
 void* hydra_debugger_get_thread(void* debugger, uint32_t index);
 
 // Thread
+hydra_string hydra_debugger_thread_get_name(void* thread);
 void hydra_debugger_thread_lock(void* thread);
 void hydra_debugger_thread_unlock(void* thread);
-const char* hydra_debugger_thread_get_name(void* thread);
 HydraDebuggerThreadStatus hydra_debugger_thread_get_status(void* thread);
-const char* hydra_debugger_thread_get_break_reason(void* thread);
+hydra_string hydra_debugger_thread_get_break_reason(void* thread);
 uint64_t hydra_debugger_thread_get_message_count(void* thread);
 const void* hydra_debugger_thread_get_message(void* thread, uint32_t index);
 
 // Message
 HydraLogLevel hydra_debugger_message_get_log_level(const void* msg);
 HydraLogClass hydra_debugger_message_get_log_class(const void* msg);
-const char* hydra_debugger_message_get_file(const void* msg);
+hydra_string hydra_debugger_message_get_file(const void* msg);
 uint32_t hydra_debugger_message_get_line(const void* msg);
-const char* hydra_debugger_message_get_function(const void* msg);
-const char* hydra_debugger_message_get_string(const void* msg);
+hydra_string hydra_debugger_message_get_function(const void* msg);
+hydra_string hydra_debugger_message_get_string(const void* msg);
 const void* hydra_debugger_message_get_stack_trace(const void* msg);
 
 // Stack trace
@@ -296,13 +295,13 @@ const void* hydra_debugger_stack_trace_get_frame(const void* stack_trace,
                                                  uint32_t index);
 
 // Stack frame
-void* hydra_debugger_stack_frame_resolve_unmanaged(const void* stack_frame);
+void* hydra_debugger_stack_frame_resolve(const void* stack_frame);
 
 // Resolved stack frame
 void hydra_debugger_resolved_stack_frame_destroy(void* resolved_stack_frame);
-const char* hydra_debugger_resolved_stack_frame_get_module(
+hydra_string hydra_debugger_resolved_stack_frame_get_module(
     const void* resolved_stack_frame);
-const char* hydra_debugger_resolved_stack_frame_get_function(
+hydra_string hydra_debugger_resolved_stack_frame_get_function(
     const void* resolved_stack_frame);
 uint64_t hydra_debugger_resolved_stack_frame_get_address(
     const void* resolved_stack_frame);

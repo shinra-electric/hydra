@@ -24,6 +24,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
 
     add_executable(hydra
+        swiftui/Api.swift
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
@@ -33,7 +34,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/EmulationView.swift
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
-        swiftui/helpers/String.swift
+        swiftui/helpers/Error.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
@@ -45,6 +46,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/AudioSettingsView.swift
         swiftui/settings/UserAvatarView.swift
         swiftui/settings/UserPreview.swift
+        swiftui/settings/UserAvatarPickerView.swift
         swiftui/settings/UserAvatarEditorView.swift
         swiftui/settings/UserEditorView.swift
         swiftui/settings/UserSettingsView.swift
@@ -61,7 +63,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/macos/AppDelegate.swift
     )
 
-    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
+    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()

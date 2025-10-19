@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Binding var activeGame: Game?
-    @Binding var emulationContext: UnsafeMutableRawPointer?
+    @Binding var emulationContext: HydraEmulationContext?
 
     var body: some View {
         NavigationStack {

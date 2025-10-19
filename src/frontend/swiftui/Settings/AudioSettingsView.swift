@@ -20,12 +20,12 @@ struct AudioSettingsView: View {
     }
 
     func load() {
-        let audioBackendOption = hydra_config_get_audio_backend()
-        self.audioBackend.rawValue = hydra_u32_option_get(audioBackendOption)
+        let audioBackendOption = hydraConfigGetAudioBackend()
+        self.audioBackend.rawValue = audioBackendOption.value
     }
 
     func save() {
-        let audioBackendOption = hydra_config_get_audio_backend()
-        hydra_u32_option_set(audioBackendOption, self.audioBackend.rawValue)
+        var audioBackendOption = hydraConfigGetAudioBackend()
+        audioBackendOption.value = self.audioBackend.rawValue
     }
 }

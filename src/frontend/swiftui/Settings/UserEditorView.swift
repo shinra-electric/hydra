@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct UserEditorView: View {
-    let userManager: UnsafeMutableRawPointer
-    let user: UnsafeMutableRawPointer
+    let userManager: HydraUserManager
+    var user: HydraUser
 
     @State private var nickname = ""
     @State private var avatarBgColor = hydra_uchar3(x: 0, y: 0, z: 0)
-    @State private var avatarPath = hydra_string(data: nil, size: 0)
+    @State private var avatarPath = HydraString.empty
 
     @State private var showAvatarEditor = false
 
@@ -20,7 +20,7 @@ struct UserEditorView: View {
                             green: Double(self.avatarBgColor.y) / 255.0,
                             blue: Double(self.avatarBgColor.z) / 255.0))
                 UserAvatarView(
-                    userManager: self.userManager, avatarPath: hydra_user_get_avatar_path(self.user)
+                    userManager: self.userManager, avatarPath: self.user.avatarPath
                 )
 
                 // Edit button
@@ -66,14 +66,15 @@ struct UserEditorView: View {
     }
 
     func load() {
-        self.nickname = toSwiftString(hydra_user_get_nickname(self.user))!
-        self.avatarBgColor = hydra_user_get_avatar_bg_color(self.user)
-        self.avatarPath = hydra_user_get_avatar_path(self.user)
+        self.nickname = self.user.nickname.value
+        self.avatarBgColor = self.user.avatarBgColor
+        self.avatarPath = self.user.avatarPath
     }
 
     func save() {
-        hydra_user_set_nickname(self.user, toHydraString(self.nickname)!)
-        hydra_user_set_avatar_bg_color(self.user, self.avatarBgColor)
-        hydra_user_set_avatar_path(self.user, self.avatarPath)
+        var user = self.user
+        user.nickname.value = self.nickname
+        user.avatarBgColor = self.avatarBgColor
+        user.avatarPath = self.avatarPath
     }
 }

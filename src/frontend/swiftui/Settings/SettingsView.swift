@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     private enum Tabs: Hashable {
-        case general, graphics, debug
+        case general, cpu, graphics, audio, user, system, debug
     }
 
     var body: some View {
@@ -16,7 +16,7 @@ struct SettingsView: View {
                 .tabItem {
                     Label("CPU", systemImage: "cpu")
                 }
-                .tag(Tabs.graphics)
+                .tag(Tabs.cpu)
             GraphicsSettingsView()
                 .tabItem {
                     Label("Graphics", systemImage: "star")
@@ -26,17 +26,17 @@ struct SettingsView: View {
                 .tabItem {
                     Label("Audio", systemImage: "speaker.wave.2")
                 }
-                .tag(Tabs.graphics)
+                .tag(Tabs.audio)
             UserSettingsView()
                 .tabItem {
                     Label("User", systemImage: "person")
                 }
-                .tag(Tabs.graphics)
+                .tag(Tabs.user)
             SystemSettingsView()
                 .tabItem {
                     Label("System", systemImage: "desktopcomputer")
                 }
-                .tag(Tabs.graphics)
+                .tag(Tabs.system)
             DebugSettingsView()
                 .tabItem {
                     Label("Debug", systemImage: "memorychip")
@@ -47,8 +47,7 @@ struct SettingsView: View {
         // TODO: don't hardcode the size
         .frame(width: 800, height: 600)
         .onDisappear {
-            // TODO: why is this called before the individual tabs?
-            hydra_config_serialize()
+            hydraConfigSerialize()
         }
     }
 }

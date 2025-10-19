@@ -23,9 +23,7 @@ struct GamePreview: View {
     }
 
     private func loadIcon(width: inout UInt64, height: inout UInt64) -> CGImage? {
-        var data: UnsafeMutableRawPointer?
-        hydra_loader_load_icon(self.game.loader, &data, &width, &height)
-        guard let data = data else {
+        guard let data = self.game.loader.loadIcon(width: &width, height: &height) else {
             return nil
         }
 

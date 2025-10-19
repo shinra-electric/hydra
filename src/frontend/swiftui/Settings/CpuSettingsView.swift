@@ -20,12 +20,12 @@ struct CpuSettingsView: View {
     }
 
     func load() {
-        let cpuBackendOption = hydra_config_get_cpu_backend()
-        self.cpuBackend.rawValue = hydra_u32_option_get(cpuBackendOption)
+        let cpuBackendOption = hydraConfigGetCpuBackend()
+        self.cpuBackend.rawValue = cpuBackendOption.value
     }
 
     func save() {
-        let cpuBackendOption = hydra_config_get_cpu_backend()
-        hydra_u32_option_set(cpuBackendOption, self.cpuBackend.rawValue)
+        var cpuBackendOption = hydraConfigGetCpuBackend()
+        cpuBackendOption.value = self.cpuBackend.rawValue
     }
 }

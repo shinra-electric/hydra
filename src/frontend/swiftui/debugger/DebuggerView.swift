@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct DebuggerView: View {
-    var debugger: UnsafeMutableRawPointer
+    var debugger: HydraDebugger
 
-    @State private var threads: [UnsafeMutableRawPointer] = []
+    @State private var threads: [HydraDebuggerThread] = []
 
     @State private var refreshID = 0
 
@@ -44,14 +44,14 @@ struct DebuggerView: View {
     }
 
     func load() {
-        hydra_debugger_lock(self.debugger)
+        self.debugger.lock()
 
         // Threads
         self.threads.removeAll()
-        for i in 0..<hydra_debugger_get_thread_count(self.debugger) {
-            self.threads.append(hydra_debugger_get_thread(self.debugger, UInt32(i)))
+        for i in 0..<self.debugger.threadCount {
+            self.threads.append(self.debugger.getThread(at: i))
         }
 
-        hydra_debugger_unlock(self.debugger)
+        self.debugger.unlock()
     }
 }

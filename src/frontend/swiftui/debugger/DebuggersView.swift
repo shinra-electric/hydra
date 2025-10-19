@@ -1,9 +1,7 @@
 import SwiftUI
 
-struct DebuggerProcessesView: View {
-    @State private var debuggers: [UnsafeMutableRawPointer] = []
-
-    @State private var activeDebugger: UnsafeMutableRawPointer? = nil
+struct DebuggersView: View {
+    @State private var activeDebugger: HydraDebugger? = nil
 
     var body: some View {
         NavigationStack {

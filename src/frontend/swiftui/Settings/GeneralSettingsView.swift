@@ -27,39 +27,31 @@ struct GeneralSettingsView: View {
     }
 
     func load() {
-        let gamePathsOption = hydra_config_get_game_paths()
+        let gamePathsOption = hydraConfigGetGamePaths()
         self.gamePaths = []
-        for i in 0..<hydra_string_array_option_get_count(gamePathsOption) {
-            if let gamePathRaw = hydra_string_array_option_get(gamePathsOption, UInt32(i)) {
-                let gamePath = String(cString: gamePathRaw)
-                self.gamePaths.append(gamePath)
-            }
+        for i in 0..<gamePathsOption.count {
+            self.gamePaths.append(gamePathsOption.get(at: i).value)
         }
 
-        let patchPathsOption = hydra_config_get_patch_paths()
+        let patchPathsOption = hydraConfigGetPatchPaths()
         self.patchPaths = []
-        for i in 0..<hydra_string_array_option_get_count(patchPathsOption) {
-            if let patchPathRaw = hydra_string_array_option_get(patchPathsOption, UInt32(i)) {
-                let patchPath = String(cString: patchPathRaw)
-                self.patchPaths.append(patchPath)
-            }
+        for i in 0..<patchPathsOption.count {
+            self.patchPaths.append(patchPathsOption.get(at: i).value)
         }
     }
 
     func save() {
         // TODO: simplify this?
-        let gamePathsOption = hydra_config_get_game_paths()
-        hydra_string_array_option_resize(gamePathsOption, UInt64(self.gamePaths.count))
+        let gamePathsOption = hydraConfigGetGamePaths()
+        gamePathsOption.resize(newCount: self.gamePaths.count)
         for i in 0..<self.gamePaths.count {
-            hydra_string_array_option_set(
-                gamePathsOption, UInt32(i), self.gamePaths[i].cString(using: .utf8))
+            gamePathsOption.set(at: i, value: HydraString(self.gamePaths[i]))
         }
 
-        let patchPathsOption = hydra_config_get_patch_paths()
-        hydra_string_array_option_resize(patchPathsOption, UInt64(self.patchPaths.count))
+        let patchPathsOption = hydraConfigGetPatchPaths()
+        patchPathsOption.resize(newCount: self.patchPaths.count)
         for i in 0..<self.patchPaths.count {
-            hydra_string_array_option_set(
-                patchPathsOption, UInt32(i), self.patchPaths[i].cString(using: .utf8))
+            patchPathsOption.set(at: i, value: HydraString(self.patchPaths[i]))
         }
     }
 }

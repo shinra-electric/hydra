@@ -28,24 +28,24 @@ struct DebugSettingsView: View {
     }
 
     func load() {
-        let logOutputOption = hydra_config_get_log_output()
-        self.logOutput.rawValue = hydra_u32_option_get(logOutputOption)
+        let logOutputOption = hydraConfigGetLogOutput()
+        self.logOutput.rawValue = logOutputOption.value
 
-        let logFsAccessOption = hydra_config_get_log_fs_access()
-        self.logFsAccess = hydra_bool_option_get(logFsAccessOption)
+        let logFsAccessOption = hydraConfigGetLogFsAccess()
+        self.logFsAccess = logFsAccessOption.value
 
-        let debugLoggingOption = hydra_config_get_debug_logging()
-        self.debugLogging = hydra_bool_option_get(debugLoggingOption)
+        let debugLoggingOption = hydraConfigGetDebugLogging()
+        self.debugLogging = debugLoggingOption.value
     }
 
     func save() {
-        let logOutputOption = hydra_config_get_log_output()
-        hydra_u32_option_set(logOutputOption, self.logOutput.rawValue)
+        var logOutputOption = hydraConfigGetLogOutput()
+        logOutputOption.value = self.logOutput.rawValue
 
-        let logFsAccessOption = hydra_config_get_log_fs_access()
-        hydra_bool_option_set(logFsAccessOption, self.logFsAccess)
+        var logFsAccessOption = hydraConfigGetLogFsAccess()
+        logFsAccessOption.value = self.logFsAccess
 
-        let debugLoggingOption = hydra_config_get_debug_logging()
-        hydra_bool_option_set(debugLoggingOption, self.debugLogging)
+        var debugLoggingOption = hydraConfigGetDebugLogging()
+        debugLoggingOption.value = self.debugLogging
     }
 }

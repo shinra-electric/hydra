@@ -40,13 +40,11 @@ class UserManager {
     void LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                std::vector<u8>& out_data);
 
-    std::vector<std::string_view> GetAvatarPaths() const {
-        std::vector<std::string_view> paths;
-        paths.reserve(avatars.size());
-        for (const auto& [path, _] : avatars)
-            paths.push_back(path);
-
-        return paths;
+    std::string_view GetAvatarPath(u32 index) const {
+        // TODO: not the best way to index into a map
+        auto it = avatars.begin();
+        std::advance(it, index);
+        return it->first;
     }
 
   private:

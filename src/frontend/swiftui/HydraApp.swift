@@ -6,7 +6,7 @@ struct MyApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     @State private var activeGame: Game? = nil
-    @State private var emulationContext: UnsafeMutableRawPointer? = nil
+    @State private var emulationContext: HydraEmulationContext? = nil
 
     var body: some Scene {
         Window("Hydra", id: "main") {
@@ -19,7 +19,7 @@ struct MyApp: App {
         }
 
         Window("Debugger", id: "debugger") {
-            DebuggerProcessesView()
+            DebuggersView()
         }
         .defaultLaunchBehavior(.suppressed)
 

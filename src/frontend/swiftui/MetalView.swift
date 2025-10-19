@@ -2,14 +2,14 @@ import MetalKit
 import SwiftUI
 
 class MetalLayerCoordinator: NSObject {
-    private var emulationContext: Binding<UnsafeMutableRawPointer?>
+    private var emulationContext: Binding<HydraEmulationContext?>
 
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
 
     private var surfaceSet = false
 
-    init(emulationContext: Binding<UnsafeMutableRawPointer?>) {
+    init(emulationContext: Binding<HydraEmulationContext?>) {
         self.emulationContext = emulationContext
         super.init()
 
@@ -52,17 +52,17 @@ class MetalLayerCoordinator: NSObject {
                     return
                 }
 
-                set_layer(emulationContext, layer)
+                emulationContext.surface = Unmanaged.passUnretained(layer).toOpaque()
                 self.surfaceSet = true
             }
 
-            if hydra_emulation_context_is_running(emulationContext) {
+            if emulationContext.isRunning() {
                 // Present
                 var dtAverageUpdated = false
-                hydra_emulation_context_progress_frame(
-                    emulationContext, UInt32(self.layer!.drawableSize.width),
-                    UInt32(self.layer!.drawableSize.height),
-                    &dtAverageUpdated)
+                emulationContext.progressFrame(
+                    width: UInt32(self.layer!.drawableSize.width),
+                    height: UInt32(self.layer!.drawableSize.height),
+                    dtAverageUpdated: &dtAverageUpdated)
 
                 // Update
                 if dtAverageUpdated {
@@ -79,7 +79,7 @@ class MetalLayerCoordinator: NSObject {
 }
 
 struct MetalView: NSViewRepresentable {
-    @Binding var emulationContext: UnsafeMutableRawPointer?
+    @Binding var emulationContext: HydraEmulationContext?
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
