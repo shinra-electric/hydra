@@ -28,11 +28,7 @@
 
 namespace hydra::horizon::filesystem {
 
-SINGLETON_DEFINE_GET_INSTANCE(Filesystem, Filesystem)
-
 Filesystem::Filesystem() {
-    SINGLETON_SET_INSTANCE(Filesystem, Filesystem);
-
     // SD card
     std::filesystem::create_directories(CONFIG_INSTANCE.GetSdCardPath().Get());
     MountImpl(FS_SD_MOUNT,
@@ -50,8 +46,6 @@ Filesystem::Filesystem() {
     // Content
     Mount(FS_CONTENT_MOUNT);
 }
-
-Filesystem::~Filesystem() { SINGLETON_UNSET_INSTANCE(); }
 
 void Filesystem::Mount(const std::string_view mount) {
     MountImpl(mount, new Directory());

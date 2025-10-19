@@ -2,18 +2,13 @@
 
 #include "core/horizon/filesystem/device.hpp"
 
-#define FILESYSTEM_INSTANCE horizon::filesystem::Filesystem::GetInstance()
-
 namespace hydra::horizon::filesystem {
 
 class FileBase;
 
 class Filesystem {
   public:
-    static Filesystem& GetInstance();
-
     Filesystem();
-    ~Filesystem();
 
     void Mount(const std::string_view mount);
     void Mount(const std::string_view mount, const std::string_view root_path);

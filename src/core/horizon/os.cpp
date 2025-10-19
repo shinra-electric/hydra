@@ -134,8 +134,8 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Sysmodules
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath().Get();
     if (std::filesystem::exists(sysmodules_path)) {
-        auto res = FILESYSTEM_INSTANCE.AddEntry(FS_SYSMODULES_PATH,
-                                                sysmodules_path, true);
+        auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+            FS_SYSMODULES_PATH, sysmodules_path, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                "Failed to add sysmodules", res);
     }

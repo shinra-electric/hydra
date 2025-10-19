@@ -3,6 +3,7 @@
 #include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nsp_loader.hpp"
 
 namespace hydra::horizon::loader {
@@ -23,7 +24,8 @@ void HomebrewLoader::LoadProcess(kernel::Process* process) {
 
     // Map the current homebrew file to sdmc:/hbmenu.nro, as that's what
     // hbloader loads by default
-    const auto res = FILESYSTEM_INSTANCE.AddEntry("sdmc:/hbmenu.nro", file);
+    const auto res =
+        KERNEL_INSTANCE.GetFilesystem().AddEntry("sdmc:/hbmenu.nro", file);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to map homebrew file to sdmc:/hbmenu.nro: {}", res);
 }
