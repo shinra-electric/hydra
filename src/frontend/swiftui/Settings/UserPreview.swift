@@ -2,7 +2,8 @@ import SwiftUI
 
 struct UserPreview: View {
     let userManager: HydraUserManager
-    let user: HydraUser
+
+    @State var user: HydraUser
 
     var body: some View {
         HStack {
@@ -19,7 +20,7 @@ struct UserPreview: View {
                 )
             }
             .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode?
-            Text(self.user.nickname.value)
+            Text(self.user.nickname)
         }
     }
 }

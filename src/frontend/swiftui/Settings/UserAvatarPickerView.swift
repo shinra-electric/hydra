@@ -3,15 +3,15 @@ import SwiftUI
 struct UserAvatarPickerView: View {
     let userManager: HydraUserManager
 
-    @Binding var avatarPath: HydraString
+    @Binding var avatarPath: String
 
-    @State private var avatarPaths: [HydraString] = []
+    @State private var avatarPaths: [String] = []
 
     var body: some View {
         // Avatars
         ScrollView(.vertical) {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 64))], spacing: 10) {
-                ForEach(self.avatarPaths) { avatarPath in
+                ForEach(self.avatarPaths, id: \.self) { avatarPath in
                     UserAvatarView(
                         userManager: self.userManager, avatarPath: avatarPath
                     )

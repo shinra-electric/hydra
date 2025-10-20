@@ -30,13 +30,13 @@ struct GeneralSettingsView: View {
         let gamePathsOption = hydraConfigGetGamePaths()
         self.gamePaths = []
         for i in 0..<gamePathsOption.count {
-            self.gamePaths.append(gamePathsOption.get(at: i).value)
+            self.gamePaths.append(gamePathsOption.get(at: i))
         }
 
         let patchPathsOption = hydraConfigGetPatchPaths()
         self.patchPaths = []
         for i in 0..<patchPathsOption.count {
-            self.patchPaths.append(patchPathsOption.get(at: i).value)
+            self.patchPaths.append(patchPathsOption.get(at: i))
         }
     }
 
@@ -45,13 +45,13 @@ struct GeneralSettingsView: View {
         let gamePathsOption = hydraConfigGetGamePaths()
         gamePathsOption.resize(newCount: self.gamePaths.count)
         for i in 0..<self.gamePaths.count {
-            gamePathsOption.set(at: i, value: HydraString(self.gamePaths[i]))
+            gamePathsOption.set(at: i, value: self.gamePaths[i])
         }
 
         let patchPathsOption = hydraConfigGetPatchPaths()
         patchPathsOption.resize(newCount: self.patchPaths.count)
         for i in 0..<self.patchPaths.count {
-            patchPathsOption.set(at: i, value: HydraString(self.patchPaths[i]))
+            patchPathsOption.set(at: i, value: self.patchPaths[i])
         }
     }
 }

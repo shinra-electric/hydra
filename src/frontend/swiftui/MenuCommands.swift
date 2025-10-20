@@ -81,7 +81,7 @@ struct MenuCommands: Commands {
 
     func loadFirmware() {
         let firmwarePathOption = hydraConfigGetFirmwarePath()
-        let firmwarePath = firmwarePathOption.value.value
+        let firmwarePath = firmwarePathOption.value
         if firmwarePath == "" {
             return
         }
@@ -103,7 +103,7 @@ struct MenuCommands: Commands {
     }
 
     func addFirmwareApplet(path: String) {
-        let file = HydraFile(path: HydraString(path))
+        let file = HydraFile(path: path)
         let contentArchive = HydraContentArchive(file: file)
 
         if contentArchive.contentType
@@ -114,7 +114,7 @@ struct MenuCommands: Commands {
 
         let loader = HydraNcaLoader(contentArchive: contentArchive)
 
-        let name = loader.name.value
+        let name = loader.name
         if name == "" {
             return
         }

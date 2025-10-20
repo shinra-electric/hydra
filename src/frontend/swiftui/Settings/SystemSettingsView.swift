@@ -36,29 +36,29 @@ struct SystemSettingsView: View {
 
     func load() {
         let firmwarePathOption = hydraConfigGetFirmwarePath()
-        self.firmwarePath = firmwarePathOption.value.value
+        self.firmwarePath = firmwarePathOption.value
 
         let sdCardPathOption = hydraConfigGetSdCardPath()
-        self.sdCardPath = sdCardPathOption.value.value
+        self.sdCardPath = sdCardPathOption.value
 
         let savePathOption = hydraConfigGetSavePath()
-        self.savePath = savePathOption.value.value
+        self.savePath = savePathOption.value
 
         let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-        self.sysmodulesPath = sysmodulesPathOption.value.value
+        self.sysmodulesPath = sysmodulesPathOption.value
     }
 
     func save() {
-        let firmwarePathOption = hydraConfigGetFirmwarePath()
-        firmwarePathOption.value.value = self.firmwarePath
+        var firmwarePathOption = hydraConfigGetFirmwarePath()
+        firmwarePathOption.value = self.firmwarePath
 
-        let sdCardPathOption = hydraConfigGetSdCardPath()
-        sdCardPathOption.value.value = self.sdCardPath
+        var sdCardPathOption = hydraConfigGetSdCardPath()
+        sdCardPathOption.value = self.sdCardPath
 
-        let savePathOption = hydraConfigGetSavePath()
-        savePathOption.value.value = self.savePath
+        var savePathOption = hydraConfigGetSavePath()
+        savePathOption.value = self.savePath
 
-        let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-        sysmodulesPathOption.value.value = self.sysmodulesPath
+        var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+        sysmodulesPathOption.value = self.sysmodulesPath
     }
 }

@@ -54,8 +54,8 @@ struct MessageView: View {
     func getStackFrame(index: Int) -> String {
         let stack_frame = message.stack_trace.getFrame(at: index)
         let resolved = stack_frame.resolve()
-        let module = resolved.module.value
-        let function = resolved.function.value
+        let module = resolved.module
+        let function = resolved.function
         let addr = resolved.address
 
         return "0x\(String(addr, radix: 16)) (\(function) in \(module))"

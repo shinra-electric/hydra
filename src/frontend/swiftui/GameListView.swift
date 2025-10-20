@@ -25,7 +25,7 @@ struct GameListView: View {
         // Game paths
         let gamePathsOption = hydraConfigGetGamePaths()
         for i in 0..<gamePathsOption.count {
-            let gamePath = gamePathsOption.get(at: i).value
+            let gamePath = gamePathsOption.get(at: i)
 
             // TODO: do all of this with URLs
             let fileManager = FileManager.default

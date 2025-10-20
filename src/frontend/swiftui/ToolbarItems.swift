@@ -22,7 +22,7 @@ struct ToolbarItems: ToolbarContent {
                     for fileURL in fileURLs {
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.append(
-                            value: HydraString(fileURL.path))
+                            value: fileURL.path)
 
                         hydraConfigSerialize()
                     }

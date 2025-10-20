@@ -11,57 +11,46 @@ class UserSettingsState: ObservableObject {
 }
 
 struct UserSettingsView: View {
+    // TODO: this never gets deallocated, is it a problem?
     @StateObject private var state = UserSettingsState()
 
     @State private var userIDs: [hydra_u128] = []
-    @State private var selectedUserIndex: Int? = nil
+    @State private var selectedUserIndex: Int = 0
 
     var body: some View {
         VStack {
-            NavigationSplitView {
-                List(self.userIDs.indices, id: \.self, selection: self.$selectedUserIndex) {
-                    index in
-                    NavigationLink(value: index) {
-                        let userID = self.userIDs[index]
-                        UserPreview(
-                            userManager: self.state.userManager,
-                            user: self.state.userManager.getUser(id: userID)
-                        )
+            if !self.userIDs.isEmpty {
+                NavigationSplitView {
+                    List(self.userIDs.indices, id: \.self, selection: self.$selectedUserIndex) {
+                        index in
+                        NavigationLink(value: index) {
+                            let userID = self.userIDs[index]
+                            UserPreview(
+                                userManager: self.state.userManager,
+                                user: self.state.userManager.getUser(id: userID)
+                            )
+                        }
                     }
-                }
-                .navigationTitle("Users")
-            } detail: {
-                if let index = self.selectedUserIndex {
-                    let userID = self.userIDs[index]
+                    .navigationTitle("Users")
+                } detail: {
+                    let userID = self.userIDs[self.selectedUserIndex]
+                    // TODO: react to changes
                     UserEditorView(
                         userManager: self.state.userManager,
                         user: self.state.userManager.getUser(id: userID)
                     )
-                } else {
-                    Text("Select a user to edit")
-                        .foregroundColor(.secondary)
                 }
             }
         }
         .onAppear {
-            load()
+            self.userIDs.removeAll()
+            for index in 0..<self.state.userManager.userCount {
+                let userID = self.state.userManager.getUserId(at: index)
+                self.userIDs.append(userID)
+            }
         }
         .onDisappear {
-            save()
+            self.state.userManager.flush()
         }
-    }
-
-    func load() {
-        // Users
-        for index in 0..<self.state.userManager.userCount {
-            let userID = self.state.userManager.getUserId(at: index)
-            self.userIDs.append(userID)
-        }
-        self.selectedUserIndex = 0
-    }
-
-    func save() {
-        self.userIDs.removeAll()
-        self.selectedUserIndex = nil
     }
 }

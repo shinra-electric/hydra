@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UserAvatarView: View {
     let userManager: HydraUserManager
-    let avatarPath: HydraString
+    let avatarPath: String
 
     var body: some View {
         VStack {

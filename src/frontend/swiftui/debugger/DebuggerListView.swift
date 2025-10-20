@@ -12,7 +12,7 @@ struct DebuggerListView: View {
                 ClickableListItem(onClick: {
                     self.activeDebugger = debugger
                 }) {
-                    Text(debugger.name.value)
+                    Text(debugger.name)
                 }
             }
         }

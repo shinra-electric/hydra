@@ -10,7 +10,7 @@ struct ThreadDebuggerView: View {
 
     var body: some View {
         VStack {
-            Text(self.thread.name.value)
+            Text(self.thread.name)
                 .bold()
             ZStack {
                 Color.black
@@ -43,15 +43,15 @@ struct ThreadDebuggerView: View {
 
         // Status
         self.status = self.thread.status
-        self.breakReason = self.thread.breakReason.value
+        self.breakReason = self.thread.breakReason
 
         // Messages
         self.messages.removeAll()  // TODO: is this necessary?
         for i in 0..<self.thread.messageCount {
             let message = self.thread.getMessage(at: i)
             let log_level = message.logLevel
-            let function = message.function.value
-            let str = message.str.value
+            let function = message.function
+            let str = message.str
             let stack_trace = message.stackTrace
 
             let msg = Message(

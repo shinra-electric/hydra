@@ -2,6 +2,7 @@ import SwiftUI
 
 // Types
 // TODO: avoid copying
+/*
 class HydraString: Hashable, Identifiable {
     fileprivate var handle: hydra_string
     private var ownsData = false
@@ -68,6 +69,33 @@ class HydraString: Hashable, Identifiable {
 
     func isEmpty() -> Bool {
         self.handle.data == nil
+    }
+}
+*/
+
+extension hydra_uchar3: Equatable {
+    public static func == (lhs: hydra_uchar3, rhs: hydra_uchar3) -> Bool {
+        lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z
+    }
+}
+
+extension String {
+    init(withHydraString str: hydra_string) {
+        if str.data == nil && str.size == 0 {
+            self.init()
+        } else {
+            let data = Data(bytes: str.data, count: str.size)
+            self.init(data: data, encoding: String.Encoding.utf8)!
+        }
+    }
+
+    func withHydraString<T>(_ callback: (hydra_string) -> T) -> T {
+        let data = self.data(using: .utf8)!
+        return data.withUnsafeBytes { bytes in
+            let str = hydra_string(
+                data: bytes.bindMemory(to: CChar.self).baseAddress, size: data.count)
+            return callback(str)
+        }
     }
 }
 
@@ -147,12 +175,14 @@ struct HydraStringOption {
         self.handle = handle
     }
 
-    var value: HydraString {
+    var value: String {
         get {
-            HydraString(handle: hydra_string_option_get(self.handle))
+            String(withHydraString: hydra_string_option_get(self.handle))
         }
         set {
-            hydra_string_option_set(self.handle, newValue.handle)
+            newValue.withHydraString { hydraNewValue in
+                hydra_string_option_set(self.handle, hydraNewValue)
+            }
         }
     }
 }
@@ -168,20 +198,24 @@ struct HydraStringArrayOption {
         Int(hydra_string_array_option_get_count(self.handle))
     }
 
-    func get(at index: Int) -> HydraString {
-        return HydraString(handle: hydra_string_array_option_get(self.handle, UInt32(index)))
+    func get(at index: Int) -> String {
+        return String(withHydraString: hydra_string_array_option_get(self.handle, UInt32(index)))
     }
 
     func resize(newCount: Int) {
         hydra_string_array_option_resize(self.handle, UInt64(newCount))
     }
 
-    func set(at index: Int, value: HydraString) {
-        hydra_string_array_option_set(self.handle, UInt32(index), value.handle)
+    func set(at index: Int, value: String) {
+        value.withHydraString { hydraValue in
+            hydra_string_array_option_set(self.handle, UInt32(index), hydraValue)
+        }
     }
 
-    func append(value: HydraString) {
-        hydra_string_array_option_append(self.handle, value.handle)
+    func append(value: String) {
+        value.withHydraString { hydraValue in
+            hydra_string_array_option_append(self.handle, hydraValue)
+        }
     }
 }
 
@@ -313,8 +347,10 @@ class HydraFilesystem {
 class HydraFile: Hashable, Identifiable {
     fileprivate let handle: UnsafeMutableRawPointer
 
-    init(path: HydraString) {
-        self.handle = hydra_open_file(path.handle)
+    init(path: String) {
+        self.handle = path.withHydraString { hydraPath in
+            hydra_open_file(hydraPath)
+        }
     }
 
     deinit {
@@ -366,8 +402,11 @@ class HydraLoader: Hashable, Identifiable {
         self.handle = handle
     }
 
-    convenience init(path: HydraString) {
-        self.init(handle: hydra_create_loader_from_file(path.handle))
+    convenience init(path: String) {
+        self.init(
+            handle: path.withHydraString { hydraPath in
+                hydra_create_loader_from_file(hydraPath)
+            })
     }
 
     deinit {
@@ -405,8 +444,8 @@ class HydraNcaLoader: HydraLoader {
         super.init(handle: hydra_create_nca_loader_from_content_archive(contentArchive.handle))
     }
 
-    var name: HydraString {
-        HydraString(handle: hydra_nca_loader_get_name(self.handle))
+    var name: String {
+        String(withHydraString: hydra_nca_loader_get_name(self.handle))
     }
 }
 
@@ -449,12 +488,12 @@ class HydraNacpTitle: Hashable, Identifiable {
         hasher.combine(self.handle)
     }
 
-    var name: HydraString {
-        HydraString(handle: hydra_nacp_title_get_name(self.handle))
+    var name: String {
+        String(withHydraString: hydra_nacp_title_get_name(self.handle))
     }
 
-    var author: HydraString {
-        HydraString(handle: hydra_nacp_title_get_author(self.handle))
+    var author: String {
+        String(withHydraString: hydra_nacp_title_get_author(self.handle))
     }
 }
 
@@ -504,16 +543,19 @@ class HydraUserManager: Hashable, Identifiable {
         hydra_user_manager_load_system_avatars(self.handle, filesystem.handle)
     }
 
-    func loadAvatarImage(path: HydraString, dimensions: inout UInt64) -> UnsafeRawPointer? {
-        hydra_user_manager_load_avatar_image(self.handle, path.handle, &dimensions)
+    func loadAvatarImage(path: String, dimensions: inout UInt64) -> UnsafeRawPointer? {
+        path.withHydraString { hydraPath in
+            hydra_user_manager_load_avatar_image(
+                self.handle, hydraPath, &dimensions)
+        }
     }
 
     var avatarCount: Int {
         Int(hydra_user_manager_get_avatar_count(self.handle))
     }
 
-    func getAvatarPath(at index: Int) -> HydraString {
-        HydraString(handle: hydra_user_manager_get_avatar_path(self.handle, UInt32(index)))
+    func getAvatarPath(at index: Int) -> String {
+        String(withHydraString: hydra_user_manager_get_avatar_path(self.handle, UInt32(index)))
     }
 }
 
@@ -528,12 +570,14 @@ struct HydraUser: Hashable, Identifiable {
         self.handle
     }
 
-    var nickname: HydraString {
+    var nickname: String {
         get {
-            HydraString(handle: hydra_user_get_nickname(self.handle))
+            String(withHydraString: hydra_user_get_nickname(self.handle))
         }
         set {
-            hydra_user_set_nickname(self.handle, newValue.handle)
+            newValue.withHydraString { hydraNewValue in
+                hydra_user_set_nickname(self.handle, hydraNewValue)
+            }
         }
     }
 
@@ -546,12 +590,14 @@ struct HydraUser: Hashable, Identifiable {
         }
     }
 
-    var avatarPath: HydraString {
+    var avatarPath: String {
         get {
-            HydraString(handle: hydra_user_get_avatar_path(self.handle))
+            String(withHydraString: hydra_user_get_avatar_path(self.handle))
         }
         set {
-            hydra_user_set_avatar_path(self.handle, newValue.handle)
+            newValue.withHydraString { hydraNewValue in
+                hydra_user_set_avatar_path(self.handle, hydraNewValue)
+            }
         }
     }
 }
@@ -655,8 +701,8 @@ struct HydraDebugger: Hashable, Identifiable {
         self.handle
     }
 
-    var name: HydraString {
-        HydraString(handle: hydra_debugger_get_name(self.handle))
+    var name: String {
+        String(withHydraString: hydra_debugger_get_name(self.handle))
     }
 
     func lock() {
@@ -667,8 +713,10 @@ struct HydraDebugger: Hashable, Identifiable {
         hydra_debugger_unlock(self.handle)
     }
 
-    func registerThisThread(name: HydraString) {
-        hydra_debugger_register_this_thread(self.handle, name.handle)
+    func registerThisThread(name: String) {
+        name.withHydraString { hydraName in
+            hydra_debugger_register_this_thread(self.handle, hydraName)
+        }
     }
 
     func unregisterThisThread() {
@@ -695,8 +743,8 @@ struct HydraDebuggerThread: Hashable, Identifiable {
         self.handle
     }
 
-    var name: HydraString {
-        HydraString(handle: hydra_debugger_thread_get_name(self.handle))
+    var name: String {
+        String(withHydraString: hydra_debugger_thread_get_name(self.handle))
     }
 
     func lock() {
@@ -711,8 +759,8 @@ struct HydraDebuggerThread: Hashable, Identifiable {
         hydra_debugger_thread_get_status(self.handle)
     }
 
-    var breakReason: HydraString {
-        HydraString(handle: hydra_debugger_thread_get_break_reason(self.handle))
+    var breakReason: String {
+        String(withHydraString: hydra_debugger_thread_get_break_reason(self.handle))
     }
 
     var messageCount: Int {
@@ -743,20 +791,20 @@ struct HydraDebuggerMessage: Hashable, Identifiable {
         hydra_debugger_message_get_log_class(self.handle)
     }
 
-    var file: HydraString {
-        HydraString(handle: hydra_debugger_message_get_file(self.handle))
+    var file: String {
+        String(withHydraString: hydra_debugger_message_get_file(self.handle))
     }
 
     var line: UInt32 {
         hydra_debugger_message_get_line(self.handle)
     }
 
-    var function: HydraString {
-        HydraString(handle: hydra_debugger_message_get_function(self.handle))
+    var function: String {
+        String(withHydraString: hydra_debugger_message_get_function(self.handle))
     }
 
-    var str: HydraString {
-        HydraString(handle: hydra_debugger_message_get_string(self.handle))
+    var str: String {
+        String(withHydraString: hydra_debugger_message_get_string(self.handle))
     }
 
     var stackTrace: HydraDebuggerStackTrace {
@@ -834,12 +882,12 @@ class HydraDebuggerResolvedStackFrame: Hashable, Identifiable {
         hasher.combine(self.handle)
     }
 
-    var module: HydraString {
-        HydraString(handle: hydra_debugger_resolved_stack_frame_get_module(self.handle))
+    var module: String {
+        String(withHydraString: hydra_debugger_resolved_stack_frame_get_module(self.handle))
     }
 
-    var function: HydraString {
-        HydraString(handle: hydra_debugger_resolved_stack_frame_get_function(self.handle))
+    var function: String {
+        String(withHydraString: hydra_debugger_resolved_stack_frame_get_function(self.handle))
     }
 
     var address: UInt64 {
