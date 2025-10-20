@@ -73,6 +73,18 @@ class HydraString: Hashable, Identifiable {
 }
 */
 
+extension hydra_u128: Equatable {
+    public static func == (lhs: hydra_u128, rhs: hydra_u128) -> Bool {
+        lhs.lo == rhs.lo && lhs.hi == rhs.hi
+    }
+}
+
+extension hydra_uint2: Equatable {
+    public static func == (lhs: hydra_uint2, rhs: hydra_uint2) -> Bool {
+        lhs.x == rhs.x && lhs.y == rhs.y
+    }
+}
+
 extension hydra_uchar3: Equatable {
     public static func == (lhs: hydra_uchar3, rhs: hydra_uchar3) -> Bool {
         lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z

@@ -12,53 +12,48 @@ struct SystemSettingsView: View {
             HStack {
                 Text("Firmware Path:")
                 TextField("Firmware Path", text: $firmwarePath)
+                    .onChange(of: firmwarePath) { _, newValue in
+                        var firmwarePathOption = hydraConfigGetFirmwarePath()
+                        firmwarePathOption.value = newValue
+                    }
             }
             HStack {
                 Text("SD Card Path:")
                 TextField("SD Card Path", text: $sdCardPath)
+                    .onChange(of: sdCardPath) { _, newValue in
+                        var sdCardPathOption = hydraConfigGetSdCardPath()
+                        sdCardPathOption.value = newValue
+                    }
             }
             HStack {
                 Text("Save Path:")
                 TextField("Save Path", text: $savePath)
+                    .onChange(of: savePath) { _, newValue in
+                        var savePathOption = hydraConfigGetSavePath()
+                        savePathOption.value = newValue
+                    }
             }
             HStack {
                 Text("Sysmodules Path:")
                 TextField("Sysmodules Path", text: $sysmodulesPath)
+                    .onChange(of: sysmodulesPath) { _, newValue in
+                        var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+                        sysmodulesPathOption.value = newValue
+                    }
             }
         }
         .onAppear {
-            load()
+            let firmwarePathOption = hydraConfigGetFirmwarePath()
+            self.firmwarePath = firmwarePathOption.value
+
+            let sdCardPathOption = hydraConfigGetSdCardPath()
+            self.sdCardPath = sdCardPathOption.value
+
+            let savePathOption = hydraConfigGetSavePath()
+            self.savePath = savePathOption.value
+
+            let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+            self.sysmodulesPath = sysmodulesPathOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let firmwarePathOption = hydraConfigGetFirmwarePath()
-        self.firmwarePath = firmwarePathOption.value
-
-        let sdCardPathOption = hydraConfigGetSdCardPath()
-        self.sdCardPath = sdCardPathOption.value
-
-        let savePathOption = hydraConfigGetSavePath()
-        self.savePath = savePathOption.value
-
-        let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-        self.sysmodulesPath = sysmodulesPathOption.value
-    }
-
-    func save() {
-        var firmwarePathOption = hydraConfigGetFirmwarePath()
-        firmwarePathOption.value = self.firmwarePath
-
-        var sdCardPathOption = hydraConfigGetSdCardPath()
-        sdCardPathOption.value = self.sdCardPath
-
-        var savePathOption = hydraConfigGetSavePath()
-        savePathOption.value = self.savePath
-
-        var sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-        sysmodulesPathOption.value = self.sysmodulesPath
     }
 }

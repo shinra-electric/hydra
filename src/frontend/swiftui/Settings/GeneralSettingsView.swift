@@ -13,45 +13,39 @@ struct GeneralSettingsView: View {
             Text("Game paths")
             EditablePathList(
                 allowedContentTypes: [.folder, self.switchType],
-                items: self.$gamePaths)
+                items: self.$gamePaths
+            )
+            .onChange(of: self.gamePaths) { _, newValue in
+                let gamePathsOption = hydraConfigGetGamePaths()
+                gamePathsOption.resize(newCount: newValue.count)
+                for i in 0..<newValue.count {
+                    gamePathsOption.set(at: i, value: newValue[i])
+                }
+            }
             Text("Patch paths")
             EditablePathList(
-                allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths)
+                allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
+            )
+            .onChange(of: self.patchPaths) { _, newValue in
+                let patchPathsOption = hydraConfigGetPatchPaths()
+                patchPathsOption.resize(newCount: newValue.count)
+                for i in 0..<newValue.count {
+                    patchPathsOption.set(at: i, value: newValue[i])
+                }
+            }
         }
         .onAppear {
-            load()
-        }
-        .onDisappear {
-            save()
-        }
-    }
+            let gamePathsOption = hydraConfigGetGamePaths()
+            self.gamePaths = []
+            for i in 0..<gamePathsOption.count {
+                self.gamePaths.append(gamePathsOption.get(at: i))
+            }
 
-    func load() {
-        let gamePathsOption = hydraConfigGetGamePaths()
-        self.gamePaths = []
-        for i in 0..<gamePathsOption.count {
-            self.gamePaths.append(gamePathsOption.get(at: i))
-        }
-
-        let patchPathsOption = hydraConfigGetPatchPaths()
-        self.patchPaths = []
-        for i in 0..<patchPathsOption.count {
-            self.patchPaths.append(patchPathsOption.get(at: i))
-        }
-    }
-
-    func save() {
-        // TODO: simplify this?
-        let gamePathsOption = hydraConfigGetGamePaths()
-        gamePathsOption.resize(newCount: self.gamePaths.count)
-        for i in 0..<self.gamePaths.count {
-            gamePathsOption.set(at: i, value: self.gamePaths[i])
-        }
-
-        let patchPathsOption = hydraConfigGetPatchPaths()
-        patchPathsOption.resize(newCount: self.patchPaths.count)
-        for i in 0..<self.patchPaths.count {
-            patchPathsOption.set(at: i, value: self.patchPaths[i])
+            let patchPathsOption = hydraConfigGetPatchPaths()
+            self.patchPaths = []
+            for i in 0..<patchPathsOption.count {
+                self.patchPaths.append(patchPathsOption.get(at: i))
+            }
         }
     }
 }

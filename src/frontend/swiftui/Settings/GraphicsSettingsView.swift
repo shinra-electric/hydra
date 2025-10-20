@@ -11,9 +11,17 @@ struct GraphicsSettingsView: View {
             Picker("Gpu renderer", selection: self.$gpuRenderer.rawValue) {
                 Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
             }
+            .onChange(of: self.gpuRenderer.rawValue) { _, newValue in
+                var gpuRendererOption = hydraConfigGetGpuRenderer()
+                gpuRendererOption.value = newValue
+            }
             Picker("Shader backend", selection: self.$shaderBackend.rawValue) {
                 Text("MSL (recommended)").tag(HYDRA_SHADER_BACKEND_MSL.rawValue)
                 Text("AIR (broken)").tag(HYDRA_SHADER_BACKEND_AIR.rawValue)
+            }
+            .onChange(of: self.shaderBackend.rawValue) { _, newValue in
+                var shaderBackendOption = hydraConfigGetShaderBackend()
+                shaderBackendOption.value = newValue
             }
             Picker("Display resolution", selection: self.$displayResolution.rawValue) {
                 Text("Auto (recommended)").tag(HYDRA_RESOLUTION_AUTO.rawValue)
@@ -24,6 +32,10 @@ struct GraphicsSettingsView: View {
                 Text("4320p").tag(HYDRA_RESOLUTION_4320P.rawValue)
                 Text("Auto exact (not recommended)").tag(HYDRA_RESOLUTION_AUTO_EXACT.rawValue)
                 Text("Custom (not recommended)").tag(HYDRA_RESOLUTION_CUSTOM.rawValue)
+            }
+            .onChange(of: self.displayResolution.rawValue) { _, newValue in
+                var displayResolutionOption = hydraConfigGetDisplayResolution()
+                displayResolutionOption.value = newValue
             }
             if self.displayResolution == HYDRA_RESOLUTION_CUSTOM {
                 HStack {
@@ -36,41 +48,24 @@ struct GraphicsSettingsView: View {
                         "Height", value: self.$customDisplayResolution.y,
                         format: .number)
                 }
+                .onChange(of: self.customDisplayResolution) { _, newValue in
+                    var customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+                    customDisplayResolutionOption.value = newValue
+                }
             }
         }
         .onAppear {
-            load()
+            let gpuRendererOption = hydraConfigGetGpuRenderer()
+            self.gpuRenderer.rawValue = gpuRendererOption.value
+
+            let shaderBackendOption = hydraConfigGetShaderBackend()
+            self.shaderBackend.rawValue = shaderBackendOption.value
+
+            let displayResolutionOption = hydraConfigGetDisplayResolution()
+            self.displayResolution.rawValue = displayResolutionOption.value
+
+            let customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+            self.customDisplayResolution = customDisplayResolutionOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let gpuRendererOption = hydraConfigGetGpuRenderer()
-        self.gpuRenderer.rawValue = gpuRendererOption.value
-
-        let shaderBackendOption = hydraConfigGetShaderBackend()
-        self.shaderBackend.rawValue = shaderBackendOption.value
-
-        let displayResolutionOption = hydraConfigGetDisplayResolution()
-        self.displayResolution.rawValue = displayResolutionOption.value
-
-        let customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
-        self.customDisplayResolution = customDisplayResolutionOption.value
-    }
-
-    func save() {
-        var gpuRendererOption = hydraConfigGetGpuRenderer()
-        gpuRendererOption.value = self.gpuRenderer.rawValue
-
-        var shaderBackendOption = hydraConfigGetShaderBackend()
-        shaderBackendOption.value = self.shaderBackend.rawValue
-
-        var displayResolutionOption = hydraConfigGetDisplayResolution()
-        displayResolutionOption.value = self.displayResolution.rawValue
-
-        var customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
-        customDisplayResolutionOption.value = self.customDisplayResolution
     }
 }

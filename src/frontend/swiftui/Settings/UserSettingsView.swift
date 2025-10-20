@@ -43,13 +43,13 @@ struct UserSettingsView: View {
             }
         }
         .onAppear {
-            self.userIDs.removeAll()
             for index in 0..<self.state.userManager.userCount {
                 let userID = self.state.userManager.getUserId(at: index)
                 self.userIDs.append(userID)
             }
         }
         .onDisappear {
+            self.userIDs.removeAll()
             self.state.userManager.flush()
         }
     }

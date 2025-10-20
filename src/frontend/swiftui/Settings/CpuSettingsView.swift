@@ -10,22 +10,14 @@ struct CpuSettingsView: View {
                     HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)
                 Text("dynarmic").tag(HYDRA_CPU_BACKEND_DYNARMIC.rawValue)
             }
+            .onChange(of: self.cpuBackend.rawValue) { _, newValue in
+                var cpuBackendOption = hydraConfigGetCpuBackend()
+                cpuBackendOption.value = newValue
+            }
         }
         .onAppear {
-            load()
+            let cpuBackendOption = hydraConfigGetCpuBackend()
+            self.cpuBackend.rawValue = cpuBackendOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let cpuBackendOption = hydraConfigGetCpuBackend()
-        self.cpuBackend.rawValue = cpuBackendOption.value
-    }
-
-    func save() {
-        var cpuBackendOption = hydraConfigGetCpuBackend()
-        cpuBackendOption.value = self.cpuBackend.rawValue
     }
 }

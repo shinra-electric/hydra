@@ -8,20 +8,12 @@ struct EmulationView: View {
     var body: some View {
         MetalView(emulationContext: self.$emulationContext)
             .onAppear {
-                startEmulation()
+                self.emulationContext = HydraEmulationContext()
+                self.emulationContext!.loadAndStart(loader: game.loader)
             }
             .onDisappear {
-                stopEmulation()
+                // TODO: stop?
+                self.emulationContext = nil
             }
-    }
-
-    func startEmulation() {
-        self.emulationContext = HydraEmulationContext()
-        self.emulationContext!.loadAndStart(loader: game.loader)
-    }
-
-    func stopEmulation() {
-        // TODO: stop?
-        self.emulationContext = nil
     }
 }

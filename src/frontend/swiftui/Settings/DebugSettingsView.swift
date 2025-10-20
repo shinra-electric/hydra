@@ -15,37 +15,31 @@ struct DebugSettingsView: View {
                     HYDRA_LOG_OUTPUT_STD_OUT.rawValue)
                 Text("file (default)").tag(HYDRA_LOG_OUTPUT_FILE.rawValue)
             }
+            .onChange(of: self.logOutput.rawValue) { _, newValue in
+                var logOutputOption = hydraConfigGetLogOutput()
+                logOutputOption.value = newValue
+            }
             Toggle("Log filesystem access", isOn: self.$logFsAccess)
+                .onChange(of: self.logFsAccess) { _, newValue in
+                    var logFsAccessOption = hydraConfigGetLogFsAccess()
+                    logFsAccessOption.value = newValue
+                }
             Toggle("Debug logging", isOn: self.$debugLogging)
+                .onChange(of: self.debugLogging) { _, newValue in
+                    var debugLoggingOption = hydraConfigGetDebugLogging()
+                    debugLoggingOption.value = newValue
+                }
             // TODO: process arguments
         }
         .onAppear {
-            load()
+            let logOutputOption = hydraConfigGetLogOutput()
+            self.logOutput.rawValue = logOutputOption.value
+
+            let logFsAccessOption = hydraConfigGetLogFsAccess()
+            self.logFsAccess = logFsAccessOption.value
+
+            let debugLoggingOption = hydraConfigGetDebugLogging()
+            self.debugLogging = debugLoggingOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let logOutputOption = hydraConfigGetLogOutput()
-        self.logOutput.rawValue = logOutputOption.value
-
-        let logFsAccessOption = hydraConfigGetLogFsAccess()
-        self.logFsAccess = logFsAccessOption.value
-
-        let debugLoggingOption = hydraConfigGetDebugLogging()
-        self.debugLogging = debugLoggingOption.value
-    }
-
-    func save() {
-        var logOutputOption = hydraConfigGetLogOutput()
-        logOutputOption.value = self.logOutput.rawValue
-
-        var logFsAccessOption = hydraConfigGetLogFsAccess()
-        logFsAccessOption.value = self.logFsAccess
-
-        var debugLoggingOption = hydraConfigGetDebugLogging()
-        debugLoggingOption.value = self.debugLogging
     }
 }
