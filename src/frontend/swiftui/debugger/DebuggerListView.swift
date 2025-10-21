@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct DebuggerListView: View {
-    @Binding var activeDebugger: UnsafeMutableRawPointer?
+    @Binding var activeDebugger: HydraDebugger?
 
-    @State private var debuggers: [UnsafeMutableRawPointer] = []
+    @State private var debuggers: [HydraDebugger] = []
 
     var body: some View {
         List {
@@ -12,7 +12,7 @@ struct DebuggerListView: View {
                 ClickableListItem(onClick: {
                     self.activeDebugger = debugger
                 }) {
-                    Text(String(cString: hydra_debugger_get_name(debugger)))
+                    Text(debugger.name)
                 }
             }
         }
@@ -22,16 +22,16 @@ struct DebuggerListView: View {
     }
 
     func load() {
-        hydra_debugger_manager_lock()
+        hydraDebuggerManagerLock()
 
         // Debuggers
         self.debuggers.removeAll()
-        for i in 0..<hydra_debugger_manager_get_debugger_count() {
+        for i in 0..<hydraDebuggerManagerGetDebuggerCount() {
             // TODO: name
             self.debuggers.append(
-                hydra_debugger_manager_get_debugger(UInt32(i)))
+                hydraDebuggerManagerGetDebugger(at: i))
         }
 
-        hydra_debugger_manager_unlock()
+        hydraDebuggerManagerUnlock()
     }
 }

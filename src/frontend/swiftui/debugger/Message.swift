@@ -4,7 +4,7 @@ struct Message: Hashable {
     let log_level: HydraLogLevel
     let function: String
     let str: String
-    let stack_trace: UnsafeMutableRawPointer
+    let stack_trace: HydraDebuggerStackTrace
 
     var style: any ShapeStyle {
         switch self.log_level {

@@ -2,31 +2,16 @@ import MetalKit
 import SwiftUI
 
 class MetalLayerCoordinator: NSObject {
-    private var emulationContext: Binding<UnsafeMutableRawPointer?>
+    private var emulationContext: Binding<HydraEmulationContext?>
 
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
 
     private var surfaceSet = false
 
-    init(emulationContext: Binding<UnsafeMutableRawPointer?>) {
+    init(emulationContext: Binding<HydraEmulationContext?>) {
         self.emulationContext = emulationContext
         super.init()
-
-        // TODO: probably not the best way to do this, but it works
-        /*
-        let dispatchQueue = DispatchQueue(label: "present queue", qos: .background)
-        dispatchQueue.async {
-            let debugger = hydra_debugger_manager_get_debugger_for_process(nil)
-            hydra_debugger_register_this_thread(debugger, "Display")
-            // HACK: start presenting after a short delay, since acquiring a drawable too early may cause it to fail to allocate
-            sleep(4)
-            while true {
-                self.handleDisplayLink()
-            }
-            hydra_debugger_unregister_this_thread(debugger)
-        }
-        */
     }
 
     deinit {
@@ -52,17 +37,17 @@ class MetalLayerCoordinator: NSObject {
                     return
                 }
 
-                set_layer(emulationContext, layer)
+                emulationContext.surface = Unmanaged.passUnretained(layer).toOpaque()
                 self.surfaceSet = true
             }
 
-            if hydra_emulation_context_is_running(emulationContext) {
+            if emulationContext.isRunning() {
                 // Present
                 var dtAverageUpdated = false
-                hydra_emulation_context_progress_frame(
-                    emulationContext, UInt32(self.layer!.drawableSize.width),
-                    UInt32(self.layer!.drawableSize.height),
-                    &dtAverageUpdated)
+                emulationContext.progressFrame(
+                    width: UInt32(self.layer!.drawableSize.width),
+                    height: UInt32(self.layer!.drawableSize.height),
+                    dtAverageUpdated: &dtAverageUpdated)
 
                 // Update
                 if dtAverageUpdated {
@@ -79,7 +64,7 @@ class MetalLayerCoordinator: NSObject {
 }
 
 struct MetalView: NSViewRepresentable {
-    @Binding var emulationContext: UnsafeMutableRawPointer?
+    @Binding var emulationContext: HydraEmulationContext?
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)

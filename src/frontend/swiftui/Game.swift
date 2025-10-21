@@ -1,7 +1,7 @@
 import Foundation
 
 struct Game: Hashable {
-    var loader: UnsafeMutableRawPointer
+    var loader: HydraLoader
     var name: String
     var author: String
 }

@@ -21,45 +21,4 @@ struct UserData {
     u8 unk_x20[0x60];
 };
 
-constexpr uuid_t INVALID_USER_ID = 0x0;
-
-class User {
-    friend class UserManager;
-
-  public:
-    User() {}
-    User(const std::string_view nickname) {
-        // TODO: don't use the setters?
-        SetNickname(nickname);
-    }
-
-    bool EditedSince(u64 timestamp) const {
-        return base.last_edit_timestamp > timestamp;
-    }
-
-    // Getters
-    const ProfileBase& GetBase() const { return base; }
-    const UserData& GetData() const { return data; }
-
-    u64 GetLastEditTimestamp() const { return base.last_edit_timestamp; }
-
-    std::string_view GetNickname() const { return base.nickname; }
-
-    // Setters
-    void SetNickname(const std::string_view nickname) {
-        ASSERT(nickname.size() < NICKNAME_SIZE, Services,
-               "Nickname size ({}) too big", nickname.size());
-        std::memcpy(base.nickname, nickname.data(), nickname.size());
-        base.nickname[nickname.size()] = '\0';
-        NotifyEdit();
-    }
-
-  private:
-    ProfileBase base;
-    UserData data;
-
-    // Helpers
-    void NotifyEdit() { base.last_edit_timestamp = get_absolute_time(); }
-};
-
 } // namespace hydra::horizon::services::account

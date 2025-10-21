@@ -24,6 +24,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
 
     add_executable(hydra
+        swiftui/Api.swift
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
@@ -33,6 +34,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/EmulationView.swift
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
+        swiftui/helpers/Error.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
@@ -42,6 +44,12 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/settings/CpuSettingsView.swift
         swiftui/settings/GraphicsSettingsView.swift
         swiftui/settings/AudioSettingsView.swift
+        swiftui/settings/UserAvatarView.swift
+        swiftui/settings/UserPreview.swift
+        swiftui/settings/UserAvatarPickerView.swift
+        swiftui/settings/UserAvatarEditorView.swift
+        swiftui/settings/UserEditorView.swift
+        swiftui/settings/UserSettingsView.swift
         swiftui/settings/SystemSettingsView.swift
         swiftui/settings/DebugSettingsView.swift
         swiftui/settings/SettingsView.swift
@@ -55,7 +63,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/macos/AppDelegate.swift
     )
 
-    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/frontend/swiftui/bridging_header.h)
+    target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
@@ -63,7 +71,7 @@ endif ()
 target_link_libraries(hydra PRIVATE hydra-common hydra-core "-framework Cocoa" ${LINK_LIBS})
 
 if (MACOS_BUNDLE)
-    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp ${CMAKE_SOURCE_DIR}/res/images/default_avatar_image.png)
     target_sources(hydra PRIVATE ${RESOURCE_FILES})
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RESOURCE "${RESOURCE_FILES}"

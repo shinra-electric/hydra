@@ -2,6 +2,7 @@
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 #include "core/horizon/services/fssrv/filesystem.hpp"
@@ -89,7 +90,7 @@ result_t IFileSystemProxy::CreateSaveDataFileSystem(
     kernel::Process* process, SaveDataAttribute attr,
     SaveDataCreationInfo creation_info, SaveDataMetaInfo meta_info) {
     std::string mount = get_save_data_mount(process, attr);
-    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
+    auto res = KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
     // TODO: check res
 
     return RESULT_SUCCESS;
@@ -141,7 +142,7 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
 
     filesystem::FileBase* file = nullptr;
     const auto res =
-        FILESYSTEM_INSTANCE.GetFile(FS_SD_MOUNT "/rom/romFS", file);
+        KERNEL_INSTANCE.GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);
@@ -186,7 +187,7 @@ IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(RequestContext* ctx) {
     // HACK
     filesystem::FileBase* file = nullptr;
     const auto res =
-        FILESYSTEM_INSTANCE.GetFile(FS_SD_MOUNT "/rom/romFS", file);
+        KERNEL_INSTANCE.GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Data storage does not exist");
         return MAKE_RESULT(Fs, res);
@@ -221,7 +222,7 @@ result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(RequestContext* ctx,
     AddService(*ctx, new IFileSystem(mount));
 
     // TODO: correct?
-    auto res = FILESYSTEM_INSTANCE.CreateDirectory(mount, true);
+    auto res = KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
     // TODO: check res
 
     return RESULT_SUCCESS;

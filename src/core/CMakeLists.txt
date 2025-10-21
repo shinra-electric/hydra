@@ -3,6 +3,8 @@ add_library(hydra-core
     horizon/hid.hpp
     horizon/input_manager.cpp
     horizon/input_manager.hpp
+    horizon/firmware.cpp
+    horizon/firmware.hpp
     horizon/os.cpp
     horizon/os.hpp
     horizon/kernel/const.hpp
@@ -253,8 +255,6 @@ add_library(hydra-core
     horizon/services/pctl/parental_control_service_factory.cpp
     horizon/services/pctl/parental_control_service_factory.hpp
     horizon/services/account/const.hpp
-    horizon/services/account/user_manager.cpp
-    horizon/services/account/user_manager.hpp
     horizon/services/account/profile.cpp
     horizon/services/account/profile.hpp
     horizon/services/account/notifier.cpp
@@ -273,6 +273,9 @@ add_library(hydra-core
     horizon/services/account/baas/manager_for_application.hpp
     horizon/services/account/baas/manager_for_system_service.cpp
     horizon/services/account/baas/manager_for_system_service.hpp
+    horizon/services/account/internal/user.hpp
+    horizon/services/account/internal/user_manager.cpp
+    horizon/services/account/internal/user_manager.hpp
     horizon/services/apm/manager_privileged.cpp
     horizon/services/apm/manager_privileged.hpp
     horizon/services/apm/session.cpp
@@ -585,6 +588,8 @@ add_library(hydra-core
     c_api.h
 )
 
+target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
+
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch libyaz0 hydra-common)
 # TODO: link luft if AIR shader backend is enabled

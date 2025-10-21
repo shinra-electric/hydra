@@ -40,7 +40,7 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
 
     // NCA
     filesystem::FileBase* file;
-    auto res = FILESYSTEM_INSTANCE.GetFile(
+    auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(
         fmt::format(FS_FIRMWARE_PATH "/{}", name.name), file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} file: {}", font_type,

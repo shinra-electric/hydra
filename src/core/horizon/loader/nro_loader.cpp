@@ -132,7 +132,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
 #undef ADD_ENTRY
 
     // Filesystem
-    const auto res = FILESYSTEM_INSTANCE.AddEntry(
+    const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
         ROM_VIRTUAL_PATH,
         new filesystem::FileView(file, reader.GetOffset(), reader.GetSize()));
     ASSERT(res == filesystem::FsResult::Success, Loader,

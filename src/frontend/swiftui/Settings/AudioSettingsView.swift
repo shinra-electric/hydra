@@ -10,22 +10,14 @@ struct AudioSettingsView: View {
                     HYDRA_AUDIO_BACKEND_NULL.rawValue)
                 Text("Cubeb (experimental)").tag(HYDRA_AUDIO_BACKEND_CUBEB.rawValue)
             }
+            .onChange(of: self.audioBackend.rawValue) { _, newValue in
+                var audioBackendOption = hydraConfigGetAudioBackend()
+                audioBackendOption.value = newValue
+            }
         }
         .onAppear {
-            load()
+            let audioBackendOption = hydraConfigGetAudioBackend()
+            self.audioBackend.rawValue = audioBackendOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let audioBackendOption = hydra_config_get_audio_backend()
-        self.audioBackend.rawValue = hydra_u32_option_get(audioBackendOption)
-    }
-
-    func save() {
-        let audioBackendOption = hydra_config_get_audio_backend()
-        hydra_u32_option_set(audioBackendOption, self.audioBackend.rawValue)
     }
 }

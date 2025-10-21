@@ -247,9 +247,8 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     // Loading screen assets
     {
-        uchar4* data = nullptr;
         usize width, height;
-        if (loader->LoadNintendoLogo(data, width, height)) {
+        if (auto data = loader->LoadNintendoLogo(width, height)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
@@ -260,11 +259,10 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         }
     }
     {
-        uchar4* data = nullptr;
         usize width, height;
         u32 frame_count;
-        if (loader->LoadStartupMovie(data, startup_movie_delays, width, height,
-                                     frame_count)) {
+        if (auto data = loader->LoadStartupMovie(startup_movie_delays, width,
+                                                 height, frame_count)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
@@ -324,9 +322,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     // Preselected user
     auto user_id = CONFIG_INSTANCE.GetUserID().Get();
-    if (user_id == horizon::services::account::INVALID_USER_ID) {
+    if (user_id == horizon::services::account::internal::INVALID_USER_ID) {
         // If there is just a single user, use that
-        if (USER_MANAGER_INSTANCE.GetCount() == 1) {
+        if (USER_MANAGER_INSTANCE.GetUserCount() == 1) {
             user_id = USER_MANAGER_INSTANCE.GetUserIDs()[0];
         } else {
             // TODO: launch a select user applet in case the game requires it
@@ -334,7 +332,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         }
     }
 
-    if (user_id != horizon::services::account::INVALID_USER_ID) {
+    if (user_id != horizon::services::account::internal::INVALID_USER_ID) {
         process->GetAppletState().PushPreselectedUser(user_id);
         LOG_INFO(Other, "Preselected user with ID {:032x}", user_id);
     }

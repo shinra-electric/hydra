@@ -13,8 +13,8 @@ namespace hydra::horizon::loader {
 
 namespace {
 
-bool LoadImage(filesystem::FileBase* file, uchar4*& out_data, usize& out_width,
-               usize& out_height) {
+uchar4* LoadImage(filesystem::FileBase* file, usize& out_width,
+                  usize& out_height) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
@@ -26,22 +26,22 @@ bool LoadImage(filesystem::FileBase* file, uchar4*& out_data, usize& out_width,
 
     i32 w, h;
     i32 comp;
-    out_data = reinterpret_cast<uchar4*>(stbi_load_from_memory(
+    auto data = reinterpret_cast<uchar4*>(stbi_load_from_memory(
         raw_data, raw_data_size, &w, &h, &comp, STBI_rgb_alpha));
     delete[] raw_data;
-    if (!out_data) {
+    if (!data) {
         LOG_ERROR(Loader, "Failed to load image");
-        return false;
+        return nullptr;
     }
 
     out_width = w;
     out_height = h;
-    return true;
+    return data;
 }
 
-bool LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
-             std::vector<std::chrono::milliseconds>& out_delays,
-             usize& out_width, usize& out_height, u32& out_frame_count) {
+uchar4* LoadGIF(filesystem::FileBase* file,
+                std::vector<std::chrono::milliseconds>& out_delays,
+                usize& out_width, usize& out_height, u32& out_frame_count) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
@@ -54,13 +54,13 @@ bool LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
     i32 w, h, f;
     i32 comp;
     i32* delays_ms;
-    out_data = reinterpret_cast<uchar4*>(
+    auto data = reinterpret_cast<uchar4*>(
         stbi_load_gif_from_memory(raw_data, raw_data_size, &delays_ms, &w, &h,
                                   &f, &comp, STBI_rgb_alpha));
     delete[] raw_data;
-    if (!out_data) {
+    if (!data) {
         LOG_ERROR(Loader, "Failed to load GIF");
-        return false;
+        return nullptr;
     }
 
     out_width = w;
@@ -72,12 +72,12 @@ bool LoadGIF(filesystem::FileBase* file, uchar4*& out_data,
         out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
     free(delays_ms);
 
-    return true;
+    return data;
 }
 
 } // namespace
 
-LoaderBase* LoaderBase::CreateFromFile(const std::string& path) {
+LoaderBase* LoaderBase::CreateFromFile(std::string_view path) {
     // Check if the file exists
     if (!std::filesystem::exists(path)) {
         // TODO: return an error instead
@@ -128,30 +128,29 @@ horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
     return nacp;
 }
 
-bool LoaderBase::LoadIcon(uchar4*& out_data, usize& out_width,
-                          usize& out_height) {
+uchar4* LoaderBase::LoadIcon(usize& out_width, usize& out_height) {
     if (!icon_file)
-        return false;
+        return nullptr;
 
-    return LoadImage(icon_file, out_data, out_width, out_height);
+    return LoadImage(icon_file, out_width, out_height);
 }
 
-bool LoaderBase::LoadNintendoLogo(uchar4*& out_data, usize& out_width,
-                                  usize& out_height) {
+uchar4* LoaderBase::LoadNintendoLogo(usize& out_width, usize& out_height) {
     if (!nintendo_logo_file)
-        return false;
+        return nullptr;
 
-    return LoadImage(nintendo_logo_file, out_data, out_width, out_height);
+    return LoadImage(nintendo_logo_file, out_width, out_height);
 }
 
-bool LoaderBase::LoadStartupMovie(
-    uchar4*& out_data, std::vector<std::chrono::milliseconds>& out_delays,
-    usize& out_width, usize& out_height, u32& out_frame_count) {
+uchar4*
+LoaderBase::LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
+                             usize& out_width, usize& out_height,
+                             u32& out_frame_count) {
     if (!startup_movie_file)
-        return false;
+        return nullptr;
 
-    return LoadGIF(startup_movie_file, out_data, out_delays, out_width,
-                   out_height, out_frame_count);
+    return LoadGIF(startup_movie_file, out_delays, out_width, out_height,
+                   out_frame_count);
 }
 
 } // namespace hydra::horizon::loader

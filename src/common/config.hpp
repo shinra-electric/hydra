@@ -51,31 +51,35 @@ enum class AudioBackend : u32 {
     Cubeb,
 };
 
-template <typename T>
-class Option {
+template <typename T, typename GetT>
+class _Option {
   public:
-    Option() {}
-    Option(const T& value_) : value{value_} {}
+    _Option() {}
+    _Option(GetT value_) : value{value_} {}
 
-    operator T() { return value; }
-    operator T() const { return value; }
-    void operator=(const T& other) { value = other; }
+    operator GetT() const { return value; }
+    void operator=(GetT other) { value = other; }
 
-    const T& Get() const { return value; }
-    void Set(const T& other) { value = other; }
+    GetT Get() const { return value; }
+    void Set(GetT other) { value = other; }
 
   private:
     T value;
 };
 
 template <typename T>
-class ArrayOption {
+using Option = _Option<T, T>;
+
+using StringOption = _Option<std::string, std::string_view>;
+
+template <typename T, typename GetT>
+class _ArrayOption {
   public:
-    ArrayOption() {}
-    ArrayOption(const std::vector<T>& values_) : values{values_} {}
+    _ArrayOption() {}
+    _ArrayOption(const std::vector<T>& values_) : values{values_} {}
 
     void operator=(const std::vector<T>& other) { values = other; }
-    const T& operator[](u32 index) const {
+    GetT operator[](u32 index) const {
         VerifyIndex(index);
         return values[index];
     }
@@ -85,15 +89,15 @@ class ArrayOption {
     }
 
     const std::vector<T>& Get() const { return values; }
-    const T& Get(u32 index) const { return values[index]; }
+    GetT Get(u32 index) const { return values[index]; }
     usize GetCount() const { return values.size(); }
 
     void Resize(u32 size) { values.resize(size); }
-    void Set(u32 index, const T& value) {
+    void Set(u32 index, GetT value) {
         VerifyIndex(index);
         values[index] = value;
     }
-    void Append(const T& value) { values.push_back(value); }
+    void Append(GetT value) { values.push_back(T(value)); }
 
   private:
     std::vector<T> values;
@@ -104,6 +108,11 @@ class ArrayOption {
                index, values.size());
     }
 };
+
+template <typename T>
+using ArrayOption = _ArrayOption<T, T>;
+
+using StringArrayOption = _ArrayOption<std::string, std::string_view>;
 
 class Config {
   public:
@@ -131,8 +140,8 @@ class Config {
     }
 
     // Getters
-    ArrayOption<std::string>& GetGamePaths() { return game_paths; }
-    ArrayOption<std::string>& GetPatchPaths() { return patch_paths; }
+    StringArrayOption& GetGamePaths() { return game_paths; }
+    StringArrayOption& GetPatchPaths() { return patch_paths; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
@@ -142,15 +151,15 @@ class Config {
     }
     Option<AudioBackend>& GetAudioBackend() { return audio_backend; }
     Option<uuid_t>& GetUserID() { return user_id; }
-    Option<std::string>& GetFirmwarePath() { return firmware_path; }
-    Option<std::string>& GetSdCardPath() { return sd_card_path; }
-    Option<std::string>& GetSavePath() { return save_path; }
-    Option<std::string>& GetSysmodulesPath() { return sysmodules_path; }
+    StringOption& GetFirmwarePath() { return firmware_path; }
+    StringOption& GetSdCardPath() { return sd_card_path; }
+    StringOption& GetSavePath() { return save_path; }
+    StringOption& GetSysmodulesPath() { return sysmodules_path; }
     Option<bool>& GetHandheldMode() { return handheld_mode; }
     Option<LogOutput>& GetLogOutput() { return log_output; }
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
-    ArrayOption<std::string>& GetProcessArgs() { return process_args; }
+    StringArrayOption& GetProcessArgs() { return process_args; }
 
   private:
     std::string app_data_path;
@@ -158,8 +167,8 @@ class Config {
     std::string pictures_path;
 
     // Config
-    ArrayOption<std::string> game_paths;
-    ArrayOption<std::string> patch_paths;
+    StringArrayOption game_paths;
+    StringArrayOption patch_paths;
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
@@ -167,15 +176,15 @@ class Config {
     Option<uint2> custom_display_resolution;
     Option<AudioBackend> audio_backend;
     Option<uuid_t> user_id;
-    Option<std::string> firmware_path;
-    Option<std::string> sd_card_path;
-    Option<std::string> save_path;
-    Option<std::string> sysmodules_path;
+    StringOption firmware_path;
+    StringOption sd_card_path;
+    StringOption save_path;
+    StringOption sysmodules_path;
     Option<bool> handheld_mode;
     Option<LogOutput> log_output;
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
-    ArrayOption<std::string> process_args;
+    StringArrayOption process_args;
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
@@ -212,19 +221,21 @@ class Config {
 
 } // namespace hydra
 
-template <typename T>
-struct fmt::formatter<hydra::Option<T>> : formatter<string_view> {
+template <typename T, typename GetT>
+struct fmt::formatter<hydra::_Option<T, GetT>> : formatter<string_view> {
     template <typename FormatContext>
-    auto format(const hydra::Option<T>& option, FormatContext& ctx) const {
+    auto format(const hydra::_Option<T, GetT>& option,
+                FormatContext& ctx) const {
         return formatter<string_view>::format(fmt::format("{}", option.Get()),
                                               ctx);
     }
 };
 
-template <typename T>
-struct fmt::formatter<hydra::ArrayOption<T>> : formatter<string_view> {
+template <typename T, typename GetT>
+struct fmt::formatter<hydra::_ArrayOption<T, GetT>> : formatter<string_view> {
     template <typename FormatContext>
-    auto format(const hydra::ArrayOption<T>& option, FormatContext& ctx) const {
+    auto format(const hydra::_ArrayOption<T, GetT>& option,
+                FormatContext& ctx) const {
         // TODO: simplify
         return formatter<string_view>::format(
             fmt::format("{}", fmt::join(option.Get(), ", ")), ctx);

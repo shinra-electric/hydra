@@ -34,12 +34,12 @@ struct MessageView: View {
             if isExpanded {
                 LazyVStack(spacing: 2) {
                     ForEach(
-                        0..<Int(hydra_debugger_stack_trace_get_frame_count(message.stack_trace)),
+                        0..<message.stack_trace.frameCount,
                         id: \.self
                     ) {
                         i in
                         HStack {
-                            Text(getStackFrame(index: UInt32(i)))
+                            Text(getStackFrame(index: i))
                                 .font(.system(size: 12))
                                 .textSelection(.enabled)
                                 .focusable()
@@ -51,13 +51,12 @@ struct MessageView: View {
         }
     }
 
-    func getStackFrame(index: UInt32) -> String {
-        let stack_frame = hydra_debugger_stack_trace_get_frame(message.stack_trace, index)
-        let resolved = hydra_debugger_stack_frame_resolve_unmanaged(stack_frame)
-        let module = String(cString: hydra_debugger_resolved_stack_frame_get_module(resolved))
-        let function = String(cString: hydra_debugger_resolved_stack_frame_get_function(resolved))
-        let addr = hydra_debugger_resolved_stack_frame_get_address(resolved)
-        hydra_debugger_resolved_stack_frame_destroy(resolved)
+    func getStackFrame(index: Int) -> String {
+        let stack_frame = message.stack_trace.getFrame(at: index)
+        let resolved = stack_frame.resolve()
+        let module = resolved.module
+        let function = resolved.function
+        let addr = resolved.address
 
         return "0x\(String(addr, radix: 16)) (\(function) in \(module))"
     }

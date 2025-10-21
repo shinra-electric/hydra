@@ -3,6 +3,7 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
 #include "core/horizon/services/fssrv/file.hpp"
 
@@ -31,7 +32,7 @@ IFileSystem::CreateFile(CreateOption flags, u64 size,
         size = 16_MiB;
     }
 
-    const auto res = FILESYSTEM_INSTANCE.CreateFile(
+    const auto res = KERNEL_INSTANCE.GetFilesystem().CreateFile(
         path, size, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
         LOG_WARN(Services, "File \"{}\" already exists", path);
@@ -46,7 +47,7 @@ result_t
 IFileSystem::DeleteFile(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().DeleteEntry(path);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Failed to delete file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -59,7 +60,7 @@ result_t
 IFileSystem::CreateDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.CreateDirectory(
+    const auto res = KERNEL_INSTANCE.GetFilesystem().CreateDirectory(
         path, true); // TODO: should create_intermediate be true?
     if (res == filesystem::FsResult::AlreadyExists)
         LOG_WARN(Services, "Directory \"{}\" already exists", path);
@@ -74,7 +75,7 @@ result_t
 IFileSystem::DeleteDirectory(InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().DeleteEntry(path);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory \"{}\": {}", path, res);
 
@@ -85,7 +86,7 @@ result_t IFileSystem::DeleteDirectoryRecursively(
     InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
     READ_PATH();
 
-    const auto res = FILESYSTEM_INSTANCE.DeleteEntry(path, true);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().DeleteEntry(path, true);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to delete directory recursively \"{}\": {}", path, res);
 
@@ -109,7 +110,7 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
     READ_PATH();
 
     filesystem::EntryBase* entry;
-    const auto res = FILESYSTEM_INSTANCE.GetEntry(path, entry);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().GetEntry(path, entry);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error getting entry \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -128,7 +129,7 @@ IFileSystem::OpenFile(RequestContext* ctx, filesystem::FileOpenFlags flags,
     LOG_DEBUG(Services, "Flags: {}", flags);
 
     filesystem::FileBase* file;
-    const auto res = FILESYSTEM_INSTANCE.GetFile(path, file);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -147,7 +148,8 @@ IFileSystem::OpenDirectory(RequestContext* ctx,
     LOG_DEBUG(Services, "Filter flags: {}", filter_flags);
 
     filesystem::Directory* directory;
-    const auto res = FILESYSTEM_INSTANCE.GetDirectory(path, directory);
+    const auto res =
+        KERNEL_INSTANCE.GetFilesystem().GetDirectory(path, directory);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening directory \"{}\": {}", path, res);
         return MAKE_RESULT(Fs, 1);
@@ -189,7 +191,7 @@ result_t IFileSystem::GetFileTimeStampRaw(
     READ_PATH();
 
     filesystem::FileBase* file;
-    const auto res = FILESYSTEM_INSTANCE.GetFile(path, file);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
         // TODO: set is_valid to false?

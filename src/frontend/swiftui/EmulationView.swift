@@ -3,31 +3,17 @@ import SwiftUI
 struct EmulationView: View {
     let game: Game
 
-    @Binding var emulationContext: UnsafeMutableRawPointer?
+    @Binding var emulationContext: HydraEmulationContext?
 
     var body: some View {
         MetalView(emulationContext: self.$emulationContext)
             .onAppear {
-                startEmulation()
+                self.emulationContext = HydraEmulationContext()
+                self.emulationContext!.loadAndStart(loader: game.loader)
             }
             .onDisappear {
-                stopEmulation()
+                // TODO: stop?
+                self.emulationContext = nil
             }
-    }
-
-    func startEmulation() {
-        guard let emulationContext = hydra_create_emulation_context() else {
-            // TODO: error popup
-            print("Failed to create emulation context")
-            return
-        }
-
-        self.emulationContext = emulationContext
-        hydra_emulation_context_load_and_start(emulationContext, game.loader)
-    }
-
-    func stopEmulation() {
-        hydra_emulation_context_destroy(self.emulationContext!)
-        self.emulationContext = nil
     }
 }

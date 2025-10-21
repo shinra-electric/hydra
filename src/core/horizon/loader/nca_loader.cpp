@@ -1,6 +1,7 @@
 #include "core/horizon/loader/nca_loader.hpp"
 
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
 
 #define NINTENDO_LOGO_PATH "logo/NintendoLogo.png"
@@ -113,7 +114,7 @@ void NcaLoader::LoadProcess(kernel::Process* process) {
             ASSERT(dir, Loader, "Code is not a directory");
             LoadCode(process, dir);
         } else if (name == "data") {
-            const auto res = FILESYSTEM_INSTANCE.AddEntry(
+            const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
                 FS_SD_MOUNT "/rom/romFS", entry, true);
             ASSERT(res == filesystem::FsResult::Success, Loader,
                    "Failed to add romFS entry: {}", res);

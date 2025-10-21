@@ -8,7 +8,7 @@ namespace hydra::horizon::loader {
 
 class LoaderBase {
   public:
-    static LoaderBase* CreateFromFile(const std::string& path);
+    static LoaderBase* CreateFromFile(std::string_view path);
 
     virtual ~LoaderBase() = default;
 
@@ -16,13 +16,11 @@ class LoaderBase {
 
     virtual void LoadProcess(kernel::Process* process) = 0;
     horizon::services::ns::ApplicationControlProperty* LoadNacp();
-    bool LoadIcon(uchar4*& out_data, usize& out_width, usize& out_height);
-    bool LoadNintendoLogo(uchar4*& out_data, usize& out_width,
-                          usize& out_height);
-    bool LoadStartupMovie(uchar4*& out_data,
-                          std::vector<std::chrono::milliseconds>& out_delays,
-                          usize& out_width, usize& out_height,
-                          u32& out_frame_count);
+    uchar4* LoadIcon(usize& out_width, usize& out_height);
+    uchar4* LoadNintendoLogo(usize& out_width, usize& out_height);
+    uchar4* LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
+                             usize& out_width, usize& out_height,
+                             u32& out_frame_count);
 
   protected:
     filesystem::FileBase* nacp_file = nullptr;

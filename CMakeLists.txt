@@ -35,6 +35,7 @@ add_subdirectory(externals/dynarmic)
 add_subdirectory(externals/cubeb)
 #add_subdirectory(externals/luft)
 add_subdirectory(externals/hatch)
+add_subdirectory(externals/libyaz0)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 

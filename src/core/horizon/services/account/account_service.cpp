@@ -6,14 +6,14 @@
 namespace hydra::horizon::services::account {
 
 result_t IAccountService::GetUserCount(i32* out_count) {
-    *out_count = USER_MANAGER_INSTANCE.GetCount();
+    *out_count = USER_MANAGER_INSTANCE.GetUserCount();
     return RESULT_SUCCESS;
 }
 
 result_t IAccountService::GetUserExistence(uuid_t user_id, bool* out_exists) {
     LOG_DEBUG(Services, "User ID: 0x{:08x}", user_id);
 
-    *out_exists = USER_MANAGER_INSTANCE.Exists(user_id);
+    *out_exists = USER_MANAGER_INSTANCE.UserExists(user_id);
     return RESULT_SUCCESS;
 }
 

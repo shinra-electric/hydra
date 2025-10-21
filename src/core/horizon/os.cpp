@@ -2,6 +2,7 @@
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/firmware.hpp"
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
 #include "core/horizon/kernel/hipc/server_port.hpp"
@@ -128,61 +129,19 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     SINGLETON_SET_INSTANCE(OS, Horizon);
 
     // Firmware
-    std::map<u64, std::string> firmware_titles_map = {
-        {0x010000000000080e, "TimeZoneBinary"},
-        {0x0100000000000810, "FontNintendoExtension"},
-        {0x0100000000000811, "FontStandard"},
-        {0x0100000000000812, "FontKorean"},
-        {0x0100000000000813, "FontChineseTraditional"},
-        {0x0100000000000814, "FontChineseSimple"},
-    };
-
-    const auto& firmware_path = CONFIG_INSTANCE.GetFirmwarePath().Get();
-    if (std::filesystem::exists(firmware_path)) {
-        // Iterate over the directory
-        for (const auto& entry :
-             std::filesystem::directory_iterator(firmware_path)) {
-            auto file =
-                new horizon::filesystem::HostFile(entry.path().string());
-            horizon::filesystem::ContentArchive content_archive(file);
-            // TODO: find a better way to handle this
-            if (content_archive.GetContentType() ==
-                horizon::filesystem::ContentArchiveContentType::Meta)
-                continue;
-
-            auto res = FILESYSTEM_INSTANCE.AddEntry(
-                fmt::format(FS_FIRMWARE_PATH "/{:016x}",
-                            content_archive.GetTitleID()),
-                file, true);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-                   "Failed to add firmware entry: {}", res);
-        }
-
-        for (const auto& [title_id, filename] : firmware_titles_map) {
-            filesystem::FileBase* file;
-            auto res = FILESYSTEM_INSTANCE.GetFile(
-                fmt::format(FS_FIRMWARE_PATH "/{:016x}", title_id), file);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-                   "Failed to get firmware entry {:016x}: {}", title_id, res);
-
-            res = FILESYSTEM_INSTANCE.AddEntry(
-                fmt::format(FS_FIRMWARE_PATH "/{}", filename), file, true);
-            ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-                   "Failed to add firmware entry alias \"{}\": {}", filename,
-                   res);
-        }
-    } else {
-        LOG_ERROR(Horizon, "Firmware path does not exist");
-    }
+    try_install_firmware_to_filesystem(kernel.GetFilesystem());
 
     // Sysmodules
     const auto& sysmodules_path = CONFIG_INSTANCE.GetSysmodulesPath().Get();
     if (std::filesystem::exists(sysmodules_path)) {
-        auto res = FILESYSTEM_INSTANCE.AddEntry(FS_SYSMODULES_PATH,
-                                                sysmodules_path, true);
+        auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+            FS_SYSMODULES_PATH, sysmodules_path, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Other,
                "Failed to add sysmodules", res);
     }
+
+    // System avatars
+    user_manager.LoadSystemAvatars(kernel.GetFilesystem());
 
     // Shared font
     shared_font_manager.LoadFonts();

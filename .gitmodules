@@ -19,3 +19,6 @@
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb.git
+[submodule "externals/libyaz0"]
+	path = externals/libyaz0
+	url = https://github.com/Nax/libyaz0.git

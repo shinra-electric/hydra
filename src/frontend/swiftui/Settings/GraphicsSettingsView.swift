@@ -4,16 +4,24 @@ struct GraphicsSettingsView: View {
     @State var gpuRenderer: HydraGpuRenderer = HYDRA_GPU_RENDERER_INVALID
     @State var shaderBackend: HydraShaderBackend = HYDRA_SHADER_BACKEND_INVALID
     @State var displayResolution: HydraResolution = HYDRA_RESOLUTION_INVALID
-    @State var customDisplayResolution: uint2 = uint2(x: 0, y: 0)
+    @State var customDisplayResolution: hydra_uint2 = hydra_uint2(x: 0, y: 0)
 
     var body: some View {
         VStack {
             Picker("Gpu renderer", selection: self.$gpuRenderer.rawValue) {
                 Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
             }
+            .onChange(of: self.gpuRenderer.rawValue) { _, newValue in
+                var gpuRendererOption = hydraConfigGetGpuRenderer()
+                gpuRendererOption.value = newValue
+            }
             Picker("Shader backend", selection: self.$shaderBackend.rawValue) {
                 Text("MSL (recommended)").tag(HYDRA_SHADER_BACKEND_MSL.rawValue)
                 Text("AIR (broken)").tag(HYDRA_SHADER_BACKEND_AIR.rawValue)
+            }
+            .onChange(of: self.shaderBackend.rawValue) { _, newValue in
+                var shaderBackendOption = hydraConfigGetShaderBackend()
+                shaderBackendOption.value = newValue
             }
             Picker("Display resolution", selection: self.$displayResolution.rawValue) {
                 Text("Auto (recommended)").tag(HYDRA_RESOLUTION_AUTO.rawValue)
@@ -24,6 +32,10 @@ struct GraphicsSettingsView: View {
                 Text("4320p").tag(HYDRA_RESOLUTION_4320P.rawValue)
                 Text("Auto exact (not recommended)").tag(HYDRA_RESOLUTION_AUTO_EXACT.rawValue)
                 Text("Custom (not recommended)").tag(HYDRA_RESOLUTION_CUSTOM.rawValue)
+            }
+            .onChange(of: self.displayResolution.rawValue) { _, newValue in
+                var displayResolutionOption = hydraConfigGetDisplayResolution()
+                displayResolutionOption.value = newValue
             }
             if self.displayResolution == HYDRA_RESOLUTION_CUSTOM {
                 HStack {
@@ -36,41 +48,24 @@ struct GraphicsSettingsView: View {
                         "Height", value: self.$customDisplayResolution.y,
                         format: .number)
                 }
+                .onChange(of: self.customDisplayResolution) { _, newValue in
+                    var customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+                    customDisplayResolutionOption.value = newValue
+                }
             }
         }
         .onAppear {
-            load()
+            let gpuRendererOption = hydraConfigGetGpuRenderer()
+            self.gpuRenderer.rawValue = gpuRendererOption.value
+
+            let shaderBackendOption = hydraConfigGetShaderBackend()
+            self.shaderBackend.rawValue = shaderBackendOption.value
+
+            let displayResolutionOption = hydraConfigGetDisplayResolution()
+            self.displayResolution.rawValue = displayResolutionOption.value
+
+            let customDisplayResolutionOption = hydraConfigGetCustomDisplayResolution()
+            self.customDisplayResolution = customDisplayResolutionOption.value
         }
-        .onDisappear {
-            save()
-        }
-    }
-
-    func load() {
-        let gpuRendererOption = hydra_config_get_gpu_renderer()
-        self.gpuRenderer.rawValue = hydra_u32_option_get(gpuRendererOption)
-
-        let shaderBackendOption = hydra_config_get_shader_backend()
-        self.shaderBackend.rawValue = hydra_u32_option_get(shaderBackendOption)
-
-        let displayResolutionOption = hydra_config_get_display_resolution()
-        self.displayResolution.rawValue = hydra_u32_option_get(displayResolutionOption)
-
-        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
-        self.customDisplayResolution = hydra_uint2_option_get(customDisplayResolutionOption)
-    }
-
-    func save() {
-        let gpuRendererOption = hydra_config_get_gpu_renderer()
-        hydra_u32_option_set(gpuRendererOption, self.gpuRenderer.rawValue)
-
-        let shaderBackendOption = hydra_config_get_shader_backend()
-        hydra_u32_option_set(shaderBackendOption, self.shaderBackend.rawValue)
-
-        let displayResolutionOption = hydra_config_get_display_resolution()
-        hydra_u32_option_set(displayResolutionOption, self.displayResolution.rawValue)
-
-        let customDisplayResolutionOption = hydra_config_get_custom_display_resolution()
-        hydra_uint2_option_set(customDisplayResolutionOption, self.customDisplayResolution)
     }
 }
