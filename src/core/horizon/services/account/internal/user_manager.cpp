@@ -1,9 +1,12 @@
 #include "core/horizon/services/account/internal/user_manager.hpp"
 
+#include <stb_image.h>
 #include <stb_image_write.h>
 #include <yaz0.h>
 
+#include "common/filesystem.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
+#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/filesystem/romfs.hpp"
 
 #define DEFAULT_USER_NAME "Hydra user"
@@ -21,6 +24,8 @@ struct HusrHeader {
     u32 header_size{sizeof(HusrHeader)};
 };
 
+#define DEFAULT_AVATAR_IMAGE_PATH "$DEFAULT_AVATAR_IMAGE"
+#define SYSTEM_AVATARS_PATH "$SYSTEM_AVATARS"
 constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
 
@@ -80,13 +85,20 @@ uuid_t UserManager::CreateUser() {
         user_id = random128();
 
     // Create
-    User new_user(DEFAULT_USER_NAME, uchar3({18, 53, 110}), "00000001.szs");
+    User new_user(DEFAULT_USER_NAME, uchar3({100, 105, 112}),
+                  DEFAULT_AVATAR_IMAGE_PATH);
     users.insert({user_id, {new_user, 0}});
 
     return user_id;
 }
 
 void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
+    // Default avatar
+    const auto default_image_path =
+        get_bundle_resource_path("default_avatar_image.png");
+    avatars[DEFAULT_AVATAR_IMAGE_PATH] = {
+        new filesystem::HostFile(default_image_path)};
+
     // NCA
     filesystem::FileBase* file;
     auto res = fs.GetFile(
@@ -119,15 +131,32 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
            "Failed to get \"chara\" avatars directory: {}", res);
     for (const auto& [name, entry] : character_dir->GetEntries()) {
         if (name.ends_with(".szs"))
-            avatars[name] = {static_cast<filesystem::FileBase*>(entry)};
+            avatars[fmt::format(SYSTEM_AVATARS_PATH "/{}", name)] = {
+                static_cast<filesystem::FileBase*>(entry)};
     }
 }
 
 const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
                                                         usize& out_dimensions) {
     // Load image
-    auto& avatar = avatars[std::string(path)];
-    PreloadAvatar(avatar);
+    auto it = avatars.find(std::string(path));
+    if (it == avatars.end()) {
+        if (path[0] != '$') {
+            LOG_FATAL(Services, "Custom avatar images not supported (path: {})",
+                      path);
+        } else {
+            LOG_WARN(
+                Services,
+                "Failed to load avatar image with path {}, loading default "
+                "image instead",
+                path);
+            it = avatars.find(DEFAULT_AVATAR_IMAGE_PATH);
+            ASSERT(it != avatars.end(), Services,
+                   "Failed to load default avatar image");
+        }
+    }
+    auto& avatar = it->second;
+    PreloadAvatar(avatar, path.starts_with(SYSTEM_AVATARS_PATH));
 
     out_dimensions = avatar.dimensions;
     return avatar.data;
@@ -151,6 +180,8 @@ void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
         b = (bg_color.z() * (0xff - a) + b * a) / 0xff;
         a = 0xff;
     }
+
+    // TODO: resize if needed
 
     // Convert to JPEG
     out_data.reserve(0x20000);
@@ -234,36 +265,58 @@ void UserManager::Deserialize(uuid_t user_id) {
     users.insert({user_id, {user, user.GetLastEditTimestamp()}});
 }
 
-void UserManager::PreloadAvatar(Avatar& avatar) {
+void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
     if (!avatar.data.empty())
         return;
 
     auto stream = avatar.file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
-    std::vector<u8> compressed(reader.GetSize());
-    reader.ReadWhole<u8>(compressed.data());
+    std::vector<u8> raw(reader.GetSize());
+    reader.ReadWhole<u8>(raw.data());
 
     avatar.file->Close(stream);
 
-    // Decompress
+    if (is_compressed) {
+        // Decompress
 #define YAZ0_ASSERT(expr)                                                      \
     {                                                                          \
         const auto res = expr;                                                 \
         ASSERT(res == YAZ0_OK, Services, #expr " failed: {}", res);            \
     }
-    Yaz0Stream* yaz0;
-    YAZ0_ASSERT(yaz0Init(&yaz0));
-    YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
-    YAZ0_ASSERT(yaz0Input(yaz0, compressed.data(), compressed.size()));
-    avatar.data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
-    YAZ0_ASSERT(
-        yaz0Output(yaz0, avatar.data.data(), AVATAR_UNCOMPRESSED_IMAGE_SIZE));
-    YAZ0_ASSERT(yaz0Run(yaz0));
-    YAZ0_ASSERT(yaz0Destroy(yaz0));
+        Yaz0Stream* yaz0;
+        YAZ0_ASSERT(yaz0Init(&yaz0));
+        YAZ0_ASSERT(yaz0ModeDecompress(yaz0));
+        YAZ0_ASSERT(yaz0Input(yaz0, raw.data(), raw.size()));
+        avatar.data.resize(AVATAR_UNCOMPRESSED_IMAGE_SIZE);
+        YAZ0_ASSERT(yaz0Output(yaz0, avatar.data.data(),
+                               AVATAR_UNCOMPRESSED_IMAGE_SIZE));
+        YAZ0_ASSERT(yaz0Run(yaz0));
+        YAZ0_ASSERT(yaz0Destroy(yaz0));
 #undef YAZ0_ASSERT
 
-    avatar.dimensions = AVATAR_IMAGE_DIMENSIONS;
+        avatar.dimensions = AVATAR_IMAGE_DIMENSIONS;
+    } else {
+        // Load with STB image
+        int width, height;
+        auto pixels = stbi_load_from_memory(raw.data(), raw.size(), &width,
+                                            &height, nullptr, 4);
+        if (!pixels) {
+            LOG_ERROR(Services, "Failed to load avatar image");
+            return;
+        }
+
+        // TODO: crop the image if the dimensions don't match
+        ASSERT(width == height, Services,
+               "Avatar image is not a sqaure ({}x{})", width, height);
+        avatar.dimensions = width;
+
+        // TODO: avoid intermediate copy
+        usize size = avatar.dimensions * avatar.dimensions * 4;
+        avatar.data.resize(size);
+        std::memcpy(avatar.data.data(), pixels, size);
+        stbi_image_free(pixels);
+    }
 }
 
 } // namespace hydra::horizon::services::account::internal

@@ -66,7 +66,7 @@ class UserManager {
     void Serialize(uuid_t user_id);
     void Deserialize(uuid_t user_id);
 
-    void PreloadAvatar(Avatar& avatar);
+    void PreloadAvatar(Avatar& avatar, bool is_compressed);
 
   public:
     CONST_REF_GETTER(avatars, GetAvatars);

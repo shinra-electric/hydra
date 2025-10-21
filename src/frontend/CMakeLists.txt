@@ -71,7 +71,7 @@ endif ()
 target_link_libraries(hydra PRIVATE hydra-common hydra-core "-framework Cocoa" ${LINK_LIBS})
 
 if (MACOS_BUNDLE)
-    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp ${CMAKE_SOURCE_DIR}/res/images/default_avatar_image.png)
     target_sources(hydra PRIVATE ${RESOURCE_FILES})
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RESOURCE "${RESOURCE_FILES}"
