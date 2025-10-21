@@ -12,30 +12,28 @@ struct UserEditorView: View {
 
     var body: some View {
         HStack {
-            if !self.avatarPath.isEmpty {
-                ZStack {
-                    Rectangle()
-                        .fill(
-                            Color(
-                                red: Double(self.avatarBgColor.x) / 255.0,
-                                green: Double(self.avatarBgColor.y) / 255.0,
-                                blue: Double(self.avatarBgColor.z) / 255.0))
-                    UserAvatarView(
-                        userManager: self.userManager, avatarPath: self.avatarPath
-                    )
+            ZStack {
+                Rectangle()
+                    .fill(
+                        Color(
+                            red: Double(self.avatarBgColor.x) / 255.0,
+                            green: Double(self.avatarBgColor.y) / 255.0,
+                            blue: Double(self.avatarBgColor.z) / 255.0))
+                UserAvatarView(
+                    userManager: self.userManager, avatarPath: self.avatarPath
+                )
 
-                    // Edit button
-                    Button(action: {
-                        self.showAvatarEditor = true
-                    }) {
-                        Image(systemName: "pencil")
-                            .foregroundColor(.white)
-                            .padding()
-                    }
+                // Edit button
+                Button(action: {
+                    self.showAvatarEditor = true
+                }) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.white)
+                        .padding()
                 }
-                .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode?
-                Text(self.nickname)
             }
+            .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode?
+            Text(self.nickname)
         }
         .sheet(isPresented: self.$showAvatarEditor) {
             // Title bar

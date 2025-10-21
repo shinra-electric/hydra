@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct UserAvatarPickerView: View {
     let userManager: HydraUserManager
@@ -6,6 +7,8 @@ struct UserAvatarPickerView: View {
     @Binding var avatarPath: String
 
     @State private var avatarPaths: [String] = []
+
+    @State private var isFilePickerPresented: Bool = false
 
     var body: some View {
         // Avatars
@@ -25,17 +28,30 @@ struct UserAvatarPickerView: View {
                         self.avatarPath = avatarPath
                     }
                 }
+                Button("Import") {
+                    self.isFilePickerPresented = true
+                }
+                .fileImporter(
+                    isPresented: self.$isFilePickerPresented,
+                    allowedContentTypes: [.png, .jpeg],
+                    allowsMultipleSelection: false
+                ) { result in
+                    switch result {
+                    case .success(let fileURLs):
+                        self.avatarPath = fileURLs.first?.path ?? ""
+                    case .failure(let error):
+                        print(error)
+                    }
+                }
             }
         }
         .onAppear {
-            load()
+            for i in 0..<self.userManager.avatarCount {
+                self.avatarPaths.append(self.userManager.getAvatarPath(at: i))
+            }
         }
-    }
-
-    func load() {
-        self.avatarPaths = []
-        for i in 0..<self.userManager.avatarCount {
-            self.avatarPaths.append(self.userManager.getAvatarPath(at: i))
+        .onDisappear {
+            self.avatarPaths.removeAll()
         }
     }
 }

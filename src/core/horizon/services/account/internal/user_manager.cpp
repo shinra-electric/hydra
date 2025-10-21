@@ -4,7 +4,6 @@
 #include <stb_image_write.h>
 #include <yaz0.h>
 
-#include "common/filesystem.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/filesystem/romfs.hpp"
@@ -24,7 +23,7 @@ struct HusrHeader {
     u32 header_size{sizeof(HusrHeader)};
 };
 
-#define DEFAULT_AVATAR_IMAGE_PATH "$DEFAULT_AVATAR_IMAGE"
+#define DEFAULT_AVATAR_IMAGE_PATH ""
 #define SYSTEM_AVATARS_PATH "$SYSTEM_AVATARS"
 constexpr usize AVATAR_UNCOMPRESSED_IMAGE_SIZE = 0x40000;
 constexpr u32 AVATAR_IMAGE_DIMENSIONS = 256;
@@ -142,8 +141,10 @@ const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
     auto it = avatars.find(std::string(path));
     if (it == avatars.end()) {
         if (path[0] != '$') {
-            LOG_FATAL(Services, "Custom avatar images not supported (path: {})",
-                      path);
+            it = avatars
+                     .insert(
+                         {std::string(path), {new filesystem::HostFile(path)}})
+                     .first;
         } else {
             LOG_WARN(
                 Services,

@@ -9,13 +9,12 @@ struct ToolbarItems: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
             Button("Add Game Path", systemImage: "plus") {
-                isFilePickerPresented.toggle()
+                self.isFilePickerPresented = true
             }
-            // TODO: change allowedContentTypes to nsp etc
             .fileImporter(
-                isPresented: $isFilePickerPresented,
+                isPresented: self.$isFilePickerPresented,
                 allowedContentTypes: [.folder, self.switchType],
-                allowsMultipleSelection: false
+                allowsMultipleSelection: true
             ) { result in
                 switch result {
                 case .success(let fileURLs):
@@ -26,7 +25,6 @@ struct ToolbarItems: ToolbarContent {
 
                         hydraConfigSerialize()
                     }
-
                 case .failure(let error):
                     print(error)
                 }
