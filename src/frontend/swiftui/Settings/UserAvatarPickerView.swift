@@ -38,7 +38,11 @@ struct UserAvatarPickerView: View {
                 ) { result in
                     switch result {
                     case .success(let fileURLs):
-                        self.avatarPath = fileURLs.first?.path ?? ""
+                        let path = fileURLs.first?.path ?? ""
+                        self.avatarPath = path
+                        if !self.avatarPaths.contains(path) {
+                            self.avatarPaths.append(path)
+                        }
                     case .failure(let error):
                         print(error)
                     }

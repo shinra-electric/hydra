@@ -11,7 +11,7 @@ struct UserEditorView: View {
     @State private var avatarPath: String = ""
 
     var body: some View {
-        HStack {
+        VStack {
             ZStack {
                 Rectangle()
                     .fill(
@@ -33,7 +33,15 @@ struct UserEditorView: View {
                 }
             }
             .frame(maxWidth: 128, maxHeight: 128)  // TODO: don't hardcode?
-            Text(self.nickname)
+            TextField(
+                "Nickname",
+                text: self.$nickname
+            )
+            .disableAutocorrection(true)
+            .onSubmit {
+                var user = self.user
+                user.nickname = self.nickname
+            }
         }
         .sheet(isPresented: self.$showAvatarEditor) {
             // Title bar
