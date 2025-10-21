@@ -13,14 +13,14 @@ void try_install_firmware_to_filesystem(filesystem::Filesystem& fs) {
         return;
     }
 
-    std::map<u64, std::string> firmware_titles_map = {
-        {0x010000000000080a, "AvatarImage"},
-        {0x010000000000080e, "TimeZoneBinary"},
-        {0x0100000000000810, "FontNintendoExtension"},
-        {0x0100000000000811, "FontStandard"},
-        {0x0100000000000812, "FontKorean"},
-        {0x0100000000000813, "FontChineseTraditional"},
-        {0x0100000000000814, "FontChineseSimple"},
+    std::map<std::string, std::string> firmware_titles_map = {
+        {"010000000000080a/data", "AvatarImage"},
+        {"010000000000080e/data", "TimeZoneBinary"},
+        {"0100000000000810/data", "FontNintendoExtension"},
+        {"0100000000000811/data", "FontStandard"},
+        {"0100000000000812/data", "FontKorean"},
+        {"0100000000000813/data", "FontChineseTraditional"},
+        {"0100000000000814/data", "FontChineseSimple"},
     };
 
     // Iterate over the directory
@@ -28,24 +28,21 @@ void try_install_firmware_to_filesystem(filesystem::Filesystem& fs) {
          std::filesystem::directory_iterator(firmware_path)) {
         auto file = new horizon::filesystem::HostFile(entry.path().string());
         horizon::filesystem::ContentArchive content_archive(file);
-        // TODO: find a better way to handle this
-        if (content_archive.GetContentType() ==
-            horizon::filesystem::ContentArchiveContentType::Meta)
-            continue;
 
-        auto res = fs.AddEntry(fmt::format(FS_FIRMWARE_PATH "/{:016x}",
-                                           content_archive.GetTitleID()),
+        auto res = fs.AddEntry(fmt::format(FS_FIRMWARE_PATH "/{:016x}/{}",
+                                           content_archive.GetTitleID(),
+                                           content_archive.GetContentType()),
                                file, true);
         ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-               "Failed to add firmware entry: {}", res);
+               "Failed to add firmware entry {:016x}: {}",
+               content_archive.GetTitleID(), res);
     }
 
-    for (const auto& [title_id, filename] : firmware_titles_map) {
+    for (const auto& [path, filename] : firmware_titles_map) {
         filesystem::FileBase* file;
-        auto res = fs.GetFile(
-            fmt::format(FS_FIRMWARE_PATH "/{:016x}", title_id), file);
+        auto res = fs.GetFile(fmt::format(FS_FIRMWARE_PATH "/{}", path), file);
         ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
-               "Failed to get firmware entry {:016x}: {}", title_id, res);
+               "Failed to get firmware entry {}: {}", path, res);
 
         res = fs.AddEntry(fmt::format(FS_FIRMWARE_PATH "/{}", filename), file,
                           true);

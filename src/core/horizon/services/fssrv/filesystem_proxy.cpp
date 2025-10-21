@@ -162,6 +162,16 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
 
     filesystem::FileBase* file;
     switch (storage_id.Get()) {
+    case ncm::StorageID::BuiltInSystem: {
+        // TODO: correct?
+        const auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(
+            fmt::format(FS_FIRMWARE_PATH "/{:016x}/public data", data_id),
+            file);
+        ASSERT(res == filesystem::FsResult::Success, Services,
+               "Failed to get built-in system data storage {:016x}: {}",
+               data_id, res);
+        break;
+    }
     default:
         LOG_NOT_IMPLEMENTED(Services, "Storage ID {} (data ID: 0x{:016x})",
                             storage_id.Get(), data_id);

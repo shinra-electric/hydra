@@ -28,3 +28,8 @@ class ContentArchive final : public Directory {
 };
 
 } // namespace hydra::horizon::filesystem
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::ContentArchiveContentType,
+                       Program, "program", Meta, "meta", Control, "control",
+                       Manual, "manual", Data, "data", PublicData,
+                       "public data")
