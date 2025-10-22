@@ -15,14 +15,16 @@ namespace {
 
 std::string get_save_data_mount(kernel::Process* process,
                                 const SaveDataAttribute& attr) {
+    u64 title_id = attr.title_id;
+    // TODO: is this correct?
+    if (title_id == 0x0)
+        title_id = process->GetTitleID();
+
     switch (attr.type) {
-    case SaveDataType::Account: {
-        u64 title_id = attr.title_id;
-        // TODO: is this correct?
-        if (title_id == 0x0)
-            title_id = process->GetTitleID();
-        return FS_SAVE_DATA_PATH(title_id, attr.user_id);
-    }
+    case SaveDataType::Account:
+        return FS_USER_SAVE_DATA_PATH(title_id, attr.user_id);
+    case SaveDataType::Device:
+        return FS_SHARED_SAVE_DATA_PATH(title_id);
     case SaveDataType::Cache:
         return FS_CACHE_MOUNT;
     default:
