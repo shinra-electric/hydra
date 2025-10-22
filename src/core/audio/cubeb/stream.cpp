@@ -87,7 +87,7 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
         if (self->pos_in_buffer * sizeof(i16) >= buffer.GetSize()) {
             self->buffer_queue.pop();
             self->pos_in_buffer = 0;
-            self->buffer_finished_callback((buffer_id_t)buffer.GetPtr());
+            self->buffer_finished_callback(buffer_id);
         }
 
         output[i] = sample;
