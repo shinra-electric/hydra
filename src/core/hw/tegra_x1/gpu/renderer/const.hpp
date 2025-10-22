@@ -274,9 +274,9 @@ struct SamplerDescriptor {
     SamplerFilter min_filter;
     SamplerFilter mag_filter;
     SamplerMipFilter mip_filter;
-    SamplerAddressMode address_mode_r;
     SamplerAddressMode address_mode_s;
     SamplerAddressMode address_mode_t;
+    SamplerAddressMode address_mode_r;
     // TODO: more
 };
 

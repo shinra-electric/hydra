@@ -18,11 +18,11 @@ u64 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
     hash = std::rotl(hash, 2);
     hash += (u64)descriptor.mip_filter;
     hash = std::rotl(hash, 2);
-    hash += (u64)descriptor.address_mode_r;
-    hash = std::rotl(hash, 3);
     hash += (u64)descriptor.address_mode_s;
     hash = std::rotl(hash, 3);
     hash += (u64)descriptor.address_mode_t;
+    hash = std::rotl(hash, 3);
+    hash += (u64)descriptor.address_mode_r;
     hash = std::rotl(hash, 3);
 
     return hash;

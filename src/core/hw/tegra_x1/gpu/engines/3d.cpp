@@ -471,11 +471,11 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
         .min_filter = static_cast<renderer::SamplerFilter>(tsc.min_filter),
         .mag_filter = static_cast<renderer::SamplerFilter>(tsc.mag_filter),
         .mip_filter = static_cast<renderer::SamplerMipFilter>(tsc.mip_filter),
-        .address_mode_r =
-            static_cast<renderer::SamplerAddressMode>(tsc.address_u),
         .address_mode_s =
-            static_cast<renderer::SamplerAddressMode>(tsc.address_v),
+            static_cast<renderer::SamplerAddressMode>(tsc.address_u),
         .address_mode_t =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_v),
+        .address_mode_r =
             static_cast<renderer::SamplerAddressMode>(tsc.address_p),
     };
 
