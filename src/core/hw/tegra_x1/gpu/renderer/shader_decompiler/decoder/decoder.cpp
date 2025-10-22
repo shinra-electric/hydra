@@ -1115,14 +1115,32 @@ void Decoder::ParseNextInstruction() {
     INST(0x5ca8000000000000, 0xfff8000000000000) {
         const auto dst_type = get_operand_5cb0_0(inst);
         const auto src_type = get_operand_5cb8_0(inst);
-        // TODO: 5ca8_0
+        const auto mode = get_operand_5ca8_0(inst);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(20);
-        COMMENT("f2f {} {} {} {}", dst_type, src_type, dst, src);
+        COMMENT("f2f {} {} {} {} {}", dst_type, src_type, mode, dst, src);
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto res = BUILDER.OpCast(ir::Value::Register(src, src_type), dst_type);
+        auto src_v = ir::Value::Register(src, src_type);
+        switch (mode) {
+        case IntegerRoundMode::Round:
+            src_v = BUILDER.OpRound(src_v);
+            break;
+        case IntegerRoundMode::Floor:
+            src_v = BUILDER.OpFloor(src_v);
+            break;
+        case IntegerRoundMode::Ceil:
+            src_v = BUILDER.OpCeil(src_v);
+            break;
+        case IntegerRoundMode::Trunc:
+            src_v = BUILDER.OpTrunc(src_v);
+            break;
+        default:
+            break;
+        }
+
+        auto res = BUILDER.OpCast(src_v, dst_type);
         BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
 
         HANDLE_PRED_COND_END();
@@ -1183,7 +1201,9 @@ void Decoder::ParseNextInstruction() {
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx {} {} {} {}", dst, srcA, srcB, pred);
+        const bool pred_not = GET_BIT(42);
+        COMMENT("fmnmx {} {} {} {}{}", dst, srcA, srcB, (pred_not ? "!" : ""),
+                pred);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -1191,8 +1211,8 @@ void Decoder::ParseNextInstruction() {
         auto srcB_v = ir::Value::Register(srcB, DataType::F32);
         auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
         auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
-                                    min_v); // TODO: correct?
+        auto res = BUILDER.OpSelect(
+            NEG_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();
@@ -1715,8 +1735,10 @@ void Decoder::ParseNextInstruction() {
         const auto negB = GET_BIT(45);
         const auto srcB = GET_CMEM(34, 14);
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx {} {}{} {}c{}[0x{:x}] {}", dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB.idx, srcB.imm, pred);
+        const bool pred_not = GET_BIT(42);
+        COMMENT("fmnmx {} {}{} {}c{}[0x{:x}] {}{}", dst, (negA ? "-" : ""),
+                srcA, (negB ? "-" : ""), srcB.idx, srcB.imm,
+                (pred_not ? "!" : ""), pred);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -1724,8 +1746,8 @@ void Decoder::ParseNextInstruction() {
         auto srcB_v = NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB);
         auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
         auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
-                                    min_v); // TODO: correct?
+        auto res = BUILDER.OpSelect(
+            NEG_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();
@@ -2023,7 +2045,9 @@ void Decoder::ParseNextInstruction() {
         const auto srcA = GET_REG(8);
         const auto srcB = GET_VALUE_F32();
         const auto pred = GET_PRED(39);
-        COMMENT("fmnmx {} {} 0x{:08x} {}", dst, srcA, srcB, pred);
+        const bool pred_not = GET_BIT(42);
+        COMMENT("fmnmx {} {} 0x{:08x} {}{}", dst, srcA, srcB,
+                (pred_not ? "!" : ""), pred);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -2031,8 +2055,8 @@ void Decoder::ParseNextInstruction() {
         auto srcB_v = ir::Value::Immediate(srcB, DataType::F32);
         auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
         auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred), max_v,
-                                    min_v); // TODO: correct?
+        auto res = BUILDER.OpSelect(
+            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();

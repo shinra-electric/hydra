@@ -80,6 +80,10 @@ class Emitter {
     virtual void EmitEndIf() = 0;
 
     // Math
+    virtual void EmitRound(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitFloor(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitCeil(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitTrunc(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitMin(const ir::Value& dst, const ir::Value& srcA,
                          const ir::Value& srcB) = 0;
     virtual void EmitMax(const ir::Value& dst, const ir::Value& srcA,

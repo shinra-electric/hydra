@@ -68,6 +68,10 @@ class LangEmitter : public Emitter {
     void EmitEndIf() override;
 
     // Math
+    void EmitRound(const ir::Value& dst, const ir::Value& src) override;
+    void EmitFloor(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCeil(const ir::Value& dst, const ir::Value& src) override;
+    void EmitTrunc(const ir::Value& dst, const ir::Value& src) override;
     void EmitMin(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitMax(const ir::Value& dst, const ir::Value& srcA,

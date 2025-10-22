@@ -68,6 +68,18 @@ class Builder {
     void OpEndIf() { AddInstructionWithDst(Opcode::EndIf); }
 
     // Math
+    Value OpRound(const Value& src) {
+        return AddInstruction(Opcode::Round, {src});
+    }
+    Value OpFloor(const Value& src) {
+        return AddInstruction(Opcode::Floor, {src});
+    }
+    Value OpCeil(const Value& src) {
+        return AddInstruction(Opcode::Ceil, {src});
+    }
+    Value OpTrunc(const Value& src) {
+        return AddInstruction(Opcode::Trunc, {src});
+    }
     Value OpMin(const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::Min, {srcA, srcB});
     }

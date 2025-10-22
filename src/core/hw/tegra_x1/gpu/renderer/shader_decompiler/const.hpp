@@ -212,6 +212,16 @@ enum class ComponentMask {
     RGBA,
 };
 
+enum class IntegerRoundMode {
+    Invalid,
+
+    Pass,
+    Round,
+    Floor,
+    Ceil,
+    Trunc,
+};
+
 enum class IpaOp {
     Invalid,
 
@@ -369,6 +379,11 @@ ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComponentMask, Invalid,
     "invalid", R, "r", G, "g", B, "b", A, "a", RG, "rg", RA, "ra", GA, "ga", BA,
     "ba", RGB, "rgb", RGA, "rga", RBA, "rba", GBA, "gba", RGBA, "rgba")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IntegerRoundMode,
+    Invalid, "invalid", Pass, "pass", Round, "round", Floor, "floor", Ceil,
+    "ceil", Trunc, "trunc")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",

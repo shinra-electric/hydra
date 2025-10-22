@@ -284,6 +284,7 @@ void LangEmitter::EmitNode(const ir::Function& func,
     }
 }
 
+// Basic
 void LangEmitter::EmitCopy(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "{}", GetValueStr(src));
 }
@@ -346,6 +347,7 @@ void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,
                GetValueStr(src_false));
 }
 
+// Control flow
 void LangEmitter::EmitBranch(label_t target) {
     LOG_FATAL(ShaderDecompiler, "Should not happen");
 }
@@ -361,6 +363,23 @@ void LangEmitter::EmitBeginIf(const ir::Value& cond) {
 }
 
 void LangEmitter::EmitEndIf() { ExitScopeEmpty(); }
+
+// Math
+void LangEmitter::EmitRound(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "round({})", GetValueStr(src));
+}
+
+void LangEmitter::EmitFloor(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "floor({})", GetValueStr(src));
+}
+
+void LangEmitter::EmitCeil(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "ceil({})", GetValueStr(src));
+}
+
+void LangEmitter::EmitTrunc(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "trunc({})", GetValueStr(src));
+}
 
 void LangEmitter::EmitMin(const ir::Value& dst, const ir::Value& srcA,
                           const ir::Value& srcB) {
@@ -383,6 +402,7 @@ void LangEmitter::EmitMathFunction(const ir::Value& dst, MathFunc func,
     StoreValue(dst, "({}({}))", GetMathFuncStr(func), GetValueStr(src));
 }
 
+// Vector
 void LangEmitter::EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
                                     u32 index) {
     StoreValue(dst, "({}.{})", GetValueStr(src),
@@ -406,6 +426,7 @@ void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
     StoreValue(dst, "vec<{}, {}>({})", data_type, elements.size(), str);
 }
 
+// Special
 void LangEmitter::EmitExit() {
     // Outputs
     switch (context.type) {

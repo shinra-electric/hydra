@@ -124,4 +124,10 @@ DEFINE_OPERAND_TABLE(d200_2_00, ComponentMask, 0x001c000000000000,
                      0x0008000000000000, RBA, 0x000c000000000000, GBA,
                      0x0010000000000000, RGBA)
 
+// TODO: is there Pass twice?
+DEFINE_OPERAND_TABLE(5ca8_0, IntegerRoundMode, 0x0000058000000000,
+                     0x0000000000000000, Pass, 0x0000018000000000, Pass,
+                     0x0000040000000000, Round, 0x0000048000000000, Floor,
+                     0x0000050000000000, Ceil, 0x0000058000000000, Trunc)
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

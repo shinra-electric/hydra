@@ -26,6 +26,10 @@ enum class Opcode {
     EndIf,
 
     // Math
+    Round,
+    Floor,
+    Ceil,
+    Trunc,
     Min,
     Max,
     Clamp,

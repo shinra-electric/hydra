@@ -75,6 +75,18 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         break;
 
     // Math
+    case ir::Opcode::Round:
+        EmitRound(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Floor:
+        EmitFloor(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Ceil:
+        EmitCeil(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Trunc:
+        EmitTrunc(inst.GetDst(), inst.GetOperand(0));
+        break;
     case ir::Opcode::Min:
         EmitMin(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
