@@ -1212,7 +1212,7 @@ void Decoder::ParseNextInstruction() {
         auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
         auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
         auto res = BUILDER.OpSelect(
-            NEG_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
+            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();
@@ -1747,7 +1747,7 @@ void Decoder::ParseNextInstruction() {
         auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
         auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
         auto res = BUILDER.OpSelect(
-            NEG_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
+            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();
