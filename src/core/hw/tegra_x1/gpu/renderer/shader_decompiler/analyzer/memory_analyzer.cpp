@@ -65,16 +65,14 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
 void MemoryAnalyzer::HandleAMemLoad(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
-                 "Indexing not implemented (src: r{})", amem.reg);
+                 "Indexing not implemented (src: {})", amem.reg);
     push_sv(input_svs, stage_inputs, amem.imm);
 }
 
 void MemoryAnalyzer::HandleCMemLoad(const CMem cmem) {
-    if (cmem.reg != RZ) {
-        LOG_WARN(ShaderDecompiler, "Indexing not implemented (src: r{})",
+    if (cmem.reg != RZ)
+        LOG_WARN(ShaderDecompiler, "Indexing not implemented (src: {})",
                  cmem.reg);
-        return;
-    }
 
     auto& size = uniform_buffers[cmem.idx];
     size = std::max(size, static_cast<usize>(cmem.imm) + sizeof(u32));
@@ -83,7 +81,7 @@ void MemoryAnalyzer::HandleCMemLoad(const CMem cmem) {
 void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
     // TODO: support indexing with src
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
-                 "Indexing not implemented (src: r{})", amem.reg);
+                 "Indexing not implemented (src: {})", amem.reg);
     push_sv(output_svs, stage_outputs, amem.imm);
 }
 

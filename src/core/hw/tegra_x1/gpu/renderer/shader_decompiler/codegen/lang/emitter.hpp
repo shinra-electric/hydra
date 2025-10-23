@@ -208,16 +208,17 @@ class LangEmitter : public Emitter {
 
     std::string GetAttrMemoryStr(const AMem amem,
                                  DataType data_type = DataType::U32) {
-        return fmt::format("a_{}[{} + 0x{:08x}].{}",
-                           (amem.is_input ? "in" : "out"),
-                           GetRegisterStr(amem.reg), amem.imm / sizeof(u32),
-                           GetTypeSuffixStr(data_type));
+        // TODO: what about unaligned access?
+        return fmt::format(
+            "a_{}[({} + 0x{:08x}) >> 2].{}", (amem.is_input ? "in" : "out"),
+            GetRegisterStr(amem.reg), amem.imm, GetTypeSuffixStr(data_type));
     }
 
     std::string GetConstMemoryStr(const CMem cmem,
                                   DataType data_type = DataType::U32) {
-        return fmt::format("c[{}][{} + 0x{:08x}].{}", cmem.idx,
-                           GetRegisterStr(cmem.reg), cmem.imm / sizeof(u32),
+        // TODO: what about unaligned access?
+        return fmt::format("c[{}][({} + 0x{:08x}) >> 2].{}", cmem.idx,
+                           GetRegisterStr(cmem.reg), cmem.imm,
                            GetTypeSuffixStr(data_type));
     }
 

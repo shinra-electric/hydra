@@ -61,7 +61,7 @@ void Decoder::ParseNextInstruction() {
 // TODO: correct?
 #define GET_VALUE_F16(b) ((GET_VALUE_U32(b, 9)) << 6)
 
-    // TODO: correct?
+// TODO: correct?
 #define GET_VALUE_F32() ((GET_BIT(56) << 31) | (GET_VALUE_U32(20, 19) << 12))
 
 #define GET_BIT(b) extract_bits<u32, b, 1>(inst)
@@ -78,7 +78,6 @@ void Decoder::ParseNextInstruction() {
 #define GET_AMEM_IDX(b, is_input)                                              \
     AMem { GET_REG(8), extract_bits<u32, b, 10>(inst), is_input }
 
-// HACK: why multiply by 4?
 #define GET_CMEM(b_idx, count_imm)                                             \
     CMem {                                                                     \
         GET_VALUE_U32(b_idx, 5), RZ,                                           \
@@ -242,13 +241,25 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("membar");
     }
     INST(0xef90000000000000, 0xfff8000000000000) {
+        const auto addr_mode = get_operand_ef90_0(inst);
+        const auto size = get_operand_ef90sz(inst);
         const auto dst = GET_REG(0);
-        const auto src = GET_CMEM_R(36, 8, 16);
-        COMMENT("ld {} c{}[{} + 0x{:x}]", dst, src.idx, src.reg, src.imm);
+        auto src = GET_CMEM_R(36, 8, 16);
+        COMMENT("ld {} {} {} c{}[{} + 0x{:x}]", dst, addr_mode, size, src.idx,
+                src.reg, src.imm);
 
         HANDLE_PRED_COND_BEGIN();
 
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
+        // HACK
+        src.imm /= 4;
+
+        // TODO: address mode
+
+        for (u32 i = 0; i < get_load_store_count(size); i++) {
+            BUILDER.OpCopy(ir::Value::Register(dst + i),
+                           ir::Value::ConstMemory(src));
+            src.imm += sizeof(u32);
+        }
 
         HANDLE_PRED_COND_END();
     }
@@ -1097,17 +1108,34 @@ void Decoder::ParseNextInstruction() {
     INST(0x5cb0000000000000, 0xfff8000000000000) {
         const auto dst_type = get_operand_5cb0_2(inst);
         const auto src_type = get_operand_5cb0_0(inst);
-        // TODO: 5cb0_1
+        const auto mode = get_operand_5cb0_1(inst);
         const auto dst = GET_REG(0);
         const auto neg = GET_BIT(45);
         const auto src = GET_REG(20);
-        COMMENT("f2i {} {} {} {}{}", dst_type, src_type, dst, neg ? "-" : "",
-                src);
+        COMMENT("f2i {} {} {} {} {}{}", dst_type, src_type, mode, dst,
+                neg ? "-" : "", src);
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto res = BUILDER.OpCast(
-            NEG_IF(ir::Value::Register(src, src_type), neg), dst_type);
+        // TODO: negate before or after?
+        auto src_v = NEG_IF(ir::Value::Register(src, src_type), neg);
+        switch (mode) {
+        case IntegerRoundMode::Round:
+            unreachable();
+        case IntegerRoundMode::Floor:
+            src_v = BUILDER.OpFloor(src_v);
+            break;
+        case IntegerRoundMode::Ceil:
+            src_v = BUILDER.OpCeil(src_v);
+            break;
+        case IntegerRoundMode::Trunc:
+            src_v = BUILDER.OpTrunc(src_v);
+            break;
+        default:
+            break;
+        }
+
+        auto res = BUILDER.OpCast(src_v, dst_type);
         BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
 
         HANDLE_PRED_COND_END();

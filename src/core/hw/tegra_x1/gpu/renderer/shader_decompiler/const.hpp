@@ -222,6 +222,14 @@ enum class IntegerRoundMode {
     Trunc,
 };
 
+enum class AddressMode {
+    Invalid,
+
+    Il,
+    Is,
+    Isl,
+};
+
 enum class IpaOp {
     Invalid,
 
@@ -384,6 +392,10 @@ ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IntegerRoundMode,
     Invalid, "invalid", Pass, "pass", Round, "round", Floor, "floor", Ceil,
     "ceil", Trunc, "trunc")
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AddressMode, Invalid,
+    "invalid", Il, "il", Is, "is", Isl, "isl")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",
