@@ -19,8 +19,7 @@ CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
         return nullptr;
     }
 
-    // Replace all jumps to the target with a continue statement and
-    // jumps to merge block with a break statement
+    // Remove all jumps to the merge block
     block->Walk([=](CfgBasicBlock* b) {
         switch (b->edge.type) {
         case CfgBlockEdgeType::Branch:
@@ -49,7 +48,7 @@ CfgBasicBlock* TransformIfElse(CfgBasicBlock* block) {
         default:
             break;
         }
-        if (b == merge_block)
+        if (b->IsSameAs(merge_block))
             b->edge.type = CfgBlockEdgeType::None;
 
         return true;
@@ -105,7 +104,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
         auto target = block->edge.branch.target;
         bool is_loop = false;
         target->Walk([&is_loop, block](CfgBasicBlock* b) {
-            if (b == block) {
+            if (b->IsSameAs(block)) {
                 is_loop = true;
                 return false;
             }
@@ -149,7 +148,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
 
         bool is_loop = false;
         block_true->Walk([&is_loop, block](CfgBasicBlock* b) {
-            if (b == block) {
+            if (b->IsSameAs(block)) {
                 is_loop = true;
                 return false;
             }
@@ -161,7 +160,7 @@ CfgNode* ResolveBlockImpl(const CfgBasicBlock* block) {
             // Check the false branch as well
             block_false->Walk([&is_loop, /*&pred_cond, */ &block_true,
                                &block_false, block](CfgBasicBlock* b) {
-                if (b == block) {
+                if (b->IsSameAs(block)) {
                     is_loop = true;
 
                     // TODO: implement

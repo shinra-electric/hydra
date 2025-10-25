@@ -66,6 +66,9 @@ struct CfgBasicBlock {
     label_t label;
     CfgBlockEdge edge;
 
+    bool visited{false};
+
+    // TODO: this function is horrible...
     CfgBasicBlock* Clone() const {
         auto clone = new CfgBasicBlock(*this);
         clone->Walk([](CfgBasicBlock* b) {
@@ -113,9 +116,11 @@ struct CfgBasicBlock {
         }
     }
 
-    void Walk(std::function<bool(CfgBasicBlock*)> visitor) {
-        std::vector<CfgBasicBlock*> visited;
-        WalkImpl(visitor, visited);
+    void Walk(const std::function<bool(CfgBasicBlock*)>& visitor) {
+        WalkImpl(visitor);
+
+        // Mark all nodes as not visited
+        MarkNotVisited();
     }
 
     bool CanJumpTo(const CfgBasicBlock* target) {
@@ -184,24 +189,74 @@ struct CfgBasicBlock {
         }
     }
 
+    void WriteToDot(std::ostream& os) {
+        fmt::print(os, "digraph CFG {{\n");
+        fmt::print(os, "    node [shape=box];\n");
+        fmt::print(os, "    edge [arrowhead=normal];\n");
+
+        Walk([&os](CfgBasicBlock* b) {
+            fmt::print(os, "    {} [label=\"{:x}\"];\n", b->label,
+                       u32(b->label));
+            switch (b->edge.type) {
+            case CfgBlockEdgeType::Branch:
+                fmt::print(os, "    {} -> {} [label=\"\"];\n", b->label,
+                           b->edge.branch.target->label);
+                break;
+            case CfgBlockEdgeType::BranchConditional:
+                fmt::print(os, "    {} -> {} [label=\"true\"];\n", b->label,
+                           b->edge.branch_conditional.target_true->label);
+                fmt::print(os, "    {} -> {} [label=\"false\"];\n", b->label,
+                           b->edge.branch_conditional.target_false->label);
+                break;
+            default:
+                break;
+            }
+
+            return true;
+        });
+
+        fmt::print(os, "}}\n");
+    }
+
   private:
-    void WalkImpl(std::function<bool(CfgBasicBlock*)> visitor,
-                  std::vector<CfgBasicBlock*>& visited) {
-        if (std::find(visited.begin(), visited.end(), this) != visited.end())
-            return;
+    bool WalkImpl(const std::function<bool(CfgBasicBlock*)>& visitor) {
+        if (visited)
+            return true;
 
-        visited.push_back(this);
-
-        if (!visitor(this))
-            return;
+        visited = true;
 
         switch (edge.type) {
         case CfgBlockEdgeType::Branch:
-            edge.branch.target->WalkImpl(visitor, visited);
+            if (!edge.branch.target->WalkImpl(visitor))
+                return false;
             break;
         case CfgBlockEdgeType::BranchConditional:
-            edge.branch_conditional.target_true->WalkImpl(visitor, visited);
-            edge.branch_conditional.target_false->WalkImpl(visitor, visited);
+            if (!edge.branch_conditional.target_true->WalkImpl(visitor))
+                return false;
+            if (!edge.branch_conditional.target_false->WalkImpl(visitor))
+                return false;
+            break;
+        default:
+            break;
+        }
+
+        // TODO: do before visiting children?
+        return visitor(this);
+    }
+
+    void MarkNotVisited() {
+        if (!visited)
+            return;
+
+        visited = false;
+
+        switch (edge.type) {
+        case CfgBlockEdgeType::Branch:
+            edge.branch.target->MarkNotVisited();
+            break;
+        case CfgBlockEdgeType::BranchConditional:
+            edge.branch_conditional.target_true->MarkNotVisited();
+            edge.branch_conditional.target_false->MarkNotVisited();
             break;
         default:
             break;
