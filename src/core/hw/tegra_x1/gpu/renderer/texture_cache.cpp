@@ -5,9 +5,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-// HACK
-bool g_uses_gpu = false;
-
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureCache::~TextureCache() {
@@ -23,13 +20,14 @@ TextureCache::~TextureCache() {
     */
 }
 
-TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor) {
+TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor,
+                                          TextureUsage usage) {
     auto& texture_mem = texture_mem_map[descriptor.ptr];
     auto& tex = texture_mem.cache.Find(GetTextureHash(descriptor));
     if (!tex.base)
-        tex.base = Create(descriptor);
+        Create(descriptor, tex, texture_mem.info);
 
-    Update(tex, texture_mem.last_modified);
+    Update(tex, texture_mem.info, usage);
 
     // If the formats match and swizzle is the default swizzle, return base
     if (descriptor.format == tex.base->GetDescriptor().format &&
@@ -58,52 +56,62 @@ void TextureCache::NotifyGuestModifiedData(const range<uptr> mem_range) {
     if (it == texture_mem_map.end())
         return;
 
-    it->second.MarkModified();
+    it->second.info.MarkModified();
 }
 
-TextureBase* TextureCache::Create(const TextureDescriptor& descriptor) {
+void TextureCache::Create(const TextureDescriptor& descriptor, Tex& tex,
+                          TextureMemInfo& info) {
     auto desc = descriptor;
     desc.swizzle_channels =
         get_texture_format_default_swizzle_channels(desc.format);
-    auto texture = RENDERER_INSTANCE.CreateTexture(desc);
-    DecodeTexture(texture);
-
-    return texture;
+    tex.base = RENDERER_INSTANCE.CreateTexture(desc);
+    DecodeTexture(tex, info);
 }
 
-void TextureCache::Update(Tex& tex, const ModifyInfo& mem_last_modified) {
-    bool force_upload = false;
+void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
+    bool sync = false;
+    bool update_data_hash = true;
+    if (tex.cpu_sync_timestamp < info.modified_timestamp) {
+        // If modified by the guest
+        sync = true;
+    } else if (tex.data_hash != info.data_hash.hash) {
+        // Data changed, but this texture hasn't been updated yet
+        sync = true;
+    } else if (info.written_timestamp == TextureCacheTimePoint{}) {
+        // Never written to
+        if (usage == TextureUsage::Present) {
+            // Presenting, but never written to
+            sync = true;
+        } else if (usage == TextureUsage::Read) {
+            // Read, but never written to
 
-    // HACK: if homebrew
-    if (/*KERNEL_INSTANCE.GetTitleID() == 0xffffffffffffffff && */
-        !g_uses_gpu) {
-        force_upload = true;
-        ONCE(LOG_WARN(
-            Gpu, "Homebrew framebuffer API detected, forcing texture upload"));
+            // Check if the data hash needs to be checked
+            auto& data_hash = info.data_hash;
+            if (data_hash.ShouldCheck()) {
+                u64 data_hash = GetTextureDataHash(tex.base);
+                if (data_hash != info.data_hash.hash) {
+                    sync = true;
+                    update_data_hash = false;
+                    info.data_hash.Update(data_hash);
+                } else {
+                    info.data_hash.NotifyNotChanged();
+                }
+            } else if (data_hash.check_success_rate >=
+                       DataHash::MIN_SUCCESS_RATE) {
+                // If there is a high chance that the data has changed
+                sync = true;
+                update_data_hash = false;
+            }
+        }
     }
 
-    /*
-    // HACK: if Sonic Mania
-    if (KERNEL_INSTANCE.GetTitleID() == 0x01009aa000faa000 &&
-        tex.base->GetDescriptor().width == 512 &&
-        tex.base->GetDescriptor().height == 256) {
-        force_upload = true;
-        ONCE(LOG_WARN(Gpu, "Sonic Mania detected, forcing texture upload"));
-    }
+    if (sync)
+        DecodeTexture(tex, info, update_data_hash);
 
-    // HACK: if flog
-    if (KERNEL_INSTANCE.GetTitleID() == 0x01008bb00013c000 &&
-        tex.base->GetDescriptor().width == 3712 &&
-        tex.base->GetDescriptor().height == 2160) {
-        force_upload = true;
-        ONCE(LOG_WARN(Gpu, "Flog detected, forcing texture upload"));
-    }
-    */
-
-    if (tex.upload_timestamp < mem_last_modified.timestamp || force_upload) {
-        DecodeTexture(tex.base);
-        tex.upload_timestamp = get_absolute_time();
-    }
+    if (usage == TextureUsage::Read)
+        info.MarkRead();
+    else if (usage == TextureUsage::Write)
+        info.MarkWritten();
 }
 
 u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
@@ -125,15 +133,38 @@ u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     return hash;
 }
 
-void TextureCache::DecodeTexture(TextureBase* texture) {
-    // Align the height to 16 bytes (TODO: 16?)
+u64 TextureCache::GetTextureDataHash(const TextureBase* texture) {
+    constexpr u32 SAMPLE_COUNT = 37;
+
+    const auto& descriptor = texture->GetDescriptor();
+    u64 mem_range = descriptor.stride * descriptor.height;
+    u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
+
+    u64 hash = 0;
+    for (u64 offset = 0; offset < mem_range; offset += mem_step) {
+        hash += *reinterpret_cast<u64*>(descriptor.ptr + offset);
+        hash = std::rotl(hash, 7);
+    }
+
+    return hash;
+}
+
+void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,
+                                 bool update_data_hash) {
+    // Align the height to 16 bytes (TODO: why 16?)
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-        texture->GetDescriptor().stride *
-        align(texture->GetDescriptor().height, 16ull));
-    texture_decoder.Decode(texture->GetDescriptor(),
+        tex.base->GetDescriptor().stride *
+        align(tex.base->GetDescriptor().height, 16ull));
+    texture_decoder.Decode(tex.base->GetDescriptor(),
                            (u8*)tmp_buffer->GetDescriptor().ptr);
-    texture->CopyFrom(tmp_buffer);
+    tex.base->CopyFrom(tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
+
+    // Update metadata
+    tex.MarkCpuSynced();
+    if (update_data_hash)
+        info.data_hash.Update(GetTextureDataHash(tex.base));
+    tex.data_hash = info.data_hash.hash;
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

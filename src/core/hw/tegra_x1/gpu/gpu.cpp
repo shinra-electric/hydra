@@ -93,7 +93,8 @@ renderer::TextureBase* Gpu::GetTexture(cpu::IMmu* mmu,
         buff.planes[0].kind, buff.planes[0].width, buff.planes[0].height,
         buff.planes[0].block_height_log2, buff.planes[0].pitch);
 
-    return renderer->GetTextureCache().GetTextureView(descriptor);
+    return renderer->GetTextureCache().GetTextureView(
+        descriptor, renderer::TextureUsage::Present);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu

@@ -10,29 +10,75 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class TextureBase;
 
-struct ModifyInfo {
-    u64 timestamp;
-};
+typedef std::chrono::steady_clock TextureCacheClock;
+typedef TextureCacheClock::time_point TextureCacheTimePoint;
 
 struct Tex {
     TextureBase* base{nullptr};
     small_cache<u32, TextureBase*> view_cache;
-    u64 upload_timestamp{0};
+    TextureCacheTimePoint cpu_sync_timestamp{};
+    u64 data_hash{0};
+
+    void MarkCpuSynced() { cpu_sync_timestamp = TextureCacheClock::now(); }
+};
+
+struct DataHash {
+    static constexpr f32 MIN_SUCCESS_RATE = 0.2f;
+    static constexpr f32 MIX_AMOUNT = 0.1f;
+
+    u64 hash{0};
+    TextureCacheTimePoint updated_timestamp{};
+    f32 check_success_rate{MIN_SUCCESS_RATE};
+
+    bool ShouldCheck() const {
+        // The farther away the success rate is from MIN_SUCCESS_RATE, the
+        // longer the check interval
+        f32 amount;
+        if (check_success_rate >= MIN_SUCCESS_RATE)
+            amount = (check_success_rate - MIN_SUCCESS_RATE) /
+                     (1.0f - MIN_SUCCESS_RATE);
+        else
+            amount = (MIN_SUCCESS_RATE - check_success_rate) / MIN_SUCCESS_RATE;
+        f32 amount_squared = amount * amount;
+        std::chrono::milliseconds check_interval =
+            std::chrono::milliseconds(static_cast<i32>(amount_squared * 10000));
+
+        return TextureCacheClock::now() > updated_timestamp + check_interval;
+    }
+
+    void Update(u64 hash_) {
+        hash = hash_;
+        updated_timestamp = TextureCacheClock::now();
+        check_success_rate =
+            check_success_rate * (1.0f - MIX_AMOUNT) + MIX_AMOUNT;
+    }
+
+    void NotifyNotChanged() { check_success_rate *= 1.0f - MIX_AMOUNT; }
+};
+
+struct TextureMemInfo {
+    TextureCacheTimePoint modified_timestamp{};
+    TextureCacheTimePoint read_timestamp{};
+    TextureCacheTimePoint written_timestamp{};
+    DataHash data_hash{};
+
+    void MarkModified() { modified_timestamp = TextureCacheClock::now(); }
+    void MarkRead() { read_timestamp = TextureCacheClock::now(); }
+    void MarkWritten() { written_timestamp = TextureCacheClock::now(); }
 };
 
 struct TextureMem {
+    TextureMemInfo info;
     small_cache<u64, Tex> cache;
-    ModifyInfo last_modified{0};
-
-    void MarkModified() { last_modified = {get_absolute_time()}; }
 };
 
-// TODO: track Gpu modifications as well?
+// TODO: track GPU modifications as well?
 class TextureCache {
   public:
     ~TextureCache();
 
-    TextureBase* GetTextureView(const TextureDescriptor& descriptor);
+    TextureBase* GetTextureView(const TextureDescriptor& descriptor,
+                                TextureUsage usage);
 
     void NotifyGuestModifiedData(const range<uptr> mem_range);
 
@@ -42,12 +88,15 @@ class TextureCache {
     // TODO: use a more memory lookup friendly data structure
     std::map<uptr, TextureMem> texture_mem_map;
 
-    TextureBase* Create(const TextureDescriptor& descriptor);
-    void Update(Tex& tex, const ModifyInfo& mem_last_modified);
+    void Create(const TextureDescriptor& descriptor, Tex& tex,
+                TextureMemInfo& info);
+    void Update(Tex& tex, TextureMemInfo& info, TextureUsage usage);
 
     // Helpers
     u64 GetTextureHash(const TextureDescriptor& descriptor);
-    void DecodeTexture(TextureBase* texture);
+    u64 GetTextureDataHash(const TextureBase* texture);
+    void DecodeTexture(Tex& tex, TextureMemInfo& info,
+                       bool update_data_hash = true);
     // TODO: encode texture
 };
 

@@ -8,9 +8,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
-// HACK
-extern bool g_uses_gpu;
-
 namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
@@ -462,7 +459,8 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+        descriptor, renderer::TextureUsage::Read);
 }
 
 renderer::SamplerBase*
@@ -502,7 +500,8 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+        descriptor, renderer::TextureUsage::Write);
 }
 
 renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
@@ -521,7 +520,8 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+        descriptor, renderer::TextureUsage::Write);
 }
 
 renderer::RenderPassBase* ThreeD::GetRenderPass(GMmu& gmmu) const {
@@ -715,9 +715,6 @@ void ThreeD::ConfigureShaderStage(
 }
 
 bool ThreeD::DrawInternal(GMmu& gmmu) {
-    // HACK
-    g_uses_gpu = true;
-
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
         LOG_WARN(Engines, "Vertex B stage not enabled, skipping draw");
         return false;

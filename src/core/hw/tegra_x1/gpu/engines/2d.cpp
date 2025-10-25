@@ -13,8 +13,8 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
     pixels.src_y0.integer = pixels_from_memory_src_y0_int;
 
     // TODO: can these also not be textures?
-    auto src = GetTexture(gmmu, regs.src);
-    auto dst = GetTexture(gmmu, regs.dst);
+    auto src = GetTexture(gmmu, regs.src, renderer::TextureUsage::Read);
+    auto dst = GetTexture(gmmu, regs.dst, renderer::TextureUsage::Write);
 
     f64 dudx = f64(pixels.dudx);
     f64 dvdy = f64(pixels.dvdy);
@@ -31,7 +31,8 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
                   {pixels.dst_width, pixels.dst_height, 1});
 }
 
-renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info) {
+renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info,
+                                        renderer::TextureUsage usage) {
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(info.addr), renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
@@ -42,7 +43,8 @@ renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info) {
             renderer::to_texture_format(info.format), info.width) // HACK
     );
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor);
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor,
+                                                              usage);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::engines
