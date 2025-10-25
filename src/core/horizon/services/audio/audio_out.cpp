@@ -94,9 +94,14 @@ result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,
     std::unique_lock lock(buffer_mutex);
 
     *out_count = released_buffers.size();
-    for (const auto client_ptr : released_buffers)
-        out_buffers_writer.Write(client_ptr);
-    released_buffers.clear();
+
+    if (released_buffers.empty()) {
+        out_buffers_writer.Write<u64>(0);
+    } else {
+        for (const auto client_ptr : released_buffers)
+            out_buffers_writer.Write(client_ptr);
+        released_buffers.clear();
+    }
 
     return RESULT_SUCCESS;
 }
