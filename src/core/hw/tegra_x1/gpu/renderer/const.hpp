@@ -359,6 +359,12 @@ struct PipelineDescriptor {
 
 usize get_vertex_format_size(engines::VertexAttribSize size);
 
+enum class TextureUsage {
+    Read,
+    Write,
+    Present,
+};
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 ENABLE_ENUM_FORMATTING(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/engines/engine_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class TextureBase;
@@ -79,7 +80,8 @@ class TwoD : public EngineWithRegsBase<Regs2D> {
 
     // Helpers
     static renderer::TextureBase* GetTexture(GMmu& gmmu,
-                                             const Texture2DInfo& info);
+                                             const Texture2DInfo& info,
+                                             renderer::TextureUsage usage);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::engines
