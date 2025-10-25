@@ -65,7 +65,7 @@ void TextureCache::Create(const TextureDescriptor& descriptor, Tex& tex,
     desc.swizzle_channels =
         get_texture_format_default_swizzle_channels(desc.format);
     tex.base = RENDERER_INSTANCE.CreateTexture(desc);
-    DecodeTexture(tex, info, true);
+    DecodeTexture(tex, info);
 }
 
 void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
@@ -74,7 +74,7 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
     if (tex.cpu_sync_timestamp < info.modified_timestamp) {
         // If modified by the guest
         sync = true;
-    } else if (tex.data_hash != info.data_hash) {
+    } else if (tex.data_hash != info.data_hash.hash) {
         // Data changed, but this texture hasn't been updated yet
         sync = true;
     } else if (info.written_timestamp == TextureCacheTimePoint{}) {
@@ -86,31 +86,21 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
             // Read, but never written to
 
             // Check if the data hash needs to be checked
-            bool check = false;
-            switch (info.data_hash_check_strategy) {
-            case DataHashCheckStrategy::Always:
-                check = true;
-                break;
-            case DataHashCheckStrategy::OnceInAWhileOrIgnore:
-            case DataHashCheckStrategy::OnceInAWhileOrForceSync:
-                // Only check if it's been at least a certain time since the
-                // last check
-                check = (TextureCacheClock::now() >
-                         info.data_hash_updated_timestamp +
-                             std::chrono::seconds(1));
-                break;
-            }
-
-            if (check) {
+            auto& data_hash = info.data_hash;
+            if (data_hash.ShouldCheck()) {
                 u64 data_hash = GetTextureDataHash(tex.base);
-                if (data_hash != info.data_hash) {
+                if (data_hash != info.data_hash.hash) {
                     sync = true;
                     update_data_hash = false;
-                    info.UpdateDataHash(data_hash);
+                    info.data_hash.Update(data_hash);
+                } else {
+                    info.data_hash.NotifyNotChanged();
                 }
-            } else if (info.data_hash_check_strategy ==
-                       DataHashCheckStrategy::OnceInAWhileOrForceSync) {
+            } else if (data_hash.check_success_rate >=
+                       DataHash::MIN_SUCCESS_RATE) {
+                // If there is a high chance that the data has changed
                 sync = true;
+                update_data_hash = false;
             }
         }
     }
@@ -148,7 +138,7 @@ u64 TextureCache::GetTextureDataHash(const TextureBase* texture) {
 
     const auto& descriptor = texture->GetDescriptor();
     u64 mem_range = descriptor.stride * descriptor.height;
-    u64 mem_step = mem_range / SAMPLE_COUNT;
+    u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
 
     u64 hash = 0;
     for (u64 offset = 0; offset < mem_range; offset += mem_step) {
@@ -173,8 +163,8 @@ void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,
     // Update metadata
     tex.MarkCpuSynced();
     if (update_data_hash)
-        info.UpdateDataHash(GetTextureDataHash(tex.base));
-    tex.data_hash = info.data_hash;
+        info.data_hash.Update(GetTextureDataHash(tex.base));
+    tex.data_hash = info.data_hash.hash;
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer
