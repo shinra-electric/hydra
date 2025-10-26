@@ -18,6 +18,8 @@ class MslEmitter final : public LangEmitter {
     void EmitHeader() override;
     void EmitTypeAliases() override;
     void EmitDeclarations() override;
+    void EmitStateBindings() override;
+    void EmitStateBindingAssignments() override;
     void EmitMainPrototype() override;
     void EmitExitReturn() override;
 

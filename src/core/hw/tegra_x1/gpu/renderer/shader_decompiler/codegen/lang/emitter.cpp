@@ -2,7 +2,6 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/structurizer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
@@ -80,6 +79,18 @@ void LangEmitter::Start() {
     ExitScopeEmpty(true);
     WriteNewline();
 
+    // State
+    EnterScope("struct State");
+    Write("Reg r[256];");
+    Write("bool p[8];"); // TODO: is the size correct?
+    Write("Reg c[{}][0x40];",
+          CONST_BUFFER_BINDING_COUNT); // TODO: what should the size be?
+    Write("Reg a_in[0x200];");         // TODO: what should the size be?
+    Write("Reg a_out[0x200];");        // TODO: what should the size be?
+    EmitStateBindings();
+    ExitScopeEmpty(true);
+    WriteNewline();
+
     // Declarations
     EmitDeclarations();
 }
@@ -99,26 +110,8 @@ void LangEmitter::Finish() {
 }
 
 void LangEmitter::EmitMainFunctionPrologue() {
-    // Temporary
-    EnterScope("union");
-    Write("int4 i;");
-    Write("uint4 u;");
-    Write("float4 f;");
-    ExitScope("temp");
-    WriteNewline();
-
-    // Registers
-    Write("Reg r[256];");
-    WriteNewline();
-
-    // Predicates
-    Write("bool p[8];"); // TODO: is the size correct?
-    WriteNewline();
-
-    // Attribute memory
-    Write("Reg a_in[0x200];");  // TODO: what should the size be?
-    Write("Reg a_out[0x200];"); // TODO: what should the size be?
-    WriteNewline();
+    // State
+    WriteStatement("State state");
 
     // Inputs
     // TODO: these are provided in the shader header, no need for analysis
@@ -192,9 +185,6 @@ void LangEmitter::EmitMainFunctionPrologue() {
     WriteNewline();
 
     // Constant memory
-    Write("Reg c[{}][0x40];",
-          CONST_BUFFER_BINDING_COUNT); // TODO: what should the size be?
-    WriteNewline();
 
     // Uniform buffers
     for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
@@ -205,9 +195,25 @@ void LangEmitter::EmitMainFunctionPrologue() {
                            index, i);
     }
     WriteNewline();
+
+    EmitStateBindingAssignments();
 }
 
 void LangEmitter::EmitFunction(const ir::Function& func) {
+    // Block enum
+    EnterScope("enum class Block_{}", func.GetName());
+    Write("None = -1,");
+    for (const auto& [label, block] : func.GetBlocks()) {
+        Write("{} = {},", label, u32(label));
+    }
+    ExitScopeEmpty(true);
+    WriteNewline();
+
+    // Blocks
+    for (const auto& [_, block] : func.GetBlocks())
+        EmitBlock(func, block);
+
+    // Function
     // TODO: function name
     std::string name = "main";
     if (name == "main")
@@ -217,15 +223,84 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
                   "Custom functions not implemented (name: {})", name);
 
     // Structurize
+    /*
     analyzer::CfgBuilder cfg_builder;
     auto entry_block = cfg_builder.Build(func);
     auto entry_node = analyzer::Structurize(entry_block);
+    */
+
+    // Caller loop
+    WriteStatement("auto next = Block_{}::{}", func.GetName(), label_t(0x0));
+    EnterScope("while (next != Block_{}::None)", func.GetName());
+    EnterScope("switch (next)");
+    for (const auto& [label, block] : func.GetBlocks()) {
+        indent--;
+        Write("case Block_{}::{}:", func.GetName(), label);
+        indent++;
+        WriteStatement("next = func_{}(state)", label);
+        WriteStatement("break");
+    }
+    ExitScopeEmpty();
+    ExitScopeEmpty();
+    WriteNewline();
+
+    // Exit
+    // Outputs
+    switch (context.type) {
+    case ShaderType::Vertex:
+        // TODO: don't hardcode the bit cast type
+#define ADD_OUTPUT(sv_semantic, index, base, c)                                \
+    {                                                                          \
+        WriteStatement("{} = as_type<float>({})",                              \
+                       GetSvAccessQualifiedStr(                                \
+                           SvAccess(Sv(sv_semantic, index), c), true),         \
+                       GetAttrMemoryStr({RZ, base + c * 0x4, false}));         \
+    }
+#define ADD_OUTPUT_1(sv_semantic, index, base)                                 \
+    ADD_OUTPUT(sv_semantic, index, base, 0)
+#define ADD_OUTPUT_VEC4(sv_semantic, index, base)                              \
+    {                                                                          \
+        for (u32 c = 0; c < 4; c++) {                                          \
+            ADD_OUTPUT(sv_semantic, index, base, c);                           \
+        }                                                                      \
+    }
+
+        ADD_OUTPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
+        for (const auto output : memory_analyzer.GetStageOutputs())
+            ADD_OUTPUT_VEC4(SvSemantic::UserInOut, output,
+                            SV_USER_IN_OUT_BASE + output * 0x10);
+
+#undef ADD_OUTPUT
+        break;
+    case ShaderType::Fragment:
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_format = state.color_target_formats[i];
+            if (color_target_format == TextureFormat::Invalid)
+                continue;
+
+            for (u32 c = 0; c < 4; c++) {
+                WriteStatement(
+                    "{} = as_type<{}>({})",
+                    GetSvAccessQualifiedStr(
+                        SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
+                    to_data_type(color_target_format),
+                    GetRegisterStr(i * 4 + c));
+            }
+        }
+        break;
+    default:
+        break;
+    }
+    WriteNewline();
+
+    EmitExitReturn();
 
     // Emit
-    EmitNode(func, entry_node);
+    // EmitNode(func, entry_node);
     ExitScopeEmpty();
 }
 
+/*
 void LangEmitter::EmitNode(const ir::Function& func,
                            const analyzer::CfgNode* node) {
     if (auto code_block = dynamic_cast<const analyzer::CfgCodeBlock*>(node)) {
@@ -233,8 +308,9 @@ void LangEmitter::EmitNode(const ir::Function& func,
         for (u32 i = 0; i < block.GetInstructions().size() - 1;
              i++) // Skip last instruction
             EmitInstruction(block.GetInstructions()[i]);
-
-        switch (code_block->last_statement) {
+    } else if (auto last_statement =
+                   dynamic_cast<const analyzer::CfgLastStatement*>(node)) {
+        switch (last_statement->last_statement) {
         case analyzer::LastStatement::Exit:
             EmitExit();
             break;
@@ -243,8 +319,6 @@ void LangEmitter::EmitNode(const ir::Function& func,
             break;
         case analyzer::LastStatement::Continue:
             WriteStatement("continue");
-            break;
-        case analyzer::LastStatement::None:
             break;
         }
     } else if (auto block = dynamic_cast<const analyzer::CfgBlock*>(node)) {
@@ -282,6 +356,28 @@ void LangEmitter::EmitNode(const ir::Function& func,
     } else {
         LOG_ERROR(ShaderDecompiler, "Invalid structured node");
     }
+}
+*/
+
+void LangEmitter::EmitBlock(const ir::Function& func, const ir::Block& block) {
+    EnterScope("Block_{} func_{}(thread State& state)", func.GetName(),
+               block.GetLabel());
+
+    // Block enum alias
+    WriteStatement("using Block = Block_{}", func.GetName());
+    WriteNewline();
+
+    // Temporary
+    EnterScope("union");
+    Write("int4 i;");
+    Write("uint4 u;");
+    Write("float4 f;");
+    ExitScope("temp");
+    WriteNewline();
+
+    for (const auto& instruction : block.GetInstructions())
+        EmitInstruction(instruction);
+    ExitScopeEmpty();
 }
 
 // Basic
@@ -349,13 +445,20 @@ void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,
 
 // Control flow
 void LangEmitter::EmitBranch(label_t target) {
-    LOG_FATAL(ShaderDecompiler, "Should not happen");
+    // LOG_FATAL(ShaderDecompiler, "Should not happen");
+    WriteStatement("return Block::{}", target);
 }
 
 void LangEmitter::EmitBranchConditional(const ir::Value& cond,
                                         label_t target_true,
                                         label_t target_false) {
-    LOG_FATAL(ShaderDecompiler, "Should not happen");
+    // LOG_FATAL(ShaderDecompiler, "Should not happen");
+    EnterScope("if ({})", GetValueStr(cond));
+    WriteStatement("return Block::{}", target_true);
+    ExitScopeEmpty();
+    EnterScope("else");
+    WriteStatement("return Block::{}", target_false);
+    ExitScopeEmpty();
 }
 
 void LangEmitter::EmitBeginIf(const ir::Value& cond) {
@@ -427,56 +530,6 @@ void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
 }
 
 // Special
-void LangEmitter::EmitExit() {
-    // Outputs
-    switch (context.type) {
-    case ShaderType::Vertex:
-        // TODO: don't hardcode the bit cast type
-#define ADD_OUTPUT(sv_semantic, index, base, c)                                \
-    {                                                                          \
-        WriteStatement("{} = as_type<float>({})",                              \
-                       GetSvAccessQualifiedStr(                                \
-                           SvAccess(Sv(sv_semantic, index), c), true),         \
-                       GetAttrMemoryStr({RZ, base + c * 0x4, false}));         \
-    }
-#define ADD_OUTPUT_1(sv_semantic, index, base)                                 \
-    ADD_OUTPUT(sv_semantic, index, base, 0)
-#define ADD_OUTPUT_VEC4(sv_semantic, index, base)                              \
-    {                                                                          \
-        for (u32 c = 0; c < 4; c++) {                                          \
-            ADD_OUTPUT(sv_semantic, index, base, c);                           \
-        }                                                                      \
-    }
-
-        ADD_OUTPUT_VEC4(SvSemantic::Position, invalid<u8>(), SV_POSITION_BASE);
-        for (const auto output : memory_analyzer.GetStageOutputs())
-            ADD_OUTPUT_VEC4(SvSemantic::UserInOut, output,
-                            SV_USER_IN_OUT_BASE + output * 0x10);
-
-#undef ADD_OUTPUT
-        break;
-    case ShaderType::Fragment:
-        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-            const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == TextureFormat::Invalid)
-                continue;
-
-            for (u32 c = 0; c < 4; c++) {
-                WriteStatement(
-                    "{} = as_type<{}>({})",
-                    GetSvAccessQualifiedStr(
-                        SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
-                    to_data_type(color_target_format),
-                    GetRegisterStr(i * 4 + c));
-            }
-        }
-        break;
-    default:
-        break;
-    }
-    WriteNewline();
-
-    EmitExitReturn();
-}
+void LangEmitter::EmitExit() { WriteStatement("return Block::None"); }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang
