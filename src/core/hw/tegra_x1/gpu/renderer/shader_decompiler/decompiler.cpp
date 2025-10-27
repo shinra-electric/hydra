@@ -5,6 +5,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp"
 
+// HACK
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/cfg.hpp"
+
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp {
 
 struct ShaderHeader {
@@ -105,14 +108,17 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
 
 #define DUMP_SHADERS 0
 #if DUMP_SHADERS
-    LOG_INFO(ShaderDecompiler, "Dumping shader 0x{}",
-             (void*)code_reader.GetBase());
-    std::ofstream out(
-        fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
-                    (void*)code_reader.GetBase()),
-        std::ios::binary);
-    out.write(reinterpret_cast<const char*>(code_reader.GetPtr()), 0x1000);
-    out.close();
+    {
+        LOG_INFO(ShaderDecompiler, "Dumping shader 0x{}",
+                 (void*)code_reader.GetBase());
+        std::ofstream out(
+            fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
+                        (void*)code_reader.GetBase()),
+            std::ios::binary);
+
+        out.write(reinterpret_cast<const char*>(code_reader.GetPtr()),
+                  code_reader.GetSize());
+    }
 #endif
 
     // Build IR
@@ -123,6 +129,22 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
             {context, code_reader.CreateSubReader(), builder});
         decoder.Decode();
     }
+
+#define DUMP_CFG 0
+#if DUMP_CFG
+    {
+        LOG_INFO(ShaderDecompiler, "Dumping shader CFG 0x{}",
+                 (void*)code_reader.GetBase());
+        std::ofstream out(
+            fmt::format("/Users/samuliak/Downloads/extracted/0x{}.gv",
+                        (void*)code_reader.GetBase()),
+            std::ios::binary);
+        const auto& func = modul.GetFunction("main");
+        analyzer::CfgBuilder cfg_builder;
+        auto entry_block = cfg_builder.Build(func);
+        entry_block->WriteToDot(out);
+    }
+#endif
 
     // Analyze
 

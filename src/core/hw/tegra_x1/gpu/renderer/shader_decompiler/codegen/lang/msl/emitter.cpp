@@ -141,6 +141,31 @@ void MslEmitter::EmitDeclarations() {
     WriteNewline();
 }
 
+void MslEmitter::EmitStateBindings() {
+    // Storage buffers
+    // TODO
+
+    // Textures
+    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
+        // TODO: don't hardcode texture type
+        WriteStatement("texture2d<float> tex{}", const_buffer_index);
+        WriteStatement("sampler samplr{}", const_buffer_index);
+    }
+}
+
+void MslEmitter::EmitStateBindingAssignments() {
+    // Storage buffers
+    // TODO
+
+    // Textures
+    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
+        WriteStatement("state.tex{} = tex{}", const_buffer_index,
+                       const_buffer_index);
+        WriteStatement("state.samplr{} = samplr{}", const_buffer_index,
+                       const_buffer_index);
+    }
+}
+
 void MslEmitter::EmitMainPrototype() {
     switch (context.type) {
     case ShaderType::Vertex:
@@ -221,13 +246,13 @@ void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
 
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {
-    StoreValue(dst, "tex{}.sample(samplr{}, {})", const_buffer_index,
-               const_buffer_index, GetValueStr(coords));
+    StoreValue(dst, "state.tex{}.sample(state.samplr{}, {})",
+               const_buffer_index, const_buffer_index, GetValueStr(coords));
 }
 
 void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                                  const ir::Value& coords) {
-    StoreValue(dst, "tex{}.read(uint2({}))", const_buffer_index,
+    StoreValue(dst, "state.tex{}.read(uint2({}))", const_buffer_index,
                GetValueStr(coords));
 }
 

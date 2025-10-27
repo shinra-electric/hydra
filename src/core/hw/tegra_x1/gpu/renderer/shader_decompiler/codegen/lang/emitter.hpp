@@ -7,6 +7,10 @@
 
 #define COMPONENT_STR(component) ("xyzw"[component])
 
+namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
+struct Block;
+}
+
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 struct CfgNode;
 }
@@ -28,13 +32,16 @@ class LangEmitter : public Emitter {
     virtual void EmitHeader() = 0;
     virtual void EmitTypeAliases() = 0;
     virtual void EmitDeclarations() = 0;
+    virtual void EmitStateBindings() = 0;
+    virtual void EmitStateBindingAssignments() = 0;
     virtual void EmitMainPrototype() = 0;
     virtual void EmitExitReturn() = 0;
 
     void EmitMainFunctionPrologue();
 
     void EmitFunction(const ir::Function& func) override;
-    void EmitNode(const ir::Function& func, const analyzer::CfgNode* node);
+    // void EmitNode(const ir::Function& func, const analyzer::CfgNode* node);
+    void EmitBlock(const ir::Function& func, const ir::Block& block);
 
     // Basic
     void EmitCopy(const ir::Value& dst, const ir::Value& src) override;
@@ -195,7 +202,8 @@ class LangEmitter : public Emitter {
         if (load && reg == RZ)
             return GetImmediateStr(0, data_type);
 
-        return fmt::format("r[{}].{}", u32(reg), GetTypeSuffixStr(data_type));
+        return fmt::format("state.r[{}].{}", u32(reg),
+                           GetTypeSuffixStr(data_type));
     }
 
     template <bool load = true>
@@ -203,21 +211,22 @@ class LangEmitter : public Emitter {
         if (load && pred == PT)
             return GetImmediateStr(true);
 
-        return fmt::format("p[{}]", u32(pred));
+        return fmt::format("state.p[{}]", u32(pred));
     }
 
     std::string GetAttrMemoryStr(const AMem amem,
                                  DataType data_type = DataType::U32) {
         // TODO: what about unaligned access?
-        return fmt::format(
-            "a_{}[({} + 0x{:08x}) >> 2].{}", (amem.is_input ? "in" : "out"),
-            GetRegisterStr(amem.reg), amem.imm, GetTypeSuffixStr(data_type));
+        return fmt::format("state.a_{}[({} + 0x{:08x}) >> 2].{}",
+                           (amem.is_input ? "in" : "out"),
+                           GetRegisterStr(amem.reg), amem.imm,
+                           GetTypeSuffixStr(data_type));
     }
 
     std::string GetConstMemoryStr(const CMem cmem,
                                   DataType data_type = DataType::U32) {
         // TODO: what about unaligned access?
-        return fmt::format("c[{}][({} + 0x{:08x}) >> 2].{}", cmem.idx,
+        return fmt::format("state.c[{}][({} + 0x{:08x}) >> 2].{}", cmem.idx,
                            GetRegisterStr(cmem.reg), cmem.imm,
                            GetTypeSuffixStr(data_type));
     }
