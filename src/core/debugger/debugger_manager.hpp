@@ -6,10 +6,6 @@
 #define GET_CURRENT_PROCESS_DEBUGGER()                                         \
     DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess()
 
-namespace hydra::horizon::kernel {
-class Process;
-}
-
 namespace hydra::debugger {
 
 class DebuggerManager {

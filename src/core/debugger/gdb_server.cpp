@@ -6,6 +6,8 @@
 
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/kernel/guest_thread.hpp"
+#include "core/horizon/kernel/process.hpp"
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
 namespace hydra::debugger {
@@ -35,7 +37,29 @@ constexpr u32 Q0_REGISTER = 34;
 constexpr u32 FPSR_REGISTER = 66;
 constexpr u32 FPCR_REGISTER = 67;
 
-std::string_view GetTargetXmlAArch64() {
+template <typename T>
+std::string number_to_hex(T value) {
+    const auto ptr = reinterpret_cast<const u8*>(&value);
+    std::string hex;
+    hex.reserve(sizeof(T) * 2);
+    for (size_t i = 0; i < sizeof(T); ++i)
+        hex += fmt::format("{:02x}", ptr[i]);
+
+    return hex;
+}
+
+template <typename T>
+T hex_to_number(std::string_view hex) {
+    T value = 0;
+    for (size_t i = 0; i < sizeof(T); ++i)
+        value |=
+            static_cast<T>(std::stoi(hex.substr(i * 2, 2).data(), nullptr, 16))
+            << (i * 8);
+
+    return value;
+}
+
+std::string_view get_target_xml_aarch64() {
     return R"(<?xml version="1.0"?>
     <!DOCTYPE target SYSTEM "gdb-target.dtd">
     <target version="1.0">
@@ -310,11 +334,24 @@ void GdbServer::HandleCommand(std::string_view command) {
     case 'q':
         HandleQuery(body);
         break;
+    case 'H':
+        HandleSetActiveThread(body);
+        break;
     case '?':
         HandleThreadStatus();
         break;
+    case 'p':
+        HandleRegRead(body);
+        break;
+    case 'm':
+        HandleMemRead(body);
+        break;
+    case 'c':
+        for (const auto& [_, thread] : debugger.threads)
+            thread.guest_thread->Resume();
+        break;
     default:
-        LOG_WARN(Debugger, "Unknown command: {}", command);
+        LOG_WARN(Debugger, "Unhandled GDB command: {}", command);
         SendPacket(GDB_EMPTY);
         break;
     }
@@ -347,16 +384,68 @@ void GdbServer::HandleQuery(std::string_view command) {
             thread_ids.push_back(
                 fmt::format("{:x}", std::bit_cast<u64>(thread_id)));
         SendPacket(fmt::format("m{}", fmt::join(thread_ids, ",")));
+    } else if (command.starts_with("sThreadInfo")) { // TODO: ==?
+        // TODO: why?
+        SendPacket("l");
     } else if (command.starts_with("Xfer:features:read:target.xml:")) {
-        const auto& target_xml = GetTargetXmlAArch64();
+        const auto& target_xml = get_target_xml_aarch64();
         SendPacket(PageFromBuffer(target_xml, command.substr(30)));
+    } else if (command.starts_with("Xfer:libraries:read::")) {
+        std::string output = R"(<?xml version="1.0"?><library-list>)";
+        for (const auto& symbol : debugger.module_table.GetSymbols()) {
+            // TODO: number_to_hex?
+            output += fmt::format(
+                R"(<library name="{}"><segment address="{:#x}"/></library>)",
+                symbol.name, symbol.guest_mem_range.begin);
+        }
+        output += "</library-list>";
+        SendPacket(PageFromBuffer(output, command.substr(21)));
     } else {
+        LOG_WARN(Debugger, "Unhandled GDB query: {}", command);
         SendPacket(GDB_EMPTY);
     }
 }
 
+void GdbServer::HandleSetActiveThread(std::string_view command) {
+    const auto thread_id = std::bit_cast<std::thread::id>(
+        std::stoull(command.substr(1).data(), nullptr, 16));
+    if (std::bit_cast<u64>(thread_id) != 0) {
+        if (debugger.threads.contains(thread_id)) {
+            current_thread_id = thread_id;
+            SendPacket(GDB_OK);
+        } else {
+            SendPacket(GDB_ERROR);
+        }
+    }
+}
+
 void GdbServer::HandleThreadStatus() {
-    SendThreadStatus(current_thread_id, GDB_SIGTRAP);
+    SendPacket(GetThreadStatus(current_thread_id, GDB_SIGTRAP));
+}
+
+void GdbServer::HandleRegRead(std::string_view command) {
+    const u32 id = std::stoul(command.data(), nullptr, 16);
+    SendPacket(ReadReg(id));
+}
+
+void GdbServer::HandleMemRead(std::string_view command) {
+    const auto comma_pos = command.find(',');
+    const auto addr =
+        std::stoull(command.substr(0, comma_pos).data(), nullptr, 16);
+    const auto size =
+        std::stoull(command.substr(comma_pos + 1).data(), nullptr, 16);
+
+    std::string output;
+    const auto mmu = debugger.process->GetMmu();
+    for (u64 i = 0; i < size; i++) {
+        u8 value;
+        if (!mmu->TryRead(addr + i, value)) {
+            SendPacket(GDB_ERROR);
+            return;
+        }
+        output += fmt::format("{:02x}", value);
+    }
+    SendPacket(output);
 }
 
 void GdbServer::SendPacket(std::string_view data) {
@@ -367,6 +456,8 @@ void GdbServer::SendPacket(std::string_view data) {
         checksum += c;
 
     std::string packet = fmt::format("${}#{:02x}", data, checksum);
+    // TODO: debug
+    LOG_INFO(Debugger, "SENDING: {}", packet);
     send(client_socket, packet.data(), packet.size(), 0);
 }
 
@@ -383,13 +474,40 @@ void GdbServer::SetNonBlocking(i32 socket) {
     fcntl(socket, F_SETFL, flags | O_NONBLOCK);
 }
 
-void GdbServer::SendThreadStatus(std::thread::id thread_id, u8 signal) {
+std::string GdbServer::ReadReg(u32 id) {
+    const auto& state = debugger.threads.at(current_thread_id)
+                            .guest_thread->GetThread()
+                            ->GetState();
+    switch (id) {
+    case 0 ... 28:
+        return number_to_hex(state.r[id]);
+    case 29:
+        return number_to_hex(state.fp);
+    case 30:
+        return number_to_hex(state.lr);
+    case 31:
+        return number_to_hex(state.sp);
+    case 32:
+        return number_to_hex(state.pc);
+    case 33:
+        return number_to_hex(state.pstate);
+    case 34 ... 65:
+        return number_to_hex(state.v[id]);
+    case 66:
+        return number_to_hex(state.fpsr);
+    case 67:
+        return number_to_hex(state.fpcr);
+    default:
+        return GDB_ERROR;
+    }
+}
+
+std::string GdbServer::GetThreadStatus(std::thread::id thread_id, u8 signal) {
     auto thread = debugger.threads.at(thread_id).guest_thread->GetThread();
     const auto& state = thread->GetState();
-    SendPacket(fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
-                           signal, PC_REGISTER, state.pc, SP_REGISTER, state.sp,
-                           LR_REGISTER, state.lr,
-                           std::bit_cast<u64>(thread_id)));
+    return fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
+                       signal, PC_REGISTER, state.pc, SP_REGISTER, state.sp,
+                       LR_REGISTER, state.lr, std::bit_cast<u64>(thread_id));
 }
 
 std::string GdbServer::PageFromBuffer(std::string_view buffer,

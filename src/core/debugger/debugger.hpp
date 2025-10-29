@@ -2,7 +2,8 @@
 
 namespace hydra::horizon::kernel {
 class GuestThread;
-}
+class Process;
+} // namespace hydra::horizon::kernel
 
 namespace hydra::debugger {
 
@@ -84,13 +85,9 @@ struct Symbol {
 
 class SymbolTable {
   public:
-    void RegisterSymbol(const Symbol& symbol) {
-        std::unique_lock lock(mutex);
-        symbols.push_back(symbol);
-    }
+    void RegisterSymbol(const Symbol& symbol) { symbols.push_back(symbol); }
 
     std::string FindSymbol(vaddr_t addr) {
-        std::unique_lock lock(mutex);
         for (const auto& symbol : symbols) {
             if (symbol.guest_mem_range.Contains(addr))
                 return symbol.name;
@@ -100,8 +97,10 @@ class SymbolTable {
     }
 
   private:
-    std::mutex mutex;
     std::vector<Symbol> symbols;
+
+  public:
+    CONST_REF_GETTER(symbols, GetSymbols);
 };
 
 class Debugger {
@@ -109,7 +108,8 @@ class Debugger {
     friend class DebuggerManager;
 
   public:
-    Debugger(const std::string_view name_) : name{name_} {}
+    Debugger(const std::string_view name_, horizon::kernel::Process* process_)
+        : name{name_}, process{process_} {}
 
     void
     RegisterThisThread(const std::string_view name,
@@ -138,6 +138,7 @@ class Debugger {
 
   private:
     std::string name;
+    horizon::kernel::Process* process;
 
     std::mutex mutex;
     std::map<std::thread::id, Thread> threads;

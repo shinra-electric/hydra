@@ -33,11 +33,15 @@ class GdbServer {
     // Commands
     void HandleVCont(std::string_view command);
     void HandleQuery(std::string_view command);
+    void HandleSetActiveThread(std::string_view command);
     void HandleThreadStatus();
+    void HandleRegRead(std::string_view command);
+    void HandleMemRead(std::string_view command);
 
     // Helpers
     void SetNonBlocking(i32 socket);
-    void SendThreadStatus(std::thread::id thread_id, u8 signal);
+    std::string ReadReg(u32 id);
+    std::string GetThreadStatus(std::thread::id thread_id, u8 signal);
     std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 };
 

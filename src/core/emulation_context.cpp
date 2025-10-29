@@ -586,7 +586,7 @@ void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        process->GetMmu()->Store<u32>(entry.addr, entry.value);
+        process->GetMmu()->Write<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

@@ -162,7 +162,7 @@ void Thread::Run() {
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
-                u32 instruction = MMU.Load<u32>(elr);
+                u32 instruction = MMU.Read<u32>(elr);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
@@ -229,7 +229,7 @@ void Thread::Run() {
                           syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
                           exit->exception.virtual_address,
                           exit->exception.physical_address, elr,
-                          MMU.Load<u32>(pc));
+                          MMU.Read<u32>(pc));
 
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                     "unexpected VM exception");

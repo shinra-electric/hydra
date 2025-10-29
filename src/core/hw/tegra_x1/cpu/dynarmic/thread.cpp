@@ -66,57 +66,57 @@ void Thread::LogRegisters(bool simd, u32 count) {
     LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
 }
 
-u8 Thread::MemoryRead8(u64 addr) { return MMU->Load<u8>(addr); }
+u8 Thread::MemoryRead8(u64 addr) { return MMU->Read<u8>(addr); }
 
-u16 Thread::MemoryRead16(u64 addr) { return MMU->Load<u16>(addr); }
+u16 Thread::MemoryRead16(u64 addr) { return MMU->Read<u16>(addr); }
 
-u32 Thread::MemoryRead32(u64 addr) { return MMU->Load<u32>(addr); }
+u32 Thread::MemoryRead32(u64 addr) { return MMU->Read<u32>(addr); }
 
-u64 Thread::MemoryRead64(u64 addr) { return MMU->Load<u64>(addr); }
+u64 Thread::MemoryRead64(u64 addr) { return MMU->Read<u64>(addr); }
 
 Dynarmic::A64::Vector Thread::MemoryRead128(u64 addr) {
-    return MMU->Load<Dynarmic::A64::Vector>(addr);
+    return MMU->Read<Dynarmic::A64::Vector>(addr);
 }
 
 std::optional<u32> Thread::MemoryReadCode(u64 addr) {
-    return MMU->Load<u32>(addr);
+    return MMU->Read<u32>(addr);
 }
 
-void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Write(addr, value); }
 
 void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
-    MMU->Store(addr, value);
+    MMU->Write(addr, value);
 }
 
 bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 

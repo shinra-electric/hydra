@@ -11,7 +11,7 @@ static DebuggerManager g_instance;
 
 DebuggerManager& DebuggerManager::GetInstance() { return g_instance; }
 
-DebuggerManager::DebuggerManager() : hydra_debugger("Hydra") {
+DebuggerManager::DebuggerManager() : hydra_debugger("Hydra", HYDRA_PROCESS) {
     // Hydra process
     hydra_debugger.RegisterThisThread("Main");
 
@@ -34,7 +34,7 @@ void DebuggerManager::AttachDebugger(hydra::horizon::kernel::Process* process,
     ASSERT(process != HYDRA_PROCESS, Debugger,
            "Debugger already attached to the Hydra process");
 
-    debuggers.emplace(process, name);
+    debuggers.try_emplace(process, name, process);
 }
 
 void DebuggerManager::DetachDebugger(hydra::horizon::kernel::Process* process) {
