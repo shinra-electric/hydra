@@ -35,6 +35,144 @@ constexpr u32 Q0_REGISTER = 34;
 constexpr u32 FPSR_REGISTER = 66;
 constexpr u32 FPCR_REGISTER = 67;
 
+std::string_view GetTargetXmlAArch64() {
+    return R"(<?xml version="1.0"?>
+    <!DOCTYPE target SYSTEM "gdb-target.dtd">
+    <target version="1.0">
+      <architecture>aarch64</architecture>
+      <feature name="org.gnu.gdb.aarch64.core">
+        <reg name="x0" bitsize="64"/>
+        <reg name="x1" bitsize="64"/>
+        <reg name="x2" bitsize="64"/>
+        <reg name="x3" bitsize="64"/>
+        <reg name="x4" bitsize="64"/>
+        <reg name="x5" bitsize="64"/>
+        <reg name="x6" bitsize="64"/>
+        <reg name="x7" bitsize="64"/>
+        <reg name="x8" bitsize="64"/>
+        <reg name="x9" bitsize="64"/>
+        <reg name="x10" bitsize="64"/>
+        <reg name="x11" bitsize="64"/>
+        <reg name="x12" bitsize="64"/>
+        <reg name="x13" bitsize="64"/>
+        <reg name="x14" bitsize="64"/>
+        <reg name="x15" bitsize="64"/>
+        <reg name="x16" bitsize="64"/>
+        <reg name="x17" bitsize="64"/>
+        <reg name="x18" bitsize="64"/>
+        <reg name="x19" bitsize="64"/>
+        <reg name="x20" bitsize="64"/>
+        <reg name="x21" bitsize="64"/>
+        <reg name="x22" bitsize="64"/>
+        <reg name="x23" bitsize="64"/>
+        <reg name="x24" bitsize="64"/>
+        <reg name="x25" bitsize="64"/>
+        <reg name="x26" bitsize="64"/>
+        <reg name="x27" bitsize="64"/>
+        <reg name="x28" bitsize="64"/>
+        <reg name="x29" bitsize="64"/>
+        <reg name="x30" bitsize="64"/>
+        <reg name="sp" bitsize="64" type="data_ptr"/>
+        <reg name="pc" bitsize="64" type="code_ptr"/>
+        <flags id="cpsr_flags" size="4">
+          <field name="SP" start="0" end="0"/>
+          <field name="" start="1" end="1"/>
+          <field name="EL" start="2" end="3"/>
+          <field name="nRW" start="4" end="4"/>
+          <field name="" start="5" end="5"/>
+          <field name="F" start="6" end="6"/>
+          <field name="I" start="7" end="7"/>
+          <field name="A" start="8" end="8"/>
+          <field name="D" start="9" end="9"/>
+          <field name="IL" start="20" end="20"/>
+          <field name="SS" start="21" end="21"/>
+          <field name="V" start="28" end="28"/>
+          <field name="C" start="29" end="29"/>
+          <field name="Z" start="30" end="30"/>
+          <field name="N" start="31" end="31"/>
+        </flags>
+        <reg name="cpsr" bitsize="32" type="cpsr_flags"/>
+      </feature>
+      <feature name="org.gnu.gdb.aarch64.fpu">
+        <vector id="v2d" type="ieee_double" count="2"/>
+        <vector id="v2u" type="uint64" count="2"/>
+        <vector id="v2i" type="int64" count="2"/>
+        <vector id="v4f" type="ieee_single" count="4"/>
+        <vector id="v4u" type="uint32" count="4"/>
+        <vector id="v4i" type="int32" count="4"/>
+        <vector id="v8u" type="uint16" count="8"/>
+        <vector id="v8i" type="int16" count="8"/>
+        <vector id="v16u" type="uint8" count="16"/>
+        <vector id="v16i" type="int8" count="16"/>
+        <vector id="v1u" type="uint128" count="1"/>
+        <vector id="v1i" type="int128" count="1"/>
+        <union id="vnd">
+          <field name="f" type="v2d"/>
+          <field name="u" type="v2u"/>
+          <field name="s" type="v2i"/>
+        </union>
+        <union id="vns">
+          <field name="f" type="v4f"/>
+          <field name="u" type="v4u"/>
+          <field name="s" type="v4i"/>
+        </union>
+        <union id="vnh">
+          <field name="u" type="v8u"/>
+          <field name="s" type="v8i"/>
+        </union>
+        <union id="vnb">
+          <field name="u" type="v16u"/>
+          <field name="s" type="v16i"/>
+        </union>
+        <union id="vnq">
+          <field name="u" type="v1u"/>
+          <field name="s" type="v1i"/>
+        </union>
+        <union id="aarch64v">
+          <field name="d" type="vnd"/>
+          <field name="s" type="vns"/>
+          <field name="h" type="vnh"/>
+          <field name="b" type="vnb"/>
+          <field name="q" type="vnq"/>
+        </union>
+        <reg name="v0" bitsize="128" type="aarch64v" regnum="34"/>
+        <reg name="v1" bitsize="128" type="aarch64v" />
+        <reg name="v2" bitsize="128" type="aarch64v" />
+        <reg name="v3" bitsize="128" type="aarch64v" />
+        <reg name="v4" bitsize="128" type="aarch64v" />
+        <reg name="v5" bitsize="128" type="aarch64v" />
+        <reg name="v6" bitsize="128" type="aarch64v" />
+        <reg name="v7" bitsize="128" type="aarch64v" />
+        <reg name="v8" bitsize="128" type="aarch64v" />
+        <reg name="v9" bitsize="128" type="aarch64v" />
+        <reg name="v10" bitsize="128" type="aarch64v"/>
+        <reg name="v11" bitsize="128" type="aarch64v"/>
+        <reg name="v12" bitsize="128" type="aarch64v"/>
+        <reg name="v13" bitsize="128" type="aarch64v"/>
+        <reg name="v14" bitsize="128" type="aarch64v"/>
+        <reg name="v15" bitsize="128" type="aarch64v"/>
+        <reg name="v16" bitsize="128" type="aarch64v"/>
+        <reg name="v17" bitsize="128" type="aarch64v"/>
+        <reg name="v18" bitsize="128" type="aarch64v"/>
+        <reg name="v19" bitsize="128" type="aarch64v"/>
+        <reg name="v20" bitsize="128" type="aarch64v"/>
+        <reg name="v21" bitsize="128" type="aarch64v"/>
+        <reg name="v22" bitsize="128" type="aarch64v"/>
+        <reg name="v23" bitsize="128" type="aarch64v"/>
+        <reg name="v24" bitsize="128" type="aarch64v"/>
+        <reg name="v25" bitsize="128" type="aarch64v"/>
+        <reg name="v26" bitsize="128" type="aarch64v"/>
+        <reg name="v27" bitsize="128" type="aarch64v"/>
+        <reg name="v28" bitsize="128" type="aarch64v"/>
+        <reg name="v29" bitsize="128" type="aarch64v"/>
+        <reg name="v30" bitsize="128" type="aarch64v"/>
+        <reg name="v31" bitsize="128" type="aarch64v"/>
+        <reg name="fpsr" bitsize="32"/>
+        <reg name="fpcr" bitsize="32"/>
+      </feature>
+    </target>)";
+}
+
 } // namespace
 
 GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
@@ -79,6 +217,7 @@ GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
     LOG_INFO(Debugger, "GDB server started on port 1234");
 
     // Thread ID
+    ASSERT(!debugger.threads.empty(), Debugger, "No active thread");
     current_thread_id = debugger.threads.begin()->first;
 }
 
@@ -208,6 +347,9 @@ void GdbServer::HandleQuery(std::string_view command) {
             thread_ids.push_back(
                 fmt::format("{:x}", std::bit_cast<u64>(thread_id)));
         SendPacket(fmt::format("m{}", fmt::join(thread_ids, ",")));
+    } else if (command.starts_with("Xfer:features:read:target.xml:")) {
+        const auto& target_xml = GetTargetXmlAArch64();
+        SendPacket(PageFromBuffer(target_xml, command.substr(30)));
     } else {
         SendPacket(GDB_EMPTY);
     }
@@ -248,6 +390,20 @@ void GdbServer::SendThreadStatus(std::thread::id thread_id, u8 signal) {
                            signal, PC_REGISTER, state.pc, SP_REGISTER, state.sp,
                            LR_REGISTER, state.lr,
                            std::bit_cast<u64>(thread_id)));
+}
+
+std::string GdbServer::PageFromBuffer(std::string_view buffer,
+                                      std::string_view page) {
+    const auto comma_pos = page.find(',');
+    const auto offset =
+        std::stoull(page.substr(0, comma_pos).data(), nullptr, 16);
+    const auto size =
+        std::stoull(page.substr(comma_pos + 1).data(), nullptr, 16);
+
+    if (offset + size <= buffer.size())
+        return fmt::format("m{}", buffer.substr(offset, size));
+    else
+        return fmt::format("l{}", buffer.substr(offset));
 }
 
 } // namespace hydra::debugger

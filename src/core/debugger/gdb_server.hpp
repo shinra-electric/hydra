@@ -38,6 +38,7 @@ class GdbServer {
     // Helpers
     void SetNonBlocking(i32 socket);
     void SendThreadStatus(std::thread::id thread_id, u8 signal);
+    std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 };
 
 } // namespace hydra::debugger
