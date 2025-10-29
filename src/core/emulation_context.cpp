@@ -339,6 +339,16 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     process->Start();
 
+    // Activate GDB server
+    // TODO: if GDB server enabled
+    if (true) {
+        // HACK: spinlock until the main thread is running
+        while (!process->IsRunning())
+            std::this_thread::yield();
+        DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).ActivateGdbServer();
+    }
+
+    // Loading screen
     loading = true;
 
     const auto crnt_time = clock_t::now();

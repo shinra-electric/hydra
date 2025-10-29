@@ -1,11 +1,12 @@
 #pragma once
 
-namespace hydra::hw::tegra_x1::cpu {
-class IThread;
+namespace hydra::horizon::kernel {
+class GuestThread;
 }
 
 namespace hydra::debugger {
 
+class GdbServer;
 class Debugger;
 
 struct ResolvedStackFrame {
@@ -42,11 +43,12 @@ enum class ThreadStatus {
 };
 
 class Thread {
+    friend class GdbServer;
     friend class Debugger;
 
   public:
     Thread(const std::string_view name_,
-           hw::tegra_x1::cpu::IThread* guest_thread_ = nullptr);
+           horizon::kernel::GuestThread* guest_thread_ = nullptr);
 
     // API
     void Lock() { msg_mutex.lock(); }
@@ -62,7 +64,7 @@ class Thread {
 
   private:
     std::string name;
-    hw::tegra_x1::cpu::IThread* guest_thread;
+    horizon::kernel::GuestThread* guest_thread;
 
     ThreadStatus status{ThreadStatus::Running};
     std::string break_reason;
@@ -103,19 +105,24 @@ class SymbolTable {
 };
 
 class Debugger {
+    friend class GdbServer;
     friend class DebuggerManager;
 
   public:
     Debugger(const std::string_view name_) : name{name_} {}
 
-    void RegisterThisThread(const std::string_view name,
-                            hw::tegra_x1::cpu::IThread* guest_thread = nullptr);
+    void
+    RegisterThisThread(const std::string_view name,
+                       horizon::kernel::GuestThread* guest_thread = nullptr);
     void UnregisterThisThread();
 
     void BreakOnThisThread(const std::string_view reason);
 
     SymbolTable& GetModuleTable() { return module_table; }
     SymbolTable& GetFunctionTable() { return function_table; }
+
+    // GDB
+    void ActivateGdbServer();
 
     // API
     void Lock() { mutex.lock(); }
@@ -137,6 +144,8 @@ class Debugger {
 
     SymbolTable module_table;
     SymbolTable function_table;
+
+    GdbServer* gdb_server{nullptr};
 
     void LogOnThisThread(const LogMessage& msg);
 

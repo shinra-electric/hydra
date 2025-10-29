@@ -56,7 +56,10 @@ Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
 
 Thread::~Thread() { delete jit; }
 
-void Thread::Run() { jit->Run(); }
+void Thread::Run() {
+    SerializeState();
+    jit->Run();
+}
 
 void Thread::LogRegisters(bool simd, u32 count) {
     // TODO: implement
@@ -118,8 +121,10 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 }
 
 void Thread::CallSVC(u32 svc) {
+    DeserializeState();
     svc_handler(this, svc);
     CheckForStopRequest();
+    SerializeState();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
@@ -129,5 +134,34 @@ void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
 }
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }
+
+void Thread::SerializeState() {
+    for (u32 i = 0; i < 29; i++)
+        state.r[i] = jit->GetRegister(i);
+    state.fp = jit->GetRegister(29);
+    state.lr = jit->GetRegister(30);
+    state.sp = jit->GetSP();
+    state.pc = jit->GetPC();
+    state.pstate = jit->GetPstate();
+    for (u32 i = 0; i < 32; i++)
+        state.v[i] = std::bit_cast<u128>(jit->GetVector(i)); // TODO: correct?
+    state.fpcr = jit->GetFpcr();
+    state.fpsr = jit->GetFpsr();
+}
+
+void Thread::DeserializeState() {
+    for (u32 i = 0; i < 29; i++)
+        jit->SetRegister(i, state.r[i]);
+    jit->SetRegister(29, state.fp);
+    jit->SetRegister(30, state.lr);
+    jit->SetSP(state.sp);
+    jit->SetPC(state.pc);
+    jit->SetPstate(state.pstate);
+    for (u32 i = 0; i < 32; i++)
+        jit->SetVector(i, std::bit_cast<Dynarmic::A64::Vector>(
+                              state.v[i])); // TODO: correct?
+    jit->SetFpcr(state.fpcr);
+    jit->SetFpsr(state.fpsr);
+}
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

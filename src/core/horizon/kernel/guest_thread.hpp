@@ -4,7 +4,8 @@
 
 namespace hydra::hw::tegra_x1::cpu {
 class IMemory;
-}
+class IThread;
+} // namespace hydra::hw::tegra_x1::cpu
 
 namespace hydra::horizon::kernel {
 
@@ -33,6 +34,11 @@ class GuestThread : public IThread {
 
     vaddr_t entry_point{0};
     u64 args[2] = {0};
+
+    hw::tegra_x1::cpu::IThread* thread{nullptr};
+
+  public:
+    GETTER(thread, GetThread);
 };
 
 } // namespace hydra::horizon::kernel

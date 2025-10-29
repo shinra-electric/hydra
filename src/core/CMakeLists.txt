@@ -575,6 +575,8 @@ add_library(hydra-core
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
     # TODO: only build the debugger on debug builds
+    debugger/gdb_server.cpp
+    debugger/gdb_server.hpp
     debugger/debugger.cpp
     debugger/debugger.hpp
     debugger/debugger_manager.cpp

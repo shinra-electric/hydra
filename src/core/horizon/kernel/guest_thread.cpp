@@ -22,7 +22,7 @@ uptr GuestThread::GetTlsPtr() const { return tls_mem->GetPtr(); }
 void GuestThread::Run() {
     ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
 
-    auto thread = CPU_INSTANCE.CreateThread(
+    thread = CPU_INSTANCE.CreateThread(
         process->GetMmu(),
         [this](hw::tegra_x1::cpu::IThread* thread, u64 id) {
             KERNEL_INSTANCE.SupervisorCall(process, this, thread, id);
@@ -33,15 +33,17 @@ void GuestThread::Run() {
         },
         tls_mem, tls_addr, stack_top_addr);
 
-    thread->SetPC(entry_point);
+    auto& state = thread->GetState();
+    state.pc = entry_point;
     for (u32 i = 0; i < sizeof_array(args); i++)
-        thread->SetRegX(i, args[i]);
+        state.r[i] = args[i];
 
-    GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName(), thread);
+    GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName(), this);
     thread->Run();
     GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
 
     delete thread;
+    thread = nullptr;
 }
 
 } // namespace hydra::horizon::kernel

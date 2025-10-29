@@ -135,6 +135,8 @@ Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
 
     // HACK: set LR to loader return address
     // SetReg(HV_REG_LR, 0xffff0000);
+
+    SerializeState();
 }
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }
@@ -142,19 +144,22 @@ Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 void Thread::Run() {
     // Main run loop
     while (true) {
+        DeserializeState();
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
+        exception = (exit->reason == HV_EXIT_REASON_EXCEPTION);
+        SerializeState();
 
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;
             const auto hv_ec =
                 static_cast<ExceptionClass>((syndrome >> 26) & 0x3f);
             u64 pc = GetReg(HV_REG_PC);
+            auto& elr = state.pc;
 
             switch (hv_ec) {
             case ExceptionClass::HvcAarch64: {
                 u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
-                u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
                 u32 instruction = MMU.Load<u32>(elr);
@@ -166,8 +171,7 @@ void Thread::Run() {
                 case ExceptionClass::TrappedMsrMrsSystem: {
                     InstructionTrap(esr);
 
-                    u64 elr = GetSysReg(HV_SYS_REG_ELR_EL1);
-                    SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+                    elr += 4;
                     break;
                 }
                 case ExceptionClass::DataAbortLowerEl: {
@@ -184,8 +188,7 @@ void Thread::Run() {
                         "0x{:08x}, FAR: "
                         "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x}, instruction: "
                         "0x{:08x})",
-                        ec, esr, GetSysReg(HV_SYS_REG_ELR_EL1),
-                        GetSysReg(HV_SYS_REG_FAR_EL1),
+                        ec, esr, elr, GetSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
                         exit->exception.physical_address, instruction);
 
@@ -209,10 +212,12 @@ void Thread::Run() {
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                     "BRK instruction");
                 return;
-            case ExceptionClass::DataAbortLowerEl:
+            case ExceptionClass::DataAbortLowerEl: {
                 LOG_ERROR(Hypervisor, "This should not happen");
-                AdvancePC();
+                u64 pc = GetReg(HV_REG_PC);
+                SetReg(HV_REG_PC, pc + 4);
                 break;
+            }
             default:
                 LOG_ERROR(Hypervisor,
                           "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
@@ -223,8 +228,8 @@ void Thread::Run() {
                           "0x{:08x})",
                           syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
                           exit->exception.virtual_address,
-                          exit->exception.physical_address,
-                          GetSysReg(HV_SYS_REG_ELR_EL1), MMU.Load<u32>(pc));
+                          exit->exception.physical_address, elr,
+                          MMU.Load<u32>(pc));
 
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                     "unexpected VM exception");
@@ -247,11 +252,6 @@ void Thread::Run() {
     }
 }
 
-void Thread::AdvancePC() {
-    u64 pc = GetReg(HV_REG_PC);
-    SetReg(HV_REG_PC, pc + 4);
-}
-
 void Thread::SetupVTimer() {
     SetSysReg(HV_SYS_REG_CNTV_CTL_EL0, 1);
     SetSysReg(HV_SYS_REG_CNTV_CVAL_EL0,
@@ -266,16 +266,50 @@ void Thread::UpdateVTimer() {
 void Thread::LogRegisters(bool simd, u32 count) {
     LOG_DEBUG(Hypervisor, "Reg dump:");
     for (u32 i = 0; i < count; i++) {
-        LOG_DEBUG(Hypervisor, "X{}: 0x{:08x}", i, GetRegX(i));
+        LOG_DEBUG(Hypervisor, "X{}: 0x{:08x}", i, state.r[i]);
     }
     if (simd) {
         for (u32 i = 0; i < count; i++) {
-            auto reg = GetRegQ(i);
+            auto reg = state.v[i];
             LOG_DEBUG(Hypervisor, "Q{}: 0x{:08x}{:08x}", i, *(u64*)&reg,
                       *((u64*)&reg + 1)); // TODO: correct?
         }
     }
     LOG_DEBUG(Hypervisor, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
+}
+
+void Thread::SerializeState() {
+    for (u32 i = 0; i < 29; i++)
+        state.r[i] = GetReg(hv_reg_t(HV_REG_X0 + i));
+    state.fp = GetReg(HV_REG_FP);
+    state.lr = GetReg(HV_REG_LR);
+    state.sp = GetSysReg(HV_SYS_REG_SP_EL0);
+    if (exception)
+        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1);
+    else
+        state.pc = GetReg(HV_REG_PC);
+    // TODO: pstate
+    for (u32 i = 0; i < 32; i++)
+        state.v[i] = GetSimdFpReg(i);
+    state.fpcr = GetReg(HV_REG_FPCR);
+    state.fpsr = GetReg(HV_REG_FPSR);
+}
+
+void Thread::DeserializeState() {
+    for (u32 i = 0; i < 29; i++)
+        SetReg(hv_reg_t(HV_REG_X0 + i), state.r[i]);
+    SetReg(HV_REG_FP, state.fp);
+    SetReg(HV_REG_LR, state.lr);
+    SetSysReg(HV_SYS_REG_SP_EL0, state.sp);
+    if (exception)
+        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc);
+    else
+        SetReg(HV_REG_PC, state.pc);
+    // TODO: pstate
+    for (u32 i = 0; i < 32; i++)
+        SetSimdFpReg(i, state.v[i]);
+    SetReg(HV_REG_FPCR, state.fpcr);
+    SetReg(HV_REG_FPSR, state.fpsr);
 }
 
 void Thread::InstructionTrap(u32 esr) {
@@ -288,10 +322,10 @@ void Thread::InstructionTrap(u32 esr) {
         case 0b11'000'011'1110'00000'0000: // CNTFRQ_EL0
             ONCE(LOG_WARN(Hypervisor, "Frequency"));
             // TODO: correct?
-            SetRegX(rt, CLOCK_RATE_HZ);
+            state.r[rt] = CLOCK_RATE_HZ;
             break;
-        case 0b11'001'011'1110'00000'0000:    // CNTPCT_EL0
-            SetRegX(rt, get_absolute_time()); // TODO: correct?
+        case 0b11'001'011'1110'00000'0000:     // CNTPCT_EL0
+            state.r[rt] = get_absolute_time(); // TODO: correct?
             break;
         default:
             LOG_FATAL(Hypervisor,
@@ -310,7 +344,7 @@ void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
                   instruction, far));
 
     // Skip one instruction
-    SetSysReg(HV_SYS_REG_ELR_EL1, elr + 4);
+    state.pc += 4;
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

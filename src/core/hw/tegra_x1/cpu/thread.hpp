@@ -12,6 +12,18 @@ typedef std::function<void(IThread*, u64)> svc_handler_fn_t;
 typedef std::function<bool()> stop_requested_fn_t;
 typedef std::function<void(vaddr_t)> stack_frame_callback_fn_t;
 
+struct ThreadState {
+    u64 r[29];
+    u64 fp;
+    u64 lr;
+    u64 sp;
+    u64 pc;
+    u64 pstate; // TODO: what is this?
+    u128 v[32];
+    u32 fpcr;
+    u32 fpsr;
+};
+
 class IThread {
   public:
     IThread(IMmu* mmu_, const svc_handler_fn_t& svc_handler_,
@@ -21,18 +33,6 @@ class IThread {
     virtual ~IThread() {}
 
     virtual void Run() = 0;
-
-    virtual u64 GetRegX(u8 reg) const = 0;
-    virtual void SetRegX(u8 reg, u64 value) = 0;
-    virtual u64 GetPC() = 0;
-    virtual void SetPC(u64 value) = 0;
-    virtual u64 GetFP() = 0;
-    virtual u64 GetLR() = 0;
-    virtual u64 GetSP() = 0;
-    virtual u64 GetElr() = 0;
-
-    u32 GetRegW(u8 reg) const { return static_cast<u32>(GetRegX(reg)); }
-    void SetRegW(u8 reg, u32 value) { SetRegX(reg, static_cast<u64>(value)); }
 
     // Debug
     virtual void LogRegisters(bool simd = false, u32 count = 32) = 0;
@@ -46,6 +46,11 @@ class IThread {
     svc_handler_fn_t svc_handler;
     stop_requested_fn_t stop_requested;
     IMemory* tls_mem;
+
+    ThreadState state{};
+
+  public:
+    REF_GETTER(state, GetState);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu
