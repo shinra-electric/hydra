@@ -23,37 +23,17 @@ enum class ThreadMessageType {
     Resume,
 };
 
-enum class ThreadResumeReason {
-    Signalled,
-    Cancelled,
-    TimedOut,
+struct ThreadSyncInfo {
+    bool signalled;
+    SynchronizationObject* signalled_obj;
 };
 
 struct ThreadMessage {
     ThreadMessageType type;
+    bool supervisor;
     union {
         // Resume
-        struct {
-            ThreadResumeReason reason;
-            SynchronizationObject* signalled_obj;
-        } resume;
-    } payload;
-};
-
-enum class ThreadActionType {
-    None,
-    Stop,
-    Resume,
-};
-
-struct ThreadAction {
-    ThreadActionType type{ThreadActionType::None};
-    union {
-        // Resume
-        struct {
-            ThreadResumeReason reason;
-            SynchronizationObject* signalled_obj;
-        } resume;
+        ThreadSyncInfo resume;
     } payload;
 };
 
@@ -70,22 +50,53 @@ class IThread : public SynchronizationObject {
     void Start();
 
     // Messages
-    void Stop() { SendMessage({.type = ThreadMessageType::Stop}); }
-    void Pause() { SendMessage({.type = ThreadMessageType::Pause}); }
+    void Stop() {
+        SendMessage({.type = ThreadMessageType::Stop, .supervisor = false});
+    }
+    // TODO: SupervisorStop?
+    void Pause() {
+        SendMessage({.type = ThreadMessageType::Pause, .supervisor = false});
+    }
+    void SupervisorPause() {
+        SendMessage({.type = ThreadMessageType::Pause, .supervisor = true});
+    }
     void Resume(SynchronizationObject* signalled_obj = nullptr) {
-        SendMessage(
-            {.type = ThreadMessageType::Resume,
-             .payload = {.resume = {.reason = ThreadResumeReason::Signalled,
-                                    .signalled_obj = signalled_obj}}});
+        SendMessage({.type = ThreadMessageType::Resume,
+                     .supervisor = false,
+                     .payload = {.resume = {.signalled = true,
+                                            .signalled_obj = signalled_obj}}});
     }
     void CancelSync() {
-        SendMessage(
-            {.type = ThreadMessageType::Resume,
-             .payload = {.resume = {.reason = ThreadResumeReason::Cancelled}}});
+        SendMessage({.type = ThreadMessageType::Resume,
+                     .supervisor = false,
+                     .payload = {.resume = {.signalled = false}}});
+    }
+    void SupervisorResume() {
+        SendMessage({.type = ThreadMessageType::Resume, .supervisor = true});
     }
 
     // Must not be called from a different thread
-    ThreadAction ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
+    bool ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
+    bool WasSignalled() {
+        ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
+        const auto& sync_info_value = sync_info.value();
+        ASSERT_DEBUG(!sync_info_value.signalled_obj, Kernel,
+                     "Unexpected signalled object {}",
+                     sync_info_value.signalled_obj->GetDebugName());
+        bool signalled = sync_info_value.signalled;
+        sync_info = std::nullopt;
+        return signalled;
+    }
+    bool ConsumeSignalledObject(SynchronizationObject*& out_obj) {
+        ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
+        const auto& sync_info_value = sync_info.value();
+        ASSERT_DEBUG(sync_info_value.signalled_obj, Kernel,
+                     "Expected signalled object");
+        out_obj = sync_info_value.signalled_obj;
+        bool signalled = sync_info_value.signalled;
+        sync_info = std::nullopt;
+        return signalled;
+    }
 
     virtual uptr GetTlsPtr() const = 0;
 
@@ -112,11 +123,16 @@ class IThread : public SynchronizationObject {
     std::mutex mutex_wait_mutex;
     DoubleLinkedList<IThread*> mutex_wait_list;
 
+    // Synchronization
+    u32 supervisor_pause_count{0};
+    bool guest_pause{false};
+    std::optional<ThreadSyncInfo> sync_info{std::nullopt};
+
     // Helpers
 
     // Messages
     void SendMessage(ThreadMessage msg);
-    ThreadAction ProcessMessagesImpl();
+    bool ProcessMessagesImpl();
 
     // Mutex
     void AddMutexWaiter(IThread* thread);

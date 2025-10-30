@@ -274,7 +274,7 @@ void GdbServer::Poll() {
             // Pause all threads
             // TODO: helper function?
             for (const auto& [_, thread] : debugger.threads)
-                thread.guest_thread->Pause();
+                thread.guest_thread->SupervisorPause();
         }
     } else {
         char buffer[1024];
@@ -348,7 +348,7 @@ void GdbServer::HandleCommand(std::string_view command) {
         break;
     case 'c':
         for (const auto& [_, thread] : debugger.threads)
-            thread.guest_thread->Resume();
+            thread.guest_thread->SupervisorResume();
         break;
     default:
         LOG_WARN(Debugger, "Unhandled GDB command: {}", command);

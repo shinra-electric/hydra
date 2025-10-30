@@ -635,30 +635,18 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         sync_obj->AddWaitingThread(crnt_thread);
     }
 
-    const auto action = crnt_thread->ProcessMessages(timeout);
-
     SynchronizationObject* signalled_obj = nullptr;
     result_t res = RESULT_SUCCESS;
-    switch (action.type) {
-    case ThreadActionType::Stop:
-        res = MAKE_RESULT(Svc, Error::Cancelled);
-        break;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled:
-            signalled_obj = action.payload.resume.signalled_obj;
-            break;
-        case ThreadResumeReason::Cancelled:
+    if (crnt_thread->ProcessMessages(timeout)) {
+        if (crnt_thread->GetState() == ThreadState::Stopping) {
+            // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadResumeReason::TimedOut:
-            res = MAKE_RESULT(Svc, Error::TimedOut);
-            break;
+        } else {
+            if (!crnt_thread->ConsumeSignalledObject(signalled_obj))
+                res = MAKE_RESULT(Svc, Error::Cancelled);
         }
-        break;
-    }
-    default:
-        unreachable();
+    } else {
+        res = MAKE_RESULT(Svc, Error::TimedOut);
     }
 
     // Remove the thread from the waiting list
@@ -714,9 +702,19 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
         owner_thread->AddMutexWaiter(crnt_thread);
     }
 
-    crnt_thread->ProcessMessages();
+    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+                 "SendSyncRequest timed out");
 
-    return RESULT_SUCCESS;
+    result_t res = RESULT_SUCCESS;
+    if (crnt_thread->GetState() == ThreadState::Stopping) {
+        // TODO: is this necessary?
+        res = MAKE_RESULT(Svc, Error::Cancelled);
+    } else {
+        if (!crnt_thread->WasSignalled())
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+    }
+
+    return res;
 }
 
 result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
@@ -753,28 +751,17 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         UnlockMutex(crnt_thread, mutex_addr);
     }
 
-    const auto action = crnt_thread->ProcessMessages(timeout);
-
     result_t res = RESULT_SUCCESS;
-    switch (action.type) {
-    case ThreadActionType::Stop:
-        res = MAKE_RESULT(Svc, Error::Cancelled);
-        break;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled:
-            break;
-        case ThreadResumeReason::Cancelled:
+    if (crnt_thread->ProcessMessages(timeout)) {
+        if (crnt_thread->GetState() == ThreadState::Stopping) {
+            // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadResumeReason::TimedOut:
-            res = MAKE_RESULT(Svc, Error::TimedOut);
-            break;
+        } else {
+            if (!crnt_thread->WasSignalled())
+                res = MAKE_RESULT(Svc, Error::Cancelled);
         }
-        break;
-    default:
-        unreachable();
-    }
+    } else {
+        res = MAKE_RESULT(Svc, Error::TimedOut);
     }
 
     // Remove this thread from the wait list
@@ -860,10 +847,21 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
         crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
 
     // Wait for response
-    // TODO: check for errors
     crnt_thread->ProcessMessages();
 
-    return RESULT_SUCCESS;
+    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+                 "SendSyncRequest timed out");
+
+    result_t res = RESULT_SUCCESS;
+    if (crnt_thread->GetState() == ThreadState::Stopping) {
+        // TODO: is this necessary?
+        res = MAKE_RESULT(Svc, Error::Cancelled);
+    } else {
+        if (!crnt_thread->WasSignalled())
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+    }
+
+    return res;
 }
 
 result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
@@ -1109,28 +1107,19 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     }
 
     if (wait) {
-        const auto action = crnt_thread->ProcessMessages(timeout);
+        crnt_thread->ProcessMessages(timeout);
 
         result_t res = RESULT_SUCCESS;
-        switch (action.type) {
-        case ThreadActionType::Stop:
-            res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadActionType::Resume: {
-            switch (action.payload.resume.reason) {
-            case ThreadResumeReason::Signalled:
-                break;
-            case ThreadResumeReason::Cancelled:
+        if (crnt_thread->ProcessMessages(timeout)) {
+            if (crnt_thread->GetState() == ThreadState::Stopping) {
+                // TODO: is this necessary?
                 res = MAKE_RESULT(Svc, Error::Cancelled);
-                break;
-            case ThreadResumeReason::TimedOut:
-                res = MAKE_RESULT(Svc, Error::TimedOut);
-                break;
+            } else {
+                if (!crnt_thread->WasSignalled())
+                    res = MAKE_RESULT(Svc, Error::Cancelled);
             }
-            break;
-        default:
-            unreachable();
-        }
+        } else {
+            res = MAKE_RESULT(Svc, Error::TimedOut);
         }
 
         // Remove the thread from the arbiter list
