@@ -153,16 +153,12 @@ void Thread::Run() {
             u64 syndrome = exit->exception.syndrome;
             const auto hv_ec =
                 static_cast<ExceptionClass>((syndrome >> 26) & 0x3f);
-            u64 pc = GetReg(HV_REG_PC);
-            auto& elr = state.pc;
 
             switch (hv_ec) {
             case ExceptionClass::HvcAarch64: {
                 u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
                 u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
-
-                u32 instruction = MMU.Read<u32>(elr);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
@@ -171,14 +167,14 @@ void Thread::Run() {
                 case ExceptionClass::TrappedMsrMrsSystem: {
                     InstructionTrap(esr);
 
-                    elr += 4;
+                    state.pc += 4;
                     break;
                 }
                 case ExceptionClass::DataAbortLowerEl: {
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 
-                    DataAbort(instruction, far, elr);
+                    DataAbort(far);
                     break;
                 }
                 default:
@@ -188,9 +184,10 @@ void Thread::Run() {
                         "0x{:08x}, FAR: "
                         "0x{:08x}, VA: 0x{:08x}, PA: 0x{:08x}, instruction: "
                         "0x{:08x})",
-                        ec, esr, elr, GetSysReg(HV_SYS_REG_FAR_EL1),
+                        ec, esr, state.pc, GetSysReg(HV_SYS_REG_FAR_EL1),
                         exit->exception.virtual_address,
-                        exit->exception.physical_address, instruction);
+                        exit->exception.physical_address,
+                        MMU.Read<u32>(state.pc));
 
                     GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                         "unknown HVC code");
@@ -223,13 +220,13 @@ void Thread::Run() {
                           "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
                           "0x{:08x}, PC: 0x{:08x}, "
                           "VA: "
-                          "0x{:08x}, PA: 0x{:08x}, ELR: 0x{:08x}, "
+                          "0x{:08x}, PA: 0x{:08x}, "
                           "instruction: "
                           "0x{:08x})",
-                          syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), pc,
-                          exit->exception.virtual_address,
-                          exit->exception.physical_address, elr,
-                          MMU.Read<u32>(pc));
+                          syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1),
+                          state.pc, exit->exception.virtual_address,
+                          exit->exception.physical_address,
+                          MMU.Read<u32>(state.pc));
 
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                     "unexpected VM exception");
@@ -285,7 +282,7 @@ void Thread::SerializeState() {
     state.lr = GetReg(HV_REG_LR);
     state.sp = GetSysReg(HV_SYS_REG_SP_EL0);
     if (exception)
-        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1);
+        state.pc = GetSysReg(HV_SYS_REG_ELR_EL1) - 4;
     else
         state.pc = GetReg(HV_REG_PC);
     // TODO: pstate
@@ -302,7 +299,7 @@ void Thread::DeserializeState() {
     SetReg(HV_REG_LR, state.lr);
     SetSysReg(HV_SYS_REG_SP_EL0, state.sp);
     if (exception)
-        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc);
+        SetSysReg(HV_SYS_REG_ELR_EL1, state.pc + 4);
     else
         SetReg(HV_REG_PC, state.pc);
     // TODO: pstate
@@ -338,10 +335,10 @@ void Thread::InstructionTrap(u32 esr) {
     }
 }
 
-void Thread::DataAbort(u32 instruction, u64 far, u64 elr) {
+void Thread::DataAbort(u64 far) {
     ONCE(LOG_WARN(Hypervisor,
-                  "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}", elr,
-                  instruction, far));
+                  "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}",
+                  state.pc, MMU.Read<u32>(state.pc), far));
 
     // Skip one instruction
     state.pc += 4;
