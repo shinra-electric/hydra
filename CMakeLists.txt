@@ -36,6 +36,7 @@ add_subdirectory(externals/cubeb)
 #add_subdirectory(externals/luft)
 add_subdirectory(externals/hatch)
 add_subdirectory(externals/libyaz0)
+add_subdirectory(externals/nx2elf)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 

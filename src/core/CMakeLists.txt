@@ -591,5 +591,5 @@ add_library(hydra-core
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch libyaz0 hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch libyaz0 nx2elf hydra-common)
 # TODO: link luft if AIR shader backend is enabled

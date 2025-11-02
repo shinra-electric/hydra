@@ -4,7 +4,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <nx2elf.h>
+
 #include "core/debugger/debugger_manager.hpp"
+#include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/kernel/guest_thread.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
@@ -393,6 +396,7 @@ void GdbServer::HandleQuery(std::string_view command) {
     } else if (command.starts_with("Xfer:libraries:read::")) {
         std::string output = R"(<?xml version="1.0"?><library-list>)";
         for (const auto& symbol : debugger.module_table.GetSymbols()) {
+            // TODO: what's the purpose of this?
             // TODO: number_to_hex?
             output += fmt::format(
                 R"(<library name="{}"><segment address="{:#x}"/></library>)",
@@ -400,6 +404,8 @@ void GdbServer::HandleQuery(std::string_view command) {
         }
         output += "</library-list>";
         SendPacket(PageFromBuffer(output, command.substr(21)));
+    } else if (command.starts_with("Rcmd")) {
+        HandleRcmd(command.substr(5));
     } else {
         LOG_WARN(Debugger, "Unhandled GDB query: {}", command);
         SendPacket(GDB_EMPTY);
@@ -445,6 +451,68 @@ void GdbServer::HandleMemRead(std::string_view command) {
         }
         output += fmt::format("{:02x}", value);
     }
+    SendPacket(output);
+}
+
+void GdbServer::HandleRcmd(std::string_view cmd) {
+    std::string command;
+    command.reserve(cmd.size() / 2);
+    for (u32 i = 0; i < cmd.size(); i += 2) {
+        const auto str = cmd.substr(i, 2);
+        char c;
+        auto [ptr, ec] =
+            std::from_chars(str.data(), str.data() + str.size(), c, 16);
+        ASSERT_DEBUG(ec == std::errc(), Debugger, "Failed to parse command");
+        command += c;
+    }
+
+    if (command == "getExecutables") {
+        HandleGetExecutables();
+    } else {
+        LOG_WARN(Debugger, "Unhandled GDB RCMD: {}", command);
+        SendPacket(GDB_EMPTY);
+    }
+}
+
+void GdbServer::HandleGetExecutables() {
+    std::string dir_path = fmt::format("/tmp/hydra/dump/executables/{:016x}",
+                                       debugger.process->GetTitleID());
+    std::filesystem::create_directories(dir_path);
+
+    std::string output;
+    for (u32 i = 0; i < debugger.GetModuleTable().GetSymbols().size(); i++) {
+        const auto& module_ = debugger.GetModuleTable().GetSymbols()[i];
+        std::string path = fmt::format("{}/{}.elf", dir_path, module_.name);
+
+        // Output
+        output +=
+            fmt::format("\"{}\":{:#x}", path, module_.guest_mem_range.begin);
+        if (i < debugger.GetModuleTable().GetSymbols().size() - 1)
+            output += ";";
+
+        // Save the executable
+        if (std::filesystem::exists(path)) {
+            LOG_INFO(Debugger, "Symbol file {} already exists, skipping",
+                     module_.name);
+            continue;
+        }
+
+        // Load the executable
+        auto file = debugger.executables.at(module_.name);
+        auto stream = file->Open(horizon::filesystem::FileOpenFlags::Read);
+        auto reader = stream.CreateReader();
+
+        std::vector<u8> data(reader.GetSize());
+        reader.ReadWhole(data.data());
+
+        file->Close(stream);
+
+        // Convert to ELF
+        NsoFile nso;
+        nso.Load(data);
+        nso.WriteElf(path);
+    }
+
     SendPacket(output);
 }
 

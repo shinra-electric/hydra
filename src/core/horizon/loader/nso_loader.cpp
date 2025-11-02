@@ -133,14 +133,19 @@ NsoLoader::NsoLoader(filesystem::FileBase* file_, const std::string_view name_,
 }
 
 void NsoLoader::LoadProcess(kernel::Process* process) {
+    // Register executable
+    DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).RegisterExecutable(name,
+                                                                      file);
+
+    // Load
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
     auto reader = stream.CreateReader();
 
     // Create executable memory
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(
-        fmt::format("{}.nso", name), executable_size,
-        kernel::MemoryPermission::ReadExecute, false, base);
+        name, executable_size, kernel::MemoryPermission::ReadExecute, false,
+        base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
     // Segments

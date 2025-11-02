@@ -37,6 +37,8 @@ class GdbServer {
     void HandleThreadStatus();
     void HandleRegRead(std::string_view command);
     void HandleMemRead(std::string_view command);
+    void HandleRcmd(std::string_view command);
+    void HandleGetExecutables();
 
     // Helpers
     void SetNonBlocking(i32 socket);

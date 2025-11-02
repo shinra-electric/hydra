@@ -5,6 +5,10 @@ class GuestThread;
 class Process;
 } // namespace hydra::horizon::kernel
 
+namespace hydra::horizon::filesystem {
+class FileBase;
+} // namespace hydra::horizon::filesystem
+
 namespace hydra::debugger {
 
 class GdbServer;
@@ -111,6 +115,11 @@ class Debugger {
     Debugger(const std::string_view name_, horizon::kernel::Process* process_)
         : name{name_}, process{process_} {}
 
+    void RegisterExecutable(const std::string_view name,
+                            horizon::filesystem::FileBase* executable) {
+        executables.emplace(name, executable);
+    }
+
     void
     RegisterThisThread(const std::string_view name,
                        horizon::kernel::GuestThread* guest_thread = nullptr);
@@ -143,6 +152,7 @@ class Debugger {
     std::mutex mutex;
     std::map<std::thread::id, Thread> threads;
 
+    std::map<std::string, horizon::filesystem::FileBase*> executables;
     SymbolTable module_table;
     SymbolTable function_table;
 
