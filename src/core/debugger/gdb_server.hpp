@@ -43,6 +43,9 @@ class GdbServer {
     void HandleThreadStatus();
     void HandleRegRead(std::string_view command);
     void HandleMemRead(std::string_view command);
+    void HandleInsertBreakpoint(std::string_view command);
+    void HandleRemoveBreakpoint(std::string_view command);
+
     void HandleRcmd(std::string_view command);
     void HandleGetExecutables();
 

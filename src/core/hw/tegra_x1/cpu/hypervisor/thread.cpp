@@ -14,6 +14,13 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
+constexpr u32 PSTATE_SS = (1u << 21);
+constexpr u32 MDSCR_EL1_SS = (1u << 0);
+constexpr u32 MDSCR_EL1_MDE = (1u << 15);
+
+constexpr u32 DBGBCR_E = (1u << 0);     // Enable bit
+constexpr u32 DBGBCR_BAS = (0xfu << 5); // Byte address select
+
 constexpr u64 INTERRUPT_TIME = 16 * 1000 * 1000; // 16ms
 
 enum class ExceptionClass {
@@ -216,16 +223,21 @@ void Thread::Run() {
                 SetReg(HV_REG_PC, pc + 4);
                 break;
             }
+            case ExceptionClass::BreakpointLowerEl: {
+                // Callback
+                callbacks.supervisor_pause();
+                break;
+            }
             case ExceptionClass::SoftwareStepLowerEl: {
                 // HACK: single-stepping in exceptions behaves very weirdly
                 if (exception) {
-                    state.pstate |= (1ull << 21);
+                    state.pstate |= PSTATE_SS;
                     break;
                 }
 
                 // Disable SW step
                 u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
-                mdscr_el1 &= ~(1ull << 0);
+                mdscr_el1 &= ~MDSCR_EL1_SS;
                 SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
                 // Callback
@@ -352,18 +364,86 @@ void Thread::ProcessMessages() {
         auto message = msg_queue.front();
         msg_queue.pop();
         switch (message.type) {
-        case ThreadMessageType::SetBreakpoint:
-            // TODO: implement
-            LOG_FATAL(Hypervisor, "Breakpoints not implemented");
+        case ThreadMessageType::InsertBreakpoint: {
+            const auto addr = message.payload.insert_breakpoint.addr;
+
+            // Enable breakpoints
+            // TODO: only do once?
+            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            mdscr_el1 |= MDSCR_EL1_MDE;
+            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+
+            // Find a breakpoint slot
+            bool found = false;
+            for (u32 slot = 0; slot < MAX_BREAKPOINTS; ++slot) {
+                if (breakpoints[slot] == 0x0) {
+                    breakpoints[slot] = addr;
+
+                    // DBGBVR
+                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
+                              addr);
+
+                    // DBGBCR
+                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
+                              DBGBCR_E | (0x3 << 1) | DBGBCR_BAS | (0x0 << 20));
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+                LOG_ERROR(
+                    Hypervisor,
+                    "Failed to set breakpoint at address 0x{:08x}: no free "
+                    "breakpoint slots",
+                    addr);
             break;
+        }
+        case ThreadMessageType::RemoveBreakpoint: {
+            const auto addr = message.payload.remove_breakpoint.addr;
+
+            // Disable breakpoints
+            // TODO: disable when no breakpoints are active?
+            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            mdscr_el1 &= ~MDSCR_EL1_MDE;
+            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+
+            // Find the breakpoint slot
+            bool found = false;
+            for (u32 slot = 0; slot < MAX_BREAKPOINTS; ++slot) {
+                if (breakpoints[slot] == addr) {
+                    breakpoints[slot] = 0x0;
+
+                    // DBGBVR
+                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBVR0_EL1 + slot * 8),
+                              0x0);
+
+                    // DBGBCR
+                    SetSysReg(hv_sys_reg_t(HV_SYS_REG_DBGBCR0_EL1 + slot * 8),
+                              0x0);
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+                LOG_ERROR(
+                    Hypervisor,
+                    "Failed to remove breakpoint at address 0x{:08x}: no such "
+                    "breakpoint",
+                    addr);
+            break;
+        }
         case ThreadMessageType::SingleStep: {
             // Enable SW step
             u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
-            mdscr_el1 |= (1ull << 0);
+            mdscr_el1 |= MDSCR_EL1_SS;
             SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
 
             // Set PSTATE.SS
-            state.pstate |= (1ull << 21);
+            state.pstate |= PSTATE_SS;
             break;
         }
         default:

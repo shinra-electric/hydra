@@ -25,9 +25,13 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     void Run() override;
 
     // Debug
-    void SetBreakpoint(vaddr_t addr) override {
+    void InsertBreakpoint(vaddr_t addr) override {
         // TODO: implement
-        LOG_FATAL(Dynarmic, "Breakpoints not implemented");
+        LOG_FATAL(Dynarmic, "Breakpoint insertion not implemented");
+    }
+    void RemoveBreakpoint(vaddr_t addr) override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Breakpoint removal not implemented");
     }
     void SingleStep() override {
         // TODO: implement

@@ -44,6 +44,14 @@ constexpr u32 Q0_REGISTER = 34;
 constexpr u32 FPSR_REGISTER = 66;
 constexpr u32 FPCR_REGISTER = 67;
 
+enum class BreakpointType {
+    Software = 0,
+    Hardware = 1,
+    WriteWatch = 2,
+    ReadWatch = 3,
+    AccessWatch = 4,
+};
+
 template <typename T>
 std::string number_to_hex(T value) {
     const auto ptr = reinterpret_cast<const u8*>(&value);
@@ -206,6 +214,14 @@ std::string_view get_target_xml_aarch64() {
 
 } // namespace
 
+} // namespace hydra::debugger
+
+ENABLE_ENUM_FORMATTING(hydra::debugger::BreakpointType, Software, "software",
+                       Hardware, "hardware", WriteWatch, "write watch",
+                       ReadWatch, "read watch", AccessWatch, "access watch")
+
+namespace hydra::debugger {
+
 GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
     // Create the socket
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -362,6 +378,12 @@ void GdbServer::HandleCommand(std::string_view command) {
         for (const auto& [_, thread] : debugger.threads)
             thread.guest_thread->SupervisorResume();
         break;
+    case 'Z':
+        HandleInsertBreakpoint(body);
+        break;
+    case 'z':
+        HandleRemoveBreakpoint(body);
+        break;
     default:
         LOG_WARN(Debugger, "Unhandled GDB command: {}", command);
         SendPacket(GDB_EMPTY);
@@ -503,6 +525,54 @@ void GdbServer::HandleMemRead(std::string_view command) {
         output += fmt::format("{:02x}", value);
     }
     SendPacket(output);
+}
+
+void GdbServer::HandleInsertBreakpoint(std::string_view command) {
+    const auto addr_pos = command.find(',') + 1;
+    const auto size_pos = command.find(',', addr_pos) + 1;
+
+    const auto type =
+        static_cast<BreakpointType>(std::stoul(command.data(), nullptr, 16));
+    const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
+    const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
+
+    switch (type) {
+    case BreakpointType::Software:
+        ASSERT_DEBUG(size == 4, Debugger,
+                     "Invalid software breakpoint size 0x{:x}", size);
+        for (const auto& [_, thread] : debugger.threads)
+            thread.guest_thread->GetThread()->InsertBreakpoint(addr);
+        SendPacket(GDB_OK);
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", type);
+        SendPacket(GDB_ERROR);
+        break;
+    }
+}
+
+void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
+    const auto addr_pos = command.find(',') + 1;
+    const auto size_pos = command.find(',', addr_pos) + 1;
+
+    const auto type =
+        static_cast<BreakpointType>(std::stoul(command.data(), nullptr, 16));
+    const auto addr = std::stoull(command.substr(addr_pos).data(), nullptr, 16);
+    const auto size = std::stoull(command.substr(size_pos).data(), nullptr, 16);
+
+    switch (type) {
+    case BreakpointType::Software:
+        ASSERT_DEBUG(size == 4, Debugger,
+                     "Invalid software breakpoint size 0x{:x}", size);
+        for (const auto& [_, thread] : debugger.threads)
+            thread.guest_thread->GetThread()->RemoveBreakpoint(addr);
+        SendPacket(GDB_OK);
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(Debugger, "Breakpoint type {}", type);
+        SendPacket(GDB_ERROR);
+        break;
+    }
 }
 
 void GdbServer::HandleRcmd(std::string_view cmd) {

@@ -16,19 +16,27 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 class Cpu;
 class Mmu;
 
+constexpr u32 MAX_BREAKPOINTS = 16;
+
 enum class ThreadMessageType {
-    SetBreakpoint,
+    InsertBreakpoint,
+    RemoveBreakpoint,
     SingleStep,
 };
 
 struct ThreadMessage {
     ThreadMessageType type;
     union {
-        // Set breakpoint
+        // Insert breakpoint
         struct {
             vaddr_t addr;
-        } set_breakpoint;
-    };
+        } insert_breakpoint;
+
+        // Remove breakpoint
+        struct {
+            vaddr_t addr;
+        } remove_breakpoint;
+    } payload;
 };
 
 class Thread : public IThread {
@@ -44,8 +52,11 @@ class Thread : public IThread {
     void UpdateVTimer();
 
     // Debug
-    void SetBreakpoint(vaddr_t addr) override {
-        SendMessage({ThreadMessageType::SetBreakpoint, {addr}});
+    void InsertBreakpoint(vaddr_t addr) override {
+        SendMessage({ThreadMessageType::InsertBreakpoint, {addr}});
+    }
+    void RemoveBreakpoint(vaddr_t addr) override {
+        SendMessage({ThreadMessageType::RemoveBreakpoint, {addr}});
     }
     void SingleStep() override { SendMessage({ThreadMessageType::SingleStep}); }
 
@@ -55,6 +66,9 @@ class Thread : public IThread {
     bool exception{false};
 
     u64 interrupt_time_delta_ticks;
+
+    // Debug
+    vaddr_t breakpoints[MAX_BREAKPOINTS] = {0x0};
 
     // Messages
     std::mutex msg_mutex;

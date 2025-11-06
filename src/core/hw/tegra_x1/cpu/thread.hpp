@@ -39,7 +39,8 @@ class IThread {
     // Debug
     void GetStackTrace(stack_frame_callback_fn_t callback);
 
-    virtual void SetBreakpoint(vaddr_t addr) = 0;
+    virtual void InsertBreakpoint(vaddr_t addr) = 0;
+    virtual void RemoveBreakpoint(vaddr_t addr) = 0;
     virtual void SingleStep() = 0;
 
     // Getters
