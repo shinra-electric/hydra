@@ -16,10 +16,24 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 class Cpu;
 class Mmu;
 
+enum class ThreadMessageType {
+    SetBreakpoint,
+    SingleStep,
+};
+
+struct ThreadMessage {
+    ThreadMessageType type;
+    union {
+        // Set breakpoint
+        struct {
+            vaddr_t addr;
+        } set_breakpoint;
+    };
+};
+
 class Thread : public IThread {
   public:
-    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+    Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
            vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
 
@@ -30,7 +44,10 @@ class Thread : public IThread {
     void UpdateVTimer();
 
     // Debug
-    void LogRegisters(bool simd = false, u32 count = 32) override;
+    void SetBreakpoint(vaddr_t addr) override {
+        SendMessage({ThreadMessageType::SetBreakpoint, {addr}});
+    }
+    void SingleStep() override { SendMessage({ThreadMessageType::SingleStep}); }
 
   private:
     hv_vcpu_t vcpu;
@@ -38,6 +55,10 @@ class Thread : public IThread {
     bool exception{false};
 
     u64 interrupt_time_delta_ticks;
+
+    // Messages
+    std::mutex msg_mutex;
+    std::queue<ThreadMessage> msg_queue;
 
     // State
     void SerializeState();
@@ -84,6 +105,14 @@ class Thread : public IThread {
     void SetSysReg(hv_sys_reg_t reg, u64 value) {
         HV_ASSERT_SUCCESS(hv_vcpu_set_sys_reg(vcpu, reg, value));
     }
+
+    // Messages
+    void SendMessage(const ThreadMessage& message) {
+        std::lock_guard<std::mutex> lock(msg_mutex);
+        msg_queue.push(message);
+    }
+
+    void ProcessMessages();
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

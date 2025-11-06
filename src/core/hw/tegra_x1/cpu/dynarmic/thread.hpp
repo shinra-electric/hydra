@@ -18,15 +18,21 @@ class Mmu;
 
 class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
   public:
-    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+    Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
            vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
 
     void Run() override;
 
     // Debug
-    void LogRegisters(bool simd = false, u32 count = 32) override;
+    void SetBreakpoint(vaddr_t addr) override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Breakpoints not implemented");
+    }
+    void SingleStep() override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Single-stepping not implemented");
+    }
 
   private:
     u64 tpidrro_el0;
@@ -81,7 +87,7 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     // Helpers
     void CheckForStopRequest() {
-        if (stop_requested())
+        if (callbacks.stop_requested())
             jit->HaltExecution();
     }
 };

@@ -24,13 +24,18 @@ void GuestThread::Run() {
 
     thread = CPU_INSTANCE.CreateThread(
         process->GetMmu(),
-        [this](hw::tegra_x1::cpu::IThread* thread, u64 id) {
-            KERNEL_INSTANCE.SupervisorCall(process, this, thread, id);
-        },
-        [this]() {
-            ProcessMessages();
-            return GetState() == ThreadState::Stopping;
-        },
+        {[this](hw::tegra_x1::cpu::IThread* thread, u64 id) {
+             KERNEL_INSTANCE.SupervisorCall(process, this, thread, id);
+         },
+         [this]() {
+             ProcessMessages();
+             return GetState() == ThreadState::Stopping;
+         },
+         [this]() {
+             SupervisorPause();
+             DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
+                 .NotifySupervisorPaused(this);
+         }},
         tls_mem, tls_addr, stack_top_addr);
 
     auto& state = thread->GetState();

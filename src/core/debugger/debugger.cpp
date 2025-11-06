@@ -52,6 +52,11 @@ void Thread::Log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
+Debugger::~Debugger() {
+    if (gdb_server)
+        delete gdb_server;
+}
+
 void Debugger::RegisterThisThread(const std::string_view name,
                                   horizon::kernel::GuestThread* guest_thread) {
     std::unique_lock lock(mutex);
@@ -77,6 +82,11 @@ void Debugger::BreakOnThisThread(const std::string_view reason) {
 }
 
 void Debugger::ActivateGdbServer() { gdb_server = new GdbServer(*this); }
+
+void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
+    if (gdb_server)
+        gdb_server->NotifySupervisorPaused(thread);
+}
 
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();

@@ -13,6 +13,10 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
+#define GET_THREAD_ID(thread) reinterpret_cast<u64>(thread)
+#define GET_THREAD_FROM_ID(id)                                                 \
+    reinterpret_cast<horizon::kernel::GuestThread*>(id)
+
 namespace hydra::debugger {
 
 namespace {
@@ -245,13 +249,18 @@ GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
 
     // Thread ID
     ASSERT(!debugger.threads.empty(), Debugger, "No active thread");
-    current_thread_id = debugger.threads.begin()->first;
+    crnt_thread = debugger.threads.begin()->second.guest_thread;
 }
 
 GdbServer::~GdbServer() {
     running = false;
     server_thread.join();
     close(server_socket);
+}
+
+void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
+    // TODO: don't send packets from other threads
+    SendPacket(GetThreadStatus(thread, GDB_SIGTRAP));
 }
 
 void GdbServer::ServerLoop() {
@@ -362,13 +371,52 @@ void GdbServer::HandleCommand(std::string_view command) {
 
 void GdbServer::HandleVCont(std::string_view command) {
     if (command == "?") {
-        // TODO: what is this?
         SendPacket("vCont;c;C;s;S");
         return;
     }
 
-    // TODO
-    LOG_FATAL(Debugger, "Unhandled vCont command: {}", command);
+    horizon::kernel::GuestThread* thread = nullptr;
+    bool lock_execution = true; // TODO: what is this?
+
+    size_t pos = 1;
+    do {
+        const auto next_pos = command.find(';', pos);
+        const auto entry = command.substr(pos, (next_pos != std::string::npos
+                                                    ? next_pos - pos
+                                                    : std::string::npos));
+        pos = next_pos;
+
+        switch (entry[0]) {
+        case 'c':
+        case 'C':
+            lock_execution = false;
+            break;
+        case 's':
+        case 'S': {
+            const auto thread_id_str = entry.substr(entry.find(':') + 1);
+            thread = GET_THREAD_FROM_ID(
+                std::stoull(thread_id_str.data(), nullptr, 16));
+            break;
+        }
+        default:
+            LOG_WARN(Debugger, "Unhandled GDB vCont entry: {}", entry[0]);
+            SendPacket(GDB_EMPTY);
+            break;
+        }
+    } while (pos != std::string::npos);
+
+    // TODO: how does this work?
+    if (thread) {
+        // TODO: implement
+        ASSERT_DEBUG(lock_execution, Debugger,
+                     "Non-locked execution not implemented");
+        crnt_thread = thread;
+        thread->GetThread()->SingleStep();
+        thread->SupervisorResume();
+    } else {
+        for (const auto& [_, thread] : debugger.threads)
+            thread.guest_thread->SupervisorResume();
+    }
 }
 
 void GdbServer::HandleQuery(std::string_view command) {
@@ -383,9 +431,9 @@ void GdbServer::HandleQuery(std::string_view command) {
     } else if (command.starts_with("fThreadInfo")) { // TODO: ==?
         std::vector<std::string> thread_ids;
         thread_ids.reserve(debugger.threads.size());
-        for (const auto& [thread_id, thread] : debugger.threads)
+        for (const auto& [_, thread] : debugger.threads)
             thread_ids.push_back(
-                fmt::format("{:x}", std::bit_cast<u64>(thread_id)));
+                fmt::format("{:x}", GET_THREAD_ID(thread.guest_thread)));
         SendPacket(fmt::format("m{}", fmt::join(thread_ids, ",")));
     } else if (command.starts_with("sThreadInfo")) { // TODO: ==?
         // TODO: why?
@@ -413,20 +461,23 @@ void GdbServer::HandleQuery(std::string_view command) {
 }
 
 void GdbServer::HandleSetActiveThread(std::string_view command) {
-    const auto thread_id = std::bit_cast<std::thread::id>(
-        std::stoull(command.substr(1).data(), nullptr, 16));
-    if (std::bit_cast<u64>(thread_id) != 0) {
-        if (debugger.threads.contains(thread_id)) {
-            current_thread_id = thread_id;
-            SendPacket(GDB_OK);
-        } else {
-            SendPacket(GDB_ERROR);
-        }
+    const auto thread =
+        GET_THREAD_FROM_ID(std::stoull(command.substr(1).data(), nullptr, 16));
+    if (thread) {
+        // TODO: check if thread is valid
+        // if (debugger.threads.contains(thread)) {
+        //    crnt_thread = thread;
+        //    SendPacket(GDB_OK);
+        //} else {
+        //    SendPacket(GDB_ERROR);
+        //}
+        crnt_thread = thread;
+        SendPacket(GDB_OK);
     }
 }
 
 void GdbServer::HandleThreadStatus() {
-    SendPacket(GetThreadStatus(current_thread_id, GDB_SIGTRAP));
+    SendPacket(GetThreadStatus(crnt_thread, GDB_SIGTRAP));
 }
 
 void GdbServer::HandleRegRead(std::string_view command) {
@@ -543,9 +594,7 @@ void GdbServer::SetNonBlocking(i32 socket) {
 }
 
 std::string GdbServer::ReadReg(u32 id) {
-    const auto& state = debugger.threads.at(current_thread_id)
-                            .guest_thread->GetThread()
-                            ->GetState();
+    const auto& state = crnt_thread->GetThread()->GetState();
     switch (id) {
     case 0 ... 28:
         return number_to_hex(state.r[id]);
@@ -570,12 +619,12 @@ std::string GdbServer::ReadReg(u32 id) {
     }
 }
 
-std::string GdbServer::GetThreadStatus(std::thread::id thread_id, u8 signal) {
-    auto thread = debugger.threads.at(thread_id).guest_thread->GetThread();
-    const auto& state = thread->GetState();
+std::string GdbServer::GetThreadStatus(horizon::kernel::GuestThread* thread,
+                                       u8 signal) {
+    const auto& state = thread->GetThread()->GetState();
     return fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
                        signal, PC_REGISTER, state.pc, SP_REGISTER, state.sp,
-                       LR_REGISTER, state.lr, std::bit_cast<u64>(thread_id));
+                       LR_REGISTER, state.lr, GET_THREAD_ID(thread));
 }
 
 std::string GdbServer::PageFromBuffer(std::string_view buffer,

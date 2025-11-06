@@ -14,10 +14,9 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
-Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base, vaddr_t stack_mem_end)
-    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
+    : IThread(mmu, callbacks, tls_mem) {
     tpidrro_el0 = tls_mem_base;
 
     // Create JIT
@@ -59,11 +58,6 @@ Thread::~Thread() { delete jit; }
 void Thread::Run() {
     SerializeState();
     jit->Run();
-}
-
-void Thread::LogRegisters(bool simd, u32 count) {
-    // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
 }
 
 u8 Thread::MemoryRead8(u64 addr) { return MMU->Read<u8>(addr); }
@@ -122,7 +116,7 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 
 void Thread::CallSVC(u32 svc) {
     DeserializeState();
-    svc_handler(this, svc);
+    callbacks.svc_handler(this, svc);
     CheckForStopRequest();
     SerializeState();
 }

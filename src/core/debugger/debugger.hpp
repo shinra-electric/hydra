@@ -114,6 +114,7 @@ class Debugger {
   public:
     Debugger(const std::string_view name_, horizon::kernel::Process* process_)
         : name{name_}, process{process_} {}
+    ~Debugger();
 
     void RegisterExecutable(const std::string_view name,
                             horizon::filesystem::FileBase* executable) {
@@ -132,6 +133,7 @@ class Debugger {
 
     // GDB
     void ActivateGdbServer();
+    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
 
     // API
     void Lock() { mutex.lock(); }

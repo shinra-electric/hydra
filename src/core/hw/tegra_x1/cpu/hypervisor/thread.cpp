@@ -90,10 +90,9 @@ ENABLE_ENUM_FORMATTING(
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base, vaddr_t stack_mem_end)
-    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
+    : IThread(mmu, callbacks, tls_mem) {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
 
@@ -144,11 +143,15 @@ Thread::~Thread() { hv_vcpu_destroy(vcpu); }
 void Thread::Run() {
     // Main run loop
     while (true) {
+        ProcessMessages();
+
+        // Run
         DeserializeState();
         HV_ASSERT_SUCCESS(hv_vcpu_run(vcpu));
-        exception = (exit->reason == HV_EXIT_REASON_EXCEPTION);
+        exception = (GetReg(HV_REG_PC) >= CPU.GetKernelPageTable().GetBase());
         SerializeState();
 
+        // Handle exit
         if (exit->reason == HV_EXIT_REASON_EXCEPTION) {
             u64 syndrome = exit->exception.syndrome;
             const auto hv_ec =
@@ -162,7 +165,7 @@ void Thread::Run() {
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
-                    svc_handler(this, esr & 0xffff);
+                    callbacks.svc_handler(this, esr & 0xffff);
                     break;
                 case ExceptionClass::TrappedMsrMrsSystem: {
                     InstructionTrap(esr);
@@ -204,8 +207,6 @@ void Thread::Run() {
                 LOG_FATAL(Hypervisor, "SMC");
                 break;
             case ExceptionClass::BrkAarch64:
-                LogRegisters(true);
-
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
                     "BRK instruction");
                 return;
@@ -213,6 +214,22 @@ void Thread::Run() {
                 LOG_ERROR(Hypervisor, "This should not happen");
                 u64 pc = GetReg(HV_REG_PC);
                 SetReg(HV_REG_PC, pc + 4);
+                break;
+            }
+            case ExceptionClass::SoftwareStepLowerEl: {
+                // HACK: single-stepping in exceptions behaves very weirdly
+                if (exception) {
+                    state.pstate |= (1ull << 21);
+                    break;
+                }
+
+                // Disable SW step
+                u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+                mdscr_el1 &= ~(1ull << 0);
+                SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+
+                // Callback
+                callbacks.supervisor_pause();
                 break;
             }
             default:
@@ -244,7 +261,7 @@ void Thread::Run() {
             break;
         }
 
-        if (stop_requested())
+        if (callbacks.stop_requested())
             break;
     }
 }
@@ -260,21 +277,6 @@ void Thread::UpdateVTimer() {
     hv_vcpu_set_vtimer_mask(vcpu, false);
 }
 
-void Thread::LogRegisters(bool simd, u32 count) {
-    LOG_DEBUG(Hypervisor, "Reg dump:");
-    for (u32 i = 0; i < count; i++) {
-        LOG_DEBUG(Hypervisor, "X{}: 0x{:08x}", i, state.r[i]);
-    }
-    if (simd) {
-        for (u32 i = 0; i < count; i++) {
-            auto reg = state.v[i];
-            LOG_DEBUG(Hypervisor, "Q{}: 0x{:08x}{:08x}", i, *(u64*)&reg,
-                      *((u64*)&reg + 1)); // TODO: correct?
-        }
-    }
-    LOG_DEBUG(Hypervisor, "SP: 0x{:08x}", GetSysReg(HV_SYS_REG_SP_EL0));
-}
-
 void Thread::SerializeState() {
     for (u32 i = 0; i < 29; i++)
         state.r[i] = GetReg(hv_reg_t(HV_REG_X0 + i));
@@ -285,7 +287,7 @@ void Thread::SerializeState() {
         state.pc = GetSysReg(HV_SYS_REG_ELR_EL1) - 4;
     else
         state.pc = GetReg(HV_REG_PC);
-    // TODO: pstate
+    state.pstate = GetReg(HV_REG_CPSR);
     for (u32 i = 0; i < 32; i++)
         state.v[i] = GetSimdFpReg(i);
     state.fpcr = GetReg(HV_REG_FPCR);
@@ -302,7 +304,7 @@ void Thread::DeserializeState() {
         SetSysReg(HV_SYS_REG_ELR_EL1, state.pc + 4);
     else
         SetReg(HV_REG_PC, state.pc);
-    // TODO: pstate
+    SetReg(HV_REG_CPSR, state.pstate);
     for (u32 i = 0; i < 32; i++)
         SetSimdFpReg(i, state.v[i]);
     SetReg(HV_REG_FPCR, state.fpcr);
@@ -342,6 +344,33 @@ void Thread::DataAbort(u64 far) {
 
     // Skip one instruction
     state.pc += 4;
+}
+
+void Thread::ProcessMessages() {
+    std::lock_guard<std::mutex> lock(msg_mutex);
+    while (!msg_queue.empty()) {
+        auto message = msg_queue.front();
+        msg_queue.pop();
+        switch (message.type) {
+        case ThreadMessageType::SetBreakpoint:
+            // TODO: implement
+            LOG_FATAL(Hypervisor, "Breakpoints not implemented");
+            break;
+        case ThreadMessageType::SingleStep: {
+            // Enable SW step
+            u64 mdscr_el1 = GetSysReg(HV_SYS_REG_MDSCR_EL1);
+            mdscr_el1 |= (1ull << 0);
+            SetSysReg(HV_SYS_REG_MDSCR_EL1, mdscr_el1);
+
+            // Set PSTATE.SS
+            state.pstate |= (1ull << 21);
+            break;
+        }
+        default:
+            LOG_FATAL(Hypervisor, "Unhandled message type");
+            break;
+        }
+    }
 }
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

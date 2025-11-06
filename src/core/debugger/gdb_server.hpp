@@ -1,5 +1,9 @@
 #pragma once
 
+namespace hydra::horizon::kernel {
+class GuestThread;
+} // namespace hydra::horizon::kernel
+
 namespace hydra::debugger {
 
 class Debugger;
@@ -8,6 +12,8 @@ class GdbServer {
   public:
     GdbServer(Debugger& debugger_);
     ~GdbServer();
+
+    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
 
   private:
     Debugger& debugger;
@@ -19,7 +25,7 @@ class GdbServer {
     std::string receive_buffer;
     bool do_ack{true};
 
-    std::thread::id current_thread_id;
+    horizon::kernel::GuestThread* crnt_thread;
 
     void ServerLoop();
     void Poll();
@@ -43,7 +49,8 @@ class GdbServer {
     // Helpers
     void SetNonBlocking(i32 socket);
     std::string ReadReg(u32 id);
-    std::string GetThreadStatus(std::thread::id thread_id, u8 signal);
+    std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
+                                u8 signal);
     std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 };
 
