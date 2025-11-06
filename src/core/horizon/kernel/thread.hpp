@@ -124,7 +124,7 @@ class IThread : public SynchronizationObject {
     DoubleLinkedList<IThread*> mutex_wait_list;
 
     // Synchronization
-    u32 supervisor_pause_count{0};
+    bool supervisor_pause{false};
     bool guest_pause{false};
     std::optional<ThreadSyncInfo> sync_info{std::nullopt};
 

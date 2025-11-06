@@ -75,7 +75,7 @@ bool IThread::ProcessMessagesImpl() {
         case ThreadMessageType::Pause: {
             state = ThreadState::Paused;
             if (msg.supervisor)
-                supervisor_pause_count++;
+                supervisor_pause = true;
             else
                 guest_pause = true;
             break;
@@ -83,15 +83,11 @@ bool IThread::ProcessMessagesImpl() {
         case ThreadMessageType::Resume: {
             const auto& payload = msg.payload.resume;
 
-            if (msg.supervisor) {
-                ASSERT_DEBUG(supervisor_pause_count > 0, Kernel,
-                             "Cannot resume thread by supervisor, as it was "
-                             "not paused by supervisor");
-                supervisor_pause_count--;
-            } else {
+            if (msg.supervisor)
+                supervisor_pause = false;
+            else
                 guest_pause = false;
-            }
-            if (supervisor_pause_count == 0 && !guest_pause)
+            if (!supervisor_pause && !guest_pause)
                 state = ThreadState::Running;
 
             if (!msg.supervisor && !sync_info)
