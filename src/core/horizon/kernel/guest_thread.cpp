@@ -35,6 +35,9 @@ void GuestThread::Run() {
              SupervisorPause();
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
                  .NotifySupervisorPaused(this);
+         },
+         [this]() {
+             DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).BreakpointHit(this);
          }},
         tls_mem, tls_addr, stack_top_addr);
 

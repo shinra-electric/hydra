@@ -134,6 +134,7 @@ class Debugger {
     // GDB
     void ActivateGdbServer();
     void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
+    void BreakpointHit(horizon::kernel::GuestThread* thread);
 
     // API
     void Lock() { mutex.lock(); }

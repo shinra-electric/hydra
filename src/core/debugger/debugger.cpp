@@ -88,6 +88,11 @@ void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
         gdb_server->NotifySupervisorPaused(thread);
 }
 
+void Debugger::BreakpointHit(horizon::kernel::GuestThread* thread) {
+    if (gdb_server)
+        gdb_server->BreakpointHit(thread);
+}
+
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     lock.unlock();

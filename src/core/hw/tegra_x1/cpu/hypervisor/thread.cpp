@@ -225,7 +225,7 @@ void Thread::Run() {
             }
             case ExceptionClass::BreakpointLowerEl: {
                 // Callback
-                callbacks.supervisor_pause();
+                callbacks.breakpoint_hit();
                 break;
             }
             case ExceptionClass::SoftwareStepLowerEl: {

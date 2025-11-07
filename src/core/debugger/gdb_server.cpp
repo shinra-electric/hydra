@@ -279,10 +279,22 @@ void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
     SendPacket(GetThreadStatus(thread, GDB_SIGTRAP));
 }
 
+void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
+    while (breakpoint_hit.exchange(true))
+        thread->ProcessMessages();
+
+    // We got the lock
+    for (const auto& [_, thread] : debugger.threads)
+        thread.guest_thread->SupervisorPause();
+
+    NotifySupervisorPaused(thread);
+}
+
 void GdbServer::ServerLoop() {
     GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("GDB server");
     while (running) {
         Poll();
+        // TODO: is the delay necessary?
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
@@ -375,6 +387,7 @@ void GdbServer::HandleCommand(std::string_view command) {
         HandleMemRead(body);
         break;
     case 'c':
+        breakpoint_hit = false;
         for (const auto& [_, thread] : debugger.threads)
             thread.guest_thread->SupervisorResume();
         break;

@@ -12,6 +12,7 @@ struct ThreadCallbacks {
     std::function<void(IThread*, u64)> svc_handler;
     std::function<bool()> stop_requested;
     std::function<void()> supervisor_pause;
+    std::function<void()> breakpoint_hit;
 };
 
 typedef std::function<void(vaddr_t)> stack_frame_callback_fn_t;

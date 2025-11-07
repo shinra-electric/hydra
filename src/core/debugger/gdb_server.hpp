@@ -14,6 +14,7 @@ class GdbServer {
     ~GdbServer();
 
     void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
+    void BreakpointHit(horizon::kernel::GuestThread* thread);
 
   private:
     Debugger& debugger;
@@ -26,6 +27,7 @@ class GdbServer {
     bool do_ack{true};
 
     horizon::kernel::GuestThread* crnt_thread;
+    std::atomic<bool> breakpoint_hit{false};
 
     void ServerLoop();
     void Poll();
