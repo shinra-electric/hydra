@@ -290,6 +290,13 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
     NotifySupervisorPaused(thread);
 }
 
+void GdbServer::CloseClientSocket() {
+    ASSERT(client_socket != -1, Debugger, "Client socket is not open");
+    close(client_socket);
+    client_socket = -1;
+    LOG_INFO(Debugger, "GDB client disconnected");
+}
+
 void GdbServer::ServerLoop() {
     GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("GDB server");
     while (running) {
@@ -323,11 +330,8 @@ void GdbServer::Poll() {
             receive_buffer += std::string_view(buffer, bytes_read);
             ProcessPackets();
         } else if (bytes_read == 0) {
-            close(client_socket);
-            client_socket = -1;
-            // TODO: resume all threads?
-
-            LOG_INFO(Debugger, "GDB client disconnected");
+            CloseClientSocket();
+            // TODO: also resume all threads?
         }
     }
 }
@@ -373,6 +377,10 @@ void GdbServer::HandleCommand(std::string_view command) {
     case 'Q':
     case 'q':
         HandleQuery(body);
+        break;
+    case 'k':
+        debugger.process->Stop();
+        CloseClientSocket();
         break;
     case 'H':
         HandleSetActiveThread(body);

@@ -38,7 +38,7 @@ bool IThread::ProcessMessages(i64 pause_timeout_ns) {
     std::unique_lock<std::mutex> lock(msg_mutex);
     while (!msg_queue.empty()) {
         if (!ProcessMessagesImpl())
-            return false;
+            return true;
 
         if (state != ThreadState::Paused)
             return true;

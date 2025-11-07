@@ -29,6 +29,8 @@ class GdbServer {
     horizon::kernel::GuestThread* crnt_thread;
     std::atomic<bool> breakpoint_hit{false};
 
+    void CloseClientSocket();
+
     void ServerLoop();
     void Poll();
 
