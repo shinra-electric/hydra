@@ -32,6 +32,14 @@ HYDRA_EXPORT void hydra_bool_option_set(void* option, const bool value) {
     reinterpret_cast<hydra::Option<bool>*>(option)->Set(value);
 }
 
+HYDRA_EXPORT uint16_t hydra_u16_option_get(const void* option) {
+    return reinterpret_cast<const hydra::Option<hydra::u16>*>(option)->Get();
+}
+
+HYDRA_EXPORT void hydra_u16_option_set(void* option, const uint16_t value) {
+    reinterpret_cast<hydra::Option<hydra::u16>*>(option)->Set(value);
+}
+
 HYDRA_EXPORT int32_t hydra_i32_option_get(const void* option) {
     return reinterpret_cast<const hydra::Option<hydra::i32>*>(option)->Get();
 }
@@ -187,6 +195,14 @@ HYDRA_EXPORT void* hydra_config_get_debug_logging() {
 
 HYDRA_EXPORT void* hydra_config_get_process_args() {
     return &hydra::CONFIG_INSTANCE.GetProcessArgs();
+}
+
+HYDRA_EXPORT void* hydra_config_get_gdb_enabled() {
+    return &hydra::CONFIG_INSTANCE.GetGdbEnabled();
+}
+
+HYDRA_EXPORT void* hydra_config_get_gdb_port() {
+    return &hydra::CONFIG_INSTANCE.GetGdbPort();
 }
 
 // Filesystem

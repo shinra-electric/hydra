@@ -23,374 +23,296 @@ Kernel::~Kernel() { SINGLETON_UNSET_INSTANCE(); }
 
 void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                             hw::tegra_x1::cpu::IThread* guest_thread, u64 id) {
-    result_t res;
+    auto& state = guest_thread->GetState();
+
     i32 tmp_i32;
     u32 tmp_u32;
     u64 tmp_u64;
     uptr tmp_uptr;
     switch (id) {
     case 0x1:
-        res = SetHeapSize(crnt_process, guest_thread->GetRegX(1), tmp_uptr);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, tmp_uptr);
+        state.r[0] = SetHeapSize(crnt_process, state.r[1], tmp_uptr);
+        state.r[1] = tmp_uptr;
         break;
     case 0x2:
-        res = SetMemoryPermission(
-            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
-            static_cast<MemoryPermission>(guest_thread->GetRegX(2)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SetMemoryPermission(
+            state.r[0], state.r[1], static_cast<MemoryPermission>(state.r[2]));
         break;
     case 0x3:
-        res = SetMemoryAttribute(
-            guest_thread->GetRegX(0), guest_thread->GetRegX(1),
-            guest_thread->GetRegX(2), guest_thread->GetRegX(3));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            SetMemoryAttribute(state.r[0], state.r[1], state.r[2], state.r[3]);
         break;
     case 0x4:
-        res = MapMemory(crnt_process, guest_thread->GetRegX(0),
-                        guest_thread->GetRegX(1), guest_thread->GetRegX(2));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            MapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
         break;
     case 0x5:
-        res = UnmapMemory(crnt_process, guest_thread->GetRegX(0),
-                          guest_thread->GetRegX(1), guest_thread->GetRegX(2));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            UnmapMemory(crnt_process, state.r[0], state.r[1], state.r[2]);
         break;
     case 0x6:
-        res = QueryMemory(
-            crnt_process, guest_thread->GetRegX(2),
-            *reinterpret_cast<MemoryInfo*>(
-                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))),
-            tmp_u32);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, tmp_u32);
+        state.r[0] =
+            QueryMemory(crnt_process, state.r[2],
+                        *reinterpret_cast<MemoryInfo*>(
+                            crnt_process->GetMmu()->UnmapAddr(state.r[0])),
+                        tmp_u32);
+        state.r[1] = tmp_u32;
         break;
     case 0x7:
         ExitProcess(crnt_process);
         break;
     case 0x8: {
         IThread* thread = nullptr;
-        res =
-            CreateThread(crnt_process, guest_thread->GetRegX(1),
-                         guest_thread->GetRegX(2), guest_thread->GetRegX(3),
-                         std::bit_cast<i32>(guest_thread->GetRegW(4)),
-                         std::bit_cast<i32>(guest_thread->GetRegW(5)), thread);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandleNoRetain(thread));
+        state.r[0] =
+            CreateThread(crnt_process, state.r[1], state.r[2], state.r[3],
+                         std::bit_cast<i32>(u32(state.r[4])),
+                         std::bit_cast<i32>(u32(state.r[5])), thread);
+        state.r[1] = crnt_process->AddHandleNoRetain(thread);
         break;
     }
     case 0x9:
-        res = StartThread(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = StartThread(crnt_process->GetHandle<IThread>(state.r[0]));
         break;
     case 0xa:
         ExitThread(crnt_thread);
         break;
     case 0xb:
-        SleepThread(std::bit_cast<i64>(guest_thread->GetRegX(0)));
+        SleepThread(std::bit_cast<i64>(state.r[0]));
         break;
     case 0xc:
-        res = GetThreadPriority(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegX(1)),
-            tmp_i32);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, std::bit_cast<u32>(tmp_i32));
+        state.r[0] = GetThreadPriority(
+            crnt_process->GetHandle<IThread>(state.r[1]), tmp_i32);
+        state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     case 0xd:
-        res = SetThreadPriority(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)),
-            guest_thread->GetRegX(1));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SetThreadPriority(
+            crnt_process->GetHandle<IThread>(state.r[0]), state.r[1]);
         break;
     case 0xe:
-        res = GetThreadCoreMask(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)), tmp_i32,
-            tmp_u64);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, tmp_i32);
-        guest_thread->SetRegW(2, tmp_u64);
+        state.r[0] = GetThreadCoreMask(
+            crnt_process->GetHandle<IThread>(state.r[0]), tmp_i32, tmp_u64);
+        state.r[1] = std::bit_cast<u32>(tmp_i32);
+        state.r[2] = tmp_u64;
         break;
     case 0xf:
-        res = SetThreadCoreMask(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)),
-            std::bit_cast<i32>(guest_thread->GetRegW(1)),
-            guest_thread->GetRegX(2));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            SetThreadCoreMask(crnt_process->GetHandle<IThread>(state.r[0]),
+                              std::bit_cast<i32>(u32(state.r[1])), state.r[2]);
         break;
     case 0x10:
         GetCurrentProcessorNumber(tmp_u32);
-        guest_thread->SetRegW(0, tmp_u32);
+        state.r[0] = tmp_u32;
         break;
     case 0x11:
-        res = SignalEvent(
-            crnt_process->GetHandle<Event>(guest_thread->GetRegW(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SignalEvent(crnt_process->GetHandle<Event>(state.r[0]));
         break;
     case 0x12:
-        res = ClearEvent(
-            crnt_process->GetHandle<Event>(guest_thread->GetRegW(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = ClearEvent(crnt_process->GetHandle<Event>(state.r[0]));
         break;
     case 0x13:
-        res = MapSharedMemory(
-            crnt_process,
-            crnt_process->GetHandle<SharedMemory>(guest_thread->GetRegX(0)),
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
-            static_cast<MemoryPermission>(guest_thread->GetRegX(3)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = MapSharedMemory(
+            crnt_process, crnt_process->GetHandle<SharedMemory>(state.r[0]),
+            state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]));
         break;
     case 0x14:
-        res = UnmapSharedMemory(
-            crnt_process,
-            crnt_process->GetHandle<SharedMemory>(guest_thread->GetRegX(0)),
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = UnmapSharedMemory(
+            crnt_process, crnt_process->GetHandle<SharedMemory>(state.r[0]),
+            state.r[1], state.r[2]);
         break;
     case 0x15: {
         TransferMemory* tmem = nullptr;
-        res = CreateTransferMemory(
-            crnt_process, guest_thread->GetRegX(1), guest_thread->GetRegX(2),
-            static_cast<MemoryPermission>(guest_thread->GetRegX(3)), tmem);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, crnt_process->AddHandleNoRetain(tmem));
+        state.r[0] = CreateTransferMemory(
+            crnt_process, state.r[1], state.r[2],
+            static_cast<MemoryPermission>(state.r[3]), tmem);
+        state.r[1] = crnt_process->AddHandleNoRetain(tmem);
         break;
     }
     case 0x16:
-        res = CloseHandle(crnt_process, guest_thread->GetRegX(0));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = CloseHandle(crnt_process, state.r[0]);
         break;
     case 0x17:
-        res = ResetSignal(crnt_process->GetHandle<SynchronizationObject>(
-            guest_thread->GetRegX(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = ResetSignal(
+            crnt_process->GetHandle<SynchronizationObject>(state.r[0]));
         break;
     case 0x18: {
         const auto handle_ids = reinterpret_cast<handle_id_t*>(
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)));
-        const auto num_handles = std::bit_cast<i64>(guest_thread->GetRegX(2));
+            crnt_process->GetMmu()->UnmapAddr(state.r[1]));
+        const auto num_handles = std::bit_cast<i64>(state.r[2]);
         SynchronizationObject* sync_objs[num_handles];
         for (auto i = 0; i < num_handles; i++)
             sync_objs[i] =
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
-        res = WaitSynchronization(
-            crnt_thread, std::span(sync_objs, num_handles),
-            std::bit_cast<i64>(guest_thread->GetRegX(3)), tmp_i32);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, tmp_i32);
+        state.r[0] =
+            WaitSynchronization(crnt_thread, std::span(sync_objs, num_handles),
+                                std::bit_cast<i64>(state.r[3]), tmp_i32);
+        state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     }
     case 0x19:
-        res = CancelSynchronization(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            CancelSynchronization(crnt_process->GetHandle<IThread>(state.r[0]));
         break;
     case 0x1a:
-        res = ArbitrateLock(
-            crnt_thread,
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegX(0)),
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
-            guest_thread->GetRegX(2), guest_thread->GetRegX(0));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = ArbitrateLock(
+            crnt_thread, crnt_process->GetHandle<IThread>(state.r[0]),
+            crnt_process->GetMmu()->UnmapAddr(state.r[1]), state.r[2],
+            state.r[0]);
         break;
     case 0x1b:
-        res = ArbitrateUnlock(crnt_thread, crnt_process->GetMmu()->UnmapAddr(
-                                               guest_thread->GetRegX(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = ArbitrateUnlock(
+            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]));
         break;
     case 0x1c:
-        res = WaitProcessWideKeyAtomic(
+        state.r[0] = WaitProcessWideKeyAtomic(
             crnt_process, crnt_thread,
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)),
-            guest_thread->GetRegX(2),
-            std::bit_cast<i64>(guest_thread->GetRegX(3)));
-        guest_thread->SetRegW(0, res);
+            crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+            crnt_process->GetMmu()->UnmapAddr(state.r[1]), state.r[2],
+            std::bit_cast<i64>(state.r[3]));
         break;
     case 0x1d:
-        res = SignalProcessWideKey(
-            crnt_process,
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
-            guest_thread->GetRegX(1));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SignalProcessWideKey(
+            crnt_process, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+            state.r[1]);
         break;
     case 0x1e:
         GetSystemTick(tmp_u64);
-        guest_thread->SetRegX(0, tmp_u64);
+        state.r[0] = tmp_u64;
         break;
     case 0x1f: {
         hipc::ClientSession* client_session = nullptr;
-        res = ConnectToNamedPort(
+        state.r[0] = ConnectToNamedPort(
             reinterpret_cast<const char*>(
-                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
+                crnt_process->GetMmu()->UnmapAddr(state.r[1])),
             client_session);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1,
-                              crnt_process->AddHandleNoRetain(client_session));
+        state.r[1] = crnt_process->AddHandleNoRetain(client_session);
         break;
     }
     case 0x21:
-        res = SendSyncRequest(crnt_process, crnt_thread,
-                              guest_thread->GetTlsMemory(),
-                              crnt_process->GetHandle<hipc::ClientSession>(
-                                  guest_thread->GetRegX(0)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SendSyncRequest(
+            crnt_process, crnt_thread, guest_thread->GetTlsMemory(),
+            crnt_process->GetHandle<hipc::ClientSession>(state.r[0]));
         break;
     case 0x25:
-        res = GetThreadId(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegX(1)),
-            tmp_u64);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, tmp_u64);
+        state.r[0] =
+            GetThreadId(crnt_process->GetHandle<IThread>(state.r[1]), tmp_u64);
+        state.r[1] = tmp_u64;
         break;
     case 0x26: {
-        const vaddr_t addr = guest_thread->GetRegX(1);
-        res =
-            Break(BreakReason(guest_thread->GetRegX(0)),
+        const vaddr_t addr = state.r[1];
+        state.r[0] =
+            Break(BreakReason(state.r[0]),
                   (addr != 0x0 ? crnt_process->GetMmu()->UnmapAddr(addr) : 0x0),
-                  guest_thread->GetRegX(2));
-        guest_thread->SetRegW(0, res);
+                  state.r[2]);
         break;
     }
     case 0x27:
-        res = OutputDebugString(
+        state.r[0] = OutputDebugString(
             reinterpret_cast<const char*>(
-                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))),
-            guest_thread->GetRegX(1));
-        guest_thread->SetRegW(0, res);
+                crnt_process->GetMmu()->UnmapAddr(state.r[0])),
+            state.r[1]);
         break;
     case 0x29:
-        res = GetInfo(
-            crnt_process, static_cast<InfoType>(guest_thread->GetRegX(1)),
-            crnt_process->GetHandle<AutoObject>(guest_thread->GetRegX(2)),
-            guest_thread->GetRegX(3), tmp_u64);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegX(1, tmp_u64);
+        state.r[0] = GetInfo(crnt_process, static_cast<InfoType>(state.r[1]),
+                             crnt_process->GetHandle<AutoObject>(state.r[2]),
+                             state.r[3], tmp_u64);
+        state.r[1] = tmp_u64;
         break;
     case 0x2c:
-        res = MapPhysicalMemory(crnt_process, guest_thread->GetRegX(0),
-                                guest_thread->GetRegX(1));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = MapPhysicalMemory(crnt_process, state.r[0], state.r[1]);
         break;
     case 0x32:
-        res = SetThreadActivity(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(0)),
-            static_cast<ThreadActivity>(guest_thread->GetRegW(1)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            SetThreadActivity(crnt_process->GetHandle<IThread>(state.r[0]),
+                              static_cast<ThreadActivity>(state.r[1]));
         break;
     case 0x33:
-        res = GetThreadContext3(
-            crnt_process->GetHandle<IThread>(guest_thread->GetRegW(1)),
+        state.r[0] = GetThreadContext3(
+            crnt_process->GetHandle<IThread>(state.r[1]),
             *reinterpret_cast<ThreadContext*>(
-                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0))));
-        guest_thread->SetRegW(0, res);
+                crnt_process->GetMmu()->UnmapAddr(state.r[0])));
         break;
     case 0x34:
-        res = WaitForAddress(
-            crnt_thread,
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(0)),
-            static_cast<ArbitrationType>(guest_thread->GetRegW(1)),
-            guest_thread->GetRegW(2), guest_thread->GetRegX(3));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = WaitForAddress(
+            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+            static_cast<ArbitrationType>(state.r[1]), state.r[2], state.r[3]);
         break;
     case 0x40: {
         hipc::ServerSession* server_session = nullptr;
         hipc::ClientSession* client_session = nullptr;
-        res = CreateSession(guest_thread->GetRegW(2) != 0,
-                            guest_thread->GetRegX(3), server_session,
-                            client_session);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1,
-                              crnt_process->AddHandleNoRetain(server_session));
-        guest_thread->SetRegW(2,
-                              crnt_process->AddHandleNoRetain(client_session));
+        state.r[0] = CreateSession(state.r[2] != 0, state.r[3], server_session,
+                                   client_session);
+        state.r[1] = crnt_process->AddHandleNoRetain(server_session);
+        state.r[2] = crnt_process->AddHandleNoRetain(client_session);
         break;
     }
     case 0x41: {
         hipc::ServerSession* server_session = nullptr;
-        res = AcceptSession(
-            crnt_process->GetHandle<hipc::ServerPort>(guest_thread->GetRegW(1)),
-            server_session);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1,
-                              crnt_process->AddHandleNoRetain(server_session));
+        state.r[0] =
+            AcceptSession(crnt_process->GetHandle<hipc::ServerPort>(state.r[1]),
+                          server_session);
+        state.r[1] = crnt_process->AddHandleNoRetain(server_session);
         break;
     }
     case 0x43: {
         const auto handle_ids = reinterpret_cast<handle_id_t*>(
-            crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1)));
-        const auto num_handles = std::bit_cast<i64>(guest_thread->GetRegX(2));
+            crnt_process->GetMmu()->UnmapAddr(state.r[1]));
+        const auto num_handles = std::bit_cast<i64>(state.r[2]);
         SynchronizationObject* sync_objs[num_handles];
         for (auto i = 0; i < num_handles; i++)
             sync_objs[i] =
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
-        res = ReplyAndReceive(crnt_thread, std::span(sync_objs, num_handles),
-                              crnt_process->GetHandle<hipc::ServerSession>(
-                                  guest_thread->GetRegX(3)),
-                              std::bit_cast<i64>(guest_thread->GetRegX(4)),
-                              tmp_i32);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, tmp_i32);
+        state.r[0] = ReplyAndReceive(
+            crnt_thread, std::span(sync_objs, num_handles),
+            crnt_process->GetHandle<hipc::ServerSession>(state.r[3]),
+            std::bit_cast<i64>(state.r[4]), tmp_i32);
+        state.r[1] = std::bit_cast<u32>(tmp_i32);
         break;
     }
     case 0x4b: {
         CodeMemory* code_mem = nullptr;
-        res = CreateCodeMemory(guest_thread->GetRegX(1),
-                               guest_thread->GetRegX(2), code_mem);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, crnt_process->AddHandleNoRetain(code_mem));
+        state.r[0] = CreateCodeMemory(state.r[1], state.r[2], code_mem);
+        state.r[1] = crnt_process->AddHandleNoRetain(code_mem);
         break;
     }
     case 0x4c:
-        res = ControlCodeMemory(
-            crnt_process->GetHandle<CodeMemory>(guest_thread->GetRegW(0)),
-            CodeMemoryOperation(guest_thread->GetRegW(1)),
-            guest_thread->GetRegX(2), guest_thread->GetRegX(3),
-            MemoryPermission(guest_thread->GetRegW(4)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            ControlCodeMemory(crnt_process->GetHandle<CodeMemory>(state.r[0]),
+                              CodeMemoryOperation(state.r[1]), state.r[2],
+                              state.r[3], MemoryPermission(state.r[4]));
         break;
     case 0x65:
-        res = GetProcessList(
-            reinterpret_cast<u64*>(
-                crnt_process->GetMmu()->UnmapAddr(guest_thread->GetRegX(1))),
-            guest_thread->GetRegW(2), tmp_u32);
-        guest_thread->SetRegW(0, res);
-        guest_thread->SetRegW(1, tmp_u32);
+        state.r[0] =
+            GetProcessList(reinterpret_cast<u64*>(
+                               crnt_process->GetMmu()->UnmapAddr(state.r[1])),
+                           state.r[2], tmp_u32);
+        state.r[1] = tmp_u32;
         break;
     case 0x73:
-        res = SetProcessMemoryPermission(
-            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
-            MemoryPermission(guest_thread->GetRegW(3)));
-        guest_thread->SetRegW(0, res);
+        state.r[0] = SetProcessMemoryPermission(
+            crnt_process->GetHandle<Process>(state.r[0]), state.r[1],
+            state.r[2], MemoryPermission(state.r[3]));
         break;
     case 0x74:
-        res = MapProcessMemory(
-            crnt_process, guest_thread->GetRegX(0),
-            crnt_process->GetHandle<Process>(guest_thread->GetRegW(1)),
-            guest_thread->GetRegX(2), guest_thread->GetRegX(3));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            MapProcessMemory(crnt_process, state.r[0],
+                             crnt_process->GetHandle<Process>(state.r[1]),
+                             state.r[2], state.r[3]);
         break;
     case 0x77:
-        res = MapProcessCodeMemory(
-            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
-            guest_thread->GetRegX(3));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            MapProcessCodeMemory(crnt_process->GetHandle<Process>(state.r[0]),
+                                 state.r[1], state.r[2], state.r[3]);
         break;
     case 0x78:
-        res = UnmapProcessCodeMemory(
-            crnt_process->GetHandle<Process>(guest_thread->GetRegW(0)),
-            guest_thread->GetRegX(1), guest_thread->GetRegX(2),
-            guest_thread->GetRegX(3));
-        guest_thread->SetRegW(0, res);
+        state.r[0] =
+            UnmapProcessCodeMemory(crnt_process->GetHandle<Process>(state.r[0]),
+                                   state.r[1], state.r[2], state.r[3]);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Kernel, "SVC 0x{:x}", id);
-        res = MAKE_RESULT(Svc, Error::NotImplemented);
-        guest_thread->SetRegW(0, res);
+        state.r[0] = MAKE_RESULT(Svc, Error::NotImplemented);
         break;
     }
 }
@@ -713,30 +635,18 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
         sync_obj->AddWaitingThread(crnt_thread);
     }
 
-    const auto action = crnt_thread->ProcessMessages(timeout);
-
     SynchronizationObject* signalled_obj = nullptr;
     result_t res = RESULT_SUCCESS;
-    switch (action.type) {
-    case ThreadActionType::Stop:
-        res = MAKE_RESULT(Svc, Error::Cancelled);
-        break;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled:
-            signalled_obj = action.payload.resume.signalled_obj;
-            break;
-        case ThreadResumeReason::Cancelled:
+    if (crnt_thread->ProcessMessages(timeout)) {
+        if (crnt_thread->GetState() == ThreadState::Stopping) {
+            // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadResumeReason::TimedOut:
-            res = MAKE_RESULT(Svc, Error::TimedOut);
-            break;
+        } else {
+            if (!crnt_thread->ConsumeSignalledObject(signalled_obj))
+                res = MAKE_RESULT(Svc, Error::Cancelled);
         }
-        break;
-    }
-    default:
-        unreachable();
+    } else {
+        res = MAKE_RESULT(Svc, Error::TimedOut);
     }
 
     // Remove the thread from the waiting list
@@ -792,9 +702,19 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
         owner_thread->AddMutexWaiter(crnt_thread);
     }
 
-    crnt_thread->ProcessMessages();
+    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+                 "SendSyncRequest timed out");
 
-    return RESULT_SUCCESS;
+    result_t res = RESULT_SUCCESS;
+    if (crnt_thread->GetState() == ThreadState::Stopping) {
+        // TODO: is this necessary?
+        res = MAKE_RESULT(Svc, Error::Cancelled);
+    } else {
+        if (!crnt_thread->WasSignalled())
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+    }
+
+    return res;
 }
 
 result_t Kernel::ArbitrateUnlock(IThread* crnt_thread, uptr mutex_addr) {
@@ -831,28 +751,17 @@ result_t Kernel::WaitProcessWideKeyAtomic(Process* crnt_process,
         UnlockMutex(crnt_thread, mutex_addr);
     }
 
-    const auto action = crnt_thread->ProcessMessages(timeout);
-
     result_t res = RESULT_SUCCESS;
-    switch (action.type) {
-    case ThreadActionType::Stop:
-        res = MAKE_RESULT(Svc, Error::Cancelled);
-        break;
-    case ThreadActionType::Resume: {
-        switch (action.payload.resume.reason) {
-        case ThreadResumeReason::Signalled:
-            break;
-        case ThreadResumeReason::Cancelled:
+    if (crnt_thread->ProcessMessages(timeout)) {
+        if (crnt_thread->GetState() == ThreadState::Stopping) {
+            // TODO: is this necessary?
             res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadResumeReason::TimedOut:
-            res = MAKE_RESULT(Svc, Error::TimedOut);
-            break;
+        } else {
+            if (!crnt_thread->WasSignalled())
+                res = MAKE_RESULT(Svc, Error::Cancelled);
         }
-        break;
-    default:
-        unreachable();
-    }
+    } else {
+        res = MAKE_RESULT(Svc, Error::TimedOut);
     }
 
     // Remove this thread from the wait list
@@ -938,10 +847,21 @@ result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
         crnt_process, crnt_thread, crnt_thread->GetTlsPtr());
 
     // Wait for response
-    // TODO: check for errors
     crnt_thread->ProcessMessages();
 
-    return RESULT_SUCCESS;
+    ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
+                 "SendSyncRequest timed out");
+
+    result_t res = RESULT_SUCCESS;
+    if (crnt_thread->GetState() == ThreadState::Stopping) {
+        // TODO: is this necessary?
+        res = MAKE_RESULT(Svc, Error::Cancelled);
+    } else {
+        if (!crnt_thread->WasSignalled())
+            res = MAKE_RESULT(Svc, Error::Cancelled);
+    }
+
+    return res;
 }
 
 result_t Kernel::GetThreadId(IThread* thread, u64& out_thread_id) {
@@ -1187,28 +1107,19 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     }
 
     if (wait) {
-        const auto action = crnt_thread->ProcessMessages(timeout);
+        crnt_thread->ProcessMessages(timeout);
 
         result_t res = RESULT_SUCCESS;
-        switch (action.type) {
-        case ThreadActionType::Stop:
-            res = MAKE_RESULT(Svc, Error::Cancelled);
-            break;
-        case ThreadActionType::Resume: {
-            switch (action.payload.resume.reason) {
-            case ThreadResumeReason::Signalled:
-                break;
-            case ThreadResumeReason::Cancelled:
+        if (crnt_thread->ProcessMessages(timeout)) {
+            if (crnt_thread->GetState() == ThreadState::Stopping) {
+                // TODO: is this necessary?
                 res = MAKE_RESULT(Svc, Error::Cancelled);
-                break;
-            case ThreadResumeReason::TimedOut:
-                res = MAKE_RESULT(Svc, Error::TimedOut);
-                break;
+            } else {
+                if (!crnt_thread->WasSignalled())
+                    res = MAKE_RESULT(Svc, Error::Cancelled);
             }
-            break;
-        default:
-            unreachable();
-        }
+        } else {
+            res = MAKE_RESULT(Svc, Error::TimedOut);
         }
 
         // Remove the thread from the arbiter list

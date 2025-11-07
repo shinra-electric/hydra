@@ -31,15 +31,17 @@ void IThread::Start() {
     });
 }
 
-ThreadAction IThread::ProcessMessages(i64 pause_timeout_ns) {
+bool IThread::ProcessMessages(i64 pause_timeout_ns) {
     const auto timeout_time = std::chrono::steady_clock::now() +
                               std::chrono::nanoseconds(pause_timeout_ns);
 
     std::unique_lock<std::mutex> lock(msg_mutex);
     while (!msg_queue.empty()) {
-        const auto action = ProcessMessagesImpl();
+        if (!ProcessMessagesImpl())
+            return true;
+
         if (state != ThreadState::Paused)
-            return action;
+            return true;
 
         if (pause_timeout_ns == INFINITE_TIMEOUT) {
             msg_cv.wait(lock);
@@ -47,14 +49,11 @@ ThreadAction IThread::ProcessMessages(i64 pause_timeout_ns) {
             msg_cv.wait_until(lock, timeout_time);
             const auto crnt_time = std::chrono::steady_clock::now();
             if (crnt_time >= timeout_time)
-                return {
-                    .type = ThreadActionType::Resume,
-                    .payload = {
-                        .resume = {.reason = ThreadResumeReason::TimedOut}}};
+                return false;
         }
     }
 
-    return {};
+    return true;
 }
 
 void IThread::SendMessage(ThreadMessage msg) {
@@ -63,8 +62,7 @@ void IThread::SendMessage(ThreadMessage msg) {
     msg_cv.notify_all(); // TODO: notify one?
 }
 
-ThreadAction IThread::ProcessMessagesImpl() {
-    ThreadAction action{};
+bool IThread::ProcessMessagesImpl() {
     while (!msg_queue.empty()) {
         auto msg = msg_queue.front();
         msg_queue.pop();
@@ -73,24 +71,33 @@ ThreadAction IThread::ProcessMessagesImpl() {
         switch (msg.type) {
         case ThreadMessageType::Stop:
             state = ThreadState::Stopping;
-            return {.type = ThreadActionType::Stop};
-        case ThreadMessageType::Pause:
+            return false;
+        case ThreadMessageType::Pause: {
             state = ThreadState::Paused;
-            action = {};
+            if (msg.supervisor)
+                supervisor_pause = true;
+            else
+                guest_pause = true;
             break;
+        }
         case ThreadMessageType::Resume: {
             const auto& payload = msg.payload.resume;
 
-            state = ThreadState::Running;
-            action.type = ThreadActionType::Resume;
-            action.payload.resume = {.reason = payload.reason,
-                                     .signalled_obj = payload.signalled_obj};
+            if (msg.supervisor)
+                supervisor_pause = false;
+            else
+                guest_pause = false;
+            if (!supervisor_pause && !guest_pause)
+                state = ThreadState::Running;
+
+            if (!msg.supervisor && !sync_info)
+                sync_info = payload;
             break;
         }
         }
     }
 
-    return action;
+    return true;
 }
 
 void IThread::AddMutexWaiter(IThread* thread) {

@@ -8,12 +8,10 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 IMmu* Cpu::CreateMmu() { return new Mmu(); }
 
-IThread* Cpu::CreateThread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-                           const stop_requested_fn_t& stop_requested,
+IThread* Cpu::CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
                            IMemory* tls_mem, vaddr_t tls_mem_base,
                            vaddr_t stack_mem_end) {
-    return new Thread(mmu, svc_handler, stop_requested, tls_mem, tls_mem_base,
-                      stack_mem_end);
+    return new Thread(mmu, callbacks, tls_mem, tls_mem_base, stack_mem_end);
 }
 
 IMemory* Cpu::AllocateMemory(usize size) {

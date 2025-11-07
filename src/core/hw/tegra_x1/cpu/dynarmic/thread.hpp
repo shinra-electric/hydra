@@ -18,27 +18,25 @@ class Mmu;
 
 class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
   public:
-    Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-           const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+    Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
            vaddr_t tls_mem_base, vaddr_t stack_mem_end);
     ~Thread() override;
 
     void Run() override;
 
-    u64 GetRegX(u8 reg) const override { return jit->GetRegister(reg); }
-    void SetRegX(u8 reg, u64 value) override { jit->SetRegister(reg, value); }
-    u64 GetPC() override { return jit->GetPC(); }
-    void SetPC(u64 value) override { jit->SetPC(value); }
-    u64 GetFP() override { return jit->GetRegister(29); }
-    u64 GetLR() override { return jit->GetRegister(30); }
-    u64 GetSP() override { return jit->GetSP(); }
-    u64 GetElr() override {
-        // TODO
-        return 0x0;
-    }
-
     // Debug
-    void LogRegisters(bool simd = false, u32 count = 32) override;
+    void InsertBreakpoint(vaddr_t addr) override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Breakpoint insertion not implemented");
+    }
+    void RemoveBreakpoint(vaddr_t addr) override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Breakpoint removal not implemented");
+    }
+    void SingleStep() override {
+        // TODO: implement
+        LOG_FATAL(Dynarmic, "Single-stepping not implemented");
+    }
 
   private:
     u64 tpidrro_el0;
@@ -87,9 +85,13 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     u64 GetTicksRemaining() override { return ticks_left; }
 
+    // State
+    void SerializeState();
+    void DeserializeState();
+
     // Helpers
     void CheckForStopRequest() {
-        if (stop_requested())
+        if (callbacks.stop_requested())
             jit->HaltExecution();
     }
 };

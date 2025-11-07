@@ -575,6 +575,8 @@ add_library(hydra-core
     input/apple_gc/device_list.mm
     input/apple_gc/device_list.hpp
     # TODO: only build the debugger on debug builds
+    debugger/gdb_server.cpp
+    debugger/gdb_server.hpp
     debugger/debugger.cpp
     debugger/debugger.hpp
     debugger/debugger_manager.cpp
@@ -589,5 +591,5 @@ add_library(hydra-core
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch libyaz0 hydra-common)
+target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Hypervisor" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic cubeb hatch libyaz0 nx2elf hydra-common)
 # TODO: link luft if AIR shader backend is enabled

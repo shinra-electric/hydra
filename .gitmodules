@@ -16,9 +16,13 @@
 [submodule "externals/cubeb"]
 	path = externals/cubeb
 	url = https://github.com/mozilla/cubeb.git
+	ignore = dirty
 [submodule "externals/stb"]
 	path = externals/stb
 	url = https://github.com/nothings/stb.git
 [submodule "externals/libyaz0"]
 	path = externals/libyaz0
 	url = https://github.com/Nax/libyaz0.git
+[submodule "externals/nx2elf"]
+	path = externals/nx2elf
+	url = https://github.com/SamoZ256/nx2elf.git

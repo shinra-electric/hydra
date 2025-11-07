@@ -1,0 +1,2 @@
+command script import ./commands.py
+command script add -f commands.load_symbols load-symbols

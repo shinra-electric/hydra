@@ -36,23 +36,44 @@ class IMmu {
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
 
     template <typename T>
-    T Load(vaddr_t va) const {
+    bool TryRead(vaddr_t va, T& out_value) const {
         const auto ptr = UnmapAddr(va);
-        ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
-        return *reinterpret_cast<T*>(ptr);
+        if (ptr == 0x0) [[unlikely]]
+            return false;
+
+        out_value = *reinterpret_cast<T*>(ptr);
+        return true;
     }
 
     template <typename T>
-    void Store(vaddr_t va, T value) const {
+    T Read(vaddr_t va) const {
+        T value;
+        ASSERT_DEBUG(TryRead(va, value), Cpu, "Failed to unmap va 0x{:08x}",
+                     va);
+        return value;
+    }
+
+    template <typename T>
+    bool TryWrite(vaddr_t va, T value) const {
         const auto ptr = UnmapAddr(va);
-        ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
+        if (ptr == 0x0) [[unlikely]]
+            return false;
+
         *reinterpret_cast<T*>(ptr) = value;
+        return true;
     }
 
     template <typename T>
-    void StoreExclusive(vaddr_t va, T value) const {
-        auto ptr = reinterpret_cast<T*>(UnmapAddr(va));
-        atomic_store(ptr, value);
+    void Write(vaddr_t va, T value) const {
+        ASSERT_DEBUG(TryWrite(va, value), Cpu, "Failed to unmap va 0x{:08x}",
+                     va);
+    }
+
+    template <typename T>
+    void WriteExclusive(vaddr_t va, T value) const {
+        auto ptr = UnmapAddr(va);
+        ASSERT_DEBUG(ptr != 0x0, Cpu, "Failed to unmap va 0x{:08x}", va);
+        atomic_store(reinterpret_cast<T*>(ptr), value);
     }
 };
 

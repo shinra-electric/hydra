@@ -339,6 +339,16 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     process->Start();
 
+    // Activate GDB server
+    if (CONFIG_INSTANCE.GetGdbEnabled()) {
+        // HACK: spinlock until the main thread is running
+        while (!process->IsRunning())
+            std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).ActivateGdbServer();
+    }
+
+    // Loading screen
     loading = true;
 
     const auto crnt_time = clock_t::now();
@@ -575,7 +585,7 @@ void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,
 
     // Memory patch
     for (const auto& entry : hatch.GetMemoryPatch())
-        process->GetMmu()->Store<u32>(entry.addr, entry.value);
+        process->GetMmu()->Write<u32>(entry.addr, entry.value);
 
     ifs.close();
 }

@@ -2,6 +2,8 @@
 
 #include <future>
 
+#include "core/debugger/gdb_server.hpp"
+#include "core/horizon/kernel/guest_thread.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
 #define GET_THIS_THREAD()                                                      \
@@ -14,6 +16,12 @@
     auto& thread = it->second;
 
 namespace hydra::debugger {
+
+namespace {
+
+constexpr u16 GDB_PORT = 1234;
+
+}
 
 ResolvedStackFrame StackFrame::Resolve() const {
     switch (type) {
@@ -29,7 +37,7 @@ ResolvedStackFrame StackFrame::Resolve() const {
 }
 
 Thread::Thread(const std::string_view name_,
-               hw::tegra_x1::cpu::IThread* guest_thread_)
+               horizon::kernel::GuestThread* guest_thread_)
     : name{name_}, guest_thread{guest_thread_} {
     // TODO: make this configurable
     messages.resize(256);
@@ -44,8 +52,13 @@ void Thread::Log(const Message& msg) {
         msg_tail = (msg_tail + 1) % messages.size();
 }
 
+Debugger::~Debugger() {
+    if (gdb_server)
+        delete gdb_server;
+}
+
 void Debugger::RegisterThisThread(const std::string_view name,
-                                  hw::tegra_x1::cpu::IThread* guest_thread) {
+                                  horizon::kernel::GuestThread* guest_thread) {
     std::unique_lock lock(mutex);
     threads.try_emplace(std::this_thread::get_id(), name, guest_thread);
 }
@@ -68,6 +81,18 @@ void Debugger::BreakOnThisThread(const std::string_view reason) {
     future.wait();
 }
 
+void Debugger::ActivateGdbServer() { gdb_server = new GdbServer(*this); }
+
+void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
+    if (gdb_server)
+        gdb_server->NotifySupervisorPaused(thread);
+}
+
+void Debugger::BreakpointHit(horizon::kernel::GuestThread* thread) {
+    if (gdb_server)
+        gdb_server->BreakpointHit(thread);
+}
+
 void Debugger::LogOnThisThread(const LogMessage& msg) {
     GET_THIS_THREAD();
     lock.unlock();
@@ -84,7 +109,7 @@ StackTrace Debugger::GetStackTrace(Thread& thread) {
 
     // Guest
     if (auto guest_thread = thread.guest_thread) {
-        guest_thread->GetStackTrace([&](vaddr_t addr) {
+        guest_thread->GetThread()->GetStackTrace([&](vaddr_t addr) {
             stack_trace.frames.emplace_back(this, StackFrameType::Guest, addr);
         });
     }

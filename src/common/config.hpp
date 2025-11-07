@@ -160,6 +160,8 @@ class Config {
     Option<bool>& GetLogFsAccess() { return log_fs_access; }
     Option<bool>& GetDebugLogging() { return debug_logging; }
     StringArrayOption& GetProcessArgs() { return process_args; }
+    Option<bool>& GetGdbEnabled() { return gdb_enabled; }
+    Option<u16>& GetGdbPort() { return gdb_port; }
 
   private:
     std::string app_data_path;
@@ -185,6 +187,8 @@ class Config {
     Option<bool> log_fs_access;
     Option<bool> debug_logging;
     StringArrayOption process_args;
+    Option<bool> gdb_enabled;
+    Option<u16> gdb_port;
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
@@ -217,6 +221,8 @@ class Config {
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
+    bool GetDefaultGdbEnabled() const { return false; }
+    u16 GetDefaultGdbPort() const { return 1234; }
 };
 
 } // namespace hydra

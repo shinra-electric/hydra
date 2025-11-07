@@ -1,11 +1,17 @@
 #pragma once
 
-namespace hydra::hw::tegra_x1::cpu {
-class IThread;
-}
+namespace hydra::horizon::kernel {
+class GuestThread;
+class Process;
+} // namespace hydra::horizon::kernel
+
+namespace hydra::horizon::filesystem {
+class FileBase;
+} // namespace hydra::horizon::filesystem
 
 namespace hydra::debugger {
 
+class GdbServer;
 class Debugger;
 
 struct ResolvedStackFrame {
@@ -42,11 +48,12 @@ enum class ThreadStatus {
 };
 
 class Thread {
+    friend class GdbServer;
     friend class Debugger;
 
   public:
     Thread(const std::string_view name_,
-           hw::tegra_x1::cpu::IThread* guest_thread_ = nullptr);
+           horizon::kernel::GuestThread* guest_thread_ = nullptr);
 
     // API
     void Lock() { msg_mutex.lock(); }
@@ -62,7 +69,7 @@ class Thread {
 
   private:
     std::string name;
-    hw::tegra_x1::cpu::IThread* guest_thread;
+    horizon::kernel::GuestThread* guest_thread;
 
     ThreadStatus status{ThreadStatus::Running};
     std::string break_reason;
@@ -82,13 +89,9 @@ struct Symbol {
 
 class SymbolTable {
   public:
-    void RegisterSymbol(const Symbol& symbol) {
-        std::unique_lock lock(mutex);
-        symbols.push_back(symbol);
-    }
+    void RegisterSymbol(const Symbol& symbol) { symbols.push_back(symbol); }
 
     std::string FindSymbol(vaddr_t addr) {
-        std::unique_lock lock(mutex);
         for (const auto& symbol : symbols) {
             if (symbol.guest_mem_range.Contains(addr))
                 return symbol.name;
@@ -98,24 +101,40 @@ class SymbolTable {
     }
 
   private:
-    std::mutex mutex;
     std::vector<Symbol> symbols;
+
+  public:
+    CONST_REF_GETTER(symbols, GetSymbols);
 };
 
 class Debugger {
+    friend class GdbServer;
     friend class DebuggerManager;
 
   public:
-    Debugger(const std::string_view name_) : name{name_} {}
+    Debugger(const std::string_view name_, horizon::kernel::Process* process_)
+        : name{name_}, process{process_} {}
+    ~Debugger();
 
-    void RegisterThisThread(const std::string_view name,
-                            hw::tegra_x1::cpu::IThread* guest_thread = nullptr);
+    void RegisterExecutable(const std::string_view name,
+                            horizon::filesystem::FileBase* executable) {
+        executables.emplace(name, executable);
+    }
+
+    void
+    RegisterThisThread(const std::string_view name,
+                       horizon::kernel::GuestThread* guest_thread = nullptr);
     void UnregisterThisThread();
 
     void BreakOnThisThread(const std::string_view reason);
 
     SymbolTable& GetModuleTable() { return module_table; }
     SymbolTable& GetFunctionTable() { return function_table; }
+
+    // GDB
+    void ActivateGdbServer();
+    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
+    void BreakpointHit(horizon::kernel::GuestThread* thread);
 
     // API
     void Lock() { mutex.lock(); }
@@ -131,12 +150,16 @@ class Debugger {
 
   private:
     std::string name;
+    horizon::kernel::Process* process;
 
     std::mutex mutex;
     std::map<std::thread::id, Thread> threads;
 
+    std::map<std::string, horizon::filesystem::FileBase*> executables;
     SymbolTable module_table;
     SymbolTable function_table;
+
+    GdbServer* gdb_server{nullptr};
 
     void LogOnThisThread(const LogMessage& msg);
 

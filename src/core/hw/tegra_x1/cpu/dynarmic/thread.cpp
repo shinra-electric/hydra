@@ -14,10 +14,9 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
-Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
-               const stop_requested_fn_t& stop_requested, IMemory* tls_mem,
+Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base, vaddr_t stack_mem_end)
-    : IThread(mmu, svc_handler, stop_requested, tls_mem) {
+    : IThread(mmu, callbacks, tls_mem) {
     tpidrro_el0 = tls_mem_base;
 
     // Create JIT
@@ -56,70 +55,70 @@ Thread::Thread(IMmu* mmu, const svc_handler_fn_t& svc_handler,
 
 Thread::~Thread() { delete jit; }
 
-void Thread::Run() { jit->Run(); }
-
-void Thread::LogRegisters(bool simd, u32 count) {
-    // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Dynarmic);
+void Thread::Run() {
+    SerializeState();
+    jit->Run();
 }
 
-u8 Thread::MemoryRead8(u64 addr) { return MMU->Load<u8>(addr); }
+u8 Thread::MemoryRead8(u64 addr) { return MMU->Read<u8>(addr); }
 
-u16 Thread::MemoryRead16(u64 addr) { return MMU->Load<u16>(addr); }
+u16 Thread::MemoryRead16(u64 addr) { return MMU->Read<u16>(addr); }
 
-u32 Thread::MemoryRead32(u64 addr) { return MMU->Load<u32>(addr); }
+u32 Thread::MemoryRead32(u64 addr) { return MMU->Read<u32>(addr); }
 
-u64 Thread::MemoryRead64(u64 addr) { return MMU->Load<u64>(addr); }
+u64 Thread::MemoryRead64(u64 addr) { return MMU->Read<u64>(addr); }
 
 Dynarmic::A64::Vector Thread::MemoryRead128(u64 addr) {
-    return MMU->Load<Dynarmic::A64::Vector>(addr);
+    return MMU->Read<Dynarmic::A64::Vector>(addr);
 }
 
 std::optional<u32> Thread::MemoryReadCode(u64 addr) {
-    return MMU->Load<u32>(addr);
+    return MMU->Read<u32>(addr);
 }
 
-void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite8(u64 addr, u8 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite16(u64 addr, u16 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite32(u64 addr, u32 value) { MMU->Write(addr, value); }
 
-void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Store(addr, value); }
+void Thread::MemoryWrite64(u64 addr, u64 value) { MMU->Write(addr, value); }
 
 void Thread::MemoryWrite128(u64 addr, Dynarmic::A64::Vector value) {
-    MMU->Store(addr, value);
+    MMU->Write(addr, value);
 }
 
 bool Thread::MemoryWriteExclusive8(u64 addr, u8 value, u8) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive16(u64 addr, u16 value, u16) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
-    MMU->StoreExclusive(addr, value);
+    MMU->WriteExclusive(addr, value);
     return true;
 }
 
 void Thread::CallSVC(u32 svc) {
-    svc_handler(this, svc);
+    DeserializeState();
+    callbacks.svc_handler(this, svc);
     CheckForStopRequest();
+    SerializeState();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
@@ -129,5 +128,34 @@ void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
 }
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }
+
+void Thread::SerializeState() {
+    for (u32 i = 0; i < 29; i++)
+        state.r[i] = jit->GetRegister(i);
+    state.fp = jit->GetRegister(29);
+    state.lr = jit->GetRegister(30);
+    state.sp = jit->GetSP();
+    state.pc = jit->GetPC();
+    state.pstate = jit->GetPstate();
+    for (u32 i = 0; i < 32; i++)
+        state.v[i] = std::bit_cast<u128>(jit->GetVector(i)); // TODO: correct?
+    state.fpcr = jit->GetFpcr();
+    state.fpsr = jit->GetFpsr();
+}
+
+void Thread::DeserializeState() {
+    for (u32 i = 0; i < 29; i++)
+        jit->SetRegister(i, state.r[i]);
+    jit->SetRegister(29, state.fp);
+    jit->SetRegister(30, state.lr);
+    jit->SetSP(state.sp);
+    jit->SetPC(state.pc);
+    jit->SetPstate(state.pstate);
+    for (u32 i = 0; i < 32; i++)
+        jit->SetVector(i, std::bit_cast<Dynarmic::A64::Vector>(
+                              state.v[i])); // TODO: correct?
+    jit->SetFpcr(state.fpcr);
+    jit->SetFpsr(state.fpsr);
+}
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

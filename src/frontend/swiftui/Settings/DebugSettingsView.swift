@@ -5,6 +5,8 @@ struct DebugSettingsView: View {
     @State var logFsAccess = false
     @State var debugLogging = false
     // TODO: process args
+    @State var gdbEnabled = false
+    @State var gdbPort: UInt16 = 0
 
     var body: some View {
         VStack {
@@ -30,6 +32,18 @@ struct DebugSettingsView: View {
                     debugLoggingOption.value = newValue
                 }
             // TODO: process arguments
+
+            Text("GDB")
+            Toggle("Enabled", isOn: self.$gdbEnabled)
+                .onChange(of: self.gdbEnabled) { _, newValue in
+                    var gdbEnabledOption = hydraConfigGetGdbEnabled()
+                    gdbEnabledOption.value = newValue
+                }
+            TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
+                .onChange(of: self.gdbPort) { _, newValue in
+                    var gdbPortOption = hydraConfigGetGdbPort()
+                    gdbPortOption.value = newValue
+                }
         }
         .onAppear {
             let logOutputOption = hydraConfigGetLogOutput()
@@ -40,6 +54,12 @@ struct DebugSettingsView: View {
 
             let debugLoggingOption = hydraConfigGetDebugLogging()
             self.debugLogging = debugLoggingOption.value
+
+            let gdbEnabledOption = hydraConfigGetGdbEnabled()
+            self.gdbEnabled = gdbEnabledOption.value
+
+            let gdbPortOption = hydraConfigGetGdbPort()
+            self.gdbPort = gdbPortOption.value
         }
     }
 }

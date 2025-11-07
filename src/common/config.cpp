@@ -130,6 +130,8 @@ void Config::LoadDefaults() {
     log_fs_access = GetDefaultLogFsAccess();
     debug_logging = GetDefaultDebugLogging();
     process_args = GetDefaultProcessArgs();
+    gdb_enabled = GetDefaultGdbEnabled();
+    gdb_port = GetDefaultGdbPort();
 }
 
 void Config::Serialize() {
@@ -199,6 +201,8 @@ void Config::Serialize() {
         debug["log_fs_access"] = log_fs_access.Get();
         debug["debug_logging"] = debug_logging.Get();
         debug["process_args"] = process_args.Get();
+        debug["gdb_enabled"] = gdb_enabled.Get();
+        debug["gdb_port"] = gdb_port.Get();
     }
 
     config_file << toml::format(data);
@@ -274,6 +278,9 @@ void Config::Deserialize() {
                                             GetDefaultDebugLogging());
         process_args = toml::find_or<std::vector<std::string>>(
             debug, "process_args", GetDefaultProcessArgs());
+        gdb_enabled =
+            toml::find_or<bool>(debug, "gdb_enabled", GetDefaultGdbEnabled());
+        gdb_port = toml::find_or<u16>(debug, "gdb_port", GetDefaultGdbPort());
     }
 
     // Validate
@@ -330,6 +337,8 @@ void Config::Log() {
     LOG_INFO(Other, "Log FS access: {}", log_fs_access);
     LOG_INFO(Other, "Debug logging: {}", debug_logging);
     LOG_INFO(Other, "Process arguments: {}", process_args);
+    LOG_INFO(Other, "GDB enabled: {}", gdb_enabled.Get());
+    LOG_INFO(Other, "GDB port: {}", gdb_port.Get());
 }
 
 } // namespace hydra

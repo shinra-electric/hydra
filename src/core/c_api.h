@@ -129,6 +129,9 @@ typedef enum : uint32_t {
 bool hydra_bool_option_get(const void* option);
 void hydra_bool_option_set(void* option, const bool value);
 
+uint16_t hydra_u16_option_get(const void* option);
+void hydra_u16_option_set(void* option, const uint16_t value);
+
 int32_t hydra_i32_option_get(const void* option);
 void hydra_i32_option_set(void* option, const int32_t value);
 
@@ -173,6 +176,8 @@ void* hydra_config_get_log_output();
 void* hydra_config_get_log_fs_access();
 void* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
+void* hydra_config_get_gdb_enabled();
+void* hydra_config_get_gdb_port();
 
 // Filesystem
 void* hydra_create_filesystem();

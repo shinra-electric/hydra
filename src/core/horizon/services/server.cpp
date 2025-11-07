@@ -109,8 +109,7 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         case MAKE_RESULT(Svc, kernel::Error::Cancelled):
             return;
         default:
-            LOG_FATAL(Services, "Failed to wait for synchronization: 0x{:08x}",
-                      res);
+            LOG_FATAL(Services, "Failed to reply and receive: 0x{:08x}", res);
             break;
         }
 
