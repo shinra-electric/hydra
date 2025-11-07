@@ -21,8 +21,6 @@ namespace hydra::debugger {
 
 namespace {
 
-constexpr u16 GDB_PORT = 1234;
-
 constexpr char GDB_START = '$';
 constexpr char GDB_END = '#';
 constexpr char GDB_ACK = '+';
@@ -223,6 +221,8 @@ ENABLE_ENUM_FORMATTING(hydra::debugger::BreakpointType, Software, "software",
 namespace hydra::debugger {
 
 GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
+    const u16 port = CONFIG_INSTANCE.GetGdbPort();
+
     // Create the socket
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == -1) {
@@ -238,7 +238,7 @@ GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
     // Bind the socket to the address
     sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(GDB_PORT);
+    addr.sin_port = htons(port);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(server_socket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) ==
@@ -261,7 +261,7 @@ GdbServer::GdbServer(Debugger& debugger_) : debugger{debugger_} {
     // Create server thread
     server_thread = std::thread(&GdbServer::ServerLoop, this);
 
-    LOG_INFO(Debugger, "GDB server started on port 1234");
+    LOG_INFO(Debugger, "GDB server started on port {}", port);
 
     // Thread ID
     ASSERT(!debugger.threads.empty(), Debugger, "No active thread");

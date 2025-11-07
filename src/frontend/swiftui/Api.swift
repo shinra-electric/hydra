@@ -129,6 +129,23 @@ struct HydraBoolOption {
     }
 }
 
+struct HydraU16Option {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    var value: UInt16 {
+        get {
+            hydra_u16_option_get(self.handle)
+        }
+        set {
+            hydra_u16_option_set(self.handle, newValue)
+        }
+    }
+}
+
 struct HydraI32Option {
     private let handle: UnsafeMutableRawPointer
 
@@ -327,6 +344,14 @@ func hydraConfigGetDebugLogging() -> HydraBoolOption {
 
 func hydraConfigGetProcessArgs() -> HydraStringArrayOption {
     HydraStringArrayOption(handle: hydra_config_get_process_args())
+}
+
+func hydraConfigGetGdbEnabled() -> HydraBoolOption {
+    HydraBoolOption(handle: hydra_config_get_gdb_enabled())
+}
+
+func hydraConfigGetGdbPort() -> HydraU16Option {
+    HydraU16Option(handle: hydra_config_get_gdb_port())
 }
 
 // Filesystem
