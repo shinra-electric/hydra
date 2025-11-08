@@ -11,6 +11,12 @@ DEFINE_IOCTL_TABLE(NvHostCtrlGpu,
                                             ZbcGetActiveSlotMask, 0x15,
                                             PmuGetGpuLoad, 0x1c, GetGpuTime))
 
+// TODO: also 0x12 and 0x13
+DEFINE_IOCTL3_TABLE(NvHostCtrlGpu,
+                    DEFINE_IOCTL3_TABLE_ENTRY(NvHostCtrlGpu, 0x47, 0x05,
+                                              GetCharacteristics, 0x06,
+                                              GetTpcMasks))
+
 NvResult NvHostCtrlGpu::QueryEvent(u32 event_id_u32,
                                    kernel::Event*& out_event) {
     switch (event_id_u32) {

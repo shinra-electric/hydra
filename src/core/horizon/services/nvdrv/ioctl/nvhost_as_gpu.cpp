@@ -13,6 +13,9 @@ DEFINE_IOCTL_TABLE(NvHostAsGpu,
                                             MapBufferEX, 0x08, GetVaRegions,
                                             0x09, AllocAsEX, 0x14, Remap))
 
+DEFINE_IOCTL3_TABLE(NvHostAsGpu, DEFINE_IOCTL3_TABLE_ENTRY(NvHostAsGpu, 0x41,
+                                                           0x08, GetVaRegions))
+
 NvResult NvHostAsGpu::BindChannel(u32 fd_id) {
     LOG_FUNC_STUBBED(Services);
     return NvResult::Success;

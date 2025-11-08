@@ -15,6 +15,7 @@ class NvHostGpu : public ChannelBase {
           error_notifier_event{
               new kernel::Event(false, "NvHostGpu error notifier event")} {}
 
+    NvResult Ioctl2(IoctlContext& context, u32 type, u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
@@ -38,6 +39,17 @@ class NvHostGpu : public ChannelBase {
     NvResult AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                            hw::tegra_x1::gpu::Fence* out_fence,
                            std::array<u32, 3> reserved) override;
+
+    NvResult SubmitGpfifo2(IoctlContext* ctx, kernel::Process* process,
+                           u64 gpfifo, u32 num_entries,
+                           InOut<hw::tegra_x1::gpu::GpfifoFlags, u32>
+                               inout_flags_and_detailed_error,
+                           InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence) {
+        return SubmitGpfifo(
+            process, gpfifo, num_entries, inout_flags_and_detailed_error,
+            inout_fence,
+            ctx->buffer_reader->ReadPtr<hw::tegra_x1::gpu::GpfifoEntry>());
+    }
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

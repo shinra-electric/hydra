@@ -65,6 +65,7 @@ class NvHostCtrlGpu : public FdBase {
               new kernel::Event(false, "NvHostCtrlGpu unknown event")} {}
 
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl3(IoctlContext& context, u32 type, u32 nr) override;
     NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
@@ -86,6 +87,24 @@ class NvHostCtrlGpu : public FdBase {
     NvResult ZbcGetActiveSlotMask(u32* out_slot, u32* out_mask);
     NvResult PmuGetGpuLoad(u32* out_load);
     NvResult GetGpuTime(u64* out_timestamp, u64* _out_reserved);
+
+    NvResult GetCharacteristics3(IoctlContext* ctx,
+                                 InOutSingle<u64> inout_buffer_size,
+                                 gpu_vaddr_t buffer_addr) {
+        GpuCharacteristics out_characteristics;
+        const auto res = GetCharacteristics(inout_buffer_size, buffer_addr,
+                                            &out_characteristics);
+        ctx->buffer_writer->Write(out_characteristics);
+        return res;
+    }
+    NvResult GetTpcMasks3(IoctlContext* ctx, u32 mask_buffer_size,
+                          std::array<u32, 3> reserved) {
+        u64 out_mask_buffer;
+        const auto res =
+            GetTpcMasks(mask_buffer_size, reserved, &out_mask_buffer);
+        ctx->buffer_writer->Write(out_mask_buffer);
+        return res;
+    }
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl

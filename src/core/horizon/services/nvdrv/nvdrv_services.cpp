@@ -68,8 +68,9 @@ result_t INvDrvServices::Ioctl(kernel::Process* process, handle_id_t fd_id,
                                InBuffer<BufferAttr::AutoSelect> in_buffer,
                                NvResult* out_result,
                                OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(process, fd_id, code, in_buffer.reader, nullptr,
-                     out_buffer.writer, nullptr, out_result);
+    return IoctlImpl(&ioctl::FdBase::Ioctl, process, fd_id, code,
+                     in_buffer.reader, nullptr, out_buffer.writer, nullptr,
+                     out_result);
 }
 
 result_t INvDrvServices::Close(u32 fd_id, u32* out_err) {
@@ -119,8 +120,9 @@ result_t INvDrvServices::Ioctl2(kernel::Process* process, handle_id_t fd_id,
                                 InBuffer<BufferAttr::AutoSelect> in_buffer2,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return IoctlImpl(process, fd_id, code, in_buffer1.reader, in_buffer2.reader,
-                     out_buffer.writer, nullptr, out_result);
+    return IoctlImpl(&ioctl::FdBase::Ioctl2, process, fd_id, code,
+                     in_buffer1.reader, in_buffer2.reader, out_buffer.writer,
+                     nullptr, out_result);
 }
 
 result_t INvDrvServices::Ioctl3(kernel::Process* process, handle_id_t fd_id,
@@ -129,15 +131,17 @@ result_t INvDrvServices::Ioctl3(kernel::Process* process, handle_id_t fd_id,
                                 NvResult* out_result,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer1,
                                 OutBuffer<BufferAttr::AutoSelect> out_buffer2) {
-    return IoctlImpl(process, fd_id, code, in_buffer.reader, nullptr,
-                     out_buffer1.writer, out_buffer2.writer, out_result);
+    return IoctlImpl(&ioctl::FdBase::Ioctl3, process, fd_id, code,
+                     in_buffer.reader, nullptr, out_buffer1.writer,
+                     out_buffer2.writer, out_result);
 }
 
-result_t INvDrvServices::IoctlImpl(kernel::Process* process, handle_id_t fd_id,
-                                   u32 code, Reader* reader,
-                                   Reader* buffer_reader, Writer* writer,
-                                   Writer* buffer_writer,
-                                   NvResult* out_result) {
+result_t INvDrvServices::IoctlImpl(
+    NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context, u32 type,
+                                    u32 nr),
+    kernel::Process* process, handle_id_t fd_id, u32 code, Reader* reader,
+    Reader* buffer_reader, Writer* writer, Writer* buffer_writer,
+    NvResult* out_result) {
     auto fd = fd_pool.Get(fd_id);
 
     // Dispatch
@@ -147,7 +151,7 @@ result_t INvDrvServices::IoctlImpl(kernel::Process* process, handle_id_t fd_id,
     ioctl::IoctlContext context{
         process, reader, buffer_reader, writer, buffer_writer,
     };
-    NvResult result = fd->Ioctl(context, type, nr);
+    NvResult result = (fd->*func)(context, type, nr);
 
     // Write result
     *out_result = result;

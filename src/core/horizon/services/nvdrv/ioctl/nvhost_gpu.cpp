@@ -16,6 +16,9 @@ enum class EventId {
 
 }
 
+DEFINE_IOCTL2_TABLE(NvHostGpu, DEFINE_IOCTL2_TABLE_ENTRY(NvHostGpu, 0x48, 0x1b,
+                                                         SubmitGpfifo))
+
 NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     auto event_id = static_cast<EventId>(event_id_u32);
     switch (event_id) {

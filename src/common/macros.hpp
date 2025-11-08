@@ -182,6 +182,13 @@
         __VA_OPT__(FOR_EACH_AGAIN_2_1 PARENS(macro, e1, e2, __VA_ARGS__))
 #define FOR_EACH_AGAIN_2_1() FOR_EACH_HELPER_2_1
 
+#define FOR_EACH_2_2(macro, e1, e2, ...)                                       \
+    __VA_OPT__(EXPAND(FOR_EACH_HELPER_2_2(macro, e1, e2, __VA_ARGS__)))
+#define FOR_EACH_HELPER_2_2(macro, e1, e2, a1, a2, ...)                        \
+    macro(e1, e2, a1, a2)                                                      \
+        __VA_OPT__(FOR_EACH_AGAIN_2_2 PARENS(macro, e1, e2, __VA_ARGS__))
+#define FOR_EACH_AGAIN_2_2() FOR_EACH_HELPER_2_2
+
 #define ENUM_FORMAT_CASE(e, value, n)                                          \
     case e::value:                                                             \
         name = n;                                                              \

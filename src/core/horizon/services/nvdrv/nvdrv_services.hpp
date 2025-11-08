@@ -2,6 +2,7 @@
 
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/nvdrv/const.hpp"
+#include "core/horizon/services/nvdrv/ioctl/const.hpp"
 
 namespace hydra::horizon::services::nvdrv {
 
@@ -44,9 +45,12 @@ class INvDrvServices : public IService {
                     OutBuffer<BufferAttr::AutoSelect> out_buffer2);
     STUB_REQUEST_COMMAND(SetGraphicsFirmwareMemoryMarginEnabled);
 
-    result_t IoctlImpl(kernel::Process* process, handle_id_t fd_id, u32 code,
-                       Reader* reader, Reader* buffer_reader, Writer* writer,
-                       Writer* buffer_writer, NvResult* out_result);
+    result_t
+    IoctlImpl(NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context,
+                                              u32 type, u32 nr),
+              kernel::Process* process, handle_id_t fd_id, u32 code,
+              Reader* reader, Reader* buffer_reader, Writer* writer,
+              Writer* buffer_writer, NvResult* out_result);
 };
 
 } // namespace hydra::horizon::services::nvdrv

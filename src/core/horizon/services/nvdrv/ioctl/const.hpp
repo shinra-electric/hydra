@@ -2,24 +2,32 @@
 
 #include "core/horizon/services/nvdrv/const.hpp"
 
-#define IOCTL_CASE(fd, nr, func)                                               \
+#define IOCTL_CASE(fd, ioctl_suffix, nr, func)                                 \
     case nr: {                                                                 \
-        LOG_DEBUG(Services, #func);                                            \
-        return invoke_ioctl(context, *this, &fd::func);                        \
+        LOG_DEBUG(Services, #func #ioctl_suffix);                              \
+        return invoke_ioctl(context, *this, &fd::func##ioctl_suffix);          \
     }
 
-#define DEFINE_IOCTL_TABLE_ENTRY(fd, type, ...)                                \
+#define DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, ioctl_suffix, type, ...)             \
     case type:                                                                 \
         switch (nr) {                                                          \
-            FOR_EACH_1_2(IOCTL_CASE, fd, __VA_ARGS__)                          \
+            FOR_EACH_2_2(IOCTL_CASE, fd, ioctl_suffix, __VA_ARGS__)            \
         default:                                                               \
             LOG_WARN(Services, "Unknown ioctl nr 0x{:02x} for type 0x{:02x}",  \
                      nr, type);                                                \
             return NvResult::NotImplemented;                                   \
         }
 
-#define DEFINE_IOCTL_TABLE(fd, ...)                                            \
-    NvResult fd::Ioctl(IoctlContext& context, u32 type, u32 nr) {              \
+#define DEFINE_IOCTL_TABLE_ENTRY(fd, type, ...)                                \
+    DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, , type, __VA_ARGS__)
+#define DEFINE_IOCTL2_TABLE_ENTRY(fd, type, ...)                               \
+    DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, 2, type, __VA_ARGS__)
+#define DEFINE_IOCTL3_TABLE_ENTRY(fd, type, ...)                               \
+    DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, 3, type, __VA_ARGS__)
+
+#define DEFINE_IOCTL_TABLE_IMPL(fd, ioctl_suffix, ...)                         \
+    NvResult fd::Ioctl##ioctl_suffix(IoctlContext& context, u32 type,          \
+                                     u32 nr) {                                 \
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
         default:                                                               \
@@ -28,6 +36,10 @@
             return NvResult::NotImplemented;                                   \
         }                                                                      \
     }
+
+#define DEFINE_IOCTL_TABLE(fd, ...) DEFINE_IOCTL_TABLE_IMPL(fd, , __VA_ARGS__)
+#define DEFINE_IOCTL2_TABLE(fd, ...) DEFINE_IOCTL_TABLE_IMPL(fd, 2, __VA_ARGS__)
+#define DEFINE_IOCTL3_TABLE(fd, ...) DEFINE_IOCTL_TABLE_IMPL(fd, 3, __VA_ARGS__)
 
 namespace hydra::horizon::kernel {
 class Process;
@@ -62,6 +74,7 @@ struct InOutSingle {
 };
 
 enum class ArgumentType {
+    Context,
     Process,
     In,
     Out,
@@ -72,6 +85,11 @@ enum class ArgumentType {
 
 template <typename T>
 struct arg_traits;
+
+template <>
+struct arg_traits<IoctlContext*> {
+    static constexpr ArgumentType type = ArgumentType::Context;
+};
 
 template <>
 struct arg_traits<kernel::Process*> {
@@ -118,7 +136,13 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
 
         auto& arg = std::get<arg_index>(args);
 
-        if constexpr (traits::type == ArgumentType::Process) {
+        if constexpr (traits::type == ArgumentType::Context) {
+            arg = &context;
+
+            // Next
+            read_arg<CommandArguments, arg_index + 1>(context, args);
+            return;
+        } else if constexpr (traits::type == ArgumentType::Process) {
             arg = context.process;
 
             // Next
@@ -161,15 +185,8 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
-            // TODO: correct?
-            Reader* reader;
-            if (context.buffer_reader)
-                reader = context.buffer_reader;
-            else
-                reader = context.reader;
-
-            ASSERT_DEBUG(reader, Services, "No reader");
-            arg = reader->ReadPtr<typename traits::BaseType>();
+            ASSERT_DEBUG(context.reader, Services, "No reader");
+            arg = context.reader->ReadPtr<typename traits::BaseType>();
 
             // Next
             static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,

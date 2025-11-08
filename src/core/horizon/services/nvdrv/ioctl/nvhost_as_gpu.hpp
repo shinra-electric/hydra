@@ -41,6 +41,7 @@ struct RemapOp {
 class NvHostAsGpu : public FdBase {
   public:
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl3(IoctlContext& context, u32 type, u32 nr) override;
 
   private:
     // Ioctls
@@ -62,6 +63,14 @@ class NvHostAsGpu : public FdBase {
                        u32 flags, u32 reserved, u64 va_range_start,
                        u64 va_range_end, u64 va_range_split);
     NvResult Remap(const RemapOp* entries);
+
+    NvResult GetVaRegions3(gpu_vaddr_t buffer_addr,
+                           InOutSingle<u32> inout_buffer_size, u32 reserved) {
+        // TODO: does this just throw the out_va_regions away?
+        std::array<VaRegion, 2> out_va_regions;
+        return GetVaRegions(buffer_addr, inout_buffer_size, reserved,
+                            &out_va_regions);
+    }
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl
