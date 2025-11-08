@@ -43,7 +43,7 @@ bool IThread::ProcessMessages(i64 pause_timeout_ns) {
         if (state != ThreadState::Paused)
             return true;
 
-        if (pause_timeout_ns == INFINITE_TIMEOUT) {
+        if (supervisor_pause || pause_timeout_ns == INFINITE_TIMEOUT) {
             msg_cv.wait(lock);
         } else {
             msg_cv.wait_until(lock, timeout_time);
