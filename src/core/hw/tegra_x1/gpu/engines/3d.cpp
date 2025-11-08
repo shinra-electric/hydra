@@ -53,7 +53,7 @@ renderer::BlendOperation get_blend_operation(u32 blend_op) {
     case D3D11_BLEND_OP_MAX:
         return renderer::BlendOperation::Max;
     default:
-        LOG_ERROR(Engines, "Unknown blend operation 0x{:04x}", blend_op);
+        ONCE(LOG_ERROR(Engines, "Unknown blend operation 0x{:04x}", blend_op));
         return renderer::BlendOperation::Add;
     }
 }
@@ -117,8 +117,8 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
         case GL_SRC_ALPHA_SATURATE:
             return renderer::BlendFactor::SrcAlphaSaturate;
         default:
-            LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
-                      gl_blend_factor);
+            ONCE(LOG_ERROR(Engines, "Unknown GL blend factor 0x{:04x}",
+                           gl_blend_factor));
             return renderer::BlendFactor::One;
         }
     } else { // D3D11
@@ -154,8 +154,8 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
         case D3D11_BLEND_FACTOR_INV_SRC1_ALPHA:
             return renderer::BlendFactor::InvSrc1Alpha;
         default:
-            LOG_ERROR(Engines, "Unknown D3D11 blend factor 0x{:04x}",
-                      blend_factor);
+            ONCE(LOG_ERROR(Engines, "Unknown D3D11 blend factor 0x{:04x}",
+                           blend_factor));
             return renderer::BlendFactor::One;
         }
     }

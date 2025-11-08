@@ -718,8 +718,10 @@ void Renderer::EndCapture() {
 }
 
 bool Renderer::CanDraw() {
-    if (!state.pipeline->GetPipeline())
+    if (!state.pipeline->GetPipeline()) {
+        ONCE(LOG_WARN(MetalRenderer, "Pipeline not present, skipping draw"));
         return false;
+    }
 
     return true;
 }
