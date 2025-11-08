@@ -3,6 +3,7 @@
 #include "common/time.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
@@ -129,6 +130,8 @@ u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     hash = std::rotl(hash, 1);
     hash += is_texture_format_depth_or_stencil(descriptor.format);
     hash = std::rotl(hash, 1);
+    hash += get_texture_format_stride(descriptor.format, 16);
+    hash = std::rotl(hash, 5);
 
     return hash;
 }

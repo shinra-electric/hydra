@@ -703,7 +703,7 @@ result_t Kernel::ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
     }
 
     ASSERT_DEBUG(crnt_thread->ProcessMessages(), Kernel,
-                 "SendSyncRequest timed out");
+                 "ArbitrateLock timed out");
 
     result_t res = RESULT_SUCCESS;
     if (crnt_thread->GetState() == ThreadState::Stopping) {

@@ -74,10 +74,12 @@ bool IThread::ProcessMessagesImpl() {
             return false;
         case ThreadMessageType::Pause: {
             state = ThreadState::Paused;
-            if (msg.supervisor)
+            if (msg.supervisor) {
                 supervisor_pause = true;
-            else
+            } else {
                 guest_pause = true;
+                sync_info = std::nullopt;
+            }
             break;
         }
         case ThreadMessageType::Resume: {

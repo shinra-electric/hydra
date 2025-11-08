@@ -77,26 +77,23 @@ class IThread : public SynchronizationObject {
 
     // Must not be called from a different thread
     bool ProcessMessages(i64 pause_timeout_ns = INFINITE_TIMEOUT);
-    bool WasSignalled() {
+    bool WasSignalled() const {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();
         ASSERT_DEBUG(!sync_info_value.signalled_obj, Kernel,
                      "Unexpected signalled object {}",
                      sync_info_value.signalled_obj->GetDebugName());
-        bool signalled = sync_info_value.signalled;
-        sync_info = std::nullopt;
-        return signalled;
+        return sync_info_value.signalled;
     }
-    bool ConsumeSignalledObject(SynchronizationObject*& out_obj) {
+    bool ConsumeSignalledObject(SynchronizationObject*& out_obj) const {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();
         if (!sync_info_value.signalled)
             return false;
 
         ASSERT_DEBUG(sync_info_value.signalled_obj, Kernel,
-                     "Expected signalled object");
+                     "Expected signalled object (self: {})", GetDebugName());
         out_obj = sync_info_value.signalled_obj;
-        sync_info = std::nullopt;
         return true;
     }
 
