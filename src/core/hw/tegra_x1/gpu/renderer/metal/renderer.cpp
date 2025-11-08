@@ -363,6 +363,10 @@ void Renderer::UnbindTextures(ShaderType shader_type) {
 void Renderer::Draw(const engines::PrimitiveType primitive_type,
                     const u32 start, const u32 count, const u32 base_instance,
                     const u32 instance_count) {
+    // Check for errors
+    if (!CanDraw())
+        return;
+
     BindDrawState();
 
     auto encoder = GetRenderCommandEncoderUnchecked();
@@ -376,6 +380,10 @@ void Renderer::DrawIndexed(const engines::PrimitiveType primitive_type,
                            const u32 start, const u32 count,
                            const u32 base_vertex, const u32 base_instance,
                            const u32 instance_count) {
+    // Check for errors
+    if (!CanDraw())
+        return;
+
     BindDrawState();
 
     auto encoder = GetRenderCommandEncoderUnchecked();
@@ -649,6 +657,73 @@ void Renderer::BlitTexture(MTL::Texture* src, const float3 src_origin,
                             NS::UInteger(3));
 }
 
+void Renderer::BeginCapture() {
+    auto capture_manager = MTL::CaptureManager::sharedCaptureManager();
+    auto desc = MTL::CaptureDescriptor::alloc()->init();
+    desc->setCaptureObject(device);
+
+    // Check if a debugger with support for Gpu capture is attached
+    if (capture_manager->supportsDestination(
+            MTL::CaptureDestinationDeveloperTools)) {
+        desc->setDestination(MTL::CaptureDestinationDeveloperTools);
+    } else {
+        // TODO: don't hardcode the directory
+        const std::string gpu_capture_dir =
+            fmt::format("{}/gpu_captures", CONFIG_INSTANCE.GetAppDataPath());
+        if (gpu_capture_dir.empty()) {
+            LOG_ERROR(
+                MetalRenderer,
+                "No GPU capture directory specified, cannot do a Gpu capture");
+            return;
+        }
+
+        // Check if the Gpu trace document destination is available
+        if (!capture_manager->supportsDestination(
+                MTL::CaptureDestinationGPUTraceDocument)) {
+            LOG_ERROR(MetalRenderer, "GPU trace document destination is not "
+                                     "available, cannot do a GPU capture");
+            return;
+        }
+
+        // Get current date and time as a string
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        std::ostringstream oss;
+        oss << std::put_time(std::localtime(&now_time), "%Y.%m.%d_%H:%M:%S");
+        std::string now_str = oss.str();
+
+        std::string capture_path =
+            fmt::format("{}/hydra_{}.gputrace", gpu_capture_dir, now_str);
+        desc->setDestination(MTL::CaptureDestinationGPUTraceDocument);
+        desc->setOutputURL(ToNSURL(capture_path));
+    }
+
+    NS::Error* error = nullptr;
+    capture_manager->startCapture(desc, &error);
+    if (error) {
+        LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
+                  error->localizedDescription()->utf8String());
+    }
+
+    capturing = true;
+}
+
+void Renderer::EndCapture() {
+    CommitCommandBuffer();
+
+    auto captureManager = MTL::CaptureManager::sharedCaptureManager();
+    captureManager->stopCapture();
+
+    capturing = false;
+}
+
+bool Renderer::CanDraw() {
+    if (!state.pipeline->GetPipeline())
+        return false;
+
+    return true;
+}
+
 void Renderer::BindDrawState() {
     auto encoder = GetRenderCommandEncoder();
 
@@ -771,66 +846,6 @@ void Renderer::BindDrawState() {
         frames++;
     }
 #endif
-}
-
-void Renderer::BeginCapture() {
-    auto capture_manager = MTL::CaptureManager::sharedCaptureManager();
-    auto desc = MTL::CaptureDescriptor::alloc()->init();
-    desc->setCaptureObject(device);
-
-    // Check if a debugger with support for Gpu capture is attached
-    if (capture_manager->supportsDestination(
-            MTL::CaptureDestinationDeveloperTools)) {
-        desc->setDestination(MTL::CaptureDestinationDeveloperTools);
-    } else {
-        // TODO: don't hardcode the directory
-        const std::string gpu_capture_dir =
-            fmt::format("{}/gpu_captures", CONFIG_INSTANCE.GetAppDataPath());
-        if (gpu_capture_dir.empty()) {
-            LOG_ERROR(
-                MetalRenderer,
-                "No GPU capture directory specified, cannot do a Gpu capture");
-            return;
-        }
-
-        // Check if the Gpu trace document destination is available
-        if (!capture_manager->supportsDestination(
-                MTL::CaptureDestinationGPUTraceDocument)) {
-            LOG_ERROR(MetalRenderer, "GPU trace document destination is not "
-                                     "available, cannot do a GPU capture");
-            return;
-        }
-
-        // Get current date and time as a string
-        auto now = std::chrono::system_clock::now();
-        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-        std::ostringstream oss;
-        oss << std::put_time(std::localtime(&now_time), "%Y.%m.%d_%H:%M:%S");
-        std::string now_str = oss.str();
-
-        std::string capture_path =
-            fmt::format("{}/hydra_{}.gputrace", gpu_capture_dir, now_str);
-        desc->setDestination(MTL::CaptureDestinationGPUTraceDocument);
-        desc->setOutputURL(ToNSURL(capture_path));
-    }
-
-    NS::Error* error = nullptr;
-    capture_manager->startCapture(desc, &error);
-    if (error) {
-        LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
-                  error->localizedDescription()->utf8String());
-    }
-
-    capturing = true;
-}
-
-void Renderer::EndCapture() {
-    CommitCommandBuffer();
-
-    auto captureManager = MTL::CaptureManager::sharedCaptureManager();
-    captureManager->stopCapture();
-
-    capturing = false;
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

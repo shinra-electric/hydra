@@ -223,6 +223,7 @@ class Renderer : public RendererBase {
     bool capturing = false;
 
     // Helpers
+    bool CanDraw();
     void BindDrawState();
 
   public:

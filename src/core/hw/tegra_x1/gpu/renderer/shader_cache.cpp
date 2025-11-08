@@ -25,8 +25,9 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
 u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
     u64 hash = 0;
     hash += static_cast<u64>(descriptor.stage);
-    hash = std::rotl(hash, 37);
+    hash = std::rotl(hash, 3);
     hash += descriptor.code_ptr;
+    hash = std::rotl(hash, 37);
 
     // Vertex state
     if (descriptor.stage == engines::ShaderStage::VertexB) {
