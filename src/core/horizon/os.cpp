@@ -57,6 +57,7 @@
 #include "core/horizon/services/prepo/prepo_service.hpp"
 #include "core/horizon/services/psc/pm_service.hpp"
 #include "core/horizon/services/psm/psm_server.hpp"
+#include "core/horizon/services/ro/detail/ro_interface.hpp"
 #include "core/horizon/services/settings/factory_settings_server.hpp"
 #include "core/horizon/services/settings/settings_server.hpp"
 #include "core/horizon/services/settings/system_settings_server.hpp"
@@ -308,6 +309,9 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Shared database
     REGISTER_SERVICE(others, pl::detail::IPlatformServiceManagerForSystem,
                      "pl:s");
+
+    // RO
+    REGISTER_SERVICE(others, ro::detail::IRoInterface, "ldr:ro", "ro:1");
 
     // Unknown
     REGISTER_SERVICE(others, lm::ILogService, "lm");

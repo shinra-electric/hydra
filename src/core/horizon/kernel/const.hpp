@@ -5,25 +5,17 @@ namespace hydra::horizon::kernel {
 constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
 constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 
-// TODO: how does this work?
-constexpr uptr ADDRESS_SPACE_START = 0x10000000;
-constexpr uptr ADDRESS_SPACE_END = 0x200000000;
-constexpr usize ADDRESS_SPACE_SIZE = ADDRESS_SPACE_END - ADDRESS_SPACE_START;
+constexpr range<vaddr_t> ADDRESS_SPACE =
+    range<vaddr_t>(0x10000000, 0x200000000);
+constexpr range<vaddr_t> STACK_REGION = range<vaddr_t>(0x10000000, 0x20000000);
+constexpr range<vaddr_t> TLS_REGION = range<vaddr_t>(0x20000000, 0x30000000);
+constexpr range<vaddr_t> ALIAS_REGION = range<vaddr_t>(0x30000000, 0x40000000);
+constexpr range<vaddr_t> EXECUTABLE_REGION =
+    range<vaddr_t>(0x40000000, 0x80000000);
+constexpr range<vaddr_t> HEAP_REGION = range<vaddr_t>(0x100000000, 0x200000000);
 
-constexpr uptr STACK_REGION_BASE = 0x10000000;
-constexpr usize STACK_REGION_SIZE = 0x10000000;
-
-constexpr uptr ALIAS_REGION_BASE = 0x30000000;
-constexpr usize ALIAS_REGION_SIZE = 0x10000000;
-
-constexpr uptr TLS_REGION_BASE = 0x20000000;
-constexpr usize TLS_REGION_SIZE = 0x10000000;
-
-constexpr uptr HEAP_REGION_BASE = 0x100000000;
-constexpr usize HEAP_REGION_SIZE = 0x100000000;
 constexpr usize HEAP_MEM_ALIGNMENT = 0x200000;
 
-// TODO: correct?
 constexpr i64 INFINITE_TIMEOUT = -1;
 
 enum class Module {

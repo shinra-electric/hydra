@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 class Memory : public IMemory {
   public:
-    Memory(usize size) : IMemory(size) { Allocate(); }
+    Memory(usize size) : IMemory(align(size, APPLE_PAGE_SIZE)) { Allocate(); }
     ~Memory() override { Free(); }
 
     uptr GetPtr() const override { return ptr; }
@@ -23,13 +23,12 @@ class Memory : public IMemory {
 
     // Helpers
     void Allocate() {
-        usize size = align(GetSize(), APPLE_PAGE_SIZE);
-        ptr = allocate_vm_memory(size);
+        ptr = allocate_vm_memory(GetSize());
 
         // Map
         // TODO: Why does this fail occasionally?
         HV_ASSERT_SUCCESS(
-            hv_vm_map(reinterpret_cast<void*>(ptr), ptr, size,
+            hv_vm_map(reinterpret_cast<void*>(ptr), ptr, GetSize(),
                       HV_MEMORY_READ | HV_MEMORY_WRITE | HV_MEMORY_EXEC));
     }
 

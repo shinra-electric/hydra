@@ -396,6 +396,8 @@ add_library(hydra-core
     horizon/services/ins/receiver_manager.hpp
     horizon/services/irsensor/ir_sensor_server.cpp
     horizon/services/irsensor/ir_sensor_server.hpp
+    horizon/services/ro/detail/ro_interface.cpp
+    horizon/services/ro/detail/ro_interface.hpp
     horizon/applets/const.hpp
     horizon/applets/applet_base.cpp
     horizon/applets/applet_base.hpp

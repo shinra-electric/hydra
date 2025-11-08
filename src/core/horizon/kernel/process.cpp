@@ -21,17 +21,19 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(usize size, MemoryType type, MemoryPermission perm,
-                           bool add_guard_page, vaddr_t& out_base) {
-    size = align(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE);
-    auto mem = CPU_INSTANCE.AllocateMemory(size);
-    mmu->Map(mem_base, mem, {type, MemoryAttribute::None, perm});
-    executable_mems.push_back(mem);
+uptr Process::CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
+                           MemoryPermission perm, bool add_guard_page,
+                           vaddr_t& out_base) {
+    out_base = mmu->FindFreeMemory(
+        region,
+        size + (add_guard_page ? hw::tegra_x1::cpu::GUEST_PAGE_SIZE : 0x0));
+    if (add_guard_page && out_base != region.begin)
+        out_base += hw::tegra_x1::cpu::GUEST_PAGE_SIZE;
+    ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
-    out_base = mem_base;
-    if (add_guard_page)
-        size += hw::tegra_x1::cpu::GUEST_PAGE_SIZE; // One guard page
-    mem_base += size;
+    auto mem = CPU_INSTANCE.AllocateMemory(size);
+    mmu->Map(out_base, mem, {type, MemoryAttribute::None, perm});
+    executable_mems.push_back(mem);
 
     return mem->GetPtr();
 }
@@ -40,8 +42,8 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
                                      usize size, MemoryPermission perm,
                                      bool add_guard_page, vaddr_t& out_base) {
     // TODO: use MemoryType::Static
-    auto ptr = CreateMemory(size, static_cast<MemoryType>(3), perm,
-                            add_guard_page, out_base);
+    auto ptr = CreateMemory(EXECUTABLE_REGION, size, static_cast<MemoryType>(3),
+                            perm, add_guard_page, out_base);
     DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
         {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
 
@@ -63,12 +65,12 @@ std::pair<GuestThread*, handle_id_t>
 Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
     // Thread
     main_thread =
-        new GuestThread(this, STACK_REGION_BASE + stack_size - 0x10, priority);
+        new GuestThread(this, STACK_REGION.begin + stack_size - 0x10, priority);
     auto handle_id = AddHandle(main_thread);
 
     // Stack memory
     main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
-    mmu->Map(STACK_REGION_BASE, main_thread_stack_mem,
+    mmu->Map(STACK_REGION.begin, main_thread_stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
 

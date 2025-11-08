@@ -28,7 +28,7 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
 
         // Next
         vaddr_t addr = info.addr + info.size;
-        if (addr >= horizon::kernel::ADDRESS_SPACE_END)
+        if (addr >= horizon::kernel::ADDRESS_SPACE.end)
             break;
 
         region = QueryRegion(addr);
@@ -44,6 +44,23 @@ horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
     }
 
     return info;
+}
+
+vaddr_t IMmu::FindFreeMemory(range<vaddr_t> region, usize size) const {
+    size = align(size, GUEST_PAGE_SIZE);
+    auto crnt_region = range<vaddr_t>::FromSize(region.begin, size);
+    while (region.Contains(crnt_region)) {
+        const auto info = QueryMemory(crnt_region.begin);
+        const auto mem_range = range<vaddr_t>(std::max(info.addr, region.begin),
+                                              info.addr + info.size);
+        if (info.state.type == horizon::kernel::MemoryType::Free &&
+            mem_range.Contains(crnt_region))
+            return mem_range.begin;
+
+        crnt_region.Shift(mem_range.GetSize());
+    }
+
+    return 0x0;
 }
 
 } // namespace hydra::hw::tegra_x1::cpu

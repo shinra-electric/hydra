@@ -35,8 +35,10 @@ class Process : public SynchronizationObject {
     ~Process() override;
 
     // Memory
-    uptr CreateMemory(usize size, MemoryType type, MemoryPermission perm,
-                      bool add_guard_page, vaddr_t& out_base);
+    // TODO: remove add_guard_page
+    uptr CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
+                      MemoryPermission perm, bool add_guard_page,
+                      vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
     uptr CreateExecutableMemory(const std::string_view module_name, usize size,
                                 MemoryPermission perm, bool add_guard_page,
@@ -135,8 +137,7 @@ class Process : public SynchronizationObject {
     std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
     hw::tegra_x1::cpu::IMemory* main_thread_stack_mem{nullptr};
 
-    vaddr_t mem_base{0x40000000};
-    vaddr_t tls_mem_base{TLS_REGION_BASE};
+    vaddr_t tls_mem_base{TLS_REGION.begin};
 
     // Thread
     GuestThread* main_thread{nullptr};

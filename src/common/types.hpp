@@ -16,12 +16,25 @@ struct range {
     T begin;
     T end;
 
-    range() : begin{0}, end{0} {}
-    range(T begin_) : begin{begin_}, end{invalid<T>()} {}
-    range(T begin_, T end_) : begin{begin_}, end{end_} {}
+    static constexpr range<T> FromSize(T begin, T size) {
+        return range<T>(begin, begin + size);
+    }
+
+    constexpr range() : begin{0}, end{0} {}
+    constexpr range(T begin_) : begin{begin_}, end{invalid<T>()} {}
+    constexpr range(T begin_, T end_) : begin{begin_}, end{end_} {}
 
     bool operator==(const range& other) const {
         return begin == other.begin && end == other.end;
+    }
+
+    void Shift(T offset) {
+        begin += offset;
+        end += offset;
+    }
+    void ShiftLeft(T offset) {
+        begin -= offset;
+        end -= offset;
     }
 
     bool Contains(const T other) const { return other >= begin && other < end; }
