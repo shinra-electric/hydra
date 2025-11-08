@@ -90,12 +90,14 @@ class IThread : public SynchronizationObject {
     bool ConsumeSignalledObject(SynchronizationObject*& out_obj) {
         ASSERT_DEBUG(sync_info, Kernel, "No signal info present");
         const auto& sync_info_value = sync_info.value();
+        if (!sync_info_value.signalled)
+            return false;
+
         ASSERT_DEBUG(sync_info_value.signalled_obj, Kernel,
                      "Expected signalled object");
         out_obj = sync_info_value.signalled_obj;
-        bool signalled = sync_info_value.signalled;
         sync_info = std::nullopt;
-        return signalled;
+        return true;
     }
 
     virtual uptr GetTlsPtr() const = 0;
