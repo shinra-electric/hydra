@@ -101,7 +101,8 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     // NCA
     filesystem::FileBase* file;
     auto res = fs.GetFile(
-        fmt::format(FS_FIRMWARE_PATH "/{:016x}", 0x010000000000080a), file);
+        fmt::format(FS_FIRMWARE_PATH "/{:016x}/data", 0x010000000000080a),
+        file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars file: {}", res);
         return;
