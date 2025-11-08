@@ -9,6 +9,7 @@ struct ContentView: View {
             GameListView(activeGame: self.$activeGame)
                 .navigationDestination(item: self.$activeGame) { activeGame in
                     EmulationView(game: activeGame, emulationContext: self.$emulationContext)
+                        .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
                 }
         }
         .toolbar {
