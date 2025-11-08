@@ -6,7 +6,7 @@ namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory {
   public:
-    IMemory(usize size_) : size{size_} {}
+    IMemory(usize size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
     virtual ~IMemory() = default;
 
     // The memory needs to be unmapped before resizing

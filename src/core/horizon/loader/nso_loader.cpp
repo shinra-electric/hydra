@@ -144,7 +144,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     // Create executable memory
     vaddr_t base;
     auto ptr = process->CreateExecutableMemory(
-        name, executable_size, kernel::MemoryPermission::ReadExecute, false,
+        name, executable_size, kernel::MemoryPermission::ReadExecute, true,
         base);
     LOG_DEBUG(Loader, "Base: 0x{:08x}, size: 0x{:08x}", base, executable_size);
 
@@ -164,7 +164,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     auto arg_data_ptr = reinterpret_cast<ArgData*>(process->CreateMemory(
         kernel::EXECUTABLE_REGION, ARG_DATA_SIZE,
         static_cast<kernel::MemoryType>(4), kernel::MemoryPermission::ReadWrite,
-        true, arg_data_base));
+        false, arg_data_base));
     arg_data_ptr->allocated_size = ARG_DATA_SIZE;
     arg_data_ptr->string_size = arg_data_str.size() + 1;
     std::memcpy(arg_data_ptr->str, arg_data_str.c_str(), arg_data_str.size());
