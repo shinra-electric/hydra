@@ -178,6 +178,7 @@ void* hydra_config_get_debug_logging();
 void* hydra_config_get_process_args();
 void* hydra_config_get_gdb_enabled();
 void* hydra_config_get_gdb_port();
+void* hydra_config_get_gdb_wait_for_client();
 
 // Filesystem
 void* hydra_create_filesystem();

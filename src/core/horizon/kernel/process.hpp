@@ -162,6 +162,7 @@ class Process : public SynchronizationObject {
     GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
     GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,
                       SetSystemResourceSize);
+    GETTER(main_thread, GetMainThread);
 };
 
 } // namespace hydra::horizon::kernel

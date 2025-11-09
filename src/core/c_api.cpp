@@ -205,6 +205,10 @@ HYDRA_EXPORT void* hydra_config_get_gdb_port() {
     return &hydra::CONFIG_INSTANCE.GetGdbPort();
 }
 
+HYDRA_EXPORT void* hydra_config_get_gdb_wait_for_client() {
+    return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
+}
+
 // Filesystem
 HYDRA_EXPORT void* hydra_create_filesystem() {
     return new hydra::horizon::filesystem::Filesystem();

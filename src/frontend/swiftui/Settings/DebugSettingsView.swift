@@ -7,6 +7,7 @@ struct DebugSettingsView: View {
     // TODO: process args
     @State var gdbEnabled = false
     @State var gdbPort: UInt16 = 0
+    @State var gdbWaitForClient = false
 
     var body: some View {
         VStack {
@@ -44,6 +45,11 @@ struct DebugSettingsView: View {
                     var gdbPortOption = hydraConfigGetGdbPort()
                     gdbPortOption.value = newValue
                 }
+            Toggle("Wait for client", isOn: self.$gdbWaitForClient)
+                .onChange(of: self.gdbWaitForClient) { _, newValue in
+                    var gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
+                    gdbWaitForClientOption.value = newValue
+                }
         }
         .onAppear {
             let logOutputOption = hydraConfigGetLogOutput()
@@ -60,6 +66,9 @@ struct DebugSettingsView: View {
 
             let gdbPortOption = hydraConfigGetGdbPort()
             self.gdbPort = gdbPortOption.value
+
+            let gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
+            self.gdbWaitForClient = gdbWaitForClientOption.value
         }
     }
 }

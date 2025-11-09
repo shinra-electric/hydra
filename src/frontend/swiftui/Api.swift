@@ -354,6 +354,10 @@ func hydraConfigGetGdbPort() -> HydraU16Option {
     HydraU16Option(handle: hydra_config_get_gdb_port())
 }
 
+func hydraConfigGetGdbWaitForClient() -> HydraBoolOption {
+    HydraBoolOption(handle: hydra_config_get_gdb_wait_for_client())
+}
+
 // Filesystem
 class HydraFilesystem {
     fileprivate let handle: UnsafeMutableRawPointer

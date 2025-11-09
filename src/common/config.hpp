@@ -162,6 +162,7 @@ class Config {
     StringArrayOption& GetProcessArgs() { return process_args; }
     Option<bool>& GetGdbEnabled() { return gdb_enabled; }
     Option<u16>& GetGdbPort() { return gdb_port; }
+    Option<bool>& GetGdbWaitForClient() { return gdb_wait_for_client; }
 
   private:
     std::string app_data_path;
@@ -189,6 +190,7 @@ class Config {
     StringArrayOption process_args;
     Option<bool> gdb_enabled;
     Option<u16> gdb_port;
+    Option<bool> gdb_wait_for_client;
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
@@ -223,6 +225,7 @@ class Config {
     std::vector<std::string> GetDefaultProcessArgs() const { return {}; }
     bool GetDefaultGdbEnabled() const { return false; }
     u16 GetDefaultGdbPort() const { return 1234; }
+    bool GetDefaultGdbWaitForClient() const { return false; }
 };
 
 } // namespace hydra

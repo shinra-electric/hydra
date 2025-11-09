@@ -132,6 +132,7 @@ void Config::LoadDefaults() {
     process_args = GetDefaultProcessArgs();
     gdb_enabled = GetDefaultGdbEnabled();
     gdb_port = GetDefaultGdbPort();
+    gdb_wait_for_client = GetDefaultGdbWaitForClient();
 }
 
 void Config::Serialize() {
@@ -203,6 +204,7 @@ void Config::Serialize() {
         debug["process_args"] = process_args.Get();
         debug["gdb_enabled"] = gdb_enabled.Get();
         debug["gdb_port"] = gdb_port.Get();
+        debug["gdb_wait_for_client"] = gdb_wait_for_client.Get();
     }
 
     config_file << toml::format(data);
@@ -281,6 +283,8 @@ void Config::Deserialize() {
         gdb_enabled =
             toml::find_or<bool>(debug, "gdb_enabled", GetDefaultGdbEnabled());
         gdb_port = toml::find_or<u16>(debug, "gdb_port", GetDefaultGdbPort());
+        gdb_wait_for_client = toml::find_or<bool>(debug, "gdb_wait_for_client",
+                                                  GetDefaultGdbWaitForClient());
     }
 
     // Validate
@@ -339,6 +343,7 @@ void Config::Log() {
     LOG_INFO(Other, "Process arguments: {}", process_args);
     LOG_INFO(Other, "GDB enabled: {}", gdb_enabled.Get());
     LOG_INFO(Other, "GDB port: {}", gdb_port.Get());
+    LOG_INFO(Other, "GDB wait for client: {}", gdb_wait_for_client.Get());
 }
 
 } // namespace hydra

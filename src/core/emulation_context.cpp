@@ -341,6 +341,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     // Activate GDB server
     if (CONFIG_INSTANCE.GetGdbEnabled()) {
+        if (CONFIG_INSTANCE.GetGdbWaitForClient())
+            process->GetMainThread()->SupervisorPause();
+
         // HACK: spinlock until the main thread is running
         while (!process->IsRunning())
             std::this_thread::yield();
