@@ -52,3 +52,7 @@ You can find a config file at `~/Library/Application Support/Hydra/config.toml` 
 Some games require firmware files from a Nintendo Switch console to function properly. The firmware files need to be decrypted, which can be done with [this tool](https://github.com/SamoZ256/switch-extract-macos).
 
 To use the firmware, set the `firmware_path` option in the config file to the path of the decrypted firmware files.
+
+## Contributing
+
+Pull requests are very welcome. Feel free to join the official [Discord server](https://discord.gg/FZ742SWv8f) for better communication.
