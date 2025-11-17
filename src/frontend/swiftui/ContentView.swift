@@ -3,6 +3,23 @@ import SwiftUI
 struct ContentView: View {
     @Binding var activeGame: Game?
     @Binding var emulationContext: HydraEmulationContext?
+    
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+    }
+    
+    private var gitVersion: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+    }
+    
+    private var navigationTitle: String {
+        let gameTitle = activeGame?.name ?? ""
+        var titleInsert = ""
+        if activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
+        var gitInsert = ""
+        if gitVersion != "" { gitInsert = " (\(gitVersion))"}
+        return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)"
+    }
 
     var body: some View {
         NavigationStack {
@@ -16,6 +33,6 @@ struct ContentView: View {
             ToolbarItems()
         }
         .windowToolbarFullScreenVisibility(.onHover)
-        .navigationTitle(activeGame?.name ?? "Hydra")
+        .navigationTitle(navigationTitle)
     }
 }
