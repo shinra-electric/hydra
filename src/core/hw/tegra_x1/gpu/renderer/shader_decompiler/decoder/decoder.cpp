@@ -867,6 +867,7 @@ void Decoder::ParseNextInstruction() {
             BUILDER.OpTextureGather(const_buffer_index, coords_v, component);
         for (u32 i = 0; i < 4; i++) {
             if (component_mask & (1 << i)) {
+                // TODO: why does this mess up SMO title screen?
                 BUILDER.OpCopy(ir::Value::Register(dst + i, DataType::F32),
                                BUILDER.OpVectorExtract(res_v, i));
             }

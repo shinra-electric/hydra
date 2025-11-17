@@ -226,7 +226,7 @@ class LangEmitter : public Emitter {
     std::string GetConstMemoryStr(const CMem cmem,
                                   DataType data_type = DataType::U32) {
         // TODO: what about unaligned access?
-        return fmt::format("state.c[{}][({} + 0x{:08x}) >> 2].{}", cmem.idx,
+        return fmt::format("state.c{}[({} + 0x{:08x}) >> 2].{}", cmem.idx,
                            GetRegisterStr(cmem.reg), cmem.imm,
                            GetTypeSuffixStr(data_type));
     }

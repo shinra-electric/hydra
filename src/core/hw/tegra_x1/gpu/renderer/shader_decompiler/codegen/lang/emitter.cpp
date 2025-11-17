@@ -85,10 +85,10 @@ void LangEmitter::Start() {
     EnterScope("struct State");
     Write("Reg r[256];");
     Write("bool p[8];"); // TODO: is the size correct?
-    Write("Reg c[{}][0x40];",
-          CONST_BUFFER_BINDING_COUNT); // TODO: what should the size be?
-    Write("Reg a_in[0x200];");         // TODO: what should the size be?
-    Write("Reg a_out[0x200];");        // TODO: what should the size be?
+    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers())
+        Write("Reg c{}[{}];", index, size);
+    Write("Reg a_in[0x200];");  // TODO: what should the size be?
+    Write("Reg a_out[0x200];"); // TODO: what should the size be?
     EmitStateBindings();
     ExitScopeEmpty(true);
     WriteNewline();
