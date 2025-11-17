@@ -253,9 +253,11 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
             voice.num_wave_buffers_consumed = 0;
         } else if (voice_in.play_state == VoicePlayState::Started) {
             // HACK
-            if (voice_in.wave_buffer_count == invalid<u32>()) {
+            if (voice_in.wave_buffer_count >=
+                sizeof_array(voice_in.wave_buffers)) {
                 ONCE(LOG_WARN(Services,
-                              "Voice {} has invalid wave buffer count", i));
+                              "Voice {} has invalid wave buffer count {:#x}", i,
+                              voice_in.wave_buffer_count));
                 continue;
             }
 
