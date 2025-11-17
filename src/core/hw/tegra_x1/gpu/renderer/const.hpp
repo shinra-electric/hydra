@@ -299,6 +299,14 @@ struct RenderPassDescriptor {
     RenderTargetDescriptor depth_stencil_target;
 };
 
+struct Viewport {
+    FloatRect2D rect;
+    f32 depth_near;
+    f32 depth_far;
+};
+
+typedef IntRect2D Scissor;
+
 enum class ShaderType {
     Vertex,
     Fragment,

@@ -396,90 +396,6 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
     }
 }
 
-renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
-                                              u32 vertex_array_index) const {
-    const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
-
-    // HACK
-    if (u64(vertex_array.addr) == 0x0) {
-        ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
-        return nullptr;
-    }
-
-    const renderer::BufferDescriptor descriptor{
-        .ptr = gmmu.UnmapAddr(vertex_array.addr),
-        .size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
-                u64(vertex_array.addr),
-    };
-
-    return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
-}
-
-renderer::TextureBase*
-ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
-    // HACK
-    if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
-        LOG_ERROR(Engines, "1D buffer");
-        return nullptr;
-    }
-
-    const uptr gpu_addr = make_addr(tic.addr_lo, tic.addr_hi);
-    if (gpu_addr == 0x0) {
-        LOG_ERROR(Engines, "Texture address is NULL");
-        return nullptr;
-    }
-
-    const auto format = renderer::to_texture_format(tic.format_word);
-
-    NvKind kind;
-    usize stride;
-    switch (tic.hdr_version) {
-    case TicHdrVersion::Pitch:
-        kind = NvKind::Pitch;
-        stride = tic.pitch_5_20 << 5;
-        break;
-    case TicHdrVersion::BlockLinear:
-        kind = NvKind::Generic_16BX2;
-        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
-        break;
-    default:
-        LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
-        kind = NvKind::Pitch;
-        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
-        break;
-    }
-
-    const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), format, kind,
-        static_cast<usize>(tic.width_minus_one + 1),
-        static_cast<usize>(tic.height_minus_one + 1),
-        tic.tile_height_gobs_log2, // TODO: correct?
-        stride,
-        renderer::SwizzleChannels(
-            format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
-            tic.format_word.swizzle_z, tic.format_word.swizzle_w));
-
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
-        descriptor, renderer::TextureUsage::Read);
-}
-
-renderer::SamplerBase*
-ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
-    const renderer::SamplerDescriptor descriptor{
-        .min_filter = static_cast<renderer::SamplerFilter>(tsc.min_filter),
-        .mag_filter = static_cast<renderer::SamplerFilter>(tsc.mag_filter),
-        .mip_filter = static_cast<renderer::SamplerMipFilter>(tsc.mip_filter),
-        .address_mode_s =
-            static_cast<renderer::SamplerAddressMode>(tsc.address_u),
-        .address_mode_t =
-            static_cast<renderer::SamplerAddressMode>(tsc.address_v),
-        .address_mode_r =
-            static_cast<renderer::SamplerAddressMode>(tsc.address_p),
-    };
-
-    return RENDERER_INSTANCE.GetSamplerCache().Find(descriptor);
-}
-
 renderer::TextureBase*
 ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
@@ -543,6 +459,85 @@ renderer::RenderPassBase* ThreeD::GetRenderPass(GMmu& gmmu) const {
     };
 
     return RENDERER_INSTANCE.GetRenderPassCache().Find(descriptor);
+}
+
+renderer::Viewport ThreeD::GetViewport(u32 index) {
+    renderer::Viewport res;
+
+    const auto& extent = REGS_3D.viewports[index];
+    const auto& transform = REGS_3D.viewport_transforms[index];
+    if (REGS_3D.viewport_transform_enabled) {
+        auto scale_x = transform.scale_x;
+        auto scale_y = transform.scale_y;
+        if (any(REGS_3D.window_origin_flags &
+                engines::WindowOriginFlags::LowerLeft))
+            scale_y = -scale_y;
+
+        // Swizzle
+        // TODO: check for viewport swizzle support
+        if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX)
+            scale_x = -scale_x;
+        else
+            ASSERT_DEBUG(transform.swizzle.x ==
+                             engines::ViewportSwizzle::PositiveX,
+                         Engines, "Unsupported X viewport swizzle {}",
+                         transform.swizzle.x);
+        if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY)
+            scale_y = -scale_y;
+        else
+            ASSERT_DEBUG(transform.swizzle.y ==
+                             engines::ViewportSwizzle::PositiveY,
+                         Engines, "Unsupported Y viewport swizzle {}",
+                         transform.swizzle.y);
+        ASSERT_DEBUG(transform.swizzle.z == engines::ViewportSwizzle::PositiveZ,
+                     Engines, "Unsupported Z viewport swizzle {}",
+                     transform.swizzle.z);
+        ASSERT_DEBUG(transform.swizzle.w == engines::ViewportSwizzle::PositiveW,
+                     Engines, "Unsupported W viewport swizzle {}",
+                     transform.swizzle.w);
+
+        res.rect.origin.x() = transform.offset_x - scale_x;
+        res.rect.origin.y() = transform.offset_y - scale_y;
+        res.rect.size.x() = scale_x * 2.0f;
+        res.rect.size.y() = scale_y * 2.0f;
+        // TODO: Z scale and offset
+        res.depth_near = extent.near;
+        res.depth_far = extent.far;
+    } else {
+        const auto& screen_scissor = REGS_3D.screen_scissor;
+        res.rect.origin.x() = screen_scissor.horizontal.x;
+        res.rect.origin.y() = screen_scissor.vertical.y;
+        res.rect.size.x() = screen_scissor.horizontal.width;
+        res.rect.size.y() = screen_scissor.vertical.height;
+        res.depth_near = extent.near;
+        res.depth_far = extent.far;
+    }
+
+    // Flip Y
+    res.rect.origin.y() += res.rect.size.y();
+    res.rect.size.y() = -res.rect.size.y();
+
+    // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
+    // it like this, though not on Ryujinx)
+    if (res.depth_near == 0.0 && res.depth_far == 0.0) {
+        ONCE(LOG_WARN(Engines, "Depth range is [0, 0], forcing to [0, 1]"));
+        res.depth_near = 0.0;
+        res.depth_far = 1.0;
+    }
+
+    return res;
+}
+
+renderer::Scissor ThreeD::GetScissor(u32 index) {
+    const auto& scissor = REGS_3D.scissors[index];
+    if (scissor.enabled) {
+        return renderer::Scissor(
+            int2({scissor.horizontal.min, scissor.vertical.min}),
+            int2({scissor.horizontal.max - scissor.horizontal.min,
+                  scissor.vertical.max - scissor.vertical.min}));
+    } else {
+        return renderer::Scissor(int2({0, 0}), int2({0xffff, 0xffff}));
+    }
 }
 
 renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
@@ -673,6 +668,90 @@ renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
     return RENDERER_INSTANCE.GetPipelineCache().Find(descriptor);
 }
 
+renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
+                                              u32 vertex_array_index) const {
+    const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
+
+    // HACK
+    if (u64(vertex_array.addr) == 0x0) {
+        ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
+        return nullptr;
+    }
+
+    const renderer::BufferDescriptor descriptor{
+        .ptr = gmmu.UnmapAddr(vertex_array.addr),
+        .size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
+                u64(vertex_array.addr),
+    };
+
+    return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
+}
+
+renderer::TextureBase*
+ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
+    // HACK
+    if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
+        LOG_ERROR(Engines, "1D buffer");
+        return nullptr;
+    }
+
+    const uptr gpu_addr = make_addr(tic.addr_lo, tic.addr_hi);
+    if (gpu_addr == 0x0) {
+        LOG_ERROR(Engines, "Texture address is NULL");
+        return nullptr;
+    }
+
+    const auto format = renderer::to_texture_format(tic.format_word);
+
+    NvKind kind;
+    usize stride;
+    switch (tic.hdr_version) {
+    case TicHdrVersion::Pitch:
+        kind = NvKind::Pitch;
+        stride = tic.pitch_5_20 << 5;
+        break;
+    case TicHdrVersion::BlockLinear:
+        kind = NvKind::Generic_16BX2;
+        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
+        break;
+    default:
+        LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
+        kind = NvKind::Pitch;
+        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
+        break;
+    }
+
+    const renderer::TextureDescriptor descriptor(
+        gmmu.UnmapAddr(gpu_addr), format, kind,
+        static_cast<usize>(tic.width_minus_one + 1),
+        static_cast<usize>(tic.height_minus_one + 1),
+        tic.tile_height_gobs_log2, // TODO: correct?
+        stride,
+        renderer::SwizzleChannels(
+            format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
+            tic.format_word.swizzle_z, tic.format_word.swizzle_w));
+
+    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+        descriptor, renderer::TextureUsage::Read);
+}
+
+renderer::SamplerBase*
+ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
+    const renderer::SamplerDescriptor descriptor{
+        .min_filter = static_cast<renderer::SamplerFilter>(tsc.min_filter),
+        .mag_filter = static_cast<renderer::SamplerFilter>(tsc.mag_filter),
+        .mip_filter = static_cast<renderer::SamplerMipFilter>(tsc.mip_filter),
+        .address_mode_s =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_u),
+        .address_mode_t =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_v),
+        .address_mode_r =
+            static_cast<renderer::SamplerAddressMode>(tsc.address_p),
+    };
+
+    return RENDERER_INSTANCE.GetSamplerCache().Find(descriptor);
+}
+
 void ThreeD::ConfigureShaderStage(
     GMmu& gmmu, const ShaderStage stage,
     const TextureImageControl* tex_header_pool,
@@ -722,8 +801,12 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
 
     RENDERER_INSTANCE.BindRenderPass(GetRenderPass(gmmu));
 
+    for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
+        RENDERER_INSTANCE.SetViewport(i, GetViewport(i));
+        RENDERER_INSTANCE.SetScissor(i, GetScissor(i));
+    }
+
     RENDERER_INSTANCE.BindPipeline(GetPipeline(gmmu));
-    // TODO: viewport and scissor
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
         const auto& vertex_array = regs.vertex_arrays[i];

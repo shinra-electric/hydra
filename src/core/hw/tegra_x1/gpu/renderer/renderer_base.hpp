@@ -88,6 +88,10 @@ class RendererBase {
     virtual void ClearDepth(u32 layer, const float value) = 0;
     virtual void ClearStencil(u32 layer, const u32 value) = 0;
 
+    // Viewport and scissor
+    virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
+    virtual void SetScissor(u32 index, const Scissor& scissor) = 0;
+
     // Shader
     virtual ShaderBase* CreateShader(const ShaderDescriptor& descriptor) = 0;
 

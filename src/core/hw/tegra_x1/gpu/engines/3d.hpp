@@ -312,7 +312,7 @@ struct Regs3D {
             u16 max;
         } vertical;
         u32 _padding;
-    } scissors[SCISSOR_COUNT];
+    } scissors[VIEWPORT_COUNT];
 
     u32 padding_0x3c0[0x30];
     u32 padding_0x3f0[0x8];
@@ -610,18 +610,20 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     void BindGroup(GMmu& gmmu, const u32 index, const u32 data);
 
     // Helpers
+    renderer::TextureBase* GetColorTargetTexture(GMmu& gmmu,
+                                                 u32 render_target_index) const;
+    renderer::TextureBase* GetDepthStencilTargetTexture(GMmu& gmmu) const;
+    renderer::RenderPassBase* GetRenderPass(GMmu& gmmu) const;
+    renderer::Viewport GetViewport(u32 index);
+    renderer::Scissor GetScissor(u32 index);
+    renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
+    renderer::ShaderBase* GetShader(GMmu& gmmu, ShaderStage stage);
+    renderer::PipelineBase* GetPipeline(GMmu& gmmu);
     renderer::BufferBase* GetVertexBuffer(GMmu& gmmu,
                                           u32 vertex_array_index) const;
     renderer::TextureBase* GetTexture(GMmu& gmmu,
                                       const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;
-    renderer::TextureBase* GetColorTargetTexture(GMmu& gmmu,
-                                                 u32 render_target_index) const;
-    renderer::TextureBase* GetDepthStencilTargetTexture(GMmu& gmmu) const;
-    renderer::RenderPassBase* GetRenderPass(GMmu& gmmu) const;
-    renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
-    renderer::ShaderBase* GetShader(GMmu& gmmu, ShaderStage stage);
-    renderer::PipelineBase* GetPipeline(GMmu& gmmu);
 
     void ConfigureShaderStage(GMmu& gmmu, const ShaderStage stage,
                               const TextureImageControl* tex_header_pool,

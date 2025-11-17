@@ -27,6 +27,8 @@ enum class EncoderType {
 
 struct State {
     const RenderPass* render_pass{nullptr};
+    Viewport viewports[VIEWPORT_COUNT];
+    Scissor scissors[VIEWPORT_COUNT];
     const Pipeline* pipeline{nullptr};
     const Buffer* index_buffer{nullptr};
     engines::IndexType index_type{engines::IndexType::None};
@@ -97,6 +99,10 @@ class Renderer : public RendererBase {
     void ClearDepth(u32 layer, const float value) override;
     void ClearStencil(u32 layer, const u32 value) override;
 
+    // Viewport and scissor
+    void SetViewport(u32 index, const Viewport& viewport) override;
+    void SetScissor(u32 index, const Scissor& scissor) override;
+
     // Shader
     ShaderBase* CreateShader(const ShaderDescriptor& descriptor) override;
 
@@ -160,9 +166,9 @@ class Renderer : public RendererBase {
     void EndEncoding();
 
     // Encoder state setting
-    void SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline);
+    void SetRenderPipelineState(MTL::RenderPipelineState* pipeline);
     void SetRenderPipelineState();
-    void SetDepthStencilState(MTL::DepthStencilState* mtl_depth_stencil_state);
+    void SetDepthStencilState(MTL::DepthStencilState* depth_stencil_state);
     void SetDepthStencilState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);

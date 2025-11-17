@@ -309,6 +309,14 @@ void Renderer::ClearStencil(u32 layer, const u32 value) {
     ONCE(LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears"));
 }
 
+void Renderer::SetViewport(u32 index, const Viewport& viewport) {
+    state.viewports[index] = viewport;
+}
+
+void Renderer::SetScissor(u32 index, const Scissor& scissor) {
+    state.scissors[index] = scissor;
+}
+
 ShaderBase* Renderer::CreateShader(const ShaderDescriptor& descriptor) {
     return new Shader(descriptor);
 }
@@ -412,12 +420,17 @@ MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
 
     encoder_state.render_pass = mtl_render_pass;
     encoder_state.render = {};
+
+    // Reset bindings
     for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
          shader_type++) {
-        for (u32 i = 0; i < BUFFER_COUNT; i++)
+        for (u32 i = 0; i < BUFFER_COUNT; i++) {
             encoder_state.render.buffers[shader_type][i] = nullptr;
-        for (u32 i = 0; i < TEXTURE_COUNT; i++)
+        }
+        for (u32 i = 0; i < TEXTURE_COUNT; i++) {
             encoder_state.render.textures[shader_type][i] = nullptr;
+            encoder_state.render.samplers[shader_type][i] = nullptr;
+        }
     }
 
     return CreateRenderCommandEncoder(mtl_render_pass);
@@ -472,13 +485,13 @@ void Renderer::EndEncoding() {
     encoder_state.render_pass = nullptr;
 }
 
-void Renderer::SetRenderPipelineState(MTL::RenderPipelineState* mtl_pipeline) {
+void Renderer::SetRenderPipelineState(MTL::RenderPipelineState* pipeline) {
     auto& bound_pipeline = encoder_state.render.pipeline;
-    if (mtl_pipeline == bound_pipeline)
+    if (pipeline == bound_pipeline)
         return;
 
-    GetRenderCommandEncoderUnchecked()->setRenderPipelineState(mtl_pipeline);
-    bound_pipeline = mtl_pipeline;
+    GetRenderCommandEncoderUnchecked()->setRenderPipelineState(pipeline);
+    bound_pipeline = pipeline;
 }
 
 void Renderer::SetRenderPipelineState() {
@@ -486,14 +499,14 @@ void Renderer::SetRenderPipelineState() {
 }
 
 void Renderer::SetDepthStencilState(
-    MTL::DepthStencilState* mtl_depth_stencil_state) {
+    MTL::DepthStencilState* depth_stencil_state) {
     auto& bound_depth_stencil_state = encoder_state.render.depth_stencil_state;
-    if (mtl_depth_stencil_state == bound_depth_stencil_state)
+    if (depth_stencil_state == bound_depth_stencil_state)
         return;
 
     GetRenderCommandEncoderUnchecked()->setDepthStencilState(
-        mtl_depth_stencil_state);
-    bound_depth_stencil_state = mtl_depth_stencil_state;
+        depth_stencil_state);
+    bound_depth_stencil_state = depth_stencil_state;
 }
 
 void Renderer::SetDepthStencilState() {
@@ -734,87 +747,22 @@ void Renderer::BindDrawState() {
     SetDepthStencilState();
 
     // Viewport and scissor
-    // TODO: only if changed
-    // TODO: active color attachment count
     MTL::Viewport viewports[VIEWPORT_COUNT];
-    // TODO: move this out of the renderer
-    for (u32 i = 0; i < sizeof_array(viewports); i++) {
-        const auto& extent = REGS_3D.viewports[i];
-        const auto& transform = REGS_3D.viewport_transforms[i];
-        auto& dst = viewports[i];
-        if (REGS_3D.viewport_transform_enabled) {
-            auto scale_x = transform.scale_x;
-            auto scale_y = transform.scale_y;
-            if (any(REGS_3D.window_origin_flags &
-                    engines::WindowOriginFlags::LowerLeft))
-                scale_y = -scale_y;
+    MTL::ScissorRect scissors[VIEWPORT_COUNT];
+    for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
+        // Viewport
+        const auto& viewport = state.viewports[i];
+        viewports[i] =
+            MTL::Viewport(viewport.rect.origin.x(), viewport.rect.origin.y(),
+                          viewport.rect.size.x(), viewport.rect.size.y(),
+                          viewport.depth_near, viewport.depth_far);
 
-            // Swizzle
-            // TODO: check for viewport swizzle support
-            if (transform.swizzle.x == engines::ViewportSwizzle::NegativeX)
-                scale_x = -scale_x;
-            else
-                ASSERT_DEBUG(transform.swizzle.x ==
-                                 engines::ViewportSwizzle::PositiveX,
-                             MetalRenderer, "Unsupported X viewport swizzle {}",
-                             transform.swizzle.x);
-            if (transform.swizzle.y == engines::ViewportSwizzle::NegativeY)
-                scale_y = -scale_y;
-            else
-                ASSERT_DEBUG(transform.swizzle.y ==
-                                 engines::ViewportSwizzle::PositiveY,
-                             MetalRenderer, "Unsupported Y viewport swizzle {}",
-                             transform.swizzle.y);
-            ASSERT_DEBUG(transform.swizzle.z ==
-                             engines::ViewportSwizzle::PositiveZ,
-                         MetalRenderer, "Unsupported Z viewport swizzle {}",
-                         transform.swizzle.z);
-            ASSERT_DEBUG(transform.swizzle.w ==
-                             engines::ViewportSwizzle::PositiveW,
-                         MetalRenderer, "Unsupported W viewport swizzle {}",
-                         transform.swizzle.w);
-
-            dst.originX = transform.offset_x - scale_x;
-            dst.originY = transform.offset_y - scale_y;
-            dst.width = scale_x * 2.0f;
-            dst.height = scale_y * 2.0f;
-            // TODO: Z scale and offset
-            dst.znear = extent.near;
-            dst.zfar = extent.far;
-        } else {
-            const auto& screen_scissor = REGS_3D.screen_scissor;
-            dst.originX = screen_scissor.horizontal.x;
-            dst.originY = screen_scissor.vertical.y;
-            dst.width = screen_scissor.horizontal.width;
-            dst.height = screen_scissor.vertical.height;
-            dst.znear = extent.near;
-            dst.zfar = extent.far;
-        }
-
-        // Flip Y
-        dst.originY += dst.height;
-        dst.height = -dst.height;
-
-        // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
-        // it like this, tho not on Ryujinx)
-        if (dst.znear == 0.0 && dst.zfar == 0.0) {
-            ONCE(LOG_WARN(MetalRenderer,
-                          "Depth range is [0, 0], forcing to [0, 1]"));
-            dst.znear = 0.0;
-            dst.zfar = 1.0;
-        }
+        // Scissor
+        const auto& scissor = state.scissors[i];
+        scissors[i] = MTL::ScissorRect(scissor.origin.x(), scissor.origin.y(),
+                                       scissor.size.x(), scissor.size.y());
     }
     encoder->setViewports(viewports, sizeof_array(viewports));
-
-    // TODO: active color attachment count
-    MTL::ScissorRect scissors[SCISSOR_COUNT];
-    for (u32 i = 0; i < sizeof_array(scissors); i++) {
-        const auto& src = REGS_3D.scissors[i];
-        scissors[i] =
-            MTL::ScissorRect{src.horizontal.min, src.vertical.min,
-                             (u32)(src.horizontal.max - src.horizontal.min),
-                             (u32)(src.vertical.max - src.vertical.min)};
-    }
     encoder->setScissorRects(scissors, sizeof_array(scissors));
 
     // Resources
