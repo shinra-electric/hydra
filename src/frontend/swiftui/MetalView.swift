@@ -3,14 +3,16 @@ import SwiftUI
 
 class MetalLayerCoordinator: NSObject {
     private var emulationContext: Binding<HydraEmulationContext?>
+    private var fps: Binding<Int>
 
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
 
     private var surfaceSet = false
 
-    init(emulationContext: Binding<HydraEmulationContext?>) {
+    init(emulationContext: Binding<HydraEmulationContext?>, fps: Binding<Int>) {
         self.emulationContext = emulationContext
+        self.fps = fps
         super.init()
     }
 
@@ -51,12 +53,12 @@ class MetalLayerCoordinator: NSObject {
 
                 // Update
                 if dtAverageUpdated {
-                    // TODO
-                    /*
-                    print(
-                        "DT average: \(hydra_emulation_context_get_last_delta_time_average(emulationContext))"
-                    )
-                    */
+                    let dt = emulationContext.getLastDeltaTimeAverage()
+                    if dt != 0.0 {
+                        fps.wrappedValue = Int((1.0 / dt).rounded())
+                    } else {
+                        fps.wrappedValue = 0
+                    }
                 }
             }
         }
@@ -65,6 +67,7 @@ class MetalLayerCoordinator: NSObject {
 
 struct MetalView: NSViewRepresentable {
     @Binding var emulationContext: HydraEmulationContext?
+    @Binding var fps: Int
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
@@ -86,6 +89,6 @@ struct MetalView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> MetalLayerCoordinator {
-        return MetalLayerCoordinator(emulationContext: self.$emulationContext)
+        return MetalLayerCoordinator(emulationContext: self.$emulationContext, fps: self.$fps)
     }
 }

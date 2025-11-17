@@ -36,6 +36,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
         swiftui/helpers/Error.swift
+        swiftui/helpers/Math.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
@@ -88,7 +89,7 @@ if (MACOS_BUNDLE)
             MACOSX_BUNDLE_BUNDLE_VERSION ${GIT_HASH_SHORT}
         )
     endif ()
-    
+
     if (FRONTEND STREQUAL "SwiftUI")
         set(MACOSX_MINIMUM_SYSTEM_VERSION "15.0")
     else ()
