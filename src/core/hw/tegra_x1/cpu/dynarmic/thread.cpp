@@ -1,10 +1,20 @@
 #include "core/hw/tegra_x1/cpu/dynarmic/thread.hpp"
 
-#include <dynarmic/interface/exclusive_monitor.h>
 #include <mach/mach_time.h>
+
+#include <dynarmic/interface/exclusive_monitor.h>
 
 #include "core/hw/tegra_x1/cpu/dynarmic/mmu.hpp"
 #include "dynarmic/interface/optimization_flags.h"
+
+ENABLE_ENUM_FORMATTING(Dynarmic::A64::Exception, UnallocatedEncoding,
+                       "unallocated encoding", ReservedValue, "reserved value",
+                       UnpredictableInstruction, "unpredictable instruction",
+                       WaitForInterrupt, "wait for interrupt", WaitForEvent,
+                       "wait for event", SendEvent, "send event",
+                       SendEventLocal, "send event local", Yield, "yield",
+                       Breakpoint, "breakpoint", NoExecuteFault,
+                       "no execute fault")
 
 #define MMU static_cast<Mmu*>(mmu)
 
@@ -120,9 +130,15 @@ void Thread::CallSVC(u32 svc) {
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
-    // TODO: handle the exception
-    // TODO: debugger break
-    LOG_FATAL(Dynarmic, "Exception");
+    switch (exception) {
+    case Dynarmic::A64::Exception::Breakpoint:
+        callbacks.breakpoint_hit();
+        break;
+    default:
+        LOG_FATAL(Dynarmic, "Unhandled exception: {}", exception);
+    }
+
+    CheckForStopRequest();
 }
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }

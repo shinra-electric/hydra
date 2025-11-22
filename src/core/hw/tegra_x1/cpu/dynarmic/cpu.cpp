@@ -6,6 +6,11 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
+Cpu::Cpu() {
+    // Features
+    features = {.supports_native_breakpoints = false};
+}
+
 IMmu* Cpu::CreateMmu() { return new Mmu(); }
 
 IThread* Cpu::CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,

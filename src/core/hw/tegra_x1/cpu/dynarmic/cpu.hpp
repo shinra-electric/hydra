@@ -18,6 +18,8 @@ class Thread;
 
 class Cpu : public ICpu {
   public:
+    Cpu();
+
     IMmu* CreateMmu() override;
     IThread* CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
                           IMemory* tls_mem, vaddr_t tls_mem_base) override;

@@ -26,17 +26,12 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     // Debug
     void InsertBreakpoint(vaddr_t addr) override {
-        // TODO: implement
-        LOG_FATAL(Dynarmic, "Breakpoint insertion not implemented");
+        LOG_FATAL(Dynarmic, "This should not happen");
     }
     void RemoveBreakpoint(vaddr_t addr) override {
-        // TODO: implement
-        LOG_FATAL(Dynarmic, "Breakpoint removal not implemented");
+        LOG_FATAL(Dynarmic, "This should not happen");
     }
-    void SingleStep() override {
-        // TODO: implement
-        LOG_FATAL(Dynarmic, "Single-stepping not implemented");
-    }
+    void SingleStep() override { jit->Step(); }
 
   private:
     u64 tpidrro_el0;

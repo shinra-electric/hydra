@@ -79,6 +79,9 @@ Cpu::Cpu()
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
     */
+
+    // Features
+    features = {.supports_native_breakpoints = true};
 }
 
 Cpu::~Cpu() {}

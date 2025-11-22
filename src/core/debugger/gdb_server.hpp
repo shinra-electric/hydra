@@ -28,6 +28,7 @@ class GdbServer {
 
     horizon::kernel::GuestThread* crnt_thread;
     std::atomic<bool> breakpoint_hit{false};
+    std::map<vaddr_t, u32> replaced_instructions;
 
     void CloseClientSocket();
 

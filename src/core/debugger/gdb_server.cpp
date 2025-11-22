@@ -10,6 +10,7 @@
 #include "core/horizon/filesystem/file_base.hpp"
 #include "core/horizon/kernel/guest_thread.hpp"
 #include "core/horizon/kernel/process.hpp"
+#include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
@@ -41,6 +42,8 @@ constexpr u32 PSTATE_REGISTER = 33;
 constexpr u32 Q0_REGISTER = 34;
 constexpr u32 FPSR_REGISTER = 66;
 constexpr u32 FPCR_REGISTER = 67;
+
+constexpr u32 BRK = 0xd4200000;
 
 enum class BreakpointType {
     Software = 0,
@@ -538,8 +541,21 @@ void GdbServer::HandleMemRead(std::string_view command) {
     std::string output;
     const auto mmu = debugger.process->GetMmu();
     for (u64 i = 0; i < size; i++) {
+        const auto crnt_addr = addr + i;
+
+        // Check for replaced instructions
+        const auto it = replaced_instructions.find(crnt_addr);
+        if (it != replaced_instructions.end()) {
+            const u8* inst = reinterpret_cast<const u8*>(&it->second);
+            const auto count = std::min(size - i, 4ull);
+            for (u32 j = 0; j < count; j++)
+                output += fmt::format("{:02x}", inst[j]);
+            i += count;
+            continue;
+        }
+
         u8 value;
-        if (!mmu->TryRead(addr + i, value)) {
+        if (!mmu->TryRead(crnt_addr, value)) {
             SendPacket(GDB_ERROR);
             return;
         }
@@ -561,8 +577,16 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
     case BreakpointType::Software:
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
-        for (const auto& [_, thread] : debugger.threads)
-            thread.guest_thread->GetThread()->InsertBreakpoint(addr);
+
+        if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+            for (const auto& [_, thread] : debugger.threads)
+                thread.guest_thread->GetThread()->InsertBreakpoint(addr);
+        } else {
+            const auto mmu = debugger.process->GetMmu();
+            replaced_instructions[addr] = mmu->Read<u32>(addr);
+            mmu->Write(addr, BRK);
+        }
+
         SendPacket(GDB_OK);
         break;
     default:
@@ -585,8 +609,17 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
     case BreakpointType::Software:
         ASSERT_DEBUG(size == 4, Debugger,
                      "Invalid software breakpoint size 0x{:x}", size);
-        for (const auto& [_, thread] : debugger.threads)
-            thread.guest_thread->GetThread()->RemoveBreakpoint(addr);
+
+        if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+            for (const auto& [_, thread] : debugger.threads)
+                thread.guest_thread->GetThread()->RemoveBreakpoint(addr);
+        } else {
+            const auto mmu = debugger.process->GetMmu();
+            auto it = replaced_instructions.find(addr);
+            mmu->Write(addr, it->second);
+            replaced_instructions.erase(it);
+        }
+
         SendPacket(GDB_OK);
         break;
     default:
