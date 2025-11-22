@@ -4,7 +4,7 @@ struct ContentView: View {
     @Binding var activeGame: Game?
     @Binding var emulationContext: HydraEmulationContext?
 
-    @State private var fps: Int = .max
+    @State private var fps: Int = 0
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -21,7 +21,7 @@ struct ContentView: View {
         var gitInsert = ""
         if gitVersion != "" { gitInsert = " (\(gitVersion))" }
         var fpsInsert = ""
-        if fps != .max { fpsInsert = "  |  \(fps) FPS" }
+        if emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
         return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)\(fpsInsert)"
     }
 
