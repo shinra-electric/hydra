@@ -15,7 +15,7 @@ static Dynarmic::ExclusiveMonitor
     g_exclusive_monitor(4); // TODO: don't hardcode core count
 
 Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
-               vaddr_t tls_mem_base, vaddr_t stack_mem_end)
+               vaddr_t tls_mem_base)
     : IThread(mmu, callbacks, tls_mem) {
     tpidrro_el0 = tls_mem_base;
 
@@ -49,14 +49,12 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
     // config.optimizations = Dyn::no_optimizations;
 
     jit = new Dynarmic::A64::Jit(config);
-
-    jit->SetSP(stack_mem_end);
 }
 
 Thread::~Thread() { delete jit; }
 
 void Thread::Run() {
-    SerializeState();
+    DeserializeState();
     jit->Run();
 }
 
@@ -115,10 +113,10 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 }
 
 void Thread::CallSVC(u32 svc) {
-    DeserializeState();
+    SerializeState();
     callbacks.svc_handler(this, svc);
     CheckForStopRequest();
-    SerializeState();
+    DeserializeState();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {

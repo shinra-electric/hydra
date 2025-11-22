@@ -86,9 +86,8 @@ Cpu::~Cpu() {}
 IMmu* Cpu::CreateMmu() { return new Mmu(); }
 
 IThread* Cpu::CreateThread(IMmu* mmu, const ThreadCallbacks& callbacks,
-                           IMemory* tls_mem, vaddr_t tls_mem_base,
-                           vaddr_t stack_mem_end) {
-    return new Thread(mmu, callbacks, tls_mem, tls_mem_base, stack_mem_end);
+                           IMemory* tls_mem, vaddr_t tls_mem_base) {
+    return new Thread(mmu, callbacks, tls_mem, tls_mem_base);
 }
 
 IMemory* Cpu::AllocateMemory(usize size) { return new Memory(size); }

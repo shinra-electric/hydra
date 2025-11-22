@@ -98,7 +98,7 @@ ENABLE_ENUM_FORMATTING(
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
-               vaddr_t tls_mem_base, vaddr_t stack_mem_end)
+               vaddr_t tls_mem_base)
     : IThread(mmu, callbacks, tls_mem) {
     // Create
     HV_ASSERT_SUCCESS(hv_vcpu_create(&vcpu, &exit, NULL));
@@ -119,10 +119,6 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
     SetSysReg(HV_SYS_REG_TTBR0_EL1, MMU.GetUserPageTable().GetBase());
     SetSysReg(HV_SYS_REG_TTBR1_EL1, CPU.GetKernelPageTable().GetBase());
 
-    // Initialize the stack pointer
-    SetSysReg(HV_SYS_REG_SP_EL0, stack_mem_end);
-    // TODO: set SP_EL1 as well?
-
     // Setup TLS pointer
     SetSysReg(HV_SYS_REG_TPIDRRO_EL0, tls_mem_base);
 
@@ -141,8 +137,6 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
 
     // HACK: set LR to loader return address
     // SetReg(HV_REG_LR, 0xffff0000);
-
-    SerializeState();
 }
 
 Thread::~Thread() { hv_vcpu_destroy(vcpu); }

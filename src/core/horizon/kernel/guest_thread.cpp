@@ -39,10 +39,11 @@ void GuestThread::Run() {
          [this]() {
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).BreakpointHit(this);
          }},
-        tls_mem, tls_addr, stack_top_addr);
+        tls_mem, tls_addr);
 
     auto& state = thread->GetState();
     state.pc = entry_point;
+    state.sp = stack_top_addr;
     for (u32 i = 0; i < sizeof_array(args); i++)
         state.r[i] = args[i];
 

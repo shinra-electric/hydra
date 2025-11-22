@@ -19,7 +19,7 @@ class Mmu;
 class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
   public:
     Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
-           vaddr_t tls_mem_base, vaddr_t stack_mem_end);
+           vaddr_t tls_mem_base);
     ~Thread() override;
 
     void Run() override;
