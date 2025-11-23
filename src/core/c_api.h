@@ -146,7 +146,7 @@ void hydra_string_option_set(void* option, hydra_string value);
 
 uint32_t hydra_string_array_option_get_count(const void* option);
 hydra_string hydra_string_array_option_get(const void* option, uint32_t index);
-void hydra_string_array_option_resize(void* option, uint64_t size);
+void hydra_string_array_option_resize(void* option, uint32_t size);
 void hydra_string_array_option_set(void* option, uint32_t index,
                                    hydra_string value);
 void hydra_string_array_option_append(void* option, hydra_string value);

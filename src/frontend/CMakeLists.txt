@@ -61,9 +61,11 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/debugger/DebuggerView.swift
         swiftui/debugger/DebuggerListView.swift
         swiftui/debugger/DebuggersView.swift
-        # TODO: if macOS
-        swiftui/macos/AppDelegate.swift
     )
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift)
+    endif ()
 
     target_compile_definitions(hydra PRIVATE ${SWIFT_BUILD_TYPE_CONDITION} )
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)

@@ -424,11 +424,6 @@ add_library(hydra-core
     audio/null/stream.hpp
     audio/null/core.cpp
     audio/null/core.hpp
-    audio/cubeb/const.hpp
-    audio/cubeb/stream.cpp
-    audio/cubeb/stream.hpp
-    audio/cubeb/core.cpp
-    audio/cubeb/core.hpp
     hw/generic_mmu.hpp
     hw/tegra_x1/cpu/const.hpp
     hw/tegra_x1/cpu/memory.hpp
@@ -438,18 +433,6 @@ add_library(hydra-core
     hw/tegra_x1/cpu/thread.hpp
     hw/tegra_x1/cpu/cpu.cpp
     hw/tegra_x1/cpu/cpu.hpp
-    hw/tegra_x1/cpu/hypervisor/const.hpp
-    hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
-    hw/tegra_x1/cpu/hypervisor/page_allocator.hpp
-    hw/tegra_x1/cpu/hypervisor/page_table.cpp
-    hw/tegra_x1/cpu/hypervisor/page_table.hpp
-    hw/tegra_x1/cpu/hypervisor/memory.hpp
-    hw/tegra_x1/cpu/hypervisor/mmu.cpp
-    hw/tegra_x1/cpu/hypervisor/mmu.hpp
-    hw/tegra_x1/cpu/hypervisor/thread.cpp
-    hw/tegra_x1/cpu/hypervisor/thread.hpp
-    hw/tegra_x1/cpu/hypervisor/cpu.cpp
-    hw/tegra_x1/cpu/hypervisor/cpu.hpp
     hw/tegra_x1/cpu/dynarmic/const.hpp
     hw/tegra_x1/cpu/dynarmic/memory.hpp
     hw/tegra_x1/cpu/dynarmic/mmu.cpp
@@ -589,6 +572,33 @@ add_library(hydra-core
     c_api.cpp
     c_api.h
 )
+
+if (HYPERVISOR_ENABLED)
+    target_sources(hydra-core PRIVATE
+        hw/tegra_x1/cpu/hypervisor/const.hpp
+        hw/tegra_x1/cpu/hypervisor/page_allocator.cpp
+        hw/tegra_x1/cpu/hypervisor/page_allocator.hpp
+        hw/tegra_x1/cpu/hypervisor/page_table.cpp
+        hw/tegra_x1/cpu/hypervisor/page_table.hpp
+        hw/tegra_x1/cpu/hypervisor/memory.hpp
+        hw/tegra_x1/cpu/hypervisor/mmu.cpp
+        hw/tegra_x1/cpu/hypervisor/mmu.hpp
+        hw/tegra_x1/cpu/hypervisor/thread.cpp
+        hw/tegra_x1/cpu/hypervisor/thread.hpp
+        hw/tegra_x1/cpu/hypervisor/cpu.cpp
+        hw/tegra_x1/cpu/hypervisor/cpu.hpp
+    )
+endif ()
+
+if (CUBEB_ENABLED)
+    target_sources(hydra-core PRIVATE
+        audio/cubeb/const.hpp
+        audio/cubeb/stream.cpp
+        audio/cubeb/stream.hpp
+        audio/cubeb/core.cpp
+        audio/cubeb/core.hpp
+    )
+endif ()
 
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 
