@@ -207,8 +207,11 @@ void read_arg(RequestContext& context, Class& instance,
             Reader* reader;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 // TODO: correct?
-                reader = &context.readers.send_buffers_readers[in_buffer_index];
-                if (!reader->IsValid())
+                if (!context.readers.send_buffers_readers.empty())
+                    reader =
+                        &context.readers.send_buffers_readers[in_buffer_index];
+                if ((!reader || !reader->IsValid()) &&
+                    !context.readers.send_statics_readers.empty())
                     reader =
                         &context.readers.send_statics_readers[in_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
@@ -226,12 +229,14 @@ void read_arg(RequestContext& context, Class& instance,
                      out_buffer_index, arg_index + 1>(context, instance, args);
             return;
         } else if constexpr (traits::type == ArgumentType::OutBuffer) {
-            Writer* writer;
+            Writer* writer = nullptr;
             if constexpr (Arg::attr == BufferAttr::AutoSelect) {
                 // TODO: correct?
-                writer =
-                    &context.writers.recv_buffers_writers[out_buffer_index];
-                if (!writer->IsValid())
+                if (!context.writers.recv_buffers_writers.empty())
+                    writer =
+                        &context.writers.recv_buffers_writers[out_buffer_index];
+                if ((!writer || !writer->IsValid()) &&
+                    !context.writers.recv_list_writers.empty())
                     writer =
                         &context.writers.recv_list_writers[out_buffer_index];
             } else if constexpr (Arg::attr == BufferAttr::MapAlias) {
