@@ -287,6 +287,8 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
         thread->ProcessMessages();
 
     // We got the lock
+    breakpoint_thread = thread;
+
     for (const auto& [_, thread] : debugger.threads)
         thread.guest_thread->SupervisorPause();
 
@@ -398,9 +400,12 @@ void GdbServer::HandleCommand(std::string_view command) {
         HandleMemRead(body);
         break;
     case 'c':
-        breakpoint_hit = false;
+        // Resume all threads
         for (const auto& [_, thread] : debugger.threads)
             thread.guest_thread->SupervisorResume();
+
+        breakpoint_thread = nullptr;
+        breakpoint_hit = false;
         break;
     case 'Z':
         HandleInsertBreakpoint(body);
@@ -457,8 +462,15 @@ void GdbServer::HandleVCont(std::string_view command) {
         ASSERT_DEBUG(lock_execution, Debugger,
                      "Non-locked execution not implemented");
         crnt_thread = thread;
+
         thread->GetThread()->SingleStep();
-        thread->SupervisorResume();
+        if (CPU_INSTANCE.GetFeatures().supports_synchronous_single_step) {
+            // Single-stepping already finished
+            NotifySupervisorPaused(thread);
+        } else {
+            // Resume the thread for asynchronous single-stepping
+            thread->SupervisorResume();
+        }
     } else {
         for (const auto& [_, thread] : debugger.threads)
             thread.guest_thread->SupervisorResume();
@@ -539,6 +551,7 @@ void GdbServer::HandleMemRead(std::string_view command) {
         std::stoull(command.substr(comma_pos + 1).data(), nullptr, 16);
 
     std::string output;
+    output.reserve(size * 2);
     const auto mmu = debugger.process->GetMmu();
     for (u64 i = 0; i < size; i++) {
         const auto crnt_addr = addr + i;
@@ -550,7 +563,7 @@ void GdbServer::HandleMemRead(std::string_view command) {
             const auto count = std::min(size - i, 4ull);
             for (u32 j = 0; j < count; j++)
                 output += fmt::format("{:02x}", inst[j]);
-            i += count;
+            i += count - 1;
             continue;
         }
 
@@ -583,8 +596,9 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
                 thread.guest_thread->GetThread()->InsertBreakpoint(addr);
         } else {
             const auto mmu = debugger.process->GetMmu();
-            replaced_instructions[addr] = mmu->Read<u32>(addr);
+            replaced_instructions.insert({addr, mmu->Read<u32>(addr)});
             mmu->Write(addr, BRK);
+            NotifyMemoryChanged(range<vaddr_t>(addr, 4));
         }
 
         SendPacket(GDB_OK);
@@ -616,7 +630,10 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
         } else {
             const auto mmu = debugger.process->GetMmu();
             auto it = replaced_instructions.find(addr);
+            ASSERT(it != replaced_instructions.end(), Debugger,
+                   "Breakpoint not found at address {:#x}", addr);
             mmu->Write(addr, it->second);
+            NotifyMemoryChanged(range<vaddr_t>(addr, 4));
             replaced_instructions.erase(it);
         }
 
@@ -763,6 +780,11 @@ std::string GdbServer::PageFromBuffer(std::string_view buffer,
         return fmt::format("m{}", buffer.substr(offset, size));
     else
         return fmt::format("l{}", buffer.substr(offset));
+}
+
+void GdbServer::NotifyMemoryChanged(range<vaddr_t> mem_range) {
+    for (const auto& [_, thread] : debugger.threads)
+        thread.guest_thread->GetThread()->NotifyMemoryChanged(mem_range);
 }
 
 } // namespace hydra::debugger

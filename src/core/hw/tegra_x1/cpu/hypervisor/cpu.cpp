@@ -81,7 +81,8 @@ Cpu::Cpu()
     */
 
     // Features
-    features = {.supports_native_breakpoints = true};
+    features = {.supports_native_breakpoints = true,
+                .supports_synchronous_single_step = false};
 }
 
 Cpu::~Cpu() {}

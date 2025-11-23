@@ -28,6 +28,7 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
                vaddr_t tls_mem_base)
     : IThread(mmu, callbacks, tls_mem) {
     tpidrro_el0 = tls_mem_base;
+    // TODO: tpidr_el0?
 
     // Create JIT
     Dynarmic::A64::UserConfig config{};
@@ -39,7 +40,7 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
 
     // System registers
     config.tpidrro_el0 = &tpidrro_el0;
-    config.tpidr_el0 = nullptr; // TODO: what is this?
+    config.tpidr_el0 = &tpidr_el0; // TODO: what is this?
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
     config.cntfrq_el0 = CLOCK_RATE_HZ;
@@ -64,8 +65,12 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
 Thread::~Thread() { delete jit; }
 
 void Thread::Run() {
-    DeserializeState();
-    jit->Run();
+    while (true) {
+        DeserializeState();
+        jit->Run();
+        if (callbacks.stop_requested())
+            break;
+    }
 }
 
 u8 Thread::MemoryRead8(u64 addr) { return MMU->Read<u8>(addr); }
@@ -125,20 +130,22 @@ bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
 void Thread::CallSVC(u32 svc) {
     SerializeState();
     callbacks.svc_handler(this, svc);
-    CheckForStopRequest();
-    DeserializeState();
+    jit->HaltExecution();
 }
 
 void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
+    SerializeState();
+
     switch (exception) {
     case Dynarmic::A64::Exception::Breakpoint:
+        state.pc -= 4;
         callbacks.breakpoint_hit();
         break;
     default:
         LOG_FATAL(Dynarmic, "Unhandled exception: {}", exception);
     }
 
-    CheckForStopRequest();
+    jit->HaltExecution();
 }
 
 u64 Thread::GetCNTPCT() { return get_absolute_time(); }

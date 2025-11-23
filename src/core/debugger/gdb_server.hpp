@@ -27,8 +27,9 @@ class GdbServer {
     bool do_ack{true};
 
     horizon::kernel::GuestThread* crnt_thread;
-    std::atomic<bool> breakpoint_hit{false};
     std::map<vaddr_t, u32> replaced_instructions;
+    std::atomic<bool> breakpoint_hit{false};
+    horizon::kernel::GuestThread* breakpoint_thread{nullptr};
 
     void CloseClientSocket();
 
@@ -60,6 +61,8 @@ class GdbServer {
     std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
                                 u8 signal);
     std::string PageFromBuffer(std::string_view buffer, std::string_view page);
+
+    void NotifyMemoryChanged(range<vaddr_t> mem_range);
 };
 
 } // namespace hydra::debugger

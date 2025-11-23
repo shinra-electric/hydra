@@ -24,6 +24,10 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
 
     void Run() override;
 
+    void NotifyMemoryChanged(range<vaddr_t> mem_range) override {
+        jit->InvalidateCacheRange(mem_range.GetBegin(), mem_range.GetSize());
+    }
+
     // Debug
     void InsertBreakpoint(vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
@@ -31,13 +35,18 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     void RemoveBreakpoint(vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
-    void SingleStep() override { jit->Step(); }
+    void SingleStep() override {
+        DeserializeState();
+        jit->Step();
+        SerializeState();
+    }
 
   private:
-    u64 tpidrro_el0;
+    vaddr_t tpidrro_el0;
+    vaddr_t tpidr_el0;
 
     Dynarmic::A64::Jit* jit;
-    u64 ticks_left = 1000;
+    u64 ticks_left{1000};
 
     // Dynarmic
     u8 MemoryRead8(u64 addr) override;
@@ -83,12 +92,6 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     // State
     void SerializeState();
     void DeserializeState();
-
-    // Helpers
-    void CheckForStopRequest() {
-        if (callbacks.stop_requested())
-            jit->HaltExecution();
-    }
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

@@ -8,7 +8,8 @@ namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 Cpu::Cpu() {
     // Features
-    features = {.supports_native_breakpoints = false};
+    features = {.supports_native_breakpoints = false,
+                .supports_synchronous_single_step = true};
 }
 
 IMmu* Cpu::CreateMmu() { return new Mmu(); }
