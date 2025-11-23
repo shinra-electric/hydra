@@ -7,6 +7,7 @@ set(NATIVE_SOURCE_FILES
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
+    set(MACOSX_MINIMUM_SYSTEM_VERSION "13.0")
 
     find_package(SDL3 CONFIG REQUIRED)
     set(LINK_LIBS SDL3::SDL3)
@@ -22,6 +23,7 @@ if (FRONTEND STREQUAL "SDL3")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
+    set(MACOSX_MINIMUM_SYSTEM_VERSION "15.0")
     set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra
@@ -86,17 +88,25 @@ if (MACOS_BUNDLE)
         MACOSX_BUNDLE_ICON_FILE "hydra.icns"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
     )
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set_target_properties(hydra PROPERTIES
+            XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED YES
+            XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED YES
+            XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+            XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.github.${PROJECT_NAME}"
+            XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 17.4.0
+            XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"  # iPhone and iPad
+            # TODO: development team
+        )
+    endif ()
+
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set_target_properties(hydra PROPERTIES
             MACOSX_BUNDLE_BUNDLE_VERSION ${GIT_HASH_SHORT}
         )
     endif ()
 
-    if (FRONTEND STREQUAL "SwiftUI")
-        set(MACOSX_MINIMUM_SYSTEM_VERSION "15.0")
-    else ()
-        set(MACOSX_MINIMUM_SYSTEM_VERSION "13.0")
-    endif ()
     set(MACOSX_BUNDLE_CATEGORY "public.app-category.games")
     set(MACOSX_BUNDLE_BUNDLE_NAME "Hydra")
     set(MACOSX_BUNDLE_COPYRIGHT "Copyright© Hydra Project")

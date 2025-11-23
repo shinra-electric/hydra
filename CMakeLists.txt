@@ -3,9 +3,6 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
-# TODO: if iOS
-set(DEPLOYMENT_TARGET 17.4.0)
-
 project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
