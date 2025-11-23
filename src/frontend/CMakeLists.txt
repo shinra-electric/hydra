@@ -6,6 +6,7 @@ set(NATIVE_SOURCE_FILES
 
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
 
     find_package(SDL3 CONFIG REQUIRED)
     set(LINK_LIBS SDL3::SDL3)
@@ -20,6 +21,7 @@ if (FRONTEND STREQUAL "SDL3")
     )
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
     set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra

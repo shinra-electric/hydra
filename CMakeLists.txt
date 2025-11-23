@@ -3,17 +3,12 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(FetchContent)
 
-if (IOS)
-    set(DEPLOYMENT_TARGET 17.4.0)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    if (FRONTEND STREQUAL "SDL3")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
-    elseif (FRONTEND STREQUAL "SwiftUI")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
-    endif ()
-endif ()
+# TODO: if iOS
+set(DEPLOYMENT_TARGET 17.4.0)
 
-if (IOS)
+project(hydra VERSION 0.2.3 LANGUAGES CXX)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(HYPERVISOR_ENABLED OFF)
     set(CUBEB_ENABLED OFF)
     set(FRONTEND "SwiftUI")
@@ -25,7 +20,7 @@ endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     option(MACOS_BUNDLE "Build a macOS app bundle" OFF)
-elseif (IOS)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(MACOS_BUNDLE ON)
 else ()
     set(MACOS_BUNDLE OFF)
@@ -34,8 +29,6 @@ endif ()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(GIT_HASH_SHORT "")
@@ -76,7 +69,7 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # HACK: link C++ standard library
-if (IOS)
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     link_libraries(c++)
 endif ()
 
