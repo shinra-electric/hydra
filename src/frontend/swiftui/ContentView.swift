@@ -34,17 +34,11 @@ struct ContentView: View {
                     )
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
                 }
-                // TODO: if not macOS
-                #if os(iOS)
-                    .toolbar {
-                        ToolbarItems()
-                    }
-                #endif
+                .toolbar {
+                    ToolbarItems()
+                }
         }
         #if os(macOS)
-            .toolbar {
-                ToolbarItems()
-            }
             .windowToolbarFullScreenVisibility(.onHover)
         #endif
         .navigationTitle(navigationTitle)

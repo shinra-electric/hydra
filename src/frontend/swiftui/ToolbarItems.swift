@@ -8,33 +8,41 @@ struct ToolbarItems: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
-            Button("Add Game Path", systemImage: "plus") {
-                self.isFilePickerPresented = true
-            }
-            .fileImporter(
-                isPresented: self.$isFilePickerPresented,
-                allowedContentTypes: [.folder, self.switchType],
-                allowsMultipleSelection: true
-            ) { result in
-                switch result {
-                case .success(let fileURLs):
-                    for fileURL in fileURLs {
-                        do {
-                            try registerUrl(fileURL)
-                        } catch {
-                            print("Failed to register URL \(fileURL.path)")
-                            continue
-                        }
-
-                        let gamePathsOption = hydraConfigGetGamePaths()
-                        gamePathsOption.append(
-                            value: fileURL.path)
-
-                        hydraConfigSerialize()
-                    }
-                case .failure(let error):
-                    print(error)
+            HStack {
+                Button("Add Game Path", systemImage: "plus") {
+                    self.isFilePickerPresented = true
                 }
+                .fileImporter(
+                    isPresented: self.$isFilePickerPresented,
+                    allowedContentTypes: [.folder, self.switchType],
+                    allowsMultipleSelection: true
+                ) { result in
+                    switch result {
+                    case .success(let fileURLs):
+                        for fileURL in fileURLs {
+                            do {
+                                try registerUrl(fileURL)
+                            } catch {
+                                print("Failed to register URL \(fileURL.path)")
+                                continue
+                            }
+
+                            let gamePathsOption = hydraConfigGetGamePaths()
+                            gamePathsOption.append(
+                                value: fileURL.path)
+
+                            hydraConfigSerialize()
+                        }
+                    case .failure(let error):
+                        print(error)
+                    }
+                }
+
+                #if os(iOS)
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gear")
+                    }
+                #endif
             }
         }
     }

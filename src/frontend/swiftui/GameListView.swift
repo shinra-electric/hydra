@@ -43,7 +43,7 @@ struct GameListView: View {
                     // Iterate recursively over the game directories
                     guard
                         let enumerator = FileManager.default.enumerator(
-                            atPath: url.path)
+                            at: url, includingPropertiesForKeys: nil)
                     else {
                         // TODO: error popup
                         print("Invalid game directory \(gamePath)")
@@ -62,14 +62,10 @@ struct GameListView: View {
     }
 
     func tryAddGame(url: URL) {
-        // TODO: check?
-        /*
-        if !path.hasSuffix("nro") && !path.hasSuffix("nso")
-            && !path.hasSuffix("nca")
-        {
+        // TODO: handle this better
+        if url.pathExtension != "nro" && url.pathExtension != "nso" && url.pathExtension != "nca" {
             return
         }
-        */
 
         guard let game = createGameFromFile(url: url) else {
             return

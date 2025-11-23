@@ -32,7 +32,6 @@ struct MyApp: App {
             WindowGroup {
                 ContentView(activeGame: self.$activeGame, emulationContext: self.$emulationContext)
             }
-        // TODO: settings
         #endif
     }
 }
