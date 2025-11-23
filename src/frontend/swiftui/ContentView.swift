@@ -38,7 +38,9 @@ struct ContentView: View {
         .toolbar {
             ToolbarItems()
         }
-        .windowToolbarFullScreenVisibility(.onHover)
+        #if os(macOS)
+            .windowToolbarFullScreenVisibility(.onHover)
+        #endif
         .navigationTitle(navigationTitle)
     }
 }

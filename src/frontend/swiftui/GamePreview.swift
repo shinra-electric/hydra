@@ -9,12 +9,21 @@ struct GamePreview: View {
             self.activeGame = self.game
         }) {
             HStack {
-                if let nsImage = self.loadIconNS() {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
-                }
+                #if os(macOS)
+                    if let nsImage = self.loadIconNS() {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                    }
+                #else
+                    if let uiImage = self.loadIconUI() {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 64, maxHeight: 64)  // TODO: don't hardcode
+                    }
+                #endif
                 Text(game.name)
                     .padding()
                 // TODO: author?
@@ -46,13 +55,25 @@ struct GamePreview: View {
         return context.makeImage()
     }
 
-    private func loadIconNS() -> NSImage? {
-        var width: UInt64 = 0
-        var height: UInt64 = 0
-        guard let cgImage = self.loadIcon(width: &width, height: &height) else {
-            return nil
-        }
+    #if os(macOS)
+        private func loadIconNS() -> NSImage? {
+            var width: UInt64 = 0
+            var height: UInt64 = 0
+            guard let cgImage = self.loadIcon(width: &width, height: &height) else {
+                return nil
+            }
 
-        return NSImage(cgImage: cgImage, size: NSSize(width: Int(width), height: Int(height)))
-    }
+            return NSImage(cgImage: cgImage, size: NSSize(width: Int(width), height: Int(height)))
+        }
+    #else
+        private func loadIconUI() -> UIImage? {
+            var width: UInt64 = 0
+            var height: UInt64 = 0
+            guard let cgImage = self.loadIcon(width: &width, height: &height) else {
+                return nil
+            }
+
+            return UIImage(cgImage: cgImage)
+        }
+    #endif
 }

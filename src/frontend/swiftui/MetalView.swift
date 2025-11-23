@@ -4,10 +4,8 @@ import SwiftUI
 class MetalLayerCoordinator: NSObject {
     private var emulationContext: Binding<HydraEmulationContext?>
     private var fps: Binding<Int>
-
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
-
     private var surfaceSet = false
 
     init(emulationContext: Binding<HydraEmulationContext?>, fps: Binding<Int>) {
@@ -20,16 +18,28 @@ class MetalLayerCoordinator: NSObject {
         self.displayLink?.invalidate()
     }
 
-    func setView(_ view: NSView) {
-        self.displayLink?.invalidate()
+    #if os(macOS)
+        func setView(_ view: NSView) {
+            self.displayLink?.invalidate()
+            self.layer = view.layer as? CAMetalLayer
+            self.surfaceSet = false
 
-        self.layer = view.layer as? CAMetalLayer
-        self.surfaceSet = false
+            // Display link
+            self.displayLink = view.displayLink(
+                target: self, selector: #selector(handleDisplayLink))
+            self.displayLink?.add(to: .main, forMode: .common)
+        }
+    #else
+        func setView(_ view: UIView) {
+            self.displayLink?.invalidate()
+            self.layer = view.layer as? CAMetalLayer
+            self.surfaceSet = false
 
-        // Display link
-        self.displayLink = view.displayLink(target: self, selector: #selector(handleDisplayLink))
-        self.displayLink?.add(to: .main, forMode: .common)
-    }
+            // Display link
+            self.displayLink = CADisplayLink(target: self, selector: #selector(handleDisplayLink))
+            self.displayLink?.add(to: .main, forMode: .commonModes)
+        }
+    #endif
 
     @objc func handleDisplayLink() {
         if let emulationContext = self.emulationContext.wrappedValue {
@@ -38,7 +48,6 @@ class MetalLayerCoordinator: NSObject {
                 guard let layer = self.layer else {
                     return
                 }
-
                 emulationContext.surface = Unmanaged.passUnretained(layer).toOpaque()
                 self.surfaceSet = true
             }
@@ -65,30 +74,58 @@ class MetalLayerCoordinator: NSObject {
     }
 }
 
-struct MetalView: NSViewRepresentable {
-    @Binding var emulationContext: HydraEmulationContext?
-    @Binding var fps: Int
+#if os(macOS)
+    struct MetalView: NSViewRepresentable {
+        @Binding var emulationContext: HydraEmulationContext?
+        @Binding var fps: Int
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView(frame: .zero)
+        func makeNSView(context: Context) -> NSView {
+            let view = NSView(frame: .zero)
+            let layer = CAMetalLayer()
+            
+            layer.displaySyncEnabled = true
+            view.layer = layer
+            view.wantsLayer = true
+            context.coordinator.setView(view)
+            
+            return view
+        }
 
-        let layer = CAMetalLayer()
-        layer.displaySyncEnabled = true
-        view.layer = layer
-        //view.wantsLayer = true
+        func updateNSView(_ view: NSView, context: Context) {
+            guard let layer = view.layer as? CAMetalLayer else { return }
+            layer.frame = view.bounds
+            context.coordinator.setView(view)
+        }
 
-        context.coordinator.setView(view)
-
-        return view
+        func makeCoordinator() -> MetalLayerCoordinator {
+            return MetalLayerCoordinator(emulationContext: self.$emulationContext, fps: self.$fps)
+        }
     }
+#else
+    struct MetalView: UIViewRepresentable {
+        @Binding var emulationContext: HydraEmulationContext?
+        @Binding var fps: Int
 
-    func updateNSView(_ view: NSView, context: Context) {
-        guard let layer = view.layer as? CAMetalLayer else { return }
-        layer.frame = view.bounds
-        context.coordinator.setView(view)
-    }
+        func makeUIView(context: Context) -> UIView {
+            let view = UIView(frame: .zero)
+            let layer = CAMetalLayer()
+            
+            // TODO: displaySyncEnabled?
+            view.layer.addSublayer(layer)
+            context.coordinator.setView(view)
+            
+            return view
+        }
 
-    func makeCoordinator() -> MetalLayerCoordinator {
-        return MetalLayerCoordinator(emulationContext: self.$emulationContext, fps: self.$fps)
+        func updateUIView(_ view: UIView, context: Context) {
+            if let layer = view.layer.sublayers?.first as? CAMetalLayer {
+                layer.frame = view.bounds
+            }
+            context.coordinator.setView(view)
+        }
+
+        func makeCoordinator() -> MetalLayerCoordinator {
+            return MetalLayerCoordinator(emulationContext: self.$emulationContext, fps: self.$fps)
+        }
     }
-}
+#endif

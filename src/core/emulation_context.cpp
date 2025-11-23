@@ -43,7 +43,7 @@ EmulationContext::EmulationContext(horizon::ui::HandlerBase& ui_handler) {
     LOGGER_INSTANCE.SetOutput(CONFIG_INSTANCE.GetLogOutput());
 
     // Random
-    srand(time(0));
+    srand(static_cast<u32>(time(0)));
 
     // Initialize
     switch (CONFIG_INSTANCE.GetCpuBackend()) {

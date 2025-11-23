@@ -5,6 +5,12 @@ include(FetchContent)
 
 if (IOS)
     set(DEPLOYMENT_TARGET 17.4.0)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if (FRONTEND STREQUAL "SDL3")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
+    elseif (FRONTEND STREQUAL "SwiftUI")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
+    endif ()
 endif ()
 
 if (IOS)
@@ -19,6 +25,8 @@ endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     option(MACOS_BUNDLE "Build a macOS app bundle" OFF)
+elseif (IOS)
+    set(MACOS_BUNDLE ON)
 else ()
     set(MACOS_BUNDLE OFF)
 endif ()
@@ -66,6 +74,11 @@ endif()
 
 # Set output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# HACK: link C++ standard library
+if (IOS)
+    link_libraries(c++)
+endif ()
 
 # Packages
 find_package(fmt CONFIG)
@@ -115,18 +128,15 @@ else ()
     add_compile_definitions(HYDRA_HYPERVISOR_ENABLED=0)
 endif ()
 
-if (HYPERVISOR_ENABLED)
+if (CUBEB_ENABLED)
     add_compile_definitions(HYDRA_CUBEB_ENABLED=1)
 else ()
-    add_compile_definitions(HYDRA_CUBEB_ENABLED=1)
+    add_compile_definitions(HYDRA_CUBEB_ENABLED=0)
 endif ()
 
-if(APPLE)
-    add_compile_options(
-        $<$<COMPILE_LANGUAGE:OBJC>:-fno-objc-arc>
-        $<$<COMPILE_LANGUAGE:OBJCXX>:-fno-objc-arc>
-    )
-endif()
+if (APPLE)
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC NO)
+endif ()
 
 # TODO: find out why release builds are broken
 # TODO: do compile flags need to be specified manually?
