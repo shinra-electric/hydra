@@ -19,6 +19,13 @@ struct ToolbarItems: ToolbarContent {
                 switch result {
                 case .success(let fileURLs):
                     for fileURL in fileURLs {
+                        do {
+                            try registerUrl(fileURL)
+                        } catch {
+                            print("Failed to register URL \(fileURL.path)")
+                            continue
+                        }
+
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.append(
                             value: fileURL.path)

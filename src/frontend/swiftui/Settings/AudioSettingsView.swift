@@ -6,9 +6,9 @@ struct AudioSettingsView: View {
     var body: some View {
         VStack {
             Picker("Audio backend", selection: self.$audioBackend.rawValue) {
-                Text("Null (recommended)").tag(
+                Text("Null").tag(
                     HYDRA_AUDIO_BACKEND_NULL.rawValue)
-                Text("Cubeb (experimental)").tag(HYDRA_AUDIO_BACKEND_CUBEB.rawValue)
+                Text("Cubeb (recommended)").tag(HYDRA_AUDIO_BACKEND_CUBEB.rawValue)
             }
             .onChange(of: self.audioBackend.rawValue) { _, newValue in
                 var audioBackendOption = hydraConfigGetAudioBackend()

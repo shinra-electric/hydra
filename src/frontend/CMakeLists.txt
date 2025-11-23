@@ -39,6 +39,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/GameListView.swift
         swiftui/helpers/Error.swift
         swiftui/helpers/Math.swift
+        swiftui/helpers/UrlResolver.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
@@ -98,6 +99,7 @@ if (MACOS_BUNDLE)
             XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 17.4.0
             XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"  # iPhone and iPad
             # TODO: development team
+            XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${PROJECT_SOURCE_DIR}/hydra.ios.entitlements"
         )
     endif ()
 
@@ -115,7 +117,7 @@ endif ()
 
 # Signing
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.entitlements")
+    set(ENTITLEMENTS_FILE "${PROJECT_SOURCE_DIR}/hydra.macos.entitlements")
 
     # TODO: use --deep?
     add_custom_command(TARGET hydra POST_BUILD VERBATIM
