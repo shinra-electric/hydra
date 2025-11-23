@@ -10,7 +10,7 @@ if (FRONTEND STREQUAL "SDL3")
     set(MACOSX_MINIMUM_SYSTEM_VERSION "13.0")
 
     find_package(SDL3 CONFIG REQUIRED)
-    set(LINK_LIBS SDL3::SDL3)
+    set(LINK_LIBS SDL3::SDL3 "-framework Cocoa")
 
     add_executable(hydra ${NATIVE_SOURCE_FILES}
         sdl3/main.cpp

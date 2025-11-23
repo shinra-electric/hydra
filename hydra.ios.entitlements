@@ -3,15 +3,11 @@
 <dict>
     <key>com.apple.security.get-task-allow</key>
     <true/>
-    <key>com.apple.security.files.user-selected.read-write</key>
+    <key>com.apple.developer.kernel.increased-memory-limit</key>
     <true/>
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
     <true/>
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
-    <key>com.apple.security.application-groups</key>
-    <array>
-        <string>group.com.github.hydra</string>
-    </array>
 </dict>
 </plist>
