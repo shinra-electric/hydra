@@ -82,12 +82,12 @@ class MetalLayerCoordinator: NSObject {
         func makeNSView(context: Context) -> NSView {
             let view = NSView(frame: .zero)
             let layer = CAMetalLayer()
-            
+
             layer.displaySyncEnabled = true
             view.layer = layer
             view.wantsLayer = true
             context.coordinator.setView(view)
-            
+
             return view
         }
 
@@ -102,18 +102,19 @@ class MetalLayerCoordinator: NSObject {
         }
     }
 #else
+    class MetalBackedView: UIView {
+        override class var layerClass: AnyClass {
+            return CAMetalLayer.self
+        }
+    }
+
     struct MetalView: UIViewRepresentable {
         @Binding var emulationContext: HydraEmulationContext?
         @Binding var fps: Int
 
         func makeUIView(context: Context) -> UIView {
-            let view = UIView(frame: .zero)
-            let layer = CAMetalLayer()
-            
-            // TODO: displaySyncEnabled?
-            view.layer.addSublayer(layer)
+            let view = MetalBackedView(frame: .zero)
             context.coordinator.setView(view)
-            
             return view
         }
 
