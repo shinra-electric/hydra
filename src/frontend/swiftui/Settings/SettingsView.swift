@@ -1,53 +1,74 @@
 import SwiftUI
 
 struct SettingsView: View {
-    private enum Tabs: Hashable {
-        case general, cpu, graphics, audio, user, system, debug
-    }
-
     var body: some View {
-        TabView {
-            GeneralSettingsView()
-                .tabItem {
-                    Label("General", systemImage: "gear")
+        #if os(macOS)
+            TabView {
+                Tab("General", systemImage: "gear") {
+                    GeneralSettingsView()
                 }
-                .tag(Tabs.general)
-            CpuSettingsView()
-                .tabItem {
-                    Label("CPU", systemImage: "cpu")
+
+                Tab("CPU", systemImage: "cpu") {
+                    CpuSettingsView()
                 }
-                .tag(Tabs.cpu)
-            GraphicsSettingsView()
-                .tabItem {
-                    Label("Graphics", systemImage: "star")
+
+                Tab("Graphics", systemImage: "star") {
+                    GraphicsSettingsView()
                 }
-                .tag(Tabs.graphics)
-            AudioSettingsView()
-                .tabItem {
-                    Label("Audio", systemImage: "speaker.wave.2")
+
+                Tab("Audio", systemImage: "speaker.wave.2") {
+                    AudioSettingsView()
                 }
-                .tag(Tabs.audio)
-            UserSettingsView()
-                .tabItem {
-                    Label("User", systemImage: "person")
+
+                Tab("User", systemImage: "person") {
+                    UserSettingsView()
                 }
-                .tag(Tabs.user)
-            SystemSettingsView()
-                .tabItem {
-                    Label("System", systemImage: "desktopcomputer")
+
+                Tab("System", systemImage: "desktopcomputer") {
+                    SystemSettingsView()
                 }
-                .tag(Tabs.system)
-            DebugSettingsView()
-                .tabItem {
-                    Label("Debug", systemImage: "memorychip")
+
+                Tab("Debug", systemImage: "memorychip") {
+                    DebugSettingsView()
                 }
-                .tag(Tabs.debug)
-        }
-        .padding(20)
-        // TODO: don't hardcode the size
-        .frame(width: 800, height: 600)
-        .onDisappear {
-            hydraConfigSerialize()
-        }
+            }
+            .scenePadding()
+            .frame(maxWidth: 500, minHeight: 100)
+            .onDisappear {
+                hydraConfigSerialize()
+            }
+        #else
+            NavigationView {
+                List {
+                    // No general settings
+
+                    NavigationLink(destination: CpuSettingsView()) {
+                        Label("CPU", systemImage: "cpu")
+                    }
+
+                    NavigationLink(destination: GraphicsSettingsView()) {
+                        Label("Graphics", systemImage: "star")
+                    }
+
+                    NavigationLink(destination: AudioSettingsView()) {
+                        Label("Audio", systemImage: "speaker.wave.2")
+                    }
+
+                    NavigationLink(destination: UserSettingsView()) {
+                        Label("User", systemImage: "person")
+                    }
+
+                    // No system settings
+
+                    NavigationLink(destination: DebugSettingsView()) {
+                        Label("Debug", systemImage: "memorychip")
+                    }
+                }
+                .navigationTitle("Settings")
+            }
+            .onDisappear {
+                hydraConfigSerialize()
+            }
+        #endif
     }
 }

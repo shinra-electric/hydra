@@ -7,7 +7,7 @@ struct SystemSettingsView: View {
     @State var sysmodulesPath: String = ""
 
     var body: some View {
-        VStack {
+        List {
             // TODO: use file importers
             HStack {
                 Text("Firmware Path:")

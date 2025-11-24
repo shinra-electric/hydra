@@ -4,7 +4,7 @@ struct CpuSettingsView: View {
     @State var cpuBackend: HydraCpuBackend = HYDRA_CPU_BACKEND_INVALID
 
     var body: some View {
-        VStack {
+        List {
             Picker("CPU backend", selection: self.$cpuBackend.rawValue) {
                 Text("Apple Hypervisor (recommended)").tag(
                     HYDRA_CPU_BACKEND_APPLE_HYPERVISOR.rawValue)

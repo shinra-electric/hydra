@@ -7,7 +7,7 @@ struct GraphicsSettingsView: View {
     @State var customDisplayResolution: hydra_uint2 = hydra_uint2(x: 0, y: 0)
 
     var body: some View {
-        VStack {
+        List {
             Picker("Gpu renderer", selection: self.$gpuRenderer.rawValue) {
                 Text("Metal (recommended)").tag(HYDRA_GPU_RENDERER_METAL.rawValue)
             }

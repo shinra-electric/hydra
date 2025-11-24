@@ -4,7 +4,7 @@ struct AudioSettingsView: View {
     @State var audioBackend: HydraAudioBackend = HYDRA_AUDIO_BACKEND_INVALID
 
     var body: some View {
-        VStack {
+        List {
             Picker("Audio backend", selection: self.$audioBackend.rawValue) {
                 Text("Null").tag(
                     HYDRA_AUDIO_BACKEND_NULL.rawValue)
