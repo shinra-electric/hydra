@@ -125,6 +125,11 @@ HYDRA_EXPORT void hydra_config_deserialize() {
     hydra::CONFIG_INSTANCE.Deserialize();
 }
 
+HYDRA_EXPORT hydra_string hydra_config_get_app_data_path() {
+    return hydra_string_from_string_view(
+        hydra::CONFIG_INSTANCE.GetAppDataPath());
+}
+
 HYDRA_EXPORT void* hydra_config_get_game_paths() {
     return &hydra::CONFIG_INSTANCE.GetGamePaths();
 }

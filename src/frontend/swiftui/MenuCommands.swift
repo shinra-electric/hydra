@@ -79,29 +79,22 @@ struct MenuCommands: Commands {
     }
 
     func loadFirmware() {
-        // TODO: uncomment
-        /*
         let firmwarePathOption = hydraConfigGetFirmwarePath()
         let firmwarePath = firmwarePathOption.value
         if firmwarePath == "" {
             return
         }
-        
-        // TODO: do all of this with URLs
-        let fileManager = FileManager.default
-        
+
         // TODO: don't iterate recursively?
-        guard let enumerator = fileManager.enumerator(atPath: firmwarePath) else {
+        guard let enumerator = FileManager.default.enumerator(atPath: firmwarePath) else {
             // TODO: error popup
             print("Invalid firmware directory \(firmwarePath)")
             return
         }
-        
-        while let filename = enumerator.nextObject() as? String {
-            let path = "\(firmwarePath)/\(filename)"
-            self.addFirmwareApplet(path: path)
+
+        while let url = enumerator.nextObject() as? URL {
+            self.addFirmwareApplet(url: url)
         }
-        */
     }
 
     func addFirmwareApplet(url: URL) {

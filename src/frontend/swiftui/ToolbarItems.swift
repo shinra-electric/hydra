@@ -9,32 +9,45 @@ private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conf
 #endif
 
 struct ToolbarItems: ToolbarContent {
-    @State private var isFilePickerPresented: Bool = false
+    @State private var isFirmwareFilePickerPresented = false
+    @State private var isGameFilePickerPresented = false
+    @State private var showingFirmwareImportError = false
 
     var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .automatic) {
-            HStack {
-                Button("Add Game Path", systemImage: "plus") {
-                    self.isFilePickerPresented = true
+        var firmwarePathOption = hydraConfigGetFirmwarePath()
+        if firmwarePathOption.value.isEmpty {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Install Firmware") {
+                    isFirmwareFilePickerPresented = true
                 }
                 .fileImporter(
-                    isPresented: self.$isFilePickerPresented,
-                    allowedContentTypes: allowedContentTypes,
-                    allowsMultipleSelection: true
+                    isPresented: $isFirmwareFilePickerPresented,
+                    allowedContentTypes: [.folder],
+                    allowsMultipleSelection: false
                 ) { result in
                     switch result {
                     case .success(let fileURLs):
                         for fileURL in fileURLs {
-                            do {
-                                try registerUrl(fileURL)
-                            } catch {
-                                print("Failed to register URL \(fileURL.path)")
-                                continue
+                            guard fileURL.startAccessingSecurityScopedResource() else {
+                                showingFirmwareImportError = true
+                                return
                             }
 
-                            let gamePathsOption = hydraConfigGetGamePaths()
-                            gamePathsOption.append(
-                                value: fileURL.path)
+                            defer { fileURL.stopAccessingSecurityScopedResource() }
+
+                            #if os(macOS)
+                                firmwarePathOption.value = fileURL.path
+                            #else
+                                let path = "\(hydraConfigGetAppDataPath())/firmware"
+                                do {
+                                    try FileManager.default.copyItem(
+                                        atPath: fileURL.path, toPath: firmwarePathOption.value)
+                                } catch {
+                                    showingFirmwareImportError = true
+                                }
+
+                                firmwarePathOption.value = path
+                            #endif
 
                             hydraConfigSerialize()
                         }
@@ -42,14 +55,50 @@ struct ToolbarItems: ToolbarContent {
                         print(error)
                     }
                 }
-
-                #if os(iOS)
-                    NavigationLink(destination: SettingsView()) {
-                        Image(systemName: "gear")
-                    }
-                #endif
+                .alert("Failed to import firmware", isPresented: $showingFirmwareImportError) {
+                    Button("OK", role: .cancel) {}
+                }
             }
         }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Add Game Path", systemImage: "plus") {
+                isGameFilePickerPresented = true
+            }
+            .fileImporter(
+                isPresented: $isGameFilePickerPresented,
+                allowedContentTypes: allowedContentTypes,
+                allowsMultipleSelection: true
+            ) { result in
+                switch result {
+                case .success(let fileURLs):
+                    for fileURL in fileURLs {
+                        do {
+                            try registerUrl(fileURL)
+                        } catch {
+                            print("Failed to register URL \(fileURL.path)")
+                            continue
+                        }
+
+                        let gamePathsOption = hydraConfigGetGamePaths()
+                        gamePathsOption.append(
+                            value: fileURL.path)
+
+                        hydraConfigSerialize()
+                    }
+                case .failure(let error):
+                    print(error)
+                }
+            }
+        }
+
+        #if os(iOS)
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gear")
+                }
+            }
+        #endif
     }
 
 }

@@ -274,6 +274,10 @@ func hydraConfigDeserialize() {
     hydra_config_deserialize()
 }
 
+func hydraConfigGetAppDataPath() -> String {
+    String(withHydraString: hydra_config_get_app_data_path())
+}
+
 func hydraConfigGetGamePaths() -> HydraStringArrayOption {
     HydraStringArrayOption(handle: hydra_config_get_game_paths())
 }
