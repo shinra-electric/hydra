@@ -1,10 +1,15 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
+#if os(macOS)
+    private let allowedContentTypes: [UTType] = [.folder, switchType]
+#else
+    private let allowedContentTypes: [UTType] = [switchType]  // No game folders on iOS
+#endif
+
 struct ToolbarItems: ToolbarContent {
     @State private var isFilePickerPresented: Bool = false
-
-    private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .automatic) {
@@ -14,7 +19,7 @@ struct ToolbarItems: ToolbarContent {
                 }
                 .fileImporter(
                     isPresented: self.$isFilePickerPresented,
-                    allowedContentTypes: [.folder, self.switchType],
+                    allowedContentTypes: allowedContentTypes,
                     allowsMultipleSelection: true
                 ) { result in
                     switch result {
