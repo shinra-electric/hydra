@@ -4,8 +4,14 @@ import UniformTypeIdentifiers
 private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
 #if os(macOS)
     private let allowedContentTypes: [UTType] = [.folder, switchType]
+
+    private let installFirmwarePlacement = ToolbarItemPlacement.confirmationAction
+    private let addGamePlacement = ToolbarItemPlacement.confirmationAction
 #else
     private let allowedContentTypes: [UTType] = [switchType]  // No game folders on iOS
+
+    private let installFirmwarePlacement = ToolbarItemPlacement.topBarLeading
+    private let addGamePlacement = ToolbarItemPlacement.topBarTrailing
 #endif
 
 struct ToolbarItems: ToolbarContent {
@@ -16,7 +22,7 @@ struct ToolbarItems: ToolbarContent {
     var body: some ToolbarContent {
         var firmwarePathOption = hydraConfigGetFirmwarePath()
         if firmwarePathOption.value.isEmpty {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: installFirmwarePlacement) {
                 Button("Install Firmware") {
                     isFirmwareFilePickerPresented = true
                 }
@@ -61,8 +67,8 @@ struct ToolbarItems: ToolbarContent {
             }
         }
 
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Add Game Path", systemImage: "plus") {
+        ToolbarItem(placement: addGamePlacement) {
+            Button("Add Game", systemImage: "plus") {
                 isGameFilePickerPresented = true
             }
             .fileImporter(
