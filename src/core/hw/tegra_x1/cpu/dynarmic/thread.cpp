@@ -150,6 +150,10 @@ void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
         state.pc -= 4;
         callbacks.breakpoint_hit();
         break;
+    case Dynarmic::A64::Exception::Yield:
+        // TODO: correct?
+        std::this_thread::yield();
+        break;
     default:
         LOG_FATAL(Dynarmic, "Unhandled exception: {}", exception);
     }
