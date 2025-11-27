@@ -13,7 +13,8 @@ void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
     u64 va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
         auto page_ptr = ptr + ((page - va_page) * GUEST_PAGE_SIZE);
-        memory_ranges[page] = {page_ptr, state};
+        pages[page] = page_ptr;
+        states[page] = state;
     }
 }
 
@@ -24,7 +25,8 @@ void Mmu::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
     auto dst_page = dst_va / GUEST_PAGE_SIZE;
     auto size_page = size / GUEST_PAGE_SIZE;
     for (u64 i = 0; i < size_page; i++) {
-        memory_ranges[dst_page + i] = memory_ranges[src_page + i];
+        pages[dst_page + i] = pages[src_page + i];
+        states[dst_page + i] = states[src_page + i];
     }
 }
 
@@ -35,7 +37,8 @@ void Mmu::Unmap(vaddr_t va, usize size) {
     auto size_page = size / GUEST_PAGE_SIZE;
     auto va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
-        memory_ranges.erase(page);
+        pages[page] = 0x0;
+        states[page] = {.type = horizon::kernel::MemoryType::Free};
     }
 }
 
@@ -51,7 +54,8 @@ void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
     u64 va_page_end = va_page + size_page;
     for (u64 page = va_page; page < va_page_end; ++page) {
         auto page_ptr = memory_ptr + ((page - va_page) * GUEST_PAGE_SIZE);
-        memory_ranges[page] = {page_ptr, memory_ranges[va_page].state};
+        pages[page] = page_ptr;
+        states[page] = states[va_page];
     }
 }
 
@@ -59,24 +63,19 @@ uptr Mmu::UnmapAddr(vaddr_t va) const {
     auto page = va / GUEST_PAGE_SIZE;
     auto page_offset = va % GUEST_PAGE_SIZE;
 
-    const auto it = memory_ranges.find(page);
-    if (it == memory_ranges.end())
+    if (page >= sizeof_array(pages) || pages[page] == 0x0)
         return 0x0;
+    // ASSERT_DEBUG(page < sizeof_array(pages) && pages[page] != 0x0, Dynarmic,
+    //              "Address out of range: 0x{:08x}", va);
 
-    return it->second.ptr + page_offset;
+    return pages[page] + page_offset;
 }
 
 MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
-    const auto it = memory_ranges.find(va / GUEST_PAGE_SIZE);
-    horizon::kernel::MemoryState state = {
-        .type = horizon::kernel::MemoryType::Free};
-    if (it != memory_ranges.end())
-        state = it->second.state;
-
     return {
         .va = align_down(va, GUEST_PAGE_SIZE),
         .size = GUEST_PAGE_SIZE,
-        .state = state,
+        .state = states[va / GUEST_PAGE_SIZE],
     };
 }
 

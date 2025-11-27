@@ -4,13 +4,6 @@
 
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
-struct MemoryRange {
-    uptr ptr;
-    horizon::kernel::MemoryState state{.type =
-                                           horizon::kernel::MemoryType::Free};
-};
-
-// TODO: rework this
 class Mmu : public IMmu {
   public:
     void Map(vaddr_t dst_va, uptr ptr, usize size,
@@ -24,7 +17,10 @@ class Mmu : public IMmu {
     MemoryRegion QueryRegion(vaddr_t va) const override;
 
   private:
-    std::map<u64, MemoryRange> memory_ranges;
+    uptr pages[128u * 1024u * 1024u] = {0x0};
+    horizon::kernel::MemoryState states[128u * 1024u * 1024u] = {
+        {.type = horizon::kernel::MemoryType::Free}}; // TODO: handle this
+                                                      // differently
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic
