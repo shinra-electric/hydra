@@ -10,7 +10,6 @@ if (FRONTEND STREQUAL "SDL3")
     set(MACOSX_MINIMUM_SYSTEM_VERSION "13.0")
 
     find_package(SDL3 CONFIG REQUIRED)
-    set(LINK_LIBS SDL3::SDL3 "-framework Cocoa")
 
     add_executable(hydra ${NATIVE_SOURCE_FILES}
         sdl3/main.cpp
@@ -20,6 +19,8 @@ if (FRONTEND STREQUAL "SDL3")
         sdl3/window.cpp
         sdl3/window.hpp
     )
+
+    target_link_libraries(hydra PRIVATE SDL3::SDL3 "-framework Cocoa")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
@@ -76,7 +77,7 @@ else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
 endif ()
 
-target_link_libraries(hydra PRIVATE hydra-common hydra-core ${LINK_LIBS})
+target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 
 if (MACOS_BUNDLE)
     set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp ${CMAKE_SOURCE_DIR}/res/images/default_avatar_image.png ${CMAKE_SOURCE_DIR}/res/lldb/.lldbinit ${CMAKE_SOURCE_DIR}/res/lldb/commands.py)

@@ -2,15 +2,16 @@ import MetalKit
 import SwiftUI
 
 class MetalLayerCoordinator: NSObject {
-    private var emulationContext: Binding<HydraEmulationContext?>
-    private var fps: Binding<Int>
+    @Binding private var emulationContext: HydraEmulationContext?
+    @Binding private var fps: Int
+
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
     private var surfaceSet = false
 
     init(emulationContext: Binding<HydraEmulationContext?>, fps: Binding<Int>) {
-        self.emulationContext = emulationContext
-        self.fps = fps
+        self._emulationContext = emulationContext
+        self._fps = fps
         super.init()
     }
 
@@ -42,7 +43,7 @@ class MetalLayerCoordinator: NSObject {
     #endif
 
     @objc func handleDisplayLink() {
-        if let emulationContext = self.emulationContext.wrappedValue {
+        if let emulationContext = self.emulationContext {
             // Set the surface if its not already set
             if !self.surfaceSet {
                 guard let layer = self.layer else {
@@ -64,9 +65,9 @@ class MetalLayerCoordinator: NSObject {
                 if dtAverageUpdated {
                     let dt = emulationContext.getLastDeltaTimeAverage()
                     if dt != 0.0 {
-                        fps.wrappedValue = Int((1.0 / dt).rounded())
+                        fps = Int((1.0 / dt).rounded())
                     } else {
-                        fps.wrappedValue = 0
+                        fps = 0
                     }
                 }
             }
