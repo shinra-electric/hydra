@@ -2,8 +2,7 @@ import SwiftUI
 
 struct UserPreview: View {
     let userManager: HydraUserManager
-
-    @State var user: HydraUser
+    let user: HydraUser
 
     var body: some View {
         HStack {

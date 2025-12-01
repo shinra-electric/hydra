@@ -26,12 +26,13 @@ struct UserSettingsView: View {
                         NavigationLink(value: index) {
                             let userID = self.userIDs[index]
                             UserPreview(
-                                userManager: self.state.userManager,
-                                user: self.state.userManager.getUser(id: userID)
+                                userManager: state.userManager,
+                                user: state.userManager.getUser(id: userID)
                             )
                         }
                     }
                     .navigationTitle("Users")
+                    .toolbar(removing: .sidebarToggle)
                 } detail: {
                     let userID = self.userIDs[self.selectedUserIndex]
                     // TODO: react to changes
