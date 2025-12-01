@@ -34,6 +34,7 @@ struct UserSettingsView: View {
                             }
                         }
                         .navigationTitle("Users")
+                        .toolbar(removing: .sidebarToggle)
                     } detail: {
                         let userID = self.userIDs[self.selectedUserIndex]
                         // TODO: react to changes
@@ -55,6 +56,7 @@ struct UserSettingsView: View {
                             }
                         }
                         .navigationTitle("Users")
+                        .toolbar(removing: .sidebarToggle)
                         .navigationDestination(for: Int.self) { index in
                             if index < self.userIDs.count {
                                 let userID = self.userIDs[index]
