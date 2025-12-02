@@ -11,7 +11,7 @@ struct ContentView: View {
     @State private var fps: Int = 0
 
     #if os(iOS)
-        private var virtualController: GCVirtualController
+        @State private var virtualController: GCVirtualController? = nil
     #endif
 
     private var appVersion: String {
@@ -33,23 +33,6 @@ struct ContentView: View {
         return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)\(fpsInsert)"
     }
 
-    #if os(iOS)
-        init(activeGame: Binding<Game?>, emulationContext: Binding<HydraEmulationContext?>) {
-            self._activeGame = activeGame
-            self._emulationContext = emulationContext
-
-            // Virtual controller
-            let config = GCVirtualController.Configuration()
-            config.elements = [
-                GCInputButtonA, GCInputButtonB, GCInputButtonX, GCInputButtonY,
-                GCInputLeftThumbstick, GCInputRightThumbstick, GCInputLeftShoulder,
-                GCInputRightShoulder, GCInputLeftTrigger, GCInputRightTrigger,
-            ]
-
-            virtualController = GCVirtualController(configuration: config)
-        }
-    #endif
-
     var body: some View {
         NavigationStack {
             GameListView(activeGame: self.$activeGame)
@@ -58,6 +41,29 @@ struct ContentView: View {
                         game: activeGame, emulationContext: self.$emulationContext, fps: $fps
                     )
                     .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
+                    #if os(iOS)
+                        .onAppear {
+                            // TODO: if virtual controller enabled
+                            if true {
+                                let config = GCVirtualController.Configuration()
+                                config.elements = [
+                                    GCInputButtonA, GCInputButtonB, GCInputButtonX, GCInputButtonY,
+                                    GCInputLeftThumbstick, GCInputRightThumbstick,
+                                    GCInputLeftShoulder,
+                                    GCInputRightShoulder, GCInputLeftTrigger, GCInputRightTrigger,
+                                ]
+
+                                let virtualController = GCVirtualController(configuration: config)
+                                virtualController.connect()
+
+                                self.virtualController = virtualController
+                            }
+                        }
+                        .onDisappear {
+                            virtualController?.disconnect()
+                            virtualController = nil
+                        }
+                    #endif
                 }
                 .toolbar {
                     ToolbarItems()
@@ -67,14 +73,5 @@ struct ContentView: View {
             .windowToolbarFullScreenVisibility(.onHover)
         #endif
         .navigationTitle(navigationTitle)
-        #if os(iOS)
-            // TODO: only connect when emulating
-            .onAppear {
-                virtualController.connect()
-            }
-            .onDisappear {
-                virtualController.disconnect()
-            }
-        #endif
     }
 }
