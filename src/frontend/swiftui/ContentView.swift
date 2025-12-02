@@ -66,8 +66,10 @@ struct ContentView: View {
                     #endif
                 }
                 .toolbar {
-                    ToolbarItems()
+                    ToolbarItems(
+                        activeGame: self.$activeGame, emulationContext: self.$emulationContext)
                 }
+                .navigationBarBackButtonHidden()
         }
         #if os(macOS)
             .windowToolbarFullScreenVisibility(.onHover)

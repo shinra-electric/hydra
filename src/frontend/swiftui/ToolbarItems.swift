@@ -15,9 +15,16 @@ private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conf
 #endif
 
 struct ToolbarItems: ToolbarContent {
+    @Binding var activeGame: Game?
+    @Binding var emulationContext: HydraEmulationContext?
+
     @State private var isFirmwareFilePickerPresented = false
     @State private var isGameFilePickerPresented = false
     @State private var showingFirmwareImportError = false
+
+    private var isRunning: Bool {
+        activeGame != nil ? true : false
+    }
 
     var body: some ToolbarContent {
         var firmwarePathOption = hydraConfigGetFirmwarePath()
@@ -66,6 +73,21 @@ struct ToolbarItems: ToolbarContent {
                 }
             }
         }
+
+        #if os(macOS)
+            ToolbarItemGroup(placement: .principal) {
+                Button("Play", systemImage: "play") {}.disabled(isRunning)
+                Button("Stop", systemImage: "stop") {
+                    guard let emulationContext = self.emulationContext else { return }
+                    emulationContext.requestStop()
+                    // TODO: wait a bit?
+                    emulationContext.forceStop()
+                    self.activeGame = nil
+                }
+                .disabled(!isRunning)
+                Button("Pause", systemImage: "pause") {}.disabled(!isRunning)
+            }
+        #endif
 
         ToolbarItem(placement: addGamePlacement) {
             Button("Add Game", systemImage: "plus") {
