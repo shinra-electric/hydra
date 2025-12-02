@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct GameListView: View {
-    @Binding var activeGame: Game?
+    @Binding var emulationState: EmulationState
 
     @State private var games: [Game] = []
 
     var body: some View {
         List {
             ForEach(self.games.indices, id: \.self) { index in
-                GamePreview(game: self.games[index], activeGame: self.$activeGame)
+                GamePreview(emulationState: $emulationState, game: self.games[index])
                     .padding(.vertical, 8)
             }
         }

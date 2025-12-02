@@ -3,8 +3,7 @@ import SwiftUI
 struct MenuCommands: Commands {
     @Environment(\.openWindow) var openWindow
 
-    @Binding var activeGame: Game?
-    @Binding var emulationContext: HydraEmulationContext?
+    @Binding var emulationState: EmulationState
 
     @State private var firmwareApplets: [Game] = []
     @State private var handheldMode = false
@@ -20,7 +19,7 @@ struct MenuCommands: Commands {
             Menu("Load from firmware") {
                 ForEach(self.firmwareApplets, id: \.self) { firmwareApplet in
                     Button(firmwareApplet.name) {
-                        self.activeGame = firmwareApplet
+                        emulationState.activeGame = firmwareApplet
                     }
                 }
             }
@@ -35,7 +34,7 @@ struct MenuCommands: Commands {
 
         CommandGroup(after: .sidebar) {
             Button("Take Screenshot", systemImage: "camera") {
-                guard let emulationContext = self.emulationContext else { return }
+                guard let emulationContext = emulationState.emulationContext else { return }
                 emulationContext.takeScreenshot()
             }
             .keyboardShortcut(KeyEquivalent("t"), modifiers: .command)
@@ -43,18 +42,18 @@ struct MenuCommands: Commands {
 
         CommandMenu("Emulation") {
             Button("Stop") {
-                guard let emulationContext = self.emulationContext else { return }
+                guard let emulationContext = emulationState.emulationContext else { return }
                 emulationContext.requestStop()
                 // TODO: wait a bit?
                 emulationContext.forceStop()
-                self.activeGame = nil
+                emulationState.activeGame = nil
             }
             Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
                 self.handheldMode = !self.handheldMode
                 var handheldModeOption = hydraConfigGetHandheldMode()
                 handheldModeOption.value = self.handheldMode
 
-                guard let emulationContext = self.emulationContext else { return }
+                guard let emulationContext = emulationState.emulationContext else { return }
                 emulationContext.notifyOperationModeChanged()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
@@ -66,7 +65,7 @@ struct MenuCommands: Commands {
 
         CommandMenu("Debug") {
             Button("Capture GPU Frame") {
-                guard let emulationContext = self.emulationContext else { return }
+                guard let emulationContext = emulationState.emulationContext else { return }
                 emulationContext.captureGpuFrame()
             }
             .keyboardShortcut(KeyEquivalent("p"), modifiers: .command)

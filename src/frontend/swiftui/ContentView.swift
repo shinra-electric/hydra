@@ -5,9 +5,7 @@ import SwiftUI
 #endif
 
 struct ContentView: View {
-    @Binding var activeGame: Game?
-    @Binding var emulationContext: HydraEmulationContext?
-
+    @Binding var emulationState: EmulationState
     @State private var fps: Int = 0
 
     #if os(iOS)
@@ -23,51 +21,51 @@ struct ContentView: View {
     }
 
     private var navigationTitle: String {
-        let gameTitle = activeGame?.name ?? ""
+        let gameTitle = emulationState.activeGame?.name ?? ""
         var titleInsert = ""
-        if activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
+        if emulationState.activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
         var gitInsert = ""
         if gitVersion != "" { gitInsert = " (\(gitVersion))" }
         var fpsInsert = ""
-        if emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
+        if emulationState.emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
         return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)\(fpsInsert)"
     }
 
     var body: some View {
         NavigationStack {
-            GameListView(activeGame: self.$activeGame)
-                .navigationDestination(item: self.$activeGame) { activeGame in
-                    EmulationView(
-                        game: activeGame, emulationContext: self.$emulationContext, fps: $fps
-                    )
-                    .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
-                    #if os(iOS)
-                        .onAppear {
-                            // TODO: if virtual controller enabled
-                            if true {
-                                let config = GCVirtualController.Configuration()
-                                config.elements = [
-                                    GCInputButtonA, GCInputButtonB, GCInputButtonX, GCInputButtonY,
-                                    GCInputLeftThumbstick, GCInputRightThumbstick,
-                                    GCInputLeftShoulder,
-                                    GCInputRightShoulder, GCInputLeftTrigger, GCInputRightTrigger,
-                                ]
+            GameListView(emulationState: $emulationState)
+                .navigationDestination(item: $emulationState.activeGame) { activeGame in
+                    EmulationView(emulationState: $emulationState, fps: $fps)
+                        .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
+                        #if os(iOS)
+                            .onAppear {
+                                // TODO: if virtual controller enabled
+                                if true {
+                                    let config = GCVirtualController.Configuration()
+                                    config.elements = [
+                                        GCInputButtonA, GCInputButtonB, GCInputButtonX,
+                                        GCInputButtonY,
+                                        GCInputLeftThumbstick, GCInputRightThumbstick,
+                                        GCInputLeftShoulder,
+                                        GCInputRightShoulder, GCInputLeftTrigger,
+                                        GCInputRightTrigger,
+                                    ]
 
-                                let virtualController = GCVirtualController(configuration: config)
-                                virtualController.connect()
+                                    let virtualController = GCVirtualController(
+                                        configuration: config)
+                                    virtualController.connect()
 
-                                self.virtualController = virtualController
+                                    self.virtualController = virtualController
+                                }
                             }
+                            .onDisappear {
+                                virtualController?.disconnect()
+                                virtualController = nil
+                            }
+                        #endif
+                        .toolbar {
+                            EmulationToolbarItems(emulationState: $emulationState)
                         }
-                        .onDisappear {
-                            virtualController?.disconnect()
-                            virtualController = nil
-                        }
-                    #endif
-                    .toolbar {
-                        EmulationToolbarItems(
-                            activeGame: self.$activeGame, emulationContext: self.$emulationContext)
-                    }
                 }
                 .toolbar {
                     GameListToolbarItems()

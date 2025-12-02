@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct GamePreview: View {
+    @Binding var emulationState: EmulationState
     let game: Game
-    @Binding var activeGame: Game?
 
     var body: some View {
         ClickableListItem(onClick: {
-            self.activeGame = self.game
+            emulationState.activeGame = self.game
         }) {
             HStack {
                 if let image = self.loadIcon() {

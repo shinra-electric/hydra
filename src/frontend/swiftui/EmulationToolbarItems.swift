@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct EmulationToolbarItems: ToolbarContent {
-    @Binding var activeGame: Game?
-    @Binding var emulationContext: HydraEmulationContext?
+    @Binding var emulationState: EmulationState
 
     private var isRunning: Bool {
-        activeGame != nil ? true : false
+        emulationState.activeGame != nil ? true : false
     }
 
     var body: some ToolbarContent {
@@ -13,11 +12,11 @@ struct EmulationToolbarItems: ToolbarContent {
             ToolbarItemGroup(placement: .principal) {
                 Button("Play", systemImage: "play") {}.disabled(isRunning)
                 Button("Stop", systemImage: "stop") {
-                    guard let emulationContext = self.emulationContext else { return }
+                    guard let emulationContext = emulationState.emulationContext else { return }
                     emulationContext.requestStop()
                     // TODO: wait a bit?
                     emulationContext.forceStop()
-                    self.activeGame = nil
+                    emulationState.activeGame = nil
                 }
                 .disabled(!isRunning)
                 Button("Pause", systemImage: "pause") {}.disabled(!isRunning)

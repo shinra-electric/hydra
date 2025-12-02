@@ -1,20 +1,17 @@
 import SwiftUI
 
 struct EmulationView: View {
-    let game: Game
-
-    @Binding var emulationContext: HydraEmulationContext?
+    @Binding var emulationState: EmulationState
     @Binding var fps: Int
 
     var body: some View {
-        MetalView(emulationContext: self.$emulationContext, fps: $fps)
+        MetalView(emulationState: $emulationState, fps: $fps)
             .onAppear {
-                self.emulationContext = HydraEmulationContext()
-                self.emulationContext!.loadAndStart(loader: game.loader)
+                emulationState.emulationContext = HydraEmulationContext()
+                emulationState.emulationContext!.loadAndStart(
+                    loader: emulationState.activeGame!.loader)
             }
             .onDisappear {
-                // TODO: stop?
-                self.emulationContext = nil
                 fps = 0
             }
     }
