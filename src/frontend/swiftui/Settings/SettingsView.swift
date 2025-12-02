@@ -58,7 +58,9 @@ struct SettingsView: View {
                         Label("User", systemImage: "person")
                     }
 
-                    // No system settings
+                    NavigationLink(destination: SystemSettingsView()) {
+                        Label("System", systemImage: "desktopcomputer")
+                    }
 
                     NavigationLink(destination: DebugSettingsView()) {
                         Label("Debug", systemImage: "memorychip")

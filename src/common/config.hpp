@@ -226,7 +226,7 @@ class Config {
     std::string GetDefaultSysmodulesPath() const {
         return fmt::format("{}/sysmodules", app_data_path);
     }
-    bool GetDefaultHandheldMode() const { return false; }
+    bool GetDefaultHandheldMode() const { return true; }
     LogOutput GetDefaultLogOutput() const { return LogOutput::File; }
     bool GetDefaultLogFsAccess() const { return false; }
     bool GetDefaultDebugLogging() const { return false; }
