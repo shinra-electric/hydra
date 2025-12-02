@@ -1,16 +1,20 @@
 import SwiftUI
 
 struct SystemSettingsView: View {
-    @State private var firmwarePath: String = ""
-    @State private var sdCardPath: String = ""
-    @State private var savePath: String = ""
-    @State private var sysmodulesPath: String = ""
+    #if os(macOS)
+        @State private var firmwarePath: String = ""
+        @State private var sdCardPath: String = ""
+        @State private var savePath: String = ""
+        @State private var sysmodulesPath: String = ""
+    #else
+        @State private var handheldMode = true
+    #endif
 
     var body: some View {
-        GeometryReader { geo in
-            GroupBox {
-                VStack {
-                    // TODO: use file importers
+        List {
+            // TODO: use file importers
+            VStack {
+                #if os(macOS)
                     HStack {
                         Text("Firmware Path:")
                         TextField("Firmware Path", text: $firmwarePath)
@@ -43,22 +47,32 @@ struct SystemSettingsView: View {
                                 sysmodulesPathOption.value = newValue
                             }
                     }
-                }
-                .frame(width: geo.size.width, height: geo.size.height)
+                #else
+                    Toggle("Handheld mode", isOn: self.$handheldMode)
+                        .onChange(of: self.handheldMode) { _, newValue in
+                            var handeldModeOption = hydraConfigGetHandheldMode()
+                            handeldModeOption.value = newValue
+                        }
+                #endif
             }
         }
         .onAppear {
-            let firmwarePathOption = hydraConfigGetFirmwarePath()
-            self.firmwarePath = firmwarePathOption.value
+            #if os(macOS)
+                let firmwarePathOption = hydraConfigGetFirmwarePath()
+                self.firmwarePath = firmwarePathOption.value
 
-            let sdCardPathOption = hydraConfigGetSdCardPath()
-            self.sdCardPath = sdCardPathOption.value
+                let sdCardPathOption = hydraConfigGetSdCardPath()
+                self.sdCardPath = sdCardPathOption.value
 
-            let savePathOption = hydraConfigGetSavePath()
-            self.savePath = savePathOption.value
+                let savePathOption = hydraConfigGetSavePath()
+                self.savePath = savePathOption.value
 
-            let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
-            self.sysmodulesPath = sysmodulesPathOption.value
+                let sysmodulesPathOption = hydraConfigGetSysmodulesPath()
+                self.sysmodulesPath = sysmodulesPathOption.value
+            #else
+                let handeldModeOption = hydraConfigGetHandheldMode()
+                self.handheldMode = handeldModeOption.value
+            #endif
         }
     }
 }

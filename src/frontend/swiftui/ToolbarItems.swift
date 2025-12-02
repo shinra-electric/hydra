@@ -1,44 +1,113 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
+#if os(macOS)
+    private let allowedContentTypes: [UTType] = [.folder, switchType]
+
+    private let installFirmwarePlacement = ToolbarItemPlacement.confirmationAction
+    private let addGamePlacement = ToolbarItemPlacement.confirmationAction
+#else
+    private let allowedContentTypes: [UTType] = [switchType]  // No game folders on iOS
+
+    private let installFirmwarePlacement = ToolbarItemPlacement.topBarLeading
+    private let addGamePlacement = ToolbarItemPlacement.topBarTrailing
+#endif
+
 struct ToolbarItems: ToolbarContent {
-    @State private var isFilePickerPresented: Bool = false
     @Binding var activeGame: Game?
     @Binding var emulationContext: HydraEmulationContext?
-    
+
+    @State private var isFirmwareFilePickerPresented = false
+    @State private var isGameFilePickerPresented = false
+    @State private var showingFirmwareImportError = false
+
     private var isRunning: Bool {
         activeGame != nil ? true : false
     }
 
-    private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
-    
-
     var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .principal) {
-            Button("Play", systemImage: "play") {}.disabled(isRunning)
-            Button("Stop", systemImage: "stop") {
-                guard let emulationContext = self.emulationContext else { return }
-                emulationContext.requestStop()
-                // TODO: wait a bit?
-                emulationContext.forceStop()
-                self.activeGame = nil
+        var firmwarePathOption = hydraConfigGetFirmwarePath()
+        if firmwarePathOption.value.isEmpty {
+            ToolbarItem(placement: installFirmwarePlacement) {
+                Button("Install Firmware") {
+                    isFirmwareFilePickerPresented = true
+                }
+                .fileImporter(
+                    isPresented: $isFirmwareFilePickerPresented,
+                    allowedContentTypes: [.folder],
+                    allowsMultipleSelection: false
+                ) { result in
+                    switch result {
+                    case .success(let fileURLs):
+                        for fileURL in fileURLs {
+                            guard fileURL.startAccessingSecurityScopedResource() else {
+                                showingFirmwareImportError = true
+                                return
+                            }
+
+                            defer { fileURL.stopAccessingSecurityScopedResource() }
+
+                            #if os(macOS)
+                                firmwarePathOption.value = fileURL.path
+                            #else
+                                let path = "\(hydraConfigGetAppDataPath())/firmware"
+                                do {
+                                    try FileManager.default.copyItem(
+                                        atPath: fileURL.path, toPath: firmwarePathOption.value)
+                                } catch {
+                                    showingFirmwareImportError = true
+                                }
+
+                                firmwarePathOption.value = path
+                            #endif
+
+                            hydraConfigSerialize()
+                        }
+                    case .failure(let error):
+                        print(error)
+                    }
+                }
+                .alert("Failed to import firmware", isPresented: $showingFirmwareImportError) {
+                    Button("OK", role: .cancel) {}
+                }
             }
-            .disabled(!isRunning)
-            Button("Pause", systemImage: "pause") {}.disabled(!isRunning)
         }
-        
-        ToolbarItemGroup(placement: .automatic) {
-            Button("Add Game Path", systemImage: "plus") {
-                self.isFilePickerPresented = true
+
+        #if os(macOS)
+            ToolbarItemGroup(placement: .principal) {
+                Button("Play", systemImage: "play") {}.disabled(isRunning)
+                Button("Stop", systemImage: "stop") {
+                    guard let emulationContext = self.emulationContext else { return }
+                    emulationContext.requestStop()
+                    // TODO: wait a bit?
+                    emulationContext.forceStop()
+                    self.activeGame = nil
+                }
+                .disabled(!isRunning)
+                Button("Pause", systemImage: "pause") {}.disabled(!isRunning)
+            }
+        #endif
+
+        ToolbarItem(placement: addGamePlacement) {
+            Button("Add Game", systemImage: "plus") {
+                isGameFilePickerPresented = true
             }
             .fileImporter(
-                isPresented: self.$isFilePickerPresented,
-                allowedContentTypes: [.folder, self.switchType],
+                isPresented: $isGameFilePickerPresented,
+                allowedContentTypes: allowedContentTypes,
                 allowsMultipleSelection: true
             ) { result in
                 switch result {
                 case .success(let fileURLs):
                     for fileURL in fileURLs {
+                        do {
+                            try registerUrl(fileURL)
+                        } catch {
+                            print("Failed to register URL \(fileURL.path)")
+                            continue
+                        }
+
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.append(
                             value: fileURL.path)
@@ -50,6 +119,14 @@ struct ToolbarItems: ToolbarContent {
                 }
             }
         }
+
+        #if os(iOS)
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gear")
+                }
+            }
+        #endif
     }
 
 }
