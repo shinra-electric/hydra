@@ -399,6 +399,18 @@ void EmulationContext::ForceStop() {
     }
 }
 
+void EmulationContext::Pause() {
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->SupervisorPause();
+}
+
+void EmulationContext::Resume() {
+    for (auto it = os->GetKernel().GetProcessManager().Begin();
+         it != os->GetKernel().GetProcessManager().End(); ++it)
+        (*it)->SupervisorResume();
+}
+
 void EmulationContext::ProgressFrame(u32 width, u32 height,
                                      bool& out_dt_average_updated) {
     // Set the resolution for OS

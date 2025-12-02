@@ -691,6 +691,14 @@ class HydraEmulationContext: Hashable, Identifiable {
         hydra_emulation_context_force_stop(self.handle)
     }
 
+    func pause() {
+        hydra_emulation_context_pause(self.handle)
+    }
+
+    func resume() {
+        hydra_emulation_context_resume(self.handle)
+    }
+
     func notifyOperationModeChanged() {
         hydra_emulation_context_notify_operation_mode_changed(self.handle)
     }

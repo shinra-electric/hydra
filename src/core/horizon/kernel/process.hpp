@@ -63,6 +63,9 @@ class Process : public SynchronizationObject {
     void Start();
     void Stop();
 
+    void SupervisorPause();
+    void SupervisorResume();
+
     bool IsRunning() {
         std::lock_guard lock(thread_mutex);
         return !threads.empty();

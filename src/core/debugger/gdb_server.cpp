@@ -289,8 +289,7 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
     // We got the lock
     breakpoint_thread = thread;
 
-    for (const auto& [_, thread] : debugger.threads)
-        thread.guest_thread->SupervisorPause();
+    debugger.process->SupervisorPause();
 
     NotifySupervisorPaused(thread);
 }
@@ -322,11 +321,7 @@ void GdbServer::Poll() {
         if (new_client != -1) {
             client_socket = new_client;
             SetNonBlocking(client_socket);
-
-            // Pause all threads
-            // TODO: helper function?
-            for (const auto& [_, thread] : debugger.threads)
-                thread.guest_thread->SupervisorPause();
+            debugger.process->SupervisorPause();
         }
     } else {
         char buffer[1024];
@@ -400,10 +395,7 @@ void GdbServer::HandleCommand(std::string_view command) {
         HandleMemRead(body);
         break;
     case 'c':
-        // Resume all threads
-        for (const auto& [_, thread] : debugger.threads)
-            thread.guest_thread->SupervisorResume();
-
+        debugger.process->SupervisorResume();
         breakpoint_thread = nullptr;
         breakpoint_hit = false;
         break;
@@ -472,8 +464,7 @@ void GdbServer::HandleVCont(std::string_view command) {
             thread->SupervisorResume();
         }
     } else {
-        for (const auto& [_, thread] : debugger.threads)
-            thread.guest_thread->SupervisorResume();
+        debugger.process->SupervisorResume();
     }
 }
 

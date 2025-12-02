@@ -53,22 +53,20 @@ class MetalLayerCoordinator: NSObject {
                 self.surfaceSet = true
             }
 
-            if emulationContext.isRunning() {
-                // Present
-                var dtAverageUpdated = false
-                emulationContext.progressFrame(
-                    width: UInt32(self.layer!.drawableSize.width),
-                    height: UInt32(self.layer!.drawableSize.height),
-                    dtAverageUpdated: &dtAverageUpdated)
+            // Present
+            var dtAverageUpdated = false
+            emulationContext.progressFrame(
+                width: UInt32(self.layer!.drawableSize.width),
+                height: UInt32(self.layer!.drawableSize.height),
+                dtAverageUpdated: &dtAverageUpdated)
 
-                // Update
-                if dtAverageUpdated {
-                    let dt = emulationContext.getLastDeltaTimeAverage()
-                    if dt != 0.0 {
-                        fps = Int((1.0 / dt).rounded())
-                    } else {
-                        fps = 0
-                    }
+            // Update
+            if dtAverageUpdated {
+                let dt = emulationContext.getLastDeltaTimeAverage()
+                if dt != 0.0 {
+                    fps = Int((1.0 / dt).rounded())
+                } else {
+                    fps = 0
                 }
             }
         }

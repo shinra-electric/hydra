@@ -489,6 +489,14 @@ HYDRA_EXPORT void hydra_emulation_context_force_stop(void* ctx) {
     reinterpret_cast<hydra::EmulationContext*>(ctx)->ForceStop();
 }
 
+HYDRA_EXPORT void hydra_emulation_context_pause(void* ctx) {
+    reinterpret_cast<hydra::EmulationContext*>(ctx)->Pause();
+}
+
+HYDRA_EXPORT void hydra_emulation_context_resume(void* ctx) {
+    reinterpret_cast<hydra::EmulationContext*>(ctx)->Resume();
+}
+
 HYDRA_EXPORT void
 hydra_emulation_context_notify_operation_mode_changed(void* ctx) {
     reinterpret_cast<hydra::EmulationContext*>(ctx)

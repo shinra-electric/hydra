@@ -3,14 +3,21 @@ import SwiftUI
 struct EmulationToolbarItems: ToolbarContent {
     @Binding var emulationState: EmulationState
 
-    private var isRunning: Bool {
-        emulationState.activeGame != nil ? true : false
-    }
+    @State private var isRunning: Bool = false
 
     var body: some ToolbarContent {
         #if os(macOS)
             ToolbarItemGroup(placement: .principal) {
-                Button("Play", systemImage: "play") {}.disabled(isRunning)
+                Button("Resume", systemImage: "play") {
+                    guard let emulationContext = emulationState.emulationContext else { return }
+                    emulationContext.resume()
+                    isRunning = true
+                }.disabled(isRunning)
+                Button("Pause", systemImage: "pause") {
+                    guard let emulationContext = emulationState.emulationContext else { return }
+                    emulationContext.pause()
+                    isRunning = false
+                }.disabled(!isRunning)
                 Button("Stop", systemImage: "stop") {
                     guard let emulationContext = emulationState.emulationContext else { return }
                     emulationContext.requestStop()
@@ -18,8 +25,9 @@ struct EmulationToolbarItems: ToolbarContent {
                     emulationContext.forceStop()
                     emulationState.activeGame = nil
                 }
-                .disabled(!isRunning)
-                Button("Pause", systemImage: "pause") {}.disabled(!isRunning)
+                .onAppear {
+                    isRunning = emulationState.emulationContext!.isRunning()
+                }
             }
         #endif
     }

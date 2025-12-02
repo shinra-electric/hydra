@@ -94,6 +94,24 @@ void Process::Stop() {
     SignalStateChange(ProcessState::Exiting);
 }
 
+void Process::SupervisorPause() {
+    std::lock_guard lock(thread_mutex);
+    for (auto thread : threads)
+        thread->SupervisorPause();
+
+    // Signal
+    SignalStateChange(ProcessState::DebugSuspended);
+}
+
+void Process::SupervisorResume() {
+    std::lock_guard lock(thread_mutex);
+    for (auto thread : threads)
+        thread->SupervisorResume();
+
+    // Signal
+    SignalStateChange(ProcessState::Started);
+}
+
 void Process::CleanUp() {
     // Heap memory
     if (heap_mem) {

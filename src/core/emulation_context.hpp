@@ -19,16 +19,22 @@ class EmulationContext {
     ~EmulationContext();
 
     void SetSurface(void* surface) { gpu->GetRenderer().SetSurface(surface); }
+
     void LoadAndStart(horizon::loader::LoaderBase* loader);
     void RequestStop();
     void ForceStop();
+
+    void Pause();
+    void Resume();
+
     void NotifyOperationModeChanged() { os->NotifyOperationModeChanged(); }
 
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
     bool IsRunning() const {
-        return os->GetKernel().GetProcessManager().HasRunningProcesses();
+        return process->GetState() !=
+               horizon::kernel::ProcessState::DebugSuspended;
     }
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
