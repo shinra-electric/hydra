@@ -85,6 +85,7 @@ class MetalLayerCoordinator: NSObject {
             let layer = CAMetalLayer()
 
             layer.displaySyncEnabled = true
+            layer.contentsScale = NSScreen.main?.backingScaleFactor ?? 2.0
             view.layer = layer
             view.wantsLayer = true
             context.coordinator.setView(view)
@@ -107,6 +108,13 @@ class MetalLayerCoordinator: NSObject {
         override class var layerClass: AnyClass {
             return CAMetalLayer.self
         }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            if let metalLayer = layer as? CAMetalLayer {
+                metalLayer.contentsScale = window?.screen.scale ?? UIScreen.main.scale
+            }
+        }
     }
 
     struct MetalView: UIViewRepresentable {
@@ -122,6 +130,7 @@ class MetalLayerCoordinator: NSObject {
         func updateUIView(_ view: UIView, context: Context) {
             if let layer = view.layer.sublayers?.first as? CAMetalLayer {
                 layer.frame = view.bounds
+                layer.contentsScale = view.window?.screen.scale ?? UIScreen.main.scale
             }
             context.coordinator.setView(view)
         }
