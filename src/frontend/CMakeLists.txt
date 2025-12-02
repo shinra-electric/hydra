@@ -32,7 +32,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/HydraApp.swift
         swiftui/ContentView.swift
         swiftui/MenuCommands.swift
-        swiftui/ToolbarItems.swift
+        swiftui/GameListToolbarItems.swift
+        swiftui/EmulationToolbarItems.swift
         swiftui/Game.swift
         swiftui/MetalView.swift
         swiftui/EmulationView.swift

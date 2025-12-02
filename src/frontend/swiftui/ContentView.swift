@@ -64,10 +64,13 @@ struct ContentView: View {
                             virtualController = nil
                         }
                     #endif
+                    .toolbar {
+                        EmulationToolbarItems(
+                            activeGame: self.$activeGame, emulationContext: self.$emulationContext)
+                    }
                 }
                 .toolbar {
-                    ToolbarItems(
-                        activeGame: self.$activeGame, emulationContext: self.$emulationContext)
+                    GameListToolbarItems()
                 }
                 .navigationBarBackButtonHidden()
         }

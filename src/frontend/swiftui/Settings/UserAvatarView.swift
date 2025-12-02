@@ -6,23 +6,21 @@ struct UserAvatarView: View {
 
     var body: some View {
         VStack {
-            #if os(macOS)
-                if let nsImage = self.loadAvatarNS() {
-                    Image(nsImage: nsImage)
+            if let image = self.loadAvatar() {
+                #if os(macOS)
+                    Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                }
-            #else
-                if let uiImage = self.loadAvatarUI() {
-                    Image(uiImage: uiImage)
+                #else
+                    Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                }
-            #endif
+                #endif
+            }
         }
     }
 
-    private func loadAvatar(dimensions: inout UInt64) -> CGImage? {
+    private func loadAvatarCG(dimensions: inout UInt64) -> CGImage? {
         guard
             let data = self.userManager.loadAvatarImage(
                 path: self.avatarPath, dimensions: &dimensions)
@@ -58,9 +56,9 @@ struct UserAvatarView: View {
     }
 
     #if os(macOS)
-        private func loadAvatarNS() -> NSImage? {
+        private func loadAvatar() -> NSImage? {
             var dimensions: UInt64 = 0
-            guard let cgImage = self.loadAvatar(dimensions: &dimensions) else {
+            guard let cgImage = self.loadAvatarCG(dimensions: &dimensions) else {
                 return nil
             }
 
@@ -68,9 +66,9 @@ struct UserAvatarView: View {
                 cgImage: cgImage, size: NSSize(width: Int(dimensions), height: Int(dimensions)))
         }
     #else
-        private func loadAvatarUI() -> UIImage? {
+        private func loadAvatar() -> UIImage? {
             var dimensions: UInt64 = 0
-            guard let cgImage = self.loadAvatar(dimensions: &dimensions) else {
+            guard let cgImage = self.loadAvatarCG(dimensions: &dimensions) else {
                 return nil
             }
 
