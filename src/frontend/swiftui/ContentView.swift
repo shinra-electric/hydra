@@ -6,6 +6,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Binding var emulationState: EmulationState
+
     @State private var fps: Int = 0
 
     #if os(iOS)

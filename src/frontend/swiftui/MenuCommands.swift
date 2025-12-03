@@ -42,11 +42,7 @@ struct MenuCommands: Commands {
 
         CommandMenu("Emulation") {
             Button("Stop") {
-                guard let emulationContext = emulationState.emulationContext else { return }
-                emulationContext.requestStop()
-                // TODO: wait a bit?
-                emulationContext.forceStop()
-                emulationState.activeGame = nil
+                emulationState.isStopping = true
             }
             Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
                 self.handheldMode = !self.handheldMode

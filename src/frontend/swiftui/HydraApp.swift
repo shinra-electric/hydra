@@ -4,6 +4,7 @@ import SwiftUI
 class EmulationState {
     var activeGame: Game? = nil
     var emulationContext: HydraEmulationContext? = nil
+    var isStopping = false
 }
 
 @main

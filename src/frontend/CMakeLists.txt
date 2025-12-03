@@ -39,6 +39,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/EmulationView.swift
         swiftui/GamePreview.swift
         swiftui/GameListView.swift
+        swiftui/GameStopView.swift
         swiftui/helpers/Error.swift
         swiftui/helpers/Math.swift
         swiftui/helpers/UrlResolver.swift

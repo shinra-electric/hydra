@@ -9,25 +9,20 @@ struct EmulationToolbarItems: ToolbarContent {
         #if os(macOS)
             ToolbarItemGroup(placement: .principal) {
                 if isRunning {
-                    Button("Pause", systemImage: "pause.fill") {
+                    Button("Pause", systemImage: "pause") {
                         guard let emulationContext = emulationState.emulationContext else { return }
                         emulationContext.pause()
                         isRunning = false
                     }
                 } else {
-                    Button("Resume", systemImage: "play.fill") {
+                    Button("Resume", systemImage: "play") {
                         guard let emulationContext = emulationState.emulationContext else { return }
                         emulationContext.resume()
                         isRunning = true
                     }
                 }
-                
-                Button("Stop", systemImage: "stop.fill") {
-                    guard let emulationContext = emulationState.emulationContext else { return }
-                    emulationContext.requestStop()
-                    // TODO: wait a bit?
-                    emulationContext.forceStop()
-                    emulationState.activeGame = nil
+                Button("Stop", systemImage: "stop") {
+                    emulationState.isStopping = true
                 }
                 .onAppear {
                     isRunning = emulationState.emulationContext!.isRunning()
