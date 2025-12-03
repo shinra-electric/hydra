@@ -10,71 +10,77 @@ struct DebugSettingsView: View {
     @State private var gdbWaitForClient = false
 
     var body: some View {
-        List {
-            Picker("Log output", selection: self.$logOutput.rawValue) {
-                Text("none (not recommended)").tag(
-                    HYDRA_LOG_OUTPUT_NONE.rawValue)
-                Text("stdout").tag(
-                    HYDRA_LOG_OUTPUT_STD_OUT.rawValue)
-                Text("file (default)").tag(HYDRA_LOG_OUTPUT_FILE.rawValue)
-            }
-            .onChange(of: self.logOutput.rawValue) { _, newValue in
-                var logOutputOption = hydraConfigGetLogOutput()
-                logOutputOption.value = newValue
-            }
-            Toggle("Log filesystem access", isOn: self.$logFsAccess)
-                .onChange(of: self.logFsAccess) { _, newValue in
-                    var logFsAccessOption = hydraConfigGetLogFsAccess()
-                    logFsAccessOption.value = newValue
-                }
-            Toggle("Debug logging", isOn: self.$debugLogging)
-                .onChange(of: self.debugLogging) { _, newValue in
-                    var debugLoggingOption = hydraConfigGetDebugLogging()
-                    debugLoggingOption.value = newValue
-                }
-            // TODO: process arguments
-
-            Section {
-                Toggle("Enabled", isOn: self.$gdbEnabled)
-                    .onChange(of: self.gdbEnabled) { _, newValue in
-                        var gdbEnabledOption = hydraConfigGetGdbEnabled()
-                        gdbEnabledOption.value = newValue
+        Spacer()
+        HStack {
+            Spacer()
+            Form {
+                Section("Logging") {
+                    Picker("Log output", selection: self.$logOutput.rawValue) {
+                        Text("none (not recommended)")
+                            .tag(HYDRA_LOG_OUTPUT_NONE.rawValue)
+                        Text("stdout")
+                            .tag(HYDRA_LOG_OUTPUT_STD_OUT.rawValue)
+                        Text("file (default)")
+                            .tag(HYDRA_LOG_OUTPUT_FILE.rawValue)
                     }
-                HStack {
-                    Text("Port:")
+                    .onChange(of: self.logOutput.rawValue) { _, newValue in
+                        var logOutputOption = hydraConfigGetLogOutput()
+                        logOutputOption.value = newValue
+                    }
+                    
+                    Toggle("Log filesystem access", isOn: self.$logFsAccess)
+                        .onChange(of: self.logFsAccess) { _, newValue in
+                            var logFsAccessOption = hydraConfigGetLogFsAccess()
+                            logFsAccessOption.value = newValue
+                        }
+                        
+                    Toggle("Debug logging", isOn: self.$debugLogging)
+                        .onChange(of: self.debugLogging) { _, newValue in
+                            var debugLoggingOption = hydraConfigGetDebugLogging()
+                            debugLoggingOption.value = newValue
+                        }
+                }
+                    // TODO: process arguments
+                Section("GDB") {
+                    Toggle("Enabled", isOn: self.$gdbEnabled)
+                        .onChange(of: self.gdbEnabled) { _, newValue in
+                            var gdbEnabledOption = hydraConfigGetGdbEnabled()
+                            gdbEnabledOption.value = newValue
+                        }
                     TextField("Port", value: self.$gdbPort, formatter: NumberFormatter())
                         .onChange(of: self.gdbPort) { _, newValue in
                             var gdbPortOption = hydraConfigGetGdbPort()
                             gdbPortOption.value = newValue
                         }
+                    Toggle("Wait for client", isOn: self.$gdbWaitForClient)
+                        .onChange(of: self.gdbWaitForClient) { _, newValue in
+                            var gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
+                            gdbWaitForClientOption.value = newValue
+                        }
                 }
-                Toggle("Wait for client", isOn: self.$gdbWaitForClient)
-                    .onChange(of: self.gdbWaitForClient) { _, newValue in
-                        var gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
-                        gdbWaitForClientOption.value = newValue
-                    }
-            } header: {
-                Label("GDB", systemImage: "command")
             }
+            .formStyle(.grouped)
+            .onAppear {
+                let logOutputOption = hydraConfigGetLogOutput()
+                self.logOutput.rawValue = logOutputOption.value
+    
+                let logFsAccessOption = hydraConfigGetLogFsAccess()
+                self.logFsAccess = logFsAccessOption.value
+    
+                let debugLoggingOption = hydraConfigGetDebugLogging()
+                self.debugLogging = debugLoggingOption.value
+    
+                let gdbEnabledOption = hydraConfigGetGdbEnabled()
+                self.gdbEnabled = gdbEnabledOption.value
+    
+                let gdbPortOption = hydraConfigGetGdbPort()
+                self.gdbPort = gdbPortOption.value
+    
+                let gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
+                self.gdbWaitForClient = gdbWaitForClientOption.value
+            }
+            Spacer()
         }
-        .onAppear {
-            let logOutputOption = hydraConfigGetLogOutput()
-            self.logOutput.rawValue = logOutputOption.value
-
-            let logFsAccessOption = hydraConfigGetLogFsAccess()
-            self.logFsAccess = logFsAccessOption.value
-
-            let debugLoggingOption = hydraConfigGetDebugLogging()
-            self.debugLogging = debugLoggingOption.value
-
-            let gdbEnabledOption = hydraConfigGetGdbEnabled()
-            self.gdbEnabled = gdbEnabledOption.value
-
-            let gdbPortOption = hydraConfigGetGdbPort()
-            self.gdbPort = gdbPortOption.value
-
-            let gdbWaitForClientOption = hydraConfigGetGdbWaitForClient()
-            self.gdbWaitForClient = gdbWaitForClientOption.value
-        }
+        Spacer()
     }
 }

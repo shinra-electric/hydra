@@ -1,39 +1,46 @@
 import SwiftUI
 
 struct SettingsView: View {
+    private enum Tabs: Hashable {
+        case general, cpu, graphics, audio, user, system, debug
+    }
+    
+    @State private var selection: Tabs = .general
+  
     var body: some View {
         #if os(macOS)
-            TabView {
-                Tab("General", systemImage: "gear") {
+            TabView(selection: $selection) {
+                Tab("General", systemImage: "gear", value: .general) {
                     GeneralSettingsView()
                 }
 
-                Tab("CPU", systemImage: "cpu") {
+                Tab("CPU", systemImage: "cpu", value: .cpu) {
                     CpuSettingsView()
                 }
 
-                Tab("Graphics", systemImage: "star") {
+                Tab("Graphics", systemImage: "star", value: .graphics) {
                     GraphicsSettingsView()
                 }
 
-                Tab("Audio", systemImage: "speaker.wave.2") {
+                Tab("Audio", systemImage: "speaker.wave.2", value: .audio) {
                     AudioSettingsView()
                 }
 
-                Tab("User", systemImage: "person") {
+                Tab("User", systemImage: "person", value: .user) {
                     UserSettingsView()
                 }
 
-                Tab("System", systemImage: "desktopcomputer") {
+                Tab("System", systemImage: "desktopcomputer", value: .system) {
                     SystemSettingsView()
                 }
 
-                Tab("Debug", systemImage: "memorychip") {
+                Tab("Debug", systemImage: "memorychip", value: .debug) {
                     DebugSettingsView()
                 }
             }
             .scenePadding()
-            .frame(maxWidth: 500, minHeight: 100)
+            .frame(maxWidth: 660, minHeight: 100)
+            .frame(width: 660, height: 440) // TODO: Don't hardcode
             .onDisappear {
                 hydraConfigSerialize()
             }
@@ -41,7 +48,6 @@ struct SettingsView: View {
             NavigationView {
                 List {
                     // No general settings
-
                     NavigationLink(destination: CpuSettingsView()) {
                         Label("CPU", systemImage: "cpu")
                     }
