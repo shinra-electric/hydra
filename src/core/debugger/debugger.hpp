@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/debugger/const.hpp"
+
 namespace hydra::horizon::kernel {
 class GuestThread;
 class Process;
@@ -8,6 +10,22 @@ class Process;
 namespace hydra::horizon::filesystem {
 class FileBase;
 } // namespace hydra::horizon::filesystem
+
+#define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
+    if (!(condition)) {                                                        \
+        /* TODO: log class? */                                                 \
+        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
+            f PASS_VA_ARGS(__VA_ARGS__));                                      \
+    }
+
+#ifdef HYDRA_DEBUG
+#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
+    DEBUGGER_ASSERT(condition, c, __VA_ARGS__)
+#else
+#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
+    if (condition) {                                                           \
+    }
+#endif
 
 namespace hydra::debugger {
 
@@ -126,14 +144,18 @@ class Debugger {
                        horizon::kernel::GuestThread* guest_thread = nullptr);
     void UnregisterThisThread();
 
-    void BreakOnThisThread(const std::string_view reason);
+    template <typename... T>
+    void BreakOnThisThread(fmt::format_string<T...> f, T&&... args) {
+        BreakOnThisThreadImpl(fmt::format(f, std::forward<T>(args)...));
+    }
 
     SymbolTable& GetModuleTable() { return module_table; }
     SymbolTable& GetFunctionTable() { return function_table; }
 
     // GDB
     void ActivateGdbServer();
-    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
+    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+                                Signal signal);
     void BreakpointHit(horizon::kernel::GuestThread* thread);
 
     // API
@@ -162,6 +184,7 @@ class Debugger {
     GdbServer* gdb_server{nullptr};
 
     void LogOnThisThread(const LogMessage& msg);
+    void BreakOnThisThreadImpl(const std::string_view reason);
 
     // Helpers
     StackTrace GetStackTrace(Thread& thread);

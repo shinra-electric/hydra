@@ -277,9 +277,10 @@ GdbServer::~GdbServer() {
     close(server_socket);
 }
 
-void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
+void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+                                       Signal signal) {
     // TODO: don't send packets from other threads
-    SendPacket(GetThreadStatus(thread, GDB_SIGTRAP));
+    SendPacket(GetThreadStatus(thread, signal));
 }
 
 void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
@@ -291,7 +292,7 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
 
     debugger.process->SupervisorPause();
 
-    NotifySupervisorPaused(thread);
+    NotifySupervisorPaused(thread, Signal::SigTrap);
 }
 
 void GdbServer::CloseClientSocket() {
@@ -458,7 +459,7 @@ void GdbServer::HandleVCont(std::string_view command) {
         thread->GetThread()->SingleStep();
         if (CPU_INSTANCE.GetFeatures().supports_synchronous_single_step) {
             // Single-stepping already finished
-            NotifySupervisorPaused(thread);
+            NotifySupervisorPaused(thread, Signal::SigTrap);
         } else {
             // Resume the thread for asynchronous single-stepping
             thread->SupervisorResume();
@@ -526,7 +527,7 @@ void GdbServer::HandleSetActiveThread(std::string_view command) {
 }
 
 void GdbServer::HandleThreadStatus() {
-    SendPacket(GetThreadStatus(crnt_thread, GDB_SIGTRAP));
+    SendPacket(GetThreadStatus(crnt_thread, Signal::SigTrap));
 }
 
 void GdbServer::HandleRegRead(std::string_view command) {
@@ -752,11 +753,12 @@ std::string GdbServer::ReadReg(u32 id) {
 }
 
 std::string GdbServer::GetThreadStatus(horizon::kernel::GuestThread* thread,
-                                       u8 signal) {
+                                       Signal signal) {
     const auto& state = thread->GetThread()->GetState();
     return fmt::format("T{:02x}{:02x}:{};{:02x}:{};{:02x}:{};thread:{:x};",
-                       signal, PC_REGISTER, state.pc, SP_REGISTER, state.sp,
-                       LR_REGISTER, state.lr, GET_THREAD_ID(thread));
+                       static_cast<u8>(signal), PC_REGISTER, state.pc,
+                       SP_REGISTER, state.sp, LR_REGISTER, state.lr,
+                       GET_THREAD_ID(thread));
 }
 
 std::string GdbServer::PageFromBuffer(std::string_view buffer,

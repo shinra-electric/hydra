@@ -178,7 +178,9 @@ void Thread::Run() {
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 
-                    DataAbort(far);
+                    GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
+                        "Data abort (PC: 0x{:08x}, FAR: 0x{:08x})", state.pc,
+                        far);
                     break;
                 }
                 default:
@@ -212,9 +214,7 @@ void Thread::Run() {
                     "BRK instruction");
                 return;
             case ExceptionClass::DataAbortLowerEl: {
-                LOG_ERROR(Hypervisor, "This should not happen");
-                u64 pc = GetReg(HV_REG_PC);
-                SetReg(HV_REG_PC, pc + 4);
+                LOG_FATAL(Hypervisor, "This should not happen");
                 break;
             }
             case ExceptionClass::BreakpointLowerEl: {
@@ -341,15 +341,6 @@ void Thread::InstructionTrap(u32 esr) {
         LOG_FATAL(Hypervisor, "Unhandled system register write (ESR: 0x{:08x})",
                   esr);
     }
-}
-
-void Thread::DataAbort(u64 far) {
-    ONCE(LOG_WARN(Hypervisor,
-                  "PC: 0x{:08x}, instruction: 0x{:08x}, FAR: 0x{:08x}",
-                  state.pc, MMU.Read<u32>(state.pc), far));
-
-    // Skip one instruction
-    state.pc += 4;
 }
 
 void Thread::ProcessMessages() {

@@ -79,7 +79,6 @@ class Thread : public IThread {
     void DeserializeState();
 
     void InstructionTrap(u32 esr);
-    void DataAbort(u64 far);
 
     // Helpers
     u64 GetReg(hv_reg_t reg) const {

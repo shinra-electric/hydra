@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/debugger/const.hpp"
+
 namespace hydra::horizon::kernel {
 class GuestThread;
 } // namespace hydra::horizon::kernel
@@ -13,7 +15,8 @@ class GdbServer {
     GdbServer(Debugger& debugger_);
     ~GdbServer();
 
-    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread);
+    void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+                                Signal signal);
     void BreakpointHit(horizon::kernel::GuestThread* thread);
 
   private:
@@ -59,7 +62,7 @@ class GdbServer {
     void SetNonBlocking(i32 socket);
     std::string ReadReg(u32 id);
     std::string GetThreadStatus(horizon::kernel::GuestThread* thread,
-                                u8 signal);
+                                Signal signal);
     std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 
     void NotifyMemoryChanged(range<vaddr_t> mem_range);

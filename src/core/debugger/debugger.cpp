@@ -1,9 +1,8 @@
 #include "core/debugger/debugger.hpp"
 
-#include <future>
-
 #include "core/debugger/gdb_server.hpp"
 #include "core/horizon/kernel/guest_thread.hpp"
+#include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 
 #define GET_THIS_THREAD()                                                      \
@@ -68,24 +67,12 @@ void Debugger::UnregisterThisThread() {
     threads.erase(it);
 }
 
-void Debugger::BreakOnThisThread(const std::string_view reason) {
-    {
-        GET_THIS_THREAD();
-        thread.status = ThreadStatus::Break;
-        thread.break_reason = reason;
-    }
-
-    // TODO: abort after the debugger is closed?
-    std::promise<void> promise;
-    auto future = promise.get_future();
-    future.wait();
-}
-
 void Debugger::ActivateGdbServer() { gdb_server = new GdbServer(*this); }
 
-void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread) {
+void Debugger::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
+                                      Signal signal) {
     if (gdb_server)
-        gdb_server->NotifySupervisorPaused(thread);
+        gdb_server->NotifySupervisorPaused(thread, signal);
 }
 
 void Debugger::BreakpointHit(horizon::kernel::GuestThread* thread) {
@@ -99,6 +86,20 @@ void Debugger::LogOnThisThread(const LogMessage& msg) {
     auto stack_trace = GetStackTrace(thread);
     lock.lock();
     thread.Log({msg, stack_trace});
+}
+
+void Debugger::BreakOnThisThreadImpl(const std::string_view reason) {
+    LOG_ERROR(Debugger, "BREAK ({})", reason);
+
+    {
+        GET_THIS_THREAD();
+        thread.status = ThreadStatus::Break;
+        thread.break_reason = reason;
+        process->SupervisorPause();
+        NotifySupervisorPaused(
+            thread.guest_thread,
+            Signal::SigHup); // TODO: make the signal configurable
+    }
 }
 
 StackTrace Debugger::GetStackTrace(Thread& thread) {

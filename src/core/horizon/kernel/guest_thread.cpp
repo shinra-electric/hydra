@@ -34,7 +34,7 @@ void GuestThread::Run() {
          [this]() {
              SupervisorPause();
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process)
-                 .NotifySupervisorPaused(this);
+                 .NotifySupervisorPaused(this, debugger::Signal::SigTrap);
          },
          [this]() {
              DEBUGGER_MANAGER_INSTANCE.GetDebugger(process).BreakpointHit(this);

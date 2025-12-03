@@ -46,31 +46,21 @@
     if (!(condition)) {                                                        \
         LOG_FATAL(c, __VA_ARGS__);                                             \
     }
-#define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
-    if (!(condition)) {                                                        \
-        /* TODO: log class */                                                  \
-        GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(                      \
-            fmt::format(f PASS_VA_ARGS(__VA_ARGS__)));                         \
-    }
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
     ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
            name " must be {}-byte aligned", alignment)
 
 #ifdef HYDRA_DEBUG
 #define ASSERT_DEBUG(condition, c, ...) ASSERT(condition, c, __VA_ARGS__)
-#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
-    DEBUGGER_ASSERT(condition, c, __VA_ARGS__)
+#define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
+    ASSERT_ALIGNMENT(value, alignment, c, name)
 #else
-// TODO: should we evaluate the condition anyway?
+// TODO: should the condition be evaluated?
 #define ASSERT_DEBUG(condition, c, ...)                                        \
     if (condition) {                                                           \
     }
-#define DEBUGGER_ASSERT_DEBUG(condition, c, ...)                               \
-    if (condition) {                                                           \
-    }
+#define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)
 #endif
-#define ASSERT_ALIGNMENT_DEBUG(value, alignment, c, name)                      \
-    ASSERT_ALIGNMENT(value, alignment, c, name)
 
 #define INDENT_FMT "{:{}}"
 #define PASS_INDENT(indent) "", ((indent)*4)
