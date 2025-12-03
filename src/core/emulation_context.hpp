@@ -32,10 +32,7 @@ class EmulationContext {
     // TODO: rename?
     void ProgressFrame(u32 width, u32 height, bool& out_dt_average_updated);
 
-    bool IsRunning() const {
-        return process->GetState() !=
-               horizon::kernel::ProcessState::DebugSuspended;
-    }
+    bool IsRunning() const;
     f32 GetLastDeltaTimeAverage() const { return last_dt_average; }
 
     void TakeScreenshot();

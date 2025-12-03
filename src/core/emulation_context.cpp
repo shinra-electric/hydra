@@ -537,6 +537,16 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     os->GetDisplayDriver().SignalVSync();
 }
 
+bool EmulationContext::IsRunning() const {
+    switch (process->GetState()) {
+    case horizon::kernel::ProcessState::Started:
+    case horizon::kernel::ProcessState::Exiting:
+        return true;
+    default:
+        return false;
+    };
+}
+
 void EmulationContext::TakeScreenshot() {
     auto layer = os->GetDisplayDriver().GetFirstLayerForProcess(process);
     if (!layer)

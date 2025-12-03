@@ -23,7 +23,7 @@ class ISelfController : public IService {
     kernel::Event* accumulated_suspended_tick_changed_event;
 
     // Commands
-    STUB_REQUEST_COMMAND(Exit);
+    result_t Exit(kernel::Process* process);
     result_t LockExit(kernel::Process* process);
     result_t UnlockExit(kernel::Process* process);
     result_t

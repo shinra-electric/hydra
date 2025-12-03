@@ -22,6 +22,12 @@ ISelfController::ISelfController()
       accumulated_suspended_tick_changed_event{new kernel::Event(
           false, "Accumulated suspended tick changed event")} {}
 
+result_t ISelfController::Exit(kernel::Process* process) {
+    // TODO: correct?
+    process->Stop();
+    return RESULT_SUCCESS;
+}
+
 result_t ISelfController::LockExit(kernel::Process* process) {
     process->GetAppletState().LockExit();
     return RESULT_SUCCESS;

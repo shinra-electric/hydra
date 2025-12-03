@@ -32,6 +32,9 @@ void IThread::Start() {
 }
 
 bool IThread::ProcessMessages(i64 pause_timeout_ns) {
+    if (state == ThreadState::Stopping)
+        return true;
+
     const auto timeout_time = std::chrono::steady_clock::now() +
                               std::chrono::nanoseconds(pause_timeout_ns);
 

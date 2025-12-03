@@ -58,6 +58,10 @@ class Process : public SynchronizationObject {
         std::lock_guard lock(thread_mutex);
         threads.erase(std::remove(threads.begin(), threads.end(), thread),
                       threads.end());
+
+        // Signal
+        if (threads.empty())
+            SignalStateChange(ProcessState::Exited);
     }
 
     void Start();
