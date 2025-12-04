@@ -10,6 +10,11 @@ struct DisplayVersion {
     char name[0x10];
 };
 
+enum class GamePlayRecordingState : u32 {
+    Disabled = 0,
+    Enabled = 1,
+};
+
 class IApplicationFunctions : public IService {
   public:
     IApplicationFunctions()
@@ -21,7 +26,8 @@ class IApplicationFunctions : public IService {
 
   private:
     kernel::Event* gpu_error_detect_event;
-    bool game_play_recording_state;
+    GamePlayRecordingState game_play_recording_state{
+        GamePlayRecordingState::Disabled}; // TODO: what is the default?
 
     // Commands
     result_t PopLaunchParameter(kernel::Process* process, RequestContext* ctx,
@@ -39,7 +45,7 @@ class IApplicationFunctions : public IService {
     result_t GetPseudoDeviceId(u128* out_id);
     result_t IsGamePlayRecordingSupported(bool* out_enabled);
     STUB_REQUEST_COMMAND(InitializeGamePlayRecording);
-    result_t SetGamePlayRecordingState(bool enabled);
+    result_t SetGamePlayRecordingState(GamePlayRecordingState state);
     result_t EnableApplicationCrashReport(bool enabled);
     result_t
     GetGpuErrorDetectedSystemEvent(kernel::Process* process,
@@ -47,3 +53,6 @@ class IApplicationFunctions : public IService {
 };
 
 } // namespace hydra::horizon::services::am
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::am::GamePlayRecordingState,
+                       Disabled, "disabled", Enabled, "enabled");

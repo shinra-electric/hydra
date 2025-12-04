@@ -97,14 +97,16 @@ result_t IApplicationFunctions::GetPseudoDeviceId(u128* out_id) {
 
 result_t
 IApplicationFunctions::IsGamePlayRecordingSupported(bool* out_enabled) {
-    *out_enabled = game_play_recording_state;
+    *out_enabled =
+        (game_play_recording_state == GamePlayRecordingState::Enabled);
     return RESULT_SUCCESS;
 }
 
-result_t IApplicationFunctions::SetGamePlayRecordingState(bool enabled) {
-    LOG_STUBBED(Services, "Game play recording state: {}", enabled);
+result_t
+IApplicationFunctions::SetGamePlayRecordingState(GamePlayRecordingState state) {
+    LOG_STUBBED(Services, "Game play recording state: {}", state);
 
-    game_play_recording_state = enabled;
+    game_play_recording_state = state;
     return RESULT_SUCCESS;
 }
 
