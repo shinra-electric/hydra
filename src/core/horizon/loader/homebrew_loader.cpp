@@ -53,14 +53,32 @@ class HomebrewThread : public kernel::GuestThread {
 
   protected:
     void Run() override {
-        // Next load
+        // State
+        constexpr usize ARGV_SIZE = 0x800;
+        constexpr usize NEXT_LOAD_PATH_SIZE = 0x200;
+
+        constexpr u32 ARGV_OFFSET = 0x0;
+        constexpr u32 NEXT_LOAD_PATH_OFFSET = ARGV_OFFSET + ARGV_SIZE;
+        constexpr u32 NEXT_ARGV_OFFSET = NEXT_LOAD_PATH_OFFSET + ARGV_SIZE;
+
         // TODO: memory type
         // TODO: region
-        vaddr_t next_load_base;
-        auto next_load_ptr = process->CreateMemory(
-            kernel::EXECUTABLE_REGION, 0x1000,
+        vaddr_t state_base;
+        auto state_ptr = process->CreateMemory(
+            kernel::EXECUTABLE_REGION, ARGV_SIZE * 2 + NEXT_LOAD_PATH_SIZE,
             static_cast<kernel::MemoryType>(4),
-            kernel::MemoryPermission::ReadWrite, true, next_load_base);
+            kernel::MemoryPermission::ReadWrite, true, state_base);
+
+        // Argv
+        {
+            std::string argv = fmt::format("\"{}\"", path);
+            for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs().Get())
+                argv += fmt::format(" \"{}\"", arg);
+
+            char* argv_ptr = reinterpret_cast<char*>(state_ptr + ARGV_OFFSET);
+            memcpy(argv_ptr, argv.data(), argv.size());
+            argv_ptr[argv.size()] = '\0';
+        }
 
         while (true) {
             // File
@@ -76,21 +94,8 @@ class HomebrewThread : public kernel::GuestThread {
                 nro_loader.LoadProcess(process);
                 const auto executable_ptr = nro_loader.GetExecutablePtr();
 
-                // Args
-                // TODO: create a separate memory for this?
-                const u64 argv_offset = nro_loader.GetExecutableSize();
-
-                std::string argv = fmt::format("\"{}\"", path);
-                for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs().Get())
-                    argv += fmt::format(" \"{}\"", arg);
-
-                char* argv_ptr =
-                    reinterpret_cast<char*>(executable_ptr + argv_offset);
-                memcpy(argv_ptr, argv.data(), argv.size());
-                argv_ptr[argv.size()] = '\0';
-
                 // Config
-                const uptr config_offset = argv_offset + argv.size() + 1;
+                const uptr config_offset = nro_loader.GetExecutableSize();
 
 #define ADD_ENTRY(t, f, value0, value1)                                        \
     {                                                                          \
@@ -100,25 +105,34 @@ class HomebrewThread : public kernel::GuestThread {
         entry->values[1] = value1;                                             \
         entry++;                                                               \
     }
+#define ADD_ENTRY_OPTIONAL(t, value0, value1) ADD_ENTRY(t, None, value0, value1)
 #define ADD_ENTRY_MANDATORY(t, value0, value1)                                 \
-    ADD_ENTRY(t, None, value0, value1)
-#define ADD_ENTRY_NON_MANDATORY(t, value0, value1)                             \
     ADD_ENTRY(t, IsMandatory, value0, value1)
 
                 // Entries
                 ConfigEntry* entry = reinterpret_cast<ConfigEntry*>(
                     executable_ptr + config_offset);
 
-                ADD_ENTRY_MANDATORY(MainThreadHandle, self_handle, 0);
-                ADD_ENTRY_MANDATORY(NextLoadPath, next_load_base,
-                                    next_load_base + 0x800);
-                ADD_ENTRY_MANDATORY(
-                    Argv, 0, nro_loader.GetExecutableBase() + argv_offset);
-                // TODO: supply the actual availability
-                ADD_ENTRY_MANDATORY(SyscallAvailableHint, UINT64_MAX,
-                                    UINT64_MAX);
-                ADD_ENTRY_MANDATORY(SyscallAvailableHint2, UINT64_MAX, 0);
-                ADD_ENTRY_MANDATORY(EndOfList, 0, 0);
+                ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle, 0);
+                // TODO: process handle
+                ADD_ENTRY_OPTIONAL(
+                    AppletType,
+                    static_cast<u64>(kernel::AppletType::Application), 0);
+                // TODO: override heap?
+                ADD_ENTRY_OPTIONAL(Argv, 0, state_base + ARGV_OFFSET);
+                ADD_ENTRY_OPTIONAL(NextLoadPath,
+                                   state_base + NEXT_LOAD_PATH_OFFSET,
+                                   state_base + NEXT_ARGV_OFFSET);
+                // TODO: load last result
+                ADD_ENTRY_OPTIONAL(SyscallAvailableHint,
+                                   std::numeric_limits<u64>::max(),
+                                   std::numeric_limits<u64>::max());
+                ADD_ENTRY_OPTIONAL(SyscallAvailableHint2,
+                                   std::numeric_limits<u64>::max(), 0);
+                // TODO: random seed
+                // TODO: user ID storage
+                // TODO: HOS version
+                ADD_ENTRY_OPTIONAL(EndOfList, 0, 0); // TODO: text
 
 #undef ADD_ENTRY_NON_MANDATORY
 #undef ADD_ENTRY_MANDATORY
@@ -137,9 +151,14 @@ class HomebrewThread : public kernel::GuestThread {
                 nullptr);
 
             // Next load
-            path = std::string(reinterpret_cast<const char*>(next_load_ptr));
+            path = std::string(reinterpret_cast<const char*>(
+                state_ptr + NEXT_LOAD_PATH_OFFSET));
             if (path.empty())
                 break;
+
+            memcpy(reinterpret_cast<void*>(state_ptr + ARGV_OFFSET),
+                   reinterpret_cast<void*>(state_ptr + NEXT_ARGV_OFFSET),
+                   ARGV_SIZE);
         }
     }
 

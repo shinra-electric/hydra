@@ -483,6 +483,16 @@ enum class SignalType {
     SignalAndModifyBasedOnWaitingThreadCountIfEqual = 2,
 };
 
+enum class AppletType {
+    None = -2,
+    Default = -1,
+    Application = 0,
+    SystemApplet = 1,
+    LibraryApplet = 2,
+    OverlayApplet = 3,
+    SystemApplication = 4,
+};
+
 enum class AppletMessage {
     None = 0,
     ChangeIntoForeground = 1,
@@ -518,11 +528,7 @@ enum class AppletMessage {
     DetectLongPressingCaptureButtonForApplet = 111,
 };
 
-enum class AppletFocusState {
-    InFocus = 1,    ///< Applet is focused.
-    OutOfFocus = 2, ///< Out of focus - LibraryApplet open.
-    Background = 3  ///< Out of focus - HOME menu open / console is sleeping.
-};
+enum class AppletFocusState { InFocus = 1, OutOfFocus = 2, Background = 3 };
 
 enum class LaunchParameterKind : u32 {
     UserChannel = 1,
