@@ -54,12 +54,21 @@ class HomebrewThread : public kernel::GuestThread {
   protected:
     void Run() override {
         // State
-        constexpr usize ARGV_SIZE = 0x800;
-        constexpr usize NEXT_LOAD_PATH_SIZE = 0x200;
+        static constexpr char NOTICE_TEXT[] = "Hydra Nintendo Switch emulator";
 
-        constexpr u32 ARGV_OFFSET = 0x0;
-        constexpr u32 NEXT_LOAD_PATH_OFFSET = ARGV_OFFSET + ARGV_SIZE;
-        constexpr u32 NEXT_ARGV_OFFSET = NEXT_LOAD_PATH_OFFSET + ARGV_SIZE;
+        static constexpr usize NOTICE_TEXT_SIZE = 0x100;
+        static constexpr usize RETURN_ADDRESS_SIZE = 0x4;
+        static constexpr usize ARGV_SIZE = 0x800;
+        static constexpr usize NEXT_LOAD_PATH_SIZE = 0x200;
+
+        static constexpr u32 NOTICE_TEXT_OFFSET = 0x0;
+        static constexpr u32 RETURN_ADDRESS_OFFSET =
+            NOTICE_TEXT_OFFSET + NOTICE_TEXT_SIZE;
+        static constexpr u32 ARGV_OFFSET =
+            RETURN_ADDRESS_OFFSET + RETURN_ADDRESS_SIZE;
+        static constexpr u32 NEXT_LOAD_PATH_OFFSET = ARGV_OFFSET + ARGV_SIZE;
+        static constexpr u32 NEXT_ARGV_OFFSET =
+            NEXT_LOAD_PATH_OFFSET + ARGV_SIZE;
 
         // TODO: memory type
         // TODO: region
@@ -68,6 +77,17 @@ class HomebrewThread : public kernel::GuestThread {
             kernel::EXECUTABLE_REGION, ARGV_SIZE * 2 + NEXT_LOAD_PATH_SIZE,
             static_cast<kernel::MemoryType>(4),
             kernel::MemoryPermission::ReadWrite, true, state_base);
+
+        // Notice text
+        {
+            char* notice_ptr =
+                reinterpret_cast<char*>(state_ptr + NOTICE_TEXT_OFFSET);
+            memcpy(notice_ptr, NOTICE_TEXT, sizeof(NOTICE_TEXT));
+        }
+
+        // Return address
+        *reinterpret_cast<u32*>(state_ptr + RETURN_ADDRESS_OFFSET) =
+            0xd4000141; // svc 0x0a (svcExitThread)
 
         // Argv
         {
@@ -81,6 +101,8 @@ class HomebrewThread : public kernel::GuestThread {
         }
 
         while (true) {
+            LOG_INFO(Loader, "Running Homebrew: {}", path);
+
             // File
             filesystem::FileBase* file;
             const auto res =
@@ -132,7 +154,8 @@ class HomebrewThread : public kernel::GuestThread {
                 // TODO: random seed
                 // TODO: user ID storage
                 // TODO: HOS version
-                ADD_ENTRY_OPTIONAL(EndOfList, 0, 0); // TODO: text
+                ADD_ENTRY_OPTIONAL(EndOfList, state_base + NOTICE_TEXT_OFFSET,
+                                   sizeof(NOTICE_TEXT));
 
 #undef ADD_ENTRY_NON_MANDATORY
 #undef ADD_ENTRY_MANDATORY
@@ -140,15 +163,13 @@ class HomebrewThread : public kernel::GuestThread {
 
                 // Params
                 entry_point = nro_loader.GetEntryPoint();
+                return_address = state_base + RETURN_ADDRESS_OFFSET;
                 args[0] = nro_loader.GetExecutableBase() + config_offset;
                 args[1] = std::numeric_limits<u64>::max();
             }
 
             // Run
-            GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(this);
             kernel::GuestThread::Run();
-            GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(
-                nullptr);
 
             // Next load
             path = std::string(reinterpret_cast<const char*>(
@@ -156,6 +177,7 @@ class HomebrewThread : public kernel::GuestThread {
             if (path.empty())
                 break;
 
+            // Copy argv
             memcpy(reinterpret_cast<void*>(state_ptr + ARGV_OFFSET),
                    reinterpret_cast<void*>(state_ptr + NEXT_ARGV_OFFSET),
                    ARGV_SIZE);

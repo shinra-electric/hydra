@@ -16,6 +16,9 @@ class GuestThread : public IThread {
     ~GuestThread() override;
 
     void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
+    void SetReturnAddress(vaddr_t return_address_) {
+        return_address = return_address_;
+    }
     void SetArg(u32 index, u64 value) {
         ASSERT(index < sizeof_array(args), Kernel, "Invalid argument index {}",
                index);
@@ -25,7 +28,8 @@ class GuestThread : public IThread {
     uptr GetTlsPtr() const override;
 
   protected:
-    vaddr_t entry_point{0};
+    vaddr_t entry_point{invalid<vaddr_t>()};
+    vaddr_t return_address{invalid<vaddr_t>()};
     u64 args[2] = {0};
 
     void Run() override;
