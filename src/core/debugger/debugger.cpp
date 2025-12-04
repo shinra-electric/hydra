@@ -91,15 +91,18 @@ void Debugger::LogOnThisThread(const LogMessage& msg) {
 void Debugger::BreakOnThisThreadImpl(const std::string_view reason) {
     LOG_ERROR(Debugger, "BREAK ({})", reason);
 
+    horizon::kernel::GuestThread* guest_thread;
     {
         GET_THIS_THREAD();
         thread.status = ThreadStatus::Break;
         thread.break_reason = reason;
-        process->SupervisorPause();
-        NotifySupervisorPaused(
-            thread.guest_thread,
-            Signal::SigHup); // TODO: make the signal configurable
+        guest_thread = thread.guest_thread;
     }
+
+    process->SupervisorPause();
+    NotifySupervisorPaused(
+        guest_thread,
+        Signal::SigHup); // TODO: make the signal configurable
 }
 
 StackTrace Debugger::GetStackTrace(Thread& thread) {
