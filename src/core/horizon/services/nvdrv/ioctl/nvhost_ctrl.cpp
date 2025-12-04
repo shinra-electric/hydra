@@ -1,5 +1,6 @@
 #include "core/horizon/services/nvdrv/ioctl/nvhost_ctrl.hpp"
 
+#include "core/horizon/kernel/event.hpp"
 #include "core/horizon/services/settings/nx_settings.hpp"
 
 namespace hydra::horizon::services::nvdrv::ioctl {
@@ -10,6 +11,29 @@ DEFINE_IOCTL_TABLE(NvHostCtrl,
                                             SyncptWaitEventEx, 0x1f,
                                             SyncptAllocEvent, 0x20,
                                             SyncptFreeEvent))
+
+NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
+    u32 slot;
+    u32 syncpoint_id;
+    if (extract_bits<u32, 28, 1>(event_id_u32)) { // New format
+        slot = extract_bits<u32, 0, 16>(event_id_u32);
+        syncpoint_id = extract_bits<u32, 16, 12>(event_id_u32);
+    } else { // Old format
+        slot = extract_bits<u32, 0, 8>(event_id_u32);
+        syncpoint_id = extract_bits<u32, 4, 28>(event_id_u32);
+    }
+
+    if (slot >= EVENT_COUNT) {
+        LOG_WARN(Services, "Invalid event at slot {}", slot);
+        return NvResult::NotSupported; // TODO: NvInternalResult::InvalidInput
+    }
+
+    const auto& event = events[slot];
+    // TODO: check if syncpoint IDs are equal
+
+    out_event = event.event;
+    return NvResult::Success;
+}
 
 NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
                                std::array<char, 0x41> key,
@@ -61,12 +85,23 @@ NvResult NvHostCtrl::SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
 }
 
 NvResult NvHostCtrl::SyncptAllocEvent(u32 slot) {
-    LOG_FUNC_STUBBED(Services);
+    auto& event = events[slot];
+
+    // Check if event is already allocated
+    // TODO: correct?
+    if (event.event)
+        event.event->Release();
+
+    event.event = new kernel::Event(false, fmt::format("NvHostEvent {}", slot));
+
     return NvResult::Success;
 }
 
 NvResult NvHostCtrl::SyncptFreeEvent(u32 slot) {
-    LOG_FUNC_STUBBED(Services);
+    auto& event = events[slot];
+    event.event->Release();
+    event.event = nullptr;
+
     return NvResult::Success;
 }
 

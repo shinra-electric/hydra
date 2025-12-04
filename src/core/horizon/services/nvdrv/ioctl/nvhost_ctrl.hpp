@@ -4,11 +4,21 @@
 
 namespace hydra::horizon::services::nvdrv::ioctl {
 
+struct NvHostEvent {
+    kernel::Event* event{nullptr};
+    // TODO: more
+};
+
 class NvHostCtrl : public FdBase {
   public:
     NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
+    NvResult QueryEvent(u32 event_id_u32, kernel::Event*& out_event) override;
 
   private:
+    constexpr static usize EVENT_COUNT = 64;
+
+    NvHostEvent events[EVENT_COUNT] = {{}};
+
     // Ioctls
     NvResult GetConfig(std::array<char, 0x41> name, std::array<char, 0x41> key,
                        std::array<u8, 0x101>* out_value);
