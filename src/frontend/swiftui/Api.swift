@@ -414,9 +414,12 @@ class HydraFile: Hashable, Identifiable {
 }
 
 class HydraContentArchive: Hashable, Identifiable {
+    private let file: HydraFile  // For ref counting
+
     fileprivate let handle: UnsafeMutableRawPointer
 
     init(file: HydraFile) {
+        self.file = file
         self.handle = hydra_create_content_archive(file.handle)
     }
 
@@ -485,7 +488,10 @@ class HydraLoader: Hashable, Identifiable {
 }
 
 class HydraNcaLoader: HydraLoader {
+    private let contentArchive: HydraContentArchive  // For ref counting
+
     init(contentArchive: HydraContentArchive) {
+        self.contentArchive = contentArchive
         super.init(handle: hydra_create_nca_loader_from_content_archive(contentArchive.handle))
     }
 
