@@ -152,8 +152,8 @@ class Process : public SynchronizationObject {
     std::vector<IThread*> threads;
 
     // Handles
-    StaticPool<AutoObject*, 256>
-        handle_pool; // TODO: what is the max number of handles?
+    StaticPool<AutoObject*, 512>
+        handle_pool; // TODO: get the size from capabilities
 
     std::atomic<ProcessState> state{ProcessState::Created};
 

@@ -30,9 +30,11 @@ class StaticPool : public Pool<StaticPool<T, size>, T, allow_zero_handle> {
             }
         }
 
-        LOG_ERROR(Common, "Free index not found");
+#ifdef HYDRA_DEBUG
+        LOG_FATAL(Common, "Free index not found");
+#endif
 
-        return UINT32_MAX;
+        return invalid<u32>();
     }
 
     void _FreeByIndex(u32 index) { FREE_SLOT(index) |= MASK(index); }
