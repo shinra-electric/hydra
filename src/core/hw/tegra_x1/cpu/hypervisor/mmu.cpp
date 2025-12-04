@@ -136,4 +136,10 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
+void Mmu::SetMemoryAttribute(vaddr_t va, usize size,
+                             horizon::kernel::MemoryAttribute mask,
+                             horizon::kernel::MemoryAttribute value) {
+    user_page_table.SetMemoryAttribute(va, size, mask, value);
+}
+
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

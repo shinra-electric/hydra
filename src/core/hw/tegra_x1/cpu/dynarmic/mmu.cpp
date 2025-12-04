@@ -81,4 +81,18 @@ MemoryRegion Mmu::QueryRegion(vaddr_t va) const {
     };
 }
 
+void Mmu::SetMemoryAttribute(vaddr_t va, usize size,
+                             horizon::kernel::MemoryAttribute mask,
+                             horizon::kernel::MemoryAttribute value) {
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+
+    auto va_page = va / GUEST_PAGE_SIZE;
+    auto size_page = size / GUEST_PAGE_SIZE;
+    auto va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        auto& state = states[page];
+        state.attr = (state.attr & ~mask) | (value & mask);
+    }
+}
+
 } // namespace hydra::hw::tegra_x1::cpu::dynarmic

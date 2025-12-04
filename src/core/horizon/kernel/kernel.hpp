@@ -45,7 +45,8 @@ class Kernel {
     // SVCs
     result_t SetHeapSize(Process* crnt_process, usize size, uptr& out_base);
     result_t SetMemoryPermission(uptr addr, usize size, MemoryPermission perm);
-    result_t SetMemoryAttribute(uptr addr, usize size, u32 mask, u32 value);
+    result_t SetMemoryAttribute(Process* crnt_process, vaddr_t addr, usize size,
+                                MemoryAttribute mask, MemoryAttribute value);
     result_t MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
                        usize size);
     result_t UnmapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,

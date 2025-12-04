@@ -105,6 +105,34 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
     return region;
 }
 
+// TODO: this should subdivide the table if necessary
+void PageTable::SetMemoryAttribute(vaddr_t va, usize size,
+                                   horizon::kernel::MemoryAttribute mask,
+                                   horizon::kernel::MemoryAttribute value) {
+    auto va_page = va / GUEST_PAGE_SIZE;
+    auto size_page = size / GUEST_PAGE_SIZE;
+    auto va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        u32 index = top_level.VaToIndex(page * GUEST_PAGE_SIZE);
+        auto* level = &top_level;
+        u64 entry = top_level.ReadEntry(index);
+        while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+            if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
+                break;
+
+            level = level->GetNextNoNew(index);
+            index = level->VaToIndex(page * GUEST_PAGE_SIZE);
+            entry = level->ReadEntry(index);
+        }
+
+        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
+            continue;
+
+        auto& state = level->GetLevelState(index);
+        state.attr = (state.attr & ~mask) | (value & mask);
+    }
+}
+
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
     const auto region = QueryRegion(va);
     if (region.state.type == horizon::kernel::MemoryType::Free)

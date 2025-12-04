@@ -19,6 +19,9 @@ class Mmu : public IMmu {
 
     uptr UnmapAddr(vaddr_t va) const override;
     MemoryRegion QueryRegion(vaddr_t va) const override;
+    void SetMemoryAttribute(vaddr_t va, usize size,
+                            horizon::kernel::MemoryAttribute mask,
+                            horizon::kernel::MemoryAttribute value) override;
 
     uptr GetPageTablePtr() const { return reinterpret_cast<uptr>(&pages); }
 

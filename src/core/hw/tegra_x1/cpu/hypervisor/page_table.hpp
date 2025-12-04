@@ -38,6 +38,11 @@ struct PageTableLevel {
         table[index] = entry;
     }
 
+    PageTableLevel* GetNextNoNew(u32 index) {
+        ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
+        return next_levels[index];
+    }
+
     const PageTableLevel* GetNextNoNew(u32 index) const {
         ASSERT_DEBUG(level < 2, Hypervisor, "Level 2 is the last level");
         return next_levels[index];
@@ -47,7 +52,11 @@ struct PageTableLevel {
 
     u32 GetBlockShift() const { return GET_BLOCK_SHIFT(level); }
 
-    const horizon::kernel::MemoryState GetLevelState(u32 index) const {
+    horizon::kernel::MemoryState& GetLevelState(u32 index) {
+        return level_states[index];
+    }
+
+    const horizon::kernel::MemoryState& GetLevelState(u32 index) const {
         return level_states[index];
     }
 
@@ -85,6 +94,10 @@ class PageTable {
     void Unmap(vaddr_t va, usize size);
 
     PageRegion QueryRegion(vaddr_t va) const;
+    void SetMemoryAttribute(vaddr_t va, usize size,
+                            horizon::kernel::MemoryAttribute mask,
+                            horizon::kernel::MemoryAttribute value);
+
     paddr_t UnmapAddr(vaddr_t va) const;
 
     paddr_t GetBase() const { return allocator.GetBase(); }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/macros.hpp"
 namespace hydra::horizon::kernel {
 
 constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
@@ -598,6 +599,10 @@ ENABLE_ENUM_FORMATTING(
     "inaccessible", NonSecureIpc, "non secure ipc", NonDeviceIpc,
     "non device ipc", Kernel, "kernel", GeneratedCode, "generated code",
     CodeOut, "code out", Coverage, "coverage", Insecure, "insecure")
+
+ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::kernel::MemoryAttribute, Locked,
+                             "locked", IpcLocked, "IPC locked", DeviceShared,
+                             "device shared", Uncached, "uncached");
 
 ENABLE_ENUM_FLAGS_FORMATTING(hydra::horizon::kernel::MemoryPermission, Read,
                              "read", Write, "write", Execute, "execute",

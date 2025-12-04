@@ -39,9 +39,10 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             state.r[0], state.r[1], static_cast<MemoryPermission>(state.r[2]));
         break;
     case 0x3:
-        state.r[0] = SetMemoryAttribute(state.r[0], state.r[1],
-                                        static_cast<u32>(state.r[2]),
-                                        static_cast<u32>(state.r[3]));
+        state.r[0] =
+            SetMemoryAttribute(crnt_process, state.r[0], state.r[1],
+                               static_cast<MemoryAttribute>(state.r[2]),
+                               static_cast<MemoryAttribute>(state.r[3]));
         break;
     case 0x4:
         state.r[0] =
@@ -386,16 +387,16 @@ result_t Kernel::SetMemoryPermission(uptr addr, usize size,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SetMemoryAttribute(uptr addr, usize size, u32 mask,
-                                    u32 value) {
+result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
+                                    usize size, MemoryAttribute mask,
+                                    MemoryAttribute value) {
     LOG_DEBUG(
         Kernel,
         "SetMemoryAttribute called (addr: 0x{:08x}, size: 0x{:08x}, mask: "
-        "0x{:08x}, value: 0x{:08x})",
+        "{}, value: {})",
         addr, size, mask, value);
 
-    // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    crnt_process->GetMmu()->SetMemoryAttribute(addr, size, mask, value);
 
     return RESULT_SUCCESS;
 }

@@ -32,6 +32,9 @@ class IMmu {
 
     virtual uptr UnmapAddr(vaddr_t va) const = 0;
     virtual MemoryRegion QueryRegion(vaddr_t va) const = 0;
+    virtual void SetMemoryAttribute(vaddr_t va, usize size,
+                                    horizon::kernel::MemoryAttribute mask,
+                                    horizon::kernel::MemoryAttribute value) = 0;
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
     vaddr_t FindFreeMemory(range<vaddr_t> region, usize size) const;
