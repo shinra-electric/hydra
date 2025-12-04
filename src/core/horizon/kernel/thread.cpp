@@ -18,6 +18,8 @@ void IThread::Start() {
     thread = new std::thread([&]() {
         tls_current_thread = this;
 
+        GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName());
+
         // TODO: don't allow null processes
         if (process)
             process->RegisterThread(this);
@@ -28,6 +30,8 @@ void IThread::Start() {
         // Signal exit
         state = ThreadState::Stopped;
         Signal();
+
+        GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
     });
 }
 

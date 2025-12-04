@@ -70,8 +70,7 @@ class Thread {
     friend class Debugger;
 
   public:
-    Thread(const std::string_view name_,
-           horizon::kernel::GuestThread* guest_thread_ = nullptr);
+    Thread(const std::string_view name_);
 
     // API
     void Lock() { msg_mutex.lock(); }
@@ -87,7 +86,7 @@ class Thread {
 
   private:
     std::string name;
-    horizon::kernel::GuestThread* guest_thread;
+    horizon::kernel::GuestThread* guest_thread{nullptr};
 
     ThreadStatus status{ThreadStatus::Running};
     std::string break_reason;
@@ -98,6 +97,9 @@ class Thread {
     usize msg_count{0};
 
     void Log(const Message& msg);
+
+  public:
+    SETTER(guest_thread, SetGuestThread);
 };
 
 struct Symbol {
@@ -139,10 +141,9 @@ class Debugger {
         executables.emplace(name, executable);
     }
 
-    void
-    RegisterThisThread(const std::string_view name,
-                       horizon::kernel::GuestThread* guest_thread = nullptr);
+    void RegisterThisThread(const std::string_view name);
     void UnregisterThisThread();
+    Thread& GetThisThread() { return threads.at(std::this_thread::get_id()); }
 
     template <typename... T>
     void BreakOnThisThread(fmt::format_string<T...> f, T&&... args) {

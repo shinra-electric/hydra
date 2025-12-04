@@ -12,7 +12,7 @@ namespace hydra::horizon::kernel {
 class GuestThread : public IThread {
   public:
     GuestThread(Process* process, vaddr_t stack_top_addr_, i32 priority,
-                const std::string_view debug_name = "Thread");
+                const std::string_view debug_name = "Guest thread");
     ~GuestThread() override;
 
     void SetEntryPoint(vaddr_t entry_point_) { entry_point = entry_point_; }
@@ -25,15 +25,15 @@ class GuestThread : public IThread {
     uptr GetTlsPtr() const override;
 
   protected:
+    vaddr_t entry_point{0};
+    u64 args[2] = {0};
+
     void Run() override;
 
   private:
     hw::tegra_x1::cpu::IMemory* tls_mem;
     vaddr_t tls_addr;
     vaddr_t stack_top_addr;
-
-    vaddr_t entry_point{0};
-    u64 args[2] = {0};
 
     hw::tegra_x1::cpu::IThread* thread{nullptr};
 

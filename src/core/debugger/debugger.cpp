@@ -35,9 +35,7 @@ ResolvedStackFrame StackFrame::Resolve() const {
     }
 }
 
-Thread::Thread(const std::string_view name_,
-               horizon::kernel::GuestThread* guest_thread_)
-    : name{name_}, guest_thread{guest_thread_} {
+Thread::Thread(const std::string_view name_) : name{name_} {
     // TODO: make this configurable
     messages.resize(256);
 }
@@ -56,10 +54,9 @@ Debugger::~Debugger() {
         delete gdb_server;
 }
 
-void Debugger::RegisterThisThread(const std::string_view name,
-                                  horizon::kernel::GuestThread* guest_thread) {
+void Debugger::RegisterThisThread(const std::string_view name) {
     std::unique_lock lock(mutex);
-    threads.try_emplace(std::this_thread::get_id(), name, guest_thread);
+    threads.try_emplace(std::this_thread::get_id(), name);
 }
 
 void Debugger::UnregisterThisThread() {

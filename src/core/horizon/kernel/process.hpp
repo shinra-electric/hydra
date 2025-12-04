@@ -44,11 +44,13 @@ class Process : public SynchronizationObject {
                                 MemoryPermission perm, bool add_guard_page,
                                 vaddr_t& out_base);
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
+    void CreateStackMemory(usize stack_size);
 
     // Thread
-    // TODO: let the caller create the thread
-    std::pair<GuestThread*, handle_id_t>
-    CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
+    handle_id_t SetMainThread(GuestThread* thread) {
+        main_thread = thread;
+        return AddHandle(main_thread);
+    }
 
     void RegisterThread(IThread* thread) {
         std::lock_guard lock(thread_mutex);
