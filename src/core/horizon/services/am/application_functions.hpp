@@ -21,6 +21,7 @@ class IApplicationFunctions : public IService {
 
   private:
     kernel::Event* gpu_error_detect_event;
+    bool game_play_recording_state;
 
     // Commands
     result_t PopLaunchParameter(kernel::Process* process, RequestContext* ctx,
@@ -36,8 +37,9 @@ class IApplicationFunctions : public IService {
     STUB_REQUEST_COMMAND(EndBlockingHomeButton);
     STUB_REQUEST_COMMAND(NotifyRunning);
     result_t GetPseudoDeviceId(u128* out_id);
+    result_t IsGamePlayRecordingSupported(bool* out_enabled);
     STUB_REQUEST_COMMAND(InitializeGamePlayRecording);
-    STUB_REQUEST_COMMAND(SetGamePlayRecordingState);
+    result_t SetGamePlayRecordingState(bool enabled);
     result_t EnableApplicationCrashReport(bool enabled);
     result_t
     GetGpuErrorDetectedSystemEvent(kernel::Process* process,
