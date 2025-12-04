@@ -81,7 +81,10 @@ struct MenuCommands: Commands {
         }
 
         // TODO: don't iterate recursively?
-        guard let enumerator = FileManager.default.enumerator(atPath: firmwarePath) else {
+        guard
+            let enumerator = FileManager.default.enumerator(
+                at: URL(fileURLWithPath: firmwarePath), includingPropertiesForKeys: nil)
+        else {
             // TODO: error popup
             print("Invalid firmware directory \(firmwarePath)")
             return
