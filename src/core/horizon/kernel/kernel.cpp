@@ -264,6 +264,12 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             static_cast<ArbitrationType>(state.r[1]),
             static_cast<u32>(state.r[2]), state.r[3]);
         break;
+    case 0x35:
+        state.r[0] = SignalToAddress(
+            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+            static_cast<SignalType>(state.r[1]), static_cast<u32>(state.r[2]),
+            static_cast<u32>(state.r[3]));
+        break;
     case 0x40: {
         hipc::ServerSession* server_session = nullptr;
         hipc::ClientSession* client_session = nullptr;
@@ -1154,13 +1160,41 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
             res = MAKE_RESULT(Svc, Error::TimedOut);
         }
 
-        // Remove the thread from the arbiter list
+        // Removal is done by the signalling thread
+        /*
         {
             CriticalSectionLock cs_lock;
             arbiters.Remove(crnt_thread);
         }
+        */
 
         return res;
+    }
+
+    return RESULT_SUCCESS;
+}
+
+result_t Kernel::SignalToAddress(IThread* crnt_thread, uptr addr,
+                                 SignalType signal_type, u32 value, u32 count) {
+    LOG_DEBUG(Kernel,
+              "SignalToAddress called (addr: 0x{:08x}, "
+              "signal_type: {}, value: 0x{:08x}, count: {})",
+              addr, signal_type, value, count);
+
+    // TODO: handle other signal types as well
+    if (signal_type != SignalType::Signal)
+        LOG_WARN(Kernel, "Unimplemented signal type {}", signal_type);
+
+    CriticalSectionLock cs_lock;
+    for (auto waiter_node = arbiters.GetHead(); waiter_node != nullptr;) {
+        auto waiter = waiter_node->Get();
+        if (waiter->mutex_wait_addr != addr) {
+            waiter_node = waiter_node->GetNext();
+            continue;
+        }
+
+        waiter->Resume();
+        waiter_node = arbiters.Remove(waiter_node);
     }
 
     return RESULT_SUCCESS;

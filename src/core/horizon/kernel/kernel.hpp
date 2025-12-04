@@ -108,6 +108,8 @@ class Kernel {
     result_t WaitForAddress(IThread* crnt_thread, uptr addr,
                             ArbitrationType arbitration_type, u32 value,
                             u64 timeout);
+    result_t SignalToAddress(IThread* crnt_thread, uptr addr,
+                             SignalType signal_type, u32 value, u32 count);
     result_t CreateSession(bool is_light, u64 name,
                            hipc::ServerSession*& out_server_session,
                            hipc::ClientSession*& out_client_session);

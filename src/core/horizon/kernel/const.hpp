@@ -477,6 +477,12 @@ enum class ArbitrationType {
     WaitIfEqual = 2,
 };
 
+enum class SignalType {
+    Signal = 0,
+    SignalAndIncrementIfEqual = 1,
+    SignalAndModifyBasedOnWaitingThreadCountIfEqual = 2,
+};
+
 enum class AppletMessage {
     None = 0,
     ChangeIntoForeground = 1,
@@ -648,6 +654,12 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::ArbitrationType, WaitIfLessThan,
                        "wait if less than", DecrementAndWaitIfLessThan,
                        "decrement and wait if less than", WaitIfEqual,
                        "wait if equal")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::kernel::SignalType, Signal, "signal",
+                       SignalAndIncrementIfEqual,
+                       "signal and increment if equal",
+                       SignalAndModifyBasedOnWaitingThreadCountIfEqual,
+                       "signal and modify based on waiting thread count")
 
 ENABLE_ENUM_FORMATTING(
     hydra::horizon::kernel::AppletMessage, None, "none", ChangeIntoForeground,
