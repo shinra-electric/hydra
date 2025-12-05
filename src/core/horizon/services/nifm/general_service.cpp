@@ -85,7 +85,7 @@ result_t IGeneralService::GetCurrentNetworkProfile(
                      },
                  .proxy_setting =
                      {
-                         .enabled = 0x1,
+                         .enabled = 0x0,
                          .port = 0x1234,
                          .server = {0x3},
                          .auto_auth_enabled = 0x1,
