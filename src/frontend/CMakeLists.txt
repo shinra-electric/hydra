@@ -82,7 +82,7 @@ endif ()
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
 
 if (MACOS_BUNDLE)
-    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/nx-hbloader/hbl.nsp ${CMAKE_SOURCE_DIR}/res/images/default_avatar_image.png ${CMAKE_SOURCE_DIR}/res/lldb/.lldbinit ${CMAKE_SOURCE_DIR}/res/lldb/commands.py)
+    set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/hydra.icns ${CMAKE_SOURCE_DIR}/res/images/default_avatar_image.png ${CMAKE_SOURCE_DIR}/res/lldb/.lldbinit ${CMAKE_SOURCE_DIR}/res/lldb/commands.py)
     target_sources(hydra PRIVATE ${RESOURCE_FILES})
     set_target_properties(hydra PROPERTIES
         RESOURCE "${RESOURCE_FILES}"
