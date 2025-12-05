@@ -1,6 +1,7 @@
 #include "core/horizon/loader/homebrew_loader.hpp"
 
 #include "core/debugger/debugger_manager.hpp"
+#include "core/horizon/const.hpp"
 #include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
@@ -53,19 +54,25 @@ class HomebrewThread : public kernel::GuestThread {
 
   protected:
     void Run() override {
+        // Process handle
+        const auto self_process_handle = process->AddHandleNoRetain(process);
+
         // State
         static constexpr char NOTICE_TEXT[] = "Hydra Nintendo Switch emulator";
 
         static constexpr usize NOTICE_TEXT_SIZE = 0x100;
-        static constexpr usize RETURN_ADDRESS_SIZE = 0x4;
+        static constexpr usize RETURN_ADDRESS_SIZE = sizeof(u32);
+        static constexpr usize USER_ID_STORAGE_SIZE = sizeof(u128);
         static constexpr usize ARGV_SIZE = 0x800;
         static constexpr usize NEXT_LOAD_PATH_SIZE = 0x200;
 
         static constexpr u32 NOTICE_TEXT_OFFSET = 0x0;
         static constexpr u32 RETURN_ADDRESS_OFFSET =
             NOTICE_TEXT_OFFSET + NOTICE_TEXT_SIZE;
-        static constexpr u32 ARGV_OFFSET =
+        static constexpr u32 USER_ID_STORAGE_OFFSET =
             RETURN_ADDRESS_OFFSET + RETURN_ADDRESS_SIZE;
+        static constexpr u32 ARGV_OFFSET =
+            USER_ID_STORAGE_OFFSET + USER_ID_STORAGE_SIZE;
         static constexpr u32 NEXT_LOAD_PATH_OFFSET = ARGV_OFFSET + ARGV_SIZE;
         static constexpr u32 NEXT_ARGV_OFFSET =
             NEXT_LOAD_PATH_OFFSET + ARGV_SIZE;
@@ -80,7 +87,7 @@ class HomebrewThread : public kernel::GuestThread {
 
         // Notice text
         {
-            char* notice_ptr =
+            auto notice_ptr =
                 reinterpret_cast<char*>(state_ptr + NOTICE_TEXT_OFFSET);
             memcpy(notice_ptr, NOTICE_TEXT, sizeof(NOTICE_TEXT));
         }
@@ -89,13 +96,20 @@ class HomebrewThread : public kernel::GuestThread {
         *reinterpret_cast<u32*>(state_ptr + RETURN_ADDRESS_OFFSET) =
             0xd4000141; // svc 0x0a (svcExitThread)
 
+        // User ID storage
+        {
+            auto user_id_ptr =
+                reinterpret_cast<u128*>(state_ptr + USER_ID_STORAGE_OFFSET);
+            *user_id_ptr = CONFIG_INSTANCE.GetUserID();
+        }
+
         // Argv
         {
             std::string argv = fmt::format("\"{}\"", path);
             for (const auto& arg : CONFIG_INSTANCE.GetProcessArgs().Get())
                 argv += fmt::format(" \"{}\"", arg);
 
-            char* argv_ptr = reinterpret_cast<char*>(state_ptr + ARGV_OFFSET);
+            auto argv_ptr = reinterpret_cast<char*>(state_ptr + ARGV_OFFSET);
             memcpy(argv_ptr, argv.data(), argv.size());
             argv_ptr[argv.size()] = '\0';
         }
@@ -136,7 +150,7 @@ class HomebrewThread : public kernel::GuestThread {
                     executable_ptr + config_offset);
 
                 ADD_ENTRY_OPTIONAL(MainThreadHandle, self_handle, 0);
-                // TODO: process handle
+                ADD_ENTRY_OPTIONAL(ProcessHandle, self_process_handle, 0);
                 ADD_ENTRY_OPTIONAL(
                     AppletType,
                     static_cast<u64>(kernel::AppletType::Application), 0);
@@ -152,8 +166,13 @@ class HomebrewThread : public kernel::GuestThread {
                 ADD_ENTRY_OPTIONAL(SyscallAvailableHint2,
                                    std::numeric_limits<u64>::max(), 0);
                 // TODO: random seed
-                // TODO: user ID storage
-                // TODO: HOS version
+                ADD_ENTRY_OPTIONAL(UserIdStorage,
+                                   state_base + USER_ID_STORAGE_OFFSET, 0);
+                ADD_ENTRY_OPTIONAL(HosVersion,
+                                   BIT(31) | (FIRMWARE_VERSION.major << 16) |
+                                       (FIRMWARE_VERSION.minor << 8) |
+                                       FIRMWARE_VERSION.micro,
+                                   0x41544d4f53504852ul); // "ATMOSPHR"
                 ADD_ENTRY_OPTIONAL(EndOfList, state_base + NOTICE_TEXT_OFFSET,
                                    sizeof(NOTICE_TEXT));
 
