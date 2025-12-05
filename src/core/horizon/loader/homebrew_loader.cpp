@@ -1,5 +1,7 @@
 #include "core/horizon/loader/homebrew_loader.hpp"
 
+#include <random>
+
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/const.hpp"
 #include "core/horizon/filesystem/file_view.hpp"
@@ -58,7 +60,8 @@ class HomebrewThread : public kernel::GuestThread {
         const auto self_process_handle = process->AddHandleNoRetain(process);
 
         // State
-        static constexpr char NOTICE_TEXT[] = "Hydra Nintendo Switch emulator";
+        static constexpr char NOTICE_TEXT[] =
+            "Hydra Nintendo Switch emulator - Homebrew loader";
 
         static constexpr usize NOTICE_TEXT_SIZE = 0x100;
         static constexpr usize RETURN_ADDRESS_SIZE = sizeof(u32);
@@ -130,6 +133,10 @@ class HomebrewThread : public kernel::GuestThread {
                 nro_loader.LoadProcess(process);
                 const auto executable_ptr = nro_loader.GetExecutablePtr();
 
+                // Random
+                std::random_device rd;
+                std::mt19937_64 gen(rd());
+
                 // Config
                 const uptr config_offset = nro_loader.GetExecutableSize();
 
@@ -165,7 +172,7 @@ class HomebrewThread : public kernel::GuestThread {
                                    std::numeric_limits<u64>::max());
                 ADD_ENTRY_OPTIONAL(SyscallAvailableHint2,
                                    std::numeric_limits<u64>::max(), 0);
-                // TODO: random seed
+                ADD_ENTRY_OPTIONAL(RandomSeed, gen(), gen());
                 ADD_ENTRY_OPTIONAL(UserIdStorage,
                                    state_base + USER_ID_STORAGE_OFFSET, 0);
                 ADD_ENTRY_OPTIONAL(HosVersion,

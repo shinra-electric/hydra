@@ -1,5 +1,7 @@
 #include "core/horizon/kernel/process.hpp"
 
+#include <random>
+
 #include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
@@ -14,6 +16,12 @@ Process::Process(const std::string_view debug_name)
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
         this,
         /*fmt::format("{:016x}", title_id)*/ GetDebugName());
+
+    // Random entropy
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    for (auto& random_e : random_entropy)
+        random_e = gen();
 }
 
 Process::~Process() {
