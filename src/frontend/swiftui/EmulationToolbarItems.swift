@@ -28,6 +28,9 @@ struct EmulationToolbarItems: ToolbarContent {
                     isRunning = emulationState.emulationContext!.isRunning()
                 }
             }
+        #else
+            // TODO: options
+            ToolbarItemGroup(placement: .principal) {}
         #endif
     }
 
