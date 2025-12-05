@@ -239,20 +239,16 @@ void Thread::Run() {
                 break;
             }
             default:
-                LOG_ERROR(Hypervisor,
-                          "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
-                          "0x{:08x}, PC: 0x{:08x}, "
-                          "VA: "
-                          "0x{:08x}, PA: 0x{:08x}, "
-                          "instruction: "
-                          "0x{:08x})",
-                          syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1),
-                          state.pc, exit->exception.virtual_address,
-                          exit->exception.physical_address,
-                          MMU.Read<u32>(state.pc));
-
                 GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
-                    "unexpected VM exception");
+                    "Unexpected VM exception 0x{:08x} (EC: {}, ESR: "
+                    "0x{:08x}, PC: 0x{:08x}, "
+                    "VA: "
+                    "0x{:08x}, PA: 0x{:08x}, "
+                    "instruction: "
+                    "0x{:08x})",
+                    syndrome, hv_ec, GetSysReg(HV_SYS_REG_ESR_EL1), state.pc,
+                    exit->exception.virtual_address,
+                    exit->exception.physical_address, MMU.Read<u32>(state.pc));
                 break;
             }
         } else if (exit->reason == HV_EXIT_REASON_VTIMER_ACTIVATED) {

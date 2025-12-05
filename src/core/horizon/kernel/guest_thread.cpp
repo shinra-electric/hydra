@@ -20,8 +20,8 @@ GuestThread::~GuestThread() { delete tls_mem; }
 uptr GuestThread::GetTlsPtr() const { return tls_mem->GetPtr(); }
 
 void GuestThread::Run() {
-    ASSERT(entry_point != 0x0, Kernel, "Invalid entry point");
-
+    // Create
+    ASSERT(entry_point != invalid<vaddr_t>(), Kernel, "Invalid entry point");
     thread = CPU_INSTANCE.CreateThread(
         process->GetMmu(),
         {[this](hw::tegra_x1::cpu::IThread* thread, u64 id) {
@@ -41,16 +41,20 @@ void GuestThread::Run() {
          }},
         tls_mem, tls_addr);
 
+    // Initialize state
     auto& state = thread->GetState();
     state.pc = entry_point;
     state.sp = stack_top_addr;
+    state.lr = return_address;
     for (u32 i = 0; i < sizeof_array(args); i++)
         state.r[i] = args[i];
 
-    GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread(GetDebugName(), this);
+    // Run
+    GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(this);
     thread->Run();
-    GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
+    GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(nullptr);
 
+    // Cleanup
     delete thread;
     thread = nullptr;
 }

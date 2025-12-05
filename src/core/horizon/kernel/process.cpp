@@ -1,5 +1,7 @@
 #include "core/horizon/kernel/process.hpp"
 
+#include <random>
+
 #include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
@@ -14,6 +16,12 @@ Process::Process(const std::string_view debug_name)
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
         this,
         /*fmt::format("{:016x}", title_id)*/ GetDebugName());
+
+    // Random entropy
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    for (auto& random_e : random_entropy)
+        random_e = gen();
 }
 
 Process::~Process() {
@@ -61,20 +69,14 @@ hw::tegra_x1::cpu::IMemory* Process::CreateTlsMemory(vaddr_t& base) {
     return mem;
 }
 
-std::pair<GuestThread*, handle_id_t>
-Process::CreateMainThread(u8 priority, u8 core_number, u32 stack_size) {
-    // Thread
-    main_thread =
-        new GuestThread(this, STACK_REGION.begin + stack_size - 0x10, priority);
-    auto handle_id = AddHandle(main_thread);
+void Process::CreateStackMemory(usize stack_size) {
+    // main_thread = new GuestThread(this, STACK_REGION.begin + stack_size -
+    // 0x10, priority); auto handle_id = AddHandle(main_thread);
 
-    // Stack memory
     main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
     mmu->Map(STACK_REGION.begin, main_thread_stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
-
-    return {main_thread, handle_id};
 }
 
 void Process::Start() {

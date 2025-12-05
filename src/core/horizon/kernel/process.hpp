@@ -44,11 +44,13 @@ class Process : public SynchronizationObject {
                                 MemoryPermission perm, bool add_guard_page,
                                 vaddr_t& out_base);
     hw::tegra_x1::cpu::IMemory* CreateTlsMemory(vaddr_t& base);
+    void CreateStackMemory(usize stack_size);
 
     // Thread
-    // TODO: let the caller create the thread
-    std::pair<GuestThread*, handle_id_t>
-    CreateMainThread(u8 priority, u8 core_number, u32 stack_size);
+    handle_id_t SetMainThread(GuestThread* thread) {
+        main_thread = thread;
+        return AddHandle(main_thread);
+    }
 
     void RegisterThread(IThread* thread) {
         std::lock_guard lock(thread_mutex);
@@ -139,6 +141,9 @@ class Process : public SynchronizationObject {
     u64 title_id{invalid<u64>()};
     u32 system_resource_size{invalid<u32>()};
 
+    // Random entropy
+    std::array<u64, 4> random_entropy;
+
     // Memory
     hw::tegra_x1::cpu::IMemory* heap_mem{nullptr};
     std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
@@ -165,10 +170,11 @@ class Process : public SynchronizationObject {
     GETTER(mmu, GetMmu);
     GETTER(gmmu, GetGMmu);
     REF_GETTER(applet_state, GetAppletState);
-    REF_GETTER(heap_mem, GetHeapMemory);
     GETTER_AND_SETTER(title_id, GetTitleID, SetTitleID);
     GETTER_AND_SETTER(system_resource_size, GetSystemResourceSize,
                       SetSystemResourceSize);
+    CONST_REF_GETTER(random_entropy, GetRandomEntropy);
+    REF_GETTER(heap_mem, GetHeapMemory);
     GETTER(main_thread, GetMainThread);
 };
 

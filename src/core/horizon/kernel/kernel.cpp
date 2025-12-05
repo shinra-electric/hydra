@@ -1003,9 +1003,9 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = true;
         return RESULT_SUCCESS;
     case InfoType::RandomEntropy:
-        // TODO: correct?
-        // TODO: subtype 0-3
-        out_info = rand();
+        ASSERT_DEBUG(info_sub_type < crnt_process->GetRandomEntropy().size(),
+                     Kernel, "Invalid random entropy index {}", info_sub_type);
+        out_info = crnt_process->GetRandomEntropy()[info_sub_type];
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
         out_info = ADDRESS_SPACE.begin;
