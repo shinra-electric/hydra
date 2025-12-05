@@ -177,10 +177,17 @@ class HomebrewThread : public kernel::GuestThread {
             if (path.empty())
                 break;
 
+            memset(reinterpret_cast<void*>(state_ptr + NEXT_LOAD_PATH_OFFSET),
+                   0, NEXT_LOAD_PATH_SIZE);
+
             // Copy argv
             memcpy(reinterpret_cast<void*>(state_ptr + ARGV_OFFSET),
                    reinterpret_cast<void*>(state_ptr + NEXT_ARGV_OFFSET),
                    ARGV_SIZE);
+
+            // HACK: since the program exited by calling svcExitThread, we need
+            // to reset the thread
+            Reset();
         }
     }
 

@@ -104,6 +104,18 @@ class IThread : public SynchronizationObject {
 
     virtual void Run() = 0;
 
+    // Helpers
+    void Reset() {
+        state = ThreadState::Created;
+        msg_queue = {};
+        mutex_wait_addr = 0x0;
+        cond_var_wait_addr = 0x0;
+        cond_var_wait_addr = 0x0;
+        mutex_wait_list.Clear();
+        supervisor_pause = false;
+        guest_pause = false;
+    }
+
   private:
     i32 priority;
 
