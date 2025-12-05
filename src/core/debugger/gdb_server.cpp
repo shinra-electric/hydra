@@ -279,8 +279,16 @@ GdbServer::~GdbServer() {
 
 void GdbServer::NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                        Signal signal) {
-    // TODO: don't send packets from other threads
-    SendPacket(GetThreadStatus(thread, signal));
+    std::lock_guard<std::mutex> lock(mutex);
+    NotifySupervisorPausedImpl(thread, signal);
+}
+
+void GdbServer::RegisterThread(Thread& thread) {
+    if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+        std::lock_guard<std::mutex> lock(mutex);
+        for (const auto addr : breakpoint_addresses)
+            thread.guest_thread->GetThread()->InsertBreakpoint(addr);
+    }
 }
 
 void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
@@ -288,11 +296,14 @@ void GdbServer::BreakpointHit(horizon::kernel::GuestThread* thread) {
         thread->ProcessMessages();
 
     // We got the lock
-    breakpoint_thread = thread;
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        breakpoint_thread = thread;
 
-    debugger.process->SupervisorPause();
+        debugger.process->SupervisorPause();
 
-    NotifySupervisorPaused(thread, Signal::SigTrap);
+        NotifySupervisorPausedImpl(thread, Signal::SigTrap);
+    }
 }
 
 void GdbServer::CloseClientSocket() {
@@ -459,7 +470,7 @@ void GdbServer::HandleVCont(std::string_view command) {
         thread->GetThread()->SingleStep();
         if (CPU_INSTANCE.GetFeatures().supports_synchronous_single_step) {
             // Single-stepping already finished
-            NotifySupervisorPaused(thread, Signal::SigTrap);
+            NotifySupervisorPausedImpl(thread, Signal::SigTrap);
         } else {
             // Resume the thread for asynchronous single-stepping
             thread->SupervisorResume();
@@ -584,6 +595,7 @@ void GdbServer::HandleInsertBreakpoint(std::string_view command) {
                      "Invalid software breakpoint size 0x{:x}", size);
 
         if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+            breakpoint_addresses.push_back(addr);
             for (const auto& [_, thread] : debugger.threads)
                 thread.guest_thread->GetThread()->InsertBreakpoint(addr);
         } else {
@@ -617,6 +629,9 @@ void GdbServer::HandleRemoveBreakpoint(std::string_view command) {
                      "Invalid software breakpoint size 0x{:x}", size);
 
         if (CPU_INSTANCE.GetFeatures().supports_native_breakpoints) {
+            breakpoint_addresses.erase(std::find(breakpoint_addresses.begin(),
+                                                 breakpoint_addresses.end(),
+                                                 addr));
             for (const auto& [_, thread] : debugger.threads)
                 thread.guest_thread->GetThread()->RemoveBreakpoint(addr);
         } else {
@@ -773,6 +788,11 @@ std::string GdbServer::PageFromBuffer(std::string_view buffer,
         return fmt::format("m{}", buffer.substr(offset, size));
     else
         return fmt::format("l{}", buffer.substr(offset));
+}
+
+void GdbServer::NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
+                                           Signal signal) {
+    SendPacket(GetThreadStatus(thread, signal));
 }
 
 void GdbServer::NotifyMemoryChanged(range<vaddr_t> mem_range) {

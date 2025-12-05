@@ -56,12 +56,27 @@ Debugger::~Debugger() {
 
 void Debugger::RegisterThisThread(const std::string_view name) {
     std::unique_lock lock(mutex);
-    threads.try_emplace(std::this_thread::get_id(), name);
+    ASSERT(threads.try_emplace(std::this_thread::get_id(), name).second,
+           Debugger, "Failed to register thread");
 }
 
 void Debugger::UnregisterThisThread() {
     GET_THIS_THREAD();
     threads.erase(it);
+}
+
+void Debugger::RegisterGuestThreadForThisThread(
+    horizon::kernel::GuestThread* guest_thread) {
+    GET_THIS_THREAD();
+    thread.guest_thread = guest_thread;
+
+    if (gdb_server)
+        gdb_server->RegisterThread(thread);
+}
+
+void Debugger::UnregisterGuestThreadForThisThread() {
+    GET_THIS_THREAD();
+    thread.guest_thread = nullptr;
 }
 
 void Debugger::ActivateGdbServer() { gdb_server = new GdbServer(*this); }

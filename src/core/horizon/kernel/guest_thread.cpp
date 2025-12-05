@@ -50,9 +50,9 @@ void GuestThread::Run() {
         state.r[i] = args[i];
 
     // Run
-    GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(this);
+    GET_CURRENT_PROCESS_DEBUGGER().RegisterGuestThreadForThisThread(this);
     thread->Run();
-    GET_CURRENT_PROCESS_DEBUGGER().GetThisThread().SetGuestThread(nullptr);
+    GET_CURRENT_PROCESS_DEBUGGER().UnregisterGuestThreadForThisThread();
 
     // Cleanup
     delete thread;

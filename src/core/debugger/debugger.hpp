@@ -143,7 +143,9 @@ class Debugger {
 
     void RegisterThisThread(const std::string_view name);
     void UnregisterThisThread();
-    Thread& GetThisThread() { return threads.at(std::this_thread::get_id()); }
+    void RegisterGuestThreadForThisThread(
+        horizon::kernel::GuestThread* guest_thread);
+    void UnregisterGuestThreadForThisThread();
 
     template <typename... T>
     void BreakOnThisThread(fmt::format_string<T...> f, T&&... args) {

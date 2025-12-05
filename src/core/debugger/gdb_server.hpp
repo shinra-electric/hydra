@@ -8,6 +8,7 @@ class GuestThread;
 
 namespace hydra::debugger {
 
+class Thread;
 class Debugger;
 
 class GdbServer {
@@ -15,12 +16,16 @@ class GdbServer {
     GdbServer(Debugger& debugger_);
     ~GdbServer();
 
+    void RegisterThread(Thread& thread);
+
     void NotifySupervisorPaused(horizon::kernel::GuestThread* thread,
                                 Signal signal);
     void BreakpointHit(horizon::kernel::GuestThread* thread);
 
   private:
     Debugger& debugger;
+
+    std::mutex mutex;
 
     i32 server_socket;
     i32 client_socket{-1};
@@ -30,6 +35,7 @@ class GdbServer {
     bool do_ack{true};
 
     horizon::kernel::GuestThread* crnt_thread;
+    std::vector<vaddr_t> breakpoint_addresses;
     std::map<vaddr_t, u32> replaced_instructions;
     std::atomic<bool> breakpoint_hit{false};
     horizon::kernel::GuestThread* breakpoint_thread{nullptr};
@@ -65,6 +71,8 @@ class GdbServer {
                                 Signal signal);
     std::string PageFromBuffer(std::string_view buffer, std::string_view page);
 
+    void NotifySupervisorPausedImpl(horizon::kernel::GuestThread* thread,
+                                    Signal signal);
     void NotifyMemoryChanged(range<vaddr_t> mem_range);
 };
 
