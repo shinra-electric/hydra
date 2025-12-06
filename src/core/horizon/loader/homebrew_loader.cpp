@@ -118,7 +118,8 @@ class HomebrewThread : public kernel::GuestThread {
         }
 
         while (true) {
-            LOG_INFO(Loader, "Running Homebrew: {}", path);
+            LOG_INFO(Loader, "Running Homebrew: {} (argv: {})", path,
+                     reinterpret_cast<const char*>(state_ptr + ARGV_OFFSET));
 
             // File
             filesystem::FileBase* file;
@@ -241,7 +242,8 @@ void HomebrewLoader::LoadProcess(kernel::Process* process) {
     auto reader = stream.CreateReader();
 
     const auto nacp = reader.Read<services::ns::ApplicationControlProperty>();
-    const auto& title_name = nacp.GetApplicationTitle().name;
+    std::string title_name = nacp.GetApplicationTitle().name;
+    std::replace(title_name.begin(), title_name.end(), ' ', '_');
 
     nacp_file->Close(stream);
 
