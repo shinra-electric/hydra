@@ -146,12 +146,13 @@ void MslEmitter::EmitDeclarations() {
         break;
     case ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-            const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == TextureFormat::Invalid)
+            const auto color_target_data_type =
+                state.color_target_data_types[i];
+            if (color_target_data_type == ColorDataType::Invalid)
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("vec<{}, 4> {} {};", to_data_type(color_target_format),
+            Write("vec<{}, 4> {} {};", to_data_type(color_target_data_type),
                   GetSvStr(sv), GetSvQualifierStr(sv, true));
         }
         break;

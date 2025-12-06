@@ -276,8 +276,9 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
         break;
     case ShaderType::Fragment:
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
-            const auto color_target_format = state.color_target_formats[i];
-            if (color_target_format == TextureFormat::Invalid)
+            const auto color_target_data_type =
+                state.color_target_data_types[i];
+            if (color_target_data_type == ColorDataType::Invalid)
                 continue;
 
             for (u32 c = 0; c < 4; c++) {
@@ -285,7 +286,7 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
                     "{} = as_type<{}>({})",
                     GetSvAccessQualifiedStr(
                         SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
-                    to_data_type(color_target_format),
+                    to_data_type(color_target_data_type),
                     GetRegisterStr(i * 4 + c));
             }
         }

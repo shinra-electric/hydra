@@ -36,14 +36,22 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
                 descriptor.state.vertex_attrib_states[i];
             hash += vertex_attrib_state.is_fixed;
             hash = std::rotl(hash, 1);
-            hash += static_cast<u32>(vertex_attrib_state.size);
+            hash += static_cast<u64>(vertex_attrib_state.size);
             hash = std::rotl(hash, 6);
-            hash += static_cast<u32>(vertex_attrib_state.type);
+            hash += static_cast<u64>(vertex_attrib_state.type);
             hash = std::rotl(hash, 3);
         }
     }
 
-    // TODO: color target data types
+    // Color target data types
+    if (descriptor.stage == engines::ShaderStage::Fragment) {
+        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+            const auto color_target_data_type =
+                descriptor.state.color_target_data_types[i];
+            hash += static_cast<u64>(color_target_data_type);
+            hash = std::rotl(hash, 3);
+        }
+    }
 
     return hash;
 }

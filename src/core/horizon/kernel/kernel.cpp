@@ -522,8 +522,9 @@ result_t Kernel::SetThreadPriority(IThread* thread, i32 priority) {
 
 result_t Kernel::GetThreadCoreMask(IThread* thread, i32& out_core_mask0,
                                    u64& out_core_mask1) {
+    // HACK: for botw
     LOG_DEBUG(Kernel, "GetThreadCoreMask called (thread: {})",
-              thread->GetDebugName());
+              thread ? thread->GetDebugName() : "null");
 
     // TODO: implement
     LOG_FUNC_STUBBED(Kernel);

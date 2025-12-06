@@ -448,6 +448,71 @@ bool is_texture_format_depth_or_stencil(const TextureFormat format) {
     }
 }
 
+ColorDataType to_color_data_type(ColorSurfaceFormat format) {
+    switch (format) {
+    case ColorSurfaceFormat::RGBA32Float:
+    case ColorSurfaceFormat::RGBX32Float:
+    case ColorSurfaceFormat::RGBA16Unorm:
+    case ColorSurfaceFormat::RGBA16Snorm:
+    case ColorSurfaceFormat::RGBA16Float:
+    case ColorSurfaceFormat::RG32Float:
+    case ColorSurfaceFormat::RGBX16Float:
+    case ColorSurfaceFormat::BGRA8Unorm:
+    case ColorSurfaceFormat::BGRA8Unorm_sRGB:
+    case ColorSurfaceFormat::RGB10A2Unorm:
+    case ColorSurfaceFormat::RGBA8Unorm:
+    case ColorSurfaceFormat::RGBA8Unorm_sRGB:
+    case ColorSurfaceFormat::RGBA8Snorm:
+    case ColorSurfaceFormat::RG16Unorm:
+    case ColorSurfaceFormat::RG16Snorm:
+    case ColorSurfaceFormat::RG16Float:
+    case ColorSurfaceFormat::BGR10A2Unorm:
+    case ColorSurfaceFormat::RG11B10Float:
+    case ColorSurfaceFormat::R32Float:
+    case ColorSurfaceFormat::BGRX8Unorm:
+    case ColorSurfaceFormat::BGRX8Unorm_sRGB:
+    case ColorSurfaceFormat::B5G6R5Unorm:
+    case ColorSurfaceFormat::BGR5A1Unorm:
+    case ColorSurfaceFormat::RG8Unorm:
+    case ColorSurfaceFormat::RG8Snorm:
+    case ColorSurfaceFormat::R16Unorm:
+    case ColorSurfaceFormat::R16Snorm:
+    case ColorSurfaceFormat::R16Float:
+    case ColorSurfaceFormat::R8Unorm:
+    case ColorSurfaceFormat::R8Snorm:
+    case ColorSurfaceFormat::A8Unorm:
+    case ColorSurfaceFormat::BGR5X1Unorm:
+    case ColorSurfaceFormat::RGBX8Unorm:
+    case ColorSurfaceFormat::RGBX8Unorm_sRGB:
+        return ColorDataType::Float;
+    case ColorSurfaceFormat::RGBA32Sint:
+    case ColorSurfaceFormat::RGBX32Sint:
+    case ColorSurfaceFormat::RGBA16Sint:
+    case ColorSurfaceFormat::RG32Sint:
+    case ColorSurfaceFormat::RGBA8Sint:
+    case ColorSurfaceFormat::RG16Sint:
+    case ColorSurfaceFormat::R32Sint:
+    case ColorSurfaceFormat::RG8Sint:
+    case ColorSurfaceFormat::R16Sint:
+    case ColorSurfaceFormat::R8Sint:
+        return ColorDataType::Int;
+    case ColorSurfaceFormat::RGBA32Uint:
+    case ColorSurfaceFormat::RGBX32Uint:
+    case ColorSurfaceFormat::RGBA16Uint:
+    case ColorSurfaceFormat::RG32Uint:
+    case ColorSurfaceFormat::RGB10A2Uint:
+    case ColorSurfaceFormat::RGBA8Uint:
+    case ColorSurfaceFormat::RG16Uint:
+    case ColorSurfaceFormat::R32Uint:
+    case ColorSurfaceFormat::RG8Uint:
+    case ColorSurfaceFormat::R16Uint:
+    case ColorSurfaceFormat::R8Uint:
+        return ColorDataType::UInt;
+    default:
+        return ColorDataType::Invalid;
+    }
+}
+
 // TODO: check the logic of this
 SwizzleChannels::SwizzleChannels(const TextureFormat format,
                                  const ImageSwizzle x, const ImageSwizzle y,

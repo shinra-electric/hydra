@@ -39,9 +39,17 @@ enum class DataType {
 
 DataType to_data_type(engines::VertexAttribType vertex_attrib_type);
 
-inline DataType to_data_type(TextureFormat format) {
-    // TODO: implement
-    return DataType::F32;
+inline DataType to_data_type(ColorDataType color_data_type) {
+    switch (color_data_type) {
+    case ColorDataType::Float:
+        return DataType::F32;
+    case ColorDataType::Int:
+        return DataType::I32;
+    case ColorDataType::UInt:
+        return DataType::U32;
+    default:
+        unreachable();
+    }
 }
 
 struct AMem {

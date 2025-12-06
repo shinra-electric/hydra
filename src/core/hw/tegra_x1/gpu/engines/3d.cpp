@@ -569,8 +569,8 @@ renderer::ShaderBase* ThreeD::GetShader(GMmu& gmmu, ShaderStage stage) {
         if (addr == 0x0)
             continue;
 
-        descriptor.state.color_target_formats[i] =
-            renderer::to_texture_format(regs.color_targets[i].format);
+        descriptor.state.color_target_data_types[i] =
+            renderer::to_color_data_type(regs.color_targets[i].format);
     }
 
     auto& active_shader = active_shaders[u32(to_renderer_shader_type(stage))];

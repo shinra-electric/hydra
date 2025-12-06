@@ -9,8 +9,8 @@ class ShaderBase;
 
 struct GuestShaderState {
     engines::VertexAttribState vertex_attrib_states[VERTEX_ATTRIB_COUNT];
-    TextureFormat color_target_formats[COLOR_TARGET_COUNT] = {
-        TextureFormat::Invalid};
+    ColorDataType color_target_data_types[COLOR_TARGET_COUNT] = {
+        ColorDataType::Invalid};
 };
 
 struct GuestShaderDescriptor {
