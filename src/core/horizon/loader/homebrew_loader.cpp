@@ -236,11 +236,20 @@ HomebrewLoader::HomebrewLoader(filesystem::FileBase* file_)
 }
 
 void HomebrewLoader::LoadProcess(kernel::Process* process) {
+    // Get name
+    auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
+    auto reader = stream.CreateReader();
+
+    const auto nacp = reader.Read<services::ns::ApplicationControlProperty>();
+    const auto& title_name = nacp.GetApplicationTitle().name;
+
+    nacp_file->Close(stream);
+
     // Map file
-    // TODO: use the actual app name?
-    std::string mapped_path = FS_SD_MOUNT "/entry.nro";
+    std::string mapped_path =
+        fmt::format(FS_SD_MOUNT "/switch/{}/{}.nro", title_name, title_name);
     const auto res =
-        KERNEL_INSTANCE.GetFilesystem().AddEntry(mapped_path, file);
+        KERNEL_INSTANCE.GetFilesystem().AddEntry(mapped_path, file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to map Homebrew file: {}", res);
 
