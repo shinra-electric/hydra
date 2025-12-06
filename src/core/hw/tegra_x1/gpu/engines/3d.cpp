@@ -445,9 +445,9 @@ renderer::RenderPassBase* ThreeD::GetRenderPass(GMmu& gmmu) const {
 
     // Color targets
     for (u32 i = 0; i < regs.color_target_control.count; i++) {
-        // TODO: use map0...7 for swizzling?
         descriptor.color_targets[i] = {
-            .texture = GetColorTargetTexture(gmmu, i),
+            .texture = GetColorTargetTexture(
+                gmmu, regs.color_target_control.GetMap(i)),
         };
     }
 

@@ -351,14 +351,9 @@ struct Regs3D {
     // 0x487 color target control
     struct {
         u32 count : 4;
-        u32 map0 : 3;
-        u32 map1 : 3;
-        u32 map2 : 3;
-        u32 map3 : 3;
-        u32 map4 : 3;
-        u32 map5 : 3;
-        u32 map6 : 3;
-        u32 map7 : 3;
+        u32 maps : 24;
+
+        u32 GetMap(u32 index) const { return (maps >> (index * 3)) & 0x7; }
     } color_target_control;
 
     u32 padding_0x488[0x2];
