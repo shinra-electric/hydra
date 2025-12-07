@@ -644,10 +644,14 @@ SwizzleChannels::SwizzleChannels(const TextureFormat format,
     case TextureFormat::PTA_ETC2_RGB_sRGB:
     case TextureFormat::ETC2_RGBA:
     case TextureFormat::ETC2_RGBA_sRGB:
-        SWIZZLE(x, y, z, w);
+    // TODO: depth stencil correct?
+    case TextureFormat::S8Uint:
+    case TextureFormat::Z16Unorm:
+    case TextureFormat::Z24Unorm_X8Uint:
     case TextureFormat::Z32Float:
-        SWIZZLE(x, ImageSwizzle::Zero, ImageSwizzle::Zero,
-                ImageSwizzle::OneFloat);
+    case TextureFormat::Z24Unorm_S8Uint:
+    case TextureFormat::Z32Float_X24S8Uint:
+        SWIZZLE(x, y, z, w);
     case TextureFormat::BGR5A1Unorm:
     case TextureFormat::BGRA8Unorm:
     case TextureFormat::BGRA8Unorm_sRGB:

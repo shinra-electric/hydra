@@ -1323,7 +1323,8 @@ void Decoder::ParseNextInstruction() {
                 unreachable();
             }
             srcA_v = BUILDER.OpMultiply(
-                srcA_v, ir::Value::Immediate(scale, DataType::F32));
+                srcA_v,
+                ir::Value::Immediate(std::bit_cast<u32>(scale), DataType::F32));
         }
 
         auto res = BUILDER.OpMultiply(srcA_v,
