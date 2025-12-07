@@ -4,9 +4,9 @@ namespace hydra::hw::tegra_x1::gpu {
 
 namespace {
 
-static inline void process_generic_16bx2(usize stride, usize height,
-                                         usize block_height_log2, u8* encoded,
-                                         u8* decoded, bool encode) {
+template <bool encode>
+void process_generic_16bx2(usize stride, usize height, usize block_height_log2,
+                           u8* encoded, u8* decoded) {
     const u32 block_height_gobs = 1U << block_height_log2;
     const u32 block_height_px = 8U << block_height_log2;
 
@@ -56,14 +56,14 @@ static inline void process_generic_16bx2(usize stride, usize height,
 
 void encode_generic_16bx2(usize stride, usize height, usize block_height_log2,
                           u8* in_data, u8* out_data) {
-    process_generic_16bx2(stride, height, block_height_log2, out_data, in_data,
-                          true);
+    process_generic_16bx2<true>(stride, height, block_height_log2, out_data,
+                                in_data);
 }
 
 void decode_generic_16bx2(usize stride, usize height, usize block_height_log2,
                           u8* in_data, u8* out_data) {
-    process_generic_16bx2(stride, height, block_height_log2, in_data, out_data,
-                          false);
+    process_generic_16bx2<false>(stride, height, block_height_log2, in_data,
+                                 out_data);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu

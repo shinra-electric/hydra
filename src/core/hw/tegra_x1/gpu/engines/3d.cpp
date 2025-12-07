@@ -712,7 +712,9 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
         break;
     case TicHdrVersion::BlockLinear:
         kind = NvKind::Generic_16BX2;
-        stride = get_texture_format_stride(format, tic.width_minus_one + 1);
+        // TODO: is the alignment correct?
+        stride = align(
+            get_texture_format_stride(format, tic.width_minus_one + 1), 64ull);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);

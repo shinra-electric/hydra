@@ -154,12 +154,12 @@ u64 TextureCache::GetTextureDataHash(const TextureBase* texture) {
 
 void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,
                                  bool update_data_hash) {
+    const auto& descriptor = tex.base->GetDescriptor();
+
     // Align the height to 16 bytes (TODO: why 16?)
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-        tex.base->GetDescriptor().stride *
-        align(tex.base->GetDescriptor().height, 16ull));
-    texture_decoder.Decode(tex.base->GetDescriptor(),
-                           (u8*)tmp_buffer->GetDescriptor().ptr);
+        descriptor.stride * align(descriptor.height, 16ull));
+    texture_decoder.Decode(descriptor, (u8*)tmp_buffer->GetDescriptor().ptr);
     tex.base->CopyFrom(tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
 
