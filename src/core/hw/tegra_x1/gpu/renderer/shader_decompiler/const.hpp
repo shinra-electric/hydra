@@ -259,6 +259,18 @@ enum class TextureQuery {
     SamplerBorderColor,
 };
 
+enum class MultiplyScale {
+    Invalid,
+
+    None,
+    M2,
+    M4,
+    M8,
+    D2,
+    D4,
+    D8,
+};
+
 enum class IpaOp {
     Invalid,
 

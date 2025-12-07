@@ -1288,6 +1288,8 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x5c68000000000000, 0xfff8000000000000) {
+        // TODO: 5c68_0
+        const auto mul_scale = get_operand_5c68_1(inst);
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
         const auto srcB = GET_REG(20);
@@ -1295,7 +1297,36 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto res = BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
+        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
+        if (mul_scale != MultiplyScale::None) {
+            f32 scale;
+            switch (mul_scale) {
+            case MultiplyScale::M2:
+                scale = 2.0f;
+                break;
+            case MultiplyScale::M4:
+                scale = 4.0f;
+                break;
+            case MultiplyScale::M8:
+                scale = 8.0f;
+                break;
+            case MultiplyScale::D2:
+                scale = 0.5f;
+                break;
+            case MultiplyScale::D4:
+                scale = 0.25f;
+                break;
+            case MultiplyScale::D8:
+                scale = 0.125f;
+                break;
+            default:
+                unreachable();
+            }
+            srcA_v = BUILDER.OpMultiply(
+                srcA_v, ir::Value::Immediate(scale, DataType::F32));
+        }
+
+        auto res = BUILDER.OpMultiply(srcA_v,
                                       ir::Value::Register(srcB, DataType::F32));
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
