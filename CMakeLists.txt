@@ -5,13 +5,12 @@ include(FetchContent)
 
 project(hydra VERSION 0.2.3 LANGUAGES CXX)
 
+option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(HYPERVISOR_ENABLED OFF)
-    set(CUBEB_ENABLED OFF)
     set(FRONTEND "SwiftUI")
 else ()
     option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
-    option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
     set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
 endif ()
 
@@ -91,6 +90,7 @@ add_subdirectory(externals/dynarmic)
 
 # cubeb
 if (CUBEB_ENABLED)
+    set(BUILD_TOOLS OFF)
     add_subdirectory(externals/cubeb)
 endif ()
 
