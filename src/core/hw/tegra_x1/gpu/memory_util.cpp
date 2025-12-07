@@ -7,8 +7,8 @@ namespace {
 template <bool encode>
 void process_generic_16bx2(usize stride, usize height, usize block_height_log2,
                            u8* encoded, u8* decoded) {
-    const u32 block_height_gobs = 1U << block_height_log2;
-    const u32 block_height_px = 8U << block_height_log2;
+    const u32 block_height_gobs = 1u << block_height_log2;
+    const u32 block_height_px = 8u << block_height_log2;
 
     const u32 width_blocks = static_cast<u32>(stride >> 6);
     const u32 height_blocks = static_cast<u32>((height + block_height_px - 1) >>
@@ -36,7 +36,7 @@ void process_generic_16bx2(usize stride, usize height, usize block_height_log2,
                         auto decoded_data = reinterpret_cast<u128*>(
                             decoded_gob + local_y * stride + local_x);
                         auto encoded_data = reinterpret_cast<u128*>(encoded);
-                        if (encode)
+                        if constexpr (encode)
                             *encoded_data = *decoded_data;
                         else
                             *decoded_data = *encoded_data;
