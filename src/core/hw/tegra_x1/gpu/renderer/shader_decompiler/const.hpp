@@ -448,6 +448,11 @@ ENABLE_ENUM_FORMATTING(
     "sample pos", SamplerFilter, "sampler filter", SamplerLod, "sampler LOD",
     SamplerWrap, "sampler wrap", SamplerBorderColor, "sampler border color")
 
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MultiplyScale, Invalid,
+    "invalid", None, "none", M2, "*2", M4, "*4", M8, "*8", D2, "/2", D4, "/4",
+    D8, "/8")
+
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",
                        Constant, "constant", SC, "SC")

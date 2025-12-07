@@ -1292,8 +1292,10 @@ void Decoder::ParseNextInstruction() {
         const auto mul_scale = get_operand_5c68_1(inst);
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
+        const auto negB = GET_BIT(48);
         const auto srcB = GET_REG(20);
-        COMMENT("fmul {} {} {}", dst, srcA, srcB);
+        COMMENT("fmul {} {} {} {}{}", mul_scale, dst, srcA, (negB ? "-" : ""),
+                srcB);
 
         HANDLE_PRED_COND_BEGIN();
 
@@ -1327,8 +1329,8 @@ void Decoder::ParseNextInstruction() {
                 ir::Value::Immediate(std::bit_cast<u32>(scale), DataType::F32));
         }
 
-        auto res = BUILDER.OpMultiply(srcA_v,
-                                      ir::Value::Register(srcB, DataType::F32));
+        auto res = BUILDER.OpMultiply(
+            srcA_v, NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
         BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
         HANDLE_PRED_COND_END();
