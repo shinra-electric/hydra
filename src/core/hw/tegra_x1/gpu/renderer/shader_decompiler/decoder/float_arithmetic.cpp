@@ -1,4 +1,4 @@
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 

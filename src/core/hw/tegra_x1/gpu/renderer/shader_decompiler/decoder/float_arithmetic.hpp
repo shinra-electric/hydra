@@ -59,7 +59,7 @@ struct InstFaddI {
     u64 neg_a : 1;
     u64 abs_b : 1;
     u64 sat : 1;
-    u64 _padding_x51 : 5;
+    u64 _padding_51 : 5;
     u64 imm_31 : 1;
 };
 
@@ -97,14 +97,14 @@ struct InstFmulR {
     u64 pred : 3;
     u64 pred_inv : 1;
     u64 src_b : 8;
-    u64 _padding_x28 : 11;
+    u64 _padding_28 : 11;
     u64 round_mode : 2; // TODO
     MultiplyScale scale : 3;
     u64 fmz : 2; // TODO
-    u64 _padding_x46 : 1;
+    u64 _padding_46 : 1;
     u64 write_cc : 1;
     u64 neg_b : 1;
-    u64 _padding_x49 : 1;
+    u64 _padding_49 : 1;
     u64 sat : 1;
 };
 
@@ -120,10 +120,10 @@ struct InstFmulC {
     u64 round_mode : 2; // TODO
     MultiplyScale scale : 3;
     u64 fmz : 2; // TODO
-    u64 _padding_x46 : 1;
+    u64 _padding_46 : 1;
     u64 write_cc : 1;
     u64 neg_b : 1;
-    u64 _padding_x49 : 1;
+    u64 _padding_49 : 1;
     u64 sat : 1;
 };
 
@@ -138,12 +138,12 @@ struct InstFmulI {
     u64 round_mode : 2; // TODO
     MultiplyScale scale : 3;
     u64 fmz : 2; // TODO
-    u64 _padding_x46 : 1;
+    u64 _padding_46 : 1;
     u64 write_cc : 1;
     u64 neg_b : 1;
-    u64 _padding_x49 : 1;
+    u64 _padding_49 : 1;
     u64 sat : 1;
-    u64 _padding_x51 : 5;
+    u64 _padding_51 : 5;
     u64 imm_31 : 1;
 };
 
