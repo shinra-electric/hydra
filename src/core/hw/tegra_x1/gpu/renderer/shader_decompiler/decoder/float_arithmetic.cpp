@@ -69,26 +69,26 @@ void EmitFmul(DecoderContext& context, pred_t pred, bool pred_inv,
 } // namespace
 
 void EmitFaddR(DecoderContext& context, InstFaddR inst) {
-    EmitFadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.abs_a, inst.neg_a,
-             ir::Value::Register(inst.src_b, DataType::F32), inst.abs_b,
-             inst.neg_b);
+    EmitFadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
+             ir::Value::Register(inst.src_b, DataType::F32), inst.base.abs_b,
+             inst.base.neg_b);
 }
 
 void EmitFaddC(DecoderContext& context, InstFaddC inst) {
-    EmitFadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.abs_a, inst.neg_a,
+    EmitFadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
              ir::Value::ConstMemory(
                  CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), DataType::F32),
-             inst.abs_b, inst.neg_b);
+             inst.base.abs_b, inst.base.neg_b);
 }
 
 void EmitFaddI(DecoderContext& context, InstFaddI inst) {
-    EmitFadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.abs_a, inst.neg_a,
+    EmitFadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
              ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
                                   DataType::F32),
-             inst.abs_b, inst.neg_b);
+             inst.base.abs_b, inst.base.neg_b);
 }
 
 void EmitFadd32I(DecoderContext& context, InstFadd32I inst) {
@@ -99,25 +99,25 @@ void EmitFadd32I(DecoderContext& context, InstFadd32I inst) {
 }
 
 void EmitFmulR(DecoderContext& context, InstFmulR inst) {
-    EmitFmul(context, inst.pred, inst.pred_inv, inst.scale, inst.dst,
-             inst.src_a, ir::Value::Register(inst.src_b, DataType::F32),
-             inst.neg_b);
+    EmitFmul(context, inst.base.pred, inst.base.pred_inv, inst.base.scale,
+             inst.base.dst, inst.base.src_a,
+             ir::Value::Register(inst.src_b, DataType::F32), inst.base.neg_b);
 }
 
 void EmitFmulC(DecoderContext& context, InstFmulC inst) {
-    EmitFmul(context, inst.pred, inst.pred_inv, inst.scale, inst.dst,
-             inst.src_a,
+    EmitFmul(context, inst.base.pred, inst.base.pred_inv, inst.base.scale,
+             inst.base.dst, inst.base.src_a,
              ir::Value::ConstMemory(
                  CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), DataType::F32),
-             inst.neg_b);
+             inst.base.neg_b);
 }
 
 void EmitFmulI(DecoderContext& context, InstFmulI inst) {
-    EmitFmul(context, inst.pred, inst.pred_inv, inst.scale, inst.dst,
-             inst.src_a,
+    EmitFmul(context, inst.base.pred, inst.base.pred_inv, inst.base.scale,
+             inst.base.dst, inst.base.src_a,
              ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
                                   DataType::F32),
-             inst.neg_b);
+             inst.base.neg_b);
 }
 
 void EmitFmul32I(DecoderContext& context, InstFmul32I inst) {

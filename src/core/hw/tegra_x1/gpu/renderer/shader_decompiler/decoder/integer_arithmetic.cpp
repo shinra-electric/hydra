@@ -23,25 +23,25 @@ void EmitIadd(DecoderContext& context, pred_t pred, bool pred_inv, reg_t dst,
 } // namespace
 
 void EmitIaddR(DecoderContext& context, InstIaddR inst) {
-    EmitIadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.neg_a, ir::Value::Register(inst.src_b, DataType::I32),
-             inst.neg_b);
+    EmitIadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.neg_a,
+             ir::Value::Register(inst.src_b, DataType::I32), inst.base.neg_b);
 }
 
 void EmitIaddC(DecoderContext& context, InstIaddC inst) {
-    EmitIadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.neg_a,
+    EmitIadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.neg_a,
              ir::Value::ConstMemory(
                  CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), DataType::I32),
-             inst.neg_b);
+             inst.base.neg_b);
 }
 
 void EmitIaddI(DecoderContext& context, InstIaddI inst) {
-    EmitIadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.neg_a,
+    EmitIadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             inst.base.src_a, inst.base.neg_a,
              ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
                                   DataType::I32),
-             inst.neg_b);
+             inst.base.neg_b);
 }
 
 void EmitIadd32I(DecoderContext& context, InstIadd32I inst) {
