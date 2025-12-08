@@ -276,8 +276,7 @@ void MslEmitter::EmitExitReturn() {
     WriteStatement("return __out");
 }
 
-void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
-
+// Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {
     StoreValue(dst, "state.tex{}.sample(state.samplr{}, {})",
@@ -305,6 +304,9 @@ void MslEmitter::EmitTextureQueryDimension(const ir::Value& dst,
     StoreValue(dst, "state.tex{}.get_{}()", const_buffer_index,
                dimension_to_str(dimension));
 }
+
+// Exit
+void MslEmitter::EmitDiscard() { WriteStatement("discard_fragment()"); }
 
 std::string MslEmitter::GetSvAccessQualifiedStr(const SvAccess& sv_access,
                                                 bool output) {

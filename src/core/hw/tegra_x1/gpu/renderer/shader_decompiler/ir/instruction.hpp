@@ -5,48 +5,57 @@
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
 enum class Opcode {
-    // Basic
+    // Data
     Copy,
+    Cast,
+
+    // Arithmetic
+    Abs,
     Neg,
-    Not,
     Add,
     Multiply,
     Fma,
-    ShiftLeft,
-    ShiftRight,
-    Cast,
-    Compare,
-    Bitwise,
-    Select,
-
-    // Control flow
-    Branch,
-    BranchConditional,
-    BeginIf,
-    EndIf,
+    Min,
+    Max,
+    Clamp,
 
     // Math
     Round,
     Floor,
     Ceil,
     Trunc,
-    Min,
-    Max,
-    Clamp,
     MathFunction,
+
+    // Logical & Bitwise
+    Not,
+    Bitwise,
+    ShiftLeft,
+    ShiftRight,
+
+    // Comparison & Selection
+    Compare,
+    Select,
+
+    // Control Flow
+    BeginIf,
+    EndIf,
+    Branch,
+    BranchConditional,
 
     // Vector
     VectorExtract,
     VectorInsert,
     VectorConstruct,
 
-    // Special
-    Exit,
-    Discard,
+    // Texture
     TextureSample,
     TextureRead,
     TextureGather,
     TextureQueryDimension,
+
+    // Exit
+    Exit,
+    Discard,
 };
 
 constexpr usize MAX_INSTRUCTION_OPERANDS = 8;

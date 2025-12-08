@@ -23,8 +23,7 @@ class MslEmitter final : public LangEmitter {
     void EmitMainPrototype() override;
     void EmitExitReturn() override;
 
-    // Special
-    void EmitDiscard() override;
+    // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords) override;
     void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
@@ -34,6 +33,9 @@ class MslEmitter final : public LangEmitter {
                            TextureComponent component) override;
     void EmitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,
                                    u32 dimension) override;
+
+    // Exit
+    void EmitDiscard() override;
 
     std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
                                         bool output) override;

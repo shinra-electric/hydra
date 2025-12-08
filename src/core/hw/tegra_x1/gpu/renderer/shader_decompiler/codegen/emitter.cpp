@@ -13,15 +13,21 @@ void Emitter::Emit(const ir::Module& modul) {
 
 void Emitter::EmitInstruction(const ir::Instruction& inst) {
     switch (inst.GetOpcode()) {
-    // Basic
+    // Data
     case ir::Opcode::Copy:
         EmitCopy(inst.GetDst(), inst.GetOperand(0));
         break;
+    case ir::Opcode::Cast:
+        EmitCast(inst.GetDst(), inst.GetOperand(0),
+                 inst.GetOperand(1).GetRawValue<DataType>());
+        break;
+
+    // Arithmetic
+    case ir::Opcode::Abs:
+        EmitAbs(inst.GetDst(), inst.GetOperand(0));
+        break;
     case ir::Opcode::Neg:
         EmitNeg(inst.GetDst(), inst.GetOperand(0));
-        break;
-    case ir::Opcode::Not:
-        EmitNot(inst.GetDst(), inst.GetOperand(0));
         break;
     case ir::Opcode::Add:
         EmitAdd(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
@@ -33,45 +39,15 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         EmitFma(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
                 inst.GetOperand(2));
         break;
-    case ir::Opcode::ShiftLeft:
-        EmitShiftLeft(inst.GetDst(), inst.GetOperand(0),
-                      inst.GetOperand(1).GetRawValue<u32>());
+    case ir::Opcode::Min:
+        EmitMin(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
-    case ir::Opcode::ShiftRight:
-        EmitShiftRight(inst.GetDst(), inst.GetOperand(0),
-                       inst.GetOperand(1).GetRawValue<u32>());
+    case ir::Opcode::Max:
+        EmitMax(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
-    case ir::Opcode::Cast:
-        EmitCast(inst.GetDst(), inst.GetOperand(0),
-                 inst.GetOperand(1).GetRawValue<DataType>());
-        break;
-    case ir::Opcode::Compare:
-        EmitCompare(inst.GetDst(),
-                    inst.GetOperand(0).GetRawValue<ComparisonOp>(),
-                    inst.GetOperand(1), inst.GetOperand(2));
-        break;
-    case ir::Opcode::Bitwise:
-        EmitBitwise(inst.GetDst(), inst.GetOperand(0).GetRawValue<BitwiseOp>(),
-                    inst.GetOperand(1), inst.GetOperand(2));
-        break;
-    case ir::Opcode::Select:
-        EmitSelect(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
-                   inst.GetOperand(2));
-        break;
-
-    // Control flow
-    case ir::Opcode::Branch:
-        EmitBranch(inst.GetOperand(0).GetLabel());
-        break;
-    case ir::Opcode::BranchConditional:
-        EmitBranchConditional(inst.GetOperand(0), inst.GetOperand(1).GetLabel(),
-                              inst.GetOperand(2).GetLabel());
-        break;
-    case ir::Opcode::BeginIf:
-        EmitBeginIf(inst.GetOperand(0));
-        break;
-    case ir::Opcode::EndIf:
-        EmitEndIf();
+    case ir::Opcode::Clamp:
+        EmitClamp(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
+                  inst.GetOperand(2));
         break;
 
     // Math
@@ -87,20 +63,53 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::Trunc:
         EmitTrunc(inst.GetDst(), inst.GetOperand(0));
         break;
-    case ir::Opcode::Min:
-        EmitMin(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
-        break;
-    case ir::Opcode::Max:
-        EmitMax(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
-        break;
-    case ir::Opcode::Clamp:
-        EmitClamp(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
-                  inst.GetOperand(2));
-        break;
     case ir::Opcode::MathFunction:
         EmitMathFunction(inst.GetDst(),
                          inst.GetOperand(0).GetRawValue<MathFunc>(),
                          inst.GetOperand(1));
+        break;
+
+    // Logical & Bitwise
+    case ir::Opcode::Not:
+        EmitNot(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::ShiftLeft:
+        EmitShiftLeft(inst.GetDst(), inst.GetOperand(0),
+                      inst.GetOperand(1).GetRawValue<u32>());
+        break;
+    case ir::Opcode::ShiftRight:
+        EmitShiftRight(inst.GetDst(), inst.GetOperand(0),
+                       inst.GetOperand(1).GetRawValue<u32>());
+        break;
+    case ir::Opcode::Bitwise:
+        EmitBitwise(inst.GetDst(), inst.GetOperand(0).GetRawValue<BitwiseOp>(),
+                    inst.GetOperand(1), inst.GetOperand(2));
+        break;
+
+    // Comparison & Selection
+    case ir::Opcode::Compare:
+        EmitCompare(inst.GetDst(),
+                    inst.GetOperand(0).GetRawValue<ComparisonOp>(),
+                    inst.GetOperand(1), inst.GetOperand(2));
+        break;
+    case ir::Opcode::Select:
+        EmitSelect(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),
+                   inst.GetOperand(2));
+        break;
+
+    // Control flow
+    case ir::Opcode::BeginIf:
+        EmitBeginIf(inst.GetOperand(0));
+        break;
+    case ir::Opcode::EndIf:
+        EmitEndIf();
+        break;
+    case ir::Opcode::Branch:
+        EmitBranch(inst.GetOperand(0).GetLabel());
+        break;
+    case ir::Opcode::BranchConditional:
+        EmitBranchConditional(inst.GetOperand(0), inst.GetOperand(1).GetLabel(),
+                              inst.GetOperand(2).GetLabel());
         break;
 
     // Vector
@@ -119,13 +128,7 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
                                         inst.GetOperands().end()));
         break;
 
-    // Special
-    case ir::Opcode::Exit:
-        EmitExit();
-        break;
-    case ir::Opcode::Discard:
-        EmitDiscard();
-        break;
+    // Texture
     case ir::Opcode::TextureSample:
         EmitTextureSample(inst.GetDst(), inst.GetOperand(0).GetRawValue<u32>(),
                           inst.GetOperand(1));
@@ -143,6 +146,14 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         EmitTextureQueryDimension(inst.GetDst(),
                                   inst.GetOperand(0).GetRawValue<u32>(),
                                   inst.GetOperand(1).GetRawValue<u32>());
+        break;
+
+    // Exit
+    case ir::Opcode::Exit:
+        EmitExit();
+        break;
+    case ir::Opcode::Discard:
+        EmitDiscard();
         break;
     }
 }

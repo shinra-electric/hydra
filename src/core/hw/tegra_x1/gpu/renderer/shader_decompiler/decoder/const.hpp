@@ -27,6 +27,16 @@ inline ir::Value neg_if(ir::Builder& builder, const ir::Value& value,
     return neg ? builder.OpNeg(value) : value;
 }
 
+inline ir::Value abs_if(ir::Builder& builder, const ir::Value& value,
+                        bool abs) {
+    return abs ? builder.OpAbs(value) : value;
+}
+
+inline ir::Value abs_neg_if(ir::Builder& builder, const ir::Value& value,
+                            bool abs, bool neg) {
+    return neg_if(builder, abs_if(builder, value, abs), neg);
+}
+
 inline ir::Value not_if(ir::Builder& builder, const ir::Value& value,
                         bool not_) {
     return not_ ? builder.OpNot(value) : value;

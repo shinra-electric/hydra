@@ -1286,22 +1286,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x5c58000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(48);
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(45);
-        const auto srcB = GET_REG(20);
-        COMMENT("fadd {} {}{} {}{}", dst, negA ? "-" : "", srcA,
-                negB ? "-" : "", srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(
-            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFaddR(context, std::bit_cast<InstFaddR>(inst));
     }
     INST(0x5c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -1864,22 +1849,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x4c58000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(48);
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(45);
-        const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fadd {} {}{} {}c{}[0x{:x}]", dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB.idx, srcB.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(
-            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFaddC(context, std::bit_cast<InstFaddC>(inst));
     }
     INST(0x4c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -2172,22 +2142,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_END();
     }
     INST(0x3858000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(48);
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(45);
-        const auto srcB = GET_VALUE_F32();
-        COMMENT("fadd {} {}{} {}0x{:x}", dst, negA ? "-" : "", srcA,
-                negB ? "-" : "", srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(
-            NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFaddI(context, std::bit_cast<InstFaddI>(inst));
     }
     INST(0x3850000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -2539,18 +2494,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("ffma32i");
     }
     INST(0x0800000000000000, 0xfc00000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("fadd32i {} {} 0x{:08x}", dst, srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(ir::Value::Register(srcA, DataType::F32),
-                                 ir::Value::Immediate(srcB, DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFadd32I(context, std::bit_cast<InstFadd32I>(inst));
     }
     INST(0x0400000000000000, 0xfc00000000000000) {
         const auto bin = get_operand_0400_0(inst);

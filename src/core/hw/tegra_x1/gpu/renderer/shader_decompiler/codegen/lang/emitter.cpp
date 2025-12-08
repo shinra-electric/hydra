@@ -383,17 +383,23 @@ void LangEmitter::EmitBlock(const ir::Function& func, const ir::Block& block) {
     ExitScopeEmpty();
 }
 
-// Basic
+// Data
 void LangEmitter::EmitCopy(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "{}", GetValueStr(src));
 }
 
-void LangEmitter::EmitNeg(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "(-{})", GetValueStr(src));
+void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src,
+                           DataType dst_type) {
+    StoreValue(dst, "({}({}))", dst_type, GetValueStr(src));
 }
 
-void LangEmitter::EmitNot(const ir::Value& dst, const ir::Value& src) {
-    StoreValue(dst, "(!{})", GetValueStr(src));
+// Arithmetic
+void LangEmitter::EmitAbs(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "abs({})", GetValueStr(src));
+}
+
+void LangEmitter::EmitNeg(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "(-{})", GetValueStr(src));
 }
 
 void LangEmitter::EmitAdd(const ir::Value& dst, const ir::Value& srcA,
@@ -412,63 +418,21 @@ void LangEmitter::EmitFma(const ir::Value& dst, const ir::Value& srcA,
                GetValueStr(srcC));
 }
 
-void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
-                                u32 shift) {
-    StoreValue(dst, "({} << {})", GetValueStr(src), shift);
+void LangEmitter::EmitMin(const ir::Value& dst, const ir::Value& srcA,
+                          const ir::Value& srcB) {
+    StoreValue(dst, "min({}, {})", GetValueStr(srcA), GetValueStr(srcB));
 }
 
-void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src,
-                                 u32 shift) {
-    StoreValue(dst, "({} >> {})", GetValueStr(src), shift);
+void LangEmitter::EmitMax(const ir::Value& dst, const ir::Value& srcA,
+                          const ir::Value& srcB) {
+    StoreValue(dst, "max({}, {})", GetValueStr(srcA), GetValueStr(srcB));
 }
 
-void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src,
-                           DataType dst_type) {
-    StoreValue(dst, "({}({}))", dst_type, GetValueStr(src));
+void LangEmitter::EmitClamp(const ir::Value& dst, const ir::Value& srcA,
+                            const ir::Value& srcB, const ir::Value& srcC) {
+    StoreValue(dst, "clamp({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
+               GetValueStr(srcC));
 }
-
-void LangEmitter::EmitCompare(const ir::Value& dst, ComparisonOp op,
-                              const ir::Value& srcA, const ir::Value& srcB) {
-    StoreValue(dst, "({})",
-               cmp_to_str(op, GetValueStr(srcA), GetValueStr(srcB)));
-}
-
-void LangEmitter::EmitBitwise(const ir::Value& dst, BitwiseOp op,
-                              const ir::Value& srcA, const ir::Value& srcB) {
-    StoreValue(dst, "({} {} {})", GetValueStr(srcA), bit_op_to_str(op),
-               GetValueStr(srcB));
-}
-
-void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,
-                             const ir::Value& src_true,
-                             const ir::Value& src_false) {
-    StoreValue(dst, "({} ? {} : {})", GetValueStr(cond), GetValueStr(src_true),
-               GetValueStr(src_false));
-}
-
-// Control flow
-void LangEmitter::EmitBranch(label_t target) {
-    // LOG_FATAL(ShaderDecompiler, "Should not happen");
-    WriteStatement("return Block::{}", target);
-}
-
-void LangEmitter::EmitBranchConditional(const ir::Value& cond,
-                                        label_t target_true,
-                                        label_t target_false) {
-    // LOG_FATAL(ShaderDecompiler, "Should not happen");
-    EnterScope("if ({})", GetValueStr(cond));
-    WriteStatement("return Block::{}", target_true);
-    ExitScopeEmpty();
-    EnterScope("else");
-    WriteStatement("return Block::{}", target_false);
-    ExitScopeEmpty();
-}
-
-void LangEmitter::EmitBeginIf(const ir::Value& cond) {
-    EnterScope("if ({})", GetValueStr(cond));
-}
-
-void LangEmitter::EmitEndIf() { ExitScopeEmpty(); }
 
 // Math
 void LangEmitter::EmitRound(const ir::Value& dst, const ir::Value& src) {
@@ -487,20 +451,63 @@ void LangEmitter::EmitTrunc(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "trunc({})", GetValueStr(src));
 }
 
-void LangEmitter::EmitMin(const ir::Value& dst, const ir::Value& srcA,
-                          const ir::Value& srcB) {
-    StoreValue(dst, "min({}, {})", GetValueStr(srcA), GetValueStr(srcB));
+// Logical & Bitwise
+void LangEmitter::EmitNot(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "(!{})", GetValueStr(src));
 }
 
-void LangEmitter::EmitMax(const ir::Value& dst, const ir::Value& srcA,
-                          const ir::Value& srcB) {
-    StoreValue(dst, "max({}, {})", GetValueStr(srcA), GetValueStr(srcB));
+void LangEmitter::EmitBitwise(const ir::Value& dst, BitwiseOp op,
+                              const ir::Value& srcA, const ir::Value& srcB) {
+    StoreValue(dst, "({} {} {})", GetValueStr(srcA), bit_op_to_str(op),
+               GetValueStr(srcB));
 }
 
-void LangEmitter::EmitClamp(const ir::Value& dst, const ir::Value& srcA,
-                            const ir::Value& srcB, const ir::Value& srcC) {
-    StoreValue(dst, "clamp({}, {}, {})", GetValueStr(srcA), GetValueStr(srcB),
-               GetValueStr(srcC));
+void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
+                                u32 shift) {
+    StoreValue(dst, "({} << {})", GetValueStr(src), shift);
+}
+
+void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src,
+                                 u32 shift) {
+    StoreValue(dst, "({} >> {})", GetValueStr(src), shift);
+}
+
+// Comparison & Selection
+void LangEmitter::EmitCompare(const ir::Value& dst, ComparisonOp op,
+                              const ir::Value& srcA, const ir::Value& srcB) {
+    StoreValue(dst, "({})",
+               cmp_to_str(op, GetValueStr(srcA), GetValueStr(srcB)));
+}
+
+void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,
+                             const ir::Value& src_true,
+                             const ir::Value& src_false) {
+    StoreValue(dst, "({} ? {} : {})", GetValueStr(cond), GetValueStr(src_true),
+               GetValueStr(src_false));
+}
+
+// Control flow
+void LangEmitter::EmitBeginIf(const ir::Value& cond) {
+    EnterScope("if ({})", GetValueStr(cond));
+}
+
+void LangEmitter::EmitEndIf() { ExitScopeEmpty(); }
+
+void LangEmitter::EmitBranch(label_t target) {
+    // LOG_FATAL(ShaderDecompiler, "Should not happen");
+    WriteStatement("return Block::{}", target);
+}
+
+void LangEmitter::EmitBranchConditional(const ir::Value& cond,
+                                        label_t target_true,
+                                        label_t target_false) {
+    // LOG_FATAL(ShaderDecompiler, "Should not happen");
+    EnterScope("if ({})", GetValueStr(cond));
+    WriteStatement("return Block::{}", target_true);
+    ExitScopeEmpty();
+    EnterScope("else");
+    WriteStatement("return Block::{}", target_false);
+    ExitScopeEmpty();
 }
 
 void LangEmitter::EmitMathFunction(const ir::Value& dst, MathFunc func,
@@ -532,7 +539,7 @@ void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
     StoreValue(dst, "vec<{}, {}>({})", data_type, elements.size(), str);
 }
 
-// Special
+// Exit
 void LangEmitter::EmitExit() { WriteStatement("return Block::None"); }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang

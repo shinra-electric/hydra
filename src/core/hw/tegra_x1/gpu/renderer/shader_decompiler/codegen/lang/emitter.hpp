@@ -43,50 +43,57 @@ class LangEmitter : public Emitter {
     // void EmitNode(const ir::Function& func, const analyzer::CfgNode* node);
     void EmitBlock(const ir::Function& func, const ir::Block& block);
 
-    // Basic
+    // Data
     void EmitCopy(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCast(const ir::Value& dst, const ir::Value& src,
+                  DataType dst_type) override;
+
+    // Arithmetic
+    void EmitAbs(const ir::Value& dst, const ir::Value& src) override;
     void EmitNeg(const ir::Value& dst, const ir::Value& src) override;
-    void EmitNot(const ir::Value& dst, const ir::Value& src) override;
     void EmitAdd(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitMultiply(const ir::Value& dst, const ir::Value& srcA,
                       const ir::Value& srcB) override;
     void EmitFma(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB, const ir::Value& srcC) override;
-    void EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
-                       u32 shift) override;
-    void EmitShiftRight(const ir::Value& dst, const ir::Value& src,
-                        u32 shift) override;
-    void EmitCast(const ir::Value& dst, const ir::Value& src,
-                  DataType dst_type) override;
-    void EmitCompare(const ir::Value& dst, ComparisonOp op,
-                     const ir::Value& srcA, const ir::Value& srcB) override;
-    void EmitBitwise(const ir::Value& dst, BitwiseOp op, const ir::Value& srcA,
-                     const ir::Value& srcB) override;
-    void EmitSelect(const ir::Value& dst, const ir::Value& cond,
-                    const ir::Value& src_true,
-                    const ir::Value& src_false) override;
-
-    // Control flow
-    void EmitBranch(label_t target) override;
-    void EmitBranchConditional(const ir::Value& cond, label_t target_true,
-                               label_t target_false) override;
-    void EmitBeginIf(const ir::Value& cond) override;
-    void EmitEndIf() override;
-
-    // Math
-    void EmitRound(const ir::Value& dst, const ir::Value& src) override;
-    void EmitFloor(const ir::Value& dst, const ir::Value& src) override;
-    void EmitCeil(const ir::Value& dst, const ir::Value& src) override;
-    void EmitTrunc(const ir::Value& dst, const ir::Value& src) override;
     void EmitMin(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitMax(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitClamp(const ir::Value& dst, const ir::Value& srcA,
                    const ir::Value& srcB, const ir::Value& srcC) override;
+
+    // Math
+    void EmitRound(const ir::Value& dst, const ir::Value& src) override;
+    void EmitFloor(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCeil(const ir::Value& dst, const ir::Value& src) override;
+    void EmitTrunc(const ir::Value& dst, const ir::Value& src) override;
     void EmitMathFunction(const ir::Value& dst, MathFunc func,
                           const ir::Value& src) override;
+
+    // Logical & Bitwise
+    void EmitNot(const ir::Value& dst, const ir::Value& src) override;
+    void EmitBitwise(const ir::Value& dst, BitwiseOp op, const ir::Value& srcA,
+                     const ir::Value& srcB) override;
+    void EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
+                       u32 shift) override;
+    void EmitShiftRight(const ir::Value& dst, const ir::Value& src,
+                        u32 shift) override;
+
+    // Comparison & Selection
+    void EmitCompare(const ir::Value& dst, ComparisonOp op,
+                     const ir::Value& srcA, const ir::Value& srcB) override;
+    void EmitSelect(const ir::Value& dst, const ir::Value& cond,
+                    const ir::Value& src_true,
+                    const ir::Value& src_false) override;
+
+    // Control flow
+    void EmitBeginIf(const ir::Value& cond) override;
+    void EmitEndIf() override;
+    void EmitBranch(label_t target) override;
+    void EmitBranchConditional(const ir::Value& cond, label_t target_true,
+                               label_t target_false) override;
 
     // Vector
     void EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
@@ -96,7 +103,7 @@ class LangEmitter : public Emitter {
     void EmitVectorConstruct(const ir::Value& dst, DataType data_type,
                              const std::vector<ir::Value>& elements) override;
 
-    // Special
+    // Exit
     void EmitExit() override;
 
     // Helpers
