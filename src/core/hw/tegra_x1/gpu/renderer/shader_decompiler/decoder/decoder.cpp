@@ -1,24 +1,12 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 
 #define BUILDER context.builder
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
-
-namespace {
-
-inline ir::Value neg_if(ir::Builder& builder, const ir::Value& value,
-                        bool neg) {
-    return neg ? builder.OpNeg(value) : value;
-}
-
-inline ir::Value not_if(ir::Builder& builder, const ir::Value& value,
-                        bool not_) {
-    return not_ ? builder.OpNot(value) : value;
-}
-
-} // namespace
 
 void Decoder::Decode() {
     crnt_block = &blocks[0x0];
@@ -91,9 +79,7 @@ void Decoder::ParseNextInstruction() {
 
 // TODO: global memory
 #define GET_NCGMEM_R(b_reg, count_imm, is_input)                               \
-    AMem {                                                                     \
-        GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4, is_input   \
-    }
+    AMem{GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4, is_input}
 
 #define NEG_IF(value, neg) neg_if(BUILDER, value, neg)
 #define NOT_IF(value, not_) not_if(BUILDER, value, not_)
@@ -118,18 +104,6 @@ void Decoder::ParseNextInstruction() {
     if (conditional) {                                                         \
         BUILDER.OpEndIf();                                                     \
     }
-
-// TODO: ignore on release
-#define COMMENT_IMPL(log_level, f_comment, f_log, ...)                         \
-    {                                                                          \
-        /* TODO: comments */                                                   \
-        /*BUILDER.OpDebugComment(fmt::format(f_comment                         \
-         * PASS_VA_ARGS(__VA_ARGS__)));*/                                      \
-        LOG_##log_level(ShaderDecompiler, f_log PASS_VA_ARGS(__VA_ARGS__));    \
-    }
-#define COMMENT(f, ...) COMMENT_IMPL(DEBUG, f, f, __VA_ARGS__)
-#define COMMENT_NOT_IMPLEMENTED(f, ...)                                        \
-    COMMENT_IMPL(NOT_IMPLEMENTED, f " (NOT IMPLEMENTED)", f, __VA_ARGS__)
 
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
@@ -1288,52 +1262,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x5c68000000000000, 0xfff8000000000000) {
-        // TODO: 5c68_0
-        const auto mul_scale = get_operand_5c68_1(inst);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(48);
-        const auto srcB = GET_REG(20);
-        COMMENT("fmul {} {} {} {}{}", mul_scale, dst, srcA, (negB ? "-" : ""),
-                srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
-        if (mul_scale != MultiplyScale::None) {
-            f32 scale;
-            switch (mul_scale) {
-            case MultiplyScale::M2:
-                scale = 2.0f;
-                break;
-            case MultiplyScale::M4:
-                scale = 4.0f;
-                break;
-            case MultiplyScale::M8:
-                scale = 8.0f;
-                break;
-            case MultiplyScale::D2:
-                scale = 0.5f;
-                break;
-            case MultiplyScale::D4:
-                scale = 0.25f;
-                break;
-            case MultiplyScale::D8:
-                scale = 0.125f;
-                break;
-            default:
-                unreachable();
-            }
-            srcA_v = BUILDER.OpMultiply(
-                srcA_v,
-                ir::Value::Immediate(std::bit_cast<u32>(scale), DataType::F32));
-        }
-
-        auto res = BUILDER.OpMultiply(
-            srcA_v, NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFmulR(context, std::bit_cast<InstFmulR>(inst));
     }
     INST(0x5c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -1908,19 +1837,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x4c68000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fmul {} {} c{}[0x{:x}]", dst, srcA, srcB.idx, srcB.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res =
-            BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
-                               ir::Value::ConstMemory(srcB, DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFmulC(context, std::bit_cast<InstFmulC>(inst));
     }
     INST(0x4c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
@@ -2231,19 +2148,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x3868000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_F32();
-        COMMENT("fmul {} {} 0x{:08x}", dst, srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res =
-            BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
-                               ir::Value::Immediate(srcB, DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFmulI(context, std::bit_cast<InstFmulI>(inst));
     }
     INST(0x3860000000000000, 0xfef8000000000000) {
         const auto dst = GET_REG(0);
@@ -2600,19 +2505,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("imul32i");
     }
     INST(0x1e00000000000000, 0xff00000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("fmul32i {} {} 0x{:08x}", dst, srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcB_v = ir::Value::Immediate(srcB, DataType::F32);
-        auto res = BUILDER.OpMultiply(ir::Value::Register(srcA, DataType::F32),
-                                      srcB_v);
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
+        EmitFmul32I(context, std::bit_cast<InstFmul32I>(inst));
     }
     INST(0x1d80000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd32i");

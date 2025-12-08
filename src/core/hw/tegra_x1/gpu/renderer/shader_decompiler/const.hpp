@@ -57,6 +57,9 @@ struct AMem {
     u64 imm;
     bool is_input;
 
+    AMem(reg_t reg_, u64 imm_, bool is_input_)
+        : reg{reg_}, imm{imm_}, is_input{is_input_} {}
+
     bool operator==(const AMem& other) const {
         return reg == other.reg && imm == other.imm;
     }
@@ -67,6 +70,8 @@ struct CMem {
     reg_t reg;
     u64 imm;
 
+    CMem(u32 idx_, reg_t reg_, u64 imm_) : idx{idx_}, reg{reg_}, imm{imm_} {}
+
     bool operator==(const CMem& other) const {
         return idx == other.idx && reg == other.reg && imm == other.imm;
     }
@@ -76,6 +81,9 @@ struct PredCond {
     pred_t pred;
     bool not_;
     bool never;
+
+    PredCond(pred_t pred_, bool not_, bool never_)
+        : pred{pred_}, not_{not_}, never{never_} {}
 
     bool operator==(const PredCond& other) const {
         return pred == other.pred && not_ == other.not_ && never == other.never;
@@ -259,18 +267,6 @@ enum class TextureQuery {
     SamplerBorderColor,
 };
 
-enum class MultiplyScale {
-    Invalid,
-
-    None,
-    M2,
-    M4,
-    M8,
-    D2,
-    D4,
-    D8,
-};
-
 enum class IpaOp {
     Invalid,
 
@@ -447,11 +443,6 @@ ENABLE_ENUM_FORMATTING(
     "invalid", Dimensions, "dimensions", TextureType, "texture type", SamplePos,
     "sample pos", SamplerFilter, "sampler filter", SamplerLod, "sampler LOD",
     SamplerWrap, "sampler wrap", SamplerBorderColor, "sampler border color")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MultiplyScale, Invalid,
-    "invalid", None, "none", M2, "*2", M4, "*4", M8, "*8", D2, "/2", D4, "/4",
-    D8, "/8")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",

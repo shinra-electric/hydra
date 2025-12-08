@@ -478,7 +478,10 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/block.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/function.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/ir/builder.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/arithmetic.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/arithmetic.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp

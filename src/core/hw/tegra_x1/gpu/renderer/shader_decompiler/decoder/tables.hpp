@@ -158,10 +158,4 @@ DEFINE_OPERAND_TABLE(df50_0, TextureQuery, 0x000000000fc00000,
                      SamplerLod, 0x0000000005000000, SamplerWrap,
                      0x0000000005800000, SamplerBorderColor)
 
-DEFINE_OPERAND_TABLE(5c68_1, MultiplyScale, 0x00000e0000000000,
-                     0x0000000000000000, None, 0x0000020000000000, D2,
-                     0x0000040000000000, D4, 0x0000060000000000, D8,
-                     0x0000080000000000, M8, 0x00000a0000000000, M4,
-                     0x00000c0000000000, M2)
-
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
