@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/attribute.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
@@ -168,22 +169,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("bar");
     }
     INST(0xeff0000000000000, 0xfff8000000000000) {
-        const auto mode = get_operand_eff0_0(inst);
-        auto dst = GET_AMEM_IDX(20, false);
-        const auto src = GET_REG(0);
-        const auto todo = GET_REG(39); // TODO: what is this?
-        COMMENT("st {} a[{} + 0x{:08x}] {} {}", mode, dst.reg, dst.imm, src,
-                todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        for (u32 i = 0; i < get_load_store_count(mode); i++) {
-            BUILDER.OpCopy(ir::Value::AttrMemory(dst),
-                           ir::Value::Register(src + i));
-            dst.imm += sizeof(u32);
-        }
-
-        HANDLE_PRED_COND_END();
+        EmitStA(context, std::bit_cast<InstStA>(inst));
     }
     INST(0xefe8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pixld");
