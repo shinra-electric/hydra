@@ -110,6 +110,8 @@ void Decoder::ParseNextInstruction() {
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
 
+#define EMIT(op) Emit##op(context, std::bit_cast<Inst##op>(inst))
+
     INST0(0xfbe0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("out");
     }
@@ -168,9 +170,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xf0a8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("bar");
     }
-    INST(0xeff0000000000000, 0xfff8000000000000) {
-        EmitStA(context, std::bit_cast<InstStA>(inst));
-    }
+    INST(0xeff0000000000000, 0xfff8000000000000) { EMIT(ASt); }
     INST(0xefe8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pixld");
     }
@@ -1248,9 +1248,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5c70000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
-    INST(0x5c68000000000000, 0xfff8000000000000) {
-        EmitFmulR(context, std::bit_cast<InstFmulR>(inst));
-    }
+    INST(0x5c68000000000000, 0xfff8000000000000) { EMIT(FmulR); }
     INST(0x5c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
@@ -1272,9 +1270,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x5c58000000000000, 0xfff8000000000000) {
-        EmitFaddR(context, std::bit_cast<InstFaddR>(inst));
-    }
+    INST(0x5c58000000000000, 0xfff8000000000000) { EMIT(FaddR); }
     INST(0x5c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
@@ -1361,9 +1357,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x5c10000000000000, 0xfff8000000000000) {
-        EmitIaddR(context, std::bit_cast<InstIaddR>(inst));
-    }
+    INST(0x5c10000000000000, 0xfff8000000000000) { EMIT(IaddR); }
     INST(0x5c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
@@ -1793,9 +1787,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c70000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
-    INST(0x4c68000000000000, 0xfff8000000000000) {
-        EmitFmulC(context, std::bit_cast<InstFmulC>(inst));
-    }
+    INST(0x4c68000000000000, 0xfff8000000000000) { EMIT(FmulC); }
     INST(0x4c60000000000000, 0xfff8000000000000) {
         const auto dst = GET_REG(0);
         const auto negA = GET_BIT(48);
@@ -1820,9 +1812,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x4c58000000000000, 0xfff8000000000000) {
-        EmitFaddC(context, std::bit_cast<InstFaddC>(inst));
-    }
+    INST(0x4c58000000000000, 0xfff8000000000000) { EMIT(FaddC); }
     INST(0x4c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
@@ -1847,9 +1837,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c18000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("iscadd");
     }
-    INST(0x4c10000000000000, 0xfff8000000000000) {
-        EmitIaddC(context, std::bit_cast<InstIaddC>(inst));
-    }
+    INST(0x4c10000000000000, 0xfff8000000000000) { EMIT(IaddC); }
     INST(0x4c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
@@ -2074,9 +2062,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3870000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
-    INST(0x3868000000000000, 0xfef8000000000000) {
-        EmitFmulI(context, std::bit_cast<InstFmulI>(inst));
-    }
+    INST(0x3868000000000000, 0xfef8000000000000) { EMIT(FmulI); }
     INST(0x3860000000000000, 0xfef8000000000000) {
         const auto dst = GET_REG(0);
         const auto srcA = GET_REG(8);
@@ -2098,9 +2084,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x3858000000000000, 0xfef8000000000000) {
-        EmitFaddI(context, std::bit_cast<InstFaddI>(inst));
-    }
+    INST(0x3858000000000000, 0xfef8000000000000) { EMIT(FaddI); }
     INST(0x3850000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
@@ -2210,9 +2194,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x3810000000000000, 0xfef8000000000000) {
-        EmitIaddI(context, std::bit_cast<InstIaddI>(inst));
-    }
+    INST(0x3810000000000000, 0xfef8000000000000) { EMIT(IaddI); }
     INST(0x3808000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
@@ -2401,16 +2383,12 @@ void Decoder::ParseNextInstruction() {
     INST(0x1f00000000000000, 0xff00000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul32i");
     }
-    INST(0x1e00000000000000, 0xff00000000000000) {
-        EmitFmul32I(context, std::bit_cast<InstFmul32I>(inst));
-    }
+    INST(0x1e00000000000000, 0xff00000000000000) { EMIT(Fmul32I); }
     // TODO: is this necessary?
     // INST(0x1d80000000000000, 0xff80000000000000) {
     //    COMMENT_NOT_IMPLEMENTED("iadd32i");
     //}
-    INST(0x1c00000000000000, 0xfe80000000000000) {
-        EmitIadd32I(context, std::bit_cast<InstIadd32I>(inst));
-    }
+    INST(0x1c00000000000000, 0xfe80000000000000) { EMIT(Iadd32I); }
     INST(0x1800000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lea");
     }
@@ -2423,9 +2401,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x0c00000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("ffma32i");
     }
-    INST(0x0800000000000000, 0xfc00000000000000) {
-        EmitFadd32I(context, std::bit_cast<InstFadd32I>(inst));
-    }
+    INST(0x0800000000000000, 0xfc00000000000000) { EMIT(Fadd32I); }
     INST(0x0400000000000000, 0xfc00000000000000) {
         const auto bin = get_operand_0400_0(inst);
         const auto dst = GET_REG(0);

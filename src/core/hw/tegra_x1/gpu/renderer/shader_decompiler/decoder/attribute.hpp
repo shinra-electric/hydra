@@ -11,7 +11,7 @@ enum class LsASize {
     _128 = 3,
 };
 
-union InstStA {
+union InstASt {
     BitField64<reg_t, 0, 8> src;
     BitField64<reg_t, 8, 8> dst;
     BitField64<pred_t, 16, 3> pred;
@@ -22,6 +22,6 @@ union InstStA {
     BitField64<LsASize, 47, 2> size;
 };
 
-void EmitStA(DecoderContext& context, InstStA inst);
+void EmitASt(DecoderContext& context, InstASt inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

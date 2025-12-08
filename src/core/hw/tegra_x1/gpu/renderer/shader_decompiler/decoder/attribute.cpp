@@ -39,7 +39,7 @@ void EmitStore(DecoderContext& context, pred_t pred, bool pred_inv,
 
 } // namespace
 
-void EmitStA(DecoderContext& context, InstStA inst) {
+void EmitASt(DecoderContext& context, InstASt inst) {
     EmitStore(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
               inst.dst_offset, inst.src);
 }
