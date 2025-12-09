@@ -3,6 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
@@ -1224,27 +1225,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x5c68000000000000, 0xfff8000000000000) { EMIT(FmulR); }
-    INST(0x5c60000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_REG(20);
-        const auto pred = GET_PRED(39);
-        const bool pred_not = GET_BIT(42);
-        COMMENT("fmnmx {} {} {} {}{}", dst, srcA, srcB, (pred_not ? "!" : ""),
-                pred);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
-        auto srcB_v = ir::Value::Register(srcB, DataType::F32);
-        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
-        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(
-            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5c60000000000000, 0xfff8000000000000) { EMIT(FmnmxR); }
     INST(0x5c58000000000000, 0xfff8000000000000) { EMIT(FaddR); }
     INST(0x5c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -1763,30 +1744,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x4c68000000000000, 0xfff8000000000000) { EMIT(FmulC); }
-    INST(0x4c60000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto negA = GET_BIT(48);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(45);
-        const auto srcB = GET_CMEM(34, 14);
-        const auto pred = GET_PRED(39);
-        const bool pred_not = GET_BIT(42);
-        COMMENT("fmnmx {} {}{} {}c{}[0x{:x}] {}{}", dst, (negA ? "-" : ""),
-                srcA, (negB ? "-" : ""), srcB.idx, srcB.imm,
-                (pred_not ? "!" : ""), pred);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = NEG_IF(ir::Value::Register(srcA, DataType::F32), negA);
-        auto srcB_v = NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB);
-        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
-        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(
-            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4c60000000000000, 0xfff8000000000000) { EMIT(FmnmxC); }
     INST(0x4c58000000000000, 0xfff8000000000000) { EMIT(FaddC); }
     INST(0x4c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
@@ -2038,27 +1996,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dadd");
     }
     INST(0x3868000000000000, 0xfef8000000000000) { EMIT(FmulI); }
-    INST(0x3860000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_F32();
-        const auto pred = GET_PRED(39);
-        const bool pred_not = GET_BIT(42);
-        COMMENT("fmnmx {} {} 0x{:08x} {}{}", dst, srcA, srcB,
-                (pred_not ? "!" : ""), pred);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = ir::Value::Register(srcA, DataType::F32);
-        auto srcB_v = ir::Value::Immediate(srcB, DataType::F32);
-        auto min_v = BUILDER.OpMin(srcA_v, srcB_v);
-        auto max_v = BUILDER.OpMax(srcA_v, srcB_v);
-        auto res = BUILDER.OpSelect(
-            NOT_IF(ir::Value::Predicate(pred), pred_not), min_v, max_v);
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3860000000000000, 0xfef8000000000000) { EMIT(FmnmxI); }
     INST(0x3858000000000000, 0xfef8000000000000) { EMIT(FaddI); }
     INST(0x3850000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
