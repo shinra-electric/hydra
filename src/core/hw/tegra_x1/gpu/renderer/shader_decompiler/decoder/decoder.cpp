@@ -1,9 +1,9 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/attribute.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 
 #define BUILDER context.builder
@@ -174,24 +174,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xefe8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pixld");
     }
-    INST(0xefd8000000000000, 0xfff8000000000000) {
-        const auto size = get_operand_eff0_0(inst);
-        const auto dst = GET_REG(0);
-        auto src = GET_AMEM_IDX(20, true);
-        const auto todo = GET_REG(39); // TODO: what is this?
-        COMMENT("ld {} {} a[{} + 0x{:08x}] {}", size, dst, src.reg, src.imm,
-                todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        for (u32 i = 0; i < get_load_store_count(size); i++) {
-            BUILDER.OpCopy(ir::Value::Register(dst + i),
-                           ir::Value::AttrMemory(src));
-            src.imm += sizeof(u32);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xefd8000000000000, 0xfff8000000000000) { EMIT(ALd); }
     INST(0xefd0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("isberd");
     }

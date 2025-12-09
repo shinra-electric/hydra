@@ -484,8 +484,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/attribute.cpp
-    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/attribute.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.cpp
