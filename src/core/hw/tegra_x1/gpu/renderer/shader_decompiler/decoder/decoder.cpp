@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
@@ -364,16 +365,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xe340000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("brk");
     }
-    INST(0xe330000000000000, 0xfff0000000000000) {
-        // TODO: f0f8_0
-        COMMENT("kil");
-
-        HANDLE_PRED_COND_BEGIN();
-
-        BUILDER.OpDiscard();
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xe330000000000000, 0xfff0000000000000) { EMIT(Kil); }
     INST(0xe320000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("ret");
     }
