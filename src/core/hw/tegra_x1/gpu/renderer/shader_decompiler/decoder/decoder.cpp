@@ -1284,9 +1284,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5c30000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("flo");
     }
-    INST(0x5c28000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shr");
-    }
+    INST(0x5c28000000000000, 0xfff8000000000000) { EMIT(ShrR); }
     INST(0x5c20000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
@@ -1758,9 +1756,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c30000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("flo");
     }
-    INST(0x4c28000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shr");
-    }
+    INST(0x4c28000000000000, 0xfff8000000000000) { EMIT(ShrC); }
     INST(0x4c20000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
@@ -2051,22 +2047,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3830000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("flo");
     }
-    INST(0x3828000000000000, 0xfef8000000000000) {
-        const auto type = get_operand_5c30_0(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(8);
-        const auto shift = GET_VALUE_U32(20, 19) |
-                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("shr {} {} {} 0x{:x}", type, dst, src, shift);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpShiftRight(ir::Value::Register(src, type),
-                                        ir::Value::Immediate(shift));
-        BUILDER.OpCopy(ir::Value::Register(dst, type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3828000000000000, 0xfef8000000000000) { EMIT(ShrI); }
     INST(0x3820000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
