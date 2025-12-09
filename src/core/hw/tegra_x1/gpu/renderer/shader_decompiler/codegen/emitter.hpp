@@ -80,10 +80,10 @@ class Emitter {
     virtual void EmitNot(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitBitwise(const ir::Value& dst, BitwiseOp op,
                              const ir::Value& srcA, const ir::Value& srcB) = 0;
-    virtual void EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
-                               u32 shift) = 0;
-    virtual void EmitShiftRight(const ir::Value& dst, const ir::Value& src,
-                                u32 shift) = 0;
+    virtual void EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
+                               const ir::Value& src_b) = 0;
+    virtual void EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
+                                const ir::Value& src_b) = 0;
 
     // Comparison & Selection
     virtual void EmitCompare(const ir::Value& dst, ComparisonOp op,

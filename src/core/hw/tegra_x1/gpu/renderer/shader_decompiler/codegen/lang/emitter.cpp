@@ -462,14 +462,14 @@ void LangEmitter::EmitBitwise(const ir::Value& dst, BitwiseOp op,
                GetValueStr(srcB));
 }
 
-void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
-                                u32 shift) {
-    StoreValue(dst, "({} << {})", GetValueStr(src), shift);
+void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
+                                const ir::Value& src_b) {
+    StoreValue(dst, "({} << {})", GetValueStr(src_a), GetValueStr(src_b));
 }
 
-void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src,
-                                 u32 shift) {
-    StoreValue(dst, "({} >> {})", GetValueStr(src), shift);
+void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
+                                 const ir::Value& src_b) {
+    StoreValue(dst, "({} >> {})", GetValueStr(src_a), GetValueStr(src_b));
 }
 
 // Comparison & Selection

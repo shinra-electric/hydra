@@ -74,12 +74,10 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         EmitNot(inst.GetDst(), inst.GetOperand(0));
         break;
     case ir::Opcode::ShiftLeft:
-        EmitShiftLeft(inst.GetDst(), inst.GetOperand(0),
-                      inst.GetOperand(1).GetRawValue<u32>());
+        EmitShiftLeft(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
     case ir::Opcode::ShiftRight:
-        EmitShiftRight(inst.GetDst(), inst.GetOperand(0),
-                       inst.GetOperand(1).GetRawValue<u32>());
+        EmitShiftRight(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
     case ir::Opcode::Bitwise:
         EmitBitwise(inst.GetDst(), inst.GetOperand(0).GetRawValue<BitwiseOp>(),

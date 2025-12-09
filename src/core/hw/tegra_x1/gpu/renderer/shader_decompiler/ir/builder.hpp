@@ -67,12 +67,11 @@ class Builder {
         return AddInstruction(Opcode::Bitwise,
                               {Value::RawValue(op), srcA, srcB});
     }
-    Value OpShiftLeft(const Value& src, u32 shift) {
-        return AddInstruction(Opcode::ShiftLeft, {src, Value::RawValue(shift)});
+    Value OpShiftLeft(const Value& src_a, const Value& src_b) {
+        return AddInstruction(Opcode::ShiftLeft, {src_a, src_b});
     }
-    Value OpShiftRight(const Value& src, u32 shift) {
-        return AddInstruction(Opcode::ShiftRight,
-                              {src, Value::RawValue(shift)});
+    Value OpShiftRight(const Value& src_a, const Value& src_b) {
+        return AddInstruction(Opcode::ShiftRight, {src_a, src_b});
     }
 
     // Comparison & Selection

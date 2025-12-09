@@ -6,6 +6,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 
 #define BUILDER context.builder
@@ -1230,9 +1231,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
-    INST(0x5c48000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shl");
-    }
+    INST(0x5c48000000000000, 0xfff8000000000000) { EMIT(ShlR); }
     INST(0x5c40000000000000, 0xfff8000000000000) {
         const auto bin = get_operand_5c40_0(inst);
         const auto pred_op = get_operand_5c40_1(inst);
@@ -1304,7 +1303,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto srcA_v = ir::Value::Register(srcA, DataType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, shift);
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
         // TODO: negA
 
         auto res = BUILDER.OpAdd(
@@ -1749,9 +1748,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c50000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
-    INST(0x4c48000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("shl");
-    }
+    INST(0x4c48000000000000, 0xfff8000000000000) { EMIT(ShlC); }
     INST(0x4c40000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("lop");
     }
@@ -2001,20 +1998,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3850000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
-    INST(0x3848000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(8);
-        const auto shift = GET_VALUE_U32(20, 19) |
-                           (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("shl {} {} 0x{:x}", dst, src, shift);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpShiftLeft(ir::Value::Register(src), shift);
-        BUILDER.OpCopy(ir::Value::Register(dst), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3848000000000000, 0xfef8000000000000) { EMIT(ShlI); }
     INST(0x3840000000000000, 0xfef8000000000000) {
         const auto bin = get_operand_5c40_0(inst);
         const auto pred_op = get_operand_5c40_1(inst);
@@ -2077,7 +2061,8 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto res = BUILDER.OpShiftRight(ir::Value::Register(src, type), shift);
+        auto res = BUILDER.OpShiftRight(ir::Value::Register(src, type),
+                                        ir::Value::Immediate(shift));
         BUILDER.OpCopy(ir::Value::Register(dst, type), res);
 
         HANDLE_PRED_COND_END();
@@ -2098,7 +2083,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto srcA_v = ir::Value::Register(srcA, DataType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, shift);
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
         // TODO: negA
 
         auto res = BUILDER.OpAdd(
@@ -2126,7 +2111,8 @@ void Decoder::ParseNextInstruction() {
 
         auto res = BUILDER.OpBitwise(
             BitwiseOp::And,
-            BUILDER.OpShiftRight(ir::Value::Register(src, type), position),
+            BUILDER.OpShiftRight(ir::Value::Register(src, type),
+                                 ir::Value::Immediate(position)),
             ir::Value::Immediate((1 << size) - 1,
                                  type)); // TODO: BitfieldExtract
         BUILDER.OpCopy(ir::Value::Register(dst, type), res);
