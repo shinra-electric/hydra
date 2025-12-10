@@ -41,12 +41,11 @@ void EmitLogical(DecoderContext& context, pred_t pred, bool pred_inv,
         pred_res = ir::Value::Immediate(1); // TODO: true
         break;
     case PredicateOp::Z:
-        pred_res = context.builder.OpCompare(ComparisonOp::Equal, res,
-                                             ir::Value::Immediate(0));
+        pred_res = context.builder.OpCompareEqual(res, ir::Value::Immediate(0));
         break;
     case PredicateOp::Nz:
-        pred_res = context.builder.OpCompare(ComparisonOp::NotEqual, res,
-                                             ir::Value::Immediate(0));
+        pred_res =
+            context.builder.OpCompareNotEqual(res, ir::Value::Immediate(0));
         break;
     default:
         unreachable();

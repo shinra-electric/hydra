@@ -3,6 +3,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
@@ -17,7 +18,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 namespace {
 
 // HACK
-ir::Value DoBitwiseOp(ir::Builder& builder, BitwiseOp op, ir::Value a,
+ir::Value DoOpBitwise(ir::Builder& builder, BitwiseOp op, ir::Value a,
                       ir::Value b) {
     switch (op) {
     case BitwiseOp::And:
@@ -26,6 +27,45 @@ ir::Value DoBitwiseOp(ir::Builder& builder, BitwiseOp op, ir::Value a,
         return builder.OpBitwiseOr(a, b);
     case BitwiseOp::Xor:
         return builder.OpBitwiseXor(a, b);
+    default:
+        unreachable();
+    }
+}
+
+// HACK
+ir::Value DoOpCompare(ir::Builder& builder, ComparisonOp op, ir::Value a,
+                      ir::Value b) {
+    switch (op) {
+    case ComparisonOp::F:
+        return ir::Value::Immediate(false);
+    case ComparisonOp::T:
+        return ir::Value::Immediate(true);
+    case ComparisonOp::Less:
+    case ComparisonOp::LessU:
+        return builder.OpCompareLess(a, b);
+    case ComparisonOp::LessEqual:
+    case ComparisonOp::LessEqualU:
+        return builder.OpCompareLessOrEqual(a, b);
+    case ComparisonOp::Greater:
+    case ComparisonOp::GreaterU:
+        return builder.OpCompareGreater(a, b);
+    case ComparisonOp::GreaterEqual:
+    case ComparisonOp::GreaterEqualU:
+        return builder.OpCompareGreaterOrEqual(a, b);
+    case ComparisonOp::Equal:
+    case ComparisonOp::EqualU:
+        return builder.OpCompareEqual(a, b);
+    case ComparisonOp::NotEqual:
+    case ComparisonOp::NotEqualU:
+        return builder.OpCompareNotEqual(a, b);
+    case ComparisonOp::Num:
+    case ComparisonOp::Nan: {
+        const auto res = builder.OpBitwiseOr(a, b);
+        if (op == ComparisonOp::Num)
+            return builder.OpNot(res);
+        else
+            return res;
+    }
     default:
         unreachable();
     }
@@ -1324,9 +1364,9 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
-                              ir::Value::Register(srcB, DataType::F32));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
+                        ir::Value::Register(srcB, DataType::F32));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -1355,9 +1395,10 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
-                                         ir::Value::Register(srcB, type));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+        auto cmp_res =
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
+                        ir::Value::Register(srcB, type));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -1377,9 +1418,10 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
-                                         ir::Value::Register(srcB, type));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+        auto cmp_res =
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
+                        ir::Value::Register(srcB, type));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         if (bool_float) {
             // TODO: simplify immediate value creation
@@ -1438,45 +1480,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
-    INST(0x5800000000000000, 0xff00000000000000) {
-        const auto bool_float = GET_BIT(52);
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negA = GET_BIT(43);
-        const auto srcB = GET_REG(20);
-        const auto negB = GET_BIT(53);
-        // TODO: combine
-        COMMENT("fset {} {} {} {} {}{} {}{}", (bool_float ? "BF" : ""), cmp,
-                combine_bin, dst, (negA ? "-" : ""), srcA, (negB ? "-" : ""),
-                srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res = BUILDER.OpCompare(
-            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
-        // TODO: uncomment
-        // auto bin_res = DoBitwiseOp(BUILDER,combine_bin, cmp_res,
-        //                    ir::Value::Predicate(combine));
-        // TODO: use bin_res instead of cmp_res
-        // TODO: simplify immediate value creation
-        if (bool_float) {
-            auto res = BUILDER.OpSelect(
-                cmp_res,
-                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
-                                     DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
-                                     DataType::F32));
-            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-        } else {
-            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
-            BUILDER.OpCopy(ir::Value::Register(dst), res);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5800000000000000, 0xff00000000000000) { EMIT(FsetR); }
     INST(0x5700000000000000, 0xff00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vshl");
     }
@@ -1581,11 +1585,11 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto bin1_res = DoBitwiseOp(BUILDER, bin, ir::Value::Predicate(srcA),
+        auto bin1_res = DoOpBitwise(BUILDER, bin, ir::Value::Predicate(srcA),
                                     ir::Value::Predicate(srcB));
         auto bin2_res =
-            DoBitwiseOp(BUILDER, bin, bin1_res, ir::Value::Predicate(srcC));
-        auto bin3_res = DoBitwiseOp(BUILDER, combine_bin, bin2_res,
+            DoOpBitwise(BUILDER, bin, bin1_res, ir::Value::Predicate(srcC));
+        auto bin3_res = DoOpBitwise(BUILDER, combine_bin, bin2_res,
                                     ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin3_res);
 
@@ -1765,9 +1769,9 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
-                              ir::Value::ConstMemory(srcB, DataType::F32));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
+                        ir::Value::ConstMemory(srcB, DataType::F32));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -1796,9 +1800,10 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
-                                         ir::Value::ConstMemory(srcB, type));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+        auto cmp_res =
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
+                        ir::Value::ConstMemory(srcB, type));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -1846,43 +1851,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
-    INST(0x4800000000000000, 0xfe00000000000000) {
-        const auto bool_float = GET_BIT(52);
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negA = GET_BIT(43);
-        const auto srcB = GET_CMEM(34, 14);
-        const auto negB = GET_BIT(53);
-        const auto combine = GET_PRED(39);
-        COMMENT("fset {} {} {} {} {}{} {}{} {}", (bool_float ? "BF" : ""), cmp,
-                combine_bin, dst, (negA ? "-" : ""), srcA, (negB ? "-" : ""),
-                srcB, combine);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res = BUILDER.OpCompare(
-            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        if (bool_float) {
-            // TODO: simplify immediate value creation
-            auto res = BUILDER.OpSelect(
-                bin_res,
-                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
-                                     DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
-                                     DataType::F32));
-            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-        } else {
-            auto res = BUILDER.OpCast(bin_res, DataType::U32);
-            BUILDER.OpCopy(ir::Value::Register(dst), res);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4800000000000000, 0xfe00000000000000) { EMIT(FsetC); }
     INST(0x4000000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vset");
     }
@@ -2052,9 +2021,9 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto cmp_res =
-            BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
-                              ir::Value::Immediate(srcB, DataType::F32));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
+                        ir::Value::Immediate(srcB, DataType::F32));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -2084,9 +2053,10 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
-                                         ir::Value::Immediate(srcB, type));
-        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+        auto cmp_res =
+            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
+                        ir::Value::Immediate(srcB, type));
+        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
@@ -2136,45 +2106,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3200000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
-    INST(0x3000000000000000, 0xfe00000000000000) {
-        const auto bool_float = GET_BIT(52);
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negA = GET_BIT(43);
-        const auto srcB = GET_VALUE_F32();
-        const auto negB = GET_BIT(53);
-        // TODO: combine
-        COMMENT("fset {} {} {} {} {}{} {}0x{:08x}", (bool_float ? "BF" : ""),
-                cmp, combine_bin, dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res = BUILDER.OpCompare(
-            cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
-            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB));
-        // TODO: uncomment
-        // auto bin_res = DoBitwiseOp(BUILDER,combine_bin, cmp_res,
-        //                    ir::Value::Predicate(combine));
-        // TODO: use bin_res instead of cmp_res
-        // TODO: simplify immediate value creation
-        if (bool_float) {
-            auto res = BUILDER.OpSelect(
-                cmp_res,
-                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
-                                     DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
-                                     DataType::F32));
-            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-        } else {
-            auto res = BUILDER.OpCast(cmp_res, DataType::U32);
-            BUILDER.OpCopy(ir::Value::Register(dst), res);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3000000000000000, 0xfe00000000000000) { EMIT(FsetI); }
     INST(0x2c00000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("hadd2_32i");
     }

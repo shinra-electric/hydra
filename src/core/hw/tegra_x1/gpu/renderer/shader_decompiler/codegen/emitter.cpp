@@ -51,6 +51,9 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         break;
 
     // Math
+    case ir::Opcode::IsNan:
+        EmitIsNan(inst.GetDst(), inst.GetOperand(0));
+        break;
     case ir::Opcode::Round:
         EmitRound(inst.GetDst(), inst.GetOperand(0));
         break;
@@ -90,10 +93,27 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         break;
 
     // Comparison & Selection
-    case ir::Opcode::Compare:
-        EmitCompare(inst.GetDst(),
-                    inst.GetOperand(0).GetRawValue<ComparisonOp>(),
-                    inst.GetOperand(1), inst.GetOperand(2));
+    case ir::Opcode::CompareLess:
+        EmitCompareLess(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
+        break;
+    case ir::Opcode::CompareLessOrEqual:
+        EmitCompareLessOrEqual(inst.GetDst(), inst.GetOperand(0),
+                               inst.GetOperand(1));
+        break;
+    case ir::Opcode::CompareGreater:
+        EmitCompareGreater(inst.GetDst(), inst.GetOperand(0),
+                           inst.GetOperand(1));
+        break;
+    case ir::Opcode::CompareGreaterOrEqual:
+        EmitCompareGreaterOrEqual(inst.GetDst(), inst.GetOperand(0),
+                                  inst.GetOperand(1));
+        break;
+    case ir::Opcode::CompareEqual:
+        EmitCompareEqual(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
+        break;
+    case ir::Opcode::CompareNotEqual:
+        EmitCompareNotEqual(inst.GetDst(), inst.GetOperand(0),
+                            inst.GetOperand(1));
         break;
     case ir::Opcode::Select:
         EmitSelect(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1),

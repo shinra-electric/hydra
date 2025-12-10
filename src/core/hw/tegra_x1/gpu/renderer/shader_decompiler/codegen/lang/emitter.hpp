@@ -86,8 +86,18 @@ class LangEmitter : public Emitter {
                         const ir::Value& src_b) override;
 
     // Comparison & Selection
-    void EmitCompare(const ir::Value& dst, ComparisonOp op,
-                     const ir::Value& srcA, const ir::Value& srcB) override;
+    void EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+                         const ir::Value& srcB) override;
+    void EmitCompareLessOrEqual(const ir::Value& dst, const ir::Value& srcA,
+                                const ir::Value& srcB) override;
+    void EmitCompareGreater(const ir::Value& dst, const ir::Value& srcA,
+                            const ir::Value& srcB) override;
+    void EmitCompareGreaterOrEqual(const ir::Value& dst, const ir::Value& srcA,
+                                   const ir::Value& srcB) override;
+    void EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+                          const ir::Value& srcB) override;
+    void EmitCompareNotEqual(const ir::Value& dst, const ir::Value& srcA,
+                             const ir::Value& srcB) override;
     void EmitSelect(const ir::Value& dst, const ir::Value& cond,
                     const ir::Value& src_true,
                     const ir::Value& src_false) override;

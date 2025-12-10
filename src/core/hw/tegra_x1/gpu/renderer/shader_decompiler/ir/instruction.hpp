@@ -20,6 +20,7 @@ enum class Opcode {
     Clamp,
 
     // Math
+    IsNan,
     Round,
     Floor,
     Ceil,
@@ -35,7 +36,12 @@ enum class Opcode {
     ShiftRight,
 
     // Comparison & Selection
-    Compare,
+    CompareLess,
+    CompareLessOrEqual,
+    CompareGreater,
+    CompareGreaterOrEqual,
+    CompareEqual,
+    CompareNotEqual,
     Select,
 
     // Control Flow
@@ -94,15 +100,17 @@ struct Instruction {
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Opcode, Copy, "copy",
     Cast, "cast", Abs, "abs", Neg, "neg", Add, "add", Multiply, "mul", Fma,
-    "fma", Min, "min", Max, "max", Clamp, "clamp", Round, "round", Floor,
-    "floor", Ceil, "ceil", Trunc, "trunc", MathFunction, "math_func", Not,
-    "not", BitwiseAnd, "and", BitwiseOr, "or", BitwiseXor, "xor", ShiftLeft,
-    "shl", ShiftRight, "shr", Compare, "cmp", Select, "select", BeginIf,
-    "begin_if", EndIf, "end_if", Branch, "branch", BranchConditional,
-    "branch_cond", VectorExtract, "vec_extract", VectorInsert, "vec_insert",
-    VectorConstruct, "vec_construct", TextureSample, "tex_sample", TextureRead,
-    "tex_read", TextureGather, "tex_gather", TextureQueryDimension,
-    "tex_query_dim", Exit, "exit", Discard, "discard")
+    "fma", Min, "min", Max, "max", Clamp, "clamp", IsNan, "is_nan", Round,
+    "round", Floor, "floor", Ceil, "ceil", Trunc, "trunc", MathFunction,
+    "math_func", Not, "not", BitwiseAnd, "and", BitwiseOr, "or", BitwiseXor,
+    "xor", ShiftLeft, "shl", ShiftRight, "shr", CompareLess, "cmp_lt",
+    CompareLessOrEqual, "cmp_le", CompareGreater, "cmp_gt",
+    CompareGreaterOrEqual, "cmp_ge", CompareEqual, "cmp_eq", CompareNotEqual,
+    "cmp_ne", Select, "select", BeginIf, "begin_if", EndIf, "end_if", Branch,
+    "branch", BranchConditional, "branch_cond", VectorExtract, "vec_extract",
+    VectorInsert, "vec_insert", VectorConstruct, "vec_construct", TextureSample,
+    "tex_sample", TextureRead, "tex_read", TextureGather, "tex_gather",
+    TextureQueryDimension, "tex_query_dim", Exit, "exit", Discard, "discard")
 
 template <>
 struct fmt::formatter<

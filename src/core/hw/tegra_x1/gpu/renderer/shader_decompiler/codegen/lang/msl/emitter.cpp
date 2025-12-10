@@ -276,6 +276,11 @@ void MslEmitter::EmitExitReturn() {
     WriteStatement("return __out");
 }
 
+// Math
+void MslEmitter::EmitIsNan(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "isnan({})", GetValueStr(src));
+}
+
 // Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {

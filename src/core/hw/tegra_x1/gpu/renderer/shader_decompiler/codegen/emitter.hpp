@@ -69,6 +69,7 @@ class Emitter {
                            const ir::Value& srcB, const ir::Value& srcC) = 0;
 
     // Math
+    virtual void EmitIsNan(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitRound(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitFloor(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitCeil(const ir::Value& dst, const ir::Value& src) = 0;
@@ -90,8 +91,21 @@ class Emitter {
                                 const ir::Value& src_b) = 0;
 
     // Comparison & Selection
-    virtual void EmitCompare(const ir::Value& dst, ComparisonOp op,
-                             const ir::Value& srcA, const ir::Value& srcB) = 0;
+    virtual void EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+                                 const ir::Value& srcB) = 0;
+    virtual void EmitCompareLessOrEqual(const ir::Value& dst,
+                                        const ir::Value& srcA,
+                                        const ir::Value& srcB) = 0;
+    virtual void EmitCompareGreater(const ir::Value& dst, const ir::Value& srcA,
+                                    const ir::Value& srcB) = 0;
+    virtual void EmitCompareGreaterOrEqual(const ir::Value& dst,
+                                           const ir::Value& srcA,
+                                           const ir::Value& srcB) = 0;
+    virtual void EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+                                  const ir::Value& srcB) = 0;
+    virtual void EmitCompareNotEqual(const ir::Value& dst,
+                                     const ir::Value& srcA,
+                                     const ir::Value& srcB) = 0;
     virtual void EmitSelect(const ir::Value& dst, const ir::Value& cond,
                             const ir::Value& src_true,
                             const ir::Value& src_false) = 0;

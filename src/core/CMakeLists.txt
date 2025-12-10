@@ -488,6 +488,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.cpp

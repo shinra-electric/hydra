@@ -23,6 +23,9 @@ class MslEmitter final : public LangEmitter {
     void EmitMainPrototype() override;
     void EmitExitReturn() override;
 
+    // Math
+    void EmitIsNan(const ir::Value& dst, const ir::Value& src) override;
+
     // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords) override;

@@ -5,46 +5,6 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
-namespace {
-
-// TODO: move this to the decoder
-std::string cmp_to_str(ComparisonOp cmp, std::string_view lhs,
-                       std::string_view rhs) {
-    // TODO: are the U ones the same?
-    switch (cmp) {
-    case ComparisonOp::F:
-        return "false";
-    case ComparisonOp::Less:
-    case ComparisonOp::LessU:
-        return fmt::format("{} < {}", lhs, rhs);
-    case ComparisonOp::Equal:
-    case ComparisonOp::EqualU:
-        return fmt::format("{} == {}", lhs, rhs);
-    case ComparisonOp::LessEqual:
-    case ComparisonOp::LessEqualU:
-        return fmt::format("{} <= {}", lhs, rhs);
-    case ComparisonOp::Greater:
-    case ComparisonOp::GreaterU:
-        return fmt::format("{} > {}", lhs, rhs);
-    case ComparisonOp::NotEqual:
-    case ComparisonOp::NotEqualU:
-        return fmt::format("{} != {}", lhs, rhs);
-    case ComparisonOp::GreaterEqual:
-    case ComparisonOp::GreaterEqualU:
-        return fmt::format("{} >= {}", lhs, rhs);
-    case ComparisonOp::Num:
-        return fmt::format("!(isnan({}) || isnan({}))", lhs, rhs);
-    case ComparisonOp::Nan:
-        return fmt::format("isnan({}) || isnan({})", lhs, rhs);
-    case ComparisonOp::T:
-        return "true";
-    default:
-        return INVALID_VALUE;
-    }
-}
-
-} // namespace
-
 void LangEmitter::Start() {
     // Header
     EmitHeader();
@@ -469,10 +429,38 @@ void LangEmitter::EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
 }
 
 // Comparison & Selection
-void LangEmitter::EmitCompare(const ir::Value& dst, ComparisonOp op,
-                              const ir::Value& srcA, const ir::Value& srcB) {
-    StoreValue(dst, "({})",
-               cmp_to_str(op, GetValueStr(srcA), GetValueStr(srcB)));
+void LangEmitter::EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+                                  const ir::Value& srcB) {
+    StoreValue(dst, "({} < {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitCompareLessOrEqual(const ir::Value& dst,
+                                         const ir::Value& srcA,
+                                         const ir::Value& srcB) {
+    StoreValue(dst, "({} <= {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitCompareGreater(const ir::Value& dst,
+                                     const ir::Value& srcA,
+                                     const ir::Value& srcB) {
+    StoreValue(dst, "({} > {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitCompareGreaterOrEqual(const ir::Value& dst,
+                                            const ir::Value& srcA,
+                                            const ir::Value& srcB) {
+    StoreValue(dst, "({} >= {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+                                   const ir::Value& srcB) {
+    StoreValue(dst, "({} == {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitCompareNotEqual(const ir::Value& dst,
+                                      const ir::Value& srcA,
+                                      const ir::Value& srcB) {
+    StoreValue(dst, "({} != {})", GetValueStr(srcA), GetValueStr(srcB));
 }
 
 void LangEmitter::EmitSelect(const ir::Value& dst, const ir::Value& cond,

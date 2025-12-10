@@ -44,6 +44,9 @@ class Builder {
     }
 
     // Math
+    Value OpIsNan(const Value& src) {
+        return AddInstruction(Opcode::IsNan, {src});
+    }
     Value OpRound(const Value& src) {
         return AddInstruction(Opcode::Round, {src});
     }
@@ -80,9 +83,23 @@ class Builder {
     }
 
     // Comparison & Selection
-    Value OpCompare(ComparisonOp op, const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Compare,
-                              {Value::RawValue(op), srcA, srcB});
+    Value OpCompareLess(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareLess, {srcA, srcB});
+    }
+    Value OpCompareLessOrEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareLessOrEqual, {srcA, srcB});
+    }
+    Value OpCompareGreater(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareGreater, {srcA, srcB});
+    }
+    Value OpCompareGreaterOrEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareGreaterOrEqual, {srcA, srcB});
+    }
+    Value OpCompareEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareEqual, {srcA, srcB});
+    }
+    Value OpCompareNotEqual(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::CompareNotEqual, {srcA, srcB});
     }
     Value OpSelect(const Value& cond, const Value& src_true,
                    const Value& src_false) {
