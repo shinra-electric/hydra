@@ -29,6 +29,7 @@ enum class Opcode {
 
     // Logical & Bitwise
     Not,
+    BitwiseNot,
     BitwiseAnd,
     BitwiseOr,
     BitwiseXor,
@@ -102,8 +103,9 @@ ENABLE_ENUM_FORMATTING(
     Cast, "cast", Abs, "abs", Neg, "neg", Add, "add", Multiply, "mul", Fma,
     "fma", Min, "min", Max, "max", Clamp, "clamp", IsNan, "is_nan", Round,
     "round", Floor, "floor", Ceil, "ceil", Trunc, "trunc", MathFunction,
-    "math_func", Not, "not", BitwiseAnd, "and", BitwiseOr, "or", BitwiseXor,
-    "xor", ShiftLeft, "shl", ShiftRight, "shr", CompareLess, "cmp_lt",
+    "math_func", Not, "not", BitwiseNot, "bitwise_not", BitwiseAnd,
+    "bitwise_and", BitwiseOr, "bitwise_or", BitwiseXor, "bitwise_xor",
+    ShiftLeft, "shl", ShiftRight, "shr", CompareLess, "cmp_lt",
     CompareLessOrEqual, "cmp_le", CompareGreater, "cmp_gt",
     CompareGreaterOrEqual, "cmp_ge", CompareEqual, "cmp_eq", CompareNotEqual,
     "cmp_ne", Select, "select", BeginIf, "begin_if", EndIf, "end_if", Branch,

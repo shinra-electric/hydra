@@ -76,6 +76,9 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::Not:
         EmitNot(inst.GetDst(), inst.GetOperand(0));
         break;
+    case ir::Opcode::BitwiseNot:
+        EmitBitwiseNot(inst.GetDst(), inst.GetOperand(0));
+        break;
     case ir::Opcode::BitwiseAnd:
         EmitBitwiseAnd(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;

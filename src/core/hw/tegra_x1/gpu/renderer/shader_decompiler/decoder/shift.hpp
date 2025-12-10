@@ -37,8 +37,8 @@ void EmitShlC(DecoderContext& context, InstShlC inst);
 
 union InstShlI {
     InstShlBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitShlI(DecoderContext& context, InstShlI inst);
@@ -72,8 +72,8 @@ void EmitShrC(DecoderContext& context, InstShrC inst);
 
 union InstShrI {
     InstShlBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitShrI(DecoderContext& context, InstShrI inst);

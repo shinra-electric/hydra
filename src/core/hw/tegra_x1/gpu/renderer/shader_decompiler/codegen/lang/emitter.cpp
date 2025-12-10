@@ -403,6 +403,10 @@ void LangEmitter::EmitNot(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "(!{})", GetValueStr(src));
 }
 
+void LangEmitter::EmitBitwiseNot(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "(~{})", GetValueStr(src));
+}
+
 void LangEmitter::EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
                                  const ir::Value& srcB) {
     StoreValue(dst, "({} & {})", GetValueStr(srcA), GetValueStr(srcB));

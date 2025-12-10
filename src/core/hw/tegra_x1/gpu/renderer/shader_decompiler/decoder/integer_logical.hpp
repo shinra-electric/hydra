@@ -23,8 +23,8 @@ union InstLopBase {
     BitField64<reg_t, 8, 8> src_a;
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
-    BitField64<bool, 39, 1> neg_a;
-    BitField64<bool, 40, 1> neg_b;
+    BitField64<bool, 39, 1> inv_a;
+    BitField64<bool, 40, 1> inv_b;
     BitField64<LogicOp, 41, 2> op;
     BitField64<bool, 43, 1> x;
     BitField64<PredicateOp, 44, 2> pred_op;
@@ -49,8 +49,8 @@ void EmitLopC(DecoderContext& context, InstLopC inst);
 
 union InstLopI {
     InstLopBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitLopI(DecoderContext& context, InstLopI inst);
@@ -63,8 +63,8 @@ union InstLop32I {
     BitField64<u32, 20, 32> imm;
     BitField64<bool, 52, 1> write_cc;
     BitField64<LogicOp, 53, 2> op;
-    BitField64<bool, 55, 1> neg_a;
-    BitField64<bool, 56, 1> neg_b;
+    BitField64<bool, 55, 1> inv_a;
+    BitField64<bool, 56, 1> inv_b;
     BitField64<bool, 57, 1> x;
 };
 

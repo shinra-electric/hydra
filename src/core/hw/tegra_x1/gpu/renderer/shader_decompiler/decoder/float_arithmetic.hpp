@@ -36,8 +36,8 @@ void EmitFaddC(DecoderContext& context, InstFaddC inst);
 
 union InstFaddI {
     InstFaddBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitFaddI(DecoderContext& context, InstFaddI inst);
@@ -98,8 +98,8 @@ void EmitFmulC(DecoderContext& context, InstFmulC inst);
 
 union InstFmulI {
     InstFmulBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitFmulI(DecoderContext& context, InstFmulI inst);

@@ -86,7 +86,7 @@ void EmitFaddC(DecoderContext& context, InstFaddC inst) {
 void EmitFaddI(DecoderContext& context, InstFaddI inst) {
     EmitFadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
              inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
-             ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
+             ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                                   DataType::F32),
              inst.base.abs_b, inst.base.neg_b);
 }
@@ -115,7 +115,7 @@ void EmitFmulC(DecoderContext& context, InstFmulC inst) {
 void EmitFmulI(DecoderContext& context, InstFmulI inst) {
     EmitFmul(context, inst.base.pred, inst.base.pred_inv, inst.base.scale,
              inst.base.dst, inst.base.src_a,
-             ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
+             ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                                   DataType::F32),
              inst.base.neg_b);
 }

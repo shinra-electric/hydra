@@ -39,7 +39,7 @@ void EmitIaddC(DecoderContext& context, InstIaddC inst) {
 void EmitIaddI(DecoderContext& context, InstIaddI inst) {
     EmitIadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
              inst.base.src_a, inst.base.neg_a,
-             ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
+             ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                                   DataType::I32),
              inst.base.neg_b);
 }

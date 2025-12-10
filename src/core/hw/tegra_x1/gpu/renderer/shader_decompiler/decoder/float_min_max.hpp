@@ -36,8 +36,8 @@ void EmitFmnmxC(DecoderContext& context, InstFmnmxC inst);
 
 union InstFmnmxI {
     InstFmnmxBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitFmnmxI(DecoderContext& context, InstFmnmxI inst);

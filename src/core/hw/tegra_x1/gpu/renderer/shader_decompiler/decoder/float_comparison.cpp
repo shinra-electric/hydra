@@ -73,8 +73,8 @@ void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
 
     if (b_float) {
         res = context.builder.OpSelect(
-            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f)),
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f)));
+            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32),
+            ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32));
         context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
     } else {
         context.builder.OpCopy(ir::Value::Register(dst), res);
@@ -107,13 +107,14 @@ void EmitFsetC(DecoderContext& context, InstFsetC inst) {
 }
 
 void EmitFsetI(DecoderContext& context, InstFsetI inst) {
-    EmitFloatSet(context, inst.base.pred, inst.base.pred_inv, inst.base.op,
-                 inst.base.b_op, inst.base.dst, inst.base.src_a,
-                 inst.base.abs_a, inst.base.neg_a,
-                 ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
-                                      DataType::F32),
-                 inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
-                 inst.base.src_pred_inv, inst.base.b_float);
+    EmitFloatSet(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.op,
+        inst.base.b_op, inst.base.dst, inst.base.src_a, inst.base.abs_a,
+        inst.base.neg_a,
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
+                             DataType::F32),
+        inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
+        inst.base.src_pred_inv, inst.base.b_float);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

@@ -46,7 +46,7 @@ void EmitShlI(DecoderContext& context, InstShlI inst) {
     EmitShiftLeft(
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_a,
-        ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31)));
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12));
 }
 
 void EmitShrR(DecoderContext& context, InstShrR inst) {
@@ -65,7 +65,7 @@ void EmitShrI(DecoderContext& context, InstShrI inst) {
     EmitShiftRight(
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_a,
-        ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31)));
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12));
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

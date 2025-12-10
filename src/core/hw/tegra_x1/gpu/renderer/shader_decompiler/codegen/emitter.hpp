@@ -79,6 +79,7 @@ class Emitter {
 
     // Logical & Bitwise
     virtual void EmitNot(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitBitwiseNot(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
                                 const ir::Value& srcB) = 0;
     virtual void EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,

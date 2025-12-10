@@ -66,6 +66,9 @@ class Builder {
 
     // Logical & Bitwise
     Value OpNot(const Value& src) { return AddInstruction(Opcode::Not, {src}); }
+    Value OpBitwiseNot(const Value& src) {
+        return AddInstruction(Opcode::BitwiseNot, {src});
+    }
     Value OpBitwiseAnd(const Value& srcA, const Value& srcB) {
         return AddInstruction(Opcode::BitwiseAnd, {srcA, srcB});
     }

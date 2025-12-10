@@ -51,7 +51,7 @@ void EmitFmnmxI(DecoderContext& context, InstFmnmxI inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_pred, inst.base.src_pred_inv, inst.base.src_a,
         inst.base.abs_a, inst.base.neg_a,
-        ir::Value::Immediate((inst.imm_12 << 12) | (inst.imm_31 << 31),
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                              DataType::F32),
         inst.base.abs_b, inst.base.neg_b);
 }

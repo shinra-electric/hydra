@@ -64,8 +64,8 @@ void EmitFsetC(DecoderContext& context, InstFsetC inst);
 
 union InstFsetI {
     InstFsetBase base;
-    BitField64<u32, 20, 19> imm_12;
-    BitField64<u32, 56, 1> imm_31;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
 };
 
 void EmitFsetI(DecoderContext& context, InstFsetI inst);
