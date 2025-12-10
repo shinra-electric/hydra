@@ -28,7 +28,9 @@ enum class Opcode {
 
     // Logical & Bitwise
     Not,
-    Bitwise,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
     ShiftLeft,
     ShiftRight,
 
@@ -91,13 +93,16 @@ struct Instruction {
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Opcode, Copy, "copy",
-    Neg, "neg", Not, "not", Add, "add", Multiply, "mul", Fma, "fma", ShiftLeft,
-    "shl", ShiftRight, "shr", Cast, "cast", Compare, "cmp", Bitwise, "bitwise",
-    Select, "select", Branch, "branch", BranchConditional, "branch_cond",
-    BeginIf, "begin_if", EndIf, "end_if", Min, "min", Max, "max", MathFunction,
-    "math_func", VectorExtract, "extract", VectorInsert, "insert",
-    VectorConstruct, "construct", Exit, "exit", Discard, "discard",
-    TextureSample, "sample", TextureRead, "read")
+    Cast, "cast", Abs, "abs", Neg, "neg", Add, "add", Multiply, "mul", Fma,
+    "fma", Min, "min", Max, "max", Clamp, "clamp", Round, "round", Floor,
+    "floor", Ceil, "ceil", Trunc, "trunc", MathFunction, "math_func", Not,
+    "not", BitwiseAnd, "and", BitwiseOr, "or", BitwiseXor, "xor", ShiftLeft,
+    "shl", ShiftRight, "shr", Compare, "cmp", Select, "select", BeginIf,
+    "begin_if", EndIf, "end_if", Branch, "branch", BranchConditional,
+    "branch_cond", VectorExtract, "vec_extract", VectorInsert, "vec_insert",
+    VectorConstruct, "vec_construct", TextureSample, "tex_sample", TextureRead,
+    "tex_read", TextureGather, "tex_gather", TextureQueryDimension,
+    "tex_query_dim", Exit, "exit", Discard, "discard")
 
 template <>
 struct fmt::formatter<

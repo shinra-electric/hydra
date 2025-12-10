@@ -43,19 +43,6 @@ std::string cmp_to_str(ComparisonOp cmp, std::string_view lhs,
     }
 }
 
-std::string bit_op_to_str(BitwiseOp bin) {
-    switch (bin) {
-    case BitwiseOp::And:
-        return "&";
-    case BitwiseOp::Or:
-        return "|";
-    case BitwiseOp::Xor:
-        return "^";
-    default:
-        return INVALID_VALUE;
-    }
-}
-
 } // namespace
 
 void LangEmitter::Start() {
@@ -456,10 +443,19 @@ void LangEmitter::EmitNot(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "(!{})", GetValueStr(src));
 }
 
-void LangEmitter::EmitBitwise(const ir::Value& dst, BitwiseOp op,
-                              const ir::Value& srcA, const ir::Value& srcB) {
-    StoreValue(dst, "({} {} {})", GetValueStr(srcA), bit_op_to_str(op),
-               GetValueStr(srcB));
+void LangEmitter::EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
+                                 const ir::Value& srcB) {
+    StoreValue(dst, "({} & {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
+                                const ir::Value& srcB) {
+    StoreValue(dst, "({} | {})", GetValueStr(srcA), GetValueStr(srcB));
+}
+
+void LangEmitter::EmitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
+                                 const ir::Value& srcB) {
+    StoreValue(dst, "({} ^ {})", GetValueStr(srcA), GetValueStr(srcB));
 }
 
 void LangEmitter::EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,

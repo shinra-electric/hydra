@@ -63,9 +63,14 @@ class Builder {
 
     // Logical & Bitwise
     Value OpNot(const Value& src) { return AddInstruction(Opcode::Not, {src}); }
-    Value OpBitwise(BitwiseOp op, const Value& srcA, const Value& srcB) {
-        return AddInstruction(Opcode::Bitwise,
-                              {Value::RawValue(op), srcA, srcB});
+    Value OpBitwiseAnd(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseAnd, {srcA, srcB});
+    }
+    Value OpBitwiseOr(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseOr, {srcA, srcB});
+    }
+    Value OpBitwiseXor(const Value& srcA, const Value& srcB) {
+        return AddInstruction(Opcode::BitwiseXor, {srcA, srcB});
     }
     Value OpShiftLeft(const Value& src_a, const Value& src_b) {
         return AddInstruction(Opcode::ShiftLeft, {src_a, src_b});

@@ -5,6 +5,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
@@ -12,6 +13,25 @@
 #define BUILDER context.builder
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
+
+namespace {
+
+// HACK
+ir::Value DoBitwiseOp(ir::Builder& builder, BitwiseOp op, ir::Value a,
+                      ir::Value b) {
+    switch (op) {
+    case BitwiseOp::And:
+        return builder.OpBitwiseAnd(a, b);
+    case BitwiseOp::Or:
+        return builder.OpBitwiseOr(a, b);
+    case BitwiseOp::Xor:
+        return builder.OpBitwiseXor(a, b);
+    default:
+        unreachable();
+    }
+}
+
+} // namespace
 
 void Decoder::Decode() {
     crnt_block = &blocks[0x0];
@@ -1232,52 +1252,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
     INST(0x5c48000000000000, 0xfff8000000000000) { EMIT(ShlR); }
-    INST(0x5c40000000000000, 0xfff8000000000000) {
-        const auto bin = get_operand_5c40_0(inst);
-        const auto pred_op = get_operand_5c40_1(inst);
-        const auto dst_pred = GET_PRED(48);
-        const auto dst = GET_REG(0);
-        const auto invA = GET_BIT(39);
-        const auto srcA = GET_REG(8);
-        const auto invB = GET_BIT(40);
-        const auto srcB = GET_REG(20);
-        COMMENT("lop {} {} {} {}{} {}{}", bin, pred_op, dst, (invA ? "!" : ""),
-                srcA, (invB ? "!" : ""), srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: inv
-        auto srcB_v = ir::Value::Register(srcB);
-        auto res =
-            (bin == BitwiseOp::PassB
-                 ? srcB_v
-                 : BUILDER.OpBitwise(bin, ir::Value::Register(srcA), srcB_v));
-        BUILDER.OpCopy(ir::Value::Register(dst), res);
-
-        std::optional<ir::Value> pred_v;
-        switch (pred_op) {
-        case PredOp::False:
-            pred_v = ir::Value::Immediate(0); // TODO: false
-            break;
-        case PredOp::True:
-            pred_v = ir::Value::Immediate(1); // TODO: true
-            break;
-        case PredOp::Zero:
-            pred_v = BUILDER.OpCompare(ComparisonOp::Equal, res,
-                                       ir::Value::Immediate(0));
-            break;
-        case PredOp::NotZero:
-            pred_v = BUILDER.OpCompare(ComparisonOp::NotEqual, res,
-                                       ir::Value::Immediate(0));
-            break;
-        default:
-            pred_v = std::nullopt;
-            break;
-        }
-        BUILDER.OpCopy(ir::Value::Predicate(dst_pred), pred_v.value());
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5c40000000000000, 0xfff8000000000000) { EMIT(LopR); }
     INST(0x5c38000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul");
     }
@@ -1351,8 +1326,8 @@ void Decoder::ParseNextInstruction() {
         auto cmp_res =
             BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
                               ir::Value::Register(srcB, DataType::F32));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -1382,8 +1357,8 @@ void Decoder::ParseNextInstruction() {
 
         auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
                                          ir::Value::Register(srcB, type));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -1404,8 +1379,8 @@ void Decoder::ParseNextInstruction() {
 
         auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
                                          ir::Value::Register(srcB, type));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         if (bool_float) {
             // TODO: simplify immediate value creation
             auto res = BUILDER.OpSelect(
@@ -1483,7 +1458,7 @@ void Decoder::ParseNextInstruction() {
             cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
             NEG_IF(ir::Value::Register(srcB, DataType::F32), negB));
         // TODO: uncomment
-        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+        // auto bin_res = DoBitwiseOp(BUILDER,combine_bin, cmp_res,
         //                    ir::Value::Predicate(combine));
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
@@ -1606,12 +1581,12 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto bin1_res = BUILDER.OpBitwise(bin, ir::Value::Predicate(srcA),
-                                          ir::Value::Predicate(srcB));
+        auto bin1_res = DoBitwiseOp(BUILDER, bin, ir::Value::Predicate(srcA),
+                                    ir::Value::Predicate(srcB));
         auto bin2_res =
-            BUILDER.OpBitwise(bin, bin1_res, ir::Value::Predicate(srcC));
-        auto bin3_res = BUILDER.OpBitwise(combine_bin, bin2_res,
-                                          ir::Value::Predicate(combine));
+            DoBitwiseOp(BUILDER, bin, bin1_res, ir::Value::Predicate(srcC));
+        auto bin3_res = DoBitwiseOp(BUILDER, combine_bin, bin2_res,
+                                    ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin3_res);
 
         HANDLE_PRED_COND_END();
@@ -1747,9 +1722,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
     INST(0x4c48000000000000, 0xfff8000000000000) { EMIT(ShlC); }
-    INST(0x4c40000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("lop");
-    }
+    INST(0x4c40000000000000, 0xfff8000000000000) { EMIT(LopC); }
     INST(0x4c38000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul");
     }
@@ -1794,8 +1767,8 @@ void Decoder::ParseNextInstruction() {
         auto cmp_res =
             BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
                               ir::Value::ConstMemory(srcB, DataType::F32));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -1825,8 +1798,8 @@ void Decoder::ParseNextInstruction() {
 
         auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
                                          ir::Value::ConstMemory(srcB, type));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -1892,8 +1865,8 @@ void Decoder::ParseNextInstruction() {
         auto cmp_res = BUILDER.OpCompare(
             cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
             NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         if (bool_float) {
             // TODO: simplify immediate value creation
             auto res = BUILDER.OpSelect(
@@ -1995,52 +1968,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dmnmx");
     }
     INST(0x3848000000000000, 0xfef8000000000000) { EMIT(ShlI); }
-    INST(0x3840000000000000, 0xfef8000000000000) {
-        const auto bin = get_operand_5c40_0(inst);
-        const auto pred_op = get_operand_5c40_1(inst);
-        const auto dst_pred = GET_PRED(48);
-        const auto dst = GET_REG(0);
-        const auto invA = GET_BIT(39);
-        const auto srcA = GET_REG(8);
-        const auto invB = GET_BIT(40);
-        const auto srcB = GET_VALUE_U32(20, 20);
-        COMMENT("lop {} {} {} {}{} {}0x{:x}", bin, pred_op, dst,
-                (invA ? "!" : ""), srcA, (invB ? "!" : ""), srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: inv
-        auto srcB_v = ir::Value::Immediate(srcB);
-        auto res =
-            (bin == BitwiseOp::PassB
-                 ? srcB_v
-                 : BUILDER.OpBitwise(bin, ir::Value::Register(srcA), srcB_v));
-        BUILDER.OpCopy(ir::Value::Register(dst), res);
-
-        std::optional<ir::Value> pred_v;
-        switch (pred_op) {
-        case PredOp::False:
-            pred_v = ir::Value::Immediate(0); // TODO: false
-            break;
-        case PredOp::True:
-            pred_v = ir::Value::Immediate(1); // TODO: true
-            break;
-        case PredOp::Zero:
-            pred_v = BUILDER.OpCompare(ComparisonOp::Equal, res,
-                                       ir::Value::Immediate(0));
-            break;
-        case PredOp::NotZero:
-            pred_v = BUILDER.OpCompare(ComparisonOp::NotEqual, res,
-                                       ir::Value::Immediate(0));
-            break;
-        default:
-            pred_v = std::nullopt;
-            break;
-        }
-        BUILDER.OpCopy(ir::Value::Predicate(dst_pred), pred_v.value());
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3840000000000000, 0xfef8000000000000) { EMIT(LopI); }
     INST(0x3838000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imul");
     }
@@ -2090,8 +2018,7 @@ void Decoder::ParseNextInstruction() {
         auto position = extract_bits<u32, 0, 8>(bf);
         auto size = extract_bits<u32, 8, 8>(bf);
 
-        auto res = BUILDER.OpBitwise(
-            BitwiseOp::And,
+        auto res = BUILDER.OpBitwiseAnd(
             BUILDER.OpShiftRight(ir::Value::Register(src, type),
                                  ir::Value::Immediate(position)),
             ir::Value::Immediate((1 << size) - 1,
@@ -2127,8 +2054,8 @@ void Decoder::ParseNextInstruction() {
         auto cmp_res =
             BUILDER.OpCompare(cmp, ir::Value::Register(srcA, DataType::F32),
                               ir::Value::Immediate(srcB, DataType::F32));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -2159,8 +2086,8 @@ void Decoder::ParseNextInstruction() {
 
         auto cmp_res = BUILDER.OpCompare(cmp, ir::Value::Register(srcA, type),
                                          ir::Value::Immediate(srcB, type));
-        auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
-                                         ir::Value::Predicate(combine));
+        auto bin_res = DoBitwiseOp(BUILDER, combine_bin, cmp_res,
+                                   ir::Value::Predicate(combine));
         BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
 
         HANDLE_PRED_COND_END();
@@ -2229,7 +2156,7 @@ void Decoder::ParseNextInstruction() {
             cmp, NEG_IF(ir::Value::Register(srcA, DataType::F32), negA),
             NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB));
         // TODO: uncomment
-        // auto bin_res = BUILDER.OpBitwise(combine_bin, cmp_res,
+        // auto bin_res = DoBitwiseOp(BUILDER,combine_bin, cmp_res,
         //                    ir::Value::Predicate(combine));
         // TODO: use bin_res instead of cmp_res
         // TODO: simplify immediate value creation
@@ -2282,29 +2209,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("ffma32i");
     }
     INST(0x0800000000000000, 0xfc00000000000000) { EMIT(Fadd32I); }
-    INST(0x0400000000000000, 0xfc00000000000000) {
-        const auto bin = get_operand_0400_0(inst);
-        const auto dst = GET_REG(0);
-        const auto invA = GET_BIT(55);
-        const auto srcA = GET_REG(8);
-        const auto invB = GET_BIT(56);
-        const auto srcB = GET_VALUE_U32(20, 32);
-        COMMENT("lop32i {} {} {}{} {}0x{:08x}", bin, dst, (invA ? "!" : ""),
-                srcA, (invB ? "!" : ""), srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: inv
-        auto srcB_v = ir::Value::Immediate(srcB, DataType::U32);
-        auto res =
-            (bin == BitwiseOp::PassB
-                 ? srcB_v
-                 : BUILDER.OpBitwise(
-                       bin, ir::Value::Register(srcA, DataType::U32), srcB_v));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x0400000000000000, 0xfc00000000000000) { EMIT(Lop32I); }
     INST(0x0200000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lop3");
     }

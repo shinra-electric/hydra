@@ -74,8 +74,12 @@ class LangEmitter : public Emitter {
 
     // Logical & Bitwise
     void EmitNot(const ir::Value& dst, const ir::Value& src) override;
-    void EmitBitwise(const ir::Value& dst, BitwiseOp op, const ir::Value& srcA,
-                     const ir::Value& srcB) override;
+    void EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
+                        const ir::Value& srcB) override;
+    void EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
+                       const ir::Value& srcB) override;
+    void EmitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
+                        const ir::Value& srcB) override;
     void EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
                        const ir::Value& src_b) override;
     void EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
