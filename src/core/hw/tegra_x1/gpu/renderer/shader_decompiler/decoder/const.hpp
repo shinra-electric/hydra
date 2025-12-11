@@ -22,23 +22,21 @@ struct DecoderContext {
     ir::Builder& builder;
 };
 
-inline ir::Value neg_if(ir::Builder& builder, const ir::Value& value,
-                        bool neg) {
+inline ir::Value NegIf(ir::Builder& builder, const ir::Value& value, bool neg) {
     return neg ? builder.OpNeg(value) : value;
 }
 
-inline ir::Value abs_if(ir::Builder& builder, const ir::Value& value,
-                        bool abs) {
+inline ir::Value AbsIf(ir::Builder& builder, const ir::Value& value, bool abs) {
     return abs ? builder.OpAbs(value) : value;
 }
 
-inline ir::Value abs_neg_if(ir::Builder& builder, const ir::Value& value,
-                            bool abs, bool neg) {
-    return neg_if(builder, abs_if(builder, value, abs), neg);
+inline ir::Value AbsNegIf(ir::Builder& builder, const ir::Value& value,
+                          bool abs, bool neg) {
+    return NegIf(builder, AbsIf(builder, value, abs), neg);
 }
 
-inline ir::Value not_if(ir::Builder& builder, const ir::Value& value,
-                        bool not_) {
+inline ir::Value NotIf(ir::Builder& builder, const ir::Value& value,
+                       bool not_) {
     return not_ ? builder.OpNot(value) : value;
 }
 
@@ -63,7 +61,7 @@ inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
         return false;
     } else { // Conditional
         builder.OpBeginIf(
-            {not_if(builder, ir::Value::Predicate(pred), pred_inv)});
+            {NotIf(builder, ir::Value::Predicate(pred), pred_inv)});
         return true;
     }
 }

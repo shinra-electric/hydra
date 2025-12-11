@@ -148,8 +148,8 @@ void Decoder::ParseNextInstruction() {
 #define GET_NCGMEM_R(b_reg, count_imm, is_input)                               \
     AMem{GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4, is_input}
 
-#define NEG_IF(value, neg) neg_if(BUILDER, value, neg)
-#define NOT_IF(value, not_) not_if(BUILDER, value, not_)
+#define NEG_IF(value, neg) NegIf(BUILDER, value, neg)
+#define NOT_IF(value, not_) NotIf(BUILDER, value, not_)
 
 #define PRED_COND_NOTHING ((inst & 0x00000000000f0000) == 0x0000000000070000)
 #define PRED_COND_NEVER ((inst & 0x00000000000f0000) == 0x00000000000f0000)

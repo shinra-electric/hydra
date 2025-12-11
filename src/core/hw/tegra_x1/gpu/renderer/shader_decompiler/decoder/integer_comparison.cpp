@@ -41,7 +41,7 @@ void EmitIntSet(DecoderContext& context, pred_t pred, bool pred_inv,
     auto res = GetIntCmp(context, op, src_a_v, src_b);
 
     const auto pred_v =
-        not_if(context.builder, ir::Value::Predicate(src_pred), src_pred_inv);
+        NotIf(context.builder, ir::Value::Predicate(src_pred), src_pred_inv);
     res = GetLogical(context, b_op, res, pred_v);
 
     if (b_float) {
@@ -69,7 +69,7 @@ void EmitIntSetPredicate(DecoderContext& context, pred_t pred, bool pred_inv,
     auto res1 = context.builder.OpNot(res0);
 
     const auto pred_v =
-        not_if(context.builder, ir::Value::Predicate(src_pred), src_pred_inv);
+        NotIf(context.builder, ir::Value::Predicate(src_pred), src_pred_inv);
     res0 = GetLogical(context, b_op, res0, pred_v);
     res1 = GetLogical(context, b_op, res1, pred_v);
 

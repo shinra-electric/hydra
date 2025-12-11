@@ -12,13 +12,13 @@ void EmitFloatMinMax(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        abs_neg_if(context.builder, ir::Value::Register(src_a, DataType::F32),
-                   abs_a, neg_a);
-    auto src_b_v = abs_neg_if(context.builder, src_b, abs_b, neg_b);
+        AbsNegIf(context.builder, ir::Value::Register(src_a, DataType::F32),
+                 abs_a, neg_a);
+    auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto min_v = context.builder.OpMin(src_a_v, src_b_v);
     auto max_v = context.builder.OpMax(src_a_v, src_b_v);
     auto res = context.builder.OpSelect(
-        not_if(context.builder, ir::Value::Predicate(src_pred), src_pred_inv),
+        NotIf(context.builder, ir::Value::Predicate(src_pred), src_pred_inv),
         min_v, max_v);
     context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 

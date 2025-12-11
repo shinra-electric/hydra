@@ -11,9 +11,9 @@ void EmitFadd(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        abs_neg_if(context.builder, ir::Value::Register(src_a, DataType::F32),
-                   abs_a, neg_a);
-    auto src_b_v = abs_neg_if(context.builder, src_b, abs_b, neg_b);
+        AbsNegIf(context.builder, ir::Value::Register(src_a, DataType::F32),
+                 abs_a, neg_a);
+    auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
 
     auto res = context.builder.OpAdd(src_a_v, src_b_v);
     res = SaturateIf(context.builder, res, saturate);
@@ -59,8 +59,8 @@ void EmitFmul(DecoderContext& context, pred_t pred, bool pred_inv,
             ir::Value::Immediate(std::bit_cast<u32>(scale_f), DataType::F32));
     }
 
-    auto res = context.builder.OpMultiply(
-        src_a_v, neg_if(context.builder, src_b, neg_b));
+    auto res = context.builder.OpMultiply(src_a_v,
+                                          NegIf(context.builder, src_b, neg_b));
     res = SaturateIf(context.builder, res, saturate);
     context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
 
@@ -74,10 +74,10 @@ void EmitFfma(DecoderContext& context, pred_t pred, bool pred_inv,
               ir::Value src_b, bool neg_b, ir::Value src_c, bool neg_c) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
-    auto src_a_v = neg_if(context.builder,
-                          ir::Value::Register(src_a, DataType::F32), neg_a);
-    auto src_b_v = neg_if(context.builder, src_b, neg_b);
-    auto src_c_v = neg_if(context.builder, src_c, neg_c);
+    auto src_a_v = NegIf(context.builder,
+                         ir::Value::Register(src_a, DataType::F32), neg_a);
+    auto src_b_v = NegIf(context.builder, src_b, neg_b);
+    auto src_c_v = NegIf(context.builder, src_c, neg_c);
 
     auto res = context.builder.OpFma(src_a_v, src_b_v, src_c_v);
     res = SaturateIf(context.builder, res, saturate);

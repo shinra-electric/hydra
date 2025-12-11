@@ -9,9 +9,9 @@ void EmitIadd(DecoderContext& context, pred_t pred, bool pred_inv, reg_t dst,
               reg_t src_a, bool neg_a, ir::Value src_b, bool neg_b) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
-    auto src_a_v = neg_if(context.builder,
-                          ir::Value::Register(src_a, DataType::I32), neg_a);
-    auto src_b_v = neg_if(context.builder, src_b, neg_b);
+    auto src_a_v = NegIf(context.builder,
+                         ir::Value::Register(src_a, DataType::I32), neg_a);
+    auto src_b_v = NegIf(context.builder, src_b, neg_b);
 
     auto res = context.builder.OpAdd(src_a_v, src_b_v);
     context.builder.OpCopy(ir::Value::Register(dst, DataType::I32), res);
