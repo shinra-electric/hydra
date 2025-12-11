@@ -9,6 +9,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 
@@ -1252,18 +1253,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5ca0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("sel");
     }
-    INST(0x5c98000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(20);
-        const auto todo = GET_VALUE_U32(39, 4); // TODO: what is this?
-        COMMENT("mov {} {} 0x{:x}", dst, src, todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Register(src));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5c98000000000000, 0xfff8000000000000) { EMIT(MovR); }
     INST(0x5c90000000000000, 0xfff8000000000000) {
         // TODO: mode
         const auto dst = GET_REG(0);
@@ -1608,18 +1598,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x4c98000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto src = GET_CMEM(34, 14);
-        const auto todo = GET_VALUE_U32(39, 4);
-        COMMENT("mov {} {} 0x{:x}", dst, src, todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4c98000000000000, 0xfff8000000000000) { EMIT(MovC); }
     INST(0x4c90000000000000, 0xfff8000000000000) {
         // TODO: 5c90_0
         const auto dst = GET_REG(0);
@@ -1795,9 +1774,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x3898000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("mov");
-    }
+    INST(0x3898000000000000, 0xfef8000000000000) { EMIT(MovI); }
     INST(0x3890000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("rro");
     }
@@ -1980,19 +1957,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x0200000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lop3");
     }
-    INST(0x0100000000000000, 0xfff0000000000000) {
-        const auto dst = GET_REG(0);
-        const auto value = GET_VALUE_U32(20, 32);
-        const auto todo =
-            extract_bits<u32, 4, 12>(inst) >> 8; // TODO: what is this?
-        COMMENT("mov32i {} 0x{:08x} 0x{:08x}", dst, value, todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Immediate(value));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x0100000000000000, 0xfff0000000000000) { EMIT(Mov32I); }
     else {
         LOG_ERROR(ShaderDecompiler, "Unknown instruction 0x{:016x}", inst);
     }
