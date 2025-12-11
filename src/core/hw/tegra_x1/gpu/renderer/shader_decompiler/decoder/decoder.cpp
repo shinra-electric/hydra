@@ -1350,28 +1350,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5bc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("prmt");
     }
-    INST(0x5bb0000000000000, 0xfff0000000000000) {
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_REG(20);
-        // TODO: pred 39
-        COMMENT("fsetp {} {} {} {} {} {}", cmp, combine_bin, dst, combine, srcA,
-                srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
-                        ir::Value::Register(srcB, DataType::F32));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5bb0000000000000, 0xfff0000000000000) { EMIT(FsetpR); }
     INST(0x5ba0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
     }
@@ -1756,27 +1735,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4bc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("prmt");
     }
-    INST(0x4bb0000000000000, 0xfff0000000000000) {
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_CMEM(34, 14);
-        COMMENT("fsetp {} {} {} {} {} c{}[0x{:x}]", cmp, combine_bin, dst,
-                combine, srcA, srcB.idx, srcB.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
-                        ir::Value::ConstMemory(srcB, DataType::F32));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4bb0000000000000, 0xfff0000000000000) { EMIT(FsetpC); }
     INST(0x4ba0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
     }
@@ -2008,27 +1967,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x36c0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("prmt");
     }
-    INST(0x36b0000000000000, 0xfef0000000000000) {
-        const auto cmp = get_operand_5bb0_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_F32();
-        COMMENT("fsetp {} {} {} {} {} 0x{:08x}", cmp, combine_bin, dst, combine,
-                srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, DataType::F32),
-                        ir::Value::Immediate(srcB, DataType::F32));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x36b0000000000000, 0xfef0000000000000) { EMIT(FsetpI); }
     INST(0x36a0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("fcmp");
     }
