@@ -1250,9 +1250,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x5ca0000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("sel");
-    }
+    INST(0x5ca0000000000000, 0xfff8000000000000) { EMIT(SelR); }
     INST(0x5c98000000000000, 0xfff8000000000000) { EMIT(MovR); }
     INST(0x5c90000000000000, 0xfff8000000000000) {
         // TODO: mode
@@ -1531,22 +1529,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4ca8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("f2f");
     }
-    INST(0x4ca0000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_CMEM(34, 14);
-        const auto pred = GET_PRED(39);
-        COMMENT("sel {} {} {} {}", dst, srcA, srcB, pred);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred),
-                                    ir::Value::Register(srcA),
-                                    ir::Value::ConstMemory(srcB));
-        BUILDER.OpCopy(ir::Value::Register(dst), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4ca0000000000000, 0xfff8000000000000) { EMIT(SelC); }
     INST(0x4c98000000000000, 0xfff8000000000000) { EMIT(MovC); }
     INST(0x4c90000000000000, 0xfff8000000000000) {
         // TODO: 5c90_0
@@ -1681,22 +1664,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x38a8000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("f2f");
     }
-    INST(0x38a0000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_I32_SIGN_EXTEND(20, 20);
-        const auto pred = GET_PRED(39);
-        COMMENT("sel {} {} 0x{:x} {}", dst, srcA, srcB, pred);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpSelect(ir::Value::Predicate(pred),
-                                    ir::Value::Register(srcA, DataType::I32),
-                                    ir::Value::Immediate(srcB, DataType::I32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x38a0000000000000, 0xfef8000000000000) { EMIT(SelI); }
     INST(0x3898000000000000, 0xfef8000000000000) { EMIT(MovI); }
     INST(0x3890000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("rro");
