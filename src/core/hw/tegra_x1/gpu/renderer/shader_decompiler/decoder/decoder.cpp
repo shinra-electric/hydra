@@ -6,6 +6,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
@@ -1360,64 +1361,8 @@ void Decoder::ParseNextInstruction() {
     INST(0x5b70000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("dfma");
     }
-    INST(0x5b60000000000000, 0xfff0000000000000) {
-        const auto cmp = get_operand_5b60_0(inst);
-        const auto type = get_operand_5c30_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_REG(20);
-        // TODO: pred 39
-        COMMENT("isetp {} {} {} {} {} {} {}", cmp, type, combine_bin, dst,
-                combine, srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
-                        ir::Value::Register(srcB, type));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x5b50000000000000, 0xfff0000000000000) {
-        const auto bool_float = GET_BIT(44);
-        const auto cmp = get_operand_5b60_0(inst);
-        const auto type = get_operand_5c30_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_REG(20);
-        const auto combine = GET_PRED(39);
-        COMMENT("iset {} {} {} {} {} {} {}", cmp, type, combine_bin, dst, srcA,
-                srcB, combine);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
-                        ir::Value::Register(srcB, type));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        if (bool_float) {
-            // TODO: simplify immediate value creation
-            auto res = BUILDER.OpSelect(
-                bin_res,
-                ir::Value::Immediate(std::bit_cast<u32>(f32(1.0f)),
-                                     DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(f32(0.0f)),
-                                     DataType::F32));
-            BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-        } else {
-            auto res = BUILDER.OpCast(bin_res, DataType::U32);
-            BUILDER.OpCopy(ir::Value::Register(dst), res);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5b60000000000000, 0xfff0000000000000) { EMIT(IsetpR); }
+    INST(0x5b50000000000000, 0xfff0000000000000) { EMIT(IsetR); }
     INST(0x5b40000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("icmp");
     }
@@ -1745,32 +1690,8 @@ void Decoder::ParseNextInstruction() {
     INST(0x4b70000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("dfma");
     }
-    INST(0x4b60000000000000, 0xfff0000000000000) {
-        const auto cmp = get_operand_5b60_0(inst);
-        const auto type = get_operand_5c30_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_CMEM(34, 14);
-        // TODO: pred 39
-        COMMENT("isetp {} {} {} {} {} {} c{}[0x{:x}]", cmp, type, combine_bin,
-                dst, combine, srcA, srcB.idx, srcB.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
-                        ir::Value::ConstMemory(srcB, type));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x4b50000000000000, 0xfff0000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iset");
-    }
+    INST(0x4b60000000000000, 0xfff0000000000000) { EMIT(IsetpC); }
+    INST(0x4b50000000000000, 0xfff0000000000000) { EMIT(IsetC); }
     INST(0x4b40000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("icmp");
     }
@@ -1977,33 +1898,8 @@ void Decoder::ParseNextInstruction() {
     INST(0x3670000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("dfma");
     }
-    INST(0x3660000000000000, 0xfef0000000000000) {
-        const auto cmp = get_operand_5b60_0(inst);
-        const auto type = get_operand_5c30_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_REG(8);
-        const auto srcB = GET_VALUE_U32(20, 19) |
-                          (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        // TODO: pred 39
-        COMMENT("isetp {} {} {} {} {} {} {}", cmp, type, combine_bin, dst,
-                combine, srcA, srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto cmp_res =
-            DoOpCompare(BUILDER, cmp, ir::Value::Register(srcA, type),
-                        ir::Value::Immediate(srcB, type));
-        auto bin_res = DoOpBitwise(BUILDER, combine_bin, cmp_res,
-                                   ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin_res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x3650000000000000, 0xfef0000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iset");
-    }
+    INST(0x3660000000000000, 0xfef0000000000000) { EMIT(IsetpI); }
+    INST(0x3650000000000000, 0xfef0000000000000) { EMIT(IsetI); }
     INST(0x3640000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("icmp");
     }

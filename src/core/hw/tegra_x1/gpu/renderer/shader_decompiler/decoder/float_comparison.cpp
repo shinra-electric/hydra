@@ -41,18 +41,6 @@ ir::Value GetFloatCmp(DecoderContext& context, FloatCmpOp op, ir::Value a,
     }
 }
 
-ir::Value GetLogical(DecoderContext& context, BoolOp op, ir::Value a,
-                     ir::Value b) {
-    switch (op) {
-    case BoolOp::And:
-        return context.builder.OpBitwiseAnd(a, b);
-    case BoolOp::Or:
-        return context.builder.OpBitwiseOr(a, b);
-    case BoolOp::Xor:
-        return context.builder.OpBitwiseXor(a, b);
-    }
-}
-
 // TODO: write_cc, ftz
 void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
                   FloatCmpOp op, BoolOp b_op, reg_t dst, reg_t src_a,
