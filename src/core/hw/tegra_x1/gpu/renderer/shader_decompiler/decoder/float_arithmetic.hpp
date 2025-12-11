@@ -117,4 +117,67 @@ union InstFmul32I {
 
 void EmitFmul32I(DecoderContext& context, InstFmul32I inst);
 
+union InstFfmaBase {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<bool, 47, 1> write_cc;
+    BitField64<bool, 48, 1> neg_b;
+    BitField64<bool, 49, 1> neg_c;
+    BitField64<bool, 50, 1> sat;
+    BitField64<u32, 51, 2> round_mode; // TODO
+    BitField64<u32, 53, 2> fmz;        // TODO
+};
+
+union InstFfmaR {
+    InstFfmaBase base;
+    BitField64<reg_t, 20, 8> src_b;
+    BitField64<reg_t, 39, 8> src_c;
+};
+
+void EmitFfmaR(DecoderContext& context, InstFfmaR inst);
+
+union InstFfmaRC {
+    InstFfmaBase base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+    BitField64<reg_t, 39, 8> src_b;
+};
+
+void EmitFfmaRC(DecoderContext& context, InstFfmaRC inst);
+
+union InstFfmaC {
+    InstFfmaBase base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+    BitField64<reg_t, 39, 8> src_c;
+};
+
+void EmitFfmaC(DecoderContext& context, InstFfmaC inst);
+
+union InstFfmaI {
+    InstFfmaBase base;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
+    BitField64<reg_t, 39, 8> src_c;
+};
+
+void EmitFfmaI(DecoderContext& context, InstFfmaI inst);
+
+union InstFfma32I {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<u32, 20, 32> imm;
+    BitField64<bool, 52, 1> write_cc;
+    BitField64<u32, 53, 2> fmz; // TODO
+    BitField64<bool, 55, 1> sat;
+    BitField64<bool, 56, 1> neg_a;
+    BitField64<bool, 57, 1> neg_c;
+};
+
+void EmitFfma32I(DecoderContext& context, InstFfma32I inst);
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

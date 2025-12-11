@@ -42,6 +42,16 @@ inline ir::Value not_if(ir::Builder& builder, const ir::Value& value,
     return not_ ? builder.OpNot(value) : value;
 }
 
+inline ir::Value SaturateIf(ir::Builder& builder, const ir::Value& value,
+                            bool sat) {
+    return sat ? builder.OpClamp(value,
+                                 ir::Value::Immediate(std::bit_cast<u32>(0.0f),
+                                                      DataType::F32),
+                                 ir::Value::Immediate(std::bit_cast<u32>(1.0f),
+                                                      DataType::F32))
+               : value;
+}
+
 inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
     if (pred == PT) {
         if (!pred_inv) { // Always

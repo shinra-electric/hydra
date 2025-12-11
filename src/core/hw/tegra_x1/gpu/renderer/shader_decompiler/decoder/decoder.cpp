@@ -1365,32 +1365,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5a00000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad");
     }
-    INST(0x5980000000000000, 0xff80000000000000) {
-        const bool saturate = GET_BIT(50);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(48);
-        const auto srcB = GET_REG(20);
-        const auto negC = GET_BIT(49);
-        const auto srcC = GET_REG(39);
-        COMMENT("ffma {} {} {} {}{} {}{}", (saturate ? "sat " : ""), dst, srcA,
-                (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F32),
-            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB),
-            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
-        if (saturate)
-            res = BUILDER.OpClamp(
-                res,
-                ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5980000000000000, 0xff80000000000000) { EMIT(FfmaR); }
     INST(0x5900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
@@ -1431,33 +1406,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5200000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad");
     }
-    INST(0x5180000000000000, 0xff80000000000000) {
-        const bool saturate = GET_BIT(50);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(48);
-        const auto srcB = GET_REG(39);
-        const auto negC = GET_BIT(49);
-        const auto srcC = GET_CMEM(34, 14);
-        COMMENT("ffma {} {} {} {}{} {}c{}[0x{:x}]", (saturate ? "sat " : ""),
-                dst, srcA, (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC.idx,
-                srcC.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F32),
-            NEG_IF(ir::Value::Register(srcB, DataType::F32), negB),
-            NEG_IF(ir::Value::ConstMemory(srcC, DataType::F32), negC));
-        if (saturate)
-            res = BUILDER.OpClamp(
-                res,
-                ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5180000000000000, 0xff80000000000000) { EMIT(FfmaRC); }
     INST(0x5100000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("xmad");
     }
@@ -1680,33 +1629,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4a00000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad");
     }
-    INST(0x4980000000000000, 0xff80000000000000) {
-        const bool saturate = GET_BIT(50);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(48);
-        const auto srcB = GET_CMEM(34, 14);
-        const auto negC = GET_BIT(49);
-        const auto srcC = GET_REG(39);
-        COMMENT("ffma {} {} {} {}c{}[0x{:x}] {}{}", (saturate ? "sat " : ""),
-                dst, srcA, (negB ? "-" : ""), srcB.idx, srcB.imm,
-                (negC ? "-" : ""), srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F32),
-            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F32), negB),
-            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
-        if (saturate)
-            res = BUILDER.OpClamp(
-                res,
-                ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4980000000000000, 0xff80000000000000) { EMIT(FfmaC); }
     INST(0x4900000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
@@ -1889,32 +1812,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3400000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad");
     }
-    INST(0x3280000000000000, 0xfe80000000000000) {
-        const bool saturate = GET_BIT(50);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        const auto negB = GET_BIT(48);
-        const auto srcB = GET_VALUE_F32();
-        const auto negC = GET_BIT(49);
-        const auto srcC = GET_REG(39);
-        COMMENT("ffma {} {} {} {}0x{:08x} {}{}", (saturate ? "sat " : ""), dst,
-                srcA, (negB ? "-" : ""), srcB, (negC ? "-" : ""), srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F32),
-            NEG_IF(ir::Value::Immediate(srcB, DataType::F32), negB),
-            NEG_IF(ir::Value::Register(srcC, DataType::F32), negC));
-        if (saturate)
-            res = BUILDER.OpClamp(
-                res,
-                ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32),
-                ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3280000000000000, 0xfe80000000000000) { EMIT(FfmaI); }
     INST(0x3200000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
@@ -1949,9 +1847,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x1000000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad32i");
     }
-    INST(0x0c00000000000000, 0xfc00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("ffma32i");
-    }
+    INST(0x0c00000000000000, 0xfc00000000000000) { EMIT(Ffma32I); }
     INST(0x0800000000000000, 0xfc00000000000000) { EMIT(Fadd32I); }
     INST(0x0400000000000000, 0xfc00000000000000) { EMIT(Lop32I); }
     INST(0x0200000000000000, 0xfe00000000000000) {
