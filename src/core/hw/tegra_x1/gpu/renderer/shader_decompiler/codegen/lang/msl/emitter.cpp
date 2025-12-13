@@ -8,15 +8,15 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
-std::string component_to_str(TextureComponent component) {
+std::string component_to_str(u8 component) {
     switch (component) {
-    case TextureComponent::R:
+    case 0:
         return "x";
-    case TextureComponent::G:
+    case 1:
         return "y";
-    case TextureComponent::B:
+    case 2:
         return "z";
-    case TextureComponent::A:
+    case 3:
         return "w";
     default:
         return INVALID_VALUE;
@@ -295,8 +295,7 @@ void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
 }
 
 void MslEmitter::EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
-                                   const ir::Value& coords,
-                                   TextureComponent component) {
+                                   const ir::Value& coords, u8 component) {
     StoreValue(dst,
                "state.tex{}.gather(state.samplr{}, {}, int2(0), component::{})",
                const_buffer_index, const_buffer_index, GetValueStr(coords),

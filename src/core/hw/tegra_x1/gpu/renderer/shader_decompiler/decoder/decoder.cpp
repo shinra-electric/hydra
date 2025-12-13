@@ -14,6 +14,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp"
 
 #define BUILDER context.builder
 
@@ -621,95 +622,19 @@ void Decoder::ParseNextInstruction() {
     INST(0xdf58000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("tmml");
     }
-    INST(0xdf50000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8); // TODO: is this for LOD and stuff?
-        const auto query = get_operand_df50_0(inst);
-        const auto const_buffer_index = GET_VALUE_U32(36, 13);
-        const auto component_mask = GET_VALUE_U32(31, 4);
-        COMMENT("txq {} {} {} 0x{:08x} 0x{:x}", dst, srcA, query,
-                const_buffer_index, component_mask);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        switch (query) {
-        case TextureQuery::Dimensions:
-            for (u32 i = 0, comp_mask = component_mask; comp_mask != 0x0;
-                 i++, comp_mask >>= 1) {
-                if (comp_mask & 1) {
-                    const auto res =
-                        BUILDER.OpTextureQueryDimension(const_buffer_index, i);
-                    BUILDER.OpCopy(ir::Value::Register(dst + i), res);
-                }
-            }
-            break;
-        default:
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Texture query {}", query);
-            break;
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xdf50000000000000, 0xfff8000000000000) { EMIT(Txq); }
     INST(0xdf48000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("txq");
     }
     INST(0xdf40000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("txa");
     }
-    INST(0xdf00000000000000, 0xff40000000000000) {
-        const auto component = get_operand_df00_0(inst);
-        const auto dst1 = GET_REG(28);
-        const auto dst0 = GET_REG(0);
-        const auto coords_x = GET_REG(8);
-        const auto coords_y = GET_REG(20);
-        const auto const_buffer_index = GET_VALUE_U32(36, 13);
-        COMMENT("tld4s {} {} {} {} {} 0x{:08x}", component, dst1, dst0,
-                coords_x, coords_y, const_buffer_index);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
-                            ir::Value::Register(coords_y, DataType::F32)});
-        auto res_v =
-            BUILDER.OpTextureGather(const_buffer_index, coords_v, component);
-        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 0));
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 1));
-        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 2));
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 3));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xdf00000000000000, 0xff40000000000000) { EMIT(Tld4s); }
     INST(0xdef8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("tld4");
     }
     INST(0xdeb8000000000000, 0xfff8000000000000) {
-        // TODO: more stuff
-        // TOOD: correct?
-        const auto dst = GET_REG(0);
-        const auto coords_x = GET_REG(8);
-        const auto coords_y = GET_REG(20);
-        const auto todo =
-            GET_VALUE_U32(31, 4); // TODO: what is this? (some sort of mask)
-        COMMENT("tex {} {} {} 0x{:x}", dst, coords_x, coords_y, todo);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: how does bindless work?
-        COMMENT_NOT_IMPLEMENTED("Bindless");
-        // BUILDER.OpTextureSample(
-        //     ir::Value::Register(dst),
-        //     ir::Value::Register(dst + 1),
-        //     ir::Value::Register(dst + 2),
-        //     ir::Value::Register(dst + 3), const_buffer_index,
-        //     ir::Value::Register(coords_x),
-        //     ir::Value::Register(coords_y));
-
-        HANDLE_PRED_COND_END();
+        COMMENT_NOT_IMPLEMENTED("tex");
     }
     INST(0xde78000000000000, 0xfffc000000000000) {
         COMMENT_NOT_IMPLEMENTED("txd");
@@ -752,131 +677,8 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0xd000000000000000, 0xf600000000000000) {
-        const auto dst1 = GET_REG(28);
-        const auto dst0 = GET_REG(0);
-        const auto coords_x = GET_REG(8);
-        const auto coords_y = GET_REG(20);
-        const auto const_buffer_index = GET_VALUE_U32(36, 13);
-        // TODO: texture type
-        auto component_mask = get_operand_d200_2_ff(inst);
-        if (component_mask == ComponentMask::Invalid)
-            component_mask = get_operand_d200_2_00(inst);
-        COMMENT("texs {} {} {} {} 0x{:08x} {}", dst1, dst0, coords_x, coords_y,
-                const_buffer_index, component_mask);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
-                            ir::Value::Register(coords_y, DataType::F32)});
-        auto res_v = BUILDER.OpTextureSample(const_buffer_index, coords_v);
-
-        std::optional<ir::Value> c[4] = {std::nullopt, std::nullopt,
-                                         std::nullopt, std::nullopt};
-
-#define C(i) BUILDER.OpVectorExtract(res_v, i)
-
-        switch (component_mask) {
-        case ComponentMask::R:
-            c[0] = C(0);
-            break;
-        case ComponentMask::G:
-            c[0] = C(1);
-            break;
-        case ComponentMask::B:
-            c[0] = C(2);
-            break;
-        case ComponentMask::A:
-            c[0] = C(3);
-            break;
-        case ComponentMask::RG:
-            c[0] = C(0);
-            c[1] = C(1);
-            break;
-        case ComponentMask::RA:
-            c[0] = C(0);
-            c[1] = C(3);
-            break;
-        case ComponentMask::GA:
-            c[0] = C(1);
-            c[1] = C(3);
-            break;
-        case ComponentMask::BA:
-            c[0] = C(2);
-            c[1] = C(3);
-            break;
-        case ComponentMask::RGB:
-            c[0] = C(0);
-            c[1] = C(1);
-            c[2] = C(2);
-            break;
-        case ComponentMask::RGA:
-            c[0] = C(0);
-            c[1] = C(1);
-            c[2] = C(3);
-            break;
-        case ComponentMask::RBA:
-            c[0] = C(0);
-            c[1] = C(2);
-            c[2] = C(3);
-            break;
-        case ComponentMask::GBA:
-            c[0] = C(1);
-            c[1] = C(2);
-            c[2] = C(3);
-            break;
-        case ComponentMask::RGBA:
-            c[0] = C(0);
-            c[1] = C(1);
-            c[2] = C(2);
-            c[3] = C(3);
-            break;
-        default:
-            LOG_ERROR(ShaderDecompiler, "Invalid component mask");
-            break;
-        }
-
-#undef C
-
-        reg_t regs[4] = {dst0, dst0 + 1, dst1, dst1 + 1};
-        for (int i = 0; i < 4; i++) {
-            if (auto value = c[i])
-                BUILDER.OpCopy(ir::Value::Register(regs[i], DataType::F32),
-                               *value);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0xc838000000000000, 0xfc38000000000000) {
-        const auto component = get_operand_c838_0(inst);
-        // TODO: c838_1
-        const auto dst = GET_REG(0);
-        const auto coords_x = GET_REG(8);
-        const auto coords_y = GET_REG(20);
-        const auto const_buffer_index = GET_VALUE_U32(36, 13);
-        // TODO: texture type
-        const auto component_mask = GET_VALUE_U32(31, 4);
-        COMMENT("tld4 {} {} {} {} 0x{:08x} {:x}", component, dst, coords_x,
-                coords_y, const_buffer_index, component_mask);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::F32, {ir::Value::Register(coords_x, DataType::F32),
-                            ir::Value::Register(coords_y, DataType::F32)});
-        auto res_v =
-            BUILDER.OpTextureGather(const_buffer_index, coords_v, component);
-        for (u32 i = 0; i < 4; i++) {
-            if (component_mask & (1 << i)) {
-                // TODO: why does this mess up SMO title screen?
-                BUILDER.OpCopy(ir::Value::Register(dst + i, DataType::F32),
-                               BUILDER.OpVectorExtract(res_v, i));
-            }
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xd000000000000000, 0xf600000000000000) { EMIT(Texs); }
+    INST(0xc838000000000000, 0xfc38000000000000) { EMIT(Tld4); }
     INST(0xc038000000000000, 0xfc38000000000000) {
         COMMENT_NOT_IMPLEMENTED("tex");
     }

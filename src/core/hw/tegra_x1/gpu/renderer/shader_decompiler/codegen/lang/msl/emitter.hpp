@@ -32,8 +32,7 @@ class MslEmitter final : public LangEmitter {
     void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                          const ir::Value& coords) override;
     void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
-                           const ir::Value& coords,
-                           TextureComponent component) override;
+                           const ir::Value& coords, u8 component) override;
     void EmitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,
                                    u32 dimension) override;
 

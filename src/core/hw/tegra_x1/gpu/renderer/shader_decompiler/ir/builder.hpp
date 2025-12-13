@@ -152,7 +152,7 @@ class Builder {
                               {Value::RawValue(const_buffer_index), coords});
     }
     Value OpTextureGather(u32 const_buffer_index, const Value& coords,
-                          TextureComponent component) {
+                          u8 component) {
         return AddInstruction(Opcode::TextureGather,
                               {Value::RawValue(const_buffer_index), coords,
                                Value::RawValue(component)});

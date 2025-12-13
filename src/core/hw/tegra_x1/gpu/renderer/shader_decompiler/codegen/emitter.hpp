@@ -134,8 +134,7 @@ class Emitter {
     virtual void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
                                  const ir::Value& coords) = 0;
     virtual void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
-                                   const ir::Value& coords,
-                                   TextureComponent component) = 0;
+                                   const ir::Value& coords, u8 component) = 0;
     virtual void EmitTextureQueryDimension(const ir::Value& dst,
                                            u32 const_buffer_index,
                                            u32 dimension) = 0;

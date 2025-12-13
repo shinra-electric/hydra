@@ -166,7 +166,7 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::TextureGather:
         EmitTextureGather(inst.GetDst(), inst.GetOperand(0).GetRawValue<u32>(),
                           inst.GetOperand(1),
-                          inst.GetOperand(2).GetRawValue<TextureComponent>());
+                          inst.GetOperand(2).GetRawValue<u8>());
         break;
     case ir::Opcode::TextureQueryDimension:
         EmitTextureQueryDimension(inst.GetDst(),
