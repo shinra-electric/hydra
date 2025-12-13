@@ -173,7 +173,7 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
         context.builder.OpEndIf();
 }
 
-// TODO: type, ndv, nodep, dc, offset, lc
+// TODO: type, ndv, nodep, dc, offset, lc, dst_pred
 void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
                        TextureComponent component, reg_t dst, u8 write_mask,
                        reg_t src_a, reg_t src_b, u32 cbuf_index) {

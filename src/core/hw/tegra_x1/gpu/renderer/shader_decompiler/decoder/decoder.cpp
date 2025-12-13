@@ -238,11 +238,11 @@ void Decoder::ParseNextInstruction() {
     INST(0xf0a8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("bar");
     }
-    INST(0xeff0000000000000, 0xfff8000000000000) { EMIT(ASt); }
+    INST(0xeff0000000000000, 0xfff8000000000000) { EMIT(Sta); }
     INST(0xefe8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pixld");
     }
-    INST(0xefd8000000000000, 0xfff8000000000000) { EMIT(ALd); }
+    INST(0xefd8000000000000, 0xfff8000000000000) { EMIT(Lda); }
     INST(0xefd0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("isberd");
     }
@@ -252,29 +252,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xef98000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("membar");
     }
-    INST(0xef90000000000000, 0xfff8000000000000) {
-        const auto addr_mode = get_operand_ef90_0(inst);
-        const auto size = get_operand_ef90sz(inst);
-        const auto dst = GET_REG(0);
-        auto src = GET_CMEM_R(36, 8, 16);
-        COMMENT("ld {} {} {} c{}[{} + 0x{:x}]", dst, addr_mode, size, src.idx,
-                src.reg, src.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // HACK
-        src.imm /= 4;
-
-        // TODO: address mode
-
-        for (u32 i = 0; i < get_load_store_count(size); i++) {
-            BUILDER.OpCopy(ir::Value::Register(dst + i),
-                           ir::Value::ConstMemory(src));
-            src.imm += sizeof(u32);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xef90000000000000, 0xfff8000000000000) { EMIT(Ldc); }
     INST(0xef80000000000000, 0xffe0000000000000) {
         COMMENT_NOT_IMPLEMENTED("cctll");
     }
@@ -346,26 +324,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xeed8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("stg");
     }
-    INST(0xeed0000000000000, 0xfff8000000000000) {
-        LOG_WARN(ShaderDecompiler, "LDG");
-
-        // TODO: eed0_0 (CacheLoadOp)
-        const auto size = get_operand_eed0sz(inst);
-        const auto dst = GET_REG(0);
-        auto src = GET_NCGMEM_R(8, 20, true);
-        COMMENT("ldg {} {} a[{} + 0x{:x}]", size, dst, src.reg, src.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        for (u32 i = 0; i < get_load_store_count(size); i++) {
-            // TODO: global memory
-            BUILDER.OpCopy(ir::Value::Register(dst + i),
-                           ir::Value::Immediate(std::bit_cast<u32>(0.0f)));
-            src.imm += sizeof(u32);
-        }
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xeed0000000000000, 0xfff8000000000000) { EMIT(Ldg); }
     INST(0xeec8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("ldg");
     }

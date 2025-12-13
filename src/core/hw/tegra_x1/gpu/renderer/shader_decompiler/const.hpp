@@ -68,7 +68,7 @@ struct AMem {
 struct CMem {
     u32 idx;
     reg_t reg;
-    u64 imm;
+    u64 imm; // TODO: signed?
 
     CMem(u32 idx_, reg_t reg_, u64 imm_) : idx{idx_}, reg{reg_}, imm{imm_} {}
 
@@ -228,14 +228,6 @@ enum class ComponentMask {
     RGBA,
 };
 
-enum class AddressMode {
-    Invalid,
-
-    Il,
-    Is,
-    Isl,
-};
-
 enum class IpaOp {
     Invalid,
 
@@ -393,10 +385,6 @@ ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComponentMask, Invalid,
     "invalid", R, "r", G, "g", B, "b", A, "a", RG, "rg", RA, "ra", GA, "ga", BA,
     "ba", RGB, "rgb", RGA, "rga", RBA, "rba", GBA, "gba", RGBA, "rgba")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AddressMode, Invalid,
-    "invalid", Il, "il", Is, "is", Isl, "isl")
 
 ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
                        Invalid, "invalid", Pass, "pass", Multiply, "multiply",
