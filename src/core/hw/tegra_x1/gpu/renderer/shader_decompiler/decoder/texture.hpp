@@ -59,7 +59,7 @@ enum class TextureType {
     CubeLodLevel = 13,
 };
 
-union InstTexs {
+union InstTexsTlds {
     BitField64<reg_t, 0, 8> dst0;
     BitField64<reg_t, 8, 8> src_a;
     BitField64<pred_t, 16, 3> pred;
@@ -72,7 +72,11 @@ union InstTexs {
     BitField64<TextureType, 53, 4> type;
 };
 
+using InstTexs = InstTexsTlds;
+using InstTlds = InstTexsTlds;
+
 void EmitTexs(DecoderContext& context, InstTexs inst);
+void EmitTlds(DecoderContext& context, InstTlds inst);
 
 enum class TextureType2 {
     _1D = 0,

@@ -648,35 +648,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xdc38000000000000, 0xff38000000000000) {
         COMMENT_NOT_IMPLEMENTED("tld");
     }
-    INST(0xd200000000000000, 0xf600000000000000) {
-        // TODO: d200_0
-        const auto dst1 = GET_REG(28);
-        const auto dst0 = GET_REG(0);
-        const auto coords_x = GET_REG(8);
-        const auto coords_y = GET_REG(20);
-        const auto const_buffer_index = GET_VALUE_U32(36, 13);
-        // TODO: texture type
-        // TODO: component swizzle?
-        COMMENT("tlds {} {} {} {} 0x{:08x}", dst1, dst0, coords_x, coords_y,
-                const_buffer_index);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto coords_v = BUILDER.OpVectorConstruct(
-            DataType::I32, {ir::Value::Register(coords_x, DataType::I32),
-                            ir::Value::Register(coords_y, DataType::I32)});
-        auto res_v = BUILDER.OpTextureRead(const_buffer_index, coords_v);
-        BUILDER.OpCopy(ir::Value::Register(dst0, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 0));
-        BUILDER.OpCopy(ir::Value::Register(dst0 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 1));
-        BUILDER.OpCopy(ir::Value::Register(dst1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 2));
-        BUILDER.OpCopy(ir::Value::Register(dst1 + 1, DataType::F32),
-                       BUILDER.OpVectorExtract(res_v, 3));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xd200000000000000, 0xf600000000000000) { EMIT(Tlds); }
     INST(0xd000000000000000, 0xf600000000000000) { EMIT(Texs); }
     INST(0xc838000000000000, 0xfc38000000000000) { EMIT(Tld4); }
     INST(0xc038000000000000, 0xfc38000000000000) {

@@ -87,14 +87,18 @@ void CopyTextureResult(ir::Builder& builder, std::array<reg_t, 4> dsts,
 
 // TODO: type, nodep
 void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
-                       reg_t dst0, reg_t dst1, u8 write_mask, reg_t src_a,
-                       reg_t src_b, u32 cbuf_index) {
+                       bool is_sample, reg_t dst0, reg_t dst1, u8 write_mask,
+                       reg_t src_a, reg_t src_b, u32 cbuf_index) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     const auto coords_v = context.builder.OpVectorConstruct(
         DataType::F32, {ir::Value::Register(src_a, DataType::F32),
                         ir::Value::Register(src_b, DataType::F32)});
-    const auto res = context.builder.OpTextureSample(cbuf_index, coords_v);
+    ir::Value res = ir::Value::Undefined();
+    if (is_sample)
+        res = context.builder.OpTextureSample(cbuf_index, coords_v);
+    else
+        res = context.builder.OpTextureRead(cbuf_index, coords_v);
 
     std::array<ComponentSwizzle, 4> swizzles;
     if (dst1 == RZ) {
@@ -219,8 +223,15 @@ void EmitTxq(DecoderContext& context, InstTxq inst) {
 }
 
 void EmitTexs(DecoderContext& context, InstTexs inst) {
-    EmitTextureSample(context, inst.pred, inst.pred_inv, inst.dst0, inst.dst1,
-                      inst.write_mask, inst.src_a, inst.src_b, inst.cbuf_index);
+    EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.dst0,
+                      inst.dst1, inst.write_mask, inst.src_a, inst.src_b,
+                      inst.cbuf_index);
+}
+
+void EmitTlds(DecoderContext& context, InstTlds inst) {
+    EmitTextureSample(context, inst.pred, inst.pred_inv, false, inst.dst0,
+                      inst.dst1, inst.write_mask, inst.src_a, inst.src_b,
+                      inst.cbuf_index);
 }
 
 void EmitTld4(DecoderContext& context, InstTld4 inst) {
