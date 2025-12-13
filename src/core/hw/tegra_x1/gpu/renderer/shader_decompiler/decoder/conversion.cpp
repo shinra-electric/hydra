@@ -20,25 +20,25 @@ DataType ToDataType(FloatFormat format) {
 
 // TODO: sh, ftz, write_cc
 void EmitFloatToFloat(DecoderContext& context, pred_t pred, bool pred_inv,
-                      RoundMode round_mode, bool saturate, reg_t dst,
+                      RoundMode2 round_mode, bool saturate, reg_t dst,
                       FloatFormat dst_format, ir::Value src, bool abs,
                       bool neg) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_v = AbsNegIf(context.builder, src, abs, neg);
     switch (round_mode) {
-    case RoundMode::Pass:
+    case RoundMode2::Pass:
         break;
-    case RoundMode::Round:
+    case RoundMode2::Round:
         src_v = context.builder.OpRound(src_v);
         break;
-    case RoundMode::Floor:
+    case RoundMode2::Floor:
         src_v = context.builder.OpFloor(src_v);
         break;
-    case RoundMode::Ceil:
+    case RoundMode2::Ceil:
         src_v = context.builder.OpCeil(src_v);
         break;
-    case RoundMode::Trunc:
+    case RoundMode2::Trunc:
         src_v = context.builder.OpTrunc(src_v);
         break;
     }
@@ -75,22 +75,22 @@ DataType ToDataType(IntegerFormat format) {
 
 // TODO: sh, ftz, write_cc
 void EmitFloatToInt(DecoderContext& context, pred_t pred, bool pred_inv,
-                    RoundMode2 round_mode, reg_t dst, IntegerFormat dst_format,
+                    RoundMode3 round_mode, reg_t dst, IntegerFormat dst_format,
                     ir::Value src, bool abs, bool neg) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_v = AbsNegIf(context.builder, src, abs, neg);
     switch (round_mode) {
-    case RoundMode2::Round:
+    case RoundMode3::Round:
         src_v = context.builder.OpRound(src_v);
         break;
-    case RoundMode2::Floor:
+    case RoundMode3::Floor:
         src_v = context.builder.OpFloor(src_v);
         break;
-    case RoundMode2::Ceil:
+    case RoundMode3::Ceil:
         src_v = context.builder.OpCeil(src_v);
         break;
-    case RoundMode2::Trunc:
+    case RoundMode3::Trunc:
         src_v = context.builder.OpTrunc(src_v);
         break;
     }
@@ -140,6 +140,25 @@ void EmitIntToInt(DecoderContext& context, pred_t pred, bool pred_inv,
     // res = IntegerSaturateIf(context.builder, dst_type, res, saturate);
     if (saturate)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Saturation");
+    context.builder.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+    if (conditional)
+        context.builder.OpEndIf();
+}
+
+// TODO: round_mode, write_cc
+void EmitIntToFloat(DecoderContext& context, pred_t pred, bool pred_inv,
+                    ByteSelect byte_sel, reg_t dst, FloatFormat dst_format,
+                    ir::Value src, bool abs, bool neg) {
+    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+
+    auto src_v = AbsNegIf(context.builder, src, abs, neg);
+    // TODO: byte selection
+    if (byte_sel != ByteSelect::B0)
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Byte selection");
+
+    const auto dst_type = ToDataType(dst_format);
+    const auto res = context.builder.OpCast(src_v, dst_type);
     context.builder.OpCopy(ir::Value::Register(dst, dst_type), res);
 
     if (conditional)
@@ -220,6 +239,32 @@ void EmitI2iI(DecoderContext& context, InstI2iI inst) {
     EmitIntToInt(
         context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
         inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
+                             ToDataType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2fR(DecoderContext& context, InstI2fR inst) {
+    EmitIntToFloat(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.dst, inst.base.dst_fmt,
+        ir::Value::Register(inst.src, ToDataType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2fC(DecoderContext& context, InstI2fC inst) {
+    EmitIntToFloat(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.dst, inst.base.dst_fmt,
+        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
+                               ToDataType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2fI(DecoderContext& context, InstI2fI inst) {
+    EmitIntToFloat(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.dst, inst.base.dst_fmt,
         ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                              ToDataType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);

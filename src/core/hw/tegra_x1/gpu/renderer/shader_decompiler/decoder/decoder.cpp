@@ -1151,24 +1151,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
-    INST(0x5cb8000000000000, 0xfff8000000000000) {
-        const auto dst_type = get_operand_5cb8_0(inst);
-        const auto src_type = get_operand_5cb8_1(inst);
-        // TODO: 5cb8_2
-        const auto dst = GET_REG(0);
-        const auto neg = GET_BIT(45);
-        const auto src = GET_REG(20);
-        COMMENT("i2f {} {} {} {}{}", dst_type, src_type, dst, neg ? "-" : "",
-                src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpCast(
-            NEG_IF(ir::Value::Register(src, src_type), neg), dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5cb8000000000000, 0xfff8000000000000) { EMIT(I2fR); }
     INST(0x5cb0000000000000, 0xfff8000000000000) { EMIT(F2iR); }
     INST(0x5ca8000000000000, 0xfff8000000000000) { EMIT(F2fR); }
     INST(0x5ca0000000000000, 0xfff8000000000000) { EMIT(SelR); }
@@ -1410,24 +1393,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
-    INST(0x4cb8000000000000, 0xfff8000000000000) {
-        const auto dst_type = get_operand_5cb8_0(inst);
-        const auto src_type = get_operand_5cb8_1(inst);
-        // TODO: 5cb8_2
-        const auto dst = GET_REG(0);
-        const auto neg = GET_BIT(45);
-        const auto src = GET_CMEM(34, 14);
-        COMMENT("i2f {} {} {} {}{}", dst_type, src_type, dst, (neg ? "-" : ""),
-                src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpCast(
-            NEG_IF(ir::Value::ConstMemory(src, src_type), neg), dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4cb8000000000000, 0xfff8000000000000) { EMIT(I2fC); }
     INST(0x4cb0000000000000, 0xfff8000000000000) { EMIT(F2iC); }
     INST(0x4ca8000000000000, 0xfff8000000000000) { EMIT(F2fC); }
     INST(0x4ca0000000000000, 0xfff8000000000000) { EMIT(SelC); }
@@ -1540,9 +1506,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x38c0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
-    INST(0x38b8000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("i2f");
-    }
+    INST(0x38b8000000000000, 0xfef8000000000000) { EMIT(I2fI); }
     INST(0x38b0000000000000, 0xfef8000000000000) { EMIT(F2iI); }
     INST(0x38a8000000000000, 0xfef8000000000000) { EMIT(F2fI); }
     INST(0x38a0000000000000, 0xfef8000000000000) { EMIT(SelI); }

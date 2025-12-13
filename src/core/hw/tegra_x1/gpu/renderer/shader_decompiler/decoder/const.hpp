@@ -22,6 +22,13 @@ struct DecoderContext {
     ir::Builder& builder;
 };
 
+enum class RoundMode {
+    Rn = 0,
+    Rm = 1,
+    Rp = 2,
+    Rz = 3,
+};
+
 inline ir::Value NegIf(ir::Builder& builder, const ir::Value& value, bool neg) {
     return neg ? builder.OpNeg(value) : value;
 }

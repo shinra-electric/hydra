@@ -10,7 +10,7 @@ enum class FloatFormat {
     F64 = 3,
 };
 
-enum class RoundMode {
+enum class RoundMode2 {
     Pass = 1,
     Round = 4,
     Floor = 5,
@@ -33,9 +33,9 @@ union InstF2fBase {
     BitField64<bool, 49, 1> abs;
     BitField64<bool, 50, 1> sat;
 
-    RoundMode GetRoundMode() const {
-        return static_cast<RoundMode>(round_mode_0.Get() |
-                                      (round_mode_2.Get() << 2));
+    RoundMode2 GetRoundMode() const {
+        return static_cast<RoundMode2>(round_mode_0.Get() |
+                                       (round_mode_2.Get() << 2));
     }
 };
 
@@ -71,7 +71,7 @@ enum class IntegerFormat {
     S64 = 7,
 };
 
-enum class RoundMode2 {
+enum class RoundMode3 {
     Round = 0,
     Floor = 1,
     Ceil = 2,
@@ -85,7 +85,7 @@ union InstF2iBase {
     BitField64<u32, 12, 1> dst_fmt_2;
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
-    BitField64<RoundMode2, 39, 2> round_mode;
+    BitField64<RoundMode3, 39, 2> round_mode;
     BitField64<bool, 41, 1> sh;
     BitField64<bool, 44, 1> ftz;
     BitField64<bool, 45, 1> neg;
@@ -184,5 +184,47 @@ union InstI2iI {
 };
 
 void EmitI2iI(DecoderContext& context, InstI2iI inst);
+
+union InstI2fBase {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<FloatFormat, 8, 2> dst_fmt;
+    BitField64<u32, 10, 2> src_fmt_0;
+    BitField64<u32, 13, 2> src_fmt_2;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<RoundMode, 39, 2> round_mode;
+    BitField64<ByteSelect, 41, 2> byte_sel;
+    BitField64<bool, 45, 1> neg;
+    BitField64<bool, 47, 1> write_cc;
+    BitField64<bool, 49, 1> abs;
+
+    IntegerFormat2 GetSrcFmt() const {
+        return static_cast<IntegerFormat2>(src_fmt_0.Get() |
+                                           (src_fmt_2.Get() << 2));
+    }
+};
+
+union InstI2fR {
+    InstI2fBase base;
+    BitField64<reg_t, 20, 8> src;
+};
+
+void EmitI2fR(DecoderContext& context, InstI2fR inst);
+
+union InstI2fC {
+    InstI2fBase base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+};
+
+void EmitI2fC(DecoderContext& context, InstI2fC inst);
+
+union InstI2fI {
+    InstI2fBase base;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
+};
+
+void EmitI2fI(DecoderContext& context, InstI2fI inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
