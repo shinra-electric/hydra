@@ -6,6 +6,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_min_max.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/half_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
@@ -897,51 +898,8 @@ void Decoder::ParseNextInstruction() {
     INST(0x7c00000000000000, 0xfe80000000000000) {
         COMMENT_NOT_IMPLEMENTED("hset2");
     }
-    INST(0x7a00000000000000, 0xfe80000000000000) {
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(43);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB1 = GET_BIT(56);
-        const auto srcB1 = GET_VALUE_F16(30);
-        const bool negB0 = GET_BIT(29);
-        const auto srcB0 = GET_VALUE_F16(20);
-        COMMENT("hadd2 {} {}{} {}0x{:x} {}0x{:x}", dst, negA ? "-" : "", srcA,
-                negB1 ? "-" : "", srcB1, negB0 ? "-" : "", srcB0);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcB_v = BUILDER.OpVectorConstruct(
-            DataType::F16,
-            {NEG_IF(ir::Value::Immediate(srcB0, DataType::F16), negB0),
-             NEG_IF(ir::Value::Immediate(srcB1, DataType::F16), negB1)});
-        auto res = BUILDER.OpAdd(
-            NEG_IF(ir::Value::Register(srcA, DataType::F16X2), negA), srcB_v);
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x7a80000000000000, 0xfe80000000000000) {
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(43);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(56);
-        const auto srcB = GET_CMEM(34, 14);
-        COMMENT("hadd2 {} {}{} {}{}", dst, negA ? "-" : "", srcA,
-                negB ? "-" : "", srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(
-            NEG_IF(ir::Value::Register(srcA, DataType::F16X2), negA),
-            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F16X2), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x7a00000000000000, 0xfe80000000000000) { EMIT(Hadd2I); }
+    INST(0x7a80000000000000, 0xfe80000000000000) { EMIT(Hadd2C); }
     INST(0x7800000000000000, 0xfe80000000000000) {
         // TODO: 5d10_0
         const auto dst = GET_REG(0);
@@ -1073,26 +1031,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5d18000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("hset2");
     }
-    INST(0x5d10000000000000, 0xfff8000000000000) {
-        // TODO: 6080_0
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(31);
-        // TODO: 5d10_2
-        const auto srcB = GET_REG(20);
-        COMMENT("hadd2 {} {} {}{}", dst, srcA, negB ? "-" : "", srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpAdd(
-            ir::Value::Register(srcA, DataType::F16X2),
-            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5d10000000000000, 0xfff8000000000000) { EMIT(Hadd2R); }
     INST(0x5d08000000000000, 0xfff8000000000000) {
         // TODO: 6080_0
         // TODO: 5d10_0
@@ -1630,9 +1569,7 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("dset");
     }
     INST(0x3000000000000000, 0xfe00000000000000) { EMIT(FsetI); }
-    INST(0x2c00000000000000, 0xfe00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("hadd2_32i");
-    }
+    INST(0x2c00000000000000, 0xfe00000000000000) { EMIT(Hadd2_32I); }
     INST(0x2a00000000000000, 0xfe00000000000000) {
         COMMENT_NOT_IMPLEMENTED("hmul2_32i");
     }

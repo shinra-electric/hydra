@@ -9,7 +9,7 @@ union InstFaddBase {
     BitField64<reg_t, 8, 8> src_a;
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
-    BitField64<u32, 39, 2> round_mode; // TODO
+    BitField64<RoundMode, 39, 2> round_mode;
     BitField64<bool, 44, 1> ftz;
     BitField64<bool, 45, 1> neg_b;
     BitField64<bool, 46, 1> abs_a;
@@ -73,7 +73,7 @@ union InstFmulBase {
     BitField64<reg_t, 8, 8> src_a;
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
-    BitField64<u32, 39, 2> round_mode; // TODO
+    BitField64<RoundMode, 39, 2> round_mode;
     BitField64<MultiplyScale, 41, 3> scale;
     BitField64<u32, 44, 2> fmz; // TODO
     BitField64<bool, 47, 1> write_cc;
@@ -126,8 +126,8 @@ union InstFfmaBase {
     BitField64<bool, 48, 1> neg_b;
     BitField64<bool, 49, 1> neg_c;
     BitField64<bool, 50, 1> sat;
-    BitField64<u32, 51, 2> round_mode; // TODO
-    BitField64<u32, 53, 2> fmz;        // TODO
+    BitField64<RoundMode, 51, 2> round_mode;
+    BitField64<u32, 53, 2> fmz; // TODO
 };
 
 union InstFfmaR {
