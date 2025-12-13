@@ -281,6 +281,35 @@ void MslEmitter::EmitIsNan(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "isnan({})", GetValueStr(src));
 }
 
+void MslEmitter::EmitReciprocal(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "(1.0 / {})", GetValueStr(src));
+}
+
+void MslEmitter::EmitSin(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "sin({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitCos(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "cos({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitExp2(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "exp2({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitLog2(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "log2({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitSqrt(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "sqrt({})", GetValueStr(src));
+}
+
+void MslEmitter::EmitReciprocalSqrt(const ir::Value& dst,
+                                    const ir::Value& src) {
+    StoreValue(dst, "rsqrt({})", GetValueStr(src));
+}
+
 // Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {

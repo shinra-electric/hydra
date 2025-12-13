@@ -66,10 +66,26 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::Trunc:
         EmitTrunc(inst.GetDst(), inst.GetOperand(0));
         break;
-    case ir::Opcode::MathFunction:
-        EmitMathFunction(inst.GetDst(),
-                         inst.GetOperand(0).GetRawValue<MathFunc>(),
-                         inst.GetOperand(1));
+    case ir::Opcode::Reciprocal:
+        EmitReciprocal(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Sin:
+        EmitSin(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Cos:
+        EmitCos(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Exp2:
+        EmitExp2(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Log2:
+        EmitLog2(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::Sqrt:
+        EmitSqrt(inst.GetDst(), inst.GetOperand(0));
+        break;
+    case ir::Opcode::ReciprocalSqrt:
+        EmitReciprocalSqrt(inst.GetDst(), inst.GetOperand(0));
         break;
 
     // Logical & Bitwise

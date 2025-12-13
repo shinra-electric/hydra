@@ -74,8 +74,14 @@ class Emitter {
     virtual void EmitFloor(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitCeil(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitTrunc(const ir::Value& dst, const ir::Value& src) = 0;
-    virtual void EmitMathFunction(const ir::Value& dst, MathFunc func,
-                                  const ir::Value& src) = 0;
+    virtual void EmitReciprocal(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitSin(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitCos(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitExp2(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitLog2(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitSqrt(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitReciprocalSqrt(const ir::Value& dst,
+                                    const ir::Value& src) = 0;
 
     // Logical & Bitwise
     virtual void EmitNot(const ir::Value& dst, const ir::Value& src) = 0;

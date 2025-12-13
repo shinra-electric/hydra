@@ -25,6 +25,14 @@ class MslEmitter final : public LangEmitter {
 
     // Math
     void EmitIsNan(const ir::Value& dst, const ir::Value& src) override;
+    void EmitReciprocal(const ir::Value& dst, const ir::Value& src) override;
+    void EmitSin(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCos(const ir::Value& dst, const ir::Value& src) override;
+    void EmitExp2(const ir::Value& dst, const ir::Value& src) override;
+    void EmitLog2(const ir::Value& dst, const ir::Value& src) override;
+    void EmitSqrt(const ir::Value& dst, const ir::Value& src) override;
+    void EmitReciprocalSqrt(const ir::Value& dst,
+                            const ir::Value& src) override;
 
     // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,

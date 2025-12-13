@@ -59,9 +59,22 @@ class Builder {
     Value OpTrunc(const Value& src) {
         return AddInstruction(Opcode::Trunc, {src});
     }
-    Value OpMathFunction(MathFunc func, const Value& src) {
-        return AddInstruction(Opcode::MathFunction,
-                              {Value::RawValue(func), src});
+    Value OpReciprocal(const Value& src) {
+        return AddInstruction(Opcode::Reciprocal, {src});
+    }
+    Value OpSin(const Value& src) { return AddInstruction(Opcode::Sin, {src}); }
+    Value OpCos(const Value& src) { return AddInstruction(Opcode::Cos, {src}); }
+    Value OpExp2(const Value& src) {
+        return AddInstruction(Opcode::Exp2, {src});
+    }
+    Value OpLog2(const Value& src) {
+        return AddInstruction(Opcode::Log2, {src});
+    }
+    Value OpSqrt(const Value& src) {
+        return AddInstruction(Opcode::Sqrt, {src});
+    }
+    Value OpReciprocalSqrt(const Value& src) {
+        return AddInstruction(Opcode::ReciprocalSqrt, {src});
     }
 
     // Logical & Bitwise

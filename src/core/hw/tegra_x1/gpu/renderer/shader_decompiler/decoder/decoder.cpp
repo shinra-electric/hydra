@@ -12,6 +12,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_logical.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp"
@@ -668,19 +669,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5ca8000000000000, 0xfff8000000000000) { EMIT(F2fR); }
     INST(0x5ca0000000000000, 0xfff8000000000000) { EMIT(SelR); }
     INST(0x5c98000000000000, 0xfff8000000000000) { EMIT(MovR); }
-    INST(0x5c90000000000000, 0xfff8000000000000) {
-        // TODO: mode
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(20);
-        COMMENT("rro {} {}", dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: is it okay to just move?
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::Register(src));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5c90000000000000, 0xfff8000000000000) { EMIT(RroR); }
     INST(0x5c88000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("fchk");
     }
@@ -875,20 +864,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5088000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("pset");
     }
-    INST(0x5080000000000000, 0xfff8000000000000) {
-        const auto func = get_operand_5080_0(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(8);
-        COMMENT("mufu {} {} {}", func, dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpMathFunction(
-            func, ir::Value::Register(src, DataType::F32));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5080000000000000, 0xfff8000000000000) { EMIT(Mufu); }
     INST(0x5000000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("vabsdiff4");
     }
@@ -910,20 +886,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4ca8000000000000, 0xfff8000000000000) { EMIT(F2fC); }
     INST(0x4ca0000000000000, 0xfff8000000000000) { EMIT(SelC); }
     INST(0x4c98000000000000, 0xfff8000000000000) { EMIT(MovC); }
-    INST(0x4c90000000000000, 0xfff8000000000000) {
-        // TODO: 5c90_0
-        const auto dst = GET_REG(0);
-        const auto src = GET_CMEM(34, 14);
-        COMMENT("rro {} {}", dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // This should always be followed by a corresponding MUFU instruction,
-        // so a simple copy should be sufficient
-        BUILDER.OpCopy(ir::Value::Register(dst), ir::Value::ConstMemory(src));
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4c90000000000000, 0xfff8000000000000) { EMIT(RroC); }
     INST(0x4c88000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("fchk");
     }
@@ -1023,9 +986,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x38a8000000000000, 0xfef8000000000000) { EMIT(F2fI); }
     INST(0x38a0000000000000, 0xfef8000000000000) { EMIT(SelI); }
     INST(0x3898000000000000, 0xfef8000000000000) { EMIT(MovI); }
-    INST(0x3890000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("rro");
-    }
+    INST(0x3890000000000000, 0xfef8000000000000) { EMIT(RroI); }
     INST(0x3888000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("fchk");
     }

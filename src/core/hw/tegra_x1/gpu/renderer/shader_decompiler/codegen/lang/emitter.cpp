@@ -498,11 +498,6 @@ void LangEmitter::EmitBranchConditional(const ir::Value& cond,
     ExitScopeEmpty();
 }
 
-void LangEmitter::EmitMathFunction(const ir::Value& dst, MathFunc func,
-                                   const ir::Value& src) {
-    StoreValue(dst, "({}({}))", GetMathFuncStr(func), GetValueStr(src));
-}
-
 // Vector
 void LangEmitter::EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
                                     u32 index) {
