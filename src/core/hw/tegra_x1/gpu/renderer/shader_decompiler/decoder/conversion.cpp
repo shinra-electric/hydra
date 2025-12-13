@@ -11,7 +11,7 @@ DataType ToDataType(FloatFormat format) {
     case FloatFormat::F32:
         return DataType::F32;
     case FloatFormat::F64:
-        LOG_WARN(ShaderDecompiler, "F64 not supported");
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "F64");
         return DataType::F32;
     default:
         unreachable();
@@ -59,14 +59,14 @@ DataType ToDataType(IntegerFormat format) {
     case IntegerFormat::U32:
         return DataType::U32;
     case IntegerFormat::U64:
-        LOG_WARN(ShaderDecompiler, "U64 not supported");
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "U64");
         return DataType::U32;
     case IntegerFormat::S16:
         return DataType::I16;
     case IntegerFormat::S32:
         return DataType::I32;
     case IntegerFormat::S64:
-        LOG_WARN(ShaderDecompiler, "I64 not supported");
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "I64");
         return DataType::I32;
     default:
         unreachable();
@@ -97,6 +97,49 @@ void EmitFloatToInt(DecoderContext& context, pred_t pred, bool pred_inv,
 
     const auto dst_type = ToDataType(dst_format);
     const auto res = context.builder.OpCast(src_v, dst_type);
+    context.builder.OpCopy(ir::Value::Register(dst, dst_type), res);
+
+    if (conditional)
+        context.builder.OpEndIf();
+}
+
+DataType ToDataType(IntegerFormat2 format) {
+    switch (format) {
+    case IntegerFormat2::U8:
+        return DataType::U8;
+    case IntegerFormat2::U16:
+        return DataType::U16;
+    case IntegerFormat2::U32:
+        return DataType::U32;
+    case IntegerFormat2::S8:
+        return DataType::I8;
+    case IntegerFormat2::S16:
+        return DataType::I16;
+    case IntegerFormat2::S32:
+        return DataType::I32;
+    default:
+        unreachable();
+    }
+}
+
+// TODO: write_cc
+void EmitIntToInt(DecoderContext& context, pred_t pred, bool pred_inv,
+                  ByteSelect byte_sel, bool saturate, reg_t dst,
+                  IntegerFormat2 dst_format, ir::Value src, bool abs,
+                  bool neg) {
+    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+
+    auto src_v = AbsNegIf(context.builder, src, abs, neg);
+    // TODO: byte selection
+    if (byte_sel != ByteSelect::B0)
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Byte selection");
+
+    const auto dst_type = ToDataType(dst_format);
+    auto res = context.builder.OpCast(src_v, dst_type);
+    // TODO: saturate
+    // res = IntegerSaturateIf(context.builder, dst_type, res, saturate);
+    if (saturate)
+        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Saturation");
     context.builder.OpCopy(ir::Value::Register(dst, dst_type), res);
 
     if (conditional)
@@ -153,6 +196,32 @@ void EmitF2iI(DecoderContext& context, InstF2iI inst) {
         inst.base.dst, inst.base.GetDstFmt(),
         ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
                              ToDataType(inst.base.src_fmt)),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2iR(DecoderContext& context, InstI2iR inst) {
+    EmitIntToInt(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
+        ir::Value::Register(inst.src, ToDataType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2iC(DecoderContext& context, InstI2iC inst) {
+    EmitIntToInt(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
+        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
+                               ToDataType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
+}
+
+void EmitI2iI(DecoderContext& context, InstI2iI inst) {
+    EmitIntToInt(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
+        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
+                             ToDataType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);
 }
 

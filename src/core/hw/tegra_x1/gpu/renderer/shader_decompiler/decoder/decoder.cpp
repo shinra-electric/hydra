@@ -1147,21 +1147,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5ce8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("p2r");
     }
-    INST(0x5ce0000000000000, 0xfff8000000000000) {
-        // TODO: is dst and src type correct?
-        const auto dst_type = get_operand_5ce0_0(inst);
-        const auto src_type = get_operand_5ce0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(20);
-        COMMENT("i2i {} {} {} {}", dst_type, src_type, dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpCast(ir::Value::Register(src, src_type), dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5ce0000000000000, 0xfff8000000000000) { EMIT(I2iR); }
     INST(0x5cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
@@ -1420,23 +1406,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4ce8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("p2r");
     }
-    INST(0x4ce0000000000000, 0xfff8000000000000) {
-        // TODO: is dst and src type correct?
-        const auto dst_type = get_operand_5ce0_0(inst);
-        const auto src_type = get_operand_5ce0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_CMEM(34, 14);
-        COMMENT("i2i {} {} {} c{}[0x{:x}]", dst_type, src_type, dst, src.idx,
-                src.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res =
-            BUILDER.OpCast(ir::Value::ConstMemory(src, src_type), dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x4ce0000000000000, 0xfff8000000000000) { EMIT(I2iC); }
     INST(0x4cc0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }
@@ -1566,23 +1536,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x38e8000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("p2r");
     }
-    INST(0x38e0000000000000, 0xfef8000000000000) {
-        // TODO: is dst and src type correct?
-        const auto dst_type = get_operand_5ce0_0(inst);
-        const auto src_type = get_operand_5ce0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_VALUE_U32(20, 19) |
-                         (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("i2i {} {} {} 0x{:x}", dst_type, src_type, dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res =
-            BUILDER.OpCast(ir::Value::Immediate(src, src_type), dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x38e0000000000000, 0xfef8000000000000) { EMIT(I2iI); }
     INST(0x38c0000000000000, 0xfef0000000000000) {
         COMMENT_NOT_IMPLEMENTED("iadd3");
     }

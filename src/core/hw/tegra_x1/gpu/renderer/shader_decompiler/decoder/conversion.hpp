@@ -121,4 +121,68 @@ union InstF2iI {
 
 void EmitF2iI(DecoderContext& context, InstF2iI inst);
 
+enum class ByteSelect {
+    B0 = 0,
+    B1 = 1,
+    B2 = 2,
+    B3 = 3,
+};
+
+enum class IntegerFormat2 {
+    U8 = 0,
+    U16 = 1,
+    U32 = 2,
+    S8 = 4,
+    S16 = 5,
+    S32 = 6,
+};
+
+union InstI2iBase {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<u32, 8, 2> dst_fmt_0;
+    BitField64<u32, 10, 2> src_fmt_0;
+    BitField64<u32, 12, 1> dst_fmt_2;
+    BitField64<u32, 13, 2> src_fmt_2;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<ByteSelect, 41, 2> byte_sel;
+    BitField64<bool, 45, 1> neg;
+    BitField64<bool, 47, 1> write_cc;
+    BitField64<bool, 49, 1> abs;
+    BitField64<bool, 51, 1> sat;
+
+    IntegerFormat2 GetDstFmt() const {
+        return static_cast<IntegerFormat2>(dst_fmt_0.Get() |
+                                           (dst_fmt_2.Get() << 2));
+    }
+
+    IntegerFormat2 GetSrcFmt() const {
+        return static_cast<IntegerFormat2>(src_fmt_0.Get() |
+                                           (src_fmt_2.Get() << 2));
+    }
+};
+
+union InstI2iR {
+    InstI2iBase base;
+    BitField64<reg_t, 20, 8> src;
+};
+
+void EmitI2iR(DecoderContext& context, InstI2iR inst);
+
+union InstI2iC {
+    InstI2iBase base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+};
+
+void EmitI2iC(DecoderContext& context, InstI2iC inst);
+
+union InstI2iI {
+    InstI2iBase base;
+    BitField64<u32, 20, 19> imm20_0;
+    BitField64<u32, 56, 1> imm20_19;
+};
+
+void EmitI2iI(DecoderContext& context, InstI2iI inst);
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
