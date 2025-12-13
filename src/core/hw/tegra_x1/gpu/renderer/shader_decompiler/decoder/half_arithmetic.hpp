@@ -122,7 +122,7 @@ union InstHmul2I {
     BitField64<u32, 20, 10> h0_imm10;
     BitField64<u32, 30, 9> h1_imm10_0;
     BitField64<bool, 43, 1> neg_a;
-    BitField64<u32, 46, 1> h1_imm10_9;
+    BitField64<u32, 56, 1> h1_imm10_9;
     BitField64<bool, 52, 1> sat;
 
     u32 GetH1Imm10() const {
@@ -140,9 +140,91 @@ union InstHmul2_32I {
     BitField64<u32, 20, 32> imm;
     BitField64<bool, 52, 1> sat;
     BitField64<HalfSwizzle, 53, 2> swizzle_a;
-    BitField64<u32, 55, 2> fmz; // RODO
+    BitField64<u32, 55, 2> fmz; // TODO
 };
 
 void EmitHmul2_32I(DecoderContext& context, InstHmul2_32I inst);
+
+union InstHfma2Base {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<HalfSwizzle, 47, 2> swizzle_a;
+    BitField64<HalfOutputFormat, 49, 2> out_fmt;
+};
+
+union InstHfma2R {
+    InstHfma2Base base;
+    BitField64<reg_t, 20, 8> src_b;
+    BitField64<HalfSwizzle, 28, 2> swizzle_b;
+    BitField64<bool, 30, 1> neg_c;
+    BitField64<bool, 31, 1> neg_b;
+    BitField64<bool, 32, 1> sat;
+    BitField64<HalfSwizzle, 35, 2> swizzle_c;
+    BitField64<u32, 37, 2> fmz; // TODO
+    BitField64<reg_t, 39, 8> src_c;
+};
+
+void EmitHfma2R(DecoderContext& context, InstHfma2R inst);
+
+union InstHfma2RC {
+    InstHfma2Base base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+    BitField64<reg_t, 39, 8> src_b;
+    BitField64<bool, 51, 1> neg_c;
+    BitField64<bool, 52, 1> sat;
+    BitField64<HalfSwizzle, 53, 2> swizzle_b;
+    BitField64<bool, 56, 1> neg_b;
+    BitField64<u32, 57, 2> fmz; // TODO
+};
+
+void EmitHfma2RC(DecoderContext& context, InstHfma2RC inst);
+
+union InstHfma2C {
+    InstHfma2Base base;
+    BitField64<u32, 20, 14> cbuf_offset;
+    BitField64<u32, 34, 5> cbuf_slot;
+    BitField64<reg_t, 39, 8> src_c;
+    BitField64<bool, 51, 1> neg_c;
+    BitField64<bool, 52, 1> sat;
+    BitField64<HalfSwizzle, 53, 2> swizzle_c;
+    BitField64<bool, 56, 1> neg_b;
+    BitField64<u32, 57, 2> fmz; // TODO
+};
+
+void EmitHfma2C(DecoderContext& context, InstHfma2C inst);
+
+union InstHfma2I {
+    InstHfma2Base base;
+    BitField64<u32, 20, 10> h0_imm10;
+    BitField64<u32, 30, 9> h1_imm10_0;
+    BitField64<reg_t, 39, 8> src_c;
+    BitField64<bool, 51, 1> neg_c;
+    BitField64<bool, 52, 1> sat;
+    BitField64<HalfSwizzle, 53, 2> swizzle_c;
+    BitField64<u32, 56, 1> h1_imm10_9;
+    BitField64<u32, 57, 2> fmz; // TODO
+
+    u32 GetH1Imm10() const {
+        return h1_imm10_0.Get() | (h1_imm10_9.Get() << 9);
+    }
+};
+
+void EmitHfma2I(DecoderContext& context, InstHfma2I inst);
+
+union InstHfma2_32I {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<u32, 20, 32> imm;
+    BitField64<bool, 52, 1> neg_c;
+    BitField64<HalfSwizzle, 53, 2> swizzle_a;
+    BitField64<u32, 55, 2> fmz; // TODO
+};
+
+void EmitHfma2_32I(DecoderContext& context, InstHfma2_32I inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

@@ -902,83 +902,9 @@ void Decoder::ParseNextInstruction() {
     INST(0x7a80000000000000, 0xfe80000000000000) { EMIT(Hadd2C); }
     INST(0x7800000000000000, 0xfe80000000000000) { EMIT(Hmul2I); }
     INST(0x7880000000000000, 0xfe80000000000000) { EMIT(Hmul2C); }
-    INST(0x7080000000000000, 0xf880000000000000) {
-        // TODO: 6080_0
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(56);
-        const auto srcB = GET_CMEM(34, 14);
-        const bool negC = GET_BIT(51);
-        // TODO: 2c00_0
-        const auto srcC = GET_REG(39);
-        COMMENT("hfma2 {} {} {}{}", dst, srcA, negB ? "-" : "", srcB);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F16X2),
-            NEG_IF(ir::Value::ConstMemory(srcB, DataType::F16X2), negB),
-            NEG_IF(ir::Value::Register(srcC, DataType::F16X2), negC));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x7000000000000000, 0xf880000000000000) {
-        // TODO: 6080_0
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB1 = GET_BIT(56);
-        const auto srcB1 = GET_VALUE_F16(30);
-        const bool negB0 = GET_BIT(29);
-        const auto srcB0 = GET_VALUE_F16(20);
-        const bool negC = GET_BIT(51);
-        // TODO: 2c00_0
-        const auto srcC = GET_REG(39);
-        COMMENT("hfma2 {} {} {}0x{:x} {}0x{:x} {}{}", dst, srcA,
-                negB1 ? "-" : "", srcB1, negB0 ? "-" : "", srcB0,
-                negC ? "-" : "", srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcB_v = BUILDER.OpVectorConstruct(
-            DataType::F16,
-            {NEG_IF(ir::Value::Immediate(srcB0, DataType::F16), negB0),
-             NEG_IF(ir::Value::Immediate(srcB1, DataType::F16), negB1)});
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F16X2), srcB_v,
-            NEG_IF(ir::Value::Register(srcC, DataType::F16X2), negC));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x6080000000000000, 0xf880000000000000) {
-        // TODO: 6080_0
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(56);
-        // TODO: 2c00_0
-        const auto srcB = GET_REG(39);
-        const bool negC = GET_BIT(51);
-        const auto srcC = GET_CMEM(34, 14);
-        COMMENT("hfma2 {} {} {}{} {}c{}[0x{:x}]", dst, srcA, negB ? "-" : "",
-                srcB, negC ? "-" : "", srcC.idx, srcC.imm);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F16X2),
-            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB),
-            NEG_IF(ir::Value::ConstMemory(srcC, DataType::F16X2), negC));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x7080000000000000, 0xf880000000000000) { EMIT(Hfma2C); }
+    INST(0x7000000000000000, 0xf880000000000000) { EMIT(Hfma2I); }
+    INST(0x6080000000000000, 0xf880000000000000) { EMIT(Hfma2RC); }
     INST(0x5f00000000000000, 0xff00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vmad");
     }
@@ -990,31 +916,7 @@ void Decoder::ParseNextInstruction() {
     }
     INST(0x5d10000000000000, 0xfff8000000000000) { EMIT(Hadd2R); }
     INST(0x5d08000000000000, 0xfff8000000000000) { EMIT(Hmul2R); }
-    INST(0x5d00000000000000, 0xfff8000000000000) {
-        // TODO: 6080_0
-        // TODO: 5d10_0
-        const auto dst = GET_REG(0);
-        // TODO: 5d10_1
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(31);
-        // TODO: 5d10_2
-        const auto srcB = GET_REG(20);
-        const bool negC = GET_BIT(30);
-        // TODO: 5d00_1
-        const auto srcC = GET_REG(39);
-        COMMENT("hfma2 {} {} {}{} {}{}", dst, srcA, negB ? "-" : "", srcB,
-                negC ? "-" : "", srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto res = BUILDER.OpFma(
-            ir::Value::Register(srcA, DataType::F16X2),
-            NEG_IF(ir::Value::Register(srcB, DataType::F16X2), negB),
-            NEG_IF(ir::Value::Register(srcC, DataType::F16X2), negC));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F16X2), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5d00000000000000, 0xfff8000000000000) { EMIT(Hfma2R); }
     INST(0x5cf8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("shf");
     }
@@ -1509,9 +1411,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3000000000000000, 0xfe00000000000000) { EMIT(FsetI); }
     INST(0x2c00000000000000, 0xfe00000000000000) { EMIT(Hadd2_32I); }
     INST(0x2a00000000000000, 0xfe00000000000000) { EMIT(Hmul2_32I); }
-    INST(0x2800000000000000, 0xfe00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("hfma2_32i");
-    }
+    INST(0x2800000000000000, 0xfe00000000000000) { EMIT(Hfma2_32I); }
     INST(0x2000000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("vadd");
     }
