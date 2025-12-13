@@ -76,7 +76,9 @@ struct sized_ptr {
 template <typename Underlying, typename T, u64 b, u64 count>
 class BitField {
   public:
-    operator T() {
+    operator T() { return Get(); }
+
+    T Get() const {
         return static_cast<T>(extract_bits<Underlying, b, count>(raw));
     }
 

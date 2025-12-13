@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/conversion.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_arithmetic.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/float_comparison.hpp"
@@ -1182,74 +1183,8 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x5cb0000000000000, 0xfff8000000000000) {
-        const auto dst_type = get_operand_5cb0_2(inst);
-        const auto src_type = get_operand_5cb0_0(inst);
-        const auto mode = get_operand_5cb0_1(inst);
-        const auto dst = GET_REG(0);
-        const auto neg = GET_BIT(45);
-        const auto src = GET_REG(20);
-        COMMENT("f2i {} {} {} {} {}{}", dst_type, src_type, mode, dst,
-                neg ? "-" : "", src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        // TODO: negate before or after?
-        auto src_v = NEG_IF(ir::Value::Register(src, src_type), neg);
-        switch (mode) {
-        case IntegerRoundMode::Round:
-            unreachable();
-        case IntegerRoundMode::Floor:
-            src_v = BUILDER.OpFloor(src_v);
-            break;
-        case IntegerRoundMode::Ceil:
-            src_v = BUILDER.OpCeil(src_v);
-            break;
-        case IntegerRoundMode::Trunc:
-            src_v = BUILDER.OpTrunc(src_v);
-            break;
-        default:
-            break;
-        }
-
-        auto res = BUILDER.OpCast(src_v, dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0x5ca8000000000000, 0xfff8000000000000) {
-        const auto dst_type = get_operand_5cb0_0(inst);
-        const auto src_type = get_operand_5cb8_0(inst);
-        const auto mode = get_operand_5ca8_0(inst);
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(20);
-        COMMENT("f2f {} {} {} {} {}", dst_type, src_type, mode, dst, src);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto src_v = ir::Value::Register(src, src_type);
-        switch (mode) {
-        case IntegerRoundMode::Round:
-            src_v = BUILDER.OpRound(src_v);
-            break;
-        case IntegerRoundMode::Floor:
-            src_v = BUILDER.OpFloor(src_v);
-            break;
-        case IntegerRoundMode::Ceil:
-            src_v = BUILDER.OpCeil(src_v);
-            break;
-        case IntegerRoundMode::Trunc:
-            src_v = BUILDER.OpTrunc(src_v);
-            break;
-        default:
-            break;
-        }
-
-        auto res = BUILDER.OpCast(src_v, dst_type);
-        BUILDER.OpCopy(ir::Value::Register(dst, dst_type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5cb0000000000000, 0xfff8000000000000) { EMIT(F2iR); }
+    INST(0x5ca8000000000000, 0xfff8000000000000) { EMIT(F2fR); }
     INST(0x5ca0000000000000, 0xfff8000000000000) { EMIT(SelR); }
     INST(0x5c98000000000000, 0xfff8000000000000) { EMIT(MovR); }
     INST(0x5c90000000000000, 0xfff8000000000000) {
@@ -1523,12 +1458,8 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x4cb0000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("f2i");
-    }
-    INST(0x4ca8000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("f2f");
-    }
+    INST(0x4cb0000000000000, 0xfff8000000000000) { EMIT(F2iC); }
+    INST(0x4ca8000000000000, 0xfff8000000000000) { EMIT(F2fC); }
     INST(0x4ca0000000000000, 0xfff8000000000000) { EMIT(SelC); }
     INST(0x4c98000000000000, 0xfff8000000000000) { EMIT(MovC); }
     INST(0x4c90000000000000, 0xfff8000000000000) {
@@ -1658,12 +1589,8 @@ void Decoder::ParseNextInstruction() {
     INST(0x38b8000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("i2f");
     }
-    INST(0x38b0000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("f2i");
-    }
-    INST(0x38a8000000000000, 0xfef8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("f2f");
-    }
+    INST(0x38b0000000000000, 0xfef8000000000000) { EMIT(F2iI); }
+    INST(0x38a8000000000000, 0xfef8000000000000) { EMIT(F2fI); }
     INST(0x38a0000000000000, 0xfef8000000000000) { EMIT(SelI); }
     INST(0x3898000000000000, 0xfef8000000000000) { EMIT(MovI); }
     INST(0x3890000000000000, 0xfef8000000000000) {
