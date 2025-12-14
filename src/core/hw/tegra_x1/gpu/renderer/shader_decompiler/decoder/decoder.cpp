@@ -14,6 +14,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/move.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/predicate_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp"
@@ -743,9 +744,7 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_END();
     }
-    INST(0x5088000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("pset");
-    }
+    INST(0x5088000000000000, 0xfff8000000000000) { EMIT(Pset); }
     INST(0x5080000000000000, 0xfff8000000000000) { EMIT(Mufu); }
     INST(0x5000000000000000, 0xff80000000000000) {
         COMMENT_NOT_IMPLEMENTED("vabsdiff4");
