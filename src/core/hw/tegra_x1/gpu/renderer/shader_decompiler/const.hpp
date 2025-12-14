@@ -198,15 +198,6 @@ enum class ComponentMask {
     RGBA,
 };
 
-enum class IpaOp {
-    Invalid,
-
-    Pass,
-    Multiply,
-    Constant,
-    SC,
-};
-
 enum class PixelImapType : u8 {
     Unused = 0,
     Constant = 1,
@@ -350,7 +341,3 @@ ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComponentMask, Invalid,
     "invalid", R, "r", G, "g", B, "b", A, "a", RG, "rg", RA, "ra", GA, "ga", BA,
     "ba", RGB, "rgb", RGA, "rga", RBA, "rba", GBA, "gba", RGBA, "rgba")
-
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
-                       Invalid, "invalid", Pass, "pass", Multiply, "multiply",
-                       Constant, "constant", SC, "SC")

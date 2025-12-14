@@ -480,60 +480,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xe200000000000000, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("jmx");
     }
-    INST(0xe00000000000ff00, 0xff0000400000ff00) {
-        const auto op = get_operand_e000_0(inst);
-        // TODO: e000_1 (interpolation attribute)
-        const auto dst = GET_REG(0);
-        const auto amem = GET_AMEM_IDX(28, true);
-        const auto interp_param = GET_REG(20);
-        const auto flag1 = GET_REG(39);
-        COMMENT("ipa {} {} a[{} + 0x{:08x}] {} {}", op, dst, amem.reg, amem.imm,
-                interp_param, flag1);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto src_v = ir::Value::AttrMemory(amem, ir::ScalarType::F32);
-
-        // HACK: multiply by position.w
-        if (amem.reg == RZ && amem.imm >= 0x80 &&
-            context.decomp_context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4]
-                    .x == PixelImapType::Perspective)
-            src_v = BUILDER.OpMultiply(
-                src_v, ir::Value::AttrMemory(AMem{RZ, 0x7c, true},
-                                             ir::ScalarType::F32));
-
-        auto interp_param_v =
-            ir::Value::Register(interp_param, ir::ScalarType::F32);
-        std::optional<ir::Value> res_v;
-        switch (op) {
-        case IpaOp::Pass:
-            res_v = src_v;
-            break;
-        case IpaOp::Multiply:
-            res_v = BUILDER.OpMultiply(src_v, interp_param_v);
-            break;
-        case IpaOp::Constant:
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "IpaOp Constant");
-            // TODO: implement
-            res_v = src_v;
-            break;
-        case IpaOp::SC:
-            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "IpaOp SC");
-            // TODO: implement
-            res_v = src_v;
-            break;
-        default:
-            res_v = std::nullopt;
-            break;
-        }
-        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32),
-                       res_v.value());
-
-        HANDLE_PRED_COND_END();
-    }
-    INST(0xe000004000000000, 0xff00004000000000) {
-        COMMENT_NOT_IMPLEMENTED("ipa");
-    }
+    INST(0xe000000000000000, 0xff00000000000000) { EMIT(Ipa); }
     INST(0xdf60000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("tmml");
     }

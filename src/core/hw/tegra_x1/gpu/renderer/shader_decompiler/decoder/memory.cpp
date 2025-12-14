@@ -158,6 +158,43 @@ void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
         context.builder.OpEndIf();
 }
 
+// TODO: msi
+// TODO: what is src_c for?
+void EmitInterpolateAttribute(DecoderContext& context, pred_t pred,
+                              bool pred_inv, IpaOp op, bool saturate, reg_t dst,
+                              reg_t src_a_r, u32 src_a_imm, bool indexed,
+                              reg_t src_b, reg_t src_c) {
+    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+
+    auto res = ir::Value::AttrMemory(
+        AMem(indexed ? src_a_r : RZ, !indexed ? src_a_imm : 0, true),
+        ir::ScalarType::F32);
+
+    // Perspective multiply
+    // TODO: why force perspective multiply when indexing?
+    if (indexed ||
+        (src_a_imm >= 0x80 &&
+         context.decomp_context.frag.pixel_imaps[(src_a_imm - 0x80) >> 0x4].x ==
+             PixelImapType::Perspective)) {
+        res = context.builder.OpMultiply(
+            res,
+            ir::Value::AttrMemory(AMem(RZ, 0x7c, true), ir::ScalarType::F32));
+    }
+
+    // Op
+    // TODO: what about other?
+    if (op == IpaOp::Multiply) {
+        const auto src_b_v = ir::Value::Register(src_b, ir::ScalarType::F32);
+        res = context.builder.OpMultiply(res, src_b_v);
+    }
+
+    res = SaturateIf(context.builder, res, saturate);
+    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
+
+    if (conditional)
+        context.builder.OpEndIf();
+}
+
 } // namespace
 
 void EmitLda(DecoderContext& context, InstLda inst) {
@@ -180,6 +217,12 @@ void EmitLdc(DecoderContext& context, InstLdc inst) {
 void EmitLdg(DecoderContext& context, InstLdg inst) {
     EmitLoadGlobal(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
                    inst.src, sign_extend<i32, 24>(inst.imm24));
+}
+
+void EmitIpa(DecoderContext& context, InstIpa inst) {
+    EmitInterpolateAttribute(context, inst.pred, inst.pred_inv, inst.op,
+                             inst.sat, inst.dst, inst.src_a_r, inst.src_a_imm10,
+                             inst.idx, inst.src_b, inst.src_c);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

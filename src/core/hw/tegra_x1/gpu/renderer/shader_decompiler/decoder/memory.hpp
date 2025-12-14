@@ -100,4 +100,29 @@ void EmitLdg(DecoderContext& context, InstLdg inst);
 
 // TODO: Stg
 
+enum class IpaOp {
+    Pass = 0,
+    Multiply = 1,
+    Constant = 2,
+    Sc = 3,
+};
+
+union InstIpa {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a_r;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<reg_t, 20, 8> src_b;
+    BitField64<u32, 28, 10> src_a_imm10;
+    BitField64<bool, 38, 1> idx;
+    BitField64<reg_t, 39, 8> src_c;
+    BitField64<pred_t, 47, 3> src_pred;
+    BitField64<bool, 50, 1> src_pred_inv;
+    BitField64<bool, 51, 1> sat;
+    BitField64<u32, 52, 2> msi;
+    BitField64<IpaOp, 54, 2> op;
+};
+
+void EmitIpa(DecoderContext& context, InstIpa inst);
+
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
