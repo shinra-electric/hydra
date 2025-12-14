@@ -42,15 +42,14 @@ void EmitIaddC(DecoderContext& context, InstIaddC inst) {
 void EmitIaddI(DecoderContext& context, InstIaddI inst) {
     EmitIadd(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
              inst.base.src_a, inst.base.neg_a,
-             ir::Value::Immediate(
-                 sign_extend<i32, 20>(inst.imm20_0 | (inst.imm20_19 << 19)),
-                 ir::ScalarType::I32),
+             ir::Value::Constant(GetIntImm20(inst.imm20_0, inst.imm20_19, true),
+                                 ir::ScalarType::I32),
              inst.base.neg_b);
 }
 
 void EmitIadd32I(DecoderContext& context, InstIadd32I inst) {
     EmitIadd(context, inst.pred, inst.pred_inv, inst.dst, inst.src_a,
-             inst.neg_a, ir::Value::Immediate(inst.imm, ir::ScalarType::I32),
+             inst.neg_a, ir::Value::Constant(inst.imm, ir::ScalarType::I32),
              false);
 }
 

@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 enum class ValueKind {
     Undefined,
     RawValue,
-    Immediate,
+    Constant,
     Local,
     Register,
     Predicate,
@@ -24,8 +24,44 @@ class Value {
         return Value{ValueKind::RawValue,
                      .raw_value = static_cast<u64>(raw_value)};
     }
-    static Value Immediate(const u32 imm, const Type type = ScalarType::U32) {
-        return Value{ValueKind::Immediate, type, .imm = imm};
+    static Value Constant(const u32 constant, const ScalarType type) {
+        return Value{ValueKind::Constant, type, .constant = constant};
+    }
+    static Value ConstantB(const bool constant) {
+        return Constant(constant, ScalarType::Bool);
+    }
+    static Value ConstantU(const u32 constant,
+                           const ScalarType type = ScalarType::U32) {
+        return Constant(constant, type);
+    }
+    static Value ConstantI(const i32 constant,
+                           const ScalarType type = ScalarType::I32) {
+        return Constant(std::bit_cast<u32>(constant), type);
+    }
+    static Value ConstantF(const f32 constant,
+                           const ScalarType type = ScalarType::F32) {
+        return Constant(std::bit_cast<u32>(constant), type);
+    }
+    template <typename T>
+    static Value Constant(const T constant) {
+        if constexpr (std::is_same_v<T, bool>)
+            return ConstantB(constant);
+        else if constexpr (std::is_same_v<T, u8>)
+            return ConstantU(constant, ScalarType::U8);
+        else if constexpr (std::is_same_v<T, u16>)
+            return ConstantU(constant, ScalarType::U16);
+        else if constexpr (std::is_same_v<T, u32>)
+            return ConstantU(constant, ScalarType::U32);
+        else if constexpr (std::is_same_v<T, i8>)
+            return ConstantI(constant, ScalarType::I8);
+        else if constexpr (std::is_same_v<T, i16>)
+            return ConstantI(constant, ScalarType::I16);
+        else if constexpr (std::is_same_v<T, i32>)
+            return ConstantI(constant, ScalarType::I32);
+        else if constexpr (std::is_same_v<T, f32>)
+            return ConstantF(constant, ScalarType::F32);
+        else
+            static_assert(always_false<T>::value, "Unsupported type");
     }
     static Value Local(const local_t local, const Type type = ScalarType::U32) {
         return Value{ValueKind::Local, type, .local = local};
@@ -57,8 +93,8 @@ class Value {
             return true;
         case ValueKind::RawValue:
             return raw_value == other.raw_value;
-        case ValueKind::Immediate:
-            return imm == other.imm;
+        case ValueKind::Constant:
+            return constant == other.constant;
         case ValueKind::Local:
             return local == other.local;
         case ValueKind::Register:
@@ -80,7 +116,7 @@ class Value {
 
     union {
         u64 raw_value;
-        u32 imm;
+        u32 constant;
         local_t local;
         reg_t reg;
         pred_t pred;
@@ -104,9 +140,9 @@ class Value {
         AssertKind<ValueKind::RawValue>();
         return static_cast<T>(raw_value);
     }
-    u32 GetImmediate() const {
-        AssertKind<ValueKind::Immediate>();
-        return imm;
+    u32 GetConstant() const {
+        AssertKind<ValueKind::Constant>();
+        return constant;
     }
     local_t GetLocal() const {
         AssertKind<ValueKind::Local>();
@@ -138,7 +174,7 @@ class Value {
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind, Undefined,
-    "undefined", RawValue, "raw value", Immediate, "immediate", Register,
+    "undefined", RawValue, "raw value", Constant, "constant", Register,
     "register", Predicate, "predicate", AttrMemory, "attribute memory",
     ConstMemory, "constant memory", Label, "label")
 
@@ -163,8 +199,8 @@ struct fmt::formatter<
             str = fmt::format("0x{:x}", value.GetRawValue<hydra::u64>());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
-            Immediate:
-            str = fmt::format("0x{:08x}", value.GetImmediate());
+            Constant:
+            str = fmt::format("0x{:08x}", value.GetConstant());
             break;
         case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Local:

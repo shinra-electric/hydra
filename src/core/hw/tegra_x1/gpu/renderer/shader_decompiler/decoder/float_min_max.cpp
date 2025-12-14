@@ -12,8 +12,8 @@ void EmitFloatMinMax(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        AbsNegIf(context.builder, ir::Value::Register(src_a, ir::ScalarType::F32),
-                 abs_a, neg_a);
+        AbsNegIf(context.builder,
+                 ir::Value::Register(src_a, ir::ScalarType::F32), abs_a, neg_a);
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto min_v = context.builder.OpMin(src_a_v, src_b_v);
     auto max_v = context.builder.OpMax(src_a_v, src_b_v);
@@ -51,8 +51,7 @@ void EmitFmnmxI(DecoderContext& context, InstFmnmxI inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
         inst.base.src_pred, inst.base.src_pred_inv, inst.base.src_a,
         inst.base.abs_a, inst.base.neg_a,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ir::ScalarType::F32),
+        ir::Value::ConstantF(GetFloatImm20(inst.imm20_0, inst.imm20_19)),
         inst.base.abs_b, inst.base.neg_b);
 }
 

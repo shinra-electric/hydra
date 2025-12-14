@@ -44,13 +44,14 @@ void EmitMovC(DecoderContext& context, InstMovC inst) {
 }
 
 void EmitMovI(DecoderContext& context, InstMovI inst) {
-    EmitMove(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-             ir::Value::Immediate(inst.imm20_0 | (inst.imm20_19 << 19)));
+    EmitMove(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+        ir::Value::ConstantU(GetIntImm20(inst.imm20_0, inst.imm20_19, false)));
 }
 
 void EmitMov32I(DecoderContext& context, InstMov32I inst) {
     EmitMove(context, inst.pred, inst.pred_inv, inst.dst,
-             ir::Value::Immediate(inst.imm));
+             ir::Value::ConstantU(inst.imm));
 }
 
 void EmitSelR(DecoderContext& context, InstSelR inst) {
@@ -67,10 +68,10 @@ void EmitSelC(DecoderContext& context, InstSelC inst) {
 }
 
 void EmitSelI(DecoderContext& context, InstSelI inst) {
-    EmitSelect(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-               inst.base.src_pred, inst.base.src_pred_inv, inst.base.src_a,
-               ir::Value::Immediate(std::bit_cast<u32>(sign_extend<i32, 20>(
-                   inst.imm20_0 | (inst.imm20_19 << 19)))));
+    EmitSelect(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+        inst.base.src_pred, inst.base.src_pred_inv, inst.base.src_a,
+        ir::Value::ConstantU(GetIntImm20(inst.imm20_0, inst.imm20_19, true)));
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

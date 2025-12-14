@@ -188,8 +188,8 @@ void EmitF2fI(DecoderContext& context, InstF2fI inst) {
     EmitFloatToFloat(
         context, inst.base.pred, inst.base.pred_inv, inst.base.GetRoundMode(),
         inst.base.sat, inst.base.dst, inst.base.dst_fmt,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ToType(inst.base.src_fmt)),
+        ir::Value::Constant((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
+                            ToType(inst.base.src_fmt)),
         inst.base.abs, inst.base.neg);
 }
 
@@ -213,8 +213,8 @@ void EmitF2iI(DecoderContext& context, InstF2iI inst) {
     EmitFloatToInt(
         context, inst.base.pred, inst.base.pred_inv, inst.base.round_mode,
         inst.base.dst, inst.base.GetDstFmt(),
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ToType(inst.base.src_fmt)),
+        ir::Value::Constant((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
+                            ToType(inst.base.src_fmt)),
         inst.base.abs, inst.base.neg);
 }
 
@@ -236,13 +236,12 @@ void EmitI2iC(DecoderContext& context, InstI2iC inst) {
 }
 
 void EmitI2iI(DecoderContext& context, InstI2iI inst) {
-    EmitIntToInt(context, inst.base.pred, inst.base.pred_inv,
-                 inst.base.byte_sel, inst.base.sat, inst.base.dst,
-                 inst.base.GetDstFmt(),
-                 ir::Value::Immediate(
-                     sign_extend<i32, 20>(inst.imm20_0 | (inst.imm20_19 << 19)),
-                     ToType(inst.base.GetSrcFmt())),
-                 inst.base.abs, inst.base.neg);
+    EmitIntToInt(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
+        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
+        ir::Value::Constant(GetIntImm20(inst.imm20_0, inst.imm20_19, true),
+                            ToType(inst.base.GetSrcFmt())),
+        inst.base.abs, inst.base.neg);
 }
 
 void EmitI2fR(DecoderContext& context, InstI2fR inst) {
@@ -265,9 +264,8 @@ void EmitI2fI(DecoderContext& context, InstI2fI inst) {
     EmitIntToFloat(
         context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
         inst.base.dst, inst.base.dst_fmt,
-        ir::Value::Immediate(
-            sign_extend<i32, 20>(inst.imm20_0 | (inst.imm20_19 << 19)),
-            ToType(inst.base.GetSrcFmt())),
+        ir::Value::Constant(GetIntImm20(inst.imm20_0, inst.imm20_19, true),
+                            ToType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);
 }
 

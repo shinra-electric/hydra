@@ -9,9 +9,9 @@ ir::Value GetFloatCmp(DecoderContext& context, FloatCmpOp op, ir::Value a,
     // TODO: handle U versions differently?
     switch (op) {
     case FloatCmpOp::F:
-        return ir::Value::Immediate(false);
+        return ir::Value::ConstantB(false);
     case FloatCmpOp::T:
-        return ir::Value::Immediate(true);
+        return ir::Value::ConstantB(true);
     case FloatCmpOp::Lt:
     case FloatCmpOp::Ltu:
         return context.builder.OpCompareLess(a, b);
@@ -50,8 +50,8 @@ void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        AbsNegIf(context.builder, ir::Value::Register(src_a, ir::ScalarType::F32),
-                 abs_a, neg_a);
+        AbsNegIf(context.builder,
+                 ir::Value::Register(src_a, ir::ScalarType::F32), abs_a, neg_a);
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto res = GetFloatCmp(context, op, src_a_v, src_b_v);
 
@@ -60,10 +60,10 @@ void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
     res = GetLogical(context, b_op, res, pred_v);
 
     if (b_float) {
-        res = context.builder.OpSelect(
-            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), ir::ScalarType::F32),
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f), ir::ScalarType::F32));
-        context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
+        res = context.builder.OpSelect(res, ir::Value::ConstantF(1.0f),
+                                       ir::Value::ConstantF(0.0f));
+        context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32),
+                               res);
     } else {
         context.builder.OpCopy(ir::Value::Register(dst), res);
     }
@@ -81,8 +81,8 @@ void EmitFloatSetPredicate(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        AbsNegIf(context.builder, ir::Value::Register(src_a, ir::ScalarType::F32),
-                 abs_a, neg_a);
+        AbsNegIf(context.builder,
+                 ir::Value::Register(src_a, ir::ScalarType::F32), abs_a, neg_a);
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto res0 = GetFloatCmp(context, op, src_a_v, src_b_v);
     auto res1 = context.builder.OpNot(res0);
@@ -126,8 +126,7 @@ void EmitFsetI(DecoderContext& context, InstFsetI inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.dst, inst.base.src_a, inst.base.abs_a,
         inst.base.neg_a,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ir::ScalarType::F32),
+        ir::Value::ConstantF(GetFloatImm20(inst.imm20_0, inst.imm20_19)),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv, inst.base.b_float);
 }
@@ -157,8 +156,7 @@ void EmitFsetpI(DecoderContext& context, InstFsetpI inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.dst_pred, inst.base.dst_inv_pred,
         inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ir::ScalarType::F32),
+        ir::Value::ConstantF(GetFloatImm20(inst.imm20_0, inst.imm20_19)),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv);
 }

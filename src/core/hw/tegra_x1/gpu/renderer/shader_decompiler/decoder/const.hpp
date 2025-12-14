@@ -29,6 +29,34 @@ enum class RoundMode {
     Rz = 3,
 };
 
+inline u32 GetIntImm20(u32 imm20_0, u32 imm20_19, bool extend) {
+    const auto imm20 = imm20_0 | (imm20_19 << 19);
+    if (extend)
+        return sign_extend<u32, 20>(imm20);
+    else
+        return imm20;
+}
+
+inline f32 GetFloatImm20(u32 imm20_0, u32 imm20_19) {
+    return std::bit_cast<f32>((imm20_0 | (imm20_19 << 19)) << 12);
+}
+
+inline ir::Value GetHalf2Const(ir::Builder& builder, u32 h0, u32 h1) {
+    return builder.OpVectorConstruct(
+        ir::ScalarType::F16, {ir::Value::Constant(h0, ir::ScalarType::F16),
+                              ir::Value::Constant(h1, ir::ScalarType::F16)});
+}
+
+inline ir::Value GetHalf2Const20(ir::Builder& builder, u32 h0_imm10,
+                                 u32 h1_imm10) {
+    return GetHalf2Const(builder, h0_imm10 << 6, h1_imm10 << 6);
+}
+
+inline ir::Value GetHalf2Const32(ir::Builder& builder, u32 imm32) {
+    return GetHalf2Const(builder, extract_bits<u32, 0, 16>(imm32),
+                         extract_bits<u32, 16, 16>(imm32));
+}
+
 inline ir::Value NegIf(ir::Builder& builder, const ir::Value& value, bool neg) {
     return neg ? builder.OpNeg(value) : value;
 }
@@ -49,11 +77,8 @@ inline ir::Value NotIf(ir::Builder& builder, const ir::Value& value,
 
 inline ir::Value SaturateIf(ir::Builder& builder, const ir::Value& value,
                             bool sat) {
-    return sat ? builder.OpClamp(value,
-                                 ir::Value::Immediate(std::bit_cast<u32>(0.0f),
-                                                      ir::ScalarType::F32),
-                                 ir::Value::Immediate(std::bit_cast<u32>(1.0f),
-                                                      ir::ScalarType::F32))
+    return sat ? builder.OpClamp(value, ir::Value::ConstantF(0.0f),
+                                 ir::Value::ConstantF(1.0f))
                : value;
 }
 

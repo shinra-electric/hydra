@@ -37,6 +37,17 @@ inline bool ScalarIsInteger(ScalarType scalar) {
     }
 }
 
+inline bool ScalarIsSignedInteger(ScalarType scalar) {
+    switch (scalar) {
+    case ScalarType::I8:
+    case ScalarType::I16:
+    case ScalarType::I32:
+        return true;
+    default:
+        return false;
+    }
+}
+
 inline bool ScalarIsFloatingPoint(ScalarType scalar) {
     switch (scalar) {
     case ScalarType::F16:
@@ -58,6 +69,7 @@ class VectorType {
 
     // Check
     bool IsInteger() const { return ScalarIsInteger(element_type); }
+    bool IsSignedInteger() const { return ScalarIsSignedInteger(element_type); }
     bool IsFloatingPoint() const { return ScalarIsFloatingPoint(element_type); }
 
   private:
@@ -105,6 +117,17 @@ class Type {
             return ScalarIsInteger(scalar);
         case TypeKind::Vector:
             return vector.IsInteger();
+        default:
+            return false;
+        }
+    }
+
+    bool IsSignedInteger() const {
+        switch (kind) {
+        case TypeKind::Scalar:
+            return ScalarIsSignedInteger(scalar);
+        case TypeKind::Vector:
+            return vector.IsSignedInteger();
         default:
             return false;
         }

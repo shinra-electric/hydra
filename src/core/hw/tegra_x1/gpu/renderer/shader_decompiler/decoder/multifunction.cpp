@@ -13,7 +13,8 @@ void EmitRro(DecoderContext& context, pred_t pred, bool pred_inv, reg_t dst,
 
     // This should always be followed by a corresponding MUFU instruction,
     // so a simple copy should be sufficient
-    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), src_v);
+    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32),
+                           src_v);
 
     if (conditional)
         context.builder.OpEndIf();
@@ -72,23 +73,23 @@ void EmitRroR(DecoderContext& context, InstRroR inst) {
 }
 
 void EmitRroC(DecoderContext& context, InstRroC inst) {
-    EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-            ir::Value::ConstMemory(
-                CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), ir::ScalarType::F32),
-            inst.base.abs, inst.base.neg);
+    EmitRro(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+        ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
+                               ir::ScalarType::F32),
+        inst.base.abs, inst.base.neg);
 }
 
 void EmitRroI(DecoderContext& context, InstRroI inst) {
     EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-            ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                                 ir::ScalarType::F32),
+            ir::Value::ConstantF(GetFloatImm20(inst.imm20_0, inst.imm20_19)),
             inst.base.abs, inst.base.neg);
 }
 
 void EmitMufu(DecoderContext& context, InstMufu inst) {
-    EmitMultifunction(context, inst.pred, inst.pred_inv, inst.op, inst.sat,
-                      inst.dst, ir::Value::Register(inst.src, ir::ScalarType::F32),
-                      inst.abs, inst.neg);
+    EmitMultifunction(
+        context, inst.pred, inst.pred_inv, inst.op, inst.sat, inst.dst,
+        ir::Value::Register(inst.src, ir::ScalarType::F32), inst.abs, inst.neg);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

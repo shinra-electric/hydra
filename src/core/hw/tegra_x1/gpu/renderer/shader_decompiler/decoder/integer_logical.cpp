@@ -39,17 +39,17 @@ void EmitLogical(DecoderContext& context, pred_t pred, bool pred_inv,
     auto pred_res = ir::Value::Undefined();
     switch (pred_op) {
     case PredicateOp::F:
-        pred_res = ir::Value::Immediate(false);
+        pred_res = ir::Value::ConstantB(false);
         break;
     case PredicateOp::T:
-        pred_res = ir::Value::Immediate(true);
+        pred_res = ir::Value::ConstantB(true);
         break;
     case PredicateOp::Z:
-        pred_res = context.builder.OpCompareEqual(res, ir::Value::Immediate(0));
+        pred_res = context.builder.OpCompareEqual(res, ir::Value::ConstantU(0));
         break;
     case PredicateOp::Nz:
         pred_res =
-            context.builder.OpCompareNotEqual(res, ir::Value::Immediate(0));
+            context.builder.OpCompareNotEqual(res, ir::Value::ConstantU(0));
         break;
     default:
         unreachable();
@@ -79,19 +79,18 @@ void EmitLopC(DecoderContext& context, InstLopC inst) {
 }
 
 void EmitLopI(DecoderContext& context, InstLopI inst) {
-    // TODO: really sign-extend?
-    EmitLogical(context, inst.base.pred, inst.base.pred_inv, inst.base.op,
-                inst.base.pred_op, inst.base.dst, inst.base.dst_pred,
-                inst.base.src_a, inst.base.inv_a,
-                ir::Value::Immediate(std::bit_cast<u32>(sign_extend<i32, 20>(
-                    inst.imm20_0 | (inst.imm20_19 << 19)))),
-                inst.base.inv_b);
+    EmitLogical(
+        context, inst.base.pred, inst.base.pred_inv, inst.base.op,
+        inst.base.pred_op, inst.base.dst, inst.base.dst_pred, inst.base.src_a,
+        inst.base.inv_a,
+        ir::Value::ConstantU(GetIntImm20(inst.imm20_0, inst.imm20_19, true)),
+        inst.base.inv_b);
 }
 
 void EmitLop32I(DecoderContext& context, InstLop32I inst) {
     EmitLogical(context, inst.pred, inst.pred_inv, inst.op, PredicateOp::F,
                 inst.dst, PT, inst.src_a, inst.inv_a,
-                ir::Value::Immediate(inst.imm), inst.inv_b);
+                ir::Value::ConstantU(inst.imm), inst.inv_b);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

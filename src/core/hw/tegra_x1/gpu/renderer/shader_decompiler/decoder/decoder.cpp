@@ -44,9 +44,9 @@ ir::Value DoOpCompare(ir::Builder& builder, ComparisonOp op, ir::Value a,
                       ir::Value b) {
     switch (op) {
     case ComparisonOp::F:
-        return ir::Value::Immediate(false);
+        return ir::Value::ConstantB(false);
     case ComparisonOp::T:
-        return ir::Value::Immediate(true);
+        return ir::Value::ConstantB(true);
     case ComparisonOp::Less:
     case ComparisonOp::LessU:
         return builder.OpCompareLess(a, b);
@@ -287,10 +287,10 @@ void Decoder::ParseNextInstruction() {
         auto srcA_v = ir::Value::Register(srcA);
         auto srcB_v = ((inst & 0x10000000) == 0x0
                            ? ir::Value::Register(GET_REG(20))
-                           : ir::Value::Immediate(GET_VALUE_U32(20, 5)));
+                           : ir::Value::ConstantU(GET_VALUE_U32(20, 5)));
         auto srcC_v = ((inst & 0x10000000) == 0x0
                            ? ir::Value::Register(GET_REG(39))
-                           : ir::Value::Immediate(GET_VALUE_U32(34, 13)));
+                           : ir::Value::ConstantU(GET_VALUE_U32(34, 13)));
 
         std::optional<ir::Value> res_v;
         std::optional<ir::Value> res_valid_v;
@@ -713,7 +713,7 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::ConstantU(shift));
         // TODO: negA
 
         auto res = BUILDER.OpAdd(
@@ -1027,12 +1027,11 @@ void Decoder::ParseNextInstruction() {
         HANDLE_PRED_COND_BEGIN();
 
         auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
+        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::ConstantU(shift));
         // TODO: negA
 
-        auto res = BUILDER.OpAdd(
-            srcA_v,
-            NEG_IF(ir::Value::Immediate(srcB, ir::ScalarType::I32), negB));
+        auto res =
+            BUILDER.OpAdd(srcA_v, NEG_IF(ir::Value::ConstantI(srcB), negB));
         BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::I32), res);
 
         HANDLE_PRED_COND_END();

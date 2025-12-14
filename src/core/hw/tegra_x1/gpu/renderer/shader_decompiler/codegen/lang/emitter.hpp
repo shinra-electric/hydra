@@ -198,68 +198,43 @@ class LangEmitter : public Emitter {
     }
 
     template <typename T>
-    std::string GetImmediateStr(const T imm) {
+    std::string GetConstantStr(const T imm) {
         if constexpr (std::is_same_v<T, bool>)
             return fmt::format("({})", imm);
-        else if constexpr (std::is_same_v<T, i32>)
-            return fmt::format("({:#x})", imm);
-        if constexpr (std::is_same_v<T, i64>)
-            return fmt::format("({:#x}ll)", imm);
         else if constexpr (std::is_same_v<T, u32>)
             return fmt::format("({:#x}u)", imm);
-        else if constexpr (std::is_same_v<T, u64>)
-            return fmt::format("({:#x}ull)", imm);
+        else if constexpr (std::is_same_v<T, i32>)
+            return fmt::format("({:#x})", imm);
         else if constexpr (std::is_same_v<T, f32>)
             return fmt::format("({:#}f)", imm);
-        else if constexpr (std::is_same_v<T, f64>)
-            return fmt::format("({:#}f)", imm);
-        else {
-            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
-                      typeid(T).name());
-            return INVALID_VALUE;
-        }
+        else
+            static_assert(always_false<T>::value, "Unsupported immediate type");
     }
 
-    std::string GetImmediateStr(const u32 imm, ir::Type type) {
+    std::string GetConstantStr(const u32 imm, ir::Type type) {
         switch (type.GetKind()) {
         case ir::TypeKind::Scalar: {
             switch (type.GetScalarType()) {
             case ir::ScalarType::Bool:
-                return GetImmediateStr<bool>(imm & 0x1);
+                return GetConstantStr<bool>(imm & 0x1);
             case ir::ScalarType::U8:
-                return GetImmediateStr<u8>(imm & 0xff);
+                return GetConstantStr<u32>(imm & 0xff);
             case ir::ScalarType::U16:
-                return GetImmediateStr<u16>(imm & 0xffff);
+                return GetConstantStr<u32>(imm & 0xffff);
             case ir::ScalarType::U32:
-                return GetImmediateStr<u32>(imm);
+                return GetConstantStr<u32>(imm);
             case ir::ScalarType::I8:
-                return GetImmediateStr<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
+                return GetConstantStr<i32>(std::bit_cast<i8>((u8)(imm & 0xff)));
             case ir::ScalarType::I16:
-                return GetImmediateStr<i16>(
+                return GetConstantStr<i32>(
                     std::bit_cast<i16>((u16)(imm & 0xffff)));
             case ir::ScalarType::I32:
-                return GetImmediateStr<i32>(std::bit_cast<i32>(imm));
+                return GetConstantStr<i32>(std::bit_cast<i32>(imm));
             case ir::ScalarType::F16:
                 return fmt::format("as_type<f16>((u16)0x{:04x})",
                                    u16(imm & 0xffff));
             case ir::ScalarType::F32:
-                return GetImmediateStr<f32>(std::bit_cast<f32>(imm));
-            }
-        }
-        // TODO: remove this
-        case ir::TypeKind::Vector: {
-            const auto& vec_type = type.GetVectorType();
-            if (vec_type.GetElementType() == ir::ScalarType::F16 &&
-                vec_type.GetSize() == 2) {
-                return fmt::format("half2(as_type<f16>((u16)0x{:04x}), "
-                                   "as_type<f16>((u16)0x{:04x}))",
-                                   u16(imm & 0xffff),
-                                   u16((imm >> 16) & 0xffff));
-            } else {
-                LOG_ERROR(ShaderDecompiler,
-                          "Unsupported vector type for immediate ({})",
-                          vec_type);
-                return INVALID_VALUE;
+                return GetConstantStr<f32>(std::bit_cast<f32>(imm));
             }
         }
         default:
@@ -276,7 +251,7 @@ class LangEmitter : public Emitter {
     template <bool load = true>
     std::string GetRegisterStr(reg_t reg, ir::Type type = ir::ScalarType::U32) {
         if (load && reg == RZ)
-            return GetImmediateStr(0, type);
+            return GetConstantStr(0, type);
 
         return fmt::format("state.r[{}].{}", u32(reg), GetTypeSuffixStr(type));
     }
@@ -284,7 +259,7 @@ class LangEmitter : public Emitter {
     template <bool load = true>
     std::string GetPredicateStr(pred_t pred) {
         if (load && pred == PT)
-            return GetImmediateStr(true);
+            return GetConstantStr(true);
 
         return fmt::format("state.p[{}]", u32(pred));
     }
@@ -308,8 +283,8 @@ class LangEmitter : public Emitter {
 
     std::string GetValueStr(const ir::Value& value) {
         switch (value.GetKind()) {
-        case ir::ValueKind::Immediate:
-            return GetImmediateStr(value.GetImmediate(), value.GetType());
+        case ir::ValueKind::Constant:
+            return GetConstantStr(value.GetConstant(), value.GetType());
         case ir::ValueKind::Local:
             return GetLocalStr(value.GetLocal());
         case ir::ValueKind::Register:

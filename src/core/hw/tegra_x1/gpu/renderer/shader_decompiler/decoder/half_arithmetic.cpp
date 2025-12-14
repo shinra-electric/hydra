@@ -19,7 +19,9 @@ void CopyHalfOutput(ir::Builder& builder, HalfOutputFormat format, reg_t dst,
     if (format != HalfOutputFormat::F16)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Half output format");
 
-    builder.OpCopy(ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)), value);
+    builder.OpCopy(
+        ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)),
+        value);
 }
 
 // TODO: ftz
@@ -109,18 +111,15 @@ void EmitHadd2I(DecoderContext& context, InstHadd2I inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.sat,
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
-        context.builder.OpVectorConstruct(
-            ir::ScalarType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
+        GetHalf2Const20(context.builder, inst.h0_imm10, inst.GetH1Imm10()),
         false, false);
 }
 
 void EmitHadd2_32I(DecoderContext& context, InstHadd2_32I inst) {
     EmitHadd2(context, inst.pred, inst.pred_inv, inst.sat,
               HalfOutputFormat::F16, inst.dst, inst.src_a, inst.swizzle_a,
-              false, inst.neg_a,
-              ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)), false, false);
+              false, inst.neg_a, GetHalf2Const32(context.builder, inst.imm),
+              false, false);
 }
 
 void EmitHmul2R(DecoderContext& context, InstHmul2R inst) {
@@ -147,18 +146,15 @@ void EmitHmul2I(DecoderContext& context, InstHmul2I inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.sat,
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
-        context.builder.OpVectorConstruct(
-            ir::ScalarType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
+        GetHalf2Const20(context.builder, inst.h0_imm10, inst.GetH1Imm10()),
         false, false);
 }
 
 void EmitHmul2_32I(DecoderContext& context, InstHmul2_32I inst) {
     EmitHmul2(context, inst.pred, inst.pred_inv, inst.sat,
               HalfOutputFormat::F16, inst.dst, inst.src_a, inst.swizzle_a,
-              false, false, ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)),
-              false, false);
+              false, false, GetHalf2Const32(context.builder, inst.imm), false,
+              false);
 }
 
 void EmitHfma2R(DecoderContext& context, InstHfma2R inst) {
@@ -200,19 +196,18 @@ void EmitHfma2I(DecoderContext& context, InstHfma2I inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.sat,
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         false,
-        context.builder.OpVectorConstruct(
-            ir::ScalarType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
+        GetHalf2Const20(context.builder, inst.h0_imm10, inst.GetH1Imm10()),
         false, GetSwizzledHalf(context.builder, inst.swizzle_c, inst.src_c),
         inst.neg_c);
 }
 
 void EmitHfma2_32I(DecoderContext& context, InstHfma2_32I inst) {
-    EmitHfma2(context, inst.pred, inst.pred_inv, false, HalfOutputFormat::F16,
-              inst.dst, inst.src_a, inst.swizzle_a, false,
-              ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)), false,
-              ir::Value::Register(inst.dst, ir::VectorType(ir::ScalarType::F16, 2)), inst.neg_c);
+    EmitHfma2(
+        context, inst.pred, inst.pred_inv, false, HalfOutputFormat::F16,
+        inst.dst, inst.src_a, inst.swizzle_a, false,
+        GetHalf2Const32(context.builder, inst.imm), false,
+        ir::Value::Register(inst.dst, ir::VectorType(ir::ScalarType::F16, 2)),
+        inst.neg_c);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

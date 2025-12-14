@@ -12,9 +12,9 @@ ir::Value GetIntCmp(DecoderContext& context, IntCmpOp op, ir::Value a,
                     ir::Value b) {
     switch (op) {
     case IntCmpOp::F:
-        return ir::Value::Immediate(false);
+        return ir::Value::ConstantB(false);
     case IntCmpOp::T:
-        return ir::Value::Immediate(true);
+        return ir::Value::ConstantB(true);
     case IntCmpOp::Lt:
         return context.builder.OpCompareLess(a, b);
     case IntCmpOp::Le:
@@ -45,11 +45,8 @@ void EmitIntSet(DecoderContext& context, pred_t pred, bool pred_inv,
     res = GetLogical(context, b_op, res, pred_v);
 
     if (b_float) {
-        res = context.builder.OpSelect(
-            res,
-            ir::Value::Immediate(std::bit_cast<u32>(1.0f), ir::ScalarType::F32),
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f),
-                                 ir::ScalarType::F32));
+        res = context.builder.OpSelect(res, ir::Value::ConstantF(1.0f),
+                                       ir::Value::ConstantF(0.0f));
         context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32),
                                res);
     } else {
@@ -103,14 +100,11 @@ void EmitIsetC(DecoderContext& context, InstIsetC inst) {
 }
 
 void EmitIsetI(DecoderContext& context, InstIsetI inst) {
-    const auto imm = (inst.imm20_0 | (inst.imm20_19 << 19));
     EmitIntSet(
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.is_signed, inst.base.dst, inst.base.src_a,
-        ir::Value::Immediate(inst.base.is_signed
-                                 ? std::bit_cast<u32>(sign_extend<i32, 20>(imm))
-                                 : imm,
-                             GetDataType(inst.base.is_signed)),
+        ir::Value::Constant(GetIntImm20(inst.imm20_0, inst.imm20_19, true),
+                            GetDataType(inst.base.is_signed)),
         inst.base.src_pred, inst.base.src_pred_inv, inst.base.b_float);
 }
 
@@ -134,15 +128,12 @@ void EmitIsetpC(DecoderContext& context, InstIsetpC inst) {
 }
 
 void EmitIsetpI(DecoderContext& context, InstIsetpI inst) {
-    const auto imm = (inst.imm20_0 | (inst.imm20_19 << 19));
     EmitIntSetPredicate(
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.is_signed, inst.base.dst_pred,
         inst.base.dst_inv_pred, inst.base.src_a,
-        ir::Value::Immediate(inst.base.is_signed
-                                 ? std::bit_cast<u32>(sign_extend<i32, 20>(imm))
-                                 : imm,
-                             GetDataType(inst.base.is_signed)),
+        ir::Value::Constant(GetIntImm20(inst.imm20_0, inst.imm20_19, true),
+                            GetDataType(inst.base.is_signed)),
         inst.base.src_pred, inst.base.src_pred_inv);
 }
 

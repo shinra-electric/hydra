@@ -151,7 +151,7 @@ void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
     for (u32 i = 0; i < count; i++) {
         // TODO: global memory
         context.builder.OpCopy(ir::Value::Register(dst + i),
-                               ir::Value::Immediate(std::bit_cast<u32>(0.0f)));
+                               ir::Value::ConstantU(0));
     }
 
     if (conditional)

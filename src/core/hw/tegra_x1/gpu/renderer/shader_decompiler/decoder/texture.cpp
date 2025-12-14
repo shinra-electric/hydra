@@ -62,8 +62,7 @@ void CopyTextureResult(ir::Builder& builder, std::array<reg_t, 4> dsts,
         ir::Value value = ir::Value::Undefined();
         switch (swizzle) {
         case ComponentSwizzle::Zero:
-            value =
-                ir::Value::Immediate(std::bit_cast<u32>(0.0f), ir::ScalarType::F32);
+            value = ir::Value::ConstantF(0.0f);
             break;
         case ComponentSwizzle::X:
             value = builder.OpVectorExtract(res, 0);
@@ -81,7 +80,8 @@ void CopyTextureResult(ir::Builder& builder, std::array<reg_t, 4> dsts,
             unreachable();
         }
 
-        builder.OpCopy(ir::Value::Register(dsts[i], ir::ScalarType::F32), value);
+        builder.OpCopy(ir::Value::Register(dsts[i], ir::ScalarType::F32),
+                       value);
     }
 }
 
@@ -93,7 +93,7 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
 
     const auto coords_v = context.builder.OpVectorConstruct(
         ir::ScalarType::F32, {ir::Value::Register(src_a, ir::ScalarType::F32),
-                        ir::Value::Register(src_b, ir::ScalarType::F32)});
+                              ir::Value::Register(src_b, ir::ScalarType::F32)});
     ir::Value res = ir::Value::Undefined();
     if (is_sample)
         res = context.builder.OpTextureSample(cbuf_index, coords_v);
@@ -180,8 +180,9 @@ void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     const auto coords_v = context.builder.OpVectorConstruct(
-        ir::ScalarType::F32, {ir::Value::Register(src_a + 0, ir::ScalarType::F32),
-                        ir::Value::Register(src_a + 1, ir::ScalarType::F32)});
+        ir::ScalarType::F32,
+        {ir::Value::Register(src_a + 0, ir::ScalarType::F32),
+         ir::Value::Register(src_a + 1, ir::ScalarType::F32)});
     const auto res = context.builder.OpTextureGather(cbuf_index, coords_v,
                                                      ToTexComponent(component));
     CopyTextureResult(
@@ -203,7 +204,7 @@ void EmitTextureGather2(DecoderContext& context, pred_t pred, bool pred_inv,
 
     const auto coords_v = context.builder.OpVectorConstruct(
         ir::ScalarType::F32, {ir::Value::Register(src_a, ir::ScalarType::F32),
-                        ir::Value::Register(src_b, ir::ScalarType::F32)});
+                              ir::Value::Register(src_b, ir::ScalarType::F32)});
     const auto res = context.builder.OpTextureGather(cbuf_index, coords_v,
                                                      ToTexComponent(component));
     CopyTextureResult(context.builder, {dst0 + 0, dst0 + 1, dst1 + 0, dst1 + 1},

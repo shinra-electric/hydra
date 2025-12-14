@@ -13,9 +13,9 @@ void EmitBitfieldExtract(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto src_a_v = ir::Value::Register(
         src_a, (is_signed ? ir::ScalarType::I32 : ir::ScalarType::U32));
     const auto position =
-        context.builder.OpBitwiseAnd(src_b, ir::Value::Immediate(0xff));
+        context.builder.OpBitwiseAnd(src_b, ir::Value::ConstantU(0xff));
     const auto size = context.builder.OpBitfieldExtract(
-        src_b, ir::Value::Immediate(8), ir::Value::Immediate(8));
+        src_b, ir::Value::ConstantU(8), ir::Value::ConstantU(8));
 
     auto res = context.builder.OpBitfieldExtract(src_a_v, position, size);
     context.builder.OpCopy(ir::Value::Register(dst), res);
@@ -43,7 +43,7 @@ void EmitBfeI(DecoderContext& context, InstBfeI inst) {
     EmitBitfieldExtract(
         context, inst.base.pred, inst.base.pred_inv, inst.base.is_signed,
         inst.base.dst, inst.base.src_a,
-        ir::Value::Immediate(inst.imm20_0 | (inst.imm20_19 << 19)));
+        ir::Value::ConstantU(inst.imm20_0 | (inst.imm20_19 << 19)));
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

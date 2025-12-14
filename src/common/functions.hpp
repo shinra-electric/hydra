@@ -43,7 +43,6 @@ T extract_bits(SrcT src) {
 
 template <typename T, u32 bit_count>
 T sign_extend(T v) {
-    static_assert(std::is_signed<T>::value);
     static_assert(bit_count < sizeof(T) * 8);
     T const m = T(1) << (bit_count - 1);
     return (v ^ m) - m;
