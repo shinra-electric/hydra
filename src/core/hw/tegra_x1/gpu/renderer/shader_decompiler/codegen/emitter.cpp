@@ -18,8 +18,7 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
         EmitCopy(inst.GetDst(), inst.GetOperand(0));
         break;
     case ir::Opcode::Cast:
-        EmitCast(inst.GetDst(), inst.GetOperand(0),
-                 inst.GetOperand(1).GetRawValue<DataType>());
+        EmitCast(inst.GetDst(), inst.GetOperand(0));
         break;
 
     // Arithmetic
@@ -164,10 +163,7 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
                          inst.GetOperand(1).GetRawValue<u32>());
         break;
     case ir::Opcode::VectorConstruct:
-        EmitVectorConstruct(inst.GetDst(),
-                            inst.GetOperand(0).GetRawValue<DataType>(),
-                            std::vector(inst.GetOperands().begin() + 1,
-                                        inst.GetOperands().end()));
+        EmitVectorConstruct(inst.GetDst(), inst.GetOperands());
         break;
 
     // Texture

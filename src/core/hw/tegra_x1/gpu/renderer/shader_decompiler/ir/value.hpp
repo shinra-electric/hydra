@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/type.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
 
-enum class ValueType {
+enum class ValueKind {
     Undefined,
     RawValue,
     Immediate,
@@ -18,67 +18,65 @@ enum class ValueType {
 
 class Value {
   public:
-    static Value Undefined() { return Value{ValueType::Undefined}; }
+    static Value Undefined() { return Value{ValueKind::Undefined}; }
     template <typename T>
     static Value RawValue(const T raw_value) {
-        return Value{ValueType::RawValue,
+        return Value{ValueKind::RawValue,
                      .raw_value = static_cast<u64>(raw_value)};
     }
-    static Value Immediate(const u32 imm,
-                           const DataType data_type = DataType::U32) {
-        return Value{ValueType::Immediate, data_type, .imm = imm};
+    static Value Immediate(const u32 imm, const Type type = ScalarType::U32) {
+        return Value{ValueKind::Immediate, type, .imm = imm};
     }
-    static Value Local(const local_t local) {
-        return Value{ValueType::Local, .local = local};
+    static Value Local(const local_t local, const Type type = ScalarType::U32) {
+        return Value{ValueKind::Local, type, .local = local};
     }
-    static Value Register(const reg_t reg,
-                          const DataType data_type = DataType::U32) {
-        return Value{ValueType::Register, data_type, .reg = reg};
+    static Value Register(const reg_t reg, const Type type = ScalarType::U32) {
+        return Value{ValueKind::Register, type, .reg = reg};
     }
     static Value Predicate(const pred_t pred) {
-        return Value{ValueType::Predicate, .pred = pred};
+        return Value{ValueKind::Predicate, ScalarType::Bool, .pred = pred};
     }
     static Value AttrMemory(const AMem& amem,
-                            const DataType data_type = DataType::U32) {
-        return Value{ValueType::AttrMemory, data_type, .amem = amem};
+                            const Type type = ScalarType::U32) {
+        return Value{ValueKind::AttrMemory, type, .amem = amem};
     }
     static Value ConstMemory(const CMem& cmem,
-                             const DataType data_type = DataType::U32) {
-        return Value{ValueType::ConstMemory, data_type, .cmem = cmem};
+                             const Type type = ScalarType::U32) {
+        return Value{ValueKind::ConstMemory, type, .cmem = cmem};
     }
     static Value Label(const label_t label) {
-        return Value{ValueType::Label, .label = label};
+        return Value{ValueKind::Label, .label = label};
     }
 
     bool operator==(const Value& other) const {
-        if (type != other.type)
+        if (kind != other.kind)
             return false;
 
-        switch (type) {
-        case ValueType::Undefined:
+        switch (kind) {
+        case ValueKind::Undefined:
             return true;
-        case ValueType::RawValue:
+        case ValueKind::RawValue:
             return raw_value == other.raw_value;
-        case ValueType::Immediate:
+        case ValueKind::Immediate:
             return imm == other.imm;
-        case ValueType::Local:
+        case ValueKind::Local:
             return local == other.local;
-        case ValueType::Register:
+        case ValueKind::Register:
             return reg == other.reg;
-        case ValueType::Predicate:
+        case ValueKind::Predicate:
             return pred == other.pred;
-        case ValueType::AttrMemory:
+        case ValueKind::AttrMemory:
             return amem == other.amem;
-        case ValueType::ConstMemory:
+        case ValueKind::ConstMemory:
             return cmem == other.cmem;
-        case ValueType::Label:
+        case ValueKind::Label:
             return label == other.label;
         }
     }
 
   public: // TODO: private?
-    ValueType type;
-    DataType data_type{DataType::Invalid};
+    ValueKind kind;
+    Type type;
 
     union {
         u64 raw_value;
@@ -91,47 +89,47 @@ class Value {
         label_t label;
     };
 
-    template <ValueType type_>
-    void AssertType() const {
-        ASSERT_DEBUG(type == type_, ShaderDecompiler,
-                     "Invalid value type (expected {}, got {})", type_, type);
+    template <ValueKind kind_>
+    void AssertKind() const {
+        ASSERT_DEBUG(kind == kind_, ShaderDecompiler,
+                     "Invalid value kind (expected {}, got {})", kind_, kind);
     }
 
   public:
+    GETTER(kind, GetKind);
     GETTER(type, GetType);
-    GETTER(data_type, GetDataType);
 
     template <typename T>
     T GetRawValue() const {
-        AssertType<ValueType::RawValue>();
+        AssertKind<ValueKind::RawValue>();
         return static_cast<T>(raw_value);
     }
     u32 GetImmediate() const {
-        AssertType<ValueType::Immediate>();
+        AssertKind<ValueKind::Immediate>();
         return imm;
     }
     local_t GetLocal() const {
-        AssertType<ValueType::Local>();
+        AssertKind<ValueKind::Local>();
         return local;
     }
     reg_t GetRegister() const {
-        AssertType<ValueType::Register>();
+        AssertKind<ValueKind::Register>();
         return reg;
     }
     pred_t GetPredicate() const {
-        AssertType<ValueType::Predicate>();
+        AssertKind<ValueKind::Predicate>();
         return pred;
     }
     AMem GetAttrMemory() const {
-        AssertType<ValueType::AttrMemory>();
+        AssertKind<ValueKind::AttrMemory>();
         return amem;
     }
     CMem GetConstMemory() const {
-        AssertType<ValueType::ConstMemory>();
+        AssertKind<ValueKind::ConstMemory>();
         return cmem;
     }
     label_t GetLabel() const {
-        AssertType<ValueType::Label>();
+        AssertKind<ValueKind::Label>();
         return label;
     }
 };
@@ -139,7 +137,7 @@ class Value {
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType, Undefined,
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind, Undefined,
     "undefined", RawValue, "raw value", Immediate, "immediate", Register,
     "register", Predicate, "predicate", AttrMemory, "attribute memory",
     ConstMemory, "constant memory", Label, "label")
@@ -154,41 +152,41 @@ struct fmt::formatter<
                value,
            FormatContext& ctx) const {
         std::string str;
-        switch (value.GetType()) {
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        switch (value.GetKind()) {
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Undefined:
             str = "undefined";
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             RawValue:
             // TODO: figure out a better way to print this
             str = fmt::format("0x{:x}", value.GetRawValue<hydra::u64>());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Immediate:
             str = fmt::format("0x{:08x}", value.GetImmediate());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Local:
             str = fmt::format("{}", value.GetLocal());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Register:
             str = fmt::format("{}", value.GetRegister());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Predicate:
             str = fmt::format("{}", value.GetPredicate());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             AttrMemory:
             str = fmt::format("{}", value.GetAttrMemory());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             ConstMemory:
             str = fmt::format("{}", value.GetConstMemory());
             break;
-        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueType::
+        case hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::ValueKind::
             Label:
             str = fmt::format("{}", value.GetLabel());
             break;

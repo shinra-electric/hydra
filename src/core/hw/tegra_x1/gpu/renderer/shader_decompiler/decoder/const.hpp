@@ -51,9 +51,9 @@ inline ir::Value SaturateIf(ir::Builder& builder, const ir::Value& value,
                             bool sat) {
     return sat ? builder.OpClamp(value,
                                  ir::Value::Immediate(std::bit_cast<u32>(0.0f),
-                                                      DataType::F32),
+                                                      ir::ScalarType::F32),
                                  ir::Value::Immediate(std::bit_cast<u32>(1.0f),
-                                                      DataType::F32))
+                                                      ir::ScalarType::F32))
                : value;
 }
 

@@ -536,17 +536,18 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto src_v = ir::Value::AttrMemory(amem, DataType::F32);
+        auto src_v = ir::Value::AttrMemory(amem, ir::ScalarType::F32);
 
         // HACK: multiply by position.w
         if (amem.reg == RZ && amem.imm >= 0x80 &&
             context.decomp_context.frag.pixel_imaps[(amem.imm - 0x80) >> 0x4]
                     .x == PixelImapType::Perspective)
             src_v = BUILDER.OpMultiply(
-                src_v,
-                ir::Value::AttrMemory(AMem{RZ, 0x7c, true}, DataType::F32));
+                src_v, ir::Value::AttrMemory(AMem{RZ, 0x7c, true},
+                                             ir::ScalarType::F32));
 
-        auto interp_param_v = ir::Value::Register(interp_param, DataType::F32);
+        auto interp_param_v =
+            ir::Value::Register(interp_param, ir::ScalarType::F32);
         std::optional<ir::Value> res_v;
         switch (op) {
         case IpaOp::Pass:
@@ -569,7 +570,8 @@ void Decoder::ParseNextInstruction() {
             res_v = std::nullopt;
             break;
         }
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::F32), res_v.value());
+        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32),
+                       res_v.value());
 
         HANDLE_PRED_COND_END();
     }
@@ -709,13 +711,14 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = ir::Value::Register(srcA, DataType::I32);
+        auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
         srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
         // TODO: negA
 
         auto res = BUILDER.OpAdd(
-            srcA_v, NEG_IF(ir::Value::Register(srcB, DataType::I32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+            srcA_v,
+            NEG_IF(ir::Value::Register(srcB, ir::ScalarType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::I32), res);
 
         HANDLE_PRED_COND_END();
     }
@@ -1026,13 +1029,14 @@ void Decoder::ParseNextInstruction() {
 
         HANDLE_PRED_COND_BEGIN();
 
-        auto srcA_v = ir::Value::Register(srcA, DataType::I32);
+        auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
         srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::Immediate(shift));
         // TODO: negA
 
         auto res = BUILDER.OpAdd(
-            srcA_v, NEG_IF(ir::Value::Immediate(srcB, DataType::I32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, DataType::I32), res);
+            srcA_v,
+            NEG_IF(ir::Value::Immediate(srcB, ir::ScalarType::I32), negB));
+        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::I32), res);
 
         HANDLE_PRED_COND_END();
     }
@@ -1041,18 +1045,20 @@ void Decoder::ParseNextInstruction() {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
     INST(0x3800000000000000, 0xfef8000000000000) {
-        const auto type = get_operand_5c30_0(inst);
+        const auto is_signed = GET_BIT(48);
         const auto dst = GET_REG(0);
         const auto src = GET_REG(8);
         const auto bf = GET_VALUE_U32(20, 19) |
                         (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("bfe {} {} {} 0x{:x}", type, dst, src, bf);
+        COMMENT("bfe {} {} {} 0x{:x}", (is_signed ? "i32" : "u32"), dst, src,
+                bf);
 
         HANDLE_PRED_COND_BEGIN();
 
         auto position = extract_bits<u32, 0, 8>(bf);
         auto size = extract_bits<u32, 8, 8>(bf);
 
+        const auto type = is_signed ? ir::ScalarType::I32 : ir::ScalarType::U32;
         auto res = BUILDER.OpBitwiseAnd(
             BUILDER.OpShiftRight(ir::Value::Register(src, type),
                                  ir::Value::Immediate(position)),

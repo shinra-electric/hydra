@@ -4,8 +4,8 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
 namespace {
 
-DataType GetDataType(bool is_signed) {
-    return is_signed ? DataType::I32 : DataType::U32;
+ir::ScalarType GetDataType(bool is_signed) {
+    return is_signed ? ir::ScalarType::I32 : ir::ScalarType::U32;
 }
 
 ir::Value GetIntCmp(DecoderContext& context, IntCmpOp op, ir::Value a,
@@ -46,9 +46,9 @@ void EmitIntSet(DecoderContext& context, pred_t pred, bool pred_inv,
 
     if (b_float) {
         res = context.builder.OpSelect(
-            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32),
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32));
-        context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), ir::ScalarType::F32),
+            ir::Value::Immediate(std::bit_cast<u32>(0.0f), ir::ScalarType::F32));
+        context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
     } else {
         context.builder.OpCopy(ir::Value::Register(dst), res);
     }

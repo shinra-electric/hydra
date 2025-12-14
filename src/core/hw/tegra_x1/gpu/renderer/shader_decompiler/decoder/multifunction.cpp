@@ -13,7 +13,7 @@ void EmitRro(DecoderContext& context, pred_t pred, bool pred_inv, reg_t dst,
 
     // This should always be followed by a corresponding MUFU instruction,
     // so a simple copy should be sufficient
-    context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), src_v);
+    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), src_v);
 
     if (conditional)
         context.builder.OpEndIf();
@@ -57,7 +57,7 @@ void EmitMultifunction(DecoderContext& context, pred_t pred, bool pred_inv,
         break;
     }
     res = SaturateIf(context.builder, res, saturate);
-    context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+    context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
 
     if (conditional)
         context.builder.OpEndIf();
@@ -67,27 +67,27 @@ void EmitMultifunction(DecoderContext& context, pred_t pred, bool pred_inv,
 
 void EmitRroR(DecoderContext& context, InstRroR inst) {
     EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-            ir::Value::Register(inst.src, DataType::F32), inst.base.abs,
+            ir::Value::Register(inst.src, ir::ScalarType::F32), inst.base.abs,
             inst.base.neg);
 }
 
 void EmitRroC(DecoderContext& context, InstRroC inst) {
     EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
             ir::Value::ConstMemory(
-                CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), DataType::F32),
+                CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4), ir::ScalarType::F32),
             inst.base.abs, inst.base.neg);
 }
 
 void EmitRroI(DecoderContext& context, InstRroI inst) {
     EmitRro(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
             ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                                 DataType::F32),
+                                 ir::ScalarType::F32),
             inst.base.abs, inst.base.neg);
 }
 
 void EmitMufu(DecoderContext& context, InstMufu inst) {
     EmitMultifunction(context, inst.pred, inst.pred_inv, inst.op, inst.sat,
-                      inst.dst, ir::Value::Register(inst.src, DataType::F32),
+                      inst.dst, ir::Value::Register(inst.src, ir::ScalarType::F32),
                       inst.abs, inst.neg);
 }
 

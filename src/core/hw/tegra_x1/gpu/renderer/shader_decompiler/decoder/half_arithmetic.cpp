@@ -10,7 +10,7 @@ ir::Value GetSwizzledHalf(ir::Builder& builder, HalfSwizzle swizzle,
     if (swizzle != HalfSwizzle::F16)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Half swizzle");
 
-    return ir::Value::Register(src, DataType::F16X2);
+    return ir::Value::Register(src, ir::VectorType(ir::ScalarType::F16, 2));
 }
 
 void CopyHalfOutput(ir::Builder& builder, HalfOutputFormat format, reg_t dst,
@@ -19,7 +19,7 @@ void CopyHalfOutput(ir::Builder& builder, HalfOutputFormat format, reg_t dst,
     if (format != HalfOutputFormat::F16)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Half output format");
 
-    builder.OpCopy(ir::Value::Register(dst, DataType::F16X2), value);
+    builder.OpCopy(ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)), value);
 }
 
 // TODO: ftz
@@ -99,7 +99,7 @@ void EmitHadd2C(DecoderContext& context, InstHadd2C inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F16X2),
+                               ir::VectorType(ir::ScalarType::F16, 2)),
         inst.abs_b, inst.neg_b);
 }
 
@@ -110,9 +110,9 @@ void EmitHadd2I(DecoderContext& context, InstHadd2I inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
         context.builder.OpVectorConstruct(
-            DataType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, DataType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, DataType::F16)}),
+            ir::ScalarType::F16,
+            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
+             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
         false, false);
 }
 
@@ -120,7 +120,7 @@ void EmitHadd2_32I(DecoderContext& context, InstHadd2_32I inst) {
     EmitHadd2(context, inst.pred, inst.pred_inv, inst.sat,
               HalfOutputFormat::F16, inst.dst, inst.src_a, inst.swizzle_a,
               false, inst.neg_a,
-              ir::Value::Immediate(inst.imm, DataType::F16X2), false, false);
+              ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)), false, false);
 }
 
 void EmitHmul2R(DecoderContext& context, InstHmul2R inst) {
@@ -137,7 +137,7 @@ void EmitHmul2C(DecoderContext& context, InstHmul2C inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F16X2),
+                               ir::VectorType(ir::ScalarType::F16, 2)),
         inst.abs_b, false);
 }
 
@@ -148,16 +148,16 @@ void EmitHmul2I(DecoderContext& context, InstHmul2I inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         inst.base.abs_a, inst.neg_a,
         context.builder.OpVectorConstruct(
-            DataType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, DataType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, DataType::F16)}),
+            ir::ScalarType::F16,
+            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
+             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
         false, false);
 }
 
 void EmitHmul2_32I(DecoderContext& context, InstHmul2_32I inst) {
     EmitHmul2(context, inst.pred, inst.pred_inv, inst.sat,
               HalfOutputFormat::F16, inst.dst, inst.src_a, inst.swizzle_a,
-              false, false, ir::Value::Immediate(inst.imm, DataType::F16X2),
+              false, false, ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)),
               false, false);
 }
 
@@ -178,7 +178,7 @@ void EmitHfma2RC(DecoderContext& context, InstHfma2RC inst) {
         false, GetSwizzledHalf(context.builder, inst.swizzle_b, inst.src_b),
         inst.neg_b,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F16X2),
+                               ir::VectorType(ir::ScalarType::F16, 2)),
         inst.neg_c);
 }
 
@@ -188,7 +188,7 @@ void EmitHfma2C(DecoderContext& context, InstHfma2C inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         false,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F16X2),
+                               ir::VectorType(ir::ScalarType::F16, 2)),
         inst.neg_b,
         GetSwizzledHalf(context.builder, inst.swizzle_c, inst.src_c),
         inst.neg_c);
@@ -201,9 +201,9 @@ void EmitHfma2I(DecoderContext& context, InstHfma2I inst) {
         inst.base.out_fmt, inst.base.dst, inst.base.src_a, inst.base.swizzle_a,
         false,
         context.builder.OpVectorConstruct(
-            DataType::F16,
-            {ir::Value::Immediate(inst.h0_imm10 << 6, DataType::F16),
-             ir::Value::Immediate(inst.GetH1Imm10() << 6, DataType::F16)}),
+            ir::ScalarType::F16,
+            {ir::Value::Immediate(inst.h0_imm10 << 6, ir::ScalarType::F16),
+             ir::Value::Immediate(inst.GetH1Imm10() << 6, ir::ScalarType::F16)}),
         false, GetSwizzledHalf(context.builder, inst.swizzle_c, inst.src_c),
         inst.neg_c);
 }
@@ -211,8 +211,8 @@ void EmitHfma2I(DecoderContext& context, InstHfma2I inst) {
 void EmitHfma2_32I(DecoderContext& context, InstHfma2_32I inst) {
     EmitHfma2(context, inst.pred, inst.pred_inv, false, HalfOutputFormat::F16,
               inst.dst, inst.src_a, inst.swizzle_a, false,
-              ir::Value::Immediate(inst.imm, DataType::F16X2), false,
-              ir::Value::Register(inst.dst, DataType::F16X2), inst.neg_c);
+              ir::Value::Immediate(inst.imm, ir::VectorType(ir::ScalarType::F16, 2)), false,
+              ir::Value::Register(inst.dst, ir::VectorType(ir::ScalarType::F16, 2)), inst.neg_c);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

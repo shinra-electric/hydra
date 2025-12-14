@@ -19,38 +19,8 @@ struct local_t {
     }
 };
 
-constexpr reg_t RZ = 255;
-constexpr pred_t PT = 7;
-
-// TODO: make an abstract Type class
-enum class DataType {
-    Invalid,
-
-    U8,
-    U16,
-    U32,
-    I8,
-    I16,
-    I32,
-    F16,
-    F32,
-    F16X2,
-};
-
-DataType to_data_type(engines::VertexAttribType vertex_attrib_type);
-
-inline DataType to_data_type(ColorDataType color_data_type) {
-    switch (color_data_type) {
-    case ColorDataType::Float:
-        return DataType::F32;
-    case ColorDataType::Int:
-        return DataType::I32;
-    case ColorDataType::UInt:
-        return DataType::U32;
-    default:
-        unreachable();
-    }
-}
+constexpr reg_t RZ = 0xff;
+constexpr pred_t PT = 0x7;
 
 struct AMem {
     reg_t reg;
@@ -341,11 +311,6 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CMem>
             fmt::format("c{}[{} + 0x{:x}]", cmem.idx, cmem.reg, cmem.imm), ctx);
     }
 };
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid,
-    "invalid", U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32,
-    "i32", F16, "f16", F32, "f32")
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::SvSemantic, Invalid,

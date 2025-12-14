@@ -2,6 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/helper.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
     msl {
@@ -96,7 +97,7 @@ void MslEmitter::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("vec<{}, 4> {} {};", to_data_type(vertex_attrib_state.type),
+            Write("vec<{}, 4> {} {};", ToType(vertex_attrib_state.type),
                   GetSvStr(sv), GetSvQualifierStr(sv, false));
         }
         break;
@@ -152,7 +153,7 @@ void MslEmitter::EmitDeclarations() {
                 continue;
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            Write("vec<{}, 4> {} {};", to_data_type(color_target_data_type),
+            Write("vec<{}, 4> {} {};", ToType(color_target_data_type),
                   GetSvStr(sv), GetSvQualifierStr(sv, true));
         }
         break;

@@ -22,8 +22,8 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                 // Dst
                 if (instruction.HasDst()) {
                     const auto& dst = instruction.GetDst();
-                    switch (dst.GetType()) {
-                    case ir::ValueType::AttrMemory:
+                    switch (dst.GetKind()) {
+                    case ir::ValueKind::AttrMemory:
                         HandleAMemStore(dst.GetAttrMemory());
                         break;
                     default:
@@ -33,11 +33,11 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
 
                 // Operands
                 for (const auto& operand : instruction.GetOperands()) {
-                    switch (operand.GetType()) {
-                    case ir::ValueType::AttrMemory:
+                    switch (operand.GetKind()) {
+                    case ir::ValueKind::AttrMemory:
                         HandleAMemLoad(operand.GetAttrMemory());
                         break;
-                    case ir::ValueType::ConstMemory:
+                    case ir::ValueKind::ConstMemory:
                         HandleCMemLoad(operand.GetConstMemory());
                         break;
                     default:

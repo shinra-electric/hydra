@@ -2,6 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/renderer/shader_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/analyzer/memory_analyzer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/helper.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang {
 
@@ -24,7 +25,7 @@ void LangEmitter::Start() {
     Write("i32 _i32;");
     Write("f16 _f16;");
     Write("f32 _f32;");
-    Write("half2 _f16x2;");
+    Write("half2 _2xf16;");
     ExitScopeEmpty(true);
     WriteNewline();
 
@@ -233,8 +234,7 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
                     "{} = as_type<{}>({})",
                     GetSvAccessQualifiedStr(
                         SvAccess(Sv(SvSemantic::UserInOut, i), c), true),
-                    to_data_type(color_target_data_type),
-                    GetRegisterStr(i * 4 + c));
+                    ToType(color_target_data_type), GetRegisterStr(i * 4 + c));
             }
         }
         break;
@@ -335,9 +335,8 @@ void LangEmitter::EmitCopy(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "{}", GetValueStr(src));
 }
 
-void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src,
-                           DataType dst_type) {
-    StoreValue(dst, "({}({}))", dst_type, GetValueStr(src));
+void LangEmitter::EmitCast(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "({}({}))", GetTypeStr(dst.GetType()), GetValueStr(src));
 }
 
 // Arithmetic
@@ -511,7 +510,7 @@ void LangEmitter::EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
                    GetComponentStrFromIndex(index), GetValueStr(src));
 }
 
-void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
+void LangEmitter::EmitVectorConstruct(const ir::Value& dst,
                                       const std::vector<ir::Value>& elements) {
     std::string str;
     for (u32 i = 0; i < elements.size(); i++) {
@@ -519,7 +518,7 @@ void LangEmitter::EmitVectorConstruct(const ir::Value& dst, DataType data_type,
             str += ", ";
         str += GetValueStr(elements[i]);
     }
-    StoreValue(dst, "vec<{}, {}>({})", data_type, elements.size(), str);
+    StoreValue(dst, "{}({})", GetTypeStr(dst.GetType()), str);
 }
 
 // Exit

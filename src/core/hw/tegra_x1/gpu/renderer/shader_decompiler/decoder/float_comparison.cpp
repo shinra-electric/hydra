@@ -50,7 +50,7 @@ void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        AbsNegIf(context.builder, ir::Value::Register(src_a, DataType::F32),
+        AbsNegIf(context.builder, ir::Value::Register(src_a, ir::ScalarType::F32),
                  abs_a, neg_a);
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto res = GetFloatCmp(context, op, src_a_v, src_b_v);
@@ -61,9 +61,9 @@ void EmitFloatSet(DecoderContext& context, pred_t pred, bool pred_inv,
 
     if (b_float) {
         res = context.builder.OpSelect(
-            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), DataType::F32),
-            ir::Value::Immediate(std::bit_cast<u32>(0.0f), DataType::F32));
-        context.builder.OpCopy(ir::Value::Register(dst, DataType::F32), res);
+            res, ir::Value::Immediate(std::bit_cast<u32>(1.0f), ir::ScalarType::F32),
+            ir::Value::Immediate(std::bit_cast<u32>(0.0f), ir::ScalarType::F32));
+        context.builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
     } else {
         context.builder.OpCopy(ir::Value::Register(dst), res);
     }
@@ -81,7 +81,7 @@ void EmitFloatSetPredicate(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto src_a_v =
-        AbsNegIf(context.builder, ir::Value::Register(src_a, DataType::F32),
+        AbsNegIf(context.builder, ir::Value::Register(src_a, ir::ScalarType::F32),
                  abs_a, neg_a);
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
     auto res0 = GetFloatCmp(context, op, src_a_v, src_b_v);
@@ -105,7 +105,7 @@ void EmitFsetR(DecoderContext& context, InstFsetR inst) {
     EmitFloatSet(context, inst.base.pred, inst.base.pred_inv, inst.base.op,
                  inst.base.b_op, inst.base.dst, inst.base.src_a,
                  inst.base.abs_a, inst.base.neg_a,
-                 ir::Value::Register(inst.src_b, DataType::F32),
+                 ir::Value::Register(inst.src_b, ir::ScalarType::F32),
                  inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
                  inst.base.src_pred_inv, inst.base.b_float);
 }
@@ -116,7 +116,7 @@ void EmitFsetC(DecoderContext& context, InstFsetC inst) {
         inst.base.b_op, inst.base.dst, inst.base.src_a, inst.base.abs_a,
         inst.base.neg_a,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F32),
+                               ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv, inst.base.b_float);
 }
@@ -127,7 +127,7 @@ void EmitFsetI(DecoderContext& context, InstFsetI inst) {
         inst.base.b_op, inst.base.dst, inst.base.src_a, inst.base.abs_a,
         inst.base.neg_a,
         ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             DataType::F32),
+                             ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv, inst.base.b_float);
 }
@@ -137,7 +137,7 @@ void EmitFsetpR(DecoderContext& context, InstFsetpR inst) {
         context, inst.base.pred, inst.base.pred_inv, inst.base.op,
         inst.base.b_op, inst.base.dst_pred, inst.base.dst_inv_pred,
         inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
-        ir::Value::Register(inst.src_b, DataType::F32), inst.base.abs_b,
+        ir::Value::Register(inst.src_b, ir::ScalarType::F32), inst.base.abs_b,
         inst.base.neg_b, inst.base.src_pred, inst.base.src_pred_inv);
 }
 
@@ -147,7 +147,7 @@ void EmitFsetpC(DecoderContext& context, InstFsetpC inst) {
         inst.base.b_op, inst.base.dst_pred, inst.base.dst_inv_pred,
         inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
         ir::Value::ConstMemory(CMem(inst.cbuf_slot, RZ, inst.cbuf_offset * 4),
-                               DataType::F32),
+                               ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv);
 }
@@ -158,7 +158,7 @@ void EmitFsetpI(DecoderContext& context, InstFsetpI inst) {
         inst.base.b_op, inst.base.dst_pred, inst.base.dst_inv_pred,
         inst.base.src_a, inst.base.abs_a, inst.base.neg_a,
         ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             DataType::F32),
+                             ir::ScalarType::F32),
         inst.base.abs_b, inst.base.neg_b, inst.base.src_pred,
         inst.base.src_pred_inv);
 }
