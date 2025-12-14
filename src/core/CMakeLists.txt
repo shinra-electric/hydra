@@ -510,6 +510,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/warp.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/warp.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.cpp

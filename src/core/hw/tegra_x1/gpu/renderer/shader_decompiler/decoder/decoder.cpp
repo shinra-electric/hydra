@@ -17,6 +17,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/warp.hpp"
 
 #define BUILDER context.builder
 
@@ -273,53 +274,7 @@ void Decoder::ParseNextInstruction() {
     INST(0xef40000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("ld");
     }
-    INST(0xef10000000000000, 0xfff8000000000000) {
-        const auto mode = get_operand_ef10_0(inst);
-        const auto dst_pred = GET_PRED(48);
-        const auto dst = GET_REG(0);
-        const auto srcA = GET_REG(8);
-        COMMENT("shfl {} {} {} {} ...", mode, dst_pred, dst, srcA);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto dst_v = ir::Value::Register(dst);
-        auto dst_pred_v = ir::Value::Predicate(dst_pred);
-        auto srcA_v = ir::Value::Register(srcA);
-        auto srcB_v = ((inst & 0x10000000) == 0x0
-                           ? ir::Value::Register(GET_REG(20))
-                           : ir::Value::ConstantU(GET_VALUE_U32(20, 5)));
-        auto srcC_v = ((inst & 0x10000000) == 0x0
-                           ? ir::Value::Register(GET_REG(39))
-                           : ir::Value::ConstantU(GET_VALUE_U32(34, 13)));
-
-        std::optional<ir::Value> res_v;
-        std::optional<ir::Value> res_valid_v;
-
-        // HACK
-        res_v = srcA_v;
-        res_valid_v = ir::Value::Predicate(PT);
-        /*
-        switch (mode) {
-        case ShuffleMode::Index:
-            // TODO
-            break;
-        case ShuffleMode::Up:
-            // TODO
-            break;
-        case ShuffleMode::Down:
-            // TODO
-            break;
-        case ShuffleMode::Bfly:
-            // TODO
-            break;
-        }
-        */
-
-        BUILDER.OpCopy(dst_v, res_v.value());
-        BUILDER.OpCopy(dst_pred_v, res_valid_v.value());
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0xef10000000000000, 0xfff8000000000000) { EMIT(Shfl); }
     INST(0xeef0000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("atom");
     }
