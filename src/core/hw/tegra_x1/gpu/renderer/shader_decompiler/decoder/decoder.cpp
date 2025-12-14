@@ -16,71 +16,10 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/predicate_comparison.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/tables.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/texture.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/warp.hpp"
 
-#define BUILDER context.builder
-
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
-
-namespace {
-
-// HACK
-ir::Value DoOpBitwise(ir::Builder& builder, BitwiseOp op, ir::Value a,
-                      ir::Value b) {
-    switch (op) {
-    case BitwiseOp::And:
-        return builder.OpBitwiseAnd(a, b);
-    case BitwiseOp::Or:
-        return builder.OpBitwiseOr(a, b);
-    case BitwiseOp::Xor:
-        return builder.OpBitwiseXor(a, b);
-    default:
-        unreachable();
-    }
-}
-
-// HACK
-ir::Value DoOpCompare(ir::Builder& builder, ComparisonOp op, ir::Value a,
-                      ir::Value b) {
-    switch (op) {
-    case ComparisonOp::F:
-        return ir::Value::ConstantB(false);
-    case ComparisonOp::T:
-        return ir::Value::ConstantB(true);
-    case ComparisonOp::Less:
-    case ComparisonOp::LessU:
-        return builder.OpCompareLess(a, b);
-    case ComparisonOp::LessEqual:
-    case ComparisonOp::LessEqualU:
-        return builder.OpCompareLessOrEqual(a, b);
-    case ComparisonOp::Greater:
-    case ComparisonOp::GreaterU:
-        return builder.OpCompareGreater(a, b);
-    case ComparisonOp::GreaterEqual:
-    case ComparisonOp::GreaterEqualU:
-        return builder.OpCompareGreaterOrEqual(a, b);
-    case ComparisonOp::Equal:
-    case ComparisonOp::EqualU:
-        return builder.OpCompareEqual(a, b);
-    case ComparisonOp::NotEqual:
-    case ComparisonOp::NotEqualU:
-        return builder.OpCompareNotEqual(a, b);
-    case ComparisonOp::Num:
-    case ComparisonOp::Nan: {
-        const auto res = builder.OpBitwiseOr(a, b);
-        if (op == ComparisonOp::Num)
-            return builder.OpNot(res);
-        else
-            return res;
-    }
-    default:
-        unreachable();
-    }
-}
-
-} // namespace
 
 void Decoder::Decode() {
     crnt_block = &blocks[0x0];
@@ -97,88 +36,6 @@ void Decoder::ParseNextInstruction() {
 
     LOG_DEBUG(ShaderDecompiler, "Instruction 0x{:016x}", inst);
 
-#define GET_REG(b) extract_bits<reg_t, b, 8>(inst)
-#define GET_PRED(b) extract_bits<pred_t, b, 3>(inst)
-
-#define GET_VALUE_U(type_bit_count, b, count)                                  \
-    extract_bits<u##type_bit_count, b, count>(inst)
-#define GET_VALUE_U_EXTEND(type_bit_count, b, count)                           \
-    (GET_VALUE_U(type_bit_count, b, count) << (type_bit_count - count))
-#define GET_VALUE_U32(b, count) GET_VALUE_U(32, b, count)
-#define GET_VALUE_U32_EXTEND(b, count) GET_VALUE_U_EXTEND(32, b, count)
-#define GET_VALUE_U64(b, count) GET_VALUE_U(64, b, count)
-#define GET_VALUE_U64_EXTEND(b, count) GET_VALUE_U_EXTEND(64, b, count)
-
-#define GET_VALUE_I(type_bit_count, b, count)                                  \
-    extract_bits<i##type_bit_count, b, count>(inst)
-#define GET_VALUE_I_SIGN_EXTEND(type_bit_count, b, count)                      \
-    sign_extend<i##type_bit_count, count>(GET_VALUE_U(type_bit_count, b, count))
-#define GET_VALUE_I32(b, count) GET_VALUE_I(32, b, count)
-#define GET_VALUE_I32_SIGN_EXTEND(b, count)                                    \
-    GET_VALUE_I_SIGN_EXTEND(32, b, count)
-#define GET_VALUE_I64(b, count) GET_VALUE_I(64, b, count)
-#define GET_VALUE_I64_SIGN_EXTEND(b, count)                                    \
-    GET_VALUE_I_SIGN_EXTEND(64, b, count)
-
-// TODO: correct?
-#define GET_VALUE_F16(b) ((GET_VALUE_U32(b, 9)) << 6)
-
-// TODO: correct?
-#define GET_VALUE_F32() ((GET_BIT(56) << 31) | (GET_VALUE_U32(20, 19) << 12))
-
-#define GET_BIT(b) extract_bits<u32, b, 1>(inst)
-
-#define GET_BTARG()                                                            \
-    static_cast<label_t>(                                                      \
-        pc +                                                                   \
-        std::bit_cast<i32>(GET_VALUE_I32_SIGN_EXTEND(20, 24)) /                \
-            sizeof(instruction_t) +                                            \
-        1)
-
-#define GET_AMEM(is_input)                                                     \
-    AMem { GET_REG(8), 0, is_input }
-#define GET_AMEM_IDX(b, is_input)                                              \
-    AMem { GET_REG(8), extract_bits<u32, b, 10>(inst), is_input }
-
-#define GET_CMEM(b_idx, count_imm)                                             \
-    CMem {                                                                     \
-        GET_VALUE_U32(b_idx, 5), RZ,                                           \
-            extract_bits<u32, 20, count_imm>(inst) * 4                         \
-    }
-#define GET_CMEM_R(b_idx, b_reg, count_imm)                                    \
-    CMem {                                                                     \
-        GET_VALUE_U32(b_idx, 5), GET_REG(b_reg),                               \
-            extract_bits<u32, 20, count_imm>(inst) * 4                         \
-    }
-
-// TODO: global memory
-#define GET_NCGMEM_R(b_reg, count_imm, is_input)                               \
-    AMem{GET_REG(b_reg), extract_bits<u32, 20, count_imm>(inst) * 4, is_input}
-
-#define NEG_IF(value, neg) NegIf(BUILDER, value, neg)
-#define NOT_IF(value, not_) NotIf(BUILDER, value, not_)
-
-#define PRED_COND_NOTHING ((inst & 0x00000000000f0000) == 0x0000000000070000)
-#define PRED_COND_NEVER ((inst & 0x00000000000f0000) == 0x00000000000f0000)
-
-#define HANDLE_PRED_COND_BEGIN()                                               \
-    bool conditional = false;                                                  \
-    if (PRED_COND_NOTHING) {      /* nothing */                                \
-    } else if (PRED_COND_NEVER) { /* never */                                  \
-        COMMENT("never");                                                      \
-        abort(); /* TODO: implement */                                         \
-    } else {     /* conditional */                                             \
-        const auto pred = GET_PRED(16);                                        \
-        const bool not_ = GET_BIT(19);                                         \
-        COMMENT("if {}{}", not_ ? "!" : "", pred);                             \
-        BUILDER.OpBeginIf({NOT_IF(ir::Value::Predicate(pred), not_)});         \
-        conditional = true;                                                    \
-    }
-#define HANDLE_PRED_COND_END()                                                 \
-    if (conditional) {                                                         \
-        BUILDER.OpEndIf();                                                     \
-    }
-
 #define INST0(value, mask) if ((inst & mask##ull) == value##ull)
 #define INST(value, mask) else INST0(value, mask)
 
@@ -190,40 +47,38 @@ void Decoder::ParseNextInstruction() {
     INST(0xf6e0000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("out");
     }
-    INST(0xf0f8000000000000, 0xfff8000000000000) {
-        // TODO: f0f8_0
-        COMMENT("sync");
+    INST(0xf0f8000000000000, 0xfff8000000000000) { // sync
+        // TODO: ccc
+        const auto pred = extract_bits<pred_t, 16, 3>(inst);
+        const auto pred_inv = extract_bits<bool, 19, 1>(inst);
 
         ASSERT_DEBUG(!crnt_block->sync_point_stack.empty(), ShaderDecompiler,
                      "No sync point in stack");
 
         const auto target = crnt_block->sync_point_stack.top();
-        if (PRED_COND_NOTHING) { // Nothing
-            // Pop and then inherit
-            crnt_block->sync_point_stack.pop();
-            InheritSyncPoints(target);
+        if (pred == PT) {
+            if (!pred_inv) {
+                // Pop and then inherit
+                crnt_block->sync_point_stack.pop();
+                InheritSyncPoints(target);
 
-            BUILDER.OpBranch(target);
-            EndBlock();
-        } else if (PRED_COND_NEVER) { // Never
-            // Pop
-            crnt_block->sync_point_stack.pop();
-
-            COMMENT("never");
-            abort(); /* TODO: implement */
-        } else {     // Conditional
-            const auto pred = GET_PRED(16);
-            const bool not_ = GET_BIT(19);
-            COMMENT("if {}{}", not_ ? "!" : "", pred);
-
+                context.builder.OpBranch(target);
+                EndBlock();
+            } else {
+                // TODO: how does sync behave with never?
+                LOG_FATAL(ShaderDecompiler, "Never sync");
+            }
+        } else { // Conditional
             // Inherit for the continuation block, then pop and inherit for sync
             // block
             InheritSyncPoints(pc + 1);
+            // TODO: should this pop? (probably not)
             crnt_block->sync_point_stack.pop();
             InheritSyncPoints(target);
 
-            BUILDER.OpBranchConditional(
-                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            context.builder.OpBranchConditional(
+                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv),
+                target, pc + 1);
             EndBlock();
         }
     }
@@ -356,24 +211,21 @@ void Decoder::ParseNextInstruction() {
     INST(0xe310000000000000, 0xfff0000000000000) {
         COMMENT_NOT_IMPLEMENTED("longjmp");
     }
-    INST(0xe300000000000000, 0xfff0000000000000) {
-        // TODO: f0f8_0
-        COMMENT("exit");
+    INST(0xe300000000000000, 0xfff0000000000000) { // exit
+        // TODO: ccc, keep_ref_count
+        const auto pred = extract_bits<pred_t, 16, 3>(inst);
+        const auto pred_inv = extract_bits<bool, 19, 1>(inst);
 
-        if (PRED_COND_NOTHING) { // Nothing
-            BUILDER.OpExit();
-            EndBlock();
-        } else if (PRED_COND_NEVER) { // Never
-            COMMENT("never");
-            abort(); /* TODO: implement */
-        } else {     // Conditional
-            const auto pred = GET_PRED(16);
-            const bool not_ = GET_BIT(19);
-            COMMENT("if {}{}", not_ ? "!" : "", pred);
-
-            BUILDER.OpBeginIf({NOT_IF(ir::Value::Predicate(pred), not_)});
-            BUILDER.OpExit();
-            BUILDER.OpEndIf();
+        if (pred == PT) {
+            if (!pred_inv) {
+                context.builder.OpExit();
+                EndBlock();
+            }
+        } else {
+            context.builder.OpBeginIf(
+                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv));
+            context.builder.OpExit();
+            context.builder.OpEndIf();
         }
     }
     INST(0xe2f0000000000000, 0xfff0000000000000) {
@@ -403,9 +255,12 @@ void Decoder::ParseNextInstruction() {
     INST(0xe290000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("ssy");
     }
-    INST(0xe290000000000000, 0xfff0000000000020) {
-        const auto target = GET_BTARG();
-        COMMENT("ssy {}", target);
+    INST(0xe290000000000000, 0xfff0000000000020) { // ssy
+        const auto target =
+            pc +
+            sign_extend<i32, 24>(extract_bits<i32, 20, 24>(inst)) /
+                sizeof(instruction_t) +
+            1;
 
         PushSyncPoint(target);
     }
@@ -436,27 +291,28 @@ void Decoder::ParseNextInstruction() {
     INST(0xe240000000000020, 0xfff0000000000020) {
         COMMENT_NOT_IMPLEMENTED("bra");
     }
-    INST(0xe240000000000000, 0xfff0000000000020) {
-        // TODO: f0f8_0
-        const auto target = GET_BTARG();
-        COMMENT("bra {}", target);
+    INST(0xe240000000000000, 0xfff0000000000020) { // bra
+        // TODO: ccc, ca, lmt, u
+        const auto pred = extract_bits<pred_t, 16, 3>(inst);
+        const auto pred_inv = extract_bits<bool, 19, 1>(inst);
+        const auto target =
+            pc +
+            sign_extend<i32, 24>(extract_bits<i32, 20, 24>(inst)) /
+                sizeof(instruction_t) +
+            1;
 
-        if (PRED_COND_NOTHING) { // Nothing
-            InheritSyncPoints(target);
-            BUILDER.OpBranch(target);
-            EndBlock();
-        } else if (PRED_COND_NEVER) { // Never
-            COMMENT("never");
-            abort(); /* TODO: implement */
-        } else {     // Conditional
-            const auto pred = GET_PRED(16);
-            const bool not_ = GET_BIT(19);
-            COMMENT("if {}{}", not_ ? "!" : "", pred);
-
+        if (pred == PT) {
+            if (!pred_inv) {
+                InheritSyncPoints(target);
+                context.builder.OpBranch(target);
+                EndBlock();
+            }
+        } else {
             InheritSyncPoints(target);
             InheritSyncPoints(pc + 1);
-            BUILDER.OpBranchConditional(
-                NOT_IF(ir::Value::Predicate(pred), not_), target, pc + 1);
+            context.builder.OpBranchConditional(
+                NotIf(context.builder, ir::Value::Predicate(pred), pred_inv),
+                target, pc + 1);
             EndBlock();
         }
     }

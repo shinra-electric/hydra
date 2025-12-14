@@ -30,24 +30,4 @@ const SvAccess get_sv_access_from_addr(u64 addr) {
     return SvAccess(Sv(SvSemantic::Invalid), invalid<u8>());
 }
 
-u32 get_load_store_count(LoadStoreMode mode) {
-    switch (mode) {
-    case LoadStoreMode::U8:
-    case LoadStoreMode::S8:
-    case LoadStoreMode::U16:
-    case LoadStoreMode::S16:
-    case LoadStoreMode::B32:
-        return 1;
-    case LoadStoreMode::B64:
-        return 2;
-    case LoadStoreMode::B96:
-        return 3;
-    case LoadStoreMode::B128:
-        return 4;
-    default:
-        LOG_ERROR(ShaderDecompiler, "Unknown load store mode {}", mode);
-        return 0;
-    }
-}
-
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

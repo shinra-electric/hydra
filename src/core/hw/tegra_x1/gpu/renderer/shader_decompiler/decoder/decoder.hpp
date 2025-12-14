@@ -11,6 +11,7 @@ enum class BlockStatus {
 
 struct Block {
     BlockStatus status{BlockStatus::Unvisited};
+    // TODO: rework this
     std::stack<label_t> sync_point_stack;
 };
 
