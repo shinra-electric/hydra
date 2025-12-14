@@ -700,29 +700,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5c20000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
-    INST(0x5c18000000000000, 0xfff8000000000000) {
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(49);
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(48);
-        const auto srcB = GET_REG(20);
-        const auto shift = GET_VALUE_U32(39, 5);
-        COMMENT("iscadd {} {}{} {}{} 0x{:x}", dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB, shift);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::ConstantU(shift));
-        // TODO: negA
-
-        auto res = BUILDER.OpAdd(
-            srcA_v,
-            NEG_IF(ir::Value::Register(srcB, ir::ScalarType::I32), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::I32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5c18000000000000, 0xfff8000000000000) { EMIT(IscaddR); }
     INST(0x5c10000000000000, 0xfff8000000000000) { EMIT(IaddR); }
     INST(0x5c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
@@ -916,9 +894,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c20000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
-    INST(0x4c18000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iscadd");
-    }
+    INST(0x4c18000000000000, 0xfff8000000000000) { EMIT(IscaddC); }
     INST(0x4c10000000000000, 0xfff8000000000000) { EMIT(IaddC); }
     INST(0x4c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
@@ -1014,28 +990,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3820000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("imnmx");
     }
-    INST(0x3818000000000000, 0xfef8000000000000) {
-        const auto dst = GET_REG(0);
-        const bool negA = GET_BIT(49);
-        const auto srcA = GET_REG(8);
-        const bool negB = GET_BIT(48);
-        const auto srcB = GET_VALUE_I32_SIGN_EXTEND(20, 20);
-        const auto shift = GET_VALUE_U32(39, 5);
-        COMMENT("iscadd {} {}{} {}0x{:x} 0x{:x}", dst, (negA ? "-" : ""), srcA,
-                (negB ? "-" : ""), srcB, shift);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto srcA_v = ir::Value::Register(srcA, ir::ScalarType::I32);
-        srcA_v = BUILDER.OpShiftLeft(srcA_v, ir::Value::ConstantU(shift));
-        // TODO: negA
-
-        auto res =
-            BUILDER.OpAdd(srcA_v, NEG_IF(ir::Value::ConstantI(srcB), negB));
-        BUILDER.OpCopy(ir::Value::Register(dst, ir::ScalarType::I32), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3818000000000000, 0xfef8000000000000) { EMIT(IscaddI); }
     INST(0x3810000000000000, 0xfef8000000000000) { EMIT(IaddI); }
     INST(0x3808000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
@@ -1100,9 +1055,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x1800000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("lea");
     }
-    INST(0x1400000000000000, 0xfc00000000000000) {
-        COMMENT_NOT_IMPLEMENTED("iscadd32i");
-    }
+    INST(0x1400000000000000, 0xfc00000000000000) { EMIT(Iscadd32I); }
     INST(0x1000000000000000, 0xfc00000000000000) {
         COMMENT_NOT_IMPLEMENTED("imad32i");
     }
