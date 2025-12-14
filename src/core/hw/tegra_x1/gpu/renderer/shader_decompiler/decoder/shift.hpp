@@ -14,28 +14,7 @@ union InstShlBase {
     BitField64<bool, 47, 1> write_cc;
 };
 
-union InstShlR {
-    InstShlBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitShlR(DecoderContext& context, InstShlR inst);
-
-union InstShlC {
-    InstShlBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitShlC(DecoderContext& context, InstShlC inst);
-
-union InstShlI {
-    InstShlBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitShlI(DecoderContext& context, InstShlI inst);
+DEFINE_INST_SRC2_VARIANTS(Shl);
 
 enum class XMode {
     Xlo = 1,
@@ -55,28 +34,7 @@ union InstShrBase {
     BitField64<bool, 48, 1> is_signed;
 };
 
-union InstShrR {
-    InstShlBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitShrR(DecoderContext& context, InstShrR inst);
-
-union InstShrC {
-    InstShlBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitShrC(DecoderContext& context, InstShrC inst);
-
-union InstShrI {
-    InstShlBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitShrI(DecoderContext& context, InstShrI inst);
+DEFINE_INST_SRC2_VARIANTS(Shr);
 
 // TODO
 /*

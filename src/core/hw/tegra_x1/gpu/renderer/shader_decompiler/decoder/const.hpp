@@ -14,6 +14,30 @@
 #define COMMENT_NOT_IMPLEMENTED(f, ...)                                        \
     COMMENT_IMPL(NOT_IMPLEMENTED, f " (NOT IMPLEMENTED)", f, __VA_ARGS__)
 
+#define DEFINE_INST_VARIANTS_IMPL(inst_name, reg_name)                         \
+    union Inst##inst_name##R {                                                 \
+        Inst##inst_name##Base base;                                            \
+        BitField64<reg_t, 20, 8> reg_name;                                     \
+    };                                                                         \
+    void Emit##inst_name##R(DecoderContext& context, Inst##inst_name##R inst); \
+    union Inst##inst_name##C {                                                 \
+        Inst##inst_name##Base base;                                            \
+        BitField64<u32, 20, 14> cbuf_offset;                                   \
+        BitField64<u32, 34, 5> cbuf_slot;                                      \
+    };                                                                         \
+    void Emit##inst_name##C(DecoderContext& context, Inst##inst_name##C inst); \
+    union Inst##inst_name##I {                                                 \
+        Inst##inst_name##Base base;                                            \
+        BitField64<u32, 20, 19> imm20_0;                                       \
+        BitField64<u32, 56, 1> imm20_19;                                       \
+    };                                                                         \
+    void Emit##inst_name##I(DecoderContext& context, Inst##inst_name##I inst);
+
+#define DEFINE_INST_SRC1_VARIANTS(inst_name)                                   \
+    DEFINE_INST_VARIANTS_IMPL(inst_name, src)
+#define DEFINE_INST_SRC2_VARIANTS(inst_name)                                   \
+    DEFINE_INST_VARIANTS_IMPL(inst_name, src_b)
+
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder {
 
 struct DecoderContext {

@@ -31,28 +31,7 @@ union InstIsetBase {
     BitField64<IntCmpOp, 49, 3> op;
 };
 
-union InstIsetR {
-    InstIsetBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitIsetR(DecoderContext& context, InstIsetR inst);
-
-union InstIsetC {
-    InstIsetBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitIsetC(DecoderContext& context, InstIsetC inst);
-
-union InstIsetI {
-    InstIsetBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitIsetI(DecoderContext& context, InstIsetI inst);
+DEFINE_INST_SRC2_VARIANTS(Iset);
 
 union InstIsetpBase {
     BitField64<pred_t, 0, 3> dst_inv_pred;
@@ -68,27 +47,6 @@ union InstIsetpBase {
     BitField64<IntCmpOp, 49, 3> op;
 };
 
-union InstIsetpR {
-    InstIsetpBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitIsetpR(DecoderContext& context, InstIsetpR inst);
-
-union InstIsetpC {
-    InstIsetpBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitIsetpC(DecoderContext& context, InstIsetpC inst);
-
-union InstIsetpI {
-    InstIsetpBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitIsetpI(DecoderContext& context, InstIsetpI inst);
+DEFINE_INST_SRC2_VARIANTS(Isetp);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

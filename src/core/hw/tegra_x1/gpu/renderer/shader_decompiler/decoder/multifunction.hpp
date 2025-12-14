@@ -18,28 +18,7 @@ union InstRroBase {
     BitField64<bool, 49, 1> abs;
 };
 
-union InstRroR {
-    InstRroBase base;
-    BitField64<reg_t, 20, 8> src;
-};
-
-void EmitRroR(DecoderContext& context, InstRroR inst);
-
-union InstRroC {
-    InstRroBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitRroC(DecoderContext& context, InstRroC inst);
-
-union InstRroI {
-    InstRroBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitRroI(DecoderContext& context, InstRroI inst);
+DEFINE_INST_SRC1_VARIANTS(Rro);
 
 enum class MultifunctionOp {
     Cos = 0,

@@ -19,27 +19,6 @@ union InstFmnmxBase {
     BitField64<bool, 49, 1> abs_b;
 };
 
-union InstFmnmxR {
-    InstFmnmxBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitFmnmxR(DecoderContext& context, InstFmnmxR inst);
-
-union InstFmnmxC {
-    InstFmnmxBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitFmnmxC(DecoderContext& context, InstFmnmxC inst);
-
-union InstFmnmxI {
-    InstFmnmxBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitFmnmxI(DecoderContext& context, InstFmnmxI inst);
+DEFINE_INST_SRC2_VARIANTS(Fmnmx);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder

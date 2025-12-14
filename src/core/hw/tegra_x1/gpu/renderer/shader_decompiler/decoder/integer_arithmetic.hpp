@@ -22,28 +22,7 @@ union InstIaddBase {
     BitField64<bool, 50, 1> sat;
 };
 
-union InstIaddR {
-    InstIaddBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitIaddR(DecoderContext& context, InstIaddR inst);
-
-union InstIaddC {
-    InstIaddBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitIaddC(DecoderContext& context, InstIaddC inst);
-
-union InstIaddI {
-    InstIaddBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitIaddI(DecoderContext& context, InstIaddI inst);
+DEFINE_INST_SRC2_VARIANTS(Iadd);
 
 union InstIadd32I {
     BitField64<reg_t, 0, 8> dst;
@@ -69,28 +48,7 @@ union InstIscaddBase {
     BitField64<AvgMode, 48, 2> avg_mode;
 };
 
-union InstIscaddR {
-    InstIscaddBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitIscaddR(DecoderContext& context, InstIscaddR inst);
-
-union InstIscaddC {
-    InstIscaddBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitIscaddC(DecoderContext& context, InstIscaddC inst);
-
-union InstIscaddI {
-    InstIscaddBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitIscaddI(DecoderContext& context, InstIscaddI inst);
+DEFINE_INST_SRC2_VARIANTS(Iscadd);
 
 union InstIscadd32I {
     BitField64<reg_t, 0, 8> dst;

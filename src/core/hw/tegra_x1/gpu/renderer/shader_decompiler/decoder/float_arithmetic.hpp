@@ -19,28 +19,7 @@ union InstFaddBase {
     BitField64<bool, 50, 1> sat;
 };
 
-union InstFaddR {
-    InstFaddBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitFaddR(DecoderContext& context, InstFaddR inst);
-
-union InstFaddC {
-    InstFaddBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitFaddC(DecoderContext& context, InstFaddC inst);
-
-union InstFaddI {
-    InstFaddBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitFaddI(DecoderContext& context, InstFaddI inst);
+DEFINE_INST_SRC2_VARIANTS(Fadd);
 
 union InstFadd32I {
     BitField64<reg_t, 0, 8> dst;
@@ -81,28 +60,7 @@ union InstFmulBase {
     BitField64<bool, 50, 1> sat;
 };
 
-union InstFmulR {
-    InstFmulBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitFmulR(DecoderContext& context, InstFmulR inst);
-
-union InstFmulC {
-    InstFmulBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitFmulC(DecoderContext& context, InstFmulC inst);
-
-union InstFmulI {
-    InstFmulBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitFmulI(DecoderContext& context, InstFmulI inst);
+DEFINE_INST_SRC2_VARIANTS(Fmul);
 
 union InstFmul32I {
     BitField64<reg_t, 0, 8> dst;

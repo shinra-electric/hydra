@@ -32,28 +32,7 @@ union InstLopBase {
     BitField64<pred_t, 48, 3> dst_pred;
 };
 
-union InstLopR {
-    InstLopBase base;
-    BitField64<reg_t, 20, 8> src_b;
-};
-
-void EmitLopR(DecoderContext& context, InstLopR inst);
-
-union InstLopC {
-    InstLopBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitLopC(DecoderContext& context, InstLopC inst);
-
-union InstLopI {
-    InstLopBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitLopI(DecoderContext& context, InstLopI inst);
+DEFINE_INST_SRC2_VARIANTS(Lop);
 
 union InstLop32I {
     BitField64<reg_t, 0, 8> dst;

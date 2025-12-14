@@ -39,28 +39,7 @@ union InstF2fBase {
     }
 };
 
-union InstF2fR {
-    InstF2fBase base;
-    BitField64<reg_t, 20, 8> src;
-};
-
-void EmitF2fR(DecoderContext& context, InstF2fR inst);
-
-union InstF2fC {
-    InstF2fBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitF2fC(DecoderContext& context, InstF2fC inst);
-
-union InstF2fI {
-    InstF2fBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitF2fI(DecoderContext& context, InstF2fI inst);
+DEFINE_INST_SRC1_VARIANTS(F2f);
 
 enum class IntegerFormat {
     U16 = 1,
@@ -98,28 +77,7 @@ union InstF2iBase {
     }
 };
 
-union InstF2iR {
-    InstF2iBase base;
-    BitField64<reg_t, 20, 8> src;
-};
-
-void EmitF2iR(DecoderContext& context, InstF2iR inst);
-
-union InstF2iC {
-    InstF2iBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitF2iC(DecoderContext& context, InstF2iC inst);
-
-union InstF2iI {
-    InstF2iBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitF2iI(DecoderContext& context, InstF2iI inst);
+DEFINE_INST_SRC1_VARIANTS(F2i);
 
 enum class ByteSelect {
     B0 = 0,
@@ -162,28 +120,7 @@ union InstI2iBase {
     }
 };
 
-union InstI2iR {
-    InstI2iBase base;
-    BitField64<reg_t, 20, 8> src;
-};
-
-void EmitI2iR(DecoderContext& context, InstI2iR inst);
-
-union InstI2iC {
-    InstI2iBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitI2iC(DecoderContext& context, InstI2iC inst);
-
-union InstI2iI {
-    InstI2iBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitI2iI(DecoderContext& context, InstI2iI inst);
+DEFINE_INST_SRC1_VARIANTS(I2i);
 
 union InstI2fBase {
     BitField64<reg_t, 0, 8> dst;
@@ -204,27 +141,6 @@ union InstI2fBase {
     }
 };
 
-union InstI2fR {
-    InstI2fBase base;
-    BitField64<reg_t, 20, 8> src;
-};
-
-void EmitI2fR(DecoderContext& context, InstI2fR inst);
-
-union InstI2fC {
-    InstI2fBase base;
-    BitField64<u32, 20, 14> cbuf_offset;
-    BitField64<u32, 34, 5> cbuf_slot;
-};
-
-void EmitI2fC(DecoderContext& context, InstI2fC inst);
-
-union InstI2fI {
-    InstI2fBase base;
-    BitField64<u32, 20, 19> imm20_0;
-    BitField64<u32, 56, 1> imm20_19;
-};
-
-void EmitI2fI(DecoderContext& context, InstI2fI inst);
+DEFINE_INST_SRC1_VARIANTS(I2f);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
