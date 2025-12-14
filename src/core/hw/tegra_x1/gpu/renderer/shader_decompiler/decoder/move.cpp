@@ -44,9 +44,8 @@ void EmitMovC(DecoderContext& context, InstMovC inst) {
 }
 
 void EmitMovI(DecoderContext& context, InstMovI inst) {
-    EmitMove(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12));
+    EmitMove(context, inst.base.pred, inst.base.pred_inv, inst.base.dst,
+             ir::Value::Immediate(inst.imm20_0 | (inst.imm20_19 << 19)));
 }
 
 void EmitMov32I(DecoderContext& context, InstMov32I inst) {

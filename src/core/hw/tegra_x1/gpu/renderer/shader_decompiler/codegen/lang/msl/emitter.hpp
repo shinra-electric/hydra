@@ -34,6 +34,11 @@ class MslEmitter final : public LangEmitter {
     void EmitReciprocalSqrt(const ir::Value& dst,
                             const ir::Value& src) override;
 
+    // Logical & Bitwise
+    void EmitBitfieldExtract(const ir::Value& dst, const ir::Value& src_a,
+                             const ir::Value& src_b,
+                             const ir::Value& src_c) override;
+
     // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords) override;

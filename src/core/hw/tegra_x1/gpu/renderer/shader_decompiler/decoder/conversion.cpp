@@ -168,11 +168,11 @@ void EmitIntToFloat(DecoderContext& context, pred_t pred, bool pred_inv,
 } // namespace
 
 void EmitF2fR(DecoderContext& context, InstF2fR inst) {
-    EmitFloatToFloat(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.GetRoundMode(),
-        inst.base.sat, inst.base.dst, inst.base.dst_fmt,
-        ir::Value::Register(inst.src, ToType(inst.base.src_fmt)),
-        inst.base.abs, inst.base.neg);
+    EmitFloatToFloat(context, inst.base.pred, inst.base.pred_inv,
+                     inst.base.GetRoundMode(), inst.base.sat, inst.base.dst,
+                     inst.base.dst_fmt,
+                     ir::Value::Register(inst.src, ToType(inst.base.src_fmt)),
+                     inst.base.abs, inst.base.neg);
 }
 
 void EmitF2fC(DecoderContext& context, InstF2fC inst) {
@@ -219,11 +219,11 @@ void EmitF2iI(DecoderContext& context, InstF2iI inst) {
 }
 
 void EmitI2iR(DecoderContext& context, InstI2iR inst) {
-    EmitIntToInt(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
-        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
-        ir::Value::Register(inst.src, ToType(inst.base.GetSrcFmt())),
-        inst.base.abs, inst.base.neg);
+    EmitIntToInt(context, inst.base.pred, inst.base.pred_inv,
+                 inst.base.byte_sel, inst.base.sat, inst.base.dst,
+                 inst.base.GetDstFmt(),
+                 ir::Value::Register(inst.src, ToType(inst.base.GetSrcFmt())),
+                 inst.base.abs, inst.base.neg);
 }
 
 void EmitI2iC(DecoderContext& context, InstI2iC inst) {
@@ -236,20 +236,20 @@ void EmitI2iC(DecoderContext& context, InstI2iC inst) {
 }
 
 void EmitI2iI(DecoderContext& context, InstI2iI inst) {
-    EmitIntToInt(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
-        inst.base.sat, inst.base.dst, inst.base.GetDstFmt(),
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ToType(inst.base.GetSrcFmt())),
-        inst.base.abs, inst.base.neg);
+    EmitIntToInt(context, inst.base.pred, inst.base.pred_inv,
+                 inst.base.byte_sel, inst.base.sat, inst.base.dst,
+                 inst.base.GetDstFmt(),
+                 ir::Value::Immediate(
+                     sign_extend<i32, 20>(inst.imm20_0 | (inst.imm20_19 << 19)),
+                     ToType(inst.base.GetSrcFmt())),
+                 inst.base.abs, inst.base.neg);
 }
 
 void EmitI2fR(DecoderContext& context, InstI2fR inst) {
-    EmitIntToFloat(
-        context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
-        inst.base.dst, inst.base.dst_fmt,
-        ir::Value::Register(inst.src, ToType(inst.base.GetSrcFmt())),
-        inst.base.abs, inst.base.neg);
+    EmitIntToFloat(context, inst.base.pred, inst.base.pred_inv,
+                   inst.base.byte_sel, inst.base.dst, inst.base.dst_fmt,
+                   ir::Value::Register(inst.src, ToType(inst.base.GetSrcFmt())),
+                   inst.base.abs, inst.base.neg);
 }
 
 void EmitI2fC(DecoderContext& context, InstI2fC inst) {
@@ -265,8 +265,9 @@ void EmitI2fI(DecoderContext& context, InstI2fI inst) {
     EmitIntToFloat(
         context, inst.base.pred, inst.base.pred_inv, inst.base.byte_sel,
         inst.base.dst, inst.base.dst_fmt,
-        ir::Value::Immediate((inst.imm20_0 | (inst.imm20_19 << 19)) << 12,
-                             ToType(inst.base.GetSrcFmt())),
+        ir::Value::Immediate(
+            sign_extend<i32, 20>(inst.imm20_0 | (inst.imm20_19 << 19)),
+            ToType(inst.base.GetSrcFmt())),
         inst.base.abs, inst.base.neg);
 }
 

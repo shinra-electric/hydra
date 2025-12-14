@@ -95,6 +95,10 @@ class Emitter {
                                const ir::Value& src_b) = 0;
     virtual void EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
                                 const ir::Value& src_b) = 0;
+    virtual void EmitBitfieldExtract(const ir::Value& dst,
+                                     const ir::Value& src_a,
+                                     const ir::Value& src_b,
+                                     const ir::Value& src_c) = 0;
 
     // Comparison & Selection
     virtual void EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,

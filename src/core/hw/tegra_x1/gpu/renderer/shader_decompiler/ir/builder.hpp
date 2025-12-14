@@ -212,6 +212,23 @@ class Builder {
         return AddInstruction(Opcode::ShiftRight, src_a.GetType(),
                               {src_a, src_b});
     }
+    Value OpBitfieldExtract(const Value& src_a, const Value& src_b,
+                            const Value& src_c) {
+        ASSERT_DEBUG(src_a.GetType().IsScalar() && src_a.GetType().IsInteger(),
+                     ShaderDecompiler,
+                     "Cannot perform bitfield extract with non-integer type {}",
+                     src_a.GetType());
+        ASSERT_DEBUG(src_b.GetType().IsScalar() && src_b.GetType().IsInteger(),
+                     ShaderDecompiler,
+                     "Cannot perform bitfield extract with non-integer type {}",
+                     src_b.GetType());
+        ASSERT_DEBUG(src_c.GetType().IsScalar() && src_c.GetType().IsInteger(),
+                     ShaderDecompiler,
+                     "Cannot perform bitfield extract with non-integer type {}",
+                     src_c.GetType());
+        return AddInstruction(Opcode::BitfieldExtract, src_a.GetType(),
+                              {src_a, src_b, src_c});
+    }
 
     // Comparison & Selection
     Value OpCompareLess(const Value& src_a, const Value& src_b) {

@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/decoder.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/bitfield.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/const.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/conversion.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/exit.hpp"
@@ -726,9 +727,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
-    INST(0x5c00000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("bfe");
-    }
+    INST(0x5c00000000000000, 0xfff8000000000000) { EMIT(BfeR); }
     INST(0x5bf8000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("shf");
     }
@@ -924,9 +923,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x4c08000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
-    INST(0x4c00000000000000, 0xfff8000000000000) {
-        COMMENT_NOT_IMPLEMENTED("bfe");
-    }
+    INST(0x4c00000000000000, 0xfff8000000000000) { EMIT(BfeC); }
     INST(0x4bf0000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("bfi");
     }
@@ -1044,30 +1041,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x3808000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("popc");
     }
-    INST(0x3800000000000000, 0xfef8000000000000) {
-        const auto is_signed = GET_BIT(48);
-        const auto dst = GET_REG(0);
-        const auto src = GET_REG(8);
-        const auto bf = GET_VALUE_U32(20, 19) |
-                        (GET_VALUE_U32(56, 1) << 19); // TODO: correct?
-        COMMENT("bfe {} {} {} 0x{:x}", (is_signed ? "i32" : "u32"), dst, src,
-                bf);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto position = extract_bits<u32, 0, 8>(bf);
-        auto size = extract_bits<u32, 8, 8>(bf);
-
-        const auto type = is_signed ? ir::ScalarType::I32 : ir::ScalarType::U32;
-        auto res = BUILDER.OpBitwiseAnd(
-            BUILDER.OpShiftRight(ir::Value::Register(src, type),
-                                 ir::Value::Immediate(position)),
-            ir::Value::Immediate((1 << size) - 1,
-                                 type)); // TODO: BitfieldExtract
-        BUILDER.OpCopy(ir::Value::Register(dst, type), res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x3800000000000000, 0xfef8000000000000) { EMIT(BfeI); }
     INST(0x36f8000000000000, 0xfef8000000000000) {
         COMMENT_NOT_IMPLEMENTED("shf");
     }

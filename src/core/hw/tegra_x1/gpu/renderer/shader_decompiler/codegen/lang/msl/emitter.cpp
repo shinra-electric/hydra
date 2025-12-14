@@ -311,6 +311,15 @@ void MslEmitter::EmitReciprocalSqrt(const ir::Value& dst,
     StoreValue(dst, "rsqrt({})", GetValueStr(src));
 }
 
+// Logical & Bitwise
+void MslEmitter::EmitBitfieldExtract(const ir::Value& dst,
+                                     const ir::Value& src_a,
+                                     const ir::Value& src_b,
+                                     const ir::Value& src_c) {
+    StoreValue(dst, "extract_bits({}, {}, {})", GetValueStr(src_a),
+               GetValueStr(src_b), GetValueStr(src_c));
+}
+
 // Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
                                    const ir::Value& coords) {

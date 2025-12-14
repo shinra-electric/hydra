@@ -502,6 +502,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/integer_comparison.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/shift.hpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/bitfield.cpp
+    hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/bitfield.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.cpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/multifunction.hpp
     hw/tegra_x1/gpu/renderer/shader_decompiler/decoder/memory.cpp

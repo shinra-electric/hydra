@@ -41,6 +41,7 @@ enum class Opcode {
     BitwiseXor,
     ShiftLeft,
     ShiftRight,
+    BitfieldExtract,
 
     // Comparison & Selection
     CompareLess,

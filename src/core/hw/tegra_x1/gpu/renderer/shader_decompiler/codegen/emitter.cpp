@@ -109,6 +109,10 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::ShiftRight:
         EmitShiftRight(inst.GetDst(), inst.GetOperand(0), inst.GetOperand(1));
         break;
+    case ir::Opcode::BitfieldExtract:
+        EmitBitfieldExtract(inst.GetDst(), inst.GetOperand(0),
+                            inst.GetOperand(1), inst.GetOperand(2));
+        break;
 
     // Comparison & Selection
     case ir::Opcode::CompareLess:
