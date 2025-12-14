@@ -721,29 +721,7 @@ void Decoder::ParseNextInstruction() {
     INST(0x5098000000000000, 0xfff8000000000000) {
         COMMENT_NOT_IMPLEMENTED("cset");
     }
-    INST(0x5090000000000000, 0xfff8000000000000) {
-        const auto bin = get_operand_5090_0(inst);
-        const auto combine_bin = get_operand_5bb0_1(inst);
-        const auto dst = GET_PRED(3);
-        const auto combine = GET_PRED(0); // TODO: combine?
-        const auto srcA = GET_PRED(12);
-        const auto srcB = GET_PRED(29);
-        const auto srcC = GET_PRED(39);
-        COMMENT("psetp {} {} {} {} {} {} {}", bin, combine_bin, dst, combine,
-                srcA, srcB, srcC);
-
-        HANDLE_PRED_COND_BEGIN();
-
-        auto bin1_res = DoOpBitwise(BUILDER, bin, ir::Value::Predicate(srcA),
-                                    ir::Value::Predicate(srcB));
-        auto bin2_res =
-            DoOpBitwise(BUILDER, bin, bin1_res, ir::Value::Predicate(srcC));
-        auto bin3_res = DoOpBitwise(BUILDER, combine_bin, bin2_res,
-                                    ir::Value::Predicate(combine));
-        BUILDER.OpCopy(ir::Value::Predicate(dst), bin3_res);
-
-        HANDLE_PRED_COND_END();
-    }
+    INST(0x5090000000000000, 0xfff8000000000000) { EMIT(Psetp); }
     INST(0x5088000000000000, 0xfff8000000000000) { EMIT(Pset); }
     INST(0x5080000000000000, 0xfff8000000000000) { EMIT(Mufu); }
     INST(0x5000000000000000, 0xff80000000000000) {
