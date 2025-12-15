@@ -5,6 +5,9 @@
 namespace hydra {
 
 template <typename T>
+struct always_false : std::false_type {};
+
+template <typename T>
 struct function_traits;
 
 template <typename R, typename... Args>

@@ -8,25 +8,19 @@ class Block {
   public:
     Block(const label_t label_) : label{label_} {}
 
-    void AddInstructionWithDst(Opcode opcode, const std::optional<Value> dst,
-                               const std::vector<Value>& operands = {}) {
+    void AddInstruction(Opcode opcode,
+                        const std::optional<Value> dst = std::nullopt,
+                        const std::vector<Value>& operands = {}) {
         instructions.emplace_back(opcode, dst, operands);
     }
 
-    Value AddInstruction(Opcode opcode,
-                         const std::vector<Value>& operands = {}) {
-        const auto dst = CreateLocal();
-        AddInstructionWithDst(opcode, dst, operands);
-        return dst;
+    Value CreateLocal(Type type) {
+        return Value::Local(local_t{label, u32(instructions.size())}, type);
     }
 
   private:
     const label_t label;
     std::vector<Instruction> instructions;
-
-    inline Value CreateLocal() {
-        return Value::Local(local_t{label, u32(instructions.size())});
-    }
 
   public:
     GETTER(label, GetLabel);

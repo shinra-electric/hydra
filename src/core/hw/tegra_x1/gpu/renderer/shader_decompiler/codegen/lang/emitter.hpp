@@ -43,60 +43,79 @@ class LangEmitter : public Emitter {
     // void EmitNode(const ir::Function& func, const analyzer::CfgNode* node);
     void EmitBlock(const ir::Function& func, const ir::Block& block);
 
-    // Basic
+    // Data
     void EmitCopy(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCast(const ir::Value& dst, const ir::Value& src) override;
+
+    // Arithmetic
+    void EmitAbs(const ir::Value& dst, const ir::Value& src) override;
     void EmitNeg(const ir::Value& dst, const ir::Value& src) override;
-    void EmitNot(const ir::Value& dst, const ir::Value& src) override;
     void EmitAdd(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitMultiply(const ir::Value& dst, const ir::Value& srcA,
                       const ir::Value& srcB) override;
     void EmitFma(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB, const ir::Value& srcC) override;
-    void EmitShiftLeft(const ir::Value& dst, const ir::Value& src,
-                       u32 shift) override;
-    void EmitShiftRight(const ir::Value& dst, const ir::Value& src,
-                        u32 shift) override;
-    void EmitCast(const ir::Value& dst, const ir::Value& src,
-                  DataType dst_type) override;
-    void EmitCompare(const ir::Value& dst, ComparisonOp op,
-                     const ir::Value& srcA, const ir::Value& srcB) override;
-    void EmitBitwise(const ir::Value& dst, BitwiseOp op, const ir::Value& srcA,
-                     const ir::Value& srcB) override;
-    void EmitSelect(const ir::Value& dst, const ir::Value& cond,
-                    const ir::Value& src_true,
-                    const ir::Value& src_false) override;
-
-    // Control flow
-    void EmitBranch(label_t target) override;
-    void EmitBranchConditional(const ir::Value& cond, label_t target_true,
-                               label_t target_false) override;
-    void EmitBeginIf(const ir::Value& cond) override;
-    void EmitEndIf() override;
-
-    // Math
-    void EmitRound(const ir::Value& dst, const ir::Value& src) override;
-    void EmitFloor(const ir::Value& dst, const ir::Value& src) override;
-    void EmitCeil(const ir::Value& dst, const ir::Value& src) override;
-    void EmitTrunc(const ir::Value& dst, const ir::Value& src) override;
     void EmitMin(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitMax(const ir::Value& dst, const ir::Value& srcA,
                  const ir::Value& srcB) override;
     void EmitClamp(const ir::Value& dst, const ir::Value& srcA,
                    const ir::Value& srcB, const ir::Value& srcC) override;
-    void EmitMathFunction(const ir::Value& dst, MathFunc func,
-                          const ir::Value& src) override;
+
+    // Math
+    void EmitRound(const ir::Value& dst, const ir::Value& src) override;
+    void EmitFloor(const ir::Value& dst, const ir::Value& src) override;
+    void EmitCeil(const ir::Value& dst, const ir::Value& src) override;
+    void EmitTrunc(const ir::Value& dst, const ir::Value& src) override;
+
+    // Logical & Bitwise
+    void EmitNot(const ir::Value& dst, const ir::Value& src) override;
+    void EmitBitwiseNot(const ir::Value& dst, const ir::Value& src) override;
+    void EmitBitwiseAnd(const ir::Value& dst, const ir::Value& srcA,
+                        const ir::Value& srcB) override;
+    void EmitBitwiseOr(const ir::Value& dst, const ir::Value& srcA,
+                       const ir::Value& srcB) override;
+    void EmitBitwiseXor(const ir::Value& dst, const ir::Value& srcA,
+                        const ir::Value& srcB) override;
+    void EmitShiftLeft(const ir::Value& dst, const ir::Value& src_a,
+                       const ir::Value& src_b) override;
+    void EmitShiftRight(const ir::Value& dst, const ir::Value& src_a,
+                        const ir::Value& src_b) override;
+
+    // Comparison & Selection
+    void EmitCompareLess(const ir::Value& dst, const ir::Value& srcA,
+                         const ir::Value& srcB) override;
+    void EmitCompareLessOrEqual(const ir::Value& dst, const ir::Value& srcA,
+                                const ir::Value& srcB) override;
+    void EmitCompareGreater(const ir::Value& dst, const ir::Value& srcA,
+                            const ir::Value& srcB) override;
+    void EmitCompareGreaterOrEqual(const ir::Value& dst, const ir::Value& srcA,
+                                   const ir::Value& srcB) override;
+    void EmitCompareEqual(const ir::Value& dst, const ir::Value& srcA,
+                          const ir::Value& srcB) override;
+    void EmitCompareNotEqual(const ir::Value& dst, const ir::Value& srcA,
+                             const ir::Value& srcB) override;
+    void EmitSelect(const ir::Value& dst, const ir::Value& cond,
+                    const ir::Value& src_true,
+                    const ir::Value& src_false) override;
+
+    // Control flow
+    void EmitBeginIf(const ir::Value& cond) override;
+    void EmitEndIf() override;
+    void EmitBranch(label_t target) override;
+    void EmitBranchConditional(const ir::Value& cond, label_t target_true,
+                               label_t target_false) override;
 
     // Vector
     void EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
                            u32 index) override;
     void EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
                           u32 index) override;
-    void EmitVectorConstruct(const ir::Value& dst, DataType data_type,
+    void EmitVectorConstruct(const ir::Value& dst,
                              const std::vector<ir::Value>& elements) override;
 
-    // Special
+    // Exit
     void EmitExit() override;
 
     // Helpers
@@ -141,54 +160,86 @@ class LangEmitter : public Emitter {
             ExitScopeImpl("");
     }
 
-    template <typename T>
-    std::string GetImmediateStr(const T imm) {
-        if constexpr (std::is_same_v<T, i32>)
-            return fmt::format("({:#x})", imm);
-        if constexpr (std::is_same_v<T, i64>)
-            return fmt::format("({:#x}ll)", imm);
-        else if constexpr (std::is_same_v<T, u32>)
-            return fmt::format("({:#x}u)", imm);
-        else if constexpr (std::is_same_v<T, u64>)
-            return fmt::format("({:#x}ull)", imm);
-        else if constexpr (std::is_same_v<T, f32>)
-            return fmt::format("({:#}f)", imm);
-        else if constexpr (std::is_same_v<T, f64>)
-            return fmt::format("({:#}f)", imm);
-        else if constexpr (std::is_same_v<T, bool>)
-            return fmt::format("{}", imm);
-        else {
-            LOG_ERROR(ShaderDecompiler, "Invalid immediate type {}",
-                      typeid(T).name());
+    std::string GetTypeStr(const ir::Type& type) {
+        switch (type.GetKind()) {
+        case ir::TypeKind::Scalar: {
+            switch (type.GetScalarType()) {
+            case ir::ScalarType::Bool:
+                return "bool";
+            case ir::ScalarType::U8:
+                return "u8";
+            case ir::ScalarType::U16:
+                return "u16";
+            case ir::ScalarType::U32:
+                return "u32";
+            case ir::ScalarType::I8:
+                return "i8";
+            case ir::ScalarType::I16:
+                return "i16";
+            case ir::ScalarType::I32:
+                return "i32";
+            case ir::ScalarType::F16:
+                return "f16";
+            case ir::ScalarType::F32:
+                return "f32";
+            }
+        }
+        case ir::TypeKind::Vector: {
+            const auto& vec_type = type.GetVectorType();
+            return fmt::format("vec<{}, {}>",
+                               GetTypeStr(vec_type.GetElementType()),
+                               vec_type.GetSize());
+        }
+        default:
+            LOG_ERROR(ShaderDecompiler, "Unsupported type for immediate ({})",
+                      type);
             return INVALID_VALUE;
         }
     }
 
-    std::string GetImmediateStr(const u32 imm, DataType data_type) {
-        switch (data_type) {
-        case DataType::U8:
-            return GetImmediateStr<u8>(imm & 0xff);
-        case DataType::U16:
-            return GetImmediateStr<u16>(imm & 0xffff);
-        case DataType::U32:
-            return GetImmediateStr<u32>(imm);
-        case DataType::I8:
-            return GetImmediateStr<i8>(std::bit_cast<i8>((u8)(imm & 0xff)));
-        case DataType::I16:
-            return GetImmediateStr<i16>(
-                std::bit_cast<i16>((u16)(imm & 0xffff)));
-        case DataType::I32:
-            return GetImmediateStr<i32>(std::bit_cast<i32>(imm));
-        case DataType::F16:
-            return fmt::format("as_type<f16>((u16)0x{:04x})",
-                               u16(imm & 0xffff));
-        case DataType::F32:
-            return GetImmediateStr<f32>(std::bit_cast<f32>(imm));
-        case DataType::F16X2:
-            return fmt::format("half2(as_type<f16>((u16)0x{:04x}), "
-                               "as_type<f16>((u16)0x{:04x}))",
-                               u16(imm & 0xffff), u16((imm >> 16) & 0xffff));
+    template <typename T>
+    std::string GetConstantStr(const T imm) {
+        if constexpr (std::is_same_v<T, bool>)
+            return fmt::format("({})", imm);
+        else if constexpr (std::is_same_v<T, u32>)
+            return fmt::format("({:#x}u)", imm);
+        else if constexpr (std::is_same_v<T, i32>)
+            return fmt::format("({:#x})", imm);
+        else if constexpr (std::is_same_v<T, f32>)
+            return fmt::format("({:#}f)", imm);
+        else
+            static_assert(always_false<T>::value, "Unsupported immediate type");
+    }
+
+    std::string GetConstantStr(const u32 imm, ir::Type type) {
+        switch (type.GetKind()) {
+        case ir::TypeKind::Scalar: {
+            switch (type.GetScalarType()) {
+            case ir::ScalarType::Bool:
+                return GetConstantStr<bool>(imm & 0x1);
+            case ir::ScalarType::U8:
+                return GetConstantStr<u32>(imm & 0xff);
+            case ir::ScalarType::U16:
+                return GetConstantStr<u32>(imm & 0xffff);
+            case ir::ScalarType::U32:
+                return GetConstantStr<u32>(imm);
+            case ir::ScalarType::I8:
+                return GetConstantStr<i32>(std::bit_cast<i8>((u8)(imm & 0xff)));
+            case ir::ScalarType::I16:
+                return GetConstantStr<i32>(
+                    std::bit_cast<i16>((u16)(imm & 0xffff)));
+            case ir::ScalarType::I32:
+                return GetConstantStr<i32>(std::bit_cast<i32>(imm));
+            case ir::ScalarType::F16:
+                return fmt::format("as_type<f16>((u16)0x{:04x})",
+                                   u16(imm & 0xffff));
+            case ir::ScalarType::F32:
+                return GetConstantStr<f32>(std::bit_cast<f32>(imm));
+            }
+        }
         default:
+            LOG_ERROR(ShaderDecompiler, "Unsupported type for immediate ({})",
+                      type);
             return INVALID_VALUE;
         }
     }
@@ -198,54 +249,52 @@ class LangEmitter : public Emitter {
     }
 
     template <bool load = true>
-    std::string GetRegisterStr(reg_t reg, DataType data_type = DataType::U32) {
+    std::string GetRegisterStr(reg_t reg, ir::Type type = ir::ScalarType::U32) {
         if (load && reg == RZ)
-            return GetImmediateStr(0, data_type);
+            return GetConstantStr(0, type);
 
-        return fmt::format("state.r[{}].{}", u32(reg),
-                           GetTypeSuffixStr(data_type));
+        return fmt::format("state.r[{}].{}", u32(reg), GetTypeSuffixStr(type));
     }
 
     template <bool load = true>
     std::string GetPredicateStr(pred_t pred) {
         if (load && pred == PT)
-            return GetImmediateStr(true);
+            return GetConstantStr(true);
 
         return fmt::format("state.p[{}]", u32(pred));
     }
 
     std::string GetAttrMemoryStr(const AMem amem,
-                                 DataType data_type = DataType::U32) {
+                                 ir::Type type = ir::ScalarType::U32) {
         // TODO: what about unaligned access?
         return fmt::format("state.a_{}[({} + 0x{:08x}) >> 2].{}",
                            (amem.is_input ? "in" : "out"),
                            GetRegisterStr(amem.reg), amem.imm,
-                           GetTypeSuffixStr(data_type));
+                           GetTypeSuffixStr(type));
     }
 
     std::string GetConstMemoryStr(const CMem cmem,
-                                  DataType data_type = DataType::U32) {
+                                  ir::Type type = ir::ScalarType::U32) {
         // TODO: what about unaligned access?
         return fmt::format("state.c{}[({} + 0x{:08x}) >> 2].{}", cmem.idx,
                            GetRegisterStr(cmem.reg), cmem.imm,
-                           GetTypeSuffixStr(data_type));
+                           GetTypeSuffixStr(type));
     }
 
     std::string GetValueStr(const ir::Value& value) {
-        switch (value.GetType()) {
-        case ir::ValueType::Immediate:
-            return GetImmediateStr(value.GetImmediate(), value.GetDataType());
-        case ir::ValueType::Local:
+        switch (value.GetKind()) {
+        case ir::ValueKind::Constant:
+            return GetConstantStr(value.GetConstant(), value.GetType());
+        case ir::ValueKind::Local:
             return GetLocalStr(value.GetLocal());
-        case ir::ValueType::Register:
-            return GetRegisterStr(value.GetRegister(), value.GetDataType());
-        case ir::ValueType::Predicate:
+        case ir::ValueKind::Register:
+            return GetRegisterStr(value.GetRegister(), value.GetType());
+        case ir::ValueKind::Predicate:
             return GetPredicateStr(value.GetPredicate());
-        case ir::ValueType::AttrMemory:
-            return GetAttrMemoryStr(value.GetAttrMemory(), value.GetDataType());
-        case ir::ValueType::ConstMemory:
-            return GetConstMemoryStr(value.GetConstMemory(),
-                                     value.GetDataType());
+        case ir::ValueKind::AttrMemory:
+            return GetAttrMemoryStr(value.GetAttrMemory(), value.GetType());
+        case ir::ValueKind::ConstMemory:
+            return GetConstMemoryStr(value.GetConstMemory(), value.GetType());
         default:
             LOG_FATAL(ShaderDecompiler, "Invalid value type {} for src",
                       value.GetType());
@@ -254,25 +303,24 @@ class LangEmitter : public Emitter {
 
     template <typename... T>
     void StoreValue(const ir::Value& dst, WRITE_ARGS) {
-        switch (dst.GetType()) {
-        case ir::ValueType::Local:
+        switch (dst.GetKind()) {
+        case ir::ValueKind::Local:
             // TODO: don't use auto
             WriteStatement("auto {} = {}", GetLocalStr(dst.GetLocal()), FMT);
             break;
-        case ir::ValueType::Register:
+        case ir::ValueKind::Register:
             WriteStatement(
                 "{} = {}",
-                GetRegisterStr<false>(dst.GetRegister(), dst.GetDataType()),
-                FMT);
+                GetRegisterStr<false>(dst.GetRegister(), dst.GetType()), FMT);
             break;
-        case ir::ValueType::Predicate:
+        case ir::ValueKind::Predicate:
             WriteStatement("{} = {}",
                            GetPredicateStr<false>(dst.GetPredicate()), FMT);
             break;
-        case ir::ValueType::AttrMemory:
-            WriteStatement(
-                "{} = {}",
-                GetAttrMemoryStr(dst.GetAttrMemory(), dst.GetDataType()), FMT);
+        case ir::ValueKind::AttrMemory:
+            WriteStatement("{} = {}",
+                           GetAttrMemoryStr(dst.GetAttrMemory(), dst.GetType()),
+                           FMT);
             break;
         default:
             LOG_FATAL(ShaderDecompiler, "Invalid value type {} for dst",
@@ -287,63 +335,56 @@ class LangEmitter : public Emitter {
         return "xyzw"[component_index];
     }
 
-    const std::string GetTypeSuffixStr(DataType data_type) {
-        switch (data_type) {
-        case DataType::U8:
-            return "_u8";
-        case DataType::U16:
-            return "_u16";
-        case DataType::U32:
-            return "_u32";
-        case DataType::I8:
-            return "_i8";
-        case DataType::I16:
-            return "_i16";
-        case DataType::I32:
-            return "_i32";
-        case DataType::F16:
-            return "_f16";
-        case DataType::F32:
-            return "_f32";
-        case DataType::F16X2:
-            return "_f16x2";
-        default:
-            LOG_ERROR(ShaderDecompiler, "Invalid data type {}", data_type);
-            return INVALID_VALUE;
+    const std::string GetTypeSuffixStr(ir::Type type) {
+        switch (type.GetKind()) {
+        case ir::TypeKind::Scalar: {
+            switch (type.GetScalarType()) {
+            case ir::ScalarType::Bool:
+                return "_bool";
+            case ir::ScalarType::U8:
+                return "_u8";
+            case ir::ScalarType::U16:
+                return "_u16";
+            case ir::ScalarType::U32:
+                return "_u32";
+            case ir::ScalarType::I8:
+                return "_i8";
+            case ir::ScalarType::I16:
+                return "_i16";
+            case ir::ScalarType::I32:
+                return "_i32";
+            case ir::ScalarType::F16:
+                return "_f16";
+            case ir::ScalarType::F32:
+                return "_f32";
+            }
         }
-    }
-
-    std::string GetMathFuncStr(MathFunc func) {
-        // TODO: check
-        switch (func) {
-        case MathFunc::Cos:
-            return "cos";
-        case MathFunc::Sin:
-            return "sin";
-        case MathFunc::Ex2:
-            return "exp2";
-        case MathFunc::Lg2:
-            return "log2";
-        case MathFunc::Rcp:
-            return "1.0f / ";
-        case MathFunc::Rsq:
-            return "1.0f / sqrt"; // TODO: isn's there a better way?
-        case MathFunc::Rcp64h:
-            return "1.0 / "; // TODO: correct?
-        case MathFunc::Rsq64h:
-            return "1.0 / sqrt"; // TODO: correct?
-        case MathFunc::Sqrt:
-            return "sqrt";
+        case ir::TypeKind::Vector: {
+            const auto& vec_type = type.GetVectorType();
+            if (vec_type.GetElementType() == ir::ScalarType::F16 &&
+                vec_type.GetSize() == 2) {
+                return "_2xf16";
+            } else {
+                LOG_ERROR(ShaderDecompiler,
+                          "Unsupported vector type for register ({})",
+                          vec_type);
+                return INVALID_VALUE;
+            }
+        }
         default:
+            LOG_ERROR(ShaderDecompiler, "Unsupported type for register ({})",
+                      type);
             return INVALID_VALUE;
         }
     }
 
     // template <typename... T>
-    // std::string GetQualifiedSVName(const SV sv, bool output, WRITE_ARGS)
+    // std::string GetQualifiedSVName(const SV sv, bool output,
+    // WRITE_ARGS)
     // {
     //     // TODO: support qualifiers before the name as well
-    //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv, output));
+    //     return fmt::format("{} {}", FMT, GetSVQualifierName(sv,
+    //     output));
     // }
 
     virtual std::string GetSvAccessQualifiedStr(const SvAccess& sv_access,
@@ -369,7 +410,8 @@ class LangEmitter : public Emitter {
     }
 };
 
-} // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang
+} // namespace
+  // hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang
 
 #undef FMT
 #undef WRITE_ARGS

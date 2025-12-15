@@ -19,43 +19,16 @@ struct local_t {
     }
 };
 
-constexpr reg_t RZ = 255;
-constexpr pred_t PT = 7;
-
-// TODO: make an abstract Type class
-enum class DataType {
-    Invalid,
-
-    U8,
-    U16,
-    U32,
-    I8,
-    I16,
-    I32,
-    F16,
-    F32,
-    F16X2,
-};
-
-DataType to_data_type(engines::VertexAttribType vertex_attrib_type);
-
-inline DataType to_data_type(ColorDataType color_data_type) {
-    switch (color_data_type) {
-    case ColorDataType::Float:
-        return DataType::F32;
-    case ColorDataType::Int:
-        return DataType::I32;
-    case ColorDataType::UInt:
-        return DataType::U32;
-    default:
-        unreachable();
-    }
-}
+constexpr reg_t RZ = 0xff;
+constexpr pred_t PT = 0x7;
 
 struct AMem {
     reg_t reg;
     u64 imm;
     bool is_input;
+
+    AMem(reg_t reg_, u64 imm_, bool is_input_)
+        : reg{reg_}, imm{imm_}, is_input{is_input_} {}
 
     bool operator==(const AMem& other) const {
         return reg == other.reg && imm == other.imm;
@@ -65,7 +38,9 @@ struct AMem {
 struct CMem {
     u32 idx;
     reg_t reg;
-    u64 imm;
+    u64 imm; // TODO: signed?
+
+    CMem(u32 idx_, reg_t reg_, u64 imm_) : idx{idx_}, reg{reg_}, imm{imm_} {}
 
     bool operator==(const CMem& other) const {
         return idx == other.idx && reg == other.reg && imm == other.imm;
@@ -76,6 +51,9 @@ struct PredCond {
     pred_t pred;
     bool not_;
     bool never;
+
+    PredCond(pred_t pred_, bool not_, bool never_)
+        : pred{pred_}, not_{not_}, never{never_} {}
 
     bool operator==(const PredCond& other) const {
         return pred == other.pred && not_ == other.not_ && never == other.never;
@@ -123,162 +101,6 @@ struct SvAccess {
 };
 
 const SvAccess get_sv_access_from_addr(u64 addr);
-
-enum class LoadStoreMode {
-    Invalid,
-
-    U8,
-    S8,
-    U16,
-    S16,
-    B32,
-    B64,
-    B96,
-    B128,
-    UB128,
-};
-
-u32 get_load_store_count(LoadStoreMode mode);
-
-enum class ShuffleMode {
-    Invalid,
-
-    Index,
-    Up,
-    Down,
-    Bfly,
-};
-
-enum class MathFunc {
-    Invalid,
-
-    Cos,
-    Sin,
-    Ex2,
-    Lg2,
-    Rcp,
-    Rsq,
-    Rcp64h,
-    Rsq64h,
-    Sqrt,
-};
-
-enum class ComparisonOp {
-    Invalid,
-
-    F,
-    Less,
-    Equal,
-    LessEqual,
-    Greater,
-    NotEqual,
-    GreaterEqual,
-    Num,
-    Nan,
-    LessU,
-    EqualU,
-    LessEqualU,
-    GreaterU,
-    NotEqualU,
-    GreaterEqualU,
-    T,
-};
-
-enum class BitwiseOp {
-    Invalid,
-
-    And,
-    Or,
-    Xor,
-    PassB,
-};
-
-enum class PredOp {
-    Invalid,
-
-    False,
-    True,
-    Zero,
-    NotZero,
-};
-
-enum class ComponentMask {
-    Invalid,
-
-    R,
-    G,
-    B,
-    A,
-    RG,
-    RA,
-    GA,
-    BA,
-    RGB,
-    RGA,
-    RBA,
-    GBA,
-    RGBA,
-};
-
-enum class IntegerRoundMode {
-    Invalid,
-
-    Pass,
-    Round,
-    Floor,
-    Ceil,
-    Trunc,
-};
-
-enum class AddressMode {
-    Invalid,
-
-    Il,
-    Is,
-    Isl,
-};
-
-enum class TextureComponent {
-    Invalid,
-
-    R,
-    G,
-    B,
-    A,
-};
-
-enum class TextureQuery {
-    Invalid,
-
-    Dimensions,
-    TextureType,
-    SamplePos,
-    SamplerFilter,
-    SamplerLod,
-    SamplerWrap,
-    SamplerBorderColor,
-};
-
-enum class MultiplyScale {
-    Invalid,
-
-    None,
-    M2,
-    M4,
-    M8,
-    D2,
-    D4,
-    D8,
-};
-
-enum class IpaOp {
-    Invalid,
-
-    Pass,
-    Multiply,
-    Constant,
-    SC,
-};
 
 enum class PixelImapType : u8 {
     Unused = 0,
@@ -386,73 +208,5 @@ struct fmt::formatter<hydra::hw::tegra_x1::gpu::renderer::shader_decomp::CMem>
 };
 
 ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::DataType, Invalid,
-    "invalid", U8, "u8", U16, "u16", U32, "u32", I8, "i8", I16, "i16", I32,
-    "i32", F16, "f16", F32, "f32")
-
-ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::SvSemantic, Invalid,
     "invalid", Position, "position", UserInOut, "user in out")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::LoadStoreMode, Invalid,
-    "invalid", U8, "u8", S8, "S8", U16, "u16", S16, "s16", B32, "b32", B64,
-    "b64", B96, "b96", B128, "b128")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ShuffleMode, Invalid,
-    "invalid", Index, "index", Up, "up", Down, "down", Bfly, "BFLY")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MathFunc, Invalid,
-    "invalid", Cos, "cos", Sin, "sin", Ex2, "ex2", Lg2, "lg2", Rcp, "rcp", Rsq,
-    "rsq", Rcp64h, "rcp64h", Rsq64h, "rsq64h", Sqrt, "sqrt")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComparisonOp, Invalid,
-    "invalid", F, "f", Less, "less", Equal, "equal", Greater, "greater",
-    LessEqual, "less equal", NotEqual, "not equal", GreaterEqual,
-    "greater equal", Num, "num", Nan, "nan", LessU, "less U", EqualU, "equal U",
-    LessEqualU, "less equal U", GreaterU, "greater U", NotEqualU, "not equal U",
-    GreaterEqualU, "greater equal U", T, "t")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::BitwiseOp, Invalid,
-    "invalid", And, "and", Or, "or", Xor, "xor", PassB, "pass B")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::PredOp, Invalid,
-    "invalid", False, "false", True, "true", Zero, "zero", NotZero, "not zero")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ComponentMask, Invalid,
-    "invalid", R, "r", G, "g", B, "b", A, "a", RG, "rg", RA, "ra", GA, "ga", BA,
-    "ba", RGB, "rgb", RGA, "rga", RBA, "rba", GBA, "gba", RGBA, "rgba")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IntegerRoundMode,
-    Invalid, "invalid", Pass, "pass", Round, "round", Floor, "floor", Ceil,
-    "ceil", Trunc, "trunc")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::AddressMode, Invalid,
-    "invalid", Il, "il", Is, "is", Isl, "isl")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::TextureComponent,
-    Invalid, "invalid", R, "r", G, "g", B, "b", A, "a")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::TextureQuery, Invalid,
-    "invalid", Dimensions, "dimensions", TextureType, "texture type", SamplePos,
-    "sample pos", SamplerFilter, "sampler filter", SamplerLod, "sampler LOD",
-    SamplerWrap, "sampler wrap", SamplerBorderColor, "sampler border color")
-
-ENABLE_ENUM_FORMATTING(
-    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::MultiplyScale, Invalid,
-    "invalid", None, "none", M2, "*2", M4, "*4", M8, "*8", D2, "/2", D4, "/4",
-    D8, "/8")
-
-ENABLE_ENUM_FORMATTING(hydra::hw::tegra_x1::gpu::renderer::shader_decomp::IpaOp,
-                       Invalid, "invalid", Pass, "pass", Multiply, "multiply",
-                       Constant, "constant", SC, "SC")
