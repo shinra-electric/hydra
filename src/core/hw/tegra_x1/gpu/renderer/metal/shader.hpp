@@ -10,11 +10,11 @@ class Shader final : public ShaderBase {
     Shader(const ShaderDescriptor& descriptor);
     ~Shader() override;
 
-    // Getters
-    MTL::Function* GetFunction() const { return function; }
-
   private:
     MTL::Function* function;
+
+  public:
+    GETTER(function, GetFunction);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal
