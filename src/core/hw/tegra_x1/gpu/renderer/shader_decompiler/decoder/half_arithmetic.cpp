@@ -6,22 +6,76 @@ namespace {
 
 ir::Value GetSwizzledHalf(ir::Builder& builder, HalfSwizzle swizzle,
                           reg_t src) {
-    // TODO: implement
-    if (swizzle != HalfSwizzle::F16)
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Half swizzle");
+    if (swizzle == HalfSwizzle::F16)
+        return ir::Value::Register(src, ir::VectorType(ir::ScalarType::F16, 2));
 
-    return ir::Value::Register(src, ir::VectorType(ir::ScalarType::F16, 2));
+    ir::Value src_v = ir::Value::Undefined();
+    switch (swizzle) {
+    case HalfSwizzle::F32: {
+        src_v = builder.OpCast(ir::Value::Register(src, ir::ScalarType::F32),
+                               ir::ScalarType::F16);
+        break;
+    }
+    case HalfSwizzle::H0H0: {
+        src_v = ir::Value::Register(src, ir::ScalarType::F16);
+        break;
+    }
+    case HalfSwizzle::H1H1: {
+        src_v = builder.OpBitfieldExtract(ir::Value::Register(src),
+                                          ir::Value::ConstantU(16),
+                                          ir::Value::ConstantU(16));
+        src_v = builder.OpCast(src_v, ir::ScalarType::U16);
+        src_v = builder.OpBitCast(src_v, ir::ScalarType::F16);
+        break;
+    }
+    default:
+        unreachable();
+    }
+
+    return builder.OpVectorConstruct(ir::ScalarType::F16, {src_v, src_v});
 }
 
 void CopyHalfOutput(ir::Builder& builder, HalfOutputFormat format, reg_t dst,
                     ir::Value value) {
-    // TODO: implement
-    if (format != HalfOutputFormat::F16)
-        LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Half output format");
-
-    builder.OpCopy(
-        ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)),
-        value);
+    switch (format) {
+    case HalfOutputFormat::F16:
+        builder.OpCopy(
+            ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)),
+            value);
+        break;
+    case HalfOutputFormat::F32: {
+        const auto res = builder.OpCast(builder.OpVectorExtract(value, 0),
+                                        ir::ScalarType::F32);
+        builder.OpCopy(ir::Value::Register(dst, ir::ScalarType::F32), res);
+        break;
+    }
+    case HalfOutputFormat::MrgH0: {
+        auto prev_h1 = builder.OpBitfieldExtract(ir::Value::Register(dst),
+                                                 ir::Value::ConstantU(16),
+                                                 ir::Value::ConstantU(16));
+        prev_h1 = builder.OpCast(prev_h1, ir::ScalarType::U16);
+        prev_h1 = builder.OpBitCast(prev_h1, ir::ScalarType::F16);
+        const auto h0 = builder.OpVectorExtract(value, 0);
+        const auto res =
+            builder.OpVectorConstruct(ir::ScalarType::F16, {h0, prev_h1});
+        builder.OpCopy(
+            ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)),
+            res);
+        break;
+    }
+    case HalfOutputFormat::MrgH1: {
+        const auto prev_h0 = ir::Value::Register(dst, ir::ScalarType::F16);
+        const auto h1 = builder.OpVectorExtract(value, 1);
+        const auto res =
+            builder.OpVectorConstruct(ir::ScalarType::F16, {prev_h0, h1});
+        builder.OpCopy(
+            ir::Value::Register(dst, ir::VectorType(ir::ScalarType::F16, 2)),
+            res);
+        break;
+    }
+    default:
+        unreachable();
+    }
 }
 
 // TODO: ftz
@@ -37,7 +91,7 @@ void EmitHadd2(DecoderContext& context, pred_t pred, bool pred_inv,
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
 
     auto res = context.builder.OpAdd(src_a_v, src_b_v);
-    res = SaturateIf(context.builder, res, saturate);
+    res = Saturate2xF16If(context.builder, res, saturate);
     CopyHalfOutput(context.builder, out_format, dst, res);
 
     if (conditional)
@@ -57,7 +111,7 @@ void EmitHmul2(DecoderContext& context, pred_t pred, bool pred_inv,
     auto src_b_v = AbsNegIf(context.builder, src_b, abs_b, neg_b);
 
     auto res = context.builder.OpMultiply(src_a_v, src_b_v);
-    res = SaturateIf(context.builder, res, saturate);
+    res = Saturate2xF16If(context.builder, res, saturate);
     CopyHalfOutput(context.builder, out_format, dst, res);
 
     if (conditional)
@@ -78,7 +132,7 @@ void EmitHfma2(DecoderContext& context, pred_t pred, bool pred_inv,
     auto src_c_v = NegIf(context.builder, src_c, neg_c);
 
     auto res = context.builder.OpFma(src_a_v, src_b_v, src_c_v);
-    res = SaturateIf(context.builder, res, saturate);
+    res = Saturate2xF16If(context.builder, res, saturate);
     CopyHalfOutput(context.builder, out_format, dst, res);
 
     if (conditional)

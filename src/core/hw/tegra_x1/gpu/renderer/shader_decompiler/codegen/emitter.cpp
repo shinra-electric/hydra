@@ -20,6 +20,9 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     case ir::Opcode::Cast:
         EmitCast(inst.GetDst(), inst.GetOperand(0));
         break;
+    case ir::Opcode::BitCast:
+        EmitBitCast(inst.GetDst(), inst.GetOperand(0));
+        break;
 
     // Arithmetic
     case ir::Opcode::Abs:

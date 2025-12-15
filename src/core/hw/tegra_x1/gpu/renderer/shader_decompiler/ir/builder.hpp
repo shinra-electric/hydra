@@ -20,6 +20,9 @@ class Builder {
     Value OpCast(const Value& src, ScalarType dst_type) {
         return AddInstruction(Opcode::Cast, dst_type, {src});
     }
+    Value OpBitCast(const Value& src, ScalarType dst_type) {
+        return AddInstruction(Opcode::BitCast, dst_type, {src});
+    }
 
     // Arithmetic
     Value OpAbs(const Value& src) {

@@ -106,6 +106,13 @@ inline ir::Value SaturateIf(ir::Builder& builder, const ir::Value& value,
                : value;
 }
 
+inline ir::Value Saturate2xF16If(ir::Builder& builder, const ir::Value& value,
+                                 bool sat) {
+    return sat ? builder.OpClamp(value, GetHalf2Const(builder, 0x0, 0x0),
+                                 GetHalf2Const(builder, 0x3c00, 0x3c00))
+               : value;
+}
+
 inline bool HandlePredCond(ir::Builder& builder, pred_t pred, bool pred_inv) {
     if (pred == PT) {
         if (!pred_inv) { // Always

@@ -50,6 +50,7 @@ class Emitter {
     // Data
     virtual void EmitCopy(const ir::Value& dst, const ir::Value& src) = 0;
     virtual void EmitCast(const ir::Value& dst, const ir::Value& src) = 0;
+    virtual void EmitBitCast(const ir::Value& dst, const ir::Value& src) = 0;
 
     // Arithmetic
     virtual void EmitAbs(const ir::Value& dst, const ir::Value& src) = 0;

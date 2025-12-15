@@ -23,6 +23,9 @@ class MslEmitter final : public LangEmitter {
     void EmitMainPrototype() override;
     void EmitExitReturn() override;
 
+    // Data
+    void EmitBitCast(const ir::Value& dst, const ir::Value& src) override;
+
     // Math
     void EmitIsNan(const ir::Value& dst, const ir::Value& src) override;
     void EmitReciprocal(const ir::Value& dst, const ir::Value& src) override;

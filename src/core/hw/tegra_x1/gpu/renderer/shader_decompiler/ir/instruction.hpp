@@ -8,6 +8,7 @@ enum class Opcode {
     // Data
     Copy,
     Cast,
+    BitCast,
 
     // Arithmetic
     Abs,
@@ -107,14 +108,14 @@ struct Instruction {
 
 ENABLE_ENUM_FORMATTING(
     hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir::Opcode, Copy, "copy",
-    Cast, "cast", Abs, "abs", Neg, "neg", Add, "add", Multiply, "mul", Fma,
-    "fma", Min, "min", Max, "max", Clamp, "clamp", IsNan, "is_nan", Round,
-    "round", Floor, "floor", Ceil, "ceil", Trunc, "trunc", Reciprocal,
-    "reciprocal", Sin, "sin", Cos, "cos", Exp2, "exp2", Log2, "log2", Sqrt,
-    "sqrt", ReciprocalSqrt, "rsqrt", Not, "not", BitwiseNot, "bitwise_not",
-    BitwiseAnd, "bitwise_and", BitwiseOr, "bitwise_or", BitwiseXor,
-    "bitwise_xor", ShiftLeft, "shl", ShiftRight, "shr", CompareLess, "cmp_lt",
-    CompareLessOrEqual, "cmp_le", CompareGreater, "cmp_gt",
+    Cast, "cast", BitCast, "bitcast", Abs, "abs", Neg, "neg", Add, "add",
+    Multiply, "mul", Fma, "fma", Min, "min", Max, "max", Clamp, "clamp", IsNan,
+    "is_nan", Round, "round", Floor, "floor", Ceil, "ceil", Trunc, "trunc",
+    Reciprocal, "reciprocal", Sin, "sin", Cos, "cos", Exp2, "exp2", Log2,
+    "log2", Sqrt, "sqrt", ReciprocalSqrt, "rsqrt", Not, "not", BitwiseNot,
+    "bitwise_not", BitwiseAnd, "bitwise_and", BitwiseOr, "bitwise_or",
+    BitwiseXor, "bitwise_xor", ShiftLeft, "shl", ShiftRight, "shr", CompareLess,
+    "cmp_lt", CompareLessOrEqual, "cmp_le", CompareGreater, "cmp_gt",
     CompareGreaterOrEqual, "cmp_ge", CompareEqual, "cmp_eq", CompareNotEqual,
     "cmp_ne", Select, "select", BeginIf, "begin_if", EndIf, "end_if", Branch,
     "branch", BranchConditional, "branch_cond", VectorExtract, "vec_extract",

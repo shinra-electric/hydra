@@ -277,6 +277,12 @@ void MslEmitter::EmitExitReturn() {
     WriteStatement("return __out");
 }
 
+// Data
+void MslEmitter::EmitBitCast(const ir::Value& dst, const ir::Value& src) {
+    StoreValue(dst, "as_type<{}>({})", GetTypeStr(dst.GetType()),
+               GetValueStr(src));
+}
+
 // Math
 void MslEmitter::EmitIsNan(const ir::Value& dst, const ir::Value& src) {
     StoreValue(dst, "isnan({})", GetValueStr(src));
