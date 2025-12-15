@@ -83,7 +83,9 @@ IHidServer::GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
         *out_pattern = 0b0000;
         break;
     default:
-        unreachable();
+        LOG_WARN(Services, "Invalid npad ID type {}", npad_id_type);
+        *out_pattern = 0b0000;
+        break;
     }
 
     return RESULT_SUCCESS;
