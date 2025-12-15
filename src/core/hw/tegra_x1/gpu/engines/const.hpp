@@ -11,6 +11,17 @@ struct Iova {
     operator u64() const { return u64(hi) << 32 | u64(lo); }
 };
 
+enum class Winding : u32 {
+    Clockwise = 0x900,
+    CounterClockwise = 0x901,
+};
+
+enum class CullFaceMode : u32 {
+    Front = 0x404,
+    Back = 0x405,
+    FrontAndBack = 0x408,
+};
+
 enum class PrimitiveType {
     Points,
     Lines,

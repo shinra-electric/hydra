@@ -18,6 +18,9 @@ inline MTL::PixelFormat to_mtl_pixel_format(TextureFormat format) {
     return to_mtl_pixel_format_info(format).pixel_format;
 }
 
+MTL::CullMode ToMtlCullMode(const engines::CullFaceMode mode);
+MTL::Winding ToMtlWinding(const engines::Winding winding);
+
 MTL::PrimitiveType
 to_mtl_primitive_type(const engines::PrimitiveType primitive_type);
 MTL::IndexType to_mtl_index_type(engines::IndexType index_type);

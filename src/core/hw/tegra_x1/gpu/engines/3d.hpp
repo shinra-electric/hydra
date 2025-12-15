@@ -462,7 +462,14 @@ struct Regs3D {
     // 0x620
     bool32 is_vertex_array_per_instance[VERTEX_ARRAY_COUNT];
 
-    u32 padding_0x630[0x1b];
+    u32 padding_0x630[0x16];
+
+    // 0x646
+    bool32 cull_face_enabled;
+    Winding front_face_winding;
+    CullFaceMode cull_face_mode;
+
+    u32 padding_0x649[0x2];
 
     // 0x64b
     bool32 viewport_transform_enabled;

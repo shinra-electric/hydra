@@ -45,6 +45,8 @@ struct State {
 struct EncoderRenderState {
     MTL::RenderPipelineState* pipeline{nullptr};
     MTL::DepthStencilState* depth_stencil_state{nullptr};
+    MTL::CullMode cull_mode{MTL::CullModeNone};
+    MTL::Winding front_face_winding{MTL::WindingClockwise};
     MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
     MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
     MTL::SamplerState* samplers[usize(ShaderType::Count)][TEXTURE_COUNT];
@@ -170,6 +172,9 @@ class Renderer : public RendererBase {
     void SetRenderPipelineState();
     void SetDepthStencilState(MTL::DepthStencilState* depth_stencil_state);
     void SetDepthStencilState();
+    void SetCullMode(MTL::CullMode cull_mode);
+    void SetFrontFaceWinding(MTL::Winding front_face_winding);
+    void SetCullState();
     void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
     void SetVertexBuffer(u32 index);
     void SetUniformBuffer(ShaderType shader_type, u32 index);

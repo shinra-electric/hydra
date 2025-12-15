@@ -345,6 +345,27 @@ const PixelFormatInfo& to_mtl_pixel_format_info(TextureFormat format) {
     return info;
 }
 
+MTL::CullMode ToMtlCullMode(const engines::CullFaceMode mode) {
+    switch (mode) {
+    case engines::CullFaceMode::Front:
+        return MTL::CullModeFront;
+    case engines::CullFaceMode::Back:
+        return MTL::CullModeBack;
+    case engines::CullFaceMode::FrontAndBack:
+        LOG_NOT_IMPLEMENTED(MetalRenderer, "Cull face mode front and back");
+        return MTL::CullModeFront;
+    }
+}
+
+MTL::Winding ToMtlWinding(const engines::Winding winding) {
+    switch (winding) {
+    case engines::Winding::Clockwise:
+        return MTL::WindingClockwise;
+    case engines::Winding::CounterClockwise:
+        return MTL::WindingCounterClockwise;
+    }
+}
+
 MTL::PrimitiveType
 to_mtl_primitive_type(const engines::PrimitiveType primitive_type) {
     switch (primitive_type) {

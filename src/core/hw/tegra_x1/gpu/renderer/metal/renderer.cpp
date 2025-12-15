@@ -519,6 +519,34 @@ void Renderer::SetDepthStencilState() {
     SetDepthStencilState(depth_stencil_state_cache->Find(descriptor));
 }
 
+void Renderer::SetCullMode(MTL::CullMode cull_mode) {
+    auto& bound_cull_mode = encoder_state.render.cull_mode;
+    if (cull_mode == bound_cull_mode)
+        return;
+
+    GetRenderCommandEncoderUnchecked()->setCullMode(cull_mode);
+    bound_cull_mode = cull_mode;
+}
+
+void Renderer::SetFrontFaceWinding(MTL::Winding front_face_winding) {
+    auto& bound_front_face_winding = encoder_state.render.front_face_winding;
+    if (front_face_winding == bound_front_face_winding)
+        return;
+
+    GetRenderCommandEncoderUnchecked()->setFrontFacingWinding(
+        front_face_winding);
+    bound_front_face_winding = front_face_winding;
+}
+
+void Renderer::SetCullState() {
+    if (REGS_3D.cull_face_enabled) {
+        SetCullMode(ToMtlCullMode(REGS_3D.cull_face_mode));
+        SetFrontFaceWinding(ToMtlWinding(REGS_3D.front_face_winding));
+    } else {
+        SetCullMode(MTL::CullModeNone);
+    }
+}
+
 void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,
                          u32 index) {
     ASSERT_DEBUG(index < BUFFER_COUNT, MetalRenderer, "Invalid buffer index {}",
@@ -745,6 +773,7 @@ void Renderer::BindDrawState() {
     // States
     SetRenderPipelineState();
     SetDepthStencilState();
+    SetCullState();
 
     // Viewport and scissor
     MTL::Viewport viewports[VIEWPORT_COUNT];
