@@ -119,7 +119,7 @@ u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     u64 hash = 0;
     hash += descriptor.ptr;
     hash = std::rotl(hash, 7);
-    hash += descriptor.width;
+    hash += descriptor.stride; // TODO: extend the width instead
     hash = std::rotl(hash, 11);
     hash += descriptor.height;
     hash = std::rotl(hash, 11);

@@ -539,12 +539,14 @@ void Renderer::SetFrontFaceWinding(MTL::Winding front_face_winding) {
 }
 
 void Renderer::SetCullState() {
+    /*
     if (REGS_3D.cull_face_enabled) {
         SetCullMode(ToMtlCullMode(REGS_3D.cull_face_mode));
         SetFrontFaceWinding(ToMtlWinding(REGS_3D.front_face_winding));
     } else {
         SetCullMode(MTL::CullModeNone);
     }
+    */
 }
 
 void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,
