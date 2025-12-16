@@ -17,7 +17,7 @@ struct Tex {
     TextureBase* base{nullptr};
     small_cache<u32, TextureBase*> view_cache;
     TextureCacheTimePoint cpu_sync_timestamp{};
-    u64 data_hash{0};
+    u32 data_hash{0};
 
     void MarkCpuSynced() { cpu_sync_timestamp = TextureCacheClock::now(); }
 };
@@ -26,7 +26,7 @@ struct DataHash {
     static constexpr f32 MIN_SUCCESS_RATE = 0.2f;
     static constexpr f32 MIX_AMOUNT = 0.1f;
 
-    u64 hash{0};
+    u32 hash{0};
     TextureCacheTimePoint updated_timestamp{};
     f32 check_success_rate{MIN_SUCCESS_RATE};
 
@@ -46,7 +46,7 @@ struct DataHash {
         return TextureCacheClock::now() > updated_timestamp + check_interval;
     }
 
-    void Update(u64 hash_) {
+    void Update(u32 hash_) {
         hash = hash_;
         updated_timestamp = TextureCacheClock::now();
         check_success_rate =
@@ -69,7 +69,7 @@ struct TextureMemInfo {
 
 struct TextureMem {
     TextureMemInfo info;
-    small_cache<u64, Tex> cache;
+    small_cache<u32, Tex> cache;
 };
 
 // TODO: track GPU modifications as well?
@@ -93,8 +93,8 @@ class TextureCache {
     void Update(Tex& tex, TextureMemInfo& info, TextureUsage usage);
 
     // Helpers
-    u64 GetTextureHash(const TextureDescriptor& descriptor);
-    u64 GetTextureDataHash(const TextureBase* texture);
+    u32 GetTextureHash(const TextureDescriptor& descriptor);
+    u32 GetTextureDataHash(const TextureBase* texture);
     void DecodeTexture(Tex& tex, TextureMemInfo& info,
                        bool update_data_hash = true);
     // TODO: encode texture

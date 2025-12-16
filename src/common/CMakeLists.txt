@@ -10,6 +10,7 @@ add_library(hydra-common
     string.hpp
     time.hpp
     memory.hpp
+    hash.hpp
     linked_list.hpp
     pool.hpp
     static_pool.hpp

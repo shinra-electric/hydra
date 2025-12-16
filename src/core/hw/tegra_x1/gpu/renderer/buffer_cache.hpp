@@ -17,7 +17,7 @@ class BufferCache
 
     BufferBase* Create(const BufferDescriptor& descriptor);
     void Update(BufferBase* buffer);
-    u64 Hash(const BufferDescriptor& descriptor);
+    u32 Hash(const BufferDescriptor& descriptor);
 
     void DestroyElement(BufferBase* buffer);
 

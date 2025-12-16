@@ -10,22 +10,16 @@ SamplerBase* SamplerCache::Create(const SamplerDescriptor& descriptor) {
     return sampler;
 }
 
-u64 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
-    u64 hash = 0;
-    hash += (u64)descriptor.min_filter;
-    hash = std::rotl(hash, 2);
-    hash += (u64)descriptor.mag_filter;
-    hash = std::rotl(hash, 2);
-    hash += (u64)descriptor.mip_filter;
-    hash = std::rotl(hash, 2);
-    hash += (u64)descriptor.address_mode_s;
-    hash = std::rotl(hash, 3);
-    hash += (u64)descriptor.address_mode_t;
-    hash = std::rotl(hash, 3);
-    hash += (u64)descriptor.address_mode_r;
-    hash = std::rotl(hash, 3);
+u32 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
+    HashCode hash;
+    hash.Add(descriptor.min_filter);
+    hash.Add(descriptor.mag_filter);
+    hash.Add(descriptor.mip_filter);
+    hash.Add(descriptor.address_mode_s);
+    hash.Add(descriptor.address_mode_t);
+    hash.Add(descriptor.address_mode_r);
 
-    return hash;
+    return hash.ToHashCode();
 }
 
 void SamplerCache::DestroyElement(SamplerBase* sampler) { delete sampler; }

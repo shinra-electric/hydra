@@ -89,7 +89,7 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
             // Check if the data hash needs to be checked
             auto& data_hash = info.data_hash;
             if (data_hash.ShouldCheck()) {
-                u64 data_hash = GetTextureDataHash(tex.base);
+                u32 data_hash = GetTextureDataHash(tex.base);
                 if (data_hash != info.data_hash.hash) {
                     sync = true;
                     update_data_hash = false;
@@ -115,41 +115,33 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
         info.MarkWritten();
 }
 
-u64 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
-    u64 hash = 0;
-    hash += descriptor.ptr;
-    hash = std::rotl(hash, 7);
-    hash += descriptor.stride; // TODO: extend the width instead
-    hash = std::rotl(hash, 11);
-    hash += descriptor.height;
-    hash = std::rotl(hash, 11);
+u32 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
+    HashCode hash;
+    hash.Add(descriptor.ptr);
+    hash.Add(descriptor.stride); // TODO: extend the width instead
+    hash.Add(descriptor.height);
 
     // View compatbility hash
     // TODO: get format info from the renderer instead
-    hash += is_texture_format_compressed(descriptor.format);
-    hash = std::rotl(hash, 1);
-    hash += is_texture_format_depth_or_stencil(descriptor.format);
-    hash = std::rotl(hash, 1);
-    hash += get_texture_format_stride(descriptor.format, 16);
-    hash = std::rotl(hash, 5);
+    hash.Add(is_texture_format_compressed(descriptor.format));
+    hash.Add(is_texture_format_depth_or_stencil(descriptor.format));
+    hash.Add(get_texture_format_stride(descriptor.format, 16));
 
-    return hash;
+    return hash.ToHashCode();
 }
 
-u64 TextureCache::GetTextureDataHash(const TextureBase* texture) {
+u32 TextureCache::GetTextureDataHash(const TextureBase* texture) {
     constexpr u32 SAMPLE_COUNT = 37;
 
     const auto& descriptor = texture->GetDescriptor();
     u64 mem_range = descriptor.stride * descriptor.height;
     u64 mem_step = std::max(mem_range / SAMPLE_COUNT, 1ull);
 
-    u64 hash = 0;
-    for (u64 offset = 0; offset < mem_range; offset += mem_step) {
-        hash += *reinterpret_cast<u64*>(descriptor.ptr + offset);
-        hash = std::rotl(hash, 7);
-    }
+    HashCode hash;
+    for (u64 offset = 0; offset < mem_range; offset += mem_step)
+        hash.Add(*reinterpret_cast<u64*>(descriptor.ptr + offset));
 
-    return hash;
+    return hash.ToHashCode();
 }
 
 void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,

@@ -392,7 +392,7 @@ class CacheBase {
     }
 
     T& Find(const DescriptorT& descriptor) {
-        u64 hash = THIS->Hash(descriptor);
+        u32 hash = THIS->Hash(descriptor);
         auto it = cache.find(hash);
         if (it == cache.end()) {
             it = cache.insert({hash, THIS->Create(descriptor)}).first;
@@ -406,7 +406,7 @@ class CacheBase {
     }
 
   private:
-    std::map<u64, T> cache;
+    std::map<u32, T> cache;
 };
 
 } // namespace hydra

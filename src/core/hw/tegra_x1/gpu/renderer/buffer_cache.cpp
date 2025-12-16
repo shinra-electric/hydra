@@ -18,13 +18,11 @@ void BufferCache::Update(BufferBase* buffer) {
         ; // TODO: upload buffer
 }
 
-u64 BufferCache::Hash(const BufferDescriptor& descriptor) {
-    u64 hash = 0;
-    hash += descriptor.ptr;
-    hash = std::rotl(hash, 19);
-    hash += descriptor.size;
-
-    return hash;
+u32 BufferCache::Hash(const BufferDescriptor& descriptor) {
+    HashCode hash;
+    hash.Add(descriptor.ptr);
+    hash.Add(descriptor.size);
+    return hash.ToHashCode();
 }
 
 void BufferCache::DestroyElement(BufferBase* buffer) { delete buffer; }

@@ -14,6 +14,7 @@
 #include "common/dynamic_pool.hpp"
 #include "common/filesystem.hpp"
 #include "common/functions.hpp"
+#include "common/hash.hpp"
 #include "common/linked_list.hpp"
 #include "common/literals.hpp"
 #include "common/log.hpp"

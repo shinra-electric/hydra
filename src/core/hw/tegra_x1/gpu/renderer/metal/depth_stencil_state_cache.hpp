@@ -20,7 +20,7 @@ class DepthStencilStateCache
     MTL::DepthStencilState*
     Create(const DepthStencilStateDescriptor& descriptor);
     void Update(MTL::DepthStencilState* depth_stencil_state) {}
-    u64 Hash(const DepthStencilStateDescriptor& descriptor);
+    u32 Hash(const DepthStencilStateDescriptor& descriptor);
 
     void DestroyElement(MTL::DepthStencilState* depth_stencil_state);
 

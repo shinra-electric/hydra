@@ -146,7 +146,7 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         break;
     }
 
-    u64 hash = Hash(descriptor);
+    const auto hash = Hash(descriptor);
     auto& index_buffer = cache[hash];
     if (index_buffer)
         return index_buffer;
@@ -177,19 +177,13 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     return index_buffer;
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
-u64 IndexCache::Hash(const IndexDescriptor& descriptor) {
-    u64 hash = 0;
-    hash += (u64)descriptor.type;
-    hash = std::rotl(hash, 3);
-    // TODO: don't always hash primitive type
-    hash += (u64)descriptor.primitive_type;
-    hash = std::rotl(hash, 5);
-    hash += (u64)descriptor.src_index_buffer; // TODO: don't hash it like this
-    hash = std::rotl(hash, 47);
-    hash += (u64)descriptor.count;
-    hash = std::rotl(hash, 17);
-
-    return hash;
+u32 IndexCache::Hash(const IndexDescriptor& descriptor) {
+    HashCode hash;
+    hash.Add(descriptor.type);
+    hash.Add(descriptor.primitive_type);
+    hash.Add(descriptor.src_index_buffer);
+    hash.Add(descriptor.count);
+    return hash.ToHashCode();
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

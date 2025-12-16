@@ -22,12 +22,10 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     return RENDERER_INSTANCE.CreateShader(host_descriptor);
 }
 
-u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
-    u64 hash = 0;
-    hash ^= static_cast<u64>(descriptor.stage);
-    hash = std::rotl(hash, 3);
-    hash ^= descriptor.code_ptr;
-    hash = std::rotl(hash, 37);
+u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
+    HashCode hash;
+    hash.Add(descriptor.stage);
+    hash.Add(descriptor.code_ptr);
 
     // Take a few samples from the code
     // TODO: this should be limited by the size of the code
@@ -35,9 +33,8 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
                        0x1000); // TODO: size
     code_reader.Skip(80);       // Header
     for (u32 i = 0; i < 8; i++) {
-        hash ^= code_reader.Read<u8>();
+        hash.Add(code_reader.Read<u8>());
         code_reader.Skip(17);
-        hash = std::rotl(hash, 7);
     }
 
     // Vertex state
@@ -45,12 +42,9 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
         for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto& vertex_attrib_state =
                 descriptor.state.vertex_attrib_states[i];
-            hash ^= vertex_attrib_state.is_fixed;
-            hash = std::rotl(hash, 1);
-            hash ^= static_cast<u64>(vertex_attrib_state.size);
-            hash = std::rotl(hash, 6);
-            hash ^= static_cast<u64>(vertex_attrib_state.type);
-            hash = std::rotl(hash, 3);
+            hash.Add(vertex_attrib_state.is_fixed);
+            hash.Add(vertex_attrib_state.size);
+            hash.Add(vertex_attrib_state.type);
         }
     }
 
@@ -59,12 +53,11 @@ u64 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
         for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_data_type =
                 descriptor.state.color_target_data_types[i];
-            hash ^= static_cast<u64>(color_target_data_type);
-            hash = std::rotl(hash, 3);
+            hash.Add(color_target_data_type);
         }
     }
 
-    return hash;
+    return hash.ToHashCode();
 }
 
 void ShaderCache::DestroyElement(ShaderBase* shader) { delete shader; }

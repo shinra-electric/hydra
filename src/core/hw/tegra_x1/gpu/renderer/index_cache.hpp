@@ -21,10 +21,10 @@ class IndexCache {
                        engines::IndexType& out_type,
                        engines::PrimitiveType& out_primitive_type,
                        u32& out_count);
-    u64 Hash(const IndexDescriptor& descriptor);
+    u32 Hash(const IndexDescriptor& descriptor);
 
   private:
-    std::map<u64, BufferBase*> cache;
+    std::map<u32, BufferBase*> cache;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer
