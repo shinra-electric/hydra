@@ -25,6 +25,7 @@ class MemoryAnalyzer {
     void HandleAMemLoad(const AMem amem);
     void HandleCMemLoad(const CMem cmem);
     void HandleAMemStore(const AMem amem);
+    void HandleTextureAccess(u32 const_buffer_index, const TextureInfo& info);
 
   public:
     CONST_REF_GETTER(input_svs, GetInputSVs);

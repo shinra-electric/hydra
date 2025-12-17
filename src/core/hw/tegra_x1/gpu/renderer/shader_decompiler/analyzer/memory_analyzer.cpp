@@ -54,19 +54,18 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
                         instruction.GetOperand(1).GetRawValue<TextureType>();
                     const auto flags = instruction.GetOperand(2)
                                            .GetRawValue<TextureSampleFlags>();
-                    textures.emplace(
-                        const_buffer_index,
-                        TextureInfo{
-                            type,
-                            any(flags & TextureSampleFlags::DepthCompare)});
+                    bool is_depth =
+                        any(flags & TextureSampleFlags::DepthCompare);
+                    HandleTextureAccess(const_buffer_index,
+                                        TextureInfo{type, is_depth});
                     break;
                 }
                 case ir::Opcode::TextureGather: {
                     const auto const_buffer_index =
                         instruction.GetOperand(0).GetRawValue<u32>();
                     // TODO: is_depth
-                    textures.emplace(const_buffer_index,
-                                     TextureInfo{TextureType::_2D, false});
+                    HandleTextureAccess(const_buffer_index,
+                                        TextureInfo{TextureType::_2D, false});
                     break;
                 }
                 // TODO: TextureQueryDimension?
@@ -99,6 +98,18 @@ void MemoryAnalyzer::HandleAMemStore(const AMem amem) {
     ASSERT_DEBUG(amem.reg == RZ, ShaderDecompiler,
                  "Indexing not implemented (src: {})", amem.reg);
     push_sv(output_svs, stage_outputs, amem.imm);
+}
+
+void MemoryAnalyzer::HandleTextureAccess(u32 const_buffer_index,
+                                         const TextureInfo& info) {
+    const auto res = textures.emplace(const_buffer_index, info);
+    if (!res.second) {
+        if (res.first->second.type != info.type ||
+            res.first->second.is_depth != info.is_depth) {
+            // TODO: handle this
+            LOG_WARN(ShaderDecompiler, "Texture type mismatch");
+        }
+    }
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer
