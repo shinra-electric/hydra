@@ -66,7 +66,6 @@ enum class Opcode {
 
     // Texture
     TextureSample,
-    TextureRead,
     TextureGather,
     TextureQueryDimension,
 
@@ -120,8 +119,8 @@ ENABLE_ENUM_FORMATTING(
     "cmp_ne", Select, "select", BeginIf, "begin_if", EndIf, "end_if", Branch,
     "branch", BranchConditional, "branch_cond", VectorExtract, "vec_extract",
     VectorInsert, "vec_insert", VectorConstruct, "vec_construct", TextureSample,
-    "tex_sample", TextureRead, "tex_read", TextureGather, "tex_gather",
-    TextureQueryDimension, "tex_query_dim", Exit, "exit", Discard, "discard")
+    "tex_sample", TextureGather, "tex_gather", TextureQueryDimension,
+    "tex_query_dim", Exit, "exit", Discard, "discard")
 
 template <>
 struct fmt::formatter<

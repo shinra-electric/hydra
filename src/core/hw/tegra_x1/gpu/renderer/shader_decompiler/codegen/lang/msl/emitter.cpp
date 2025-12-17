@@ -9,7 +9,30 @@ namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::codegen::lang::
 
 namespace {
 
-std::string component_to_str(u8 component) {
+std::string TextureTypeToStr(TextureType type, bool is_depth) {
+    // TODO: check if depth can be used with the type
+    std::string prefix = is_depth ? "depth" : "texture";
+    switch (type) {
+    case TextureType::_1D:
+        return prefix + "1d";
+    case TextureType::_1DArray:
+        return prefix + "1d_array";
+    case TextureType::_2D:
+        return prefix + "2d";
+    case TextureType::_2DArray:
+        return prefix + "2d_array";
+    case TextureType::_3D:
+        return prefix + "3d";
+    case TextureType::_3DArray:
+        return prefix + "3d_array";
+    case TextureType::Cube:
+        return prefix + "cube";
+    case TextureType::CubeArray:
+        return prefix + "cube_array";
+    }
+}
+
+std::string ComponentToStr(u8 component) {
     switch (component) {
     case 0:
         return "x";
@@ -25,7 +48,7 @@ std::string component_to_str(u8 component) {
 }
 
 // TODO: adjust for individual texture types
-std::string dimension_to_str(u32 dimension) {
+std::string DimensionToStr(u32 dimension) {
     switch (dimension) {
     case 0:
         return "width";
@@ -53,7 +76,7 @@ MslEmitter::MslEmitter(const DecompilerContext& context,
     // TODO: storage buffers
 
     u32 texture_index = 0;
-    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
+    for (const auto& [const_buffer_index, _] : memory_analyzer.GetTextures()) {
         out_resource_mapping.textures[const_buffer_index] = texture_index++;
     }
 
@@ -181,9 +204,12 @@ void MslEmitter::EmitStateBindings() {
     // TODO
 
     // Textures
-    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
-        // TODO: don't hardcode texture type
-        WriteStatement("texture2d<float> tex{}", const_buffer_index);
+    for (const auto& [const_buffer_index, info] :
+         memory_analyzer.GetTextures()) {
+        // TODO: don't hardcode type
+        WriteStatement("{}<float> tex{}",
+                       TextureTypeToStr(info.type, info.is_depth),
+                       const_buffer_index);
         WriteStatement("sampler samplr{}", const_buffer_index);
     }
 }
@@ -193,7 +219,7 @@ void MslEmitter::EmitStateBindingAssignments() {
     // TODO
 
     // Textures
-    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
+    for (const auto& [const_buffer_index, _] : memory_analyzer.GetTextures()) {
         WriteStatement("state.tex{} = tex{}", const_buffer_index,
                        const_buffer_index);
         WriteStatement("state.samplr{} = samplr{}", const_buffer_index,
@@ -239,10 +265,12 @@ void MslEmitter::EmitMainPrototype() {
     // TODO
 
     // Textures
-    for (const auto const_buffer_index : memory_analyzer.GetTextures()) {
+    for (const auto& [const_buffer_index, info] :
+         memory_analyzer.GetTextures()) {
         const auto index = out_resource_mapping.textures[const_buffer_index];
-        // TODO: don't hardcode texture type
-        ADD_ARG("texture2d<float> tex{} [[texture({})]]", const_buffer_index,
+        // TODO: don't hardcode type
+        ADD_ARG("{}<float> tex{} [[texture({})]]",
+                TextureTypeToStr(info.type, info.is_depth), const_buffer_index,
                 index);
         ADD_ARG("sampler samplr{} [[sampler({})]]", const_buffer_index, index);
     }
@@ -328,15 +356,48 @@ void MslEmitter::EmitBitfieldExtract(const ir::Value& dst,
 
 // Texture
 void MslEmitter::EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
-                                   const ir::Value& coords) {
-    StoreValue(dst, "state.tex{}.sample(state.samplr{}, {})",
-               const_buffer_index, const_buffer_index, GetValueStr(coords));
-}
+                                   TextureType type, TextureSampleFlags flags,
+                                   const ir::Value& array_index,
+                                   const ir::Value& coords,
+                                   const ir::Value& cmp_value,
+                                   const ir::Value& lod) {
+    // Flags
+    const auto is_array = IsTextureArray(type);
+    const auto int_coords = any(flags & TextureSampleFlags::IntCoords);
+    const auto depth_compare = any(flags & TextureSampleFlags::DepthCompare);
+    const auto has_lod = any(flags & TextureSampleFlags::Lod);
 
-void MslEmitter::EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
-                                 const ir::Value& coords) {
-    StoreValue(dst, "state.tex{}.read(uint2({}))", const_buffer_index,
-               GetValueStr(coords));
+    std::string func_name;
+    std::string args;
+    if (int_coords) {
+        func_name = "read";
+        args = fmt::format("uint2({})", GetValueStr(coords));
+        if (depth_compare) {
+            // TODO: emulate
+            LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Texture read depth compare");
+        }
+    } else {
+        func_name = "sample";
+        if (depth_compare)
+            func_name += "_compare";
+        args = fmt::format("state.samplr{}, {}", const_buffer_index,
+                           GetValueStr(coords));
+    }
+
+    // Args
+    if (is_array)
+        args += fmt::format(", uint({})", GetValueStr(array_index));
+    if (depth_compare)
+        args += fmt::format(", {}", GetValueStr(cmp_value));
+    if (has_lod)
+        args += fmt::format(", level({})", GetValueStr(lod));
+
+    std::string res =
+        fmt::format("state.tex{}.{}({})", const_buffer_index, func_name, args);
+    // HACK: construct float4 if sample_compare
+    if (depth_compare)
+        res = fmt::format("float4({}, 0.0, 0.0, 0.0)", res);
+    StoreValue(dst, "{}", res);
 }
 
 void MslEmitter::EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
@@ -344,14 +405,14 @@ void MslEmitter::EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
     StoreValue(dst,
                "state.tex{}.gather(state.samplr{}, {}, int2(0), component::{})",
                const_buffer_index, const_buffer_index, GetValueStr(coords),
-               component_to_str(component));
+               ComponentToStr(component));
 }
 
 void MslEmitter::EmitTextureQueryDimension(const ir::Value& dst,
                                            u32 const_buffer_index,
                                            u32 dimension) {
     StoreValue(dst, "state.tex{}.get_{}()", const_buffer_index,
-               dimension_to_str(dimension));
+               DimensionToStr(dimension));
 }
 
 // Exit

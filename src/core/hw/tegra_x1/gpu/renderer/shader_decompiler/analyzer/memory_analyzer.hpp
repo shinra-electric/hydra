@@ -4,6 +4,11 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
 
+struct TextureInfo {
+    TextureType type;
+    bool is_depth;
+};
+
 class MemoryAnalyzer {
   public:
     void Analyze(const ir::Module& modul);
@@ -14,7 +19,7 @@ class MemoryAnalyzer {
     std::vector<u8> stage_inputs;
     std::vector<u8> stage_outputs;
     std::map<u32, usize> uniform_buffers;
-    std::vector<u32> textures;
+    std::map<u32, TextureInfo> textures;
 
     // Helpers
     void HandleAMemLoad(const AMem amem);

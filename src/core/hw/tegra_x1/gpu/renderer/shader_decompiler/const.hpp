@@ -102,6 +102,30 @@ struct SvAccess {
 
 const SvAccess get_sv_access_from_addr(u64 addr);
 
+enum class TextureType {
+    _1D,
+    _1DArray,
+    _2D,
+    _2DArray,
+    _3D,
+    _3DArray,
+    Cube,
+    CubeArray,
+};
+
+inline bool IsTextureArray(TextureType type) {
+    return type == TextureType::_1DArray || type == TextureType::_2DArray ||
+           type == TextureType::_3DArray || type == TextureType::CubeArray;
+}
+
+enum class TextureSampleFlags {
+    None = 0,
+    IntCoords = BIT(0),
+    DepthCompare = BIT(1),
+    Lod = BIT(2),
+};
+ENABLE_ENUM_BITMASK_OPERATORS(TextureSampleFlags)
+
 enum class PixelImapType : u8 {
     Unused = 0,
     Constant = 1,

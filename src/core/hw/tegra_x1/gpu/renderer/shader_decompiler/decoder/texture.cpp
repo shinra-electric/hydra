@@ -85,20 +85,128 @@ void CopyTextureResult(ir::Builder& builder, std::array<reg_t, 4> dsts,
     }
 }
 
-// TODO: type, nodep
+// TODO: nodep
 void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
-                       bool is_sample, reg_t dst0, reg_t dst1, u8 write_mask,
-                       reg_t src_a, reg_t src_b, u32 cbuf_index) {
+                       bool is_sample, TextureSampleTarget target, reg_t dst0,
+                       reg_t dst1, u8 write_mask, reg_t src_a, reg_t src_b,
+                       u32 cbuf_index) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
-    const auto coords_v = context.builder.OpVectorConstruct(
-        ir::ScalarType::F32, {ir::Value::Register(src_a, ir::ScalarType::F32),
-                              ir::Value::Register(src_b, ir::ScalarType::F32)});
-    ir::Value res = ir::Value::Undefined();
-    if (is_sample)
-        res = context.builder.OpTextureSample(cbuf_index, coords_v);
-    else
-        res = context.builder.OpTextureRead(cbuf_index, coords_v);
+#define RA() ir::Value::Register(src_a++, ir::ScalarType::F32)
+#define RB() ir::Value::Register(src_b++, ir::ScalarType::F32)
+
+    TextureType type;
+    TextureSampleFlags flags = TextureSampleFlags::None;
+    ir::Value array_index = ir::Value::Undefined();
+    std::vector<ir::Value> coords;
+    ir::Value cmp_value = ir::Value::Undefined();
+    ir::Value lod = ir::Value::Undefined();
+    switch (target) {
+    case TextureSampleTarget::_1DLodZero:
+        type = TextureType::_1D;
+        flags = TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::_2D:
+        type = TextureType::_2D;
+        coords.push_back(RA());
+        coords.push_back(RB());
+        break;
+    case TextureSampleTarget::_2DLodZero:
+        type = TextureType::_2D;
+        flags = TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RB());
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::_2DLodLevel:
+        type = TextureType::_2D;
+        flags = TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        lod = RB();
+        break;
+    case TextureSampleTarget::_2DDepthCompare:
+        type = TextureType::_2D;
+        flags = TextureSampleFlags::DepthCompare;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        cmp_value = RB();
+        break;
+    case TextureSampleTarget::_2DLodLevelDepthCompare:
+        type = TextureType::_2D;
+        flags = TextureSampleFlags::DepthCompare | TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        cmp_value = RB();
+        lod = RB();
+        break;
+    case TextureSampleTarget::_2DLodZeroDepthCompare:
+        type = TextureType::_2D;
+        flags = TextureSampleFlags::DepthCompare | TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        cmp_value = RB();
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::_2DArray:
+        type = TextureType::_2DArray;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RB());
+        break;
+    case TextureSampleTarget::_2DArrayLodZero:
+        type = TextureType::_2DArray;
+        flags = TextureSampleFlags::Lod;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RB());
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::_2DArrayLodZeroDepthCompare:
+        type = TextureType::_2DArray;
+        flags = TextureSampleFlags::DepthCompare | TextureSampleFlags::Lod;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RB());
+        cmp_value = RB();
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::_3D:
+        type = TextureType::_3D;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RB());
+        break;
+    case TextureSampleTarget::_3DLodZero:
+        type = TextureType::_3D;
+        flags = TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RB());
+        lod = ir::Value::ConstantF(0.0f);
+        break;
+    case TextureSampleTarget::Cube:
+        type = TextureType::Cube;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RB());
+        break;
+    case TextureSampleTarget::CubeLodLevel:
+        type = TextureType::Cube;
+        flags = TextureSampleFlags::Lod;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RB());
+        lod = RB();
+        break;
+    }
+
+    const auto coords_v =
+        context.builder.OpVectorConstruct(ir::ScalarType::F32, coords);
+    ir::Value res = context.builder.OpTextureSample(
+        cbuf_index, type, flags, array_index, coords_v, cmp_value, lod);
 
     std::array<ComponentSwizzle, 4> swizzles;
     if (dst1 == RZ) {
@@ -173,7 +281,7 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
         context.builder.OpEndIf();
 }
 
-// TODO: type, ndv, nodep, dc, offset, lc, dst_pred
+// TODO: dim, ndv, nodep, dc, offset, lc, dst_pred
 void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
                        TextureComponent component, reg_t dst, u8 write_mask,
                        reg_t src_a, reg_t src_b, u32 cbuf_index) {
@@ -224,15 +332,15 @@ void EmitTxq(DecoderContext& context, InstTxq inst) {
 }
 
 void EmitTexs(DecoderContext& context, InstTexs inst) {
-    EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.dst0,
-                      inst.dst1, inst.write_mask, inst.src_a, inst.src_b,
-                      inst.cbuf_index);
+    EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.target,
+                      inst.dst0, inst.dst1, inst.write_mask, inst.src_a,
+                      inst.src_b, inst.cbuf_index);
 }
 
 void EmitTlds(DecoderContext& context, InstTlds inst) {
-    EmitTextureSample(context, inst.pred, inst.pred_inv, false, inst.dst0,
-                      inst.dst1, inst.write_mask, inst.src_a, inst.src_b,
-                      inst.cbuf_index);
+    EmitTextureSample(context, inst.pred, inst.pred_inv, false, inst.target,
+                      inst.dst0, inst.dst1, inst.write_mask, inst.src_a,
+                      inst.src_b, inst.cbuf_index);
 }
 
 void EmitTld4(DecoderContext& context, InstTld4 inst) {

@@ -47,15 +47,29 @@ void MemoryAnalyzer::Analyze(const ir::Module& modul) {
 
                 // Texture
                 switch (instruction.GetOpcode()) {
-                case ir::Opcode::TextureSample:
-                case ir::Opcode::TextureRead:
-                case ir::Opcode::TextureGather:
-                case ir::Opcode::TextureQueryDimension: {
+                case ir::Opcode::TextureSample: {
                     const auto const_buffer_index =
                         instruction.GetOperand(0).GetRawValue<u32>();
-                    push_unique(textures, const_buffer_index);
+                    const auto type =
+                        instruction.GetOperand(1).GetRawValue<TextureType>();
+                    const auto flags = instruction.GetOperand(2)
+                                           .GetRawValue<TextureSampleFlags>();
+                    textures.emplace(
+                        const_buffer_index,
+                        TextureInfo{
+                            type,
+                            any(flags & TextureSampleFlags::DepthCompare)});
                     break;
                 }
+                case ir::Opcode::TextureGather: {
+                    const auto const_buffer_index =
+                        instruction.GetOperand(0).GetRawValue<u32>();
+                    // TODO: is_depth
+                    textures.emplace(const_buffer_index,
+                                     TextureInfo{TextureType::_2D, false});
+                    break;
+                }
+                // TODO: TextureQueryDimension?
                 default:
                     break;
                 }

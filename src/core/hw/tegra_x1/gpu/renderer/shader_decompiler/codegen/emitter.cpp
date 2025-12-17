@@ -176,11 +176,10 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     // Texture
     case ir::Opcode::TextureSample:
         EmitTextureSample(inst.GetDst(), inst.GetOperand(0).GetRawValue<u32>(),
-                          inst.GetOperand(1));
-        break;
-    case ir::Opcode::TextureRead:
-        EmitTextureRead(inst.GetDst(), inst.GetOperand(0).GetRawValue<u32>(),
-                        inst.GetOperand(1));
+                          inst.GetOperand(1).GetRawValue<TextureType>(),
+                          inst.GetOperand(2).GetRawValue<TextureSampleFlags>(),
+                          inst.GetOperand(3), inst.GetOperand(4),
+                          inst.GetOperand(5), inst.GetOperand(6));
         break;
     case ir::Opcode::TextureGather:
         EmitTextureGather(inst.GetDst(), inst.GetOperand(0).GetRawValue<u32>(),

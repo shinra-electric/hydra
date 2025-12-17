@@ -44,9 +44,10 @@ class MslEmitter final : public LangEmitter {
 
     // Texture
     void EmitTextureSample(const ir::Value& dst, u32 const_buffer_index,
-                           const ir::Value& coords) override;
-    void EmitTextureRead(const ir::Value& dst, u32 const_buffer_index,
-                         const ir::Value& coords) override;
+                           TextureType type, TextureSampleFlags flags,
+                           const ir::Value& array_index,
+                           const ir::Value& coords, const ir::Value& cmp_value,
+                           const ir::Value& lod) override;
     void EmitTextureGather(const ir::Value& dst, u32 const_buffer_index,
                            const ir::Value& coords, u8 component) override;
     void EmitTextureQueryDimension(const ir::Value& dst, u32 const_buffer_index,

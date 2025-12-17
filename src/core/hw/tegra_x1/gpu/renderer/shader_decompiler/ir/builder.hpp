@@ -344,7 +344,10 @@ class Builder {
     }
 
     // Texture
-    Value OpTextureSample(u32 const_buffer_index, const Value& coords) {
+    Value OpTextureSample(u32 const_buffer_index, TextureType type,
+                          TextureSampleFlags flags, const Value& array_index,
+                          const Value& coords, const Value& cmp_value,
+                          const Value& lod) {
         ASSERT_DEBUG(coords.GetType().IsVector() &&
                          coords.GetType().IsFloatingPoint(),
                      ShaderDecompiler,
@@ -352,22 +355,12 @@ class Builder {
                      "vector type {}",
                      coords.GetType());
         // TODO: texture type
-        return AddInstruction(Opcode::TextureSample,
-                              Type::Vector(ScalarType::F32, 4),
-                              {Value::RawValue(const_buffer_index), coords});
+        return AddInstruction(
+            Opcode::TextureSample, Type::Vector(ScalarType::F32, 4),
+            {Value::RawValue(const_buffer_index), Value::RawValue(type),
+             Value::RawValue(flags), array_index, coords, cmp_value, lod});
     }
-    Value OpTextureRead(u32 const_buffer_index, const Value& coords) {
-        ASSERT_DEBUG(coords.GetType().IsVector() &&
-                         coords.GetType().IsFloatingPoint(),
-                     ShaderDecompiler,
-                     "Cannot perform texture read with non-floating point "
-                     "vector type {}",
-                     coords.GetType());
-        // TODO: texture type
-        return AddInstruction(Opcode::TextureRead,
-                              Type::Vector(ScalarType::F32, 4),
-                              {Value::RawValue(const_buffer_index), coords});
-    }
+    // TODO: more args
     Value OpTextureGather(u32 const_buffer_index, const Value& coords,
                           u8 component) {
         ASSERT_DEBUG(coords.GetType().IsVector() &&

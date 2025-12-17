@@ -42,7 +42,7 @@ enum class TextureOffset {
     Ptp = 2,
 };
 
-enum class TextureType {
+enum class TextureSampleTarget {
     _1DLodZero = 0,
     _2D = 1,
     _2DLodZero = 2,
@@ -69,7 +69,7 @@ union InstTexsTlds {
     BitField64<u32, 36, 13> cbuf_index;
     BitField64<bool, 49, 1> nodep;
     BitField64<u8, 50, 3> write_mask;
-    BitField64<TextureType, 53, 4> type;
+    BitField64<TextureSampleTarget, 53, 4> target;
 };
 
 using InstTexs = InstTexsTlds;
@@ -78,7 +78,7 @@ using InstTlds = InstTexsTlds;
 void EmitTexs(DecoderContext& context, InstTexs inst);
 void EmitTlds(DecoderContext& context, InstTlds inst);
 
-enum class TextureType2 {
+enum class TextureDimension {
     _1D = 0,
     _1DArray = 1,
     _2D = 2,
@@ -86,7 +86,7 @@ enum class TextureType2 {
     _3D = 4,
     _3DArray = 5,
     Cube = 6,
-    ArrayCube = 7,
+    CubeArray = 7,
 };
 
 union InstTld4 {
@@ -95,7 +95,7 @@ union InstTld4 {
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
     BitField64<reg_t, 20, 8> src_b;
-    BitField64<TextureType2, 28, 3> type;
+    BitField64<TextureDimension, 28, 3> dim;
     BitField64<u8, 31, 4> write_mask;
     BitField64<bool, 35, 1> ndv;
     BitField64<u32, 36, 13> cbuf_index;
