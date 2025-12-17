@@ -162,9 +162,9 @@ struct RenderTarget {
         u32 width : 4;
         u32 height : 4;
         u32 depth : 4;
-        bool is_linear : 1;
+        bool32 is_linear : 1;
         u32 unused : 3;
-        bool is_3d : 1;
+        bool32 is_3d : 1;
     } tile_mode;
     struct {
         u16 layers;
@@ -440,8 +440,8 @@ struct Regs3D {
     u32 end;
     struct {
         PrimitiveType primitive_type : 26;
-        bool instance_next : 1;
-        bool instance_ctrl : 1; // TODO: is the name correct?
+        bool32 instance_next : 1;
+        bool32 instance_ctrl : 1; // TODO: is the name correct?
     } begin;
 
     u32 padding_0x587[0x9];
@@ -492,7 +492,7 @@ struct Regs3D {
     struct {
         struct {
             u32 stride : 12;
-            bool enable : 1;
+            bool32 enable : 1;
             u32 padding : 19;
         } config;
         Iova addr;
@@ -520,7 +520,7 @@ struct Regs3D {
     // 0x800 shader programs
     struct {
         struct {
-            bool enable : 1;
+            bool32 enable : 1;
             u32 padding1 : 3;
             ShaderStage stage : 4;
             u32 padding2 : 24;

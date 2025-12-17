@@ -22,7 +22,7 @@ enum class CullFaceMode : u32 {
     FrontAndBack = 0x408,
 };
 
-enum class PrimitiveType {
+enum class PrimitiveType : u32 {
     Points,
     Lines,
     LineLoop,
@@ -105,7 +105,7 @@ struct VertexAttribState {
     bool bgra : 1;
 };
 
-enum class ShaderStage {
+enum class ShaderStage : u32 {
     VertexA,
     VertexB,
     TessCtrl,

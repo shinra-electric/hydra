@@ -615,7 +615,7 @@ renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
 
         const auto& vertex_array = regs.vertex_arrays[i];
         descriptor.vertex_state.vertex_arrays[i] = {
-            .enable = vertex_array.config.enable,
+            .enable = static_cast<bool>(vertex_array.config.enable),
             .stride = vertex_array.config.stride,
             .is_per_instance =
                 static_cast<bool>(regs.is_vertex_array_per_instance[i]),
