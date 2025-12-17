@@ -513,7 +513,7 @@ void Renderer::SetDepthStencilState() {
     DepthStencilStateDescriptor descriptor{
         .depth_test_enabled = static_cast<bool>(REGS_3D.depth_test_enabled),
         .depth_write_enabled = static_cast<bool>(REGS_3D.depth_write_enabled),
-        .depth_test_func = REGS_3D.depth_test_func,
+        .depth_compare_op = REGS_3D.depth_compare_op,
     };
 
     SetDepthStencilState(depth_stencil_state_cache->Find(descriptor));

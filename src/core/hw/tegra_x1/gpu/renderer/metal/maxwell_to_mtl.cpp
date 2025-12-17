@@ -664,28 +664,27 @@ const MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
     }
 }
 
-MTL::CompareFunction
-to_mtl_compare_func(engines::DepthTestFunc depth_test_func) {
-    switch (depth_test_func) {
-    case engines::DepthTestFunc::Never:
+MTL::CompareFunction to_mtl_compare_func(engines::CompareOp depth_compare_op) {
+    switch (depth_compare_op) {
+    case engines::CompareOp::Never:
         return MTL::CompareFunctionNever;
-    case engines::DepthTestFunc::Less:
+    case engines::CompareOp::Less:
         return MTL::CompareFunctionLess;
-    case engines::DepthTestFunc::Equal:
+    case engines::CompareOp::Equal:
         return MTL::CompareFunctionEqual;
-    case engines::DepthTestFunc::LessEqual:
+    case engines::CompareOp::LessEqual:
         return MTL::CompareFunctionLessEqual;
-    case engines::DepthTestFunc::Greater:
+    case engines::CompareOp::Greater:
         return MTL::CompareFunctionGreater;
-    case engines::DepthTestFunc::NotEqual:
+    case engines::CompareOp::NotEqual:
         return MTL::CompareFunctionNotEqual;
-    case engines::DepthTestFunc::GreaterEqual:
+    case engines::CompareOp::GreaterEqual:
         return MTL::CompareFunctionGreaterEqual;
-    case engines::DepthTestFunc::Always:
+    case engines::CompareOp::Always:
         return MTL::CompareFunctionAlways;
     default:
         LOG_NOT_IMPLEMENTED(MetalRenderer, "Depth test func {}",
-                            depth_test_func);
+                            depth_compare_op);
         return MTL::CompareFunctionAlways;
     }
 }

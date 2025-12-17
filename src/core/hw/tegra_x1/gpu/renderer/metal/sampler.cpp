@@ -17,6 +17,9 @@ Sampler::Sampler(const SamplerDescriptor& descriptor)
         to_mtl_sampler_address_mode(descriptor.address_mode_t));
     desc->setRAddressMode(
         to_mtl_sampler_address_mode(descriptor.address_mode_r));
+    if (descriptor.depth_compare_op != engines::CompareOp::Invalid)
+        desc->setCompareFunction(
+            to_mtl_compare_func(descriptor.depth_compare_op));
 
     mtl_sampler = METAL_RENDERER_INSTANCE.GetDevice()->newSamplerState(desc);
 }

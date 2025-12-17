@@ -7,7 +7,7 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 struct DepthStencilStateDescriptor {
     bool depth_test_enabled;
     bool depth_write_enabled;
-    engines::DepthTestFunc depth_test_func;
+    engines::CompareOp depth_compare_op;
     // TODO: stencil
 };
 

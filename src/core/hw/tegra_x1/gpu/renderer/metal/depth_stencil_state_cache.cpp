@@ -11,11 +11,11 @@ DepthStencilStateCache::Create(const DepthStencilStateDescriptor& descriptor) {
 
     if (descriptor.depth_test_enabled)
         desc->setDepthCompareFunction(
-            to_mtl_compare_func(descriptor.depth_test_func));
+            to_mtl_compare_func(descriptor.depth_compare_op));
 
     // HACK: Minecraft: Story Mode overrides the depth buffer
     if (descriptor.depth_write_enabled && descriptor.depth_test_enabled &&
-        descriptor.depth_test_func != engines::DepthTestFunc::Always)
+        descriptor.depth_compare_op != engines::CompareOp::Always)
         desc->setDepthWriteEnabled(true);
 
     return METAL_RENDERER_INSTANCE.GetDevice()->newDepthStencilState(desc);
@@ -26,7 +26,7 @@ u32 DepthStencilStateCache::Hash(
     HashCode hash;
     hash.Add(descriptor.depth_test_enabled);
     hash.Add(descriptor.depth_write_enabled);
-    hash.Add(descriptor.depth_test_func);
+    hash.Add(descriptor.depth_compare_op);
     return hash.ToHashCode();
 }
 

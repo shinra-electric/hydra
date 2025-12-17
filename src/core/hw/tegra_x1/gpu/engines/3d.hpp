@@ -108,7 +108,7 @@ struct TextureSamplerControl {
     u32 address_u : 3;
     u32 address_v : 3;
     u32 address_p : 3;
-    u32 depth_compare : 1;
+    bool32 depth_compare : 1;
     u32 depth_compare_op : 3;
     u32 srgb_conversion : 1;
     u32 font_filter_width : 3;
@@ -380,7 +380,7 @@ struct Regs3D {
     u32 padding_0x4bb[0x8];
 
     // 0x4c3
-    DepthTestFunc depth_test_func;
+    CompareOp depth_compare_op;
 
     u32 padding_0x4c4[0x3];
 

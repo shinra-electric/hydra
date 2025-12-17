@@ -749,6 +749,9 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
             static_cast<renderer::SamplerAddressMode>(tsc.address_v),
         .address_mode_r =
             static_cast<renderer::SamplerAddressMode>(tsc.address_p),
+        .depth_compare_op = (tsc.depth_compare ? static_cast<CompareOp>(
+                                                     tsc.depth_compare_op + 1)
+                                               : CompareOp::Invalid),
     };
 
     return RENDERER_INSTANCE.GetSamplerCache().Find(descriptor);
