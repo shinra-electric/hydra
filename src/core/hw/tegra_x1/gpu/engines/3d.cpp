@@ -752,6 +752,8 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
         .depth_compare_op = (tsc.depth_compare ? static_cast<CompareOp>(
                                                      tsc.depth_compare_op + 1)
                                                : CompareOp::Invalid),
+        .border_color_u = uint4({tsc.border_color_r, tsc.border_color_g,
+                                 tsc.border_color_b, tsc.border_color_a}),
     };
 
     return RENDERER_INSTANCE.GetSamplerCache().Find(descriptor);

@@ -287,6 +287,7 @@ struct SamplerDescriptor {
     SamplerAddressMode address_mode_t;
     SamplerAddressMode address_mode_r;
     engines::CompareOp depth_compare_op;
+    uint4 border_color_u;
     // TODO: more
 };
 

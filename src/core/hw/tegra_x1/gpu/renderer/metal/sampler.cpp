@@ -21,6 +21,36 @@ Sampler::Sampler(const SamplerDescriptor& descriptor)
         desc->setCompareFunction(
             to_mtl_compare_func(descriptor.depth_compare_op));
 
+    // Border color
+    const auto border_color = std::bit_cast<float4>(descriptor.border_color_u);
+    MTL::SamplerBorderColor mtl_border_color;
+    // TODO: emulate unsupported border colors
+    if (border_color.w() == 1.0f) {
+        if (border_color.x() == 1.0f || border_color.y() == 1.0f ||
+            border_color.z() == 1.0f) {
+            mtl_border_color = MTL::SamplerBorderColorOpaqueWhite;
+        } else {
+            if (border_color.x() != 0.0f || border_color.y() != 0.0f ||
+                border_color.z() != 0.0f) {
+                LOG_WARN(
+                    MetalRenderer,
+                    "Unsupported border color {}, defaulting to opaque black",
+                    border_color);
+            }
+            mtl_border_color = MTL::SamplerBorderColorOpaqueBlack;
+        }
+    } else {
+        if (border_color.x() != 0.0f || border_color.y() != 0.0f ||
+            border_color.z() != 0.0f) {
+            LOG_WARN(
+                MetalRenderer,
+                "Unsupported border color {}, defaulting to transparent black",
+                border_color);
+        }
+        mtl_border_color = MTL::SamplerBorderColorTransparentBlack;
+    }
+    desc->setBorderColor(mtl_border_color);
+
     mtl_sampler = METAL_RENDERER_INSTANCE.GetDevice()->newSamplerState(desc);
 }
 

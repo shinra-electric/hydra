@@ -18,6 +18,8 @@ u32 SamplerCache::Hash(const SamplerDescriptor& descriptor) {
     hash.Add(descriptor.address_mode_s);
     hash.Add(descriptor.address_mode_t);
     hash.Add(descriptor.address_mode_r);
+    hash.Add(descriptor.depth_compare_op);
+    hash.Add(descriptor.border_color_u);
 
     return hash.ToHashCode();
 }
