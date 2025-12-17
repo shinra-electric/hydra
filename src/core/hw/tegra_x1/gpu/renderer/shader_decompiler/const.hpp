@@ -138,6 +138,18 @@ struct PixelImap {
     PixelImapType y;
     PixelImapType z;
     PixelImapType w;
+
+    PixelImapType GetFirstUsedType() const {
+        if (x != PixelImapType::Unused)
+            return x;
+        if (y != PixelImapType::Unused)
+            return y;
+        if (z != PixelImapType::Unused)
+            return z;
+        if (w != PixelImapType::Unused)
+            return w;
+        return PixelImapType::Unused;
+    }
 };
 
 constexpr u32 PIXEL_IMAP_COUNT = 32;

@@ -174,8 +174,8 @@ void EmitInterpolateAttribute(DecoderContext& context, pred_t pred,
     // TODO: why force perspective multiply when indexing?
     if (indexed ||
         (src_a_imm >= 0x80 &&
-         context.decomp_context.frag.pixel_imaps[(src_a_imm - 0x80) >> 0x4].x ==
-             PixelImapType::Perspective)) {
+         context.decomp_context.frag.pixel_imaps[(src_a_imm - 0x80) >> 0x4]
+                 .GetFirstUsedType() == PixelImapType::Perspective)) {
         res = context.builder.OpMultiply(
             res,
             ir::Value::AttrMemory(AMem(RZ, 0x7c, true), ir::ScalarType::F32));
