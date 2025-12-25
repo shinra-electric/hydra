@@ -73,12 +73,15 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
-    horizon/loader/nsp_loader.cpp
-    horizon/loader/nsp_loader.hpp
-    horizon/loader/xci_loader.cpp
-    horizon/loader/xci_loader.hpp
+    horizon/loader/nx_loader.cpp
+    horizon/loader/nx_loader.hpp
     horizon/loader/homebrew_loader.cpp
     horizon/loader/homebrew_loader.hpp
+    horizon/loader/nsp_loader.cpp
+    horizon/loader/nsp_loader.hpp
+    # TODO: remove XCI
+    horizon/loader/xci_loader.cpp
+    horizon/loader/xci_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.cpp

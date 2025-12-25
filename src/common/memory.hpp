@@ -145,6 +145,13 @@ class StreamReader {
         ReadPtr(ptr, size / sizeof(T));
     }
 
+    std::string ReadStringWhole() {
+        std::string result;
+        result.resize(size);
+        stream.read(result.data(), size);
+        return std::move(result);
+    }
+
   private:
     std::istream& stream;
     u64 offset;

@@ -33,6 +33,21 @@ class Directory : public EntryBase {
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
                                         Directory*& out_directory);
 
+    // TODO: find a better way
+    [[nodiscard]] FsResult GetEntry(const std::string_view path,
+                                    const EntryBase*& out_entry) const {
+        return const_cast<const Directory*>(this)->GetEntry(path, out_entry);
+    }
+    [[nodiscard]] FsResult GetFile(const std::string_view path,
+                                   FileBase*& out_file) const {
+        return const_cast<const Directory*>(this)->GetFile(path, out_file);
+    }
+    [[nodiscard]] FsResult GetDirectory(const std::string_view path,
+                                        Directory*& out_directory) const {
+        return const_cast<const Directory*>(this)->GetDirectory(path,
+                                                                out_directory);
+    }
+
     // Getters
     const std::map<std::string, EntryBase*>& GetEntries() const {
         return entries;
