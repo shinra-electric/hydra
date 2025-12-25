@@ -2,11 +2,13 @@
 
 #include <stb_image.h>
 
+#include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/loader/homebrew_loader.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/loader/nx_loader.hpp"
 #include "core/horizon/loader/xci_loader.hpp"
 
 namespace hydra::horizon::loader {
@@ -78,35 +80,39 @@ uchar4* LoadGIF(filesystem::FileBase* file,
 
 } // namespace
 
-LoaderBase* LoaderBase::CreateFromFile(std::string_view path) {
-    // Check if the file exists
+LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
+    // Check if the path exists
     if (!std::filesystem::exists(path)) {
         // TODO: return an error instead
-        LOG_FATAL(Other, "Invalid path \"{}\"", path);
+        LOG_FATAL(Loader, "Invalid path \"{}\"", path);
         return nullptr;
     }
 
     // Create loader
-    auto file = new horizon::filesystem::HostFile(path);
     const auto extension =
         std::string_view(path).substr(path.find_last_of(".") + 1);
-
     horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == "nro") {
-        // Assumes that all NROs are Homebrew
-        loader = new horizon::loader::HomebrewLoader(file);
-    } else if (extension == "nso") {
-        loader = new horizon::loader::NsoLoader(file);
-    } else if (extension == "nca") {
-        loader = new horizon::loader::NcaLoader(file);
-    } else if (extension == "nsp") {
-        loader = new horizon::loader::NspLoader(file);
-    } else if (extension == "xci") {
-        loader = new horizon::loader::XciLoader(file);
+    if (extension == "nx") {
+        const auto dir = new horizon::filesystem::Directory(path);
+        loader = new horizon::loader::NxLoader(*dir);
     } else {
-        // TODO: return an error instead
-        LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
-        return nullptr;
+        const auto file = new horizon::filesystem::HostFile(path);
+        if (extension == "nro") {
+            // Assumes that all NROs are Homebrew
+            loader = new horizon::loader::HomebrewLoader(file);
+        } else if (extension == "nso") {
+            loader = new horizon::loader::NsoLoader(file);
+        } else if (extension == "nca") {
+            loader = new horizon::loader::NcaLoader(file);
+        } else if (extension == "nsp") {
+            loader = new horizon::loader::NspLoader(file);
+        } else if (extension == "xci") {
+            loader = new horizon::loader::XciLoader(file);
+        } else {
+            // TODO: return an error instead
+            LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
+            return nullptr;
+        }
     }
 
     return loader;

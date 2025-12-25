@@ -8,7 +8,7 @@ namespace hydra::horizon::loader {
 
 class LoaderBase {
   public:
-    static LoaderBase* CreateFromFile(std::string_view path);
+    static LoaderBase* CreateFromPath(std::string_view path);
 
     virtual ~LoaderBase() = default;
 

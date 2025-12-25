@@ -453,7 +453,7 @@ class HydraLoader: Hashable, Identifiable {
     convenience init(path: String) {
         self.init(
             handle: path.withHydraString { hydraPath in
-                hydra_create_loader_from_file(hydraPath)
+                hydra_create_loader_from_path(hydraPath)
             })
     }
 

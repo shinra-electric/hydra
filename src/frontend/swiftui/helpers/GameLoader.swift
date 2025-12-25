@@ -1,6 +1,6 @@
 import Foundation
 
-func createGameFromFile(url: URL) -> Game? {
+func createGameFromPath(url: URL) -> Game? {
     let loader = HydraLoader(path: url.path)
 
     // Get name and author

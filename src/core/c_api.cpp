@@ -256,8 +256,8 @@ hydra_content_archive_get_content_type(void* content_archive) {
 }
 
 // Loader
-HYDRA_EXPORT void* hydra_create_loader_from_file(hydra_string path) {
-    return hydra::horizon::loader::LoaderBase::CreateFromFile(
+HYDRA_EXPORT void* hydra_create_loader_from_path(hydra_string path) {
+    return hydra::horizon::loader::LoaderBase::CreateFromPath(
         string_view_from_hydra_string(path));
 }
 
