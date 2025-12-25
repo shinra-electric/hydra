@@ -84,39 +84,39 @@ struct RomFSContext {
 
         return {entry, name};
     }
+
+    void LoadFile(Directory* parent, u32 offset) const {
+        while (offset != ROMFS_ENTRY_EMPTY) {
+            auto [entry, name] =
+                LoadEntry<FileEntry, &RomFSContext::file_meta>(offset);
+
+            const auto res = parent->AddEntry(
+                name, new FileView(data_file, entry.offset, entry.size));
+            ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                         "Failed to add file");
+            offset = entry.sibling;
+        }
+    }
+
+    void LoadDirectory(Directory* parent, u32 offset) const {
+        while (offset != ROMFS_ENTRY_EMPTY) {
+            auto [entry, name] =
+                LoadEntry<DirectoryEntry, &RomFSContext::directory_meta>(
+                    offset);
+
+            auto dir = new Directory();
+            if (entry.child_file != ROMFS_ENTRY_EMPTY)
+                LoadFile(dir, entry.child_file);
+            if (entry.child_dir != ROMFS_ENTRY_EMPTY)
+                LoadDirectory(dir, entry.child_dir);
+
+            const auto res = parent->AddEntry(name, dir);
+            ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                         "Failed to add directory");
+            offset = entry.sibling;
+        }
+    }
 };
-
-void LoadFile(const RomFSContext& context, Directory* parent, u32 offset) {
-    while (offset != ROMFS_ENTRY_EMPTY) {
-        auto [entry, name] =
-            context.LoadEntry<FileEntry, &RomFSContext::file_meta>(offset);
-
-        const auto res = parent->AddEntry(
-            name, new FileView(context.data_file, entry.offset, entry.size));
-        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
-                     "Failed to add file");
-        offset = entry.sibling;
-    }
-}
-
-void LoadDirectory(const RomFSContext& context, Directory* parent, u32 offset) {
-    while (offset != ROMFS_ENTRY_EMPTY) {
-        auto [entry, name] =
-            context.LoadEntry<DirectoryEntry, &RomFSContext::directory_meta>(
-                offset);
-
-        auto dir = new Directory();
-        if (entry.child_file != ROMFS_ENTRY_EMPTY)
-            LoadFile(context, dir, entry.child_file);
-        if (entry.child_dir != ROMFS_ENTRY_EMPTY)
-            LoadDirectory(context, dir, entry.child_dir);
-
-        const auto res = parent->AddEntry(name, dir);
-        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
-                     "Failed to add directory");
-        offset = entry.sibling;
-    }
-}
 
 } // namespace
 
@@ -133,7 +133,7 @@ RomFS::RomFS(FileBase* file) {
     RomFSContext context(reader, new FileView(file, header.data_offset),
                          header.file_meta, header.directory_meta);
     auto root_container = new Directory();
-    LoadDirectory(context, root_container, 0);
+    context.LoadDirectory(root_container, 0);
 
     file->Close(stream);
 
