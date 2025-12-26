@@ -1,12 +1,12 @@
 #pragma once
 
-#include "core/horizon/filesystem/entry_base.hpp"
+#include "core/horizon/filesystem/entry.hpp"
 
 namespace hydra::horizon::filesystem {
 
-class FileBase;
+class IFile;
 
-class Directory : public EntryBase {
+class Directory : public IEntry {
   public:
     Directory() = default;
     Directory(const std::string_view host_path);
@@ -16,8 +16,7 @@ class Directory : public EntryBase {
 
     [[nodiscard]] FsResult Delete(bool recursive = false) override;
 
-    [[nodiscard]] FsResult AddEntry(const std::string_view path,
-                                    EntryBase* entry,
+    [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string_view path,
                                     const std::string_view host_path,
@@ -27,19 +26,19 @@ class Directory : public EntryBase {
                                        bool recursive = false);
 
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    EntryBase*& out_entry);
+                                    IEntry*& out_entry);
     [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   FileBase*& out_file);
+                                   IFile*& out_file);
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
                                         Directory*& out_directory);
 
     // TODO: find a better way
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    const EntryBase*& out_entry) const {
+                                    const IEntry*& out_entry) const {
         return const_cast<Directory*>(this)->GetEntry(path, out_entry);
     }
     [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   FileBase*& out_file) const {
+                                   IFile*& out_file) const {
         return const_cast<Directory*>(this)->GetFile(path, out_file);
     }
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
@@ -48,21 +47,19 @@ class Directory : public EntryBase {
     }
 
     // Getters
-    const std::map<std::string, EntryBase*>& GetEntries() const {
-        return entries;
-    }
+    const std::map<std::string, IEntry*>& GetEntries() const { return entries; }
 
   protected:
-    std::map<std::string, EntryBase*> entries;
+    std::map<std::string, IEntry*> entries;
 
   private:
     // Impl
-    FsResult AddEntryImpl(const std::span<std::string_view> path,
-                          EntryBase* entry, bool add_intermediate = false);
+    FsResult AddEntryImpl(const std::span<std::string_view> path, IEntry* entry,
+                          bool add_intermediate = false);
     FsResult DeleteEntryImpl(const std::span<std::string_view> path,
                              bool recursive = false);
     FsResult GetEntryImpl(const std::span<std::string_view> path,
-                          EntryBase*& out_entry);
+                          IEntry*& out_entry);
 
     // Helpers
     void BreakPath(std::string_view path,

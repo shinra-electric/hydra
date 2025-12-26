@@ -12,8 +12,7 @@ struct Segment {
 
 class NsoLoader : public LoaderBase {
   public:
-    NsoLoader(filesystem::FileBase* file_,
-              const std::string_view name_ = "main",
+    NsoLoader(filesystem::IFile* file_, const std::string_view name_ = "main",
               const bool is_entry_point_ = true);
 
     void SetMainThreadParams(u8 priority, u8 core_number, u32 stack_size) {
@@ -25,7 +24,7 @@ class NsoLoader : public LoaderBase {
     void LoadProcess(kernel::Process* process) override;
 
   private:
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     std::string name;
     const bool is_entry_point;
 

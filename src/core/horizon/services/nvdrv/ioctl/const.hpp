@@ -49,10 +49,10 @@ namespace hydra::horizon::services::nvdrv::ioctl {
 
 struct IoctlContext {
     kernel::Process* process;
-    Reader* reader;
-    Reader* buffer_reader;
-    Writer* writer;
-    Writer* buffer_writer;
+    io::MemoryStream* in_stream;
+    io::MemoryStream* in_buffer_stream;
+    io::MemoryStream* out_stream;
+    io::MemoryStream* out_buffer_stream;
 };
 
 template <typename In, typename Out>
@@ -149,44 +149,47 @@ void read_arg(IoctlContext& context, CommandArguments& args) {
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::In) {
-            ASSERT_DEBUG(context.reader, Services, "No reader");
-            arg = context.reader->Read<Arg>();
-            if (context.writer)
-                context.writer->Skip(sizeof(Arg));
+            ASSERT_DEBUG(context.in_stream, Services, "No input stream");
+            arg = context.in_stream->Read<Arg>();
+            if (context.out_stream)
+                context.out_stream->SeekBy(sizeof(Arg));
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::Out) {
-            ASSERT_DEBUG(context.writer, Services, "No writer");
-            arg = context.writer->WritePtr<typename traits::BaseType>();
-            if (context.reader)
-                context.reader->Skip(sizeof(typename traits::BaseType));
+            ASSERT_DEBUG(context.out_stream, Services, "No output stream");
+            arg = context.out_stream
+                      ->WriteReturningPtr<typename traits::BaseType>();
+            if (context.in_stream)
+                context.in_stream->SeekBy(sizeof(typename traits::BaseType));
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOut) {
-            ASSERT_DEBUG(context.reader, Services, "No reader");
-            ASSERT_DEBUG(context.writer, Services, "No writer");
-            arg.in = context.reader->Read<typename traits::In>();
-            arg.out = context.writer->WritePtr<typename traits::Out>();
+            ASSERT_DEBUG(context.in_stream, Services, "No input stream");
+            ASSERT_DEBUG(context.out_stream, Services, "No output stream");
+            arg.in = context.in_stream->Read<typename traits::In>();
+            arg.out =
+                context.out_stream->WriteReturningPtr<typename traits::Out>();
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else if constexpr (traits::type == ArgumentType::InOutSingle) {
-            ASSERT_DEBUG(context.reader, Services, "No reader");
-            ASSERT_DEBUG(context.writer, Services, "No writer");
-            arg.data = context.writer->WritePtr<typename traits::BaseType>();
-            *arg.data = context.reader->Read<typename traits::BaseType>();
+            ASSERT_DEBUG(context.in_stream, Services, "No input stream");
+            ASSERT_DEBUG(context.out_stream, Services, "No output stream");
+            arg.data = context.out_stream
+                           ->WriteReturningPtr<typename traits::BaseType>();
+            *arg.data = context.in_stream->Read<typename traits::BaseType>();
 
             // Next
             read_arg<CommandArguments, arg_index + 1>(context, args);
             return;
         } else /*if constexpr (traits::type == ArgumentType::InArray)*/ {
-            ASSERT_DEBUG(context.reader, Services, "No reader");
-            arg = context.reader->ReadPtr<typename traits::BaseType>();
+            ASSERT_DEBUG(context.in_stream, Services, "No input stream");
+            arg = context.in_stream->ReadPtr<typename traits::BaseType>();
 
             // Next
             static_assert(arg_index == std::tuple_size_v<CommandArguments> - 1,

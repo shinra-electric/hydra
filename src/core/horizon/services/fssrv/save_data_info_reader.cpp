@@ -27,15 +27,15 @@ result_t ISaveDataInfoReader::ReadSaveDataInfo(
     // TODO: don't hardcode the entries
     static SaveDataInfo entries[0] = {};
 
-    auto& writer = *out_entry_buffer.writer;
+    auto stream = out_entry_buffer.stream;
     for (u32 i = entry_index; i < sizeof_array(entries); i++) {
-        if (writer.Tell() + sizeof(SaveDataInfo) > writer.GetSize())
+        if (stream->GetSeek() + sizeof(SaveDataInfo) > stream->GetSize())
             break;
 
-        writer.Write(entries[i]);
+        stream->Write(entries[i]);
     }
 
-    *out_entry_count = writer.Tell() / sizeof(SaveDataInfo);
+    *out_entry_count = stream->GetSeek() / sizeof(SaveDataInfo);
 
     return RESULT_SUCCESS;
 }

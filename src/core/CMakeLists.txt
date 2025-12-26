@@ -48,12 +48,12 @@ add_library(hydra-core
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
-    horizon/filesystem/entry_base.hpp
-    horizon/filesystem/file_base.hpp
+    horizon/filesystem/entry.hpp
+    horizon/filesystem/file.hpp
     horizon/filesystem/file_view.hpp
-    horizon/filesystem/host_file.cpp
-    horizon/filesystem/host_file.hpp
-    horizon/filesystem/ram_file.hpp
+    horizon/filesystem/disk_file.cpp
+    horizon/filesystem/disk_file.hpp
+    horizon/filesystem/memory_file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
     horizon/filesystem/device.cpp

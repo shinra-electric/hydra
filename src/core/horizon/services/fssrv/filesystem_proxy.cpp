@@ -50,7 +50,7 @@ result_t IFileSystemProxy::OpenFileSystem(
     RequestContext* ctx, FileSystemProxyType type,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     // TODO: correct?
-    const auto mount = path_buffer.reader->ReadString();
+    const auto mount = path_buffer.stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -62,7 +62,7 @@ result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
     RequestContext* ctx, FileSystemProxyType type, u64 program_id,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
     // TODO: correct?
-    const auto mount = path_buffer.reader->ReadString();
+    const auto mount = path_buffer.stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
 
     AddService(*ctx, new IFileSystem(mount));
@@ -74,7 +74,8 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     BisPartitionId partition_id,
     InBuffer<BufferAttr::HipcPointer> unknown_buffer) {
     const auto unknown =
-        unknown_buffer.reader->ReadString(); // TODO: what is this for?
+        unknown_buffer.stream
+            ->ReadNullTerminatedString(); // TODO: what is this for?
     LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id, unknown);
 
     LOG_FUNC_STUBBED(Services);
@@ -103,10 +104,10 @@ result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_FUNC_STUBBED(Services);
 
-    // TODO: why is the writer NULL?
-    if (out_buffer.writer) {
+    // TODO: why is the stream NULL?
+    if (out_buffer.stream) {
         // HACK
-        out_buffer.writer->Write<SaveDataFileSystemExtraData>({});
+        out_buffer.stream->Write<SaveDataFileSystemExtraData>({});
     }
     return RESULT_SUCCESS;
 }
@@ -142,7 +143,7 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
 
     // TODO: program ID
 
-    filesystem::FileBase* file = nullptr;
+    filesystem::IFile* file = nullptr;
     const auto res =
         KERNEL_INSTANCE.GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {
@@ -162,7 +163,7 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
     LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:016x}", storage_id.Get(),
               data_id);
 
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     switch (storage_id.Get()) {
     case ncm::StorageID::BuiltInSystem: {
         // TODO: correct?
@@ -197,7 +198,7 @@ IFileSystemProxy::OpenPatchDataStorageByCurrentProcess(RequestContext* ctx) {
     LOG_NOT_IMPLEMENTED(Services, "OpenPatchDataStorageByCurrentProcess");
 
     // HACK
-    filesystem::FileBase* file = nullptr;
+    filesystem::IFile* file = nullptr;
     const auto res =
         KERNEL_INSTANCE.GetFilesystem().GetFile(FS_SD_MOUNT "/rom/romFS", file);
     if (res != filesystem::FsResult::Success) {

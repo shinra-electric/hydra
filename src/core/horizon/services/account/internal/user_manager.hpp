@@ -6,7 +6,7 @@
 namespace hydra::horizon::services::account::internal {
 
 struct Avatar {
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     std::vector<uchar4> data;
     usize dimensions{0};
 };

@@ -49,23 +49,23 @@ static_assert(sizeof(DirectoryEntry) == 0x18,
               "DirectoryEntry has incorrect size.");
 
 struct RomFSContext {
-    FileBase* data_file;
+    IFile* data_file;
     std::vector<u8> file_meta;
     std::vector<u8> directory_meta;
 
-    RomFSContext(StreamReader reader, FileBase* data_file_,
+    RomFSContext(io::IStream* stream, IFile* data_file_,
                  const TableLocation& file_meta_loc,
                  const TableLocation& directory_meta_loc)
         : data_file{data_file_} {
         // File meta
         file_meta.resize(file_meta_loc.size);
-        reader.Seek(file_meta_loc.offset);
-        reader.ReadPtr(file_meta.data(), file_meta.size());
+        stream->SeekTo(file_meta_loc.offset);
+        stream->ReadToSpan(std::span(file_meta));
 
         // Directory meta
         directory_meta.resize(directory_meta_loc.size);
-        reader.Seek(directory_meta_loc.offset);
-        reader.ReadPtr(directory_meta.data(), directory_meta.size());
+        stream->SeekTo(directory_meta_loc.offset);
+        stream->ReadToSpan(std::span(directory_meta));
     }
 
     template <typename T, auto meta_member>
@@ -120,25 +120,24 @@ struct RomFSContext {
 
 } // namespace
 
-RomFS::RomFS(FileBase* file) {
+RomFS::RomFS(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<Header>();
+    const auto header = stream->Read<Header>();
     ASSERT(header.header_size == sizeof(Header), Filesystem,
            "Invalid romFS header size 0x{:x}", header.header_size);
 
     // Content
-    RomFSContext context(reader, new FileView(file, header.data_offset),
+    RomFSContext context(stream, new FileView(file, header.data_offset),
                          header.file_meta, header.directory_meta);
     auto root_container = new Directory();
     context.LoadDirectory(root_container, 0);
 
-    file->Close(stream);
+    delete stream;
 
     // Get root
-    EntryBase* root;
+    IEntry* root;
     const auto res = root_container->GetEntry(EMPTY_PLACEHOLDER_NAME, root);
     ASSERT(res == FsResult::Success, Filesystem,
            "Failed to get root romFS directory: {}", res);
@@ -147,6 +146,14 @@ RomFS::RomFS(FileBase* file) {
     ASSERT(root_dir != nullptr, Filesystem, "Root entry is not a directory");
 
     for (const auto& [name, entry] : root_dir->GetEntries()) {
+        const auto res = AddEntry(name, entry);
+        ASSERT_DEBUG(res == FsResult::Success, Filesystem,
+                     "Failed to add entry");
+    }
+}
+
+RomFS::RomFS(const Directory& dir) {
+    for (const auto& [name, entry] : dir.GetEntries()) {
         const auto res = AddEntry(name, entry);
         ASSERT_DEBUG(res == FsResult::Success, Filesystem,
                      "Failed to add entry");

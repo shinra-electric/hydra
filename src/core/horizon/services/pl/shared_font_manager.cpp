@@ -48,9 +48,9 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
     for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
          type++) {
         const auto& state = SHARED_FONT_MANAGER_INSTANCE.GetState(type);
-        out_types_buffer.writer->Write(type);
-        out_offsets_buffer.writer->Write<u32>(state.shared_memory_offset);
-        out_sizes_buffer.writer->Write(static_cast<u32>(state.size));
+        out_types_buffer.stream->Write(type);
+        out_offsets_buffer.stream->Write<u32>(state.shared_memory_offset);
+        out_sizes_buffer.stream->Write(static_cast<u32>(state.size));
 
         (*out_loaded)++;
         (*out_count)++;

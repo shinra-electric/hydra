@@ -1,7 +1,7 @@
 #include "core/horizon/services/fssrv/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/services/fssrv/directory.hpp"
@@ -17,7 +17,10 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
                              GetTotalSpaceSize, 14, GetFileTimeStampRaw)
 
 #define READ_PATH_IMPL(path_var, debug_name)                                   \
-    const auto path_var = mount + in_##path_var##_buffer.reader->ReadString(); \
+    const auto path_var =                                                      \
+        mount +                                                                \
+        std::string(                                                           \
+            in_##path_var##_buffer.stream->ReadNullTerminatedString());        \
     LOG_DEBUG(Services, debug_name ": {}", path);
 #define READ_PATH() READ_PATH_IMPL(path, "Path")
 
@@ -109,7 +112,7 @@ IFileSystem::GetEntryType(InBuffer<BufferAttr::HipcPointer> in_path_buffer,
                           EntryType* out_entry_type) {
     READ_PATH();
 
-    filesystem::EntryBase* entry;
+    filesystem::IEntry* entry;
     const auto res = KERNEL_INSTANCE.GetFilesystem().GetEntry(path, entry);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error getting entry \"{}\": {}", path, res);
@@ -128,7 +131,7 @@ IFileSystem::OpenFile(RequestContext* ctx, filesystem::FileOpenFlags flags,
 
     LOG_DEBUG(Services, "Flags: {}", flags);
 
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     const auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);
@@ -190,7 +193,7 @@ result_t IFileSystem::GetFileTimeStampRaw(
 
     READ_PATH();
 
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     const auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
     if (res != filesystem::FsResult::Success) {
         LOG_WARN(Services, "Error opening file \"{}\": {}", path, res);

@@ -8,7 +8,7 @@ namespace hydra::horizon::loader {
 
 class NspLoader : public LoaderBase {
   public:
-    NspLoader(filesystem::FileBase* file)
+    NspLoader(filesystem::IFile* file)
         : NspLoader(std::move(
               *filesystem::PartitionFilesystem().Initialize<false>(file))) {}
     NspLoader(const filesystem::PartitionFilesystem& pfs_);

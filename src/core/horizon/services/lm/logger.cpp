@@ -47,14 +47,14 @@ enum class LogDataChunkKey {
 };
 
 // From Ryujinx
-bool try_read_uleb128(Reader& reader, u32& result) {
+bool TryReadUleb128(io::MemoryStream* stream, u32& result) {
     result = 0;
     int count = 0;
     u8 encoded;
 
     do {
         // TODO: check if enough space
-        encoded = reader.Read<u8>();
+        encoded = stream->Read<u8>();
 
         result += (encoded & 0x7F) << (7 * count);
 
@@ -81,29 +81,30 @@ namespace hydra::horizon::services::lm {
 DEFINE_SERVICE_COMMAND_TABLE(ILogger, 0, Log)
 
 result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
-    auto& reader = *buffer.reader;
-    const auto header = reader.Read<LogPacketHeader>();
+    auto stream = buffer.stream;
+    const auto header = stream->Read<LogPacketHeader>();
 
     // From Ryujinx
     bool is_head_packet = any(header.flags & PacketFlags::Head);
     bool is_tail_packet = any(header.flags & PacketFlags::Tail);
 
-    while (reader.GetReadSize() - sizeof(LogPacketHeader) <
+    while (stream->GetSeek() - sizeof(LogPacketHeader) <
            header.payload_size) { // TODO: correct?
         u32 key;
         u32 size;
-        if (!try_read_uleb128(reader, key) || !try_read_uleb128(reader, size))
+        if (!TryReadUleb128(stream, key) || !TryReadUleb128(stream, size))
             return MAKE_RESULT(
                 Svc, kernel::Error::InvalidCombination); // TODO: module
 
-        const auto data = reader.ReadPtr<u8>(size);
+        const auto data = stream->ReadSpan<u8>(size);
 
-#define GET_DATA(type) *reinterpret_cast<const type*>(data)
-#define GET_STRING() std::string(reinterpret_cast<const char*>(data), size)
+#define GET_DATA(type) *reinterpret_cast<const type*>(data.data())
+#define GET_STRING()                                                           \
+    std::string(reinterpret_cast<const char*>(data.data()), data.size())
 
         switch (static_cast<LogDataChunkKey>(key)) {
         case LogDataChunkKey::Begin:
-            reader.Skip(size);
+            stream->SeekBy(size);
             continue;
         case LogDataChunkKey::End:
             break;

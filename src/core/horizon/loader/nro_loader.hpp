@@ -6,14 +6,14 @@ namespace hydra::horizon::loader {
 
 class NroLoader : public LoaderBase {
   public:
-    NroLoader(filesystem::FileBase* file_, const bool is_entry_point_);
+    NroLoader(filesystem::IFile* file_, const bool is_entry_point_);
 
     void LoadProcess(kernel::Process* process) override;
 
     vaddr_t GetEntryPoint() const;
 
   private:
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     const bool is_entry_point;
 
     u64 size;
@@ -24,7 +24,7 @@ class NroLoader : public LoaderBase {
     vaddr_t executable_base{invalid<vaddr_t>()};
     usize executable_size{invalid<usize>()};
 
-    void TryLoadAssetSection(filesystem::FileBase* file);
+    void TryLoadAssetSection(filesystem::IFile* file);
 
   public:
     GETTER(size, GetSize);

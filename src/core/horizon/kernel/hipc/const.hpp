@@ -270,79 +270,67 @@ u8* get_static_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
 u8* get_list_entry_ptr(const hw::tegra_x1::cpu::IMmu* mmu,
                        const RecvListEntry& descriptor, usize& size);
 
-#define CREATE_READERS_OR_WRITERS(buffer_or_static, reader_or_writer, type)    \
-    type##_##buffer_or_static##s_##reader_or_writer##s.reserve(                \
+#define CREATE_STREAMS(buffer_or_static, type)                                 \
+    type##_##buffer_or_static##s_streams.reserve(                              \
         hipc_in.meta.num_##type##_##buffer_or_static##s);                      \
     for (u32 i = 0; i < hipc_in.meta.num_##type##_##buffer_or_static##s;       \
          i++) {                                                                \
         usize size;                                                            \
         u8* ptr = get_##buffer_or_static##_ptr(                                \
             mmu, hipc_in.data.type##_##buffer_or_static##s[i], size);          \
-        type##_##buffer_or_static##s_##reader_or_writer##s.emplace_back(ptr,   \
-                                                                        size); \
+        type##_##buffer_or_static##s_streams.push_back(                        \
+            ptr ? std::make_optional<io::MemoryStream>(std::span(ptr, size))   \
+                : std::nullopt);                                               \
     }
 
-#define CREATE_STATIC_READERS_OR_WRITERS(reader_or_writer, type)               \
-    CREATE_READERS_OR_WRITERS(static, reader_or_writer, type)
-#define CREATE_BUFFER_READERS_OR_WRITERS(reader_or_writer, type)               \
-    CREATE_READERS_OR_WRITERS(buffer, reader_or_writer, type)
+#define CREATE_STATIC_STREAMS(type) CREATE_STREAMS(static, type)
+#define CREATE_BUFFER_STREAMS(type) CREATE_STREAMS(buffer, type)
 
-struct Readers {
-    Reader reader;
-    Reader* objects_reader;
-    Reader copy_handles_reader;
-    Reader move_handles_reader;
-    std::vector<Reader> send_statics_readers;
-    std::vector<Reader> send_buffers_readers;
-    std::vector<Reader> exch_buffers_readers;
+struct Streams {
+    io::MemoryStream in_stream;
+    std::optional<io::MemoryStream> in_objects_stream{std::nullopt};
+    io::MemoryStream in_copy_handles_stream;
+    io::MemoryStream in_move_handles_stream;
+    io::MemoryStream out_stream;
+    io::MemoryStream out_objects_stream;
+    io::MemoryStream out_copy_handles_stream;
+    io::MemoryStream out_move_handles_stream;
+    std::vector<std::optional<io::MemoryStream>> send_statics_streams;
+    std::vector<std::optional<io::MemoryStream>> send_buffers_streams;
+    std::vector<std::optional<io::MemoryStream>> recv_list_streams;
+    std::vector<std::optional<io::MemoryStream>> recv_buffers_streams;
+    std::vector<std::optional<io::MemoryStream>> exch_buffers_streams;
 
-    Readers(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in)
-        : reader((u8*)hipc_in.data.data_words,
-                 hipc_in.meta.num_data_words * sizeof(u32)),
-          objects_reader{nullptr},
-          copy_handles_reader((u8*)hipc_in.data.copy_handles,
-                              hipc_in.meta.num_copy_handles *
-                                  sizeof(handle_id_t)),
-          move_handles_reader((u8*)hipc_in.data.move_handles,
-                              hipc_in.meta.num_move_handles *
-                                  sizeof(handle_id_t)) {
-        CREATE_STATIC_READERS_OR_WRITERS(reader, send);
-        CREATE_BUFFER_READERS_OR_WRITERS(reader, send);
-        CREATE_BUFFER_READERS_OR_WRITERS(reader, exch);
-    }
-
-    ~Readers() {
-        if (objects_reader)
-            delete objects_reader;
-    }
-};
-
-struct Writers {
-    Writer writer;
-    Writer objects_writer;
-    Writer copy_handles_writer;
-    Writer move_handles_writer;
-    std::vector<Writer> recv_list_writers;
-    std::vector<Writer> recv_buffers_writers;
-    std::vector<Writer> exch_buffers_writers;
-
-    Writers(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in,
+    Streams(const hw::tegra_x1::cpu::IMmu* mmu, ParsedRequest hipc_in,
             u8* scratch_buffer, u8* scratch_buffer_objects,
             u8* scratch_buffer_copy_handles, u8* scratch_buffer_move_handles)
-        : writer(scratch_buffer, 0x1000),
-          objects_writer(scratch_buffer_objects, 0x1000),
-          copy_handles_writer(scratch_buffer_copy_handles, 0x1000),
-          move_handles_writer(scratch_buffer_move_handles, 0x1000) {
-        recv_list_writers.reserve(hipc_in.meta.num_recv_statics);
+        : in_stream(std::span(reinterpret_cast<u8*>(hipc_in.data.data_words),
+                              hipc_in.meta.num_data_words * sizeof(u32))),
+          in_copy_handles_stream(
+              std::span(reinterpret_cast<u8*>(hipc_in.data.copy_handles),
+                        hipc_in.meta.num_copy_handles * sizeof(handle_id_t))),
+          in_move_handles_stream(
+              std::span(reinterpret_cast<u8*>(hipc_in.data.move_handles),
+                        hipc_in.meta.num_move_handles * sizeof(handle_id_t))),
+          out_stream(std::span(scratch_buffer, 0x1000)),
+          out_objects_stream(std::span(scratch_buffer_objects, 0x1000)),
+          out_copy_handles_stream(
+              std::span(scratch_buffer_copy_handles, 0x1000)),
+          out_move_handles_stream(
+              std::span(scratch_buffer_move_handles, 0x1000)) {
+        CREATE_STATIC_STREAMS(send);
+        CREATE_BUFFER_STREAMS(send);
+        recv_list_streams.reserve(hipc_in.meta.num_recv_statics);
         for (u32 i = 0; i < hipc_in.meta.num_recv_statics; i++) {
             usize size;
             u8* ptr = get_list_entry_ptr(mmu, hipc_in.data.recv_list[i], size);
-            if (!ptr)
-                continue;
-            recv_list_writers.emplace_back(ptr, size);
+            // TODO: should we continue or push std::nullopt in case of nullptr?
+            recv_list_streams.push_back(
+                ptr ? std::make_optional<io::MemoryStream>(std::span(ptr, size))
+                    : std::nullopt);
         }
-        CREATE_BUFFER_READERS_OR_WRITERS(writer, recv);
-        CREATE_BUFFER_READERS_OR_WRITERS(writer, exch);
+        CREATE_BUFFER_STREAMS(recv);
+        CREATE_BUFFER_STREAMS(exch);
     }
 };
 

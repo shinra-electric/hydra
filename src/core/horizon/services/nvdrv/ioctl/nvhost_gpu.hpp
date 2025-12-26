@@ -48,7 +48,7 @@ class NvHostGpu : public ChannelBase {
         return SubmitGpfifo(
             process, gpfifo, num_entries, inout_flags_and_detailed_error,
             inout_fence,
-            ctx->buffer_reader->ReadPtr<hw::tegra_x1::gpu::GpfifoEntry>());
+            ctx->in_buffer_stream->ReadPtr<hw::tegra_x1::gpu::GpfifoEntry>());
     }
 };
 

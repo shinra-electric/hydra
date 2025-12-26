@@ -78,8 +78,8 @@ result_t IHOSBinderDriver::TransactParcel(
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     LOG_DEBUG(Services, "Code: {}", code);
 
-    TransactParcelImpl(binder_id, code, flags, *in_parcel_buffer.reader,
-                       *out_parcel_buffer.writer);
+    TransactParcelImpl(binder_id, code, flags, in_parcel_buffer.stream,
+                       out_parcel_buffer.stream);
     return RESULT_SUCCESS;
 }
 
@@ -113,16 +113,17 @@ result_t IHOSBinderDriver::TransactParcelAuto(
     OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer) {
     LOG_DEBUG(Services, "Code: {}", code);
 
-    TransactParcelImpl(binder_id, code, flags, *in_parcel_buffer.reader,
-                       *out_parcel_buffer.writer);
+    TransactParcelImpl(binder_id, code, flags, in_parcel_buffer.stream,
+                       out_parcel_buffer.stream);
     return RESULT_SUCCESS;
 }
 
 void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
-                                          u32 flags, const Reader& reader,
-                                          const Writer& writer) {
-    ParcelReader parcel_reader(reader);
-    ParcelWriter parcel_writer(writer);
+                                          u32 flags,
+                                          io::MemoryStream* in_stream,
+                                          io::MemoryStream* out_stream) {
+    ParcelReader parcel_reader(in_stream);
+    ParcelWriter parcel_writer(out_stream);
 
     // Binder
     auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(binder_id);

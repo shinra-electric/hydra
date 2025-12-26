@@ -8,7 +8,7 @@ class Process;
 } // namespace hydra::horizon::kernel
 
 namespace hydra::horizon::filesystem {
-class FileBase;
+class IFile;
 } // namespace hydra::horizon::filesystem
 
 #define DEBUGGER_ASSERT(condition, c, f, ...)                                  \
@@ -137,7 +137,7 @@ class Debugger {
     ~Debugger();
 
     void RegisterExecutable(const std::string_view name,
-                            horizon::filesystem::FileBase* executable) {
+                            horizon::filesystem::IFile* executable) {
         executables.emplace(name, executable);
     }
 
@@ -180,7 +180,7 @@ class Debugger {
     std::mutex mutex;
     std::map<std::thread::id, Thread> threads;
 
-    std::map<std::string, horizon::filesystem::FileBase*> executables;
+    std::map<std::string, horizon::filesystem::IFile*> executables;
     SymbolTable module_table;
     SymbolTable function_table;
 

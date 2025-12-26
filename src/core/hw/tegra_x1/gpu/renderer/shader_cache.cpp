@@ -12,10 +12,11 @@ ShaderBase* ShaderCache::Create(const GuestShaderDescriptor& descriptor) {
     host_descriptor.type = engines::to_renderer_shader_type(descriptor.stage);
 
     // Decompile
-    Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr),
-                       0x1000); // TODO: size
+    io::MemoryStream code_stream(
+        std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
+                  0x1000)); // TODO: size
     shader_decomp::Decompiler decompiler;
-    decompiler.Decompile(code_reader, host_descriptor.type, descriptor.state,
+    decompiler.Decompile(code_stream, host_descriptor.type, descriptor.state,
                          host_descriptor.backend, host_descriptor.code,
                          host_descriptor.resource_mapping);
 
@@ -29,12 +30,13 @@ u32 ShaderCache::Hash(const GuestShaderDescriptor& descriptor) {
 
     // Take a few samples from the code
     // TODO: this should be limited by the size of the code
-    Reader code_reader(reinterpret_cast<u8*>(descriptor.code_ptr),
-                       0x1000); // TODO: size
-    code_reader.Skip(80);       // Header
+    io::MemoryStream code_stream(
+        std::span(reinterpret_cast<u8*>(descriptor.code_ptr),
+                  0x1000)); // TODO: size
+    code_stream.SeekBy(80); // Header
     for (u32 i = 0; i < 8; i++) {
-        hash.Add(code_reader.Read<u8>());
-        code_reader.Skip(17);
+        hash.Add(code_stream.Read<u8>());
+        code_stream.SeekBy(17);
     }
 
     // Vertex state

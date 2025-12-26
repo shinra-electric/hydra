@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/horizon/services/ns/const.hpp"
 
@@ -23,10 +23,10 @@ class LoaderBase {
                              u32& out_frame_count);
 
   protected:
-    filesystem::FileBase* nacp_file = nullptr;
-    filesystem::FileBase* icon_file = nullptr;
-    filesystem::FileBase* nintendo_logo_file = nullptr;
-    filesystem::FileBase* startup_movie_file = nullptr;
+    filesystem::IFile* nacp_file = nullptr;
+    filesystem::IFile* icon_file = nullptr;
+    filesystem::IFile* nintendo_logo_file = nullptr;
+    filesystem::IFile* startup_movie_file = nullptr;
 };
 
 } // namespace hydra::horizon::loader

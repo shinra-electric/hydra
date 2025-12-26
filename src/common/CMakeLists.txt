@@ -7,9 +7,9 @@ add_library(hydra-common
     functions.hpp
     atomic.hpp
     literals.hpp
+    optional_helper.hpp
     string.hpp
     time.hpp
-    memory.hpp
     hash.hpp
     linked_list.hpp
     pool.hpp
@@ -26,6 +26,11 @@ add_library(hydra-common
     common.hpp
     elf.h
     stb.cpp
+    io/stream.hpp
+    io/stream_view.hpp
+    io/continuous_stream.hpp
+    io/memory_stream.hpp
+    io/iostream_stream.hpp
 )
 
 target_link_libraries(hydra-common PUBLIC fmt::fmt)

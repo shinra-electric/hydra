@@ -11,7 +11,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioOutManager, 0, ListAudioOuts, 1,
 result_t
 IAudioOutManager::ListAudioOuts(u32* out_count,
                                 OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    return ListAudioOutsImpl(out_count, *out_buffer.writer);
+    return ListAudioOutsImpl(out_count, out_buffer.stream);
 }
 
 result_t IAudioOutManager::OpenAudioOut(
@@ -21,14 +21,14 @@ result_t IAudioOutManager::OpenAudioOut(
     AudioOutState* out_state,
     OutBuffer<BufferAttr::MapAlias> out_device_name_buffer) {
     return OpenAudioOutImpl(ctx, sample_rate, channel_count, _reserved, aruid,
-                            *in_device_name_buffer.reader, out_sample_rate,
+                            in_device_name_buffer.stream, out_sample_rate,
                             out_channel_count, out_format, out_state,
-                            *out_device_name_buffer.writer);
+                            out_device_name_buffer.stream);
 }
 
 result_t IAudioOutManager::ListAudioOutsAuto(
     u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return ListAudioOutsImpl(out_count, *out_buffer.writer);
+    return ListAudioOutsImpl(out_count, out_buffer.stream);
 }
 
 result_t IAudioOutManager::OpenAudioOutAuto(
@@ -38,12 +38,13 @@ result_t IAudioOutManager::OpenAudioOutAuto(
     AudioOutState* out_state,
     OutBuffer<BufferAttr::AutoSelect> out_device_name_buffer) {
     return OpenAudioOutImpl(ctx, sample_rate, channel_count, _reserved, aruid,
-                            *in_device_name_buffer.reader, out_sample_rate,
+                            in_device_name_buffer.stream, out_sample_rate,
                             out_channel_count, out_format, out_state,
-                            *out_device_name_buffer.writer);
+                            out_device_name_buffer.stream);
 }
 
-result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count, Writer writer) {
+result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count,
+                                             io::MemoryStream* out_stream) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
@@ -53,10 +54,11 @@ result_t IAudioOutManager::ListAudioOutsImpl(u32* out_count, Writer writer) {
 
 result_t IAudioOutManager::OpenAudioOutImpl(
     RequestContext* ctx, u32 sample_rate, u16 channel_count, u16 _reserved,
-    u64 aruid, Reader& device_name_reader, u32* out_sample_rate,
+    u64 aruid, io::MemoryStream* in_device_name_stream, u32* out_sample_rate,
     u32* out_channel_count, PcmFormat* out_format, AudioOutState* out_state,
-    Writer& device_name_writer) {
-    const auto& device_name_in = device_name_reader.ReadString();
+    io::MemoryStream* out_device_name_stream) {
+    const auto device_name_in =
+        in_device_name_stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Sample rate: {}, channel count: {}, device name: {}",
               sample_rate, channel_count, device_name_in);
 
@@ -77,7 +79,7 @@ result_t IAudioOutManager::OpenAudioOutImpl(
 
     // TODO: correct?
     std::string device_name_out = "Hydra audio device";
-    device_name_writer.WriteString(device_name_out);
+    out_device_name_stream->WriteNullTerminatedString(device_name_out);
 
     AddService(*ctx, new IAudioOut(format, sample_rate, channel_count));
     return RESULT_SUCCESS;

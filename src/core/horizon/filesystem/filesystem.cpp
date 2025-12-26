@@ -1,8 +1,8 @@
 #include "core/horizon/filesystem/filesystem.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
-#include "core/horizon/filesystem/ram_file.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
+#include "core/horizon/filesystem/memory_file.hpp"
 
 #define GET_MOUNT(path)                                                        \
     if (path.empty())                                                          \
@@ -61,7 +61,7 @@ void Filesystem::Mount(const std::string_view mount,
     MountImpl(mount, root);
 }
 
-FsResult Filesystem::AddEntry(const std::string_view path, EntryBase* entry,
+FsResult Filesystem::AddEntry(const std::string_view path, IEntry* entry,
                               bool add_intermediate) {
     VERIFY_PATH(path);
     return device.AddEntry(entry_path, entry, add_intermediate);
@@ -82,21 +82,21 @@ FsResult Filesystem::CreateFile(const std::string_view path, usize size,
     if (mount == FS_SD_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSdCardPath().Get(), entry_path);
-        auto file = new HostFile(host_path, true);
+        auto file = new DiskFile(host_path, true);
         file->Resize(size);
         return AddEntry(path, file, add_intermediate);
     } else if (mount == FS_SAVE_MOUNT) {
         const auto host_path = fmt::format(
             "{}{}", CONFIG_INSTANCE.GetSavePath().Get(), entry_path);
-        auto file = new HostFile(host_path, true);
+        auto file = new DiskFile(host_path, true);
         file->Resize(size);
         return AddEntry(path, file, add_intermediate);
     } else {
         LOG_WARN(Filesystem,
                  "Could not find host path for path \"{}\", falling back to "
-                 "RAM backed file",
+                 "memory backed file",
                  path);
-        return AddEntry(path, new RamFile(size), add_intermediate);
+        return AddEntry(path, new MemoryFile(size), add_intermediate);
     }
 }
 
@@ -110,13 +110,12 @@ FsResult Filesystem::DeleteEntry(const std::string_view path, bool recursive) {
     return device.DeleteEntry(entry_path, recursive);
 }
 
-FsResult Filesystem::GetEntry(const std::string_view path,
-                              EntryBase*& out_entry) {
+FsResult Filesystem::GetEntry(const std::string_view path, IEntry*& out_entry) {
     VERIFY_PATH(path);
     return device.GetEntry(entry_path, out_entry);
 }
 
-FsResult Filesystem::GetFile(const std::string_view path, FileBase*& out_file) {
+FsResult Filesystem::GetFile(const std::string_view path, IFile*& out_file) {
     VERIFY_PATH(path);
     return device.GetFile(entry_path, out_file);
 }

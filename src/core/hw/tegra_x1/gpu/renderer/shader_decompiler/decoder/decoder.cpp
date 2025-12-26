@@ -30,7 +30,7 @@ void Decoder::Decode() {
 
 void Decoder::ParseNextInstruction() {
     const u32 pc = GetPC();
-    const auto inst = context.code_reader.Read<instruction_t>();
+    const auto inst = context.code_stream->Read<instruction_t>();
     if ((pc % 4) == 0) // Sched
         return;
 

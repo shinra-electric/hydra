@@ -52,9 +52,10 @@ class IAudioOut : public IService {
     // Impl
     result_t AppendAudioOutBufferImpl(kernel::Process* process,
                                       u64 buffer_client_ptr,
-                                      Reader buffer_reader);
-    result_t GetReleasedAudioOutBuffersImpl(u32* out_count,
-                                            Writer& out_buffers_writer);
+                                      io::MemoryStream* in_buffer_stream);
+    result_t
+    GetReleasedAudioOutBuffersImpl(u32* out_count,
+                                   io::MemoryStream* out_buffers_stream);
 };
 
 } // namespace hydra::horizon::services::audio

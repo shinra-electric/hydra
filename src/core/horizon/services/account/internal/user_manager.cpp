@@ -5,7 +5,7 @@
 #include <yaz0.h>
 
 #include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/filesystem/romfs.hpp"
 
 #define DEFAULT_USER_NAME "Hydra user"
@@ -96,10 +96,10 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     const auto default_image_path =
         get_bundle_resource_path("default_avatar_image.png");
     avatars[DEFAULT_AVATAR_IMAGE_PATH] = {
-        new filesystem::HostFile(default_image_path)};
+        new filesystem::DiskFile(default_image_path)};
 
     // NCA
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     auto res = fs.GetFile(
         fmt::format(FS_FIRMWARE_PATH "/{:016x}/data", 0x010000000000080a),
         file);
@@ -111,7 +111,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     auto content_archive = new filesystem::ContentArchive(file);
 
     // Data
-    filesystem::FileBase* data_file;
+    filesystem::IFile* data_file;
     res = content_archive->GetFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get avatars data: {}", res);
@@ -132,7 +132,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     for (const auto& [name, entry] : character_dir->GetEntries()) {
         if (name.ends_with(".szs"))
             avatars[fmt::format(SYSTEM_AVATARS_PATH "/{}", name)] = {
-                static_cast<filesystem::FileBase*>(entry)};
+                static_cast<filesystem::IFile*>(entry)};
     }
 }
 
@@ -144,7 +144,7 @@ const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
         if (path[0] != '$') {
             it = avatars
                      .insert(
-                         {std::string(path), {new filesystem::HostFile(path)}})
+                         {std::string(path), {new filesystem::DiskFile(path)}})
                      .first;
         } else {
             LOG_WARN(
@@ -201,20 +201,21 @@ void UserManager::Serialize(uuid_t user_id) {
         return;
 
     // Serialize
-    std::ofstream ofs{fmt::format("{}/{:032x}.husr", GetUserPath(), user_id)};
+    // TODO: std::ofstream
+    std::fstream ofs(fmt::format("{}/{:032x}.husr", GetUserPath(), user_id));
     {
-        StreamWriter writer(ofs);
+        io::IostreamStream stream(ofs);
 
         // Header
         HusrHeader header{};
-        writer.Write(header);
+        stream.Write(header);
 
         // Data
-        writer.Write(user.base);
-        writer.Write(user.data);
-        writer.Write(user.avatar_bg_color);
-        writer.Write(static_cast<u32>(user.avatar_path.size()));
-        writer.WritePtr(user.avatar_path.data(), user.avatar_path.size());
+        stream.Write(user.base);
+        stream.Write(user.data);
+        stream.Write(user.avatar_bg_color);
+        stream.Write(static_cast<u32>(user.avatar_path.size()));
+        stream.WriteSpan(std::span(user.avatar_path));
     }
     ofs.close();
 
@@ -232,11 +233,12 @@ void UserManager::Deserialize(uuid_t user_id) {
     }
 
     // Deserialize
-    std::ifstream ifs{fmt::format("{}/{:032x}.husr", GetUserPath(), user_id)};
-    StreamReader reader(ifs);
+    // TODO: std::ifstream
+    std::fstream ifs{fmt::format("{}/{:032x}.husr", GetUserPath(), user_id)};
+    io::IostreamStream stream(ifs);
 
     // Header
-    const auto header = reader.Read<HusrHeader>();
+    const auto header = stream.Read<HusrHeader>();
 
     // Validate
     ASSERT(header.magic == HUSR_MAGIC, Horizon,
@@ -254,14 +256,15 @@ void UserManager::Deserialize(uuid_t user_id) {
            header.header_size, user_id);
 
     // Data
-    const auto base = reader.Read<ProfileBase>();
-    const auto data = reader.Read<UserData>();
-    const auto avatar_bg_color = reader.Read<uchar3>();
+    const auto base = stream.Read<ProfileBase>();
+    const auto data = stream.Read<UserData>();
+    const auto avatar_bg_color = stream.Read<uchar3>();
     std::string avatar_path;
     {
-        const auto size = reader.Read<u32>();
-        avatar_path.resize(size);
-        reader.ReadPtr(avatar_path.data(), size);
+        const auto size = stream.Read<u32>();
+        // TODO: do more cleanly
+        for (u32 i = 0; i < size; i++)
+            avatar_path += stream.Read<char>();
     }
 
     User user(base, data, avatar_bg_color, avatar_path);
@@ -273,12 +276,11 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         return;
 
     auto stream = avatar.file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    std::vector<u8> raw(reader.GetSize());
-    reader.ReadWhole<u8>(raw.data());
+    std::vector<u8> raw(stream->GetSize());
+    stream->ReadToSpan(std::span(raw));
 
-    avatar.file->Close(stream);
+    delete stream;
 
     if (is_compressed) {
         // Decompress

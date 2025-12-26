@@ -12,7 +12,7 @@ namespace hydra::horizon::loader {
 
 NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     : content_archive{content_archive_} {
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     auto res = content_archive.GetFile("code/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
@@ -20,11 +20,10 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     }
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    const auto meta = reader.Read<NpdmMeta>();
+    const auto meta = stream->Read<NpdmMeta>();
 
-    file->Close(stream);
+    delete stream;
 
     ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
            "Invalid NPDM meta magic 0x{:08x}", meta.magic);
@@ -91,12 +90,12 @@ void NcaLoader::LoadProcess(kernel::Process* process) {
 void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
-    filesystem::EntryBase* e;
+    filesystem::IEntry* e;
     if (dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
         entry_point = "main";
 
     for (const auto& [filename, entry] : dir->GetEntries()) {
-        auto file = dynamic_cast<filesystem::FileBase*>(entry);
+        auto file = dynamic_cast<filesystem::IFile*>(entry);
         ASSERT(file, Loader, "Code entry is not a file");
         if (filename == "main.npdm") {
             // Do nothing

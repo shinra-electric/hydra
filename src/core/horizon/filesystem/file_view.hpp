@@ -1,21 +1,20 @@
 #pragma once
 
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 
 namespace hydra::horizon::filesystem {
 
-class FileView : public FileBase {
+class FileView : public IFile {
   public:
-    FileView(FileBase* base_, u64 offset_, usize size_ = invalid<usize>())
+    FileView(IFile* base_, u64 offset_, usize size_ = invalid<usize>())
         : base{base_}, offset{offset_}, size{size_} {
         if (size == invalid<usize>())
             size = base->GetSize() - offset;
         else
-            ASSERT(size <= base->GetSize(), Filesystem,
-                   "File view size (0x{:08x}) cannot be larger than base file "
-                   "size "
-                   "(0x{:08x})",
-                   size, base->GetSize());
+            ASSERT(size <= base->GetSize() - offset, Filesystem,
+                   "File view size (0x{:08x}) is too large "
+                   "(max size: 0x{:08x})",
+                   size, base->GetSize() - offset);
     }
 
     void Resize(usize new_size) override {
@@ -23,16 +22,14 @@ class FileView : public FileBase {
                   new_size);
     }
 
-    FileStream Open(FileOpenFlags flags) override {
-        return base->Open(flags).CreateSubStream(offset, size);
+    io::IStream* Open(FileOpenFlags flags) override {
+        return new io::OwnedStreamView(base->Open(flags), offset, size);
     }
-
-    void Close(FileStream& stream) override { base->Close(stream); }
 
     usize GetSize() override { return size; }
 
   private:
-    FileBase* base;
+    IFile* base;
     u64 offset;
     usize size;
 

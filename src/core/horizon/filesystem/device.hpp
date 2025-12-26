@@ -11,8 +11,7 @@ class Device {
     Device(Directory* root_) : root{root_} {}
     ~Device();
 
-    [[nodiscard]] FsResult AddEntry(const std::string_view path,
-                                    EntryBase* entry,
+    [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string_view path,
                                     const std::string_view host_path,
@@ -22,9 +21,9 @@ class Device {
                                        bool recursive = false);
 
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    EntryBase*& out_entry);
+                                    IEntry*& out_entry);
     [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   FileBase*& out_file);
+                                   IFile*& out_file);
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
                                         Directory*& out_directory);
 

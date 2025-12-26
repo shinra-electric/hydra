@@ -45,11 +45,13 @@ class IAudioDevice : public IService {
     GetActiveAudioDeviceNameAuto(OutBuffer<BufferAttr::AutoSelect> out_buffer);
 
     // Impl
-    result_t ListAudioDeviceNameImpl(i32* out_count, Writer& out_writer);
-    result_t SetAudioDeviceOutputVolumeImpl(f32 volume, Reader& in_name_reader);
-    result_t GetAudioDeviceOutputVolumeImpl(Reader& in_name_reader,
+    result_t ListAudioDeviceNameImpl(i32* out_count,
+                                     io::MemoryStream* out_stream);
+    result_t SetAudioDeviceOutputVolumeImpl(f32 volume,
+                                            io::MemoryStream* in_name_stream);
+    result_t GetAudioDeviceOutputVolumeImpl(io::MemoryStream* in_name_stream,
                                             f32* out_volume);
-    result_t GetActiveAudioDeviceNameImpl(Writer& out_writer);
+    result_t GetActiveAudioDeviceNameImpl(io::MemoryStream* out_stream);
 };
 
 } // namespace hydra::horizon::services::audio

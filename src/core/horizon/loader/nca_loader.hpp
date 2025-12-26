@@ -7,7 +7,7 @@ namespace hydra::horizon::loader {
 
 class NcaLoader : public LoaderBase {
   public:
-    NcaLoader(filesystem::FileBase* file)
+    NcaLoader(filesystem::IFile* file)
         : NcaLoader(std::move(filesystem::ContentArchive(file))) {}
     NcaLoader(const filesystem::ContentArchive& content_archive_);
 

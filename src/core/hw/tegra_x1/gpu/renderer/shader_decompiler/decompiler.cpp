@@ -79,14 +79,14 @@ struct ShaderHeader {
     };
 };
 
-void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
+void Decompiler::Decompile(io::MemoryStream& code_stream, const ShaderType type,
                            const GuestShaderState& state,
                            ShaderBackend& out_backend,
                            std::vector<u8>& out_code,
                            ResourceMapping& out_resource_mapping) {
     // Header
     // TODO: don't read in case of compute shaders
-    const ShaderHeader header = code_reader.Read<ShaderHeader>();
+    const ShaderHeader header = code_stream.Read<ShaderHeader>();
     // HACK: just for testing
     ASSERT_DEBUG(header.version == 3, ShaderDecompiler,
                  "Invalid shader version {}", header.version);
@@ -125,8 +125,8 @@ void Decompiler::Decompile(Reader& code_reader, const ShaderType type,
     ir::Module modul;
     {
         ir::Builder builder(modul);
-        decoder::Decoder decoder(
-            {context, code_reader.CreateSubReader(), builder});
+        io::StreamView stream(&code_stream, code_stream.GetSeek());
+        decoder::Decoder decoder({context, &stream, builder});
         decoder.Decode();
     }
 

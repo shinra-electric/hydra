@@ -1,13 +1,13 @@
 #pragma once
 
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::fssrv {
 
 class IFile : public IService {
   public:
-    IFile(filesystem::FileBase* file_, filesystem::FileOpenFlags flags);
+    IFile(filesystem::IFile* file_, filesystem::FileOpenFlags flags);
     ~IFile() override;
 
   private:
@@ -24,8 +24,8 @@ class IFile : public IService {
     result_t GetSize(i64* out_size);
 
   private:
-    filesystem::FileBase* file;
-    filesystem::FileStream stream;
+    filesystem::IFile* file;
+    io::IStream* stream;
 };
 
 } // namespace hydra::horizon::services::fssrv

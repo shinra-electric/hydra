@@ -3,7 +3,7 @@
 #include "core/debugger/debugger_manager.hpp"
 #include "core/emulation_context.hpp"
 #include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/firmware.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/ui/handler_base.hpp"
@@ -229,17 +229,17 @@ HYDRA_EXPORT void hydra_try_install_firmware_to_filesystem(void* fs) {
 }
 
 HYDRA_EXPORT void* hydra_open_file(hydra_string path) {
-    return new hydra::horizon::filesystem::HostFile(
+    return new hydra::horizon::filesystem::DiskFile(
         string_view_from_hydra_string(path));
 }
 
 HYDRA_EXPORT void hydra_file_close(void* file) {
-    delete reinterpret_cast<hydra::horizon::filesystem::HostFile*>(file);
+    delete reinterpret_cast<hydra::horizon::filesystem::DiskFile*>(file);
 }
 
 HYDRA_EXPORT void* hydra_create_content_archive(void* file) {
     return new hydra::horizon::filesystem::ContentArchive(
-        reinterpret_cast<hydra::horizon::filesystem::FileBase*>(file));
+        reinterpret_cast<hydra::horizon::filesystem::IFile*>(file));
 }
 
 HYDRA_EXPORT void hydra_content_archive_destroy(void* content_archive) {

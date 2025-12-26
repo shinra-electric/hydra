@@ -1711,8 +1711,8 @@ std::map<std::string, SettingValue> nx_settings = {
     {"wlan_debug!skip_wlan_boot", false},
 };
 
-const SettingValue* get_settings_value(const std::string& name,
-                                       const std::string& item_key) {
+const SettingValue* GetSettingsValue(const std::string_view name,
+                                     const std::string_view item_key) {
     auto key = fmt::format("{}!{}", name, item_key);
     auto it = settings::nx_settings.find(key);
     if (it == settings::nx_settings.end()) {

@@ -6,7 +6,7 @@ namespace hydra::horizon::loader {
 
 class XciLoader : public LoaderBase {
   public:
-    XciLoader(filesystem::FileBase* file);
+    XciLoader(filesystem::IFile* file);
 
     u64 GetTitleID() const override { return nsp_loader->GetTitleID(); }
 

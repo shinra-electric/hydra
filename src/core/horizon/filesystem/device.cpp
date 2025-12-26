@@ -10,7 +10,7 @@ namespace hydra::horizon::filesystem {
 
 Device::~Device() { delete root; }
 
-FsResult Device::AddEntry(const std::string_view path, EntryBase* entry,
+FsResult Device::AddEntry(const std::string_view path, IEntry* entry,
                           bool add_intermediate) {
     VERIFY_PATH(path);
     return root->AddEntry(path.substr(1), entry, add_intermediate);
@@ -28,12 +28,12 @@ FsResult Device::DeleteEntry(const std::string_view path, bool recursive) {
     return root->DeleteEntry(path.substr(1), recursive);
 }
 
-FsResult Device::GetEntry(const std::string_view path, EntryBase*& out_entry) {
+FsResult Device::GetEntry(const std::string_view path, IEntry*& out_entry) {
     VERIFY_PATH(path);
     return root->GetEntry(path.substr(1), out_entry);
 }
 
-FsResult Device::GetFile(const std::string_view path, FileBase*& out_file) {
+FsResult Device::GetFile(const std::string_view path, IFile*& out_file) {
     VERIFY_PATH(path);
     return root->GetFile(path.substr(1), out_file);
 }

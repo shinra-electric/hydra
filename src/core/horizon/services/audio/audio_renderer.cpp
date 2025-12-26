@@ -174,8 +174,8 @@ result_t
 IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_perf_buffer) {
-    return RequestUpdateImpl(*in_buffer.reader, *out_buffer.writer,
-                             *out_perf_buffer.writer);
+    return RequestUpdateImpl(in_buffer.stream, out_buffer.stream,
+                             out_perf_buffer.stream);
 }
 
 result_t
@@ -199,30 +199,31 @@ result_t IAudioRenderer::RequestUpdateAuto(
     InBuffer<BufferAttr::AutoSelect> in_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_perf_buffer) {
-    return RequestUpdateImpl(*in_buffer.reader, *out_buffer.writer,
-                             *out_perf_buffer.writer);
+    return RequestUpdateImpl(in_buffer.stream, out_buffer.stream,
+                             out_perf_buffer.stream);
 }
 
-result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
-                                           Writer& perf_writer) {
+result_t IAudioRenderer::RequestUpdateImpl(io::MemoryStream* in_stream,
+                                           io::MemoryStream* out_stream,
+                                           io::MemoryStream* out_perf_stream) {
     ONCE(LOG_FUNC_STUBBED(Services));
 
     // Header
-    const auto in_header = reader.Read<UpdateDataHeader>();
+    const auto in_header = in_stream->Read<UpdateDataHeader>();
 
     // TODO: correct?
-    auto header = writer.WritePtr<UpdateDataHeader>();
+    auto header = out_stream->WriteReturningPtr<UpdateDataHeader>();
     header->revision = in_header.revision; // make_magic4('R', 'E', 'V', '4');
     header->total_size = sizeof(UpdateDataHeader);
 
-    reader.Skip(in_header.behavior_size);
+    in_stream->SeekBy(in_header.behavior_size);
 
     // Mempools
     u32 mempool_count = (params.effect_count + params.voice_count * 4);
     header->mempools_size = mempool_count * sizeof(MemPoolInfoOut);
     header->total_size += header->mempools_size;
     for (u32 i = 0; i < mempool_count; i++) {
-        const auto mempool_in = reader.Read<MemPoolInfoIn>();
+        const auto mempool_in = in_stream->Read<MemPoolInfoIn>();
 
         MemPoolInfoOut mempool{};
         switch (mempool_in.state) {
@@ -238,14 +239,14 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
             mempool.new_state = MemPoolState::Released; // mempool_in.state;
             break;
         }
-        writer.Write(mempool);
+        out_stream->Write(mempool);
     }
 
     // Voices
     header->voices_size = params.voice_count * sizeof(VoiceInfoOut);
     header->total_size += header->voices_size;
     for (u32 i = 0; i < params.voice_count; i++) {
-        const auto voice_in = reader.Read<VoiceInfoIn>();
+        const auto voice_in = in_stream->Read<VoiceInfoIn>();
 
         VoiceInfoOut& voice = voices[i];
         if (voice_in.is_new) {
@@ -271,7 +272,7 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
         } else {
             ONCE(LOG_NOT_IMPLEMENTED(Services, "Voice"));
         }
-        writer.Write(voice);
+        out_stream->Write(voice);
     }
 
     // Channels
@@ -286,7 +287,7 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
     } else {
         header->effects_size = params.effect_count * sizeof(EffectInfoOutV1);
         for (u32 i = 0; i < params.effect_count; i++) {
-            writer.Write<EffectInfoOutV1>({
+            out_stream->Write<EffectInfoOutV1>({
                 .state = EffectState::Enabled,
             });
         }
@@ -297,7 +298,7 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
     header->sinks_size = params.sink_count * sizeof(SinkInfoOut);
     header->total_size += header->sinks_size;
     for (u32 i = 0; i < params.sink_count; i++) {
-        writer.Write<SinkInfoOut>({
+        out_stream->Write<SinkInfoOut>({
             .last_written_offset = 0,
         });
     }
@@ -305,7 +306,7 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
     // Behavior
     header->behavior_size = sizeof(BehaviorInfoOut);
     header->total_size += header->behavior_size;
-    writer.Write<BehaviorInfoOut>({
+    out_stream->Write<BehaviorInfoOut>({
         .error_info_count = 0,
     });
 
@@ -314,7 +315,7 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
     if (false) {
         header->render_info_size = sizeof(RenderInfoOut);
         header->total_size += header->render_info_size;
-        writer.Write<RenderInfoOut>({
+        out_stream->Write<RenderInfoOut>({
             .elapsed_frame_count = 0,
         });
     }
@@ -323,8 +324,8 @@ result_t IAudioRenderer::RequestUpdateImpl(Reader& reader, Writer& writer,
     header->performance_manager_size = sizeof(PerformanceInfoOut);
     header->total_size += header->performance_manager_size;
     // HACK
-    if (perf_writer.IsValid()) {
-        perf_writer.Write<PerformanceInfoOut>({
+    if (out_perf_stream) {
+        out_perf_stream->Write<PerformanceInfoOut>({
             .history_size = 0,
         });
     }

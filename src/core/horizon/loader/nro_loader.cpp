@@ -47,13 +47,12 @@ struct NroHeader {
 
 } // namespace
 
-NroLoader::NroLoader(filesystem::FileBase* file_, const bool is_entry_point_)
+NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     : file{file_}, is_entry_point{is_entry_point_} {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<NroHeader>();
+    const auto header = stream->Read<NroHeader>();
 
     // Validate
     ASSERT(header.magic == make_magic4('N', 'R', 'O', '0'), Loader,
@@ -63,27 +62,27 @@ NroLoader::NroLoader(filesystem::FileBase* file_, const bool is_entry_point_)
     text_offset = header.GetSection(NroSectionType::Text).offset;
     bss_size = header.bss_size;
 
-    file->Close(stream);
+    delete stream;
 }
 
 void NroLoader::LoadProcess(kernel::Process* process) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Create executable memory
-    executable_size = reader.GetSize() + bss_size;
+    executable_size = stream->GetSize() + bss_size;
     // TODO: module name
     executable_ptr = process->CreateExecutableMemory(
         "main.nro", executable_size, kernel::MemoryPermission::ReadWriteExecute,
         true,
         executable_base); // TODO: is the permission correct?
-    reader.Seek(0);
-    reader.ReadPtr(reinterpret_cast<u8*>(executable_ptr), reader.GetSize());
+    stream->SeekTo(0);
+    stream->ReadToSpan(
+        std::span(reinterpret_cast<u8*>(executable_ptr), stream->GetSize()));
 
     // Debug symbols
     // TODO
 
-    file->Close(stream);
+    delete stream;
 
     // Main thread
     if (is_entry_point) {

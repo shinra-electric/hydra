@@ -6,9 +6,9 @@ namespace hydra::horizon::filesystem {
 
 class Directory;
 
-class EntryBase {
+class IEntry {
   public:
-    virtual ~EntryBase() = default;
+    virtual ~IEntry() = default;
 
     virtual bool IsDirectory() const = 0;
 

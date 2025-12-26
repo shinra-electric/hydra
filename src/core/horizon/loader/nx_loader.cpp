@@ -1,5 +1,6 @@
 #include "core/horizon/loader/nx_loader.hpp"
 
+#include "core/horizon/filesystem/romfs.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/npdm.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -55,7 +56,13 @@ void NxLoader::LoadProcess(kernel::Process* process) {
             ASSERT(dir, Loader, "Code is not a directory");
             LoadCode(process, dir);
         } else if (name == "romfs") {
-            // TODO: build romFS
+            filesystem::RomFS romfs(
+                *dynamic_cast<const filesystem::Directory*>(entry));
+
+            // Build romFS
+            // TODO
+
+            // Add to filesystem
             const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
                 FS_SD_MOUNT "/rom/romFS", entry, true);
             ASSERT(res == filesystem::FsResult::Success, Loader,
@@ -67,7 +74,7 @@ void NxLoader::LoadProcess(kernel::Process* process) {
 }
 
 void NxLoader::ParseInfo() {
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     auto res = dir.GetFile("info.toml", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load info.toml: {}", res);
@@ -75,16 +82,18 @@ void NxLoader::ParseInfo() {
     }
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    const auto info = toml::parse_str(reader.ReadStringWhole());
+    std::string content;
+    content.resize(stream->GetSize());
+    stream->ReadToSpan(std::span(content));
+    const auto info = toml::parse_str(content);
     title_id = toml::find<u64>(info, "title_id");
 
-    file->Close(stream);
+    delete stream;
 }
 
 void NxLoader::ParseNpdm() {
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     auto res = dir.GetFile("exefs/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
@@ -92,11 +101,10 @@ void NxLoader::ParseNpdm() {
     }
 
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    const auto meta = reader.Read<NpdmMeta>();
+    const auto meta = stream->Read<NpdmMeta>();
 
-    file->Close(stream);
+    delete stream;
 
     ASSERT(meta.magic == make_magic4('M', 'E', 'T', 'A'), Loader,
            "Invalid NPDM meta magic 0x{:08x}", meta.magic);
@@ -126,12 +134,12 @@ void NxLoader::ParseNpdm() {
 void NxLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {
     // HACK: if rtld is not present, use main as the entry point
     std::string entry_point = "rtld";
-    filesystem::EntryBase* e;
+    filesystem::IEntry* e;
     if (dir->GetEntry("rtld", e) == filesystem::FsResult::DoesNotExist)
         entry_point = "main";
 
     for (const auto& [filename, entry] : dir->GetEntries()) {
-        auto file = dynamic_cast<filesystem::FileBase*>(entry);
+        auto file = dynamic_cast<filesystem::IFile*>(entry);
         ASSERT(file, Loader, "Code entry is not a file");
         if (filename == "main.npdm") {
             // Do nothing

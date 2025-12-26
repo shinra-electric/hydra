@@ -199,12 +199,11 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::HashType, Auto, "auto", None,
 
 namespace hydra::horizon::filesystem {
 
-ContentArchive::ContentArchive(FileBase* file) {
+ContentArchive::ContentArchive(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<Header>();
+    const auto header = stream->Read<Header>();
     // TODO: allow other NCA versions as well
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
@@ -269,7 +268,7 @@ ContentArchive::ContentArchive(FileBase* file) {
         }
     }
 
-    file->Close(stream);
+    delete stream;
 }
 
 } // namespace hydra::horizon::filesystem
