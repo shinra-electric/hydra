@@ -5,8 +5,8 @@
 namespace hydra::horizon::filesystem {
 
 struct SparseFileEntry {
-    IFile* file;
     u64 offset;
+    IFile* file;
 };
 
 class SparseFile : public IFile {
@@ -28,10 +28,11 @@ class SparseFile : public IFile {
     io::IStream* Open(FileOpenFlags flags) override {
         std::vector<io::SparseStreamEntry> streams;
         streams.reserve(entries.size());
-        for (const auto& entry : entries)
+        for (const auto& entry : entries) {
             streams.push_back(
-                {entry.file->Open(flags),
-                 range(entry.offset, entry.offset + entry.file->GetSize())});
+                {range(entry.offset, entry.offset + entry.file->GetSize()),
+                 entry.file->Open(flags)});
+        }
 
         return new io::OwnedSparseStream(std::move(streams), size);
     }

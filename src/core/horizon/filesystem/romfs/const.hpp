@@ -1,10 +1,10 @@
 #pragma once
 
-#define EMPTY_PLACEHOLDER_NAME "__EMPTY__"
-
 namespace hydra::horizon::filesystem::romfs {
 
-constexpr u32 ROMFS_ENTRY_EMPTY = invalid<u32>();
+constexpr u32 ENTRY_EMPTY = invalid<u32>();
+constexpr u64 DATA_OFFSET = 0x200;
+constexpr std::string_view EMPTY_PLACEHOLDER_NAME = "__EMPTY__";
 
 struct TableLocation {
     u64 offset;

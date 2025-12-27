@@ -66,6 +66,8 @@ add_library(hydra-core
     horizon/filesystem/romfs/const.hpp
     horizon/filesystem/romfs/parser.cpp
     horizon/filesystem/romfs/parser.hpp
+    horizon/filesystem/romfs/builder.cpp
+    horizon/filesystem/romfs/builder.hpp
     horizon/filesystem/romfs/romfs.cpp
     horizon/filesystem/romfs/romfs.hpp
     horizon/loader/loader_base.cpp

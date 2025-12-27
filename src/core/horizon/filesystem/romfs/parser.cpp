@@ -20,7 +20,7 @@ Parser::Parser(io::IStream* stream, IFile* data_file_,
 }
 
 void Parser::LoadFile(Directory* parent, u32 offset) const {
-    while (offset != ROMFS_ENTRY_EMPTY) {
+    while (offset != ENTRY_EMPTY) {
         auto [entry, name] = LoadEntry<FileEntry, &Parser::file_meta>(offset);
 
         const auto res = parent->AddEntry(
@@ -32,14 +32,14 @@ void Parser::LoadFile(Directory* parent, u32 offset) const {
 }
 
 void Parser::LoadDirectory(Directory* parent, u32 offset) const {
-    while (offset != ROMFS_ENTRY_EMPTY) {
+    while (offset != ENTRY_EMPTY) {
         auto [entry, name] =
             LoadEntry<DirectoryEntry, &Parser::directory_meta>(offset);
 
         auto dir = new Directory();
-        if (entry.child_file != ROMFS_ENTRY_EMPTY)
+        if (entry.child_file != ENTRY_EMPTY)
             LoadFile(dir, entry.child_file);
-        if (entry.child_dir != ROMFS_ENTRY_EMPTY)
+        if (entry.child_dir != ENTRY_EMPTY)
             LoadDirectory(dir, entry.child_dir);
 
         const auto res = parent->AddEntry(name, dir);

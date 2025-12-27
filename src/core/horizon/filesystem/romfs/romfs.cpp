@@ -1,6 +1,7 @@
 #include "core/horizon/filesystem/romfs/romfs.hpp"
 
 #include "core/horizon/filesystem/file_view.hpp"
+#include "core/horizon/filesystem/romfs/builder.hpp"
 #include "core/horizon/filesystem/romfs/const.hpp"
 #include "core/horizon/filesystem/romfs/parser.hpp"
 
@@ -47,8 +48,16 @@ RomFS::RomFS(const Directory& dir) {
 }
 
 SparseFile* RomFS::Build() {
-    // TODO
-    return nullptr;
+    Builder builder(this);
+    auto chunks = builder.Build();
+
+    // Build the sparse file
+    u64 size = 0;
+    for (const auto& chunk : chunks)
+        size = std::max(size, chunk.offset + chunk.file->GetSize());
+    SparseFile* file = new SparseFile(chunks, size);
+
+    return file;
 }
 
 } // namespace hydra::horizon::filesystem::romfs

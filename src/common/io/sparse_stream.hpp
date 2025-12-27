@@ -5,8 +5,8 @@
 namespace hydra::io {
 
 struct SparseStreamEntry {
-    IStream* stream;
     range<u64> range;
+    IStream* stream;
 };
 
 class SparseStream : public IStream {
@@ -16,7 +16,7 @@ class SparseStream : public IStream {
         : entries{std::move(entries_)}, size{size_} {}
 
     u64 GetSeek() const override { return seek; }
-    void SeekTo(u64 seek) override { seek = seek; }
+    void SeekTo(u64 seek_) override { seek = seek_; }
     void SeekBy(u64 offset) override { seek += offset; }
 
     u64 GetSize() const override { return size; }
@@ -34,10 +34,13 @@ class SparseStream : public IStream {
             const auto entry = GetEntry(seek);
             const auto max_read_size = std::min(
                 entry.range.end - seek, static_cast<u64>(buffer.size()));
-            if (entry.stream)
+            if (entry.stream) {
+                entry.stream->SeekTo(seek - entry.range.begin);
                 entry.stream->ReadRaw(buffer.subspan(0, max_read_size));
-            else
+            } else {
                 std::fill(buffer.begin(), buffer.begin() + max_read_size, 0);
+            }
+
             seek += max_read_size;
             buffer = buffer.subspan(max_read_size);
         }
@@ -50,8 +53,11 @@ class SparseStream : public IStream {
             const auto entry = GetEntry(seek);
             const auto max_write_size = std::min(
                 entry.range.end - seek, static_cast<u64>(buffer.size()));
-            if (entry.stream)
+            if (entry.stream) {
+                entry.stream->SeekTo(seek - entry.range.begin);
                 entry.stream->WriteRaw(buffer.subspan(0, max_write_size));
+            }
+
             seek += max_write_size;
             buffer = buffer.subspan(max_write_size);
         }
@@ -76,23 +82,26 @@ class SparseStream : public IStream {
         }
 
         // Find the entry that contains the offset
-        auto it =
-            std::lower_bound(entries.begin(), entries.end(), offset,
-                             [](const SparseStreamEntry& entry, u64 offset) {
-                                 return entry.range.begin < offset;
+        auto next_it =
+            std::upper_bound(entries.begin(), entries.end(), offset,
+                             [](u64 offset, const SparseStreamEntry& entry) {
+                                 return offset < entry.range.begin;
                              });
 
-        // If the offset is beyond the last entry, return an empty entry
-        if (it == entries.end())
-            return {.stream = nullptr, .range = {offset, size - offset}};
+        // If the offset is before the first entry, return an empty entry
+        if (next_it == entries.begin())
+            return {.stream = nullptr, .range = {0, next_it->range.begin}};
+
+        auto it = std::prev(next_it);
 
         // Check if entry is past the range
         if (!it->range.Contains(offset)) {
-            auto next_it = std::next(it);
             if (next_it == entries.end())
-                return {.stream = nullptr, .range = {offset, size - offset}};
+                return {.stream = nullptr,
+                        .range = {it->range.end, size - offset}};
 
-            return {.stream = nullptr, .range = {offset, next_it->range.begin}};
+            return {.stream = nullptr,
+                    .range = {it->range.end, next_it->range.begin}};
         }
 
         // Cache the entry and return it

@@ -6,7 +6,8 @@ namespace hydra::horizon::filesystem {
 
 class MemoryFile : public IFile {
   public:
-    MemoryFile(usize size = 0) { data.resize(size); }
+    MemoryFile(const std::vector<u8>& data_) : data{std::move(data_)} {}
+    MemoryFile(usize size) : data(size) {}
 
     void Resize(usize new_size) override { data.resize(new_size); }
 
