@@ -1,18 +1,51 @@
 import SwiftUI
 
+enum ViewMode {
+    case list
+    case grid
+}
+
 struct GameListView: View {
     @Binding var emulationState: EmulationState
+    @Binding var viewMode: ViewMode
 
     @State private var games: [Game] = []
 
+    private let gridColumns = [
+        GridItem(.adaptive(minimum: 160), spacing: 16)
+    ]
+
     var body: some View {
-        List {
-            ForEach(self.games.indices, id: \.self) { index in
-                GamePreview(emulationState: $emulationState, game: self.games[index])
-                    .padding(.vertical, 8)
+        VStack {
+            switch viewMode {
+            case .list:
+                List {
+                    ForEach(self.games.indices, id: \.self) { index in
+                        GamePreview(emulationState: $emulationState, game: self.games[index])
+                            .padding(.vertical, 8)
+                    }
+                }
+            case .grid:
+                ScrollView {
+                    LazyVGrid(columns: gridColumns, spacing: 16) {
+                        ForEach(games.indices, id: \.self) { index in
+                            GamePreview(
+                                emulationState: $emulationState,
+                                game: games[index]
+                            )
+                            .padding(8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(.background)
+                                    .shadow(radius: 2)
+                            )
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                }
             }
         }
-        //.navigationTitle("")
         .onAppear {
             // Game paths
 
@@ -40,7 +73,9 @@ struct GameListView: View {
 
     func processUrl(url: URL) throws {
         // Check if the URL is a game
-        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca" || url.pathExtension == "nx" {
+        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca"
+            || url.pathExtension == "nx"
+        {
             tryAddGame(url: url)
             return
         }
@@ -57,7 +92,8 @@ struct GameListView: View {
             return
         }
 
-        let urls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+        let urls = try FileManager.default.contentsOfDirectory(
+            at: url, includingPropertiesForKeys: nil)
         for url in urls {
             try processUrl(url: url)
         }

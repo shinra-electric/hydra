@@ -7,6 +7,8 @@ import SwiftUI
 struct ContentView: View {
     @Binding var emulationState: EmulationState
 
+    // TODO: save this in the config
+    @State private var viewMode: ViewMode = .list
     @State private var fps: Int = 0
 
     #if os(iOS)
@@ -34,7 +36,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            GameListView(emulationState: $emulationState)
+            GameListView(emulationState: $emulationState, viewMode: $viewMode)
                 .navigationDestination(item: $emulationState.activeGame) { activeGame in
                     EmulationView(emulationState: $emulationState, fps: $fps)
                         .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
@@ -69,7 +71,7 @@ struct ContentView: View {
                         }
                 }
                 .toolbar {
-                    GameListToolbarItems()
+                    GameListToolbarItems(viewMode: $viewMode)
                 }
                 .navigationBarBackButtonHidden()
         }
