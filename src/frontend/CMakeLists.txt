@@ -37,7 +37,9 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/Game.swift
         swiftui/MetalView.swift
         swiftui/EmulationView.swift
-        swiftui/GamePreview.swift
+        swiftui/GameIconView.swift
+        swiftui/ListGamePreview.swift
+        swiftui/GridGamePreview.swift
         swiftui/GameListView.swift
         swiftui/GameStopView.swift
         swiftui/helpers/Error.swift
@@ -47,6 +49,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
         swiftui/helpers/ClickableListItem.swift
+        swiftui/helpers/RawImage.swift
         swiftui/helpers/GameLoader.swift
         swiftui/settings/GeneralSettingsView.swift
         swiftui/settings/CpuSettingsView.swift
