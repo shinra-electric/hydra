@@ -48,6 +48,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
+        swiftui/helpers/HoverView.swift
         swiftui/helpers/ClickableListItem.swift
         swiftui/helpers/RawImage.swift
         swiftui/helpers/GameLoader.swift

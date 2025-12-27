@@ -13,15 +13,16 @@ struct ClickableListItem<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if let lastTime = lastClickTime, Date().timeIntervalSince(lastTime) < 0.3 {
-                    self.onClick()
-                    lastClickTime = nil
-                } else {
-                    lastClickTime = Date()
-                }
+        HoverView {
+            content
+        }
+        .onTapGesture {
+            if let lastTime = lastClickTime, Date().timeIntervalSince(lastTime) < 0.3 {
+                self.onClick()
+                lastClickTime = nil
+            } else {
+                lastClickTime = Date()
             }
+        }
     }
 }

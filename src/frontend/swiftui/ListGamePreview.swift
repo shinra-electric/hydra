@@ -11,9 +11,12 @@ struct ListGamePreview: View {
             HStack {
                 GameIconView(game: game)
                     .frame(maxWidth: 64, maxHeight: 64)
-                Text(game.name)
-                    .padding()
-                // TODO: author?
+                VStack {
+                    Text(game.name)
+                        .padding()
+                    Text(game.author)
+                        .padding()
+                }
             }
         }
     }

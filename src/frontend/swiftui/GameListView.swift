@@ -12,7 +12,7 @@ struct GameListView: View {
     @State private var games: [Game] = []
 
     private let gridColumns = [
-        GridItem(.adaptive(minimum: 160), spacing: 16)
+        GridItem(.adaptive(minimum: 180), spacing: 16)
     ]
 
     var body: some View {
@@ -34,7 +34,7 @@ struct GameListView: View {
                                 game: games[index]
                             )
                             .frame(maxWidth: .infinity)
-                            .frame(height: 160)
+                            .frame(height: 180)
                             .padding()
                         }
                     }
