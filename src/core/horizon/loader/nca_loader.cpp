@@ -69,22 +69,26 @@ void NcaLoader::LoadProcess(kernel::Process* process) {
     // Title ID
     process->SetTitleID(content_archive.GetTitleID());
 
-    for (const auto& [name, entry] : content_archive.GetEntries()) {
-        if (name == "code") {
-            auto dir = dynamic_cast<filesystem::Directory*>(entry);
-            ASSERT(dir, Loader, "Code is not a directory");
-            LoadCode(process, dir);
-        } else if (name == "data") {
-            const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
-                FS_SD_MOUNT "/rom/romFS", entry, true);
-            ASSERT(res == filesystem::FsResult::Success, Loader,
-                   "Failed to add romFS entry: {}", res);
-        } else if (name == "logo") {
-            // Do nothing
-        } else {
-            LOG_NOT_IMPLEMENTED(Loader, "{}", name);
-        }
-    }
+    // ExeFS
+    filesystem::Directory* exefs_dir;
+    auto res = content_archive.GetDirectory("code", exefs_dir);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get ExeFS directory: {}", res);
+    LoadCode(process, exefs_dir);
+
+    // RomFS
+
+    // Get file
+    filesystem::IFile* romfs_file;
+    res = content_archive.GetFile("data", romfs_file);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get romFS file: {}", res);
+
+    // Add to filesystem
+    res = KERNEL_INSTANCE.GetFilesystem().AddEntry(FS_SD_MOUNT "/rom/romFS",
+                                                   romfs_file, true);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to add romFS file: {}", res);
 }
 
 void NcaLoader::LoadCode(kernel::Process* process, filesystem::Directory* dir) {

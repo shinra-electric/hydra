@@ -49,29 +49,31 @@ void NxLoader::LoadProcess(kernel::Process* process) {
     // Title ID
     process->SetTitleID(title_id);
 
-    // TODO: iterate differently
-    for (const auto& [name, entry] : dir.GetEntries()) {
-        if (name == "exefs") {
-            auto dir = dynamic_cast<filesystem::Directory*>(entry);
-            ASSERT(dir, Loader, "Code is not a directory");
-            LoadCode(process, dir);
-        } else if (name == "romfs") {
-            filesystem::romfs::RomFS romfs(
-                *dynamic_cast<const filesystem::Directory*>(entry));
+    // ExeFS
+    filesystem::Directory* exefs_dir;
+    auto res = dir.GetDirectory("exefs", exefs_dir);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get ExeFS directory: {}", res);
+    LoadCode(process, exefs_dir);
 
-            // Build romFS
-            const auto romfs_file = romfs.Build();
-            ASSERT(romfs_file, Loader, "Failed to build romFS");
+    // RomFS
 
-            // Add to filesystem
-            const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
-                FS_SD_MOUNT "/rom/romFS", romfs_file, true);
-            ASSERT(res == filesystem::FsResult::Success, Loader,
-                   "Failed to add romFS file: {}", res);
-        } else {
-            LOG_NOT_IMPLEMENTED(Loader, "{}", name);
-        }
-    }
+    // Get directory
+    filesystem::Directory* romfs_dir;
+    res = dir.GetDirectory("romfs", romfs_dir);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get RomFS directory: {}", res);
+    filesystem::romfs::RomFS romfs(*romfs_dir);
+
+    // Build
+    const auto romfs_file = romfs.Build();
+    ASSERT(romfs_file, Loader, "Failed to build romFS");
+
+    // Add to filesystem
+    res = KERNEL_INSTANCE.GetFilesystem().AddEntry(FS_SD_MOUNT "/rom/romFS",
+                                                   romfs_file, true);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to add romFS file: {}", res);
 }
 
 void NxLoader::ParseInfo() {
