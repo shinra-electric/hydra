@@ -6,15 +6,18 @@ func createGameFromPath(url: URL) -> Game? {
     // Get name and author
     var name = ""
     var author = ""
+    var version = ""
     let nacp = loader.loadNacp()
     if let nacp = nacp {
         let title = nacp.title
         name = title.name
         author = title.author
+        version = nacp.displayVersion
     } else {
         name = url.deletingPathExtension().lastPathComponent
         author = "Unknown"
+        version = "0"
     }
 
-    return Game(url: url, loader: loader, name: name, author: author)
+    return Game(url: url, loader: loader, name: name, author: author, version: version)
 }

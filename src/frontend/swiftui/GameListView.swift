@@ -21,18 +21,27 @@ struct GameListView: View {
             case .list:
                 List {
                     ForEach(self.games.indices, id: \.self) { index in
-                        ListGamePreview(emulationState: $emulationState, game: self.games[index])
-                            .padding(.vertical, 8)
+                        ClickableListItem(onClick: {
+                            emulationState.activeGame = games[index]
+                        }) {
+                            ListGamePreview(
+                                emulationState: $emulationState, game: games[index])
+                        }
+                        .padding(.vertical, 16)
                     }
                 }
             case .grid:
                 ScrollView {
                     LazyVGrid(columns: gridColumns, spacing: 4) {
                         ForEach(games.indices, id: \.self) { index in
-                            GridGamePreview(
-                                emulationState: $emulationState,
-                                game: games[index]
-                            )
+                            ClickableListItem(onClick: {
+                                emulationState.activeGame = games[index]
+                            }) {
+                                GridGamePreview(
+                                    emulationState: $emulationState,
+                                    game: games[index]
+                                )
+                            }
                             .frame(maxWidth: .infinity)
                             .frame(height: 180)
                             .padding()
