@@ -14,26 +14,27 @@ struct GameListView: View {
         }
         //.navigationTitle("")
         .onAppear {
-            load()
+            // Game paths
+
+            // Get all games
+            let gamePathsOption = hydraConfigGetGamePaths()
+            for i in 0..<gamePathsOption.count {
+                let gamePath = gamePathsOption.get(at: i)
+                do {
+                    let url = try resolveUrl(URL(fileURLWithPath: gamePath))
+
+                    try processUrl(url: url)
+                } catch {
+                    // TODO: error popup
+                    print("Failed to load game path \(gamePath): \(error)")
+                }
+            }
+
+            // Sort games by name
+            games.sort { $0.name.caseInsensitiveCompare($1.name) == .orderedAscending }
         }
         .onDisappear {
             games.removeAll()
-        }
-    }
-
-    func load() {
-        // Game paths
-        let gamePathsOption = hydraConfigGetGamePaths()
-        for i in 0..<gamePathsOption.count {
-            let gamePath = gamePathsOption.get(at: i)
-            do {
-                let url = try resolveUrl(URL(fileURLWithPath: gamePath))
-
-                try processUrl(url: url)
-            } catch {
-                // TODO: error popup
-                print("Failed to load game path \(gamePath): \(error)")
-            }
         }
     }
 
