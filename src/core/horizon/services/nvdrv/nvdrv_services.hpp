@@ -49,8 +49,9 @@ class INvDrvServices : public IService {
     IoctlImpl(NvResult (ioctl::FdBase::*func)(ioctl::IoctlContext& context,
                                               u32 type, u32 nr),
               kernel::Process* process, handle_id_t fd_id, u32 code,
-              Reader* reader, Reader* buffer_reader, Writer* writer,
-              Writer* buffer_writer, NvResult* out_result);
+              io::MemoryStream* in_stream, io::MemoryStream* in_buffer_stream,
+              io::MemoryStream* out_stream, io::MemoryStream* out_buffer_stream,
+              NvResult* out_result);
 };
 
 } // namespace hydra::horizon::services::nvdrv

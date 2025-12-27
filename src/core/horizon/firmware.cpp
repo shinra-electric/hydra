@@ -1,8 +1,8 @@
 #include "core/horizon/firmware.hpp"
 
 #include "core/horizon/filesystem/content_archive.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 
 namespace hydra::horizon {
 
@@ -26,7 +26,7 @@ void try_install_firmware_to_filesystem(filesystem::Filesystem& fs) {
     // Iterate over the directory
     for (const auto& entry :
          std::filesystem::directory_iterator(firmware_path)) {
-        auto file = new horizon::filesystem::HostFile(entry.path().string());
+        auto file = new horizon::filesystem::DiskFile(entry.path().string());
         horizon::filesystem::ContentArchive content_archive(file);
 
         auto res = fs.AddEntry(fmt::format(FS_FIRMWARE_PATH "/{:016x}/{}",
@@ -39,7 +39,7 @@ void try_install_firmware_to_filesystem(filesystem::Filesystem& fs) {
     }
 
     for (const auto& [path, filename] : firmware_titles_map) {
-        filesystem::FileBase* file;
+        filesystem::IFile* file;
         auto res = fs.GetFile(fmt::format(FS_FIRMWARE_PATH "/{}", path), file);
         ASSERT(res == horizon::filesystem::FsResult::Success, Horizon,
                "Failed to get firmware entry {}: {}", path, res);

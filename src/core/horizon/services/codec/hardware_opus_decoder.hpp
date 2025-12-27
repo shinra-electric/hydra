@@ -17,10 +17,10 @@ class IHardwareOpusDecoder : public IService {
                          OutBuffer<BufferAttr::MapAlias> out_pcm_buffer);
 
     // Impl
-    result_t DecodeInterleavedImpl(Reader& in_opus_reader,
+    result_t DecodeInterleavedImpl(io::MemoryStream* in_opus_stream,
                                    i32* out_decoded_data_size,
                                    i32* out_decoded_sample_count,
-                                   Writer& out_pcm_writer);
+                                   io::MemoryStream* out_pcm_stream);
 };
 
 } // namespace hydra::horizon::services::codec

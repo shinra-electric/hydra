@@ -1,6 +1,6 @@
 #include "core/horizon/filesystem/directory.hpp"
 
-#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 
 #define COMMON                                                                 \
     std::vector<std::string_view> broken_path;                                 \
@@ -53,7 +53,7 @@ FsResult Directory::Delete(bool recursive) {
                 return res;
             delete dir;
         } else {
-            auto file = dynamic_cast<FileBase*>(entry.second);
+            auto file = dynamic_cast<IFile*>(entry.second);
             ASSERT(file, Filesystem, "This should not happen");
             const auto res = file->Delete();
             if (res != FsResult::Success)
@@ -66,7 +66,7 @@ FsResult Directory::Delete(bool recursive) {
     return FsResult::Success;
 }
 
-FsResult Directory::AddEntry(const std::string_view path, EntryBase* entry,
+FsResult Directory::AddEntry(const std::string_view path, IEntry* entry,
                              bool add_intermediate) {
     COMMON;
 
@@ -86,11 +86,11 @@ FsResult Directory::AddEntry(const std::string_view path,
     ASSERT(std::filesystem::exists(host_path), Filesystem,
            "Host path \"{}\" does not exist", host_path);
 
-    EntryBase* entry{nullptr};
+    IEntry* entry{nullptr};
     if (std::filesystem::is_directory(host_path)) {
         entry = new Directory(host_path);
     } else if (std::filesystem::is_regular_file(host_path)) {
-        entry = new HostFile(host_path, true);
+        entry = new DiskFile(host_path, true);
     } else {
         LOG_ERROR(Filesystem, "Invalid host path \"{}\"", host_path);
     }
@@ -104,8 +104,7 @@ FsResult Directory::DeleteEntry(const std::string_view path, bool recursive) {
     return DeleteEntryImpl(broken_path, recursive);
 }
 
-FsResult Directory::GetEntry(const std::string_view path,
-                             EntryBase*& out_entry) {
+FsResult Directory::GetEntry(const std::string_view path, IEntry*& out_entry) {
     COMMON;
     if (broken_path.empty()) {
         out_entry = this;
@@ -115,13 +114,13 @@ FsResult Directory::GetEntry(const std::string_view path,
     return GetEntryImpl(broken_path, out_entry);
 }
 
-FsResult Directory::GetFile(const std::string_view path, FileBase*& out_file) {
-    EntryBase* entry;
+FsResult Directory::GetFile(const std::string_view path, IFile*& out_file) {
+    IEntry* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
         return res;
 
-    out_file = dynamic_cast<FileBase*>(entry);
+    out_file = dynamic_cast<IFile*>(entry);
     if (!out_file)
         return FsResult::NotAFile;
 
@@ -130,7 +129,7 @@ FsResult Directory::GetFile(const std::string_view path, FileBase*& out_file) {
 
 FsResult Directory::GetDirectory(const std::string_view path,
                                  Directory*& out_directory) {
-    EntryBase* entry;
+    IEntry* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
         return res;
@@ -143,7 +142,7 @@ FsResult Directory::GetDirectory(const std::string_view path,
 }
 
 FsResult Directory::AddEntryImpl(const std::span<std::string_view> path,
-                                 EntryBase* entry, bool add_intermediate) {
+                                 IEntry* entry, bool add_intermediate) {
     const auto entry_name = path[0];
     auto& e = entries[std::string(entry_name)];
     if (path.size() == 1) {
@@ -197,7 +196,7 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
 }
 
 FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
-                                 EntryBase*& out_entry) {
+                                 IEntry*& out_entry) {
     const auto entry_name = path[0];
     auto it = entries.find(std::string(entry_name));
     if (path.size() == 1) {

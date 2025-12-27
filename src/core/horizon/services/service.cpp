@@ -32,15 +32,13 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
     u8 scratch_buffer_move_handles[0x100];
 
     // Request context
-    kernel::hipc::Readers readers(caller_process->GetMmu(), hipc_in);
-    kernel::hipc::Writers writers(caller_process->GetMmu(), hipc_in,
+    kernel::hipc::Streams streams(caller_process->GetMmu(), hipc_in,
                                   scratch_buffer, scratch_buffer_objects,
                                   scratch_buffer_copy_handles,
                                   scratch_buffer_move_handles);
     RequestContext context{
         caller_process,
-        readers,
-        writers,
+        streams,
     };
 
     // Dispatch
@@ -64,7 +62,7 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
     case kernel::hipc::cmif::CommandType::Control:
     case kernel::hipc::cmif::CommandType::ControlWithContext:
         // TODO: how is ControlWithContext different?
-        Control(caller_process, readers, writers);
+        Control(context);
         break;
     default:
         if (command_type >=
@@ -84,20 +82,20 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
     // Response
     if (should_respond) {
         // HIPC header
-#define GET_ARRAY_SIZE(writer)                                                 \
-    static_cast<u32>(align(writers.writer.Tell(), (usize)4) / sizeof(u32))
+#define GET_ARRAY_SIZE(stream)                                                 \
+    static_cast<u32>(align(streams.stream.GetSeek(), (usize)4) / sizeof(u32))
 
-#define WRITE_ARRAY(writer, ptr)                                               \
+#define WRITE_ARRAY(stream, ptr)                                               \
     if (ptr) {                                                                 \
-        memcpy(ptr, writers.writer.GetBase(), writers.writer.Tell());          \
+        memcpy(ptr, streams.stream.GetPtr(), streams.stream.GetSeek());        \
     }
 
         kernel::hipc::Metadata meta{
             .type = (u32)response_command_type,
             .num_data_words =
-                GET_ARRAY_SIZE(writer) + GET_ARRAY_SIZE(objects_writer),
-            .num_copy_handles = GET_ARRAY_SIZE(copy_handles_writer),
-            .num_move_handles = GET_ARRAY_SIZE(move_handles_writer)};
+                GET_ARRAY_SIZE(out_stream) + GET_ARRAY_SIZE(out_objects_stream),
+            .num_copy_handles = GET_ARRAY_SIZE(out_copy_handles_stream),
+            .num_move_handles = GET_ARRAY_SIZE(out_move_handles_stream)};
         auto response = kernel::hipc::make_request((void*)ptr, meta);
         if (!is_tipc)
             response.data_words =
@@ -109,14 +107,14 @@ void IService::HandleRequest(kernel::Process* caller_process, uptr ptr) {
                                                                 // really how it
                                                                 // works?
             data_start = align_ptr(data_start, 0x10);
-        WRITE_ARRAY(writer, data_start);
-        if (writers.objects_writer.Tell() != 0) {
-            memcpy(data_start + GET_ARRAY_SIZE(writer) * sizeof(u32),
-                   writers.objects_writer.GetBase(),
-                   writers.objects_writer.Tell());
+        WRITE_ARRAY(out_stream, data_start);
+        if (streams.out_objects_stream.GetSeek() != 0) {
+            memcpy(data_start + GET_ARRAY_SIZE(out_stream) * sizeof(u32),
+                   streams.out_objects_stream.GetPtr(),
+                   streams.out_objects_stream.GetSeek());
         }
-        WRITE_ARRAY(copy_handles_writer, response.copy_handles);
-        WRITE_ARRAY(move_handles_writer, response.move_handles);
+        WRITE_ARRAY(out_copy_handles_stream, response.copy_handles);
+        WRITE_ARRAY(out_move_handles_stream, response.move_handles);
 
 #undef GET_ARRAY_SIZE
 #undef WRITE_ARRAY
@@ -131,7 +129,7 @@ void IService::AddService(RequestContext& context, IService* service) {
         service->parent = parent;
 
         const auto handle_id = AddSubservice(service);
-        context.writers.objects_writer.Write(handle_id);
+        context.streams.out_objects_stream.Write(handle_id);
     } else {
         // Create new session
         auto server_session = new kernel::hipc::ServerSession();
@@ -145,7 +143,7 @@ void IService::AddService(RequestContext& context, IService* service) {
         // Register client side
         const auto handle_id =
             context.process->AddHandleNoRetain(client_session);
-        context.writers.move_handles_writer.Write(handle_id);
+        context.streams.out_move_handles_stream.Write(handle_id);
     }
 }
 
@@ -168,18 +166,21 @@ void IService::Close() {
 void IService::Request(RequestContext& context) {
     if (is_domain) {
         // Domain in
-        auto cmif_in =
-            context.readers.reader.Read<kernel::hipc::cmif::DomainInHeader>();
+        auto cmif_in = context.streams.in_stream
+                           .Read<kernel::hipc::cmif::DomainInHeader>();
         // LOG_DEBUG(Services, "Object ID: 0x{:08x}", cmif_in.object_id);
         auto subservice = GetSubservice(cmif_in.object_id);
 
         if (cmif_in.num_in_objects != 0) {
-            auto objects = context.readers.reader.GetPtr() + cmif_in.data_size;
-            context.readers.objects_reader = new Reader(
-                objects, cmif_in.num_in_objects * sizeof(handle_id_t));
+            auto objects = context.streams.in_stream.GetPtr() +
+                           context.streams.in_stream.GetSeek() +
+                           cmif_in.data_size;
+            context.streams.in_objects_stream = io::MemoryStream(
+                std::span(reinterpret_cast<u8*>(objects),
+                          cmif_in.num_in_objects * sizeof(handle_id_t)));
         }
 
-        kernel::hipc::cmif::write_domain_out_header(context.writers.writer);
+        kernel::hipc::cmif::write_domain_out_header(context.streams.out_stream);
 
         switch (cmif_in.type) {
         case kernel::hipc::cmif::DomainCommandType::SendMessage: {
@@ -200,22 +201,24 @@ void IService::Request(RequestContext& context) {
 }
 
 void IService::CmifRequest(RequestContext& context) {
-    auto cmif_in = context.readers.reader.Read<kernel::hipc::cmif::InHeader>();
+    auto cmif_in =
+        context.streams.in_stream.Read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Services,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
-    auto result = kernel::hipc::cmif::write_out_header(context.writers.writer);
+    auto result =
+        kernel::hipc::cmif::write_out_header(context.streams.out_stream);
     *result = RequestImpl(context, cmif_in.command_id);
 }
 
-void IService::Control(kernel::Process* caller_process,
-                       kernel::hipc::Readers& readers,
-                       kernel::hipc::Writers& writers) {
-    auto cmif_in = readers.reader.Read<kernel::hipc::cmif::InHeader>();
+void IService::Control(RequestContext& context) {
+    auto cmif_in =
+        context.streams.in_stream.Read<kernel::hipc::cmif::InHeader>();
     ASSERT_DEBUG(cmif_in.magic == kernel::hipc::cmif::IN_HEADER_MAGIC, Kernel,
                  "Invalid CMIF in magic 0x{:08x}", cmif_in.magic);
 
-    result_t* result = kernel::hipc::cmif::write_out_header(writers.writer);
+    result_t* result =
+        kernel::hipc::cmif::write_out_header(context.streams.out_stream);
 
     const auto command =
         static_cast<kernel::hipc::cmif::ControlCommandType>(cmif_in.command_id);
@@ -225,20 +228,21 @@ void IService::Control(kernel::Process* caller_process,
         is_domain = true;
         subservice_pool = new DynamicPool<IService*>();
         const auto handle_id = AddSubservice(this->Retain());
-        writers.writer.Write(handle_id);
+        context.streams.out_stream.Write(handle_id);
         break;
     }
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject:
-        Clone(caller_process, writers);
+        Clone(context);
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
         // TODO: let the server specify this
-        writers.writer.Write<u16>(0x8000); // The highest known pointer buffer
-                                           // size (used by nvservices)
+        context.streams.out_stream.Write<u16>(
+            0x8000); // The highest known pointer buffer
+                     // size (used by nvservices)
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
-        Clone(caller_process, writers);
+        Clone(context);
         break;
     default:
         LOG_ERROR(Services, "Unimplemented control request {}", command);
@@ -246,8 +250,7 @@ void IService::Control(kernel::Process* caller_process,
     }
 }
 
-void IService::Clone(kernel::Process* caller_process,
-                     kernel::hipc::Writers& writers) {
+void IService::Clone(RequestContext& context) {
     // Create new session
     auto server_session = new kernel::hipc::ServerSession();
     auto client_session = new kernel::hipc::ClientSession();
@@ -257,15 +260,15 @@ void IService::Clone(kernel::Process* caller_process,
     server->RegisterSession(server_session, this);
 
     // Register client side
-    const auto handle_id = caller_process->AddHandleNoRetain(client_session);
-    writers.move_handles_writer.Write(handle_id);
+    const auto handle_id = context.process->AddHandleNoRetain(client_session);
+    context.streams.out_move_handles_stream.Write(handle_id);
 }
 
 void IService::TipcRequest(RequestContext& context, const u32 command_id) {
     ASSERT_DEBUG(!is_domain, Kernel,
                  "TIPC is not supported for domain services");
-    auto result = context.writers.writer.WritePtr<result_t>();
-    *result = RequestImpl(context, command_id);
+    const auto result = RequestImpl(context, command_id);
+    context.streams.out_stream.Write(result);
 }
 
 } // namespace hydra::horizon::services

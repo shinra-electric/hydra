@@ -25,20 +25,25 @@ struct ParcelFlattenedBinder {
 
 class ParcelReader {
   public:
-    ParcelReader(const Reader& reader_) : reader{reader_} {
+    ParcelReader(io::MemoryStream* stream_) : stream{stream_} {
         auto header = Read<ParcelHeader>();
-        reader.Seek(header.data_offset);
+        stream->SeekTo(header.data_offset);
     }
 
     template <typename T>
-    const T* ReadPtr(usize count = 1) {
-        const T* ptr = reader.ReadPtr<T>(count);
+    const std::span<const T> ReadSpan(usize count) {
+        const auto span = stream->ReadSpan<T>(count);
 
         // Align
-        usize size = sizeof(T) * count;
-        reader.Skip(align(size, (usize)4) - size);
+        usize size = count * sizeof(T);
+        stream->SeekBy(align(size, (usize)4) - size);
 
-        return ptr;
+        return span;
+    }
+
+    template <typename T>
+    const T* ReadPtr() {
+        return ReadSpan<T>(1).data();
     }
 
     template <typename T>
@@ -68,9 +73,10 @@ class ParcelReader {
             return nullptr;
     }
 
+    // TODO: check this
     std::string ReadString16() {
         usize length = Read<i32>();
-        auto data = ReadPtr<u16>(length + 1);
+        auto data = ReadSpan<u16>(length + 1);
 
         std::string str(length, '\0');
         for (usize i = 0; i < length + 1; i++)
@@ -88,42 +94,55 @@ class ParcelReader {
     }
 
   private:
-    Reader reader;
+    io::MemoryStream* stream;
 };
 
 class ParcelWriter {
   public:
-    ParcelWriter(const Writer& writer_) : writer{writer_} {
-        header = writer.WritePtr<ParcelHeader>();
-        header->data_size = 0x0;
-        header->data_offset = sizeof(ParcelHeader);
-        header->objects_size = 0x0;
-        header->objects_offset = 0x0;
+    ParcelWriter(io::MemoryStream* stream_) : stream{stream_} {
+        header = stream->WriteReturningPtr<ParcelHeader>({
+            .data_size = 0x0,
+            .data_offset = sizeof(ParcelHeader),
+            .objects_size = 0x0,
+            .objects_offset = 0x0,
+        });
     }
 
     void Finish() {
         header->data_size =
-            static_cast<u32>(writer.Tell() - header->data_offset);
+            static_cast<u32>(stream->GetSeek() - header->data_offset);
         header->objects_size = static_cast<u32>(objects.size() * sizeof(u32));
         header->objects_offset = header->data_offset + header->data_size;
-        std::memcpy(writer.GetBase() + header->objects_offset, objects.data(),
-                    header->objects_size);
+        stream->SeekTo(header->objects_offset);
+        stream->WriteSpan(std::span<const u32>(objects));
     }
 
     template <typename T>
-    T* WritePtr(const T* data = nullptr, usize count = 1) {
-        auto ptr = writer.WritePtr(data, count);
+    T* WriteReturningPtr() {
+        return WriteReturningSpan<T>(1).data();
+    }
 
-        // Align
-        usize size = sizeof(T) * count;
-        writer.Skip(align(size, (usize)4) - size);
-
+    template <typename T>
+    T* WriteReturningPtr(const T& value) {
+        auto ptr = WriteReturningPtr<T>();
+        *ptr = value;
         return ptr;
     }
 
     template <typename T>
+    std::span<T> WriteReturningSpan(usize count) {
+        auto span = stream->WriteReturningSpan<T>(count);
+
+        // Align
+        usize size = count * sizeof(T);
+        stream->SeekBy(align(size, (usize)4) - size);
+
+        return span;
+    }
+
+    template <typename T>
     void Write(const T& value) {
-        WritePtr(&value);
+        WriteReturningPtr(value);
     }
 
     template <typename T>
@@ -142,7 +161,7 @@ class ParcelWriter {
 
     // TODO: take the object instead of binder ID
     void WriteObject(u32 binder_id, u64 service_name) {
-        Write(ParcelFlattenedBinder{
+        Write<ParcelFlattenedBinder>({
             .type = 0x2,
             .flags = 0x0,
             .binder_id = binder_id,
@@ -155,13 +174,15 @@ class ParcelWriter {
         objects.push_back(0x0);
     }
 
+    // TODO: check this
     void WriteString16(const std::string_view str) {
         ASSERT_DEBUG(str.size() != 0, Services, "Invalid string size");
         Write(static_cast<i32>(str.size()));
-        auto ptr = WritePtr<u16>(nullptr, str.size() + 1);
+        auto span = WriteReturningSpan<u16>(str.size() + 1);
 
-        for (u32 i = 0; i < str.size() + 1; i++)
-            ptr[i] = str[i];
+        for (u32 i = 0; i < str.size(); i++)
+            span[i] = str[i];
+        span[str.size()] = u'\0';
     }
 
     void WriteInterfaceToken(const std::string_view token) {
@@ -174,7 +195,7 @@ class ParcelWriter {
     }
 
   private:
-    Writer writer;
+    io::MemoryStream* stream;
 
     ParcelHeader* header;
     std::vector<u32> objects;

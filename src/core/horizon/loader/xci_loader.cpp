@@ -106,12 +106,11 @@ usize get_rom_size(const RomSize size) {
 
 } // namespace
 
-XciLoader::XciLoader(filesystem::FileBase* file) {
+XciLoader::XciLoader(filesystem::IFile* file) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<XciHeader>();
+    const auto header = stream->Read<XciHeader>();
     ASSERT(header.magic == make_magic4('H', 'E', 'A', 'D'), Loader,
            "Invalid XCI magic 0x{:08X}", header.magic);
 
@@ -123,17 +122,17 @@ XciLoader::XciLoader(filesystem::FileBase* file) {
     // Normal
     /*
     {
-        filesystem::EntryBase* normal_entry;
+        filesystem::IEntry* normal_entry;
         if (root_pfs.GetEntry("normal", normal_entry) !=
             filesystem::FsResult::Success) {
             LOG_ERROR(Loader, "Failed to find \"normal\" entry");
             return;
         }
 
-        auto normal_file = dynamic_cast<filesystem::FileBase*>(normal_entry);
+        auto normal_file = dynamic_cast<filesystem::IFile*>(normal_entry);
         if (!normal_file) {
             LOG_ERROR(Loader,
-                        "Failed to cast \"normal\" entry to FileBase");
+                        "Failed to cast \"normal\" entry to IFile");
             return;
         }
 
@@ -143,7 +142,7 @@ XciLoader::XciLoader(filesystem::FileBase* file) {
 
     // Secure
     {
-        filesystem::FileBase* secure_file;
+        filesystem::IFile* secure_file;
         if (root_pfs.GetFile("secure", secure_file) !=
             filesystem::FsResult::Success) {
             LOG_ERROR(Loader, "Failed to find \"secure\" file");
@@ -157,7 +156,7 @@ XciLoader::XciLoader(filesystem::FileBase* file) {
 
     // TODO: update
 
-    file->Close(stream);
+    delete stream;
 }
 
 } // namespace hydra::horizon::loader

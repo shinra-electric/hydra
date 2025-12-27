@@ -164,8 +164,8 @@ struct Header {
     // TODO: correct?
     u8 section_hashes[4][0x20];
     u8 encrypted_keys[4][0x10];
-    u8 padding_0x340[0xC0];
-    FsHeader fs_headers[FS_ENTRY_COUNT]; /* FS section headers. */
+    u8 padding_0x340[0xc0];
+    FsHeader fs_headers[FS_ENTRY_COUNT];
 
     SectionType get_section_type_from_index(const u32 index) const {
         if (content_type == ContentArchiveContentType::Program) {
@@ -199,12 +199,11 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::HashType, Auto, "auto", None,
 
 namespace hydra::horizon::filesystem {
 
-ContentArchive::ContentArchive(FileBase* file) {
+ContentArchive::ContentArchive(IFile* file) {
     auto stream = file->Open(FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<Header>();
+    const auto header = stream->Read<Header>();
     // TODO: allow other NCA versions as well
     ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
@@ -269,7 +268,7 @@ ContentArchive::ContentArchive(FileBase* file) {
         }
     }
 
-    file->Close(stream);
+    delete stream;
 }
 
 } // namespace hydra::horizon::filesystem

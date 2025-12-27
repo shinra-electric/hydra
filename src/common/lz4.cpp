@@ -4,7 +4,7 @@ namespace hydra {
 
 namespace {
 
-u32 get_length(const u8* src, u32& cmp_pos, u32 length) {
+u32 GetLength(std::span<const u8> src, u32& cmp_pos, u32 length) {
     u8 sum;
     if (length == 0xf) {
         do {
@@ -17,7 +17,7 @@ u32 get_length(const u8* src, u32& cmp_pos, u32 length) {
 
 } // namespace
 
-void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size) {
+void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
     u32 cmp_pos = 0;
     u32 dec_pos = 0;
 
@@ -28,14 +28,14 @@ void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size) {
         u32 lit_count = (token >> 4) & 0xf;
 
         // Copy literal chunk
-        lit_count = get_length(src, cmp_pos, lit_count);
+        lit_count = GetLength(src, cmp_pos, lit_count);
 
-        memcpy(dst + dec_pos, src + cmp_pos, lit_count);
+        memcpy(dst.data() + dec_pos, src.data() + cmp_pos, lit_count);
 
         cmp_pos += lit_count;
         dec_pos += lit_count;
 
-        if (cmp_pos >= src_size) {
+        if (cmp_pos >= src.size()) {
             break;
         }
 
@@ -43,12 +43,12 @@ void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size) {
         u32 back = src[cmp_pos++] << 0;
         back |= src[cmp_pos++] << 8;
 
-        enc_count = get_length(src, cmp_pos, enc_count) + 4;
+        enc_count = GetLength(src, cmp_pos, enc_count) + 4;
 
         u32 enc_pos = dec_pos - back;
 
         if (enc_count <= back) {
-            memcpy(dst + dec_pos, dst + enc_pos, enc_count);
+            memcpy(dst.data() + dec_pos, dst.data() + enc_pos, enc_count);
 
             dec_pos += enc_count;
         } else {
@@ -56,7 +56,7 @@ void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size) {
                 dst[dec_pos++] = dst[enc_pos++];
             }
         }
-    } while (cmp_pos < src_size && dec_pos < dst_size);
+    } while (cmp_pos < src.size() && dec_pos < dst.size());
 }
 
 } // namespace hydra

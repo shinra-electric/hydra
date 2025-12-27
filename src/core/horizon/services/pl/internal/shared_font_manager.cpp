@@ -1,10 +1,10 @@
 #include "core/horizon/services/pl/internal/shared_font_manager.hpp"
 
 #include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/partition_filesystem.hpp"
-#include "core/horizon/filesystem/romfs.hpp"
+#include "core/horizon/filesystem/romfs/romfs.hpp"
 
 namespace hydra::horizon::services::pl::internal {
 
@@ -35,11 +35,11 @@ constexpr SharedFontName shared_font_names[] = {
 
 #undef SHARED_FONT_ENTRY
 
-filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
+filesystem::IFile* GetSharedFontFile(SharedFontType font_type) {
     const auto& name = shared_font_names[(u32)font_type];
 
     // NCA
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     auto res = KERNEL_INSTANCE.GetFilesystem().GetFile(
         fmt::format(FS_FIRMWARE_PATH "/{}", name.name), file);
     if (res != filesystem::FsResult::Success) {
@@ -51,7 +51,7 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
     filesystem::ContentArchive content_archive(file);
 
     // Data
-    filesystem::FileBase* data_file;
+    filesystem::IFile* data_file;
     res = content_archive.GetFile("data", data_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {} data: {}", font_type,
@@ -60,10 +60,10 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
     }
 
     // RomFS
-    filesystem::RomFS romfs(data_file);
+    filesystem::romfs::RomFS romfs(data_file);
 
     // Font
-    filesystem::FileBase* font_file;
+    filesystem::IFile* font_file;
     res = romfs.GetFile(name.filename, font_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Services, "Failed to get shared font {}: {}", font_type, res);
@@ -76,19 +76,19 @@ filesystem::FileBase* GetSharedFontFile(SharedFontType font_type) {
 constexpr u32 BFTTF_MAGIC = 0x18029a7f;
 constexpr u32 FONT_KEY = 0x06186249;
 
-result_t DecryptBFTTF(StreamReader reader, Writer writer) {
+result_t DecryptBFTTF(io::IStream* in_stream, io::IStream* out_stream) {
 #define KEY_XOR(x) (x ^ FONT_KEY)
 
-    const auto magic = KEY_XOR(reader.Read<u32>());
+    const auto magic = KEY_XOR(in_stream->Read<u32>());
     if (magic != BFTTF_MAGIC) {
         LOG_ERROR(Services, "Invalid BFTTF magic");
         return MAKE_RESULT(Svc, 100); // TODO
     }
 
-    reader.Skip(4);
+    in_stream->SeekBy(4);
 
-    for (u32 i = 0; i < (reader.GetSize() - 8) / sizeof(u32); i++)
-        writer.Write(KEY_XOR(reader.Read<u32>()));
+    for (u32 i = 0; i < (in_stream->GetSize() - 8) / sizeof(u32); i++)
+        out_stream->Write(KEY_XOR(in_stream->Read<u32>()));
 
 #undef KEY_XOR
 
@@ -115,12 +115,13 @@ void SharedFontManager::LoadFont(const SharedFontType type) {
 
     // Load
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    const auto res = DecryptBFTTF(
-        reader, Writer((u8*)shared_memory->GetPtr() + shared_memory_offset,
-                       SHARED_MEMORY_SIZE - shared_memory_offset));
-    file->Close(stream);
+    io::MemoryStream out_stream(std::span(
+        reinterpret_cast<u8*>(shared_memory->GetPtr()) + shared_memory_offset,
+        SHARED_MEMORY_SIZE - shared_memory_offset));
+    const auto res = DecryptBFTTF(stream, &out_stream);
+
+    delete stream;
     if (res != RESULT_SUCCESS)
         return;
 

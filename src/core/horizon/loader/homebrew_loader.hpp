@@ -6,15 +6,15 @@ namespace hydra::horizon::loader {
 
 class HomebrewLoader : public LoaderBase {
   public:
-    HomebrewLoader(filesystem::FileBase* file_);
+    HomebrewLoader(filesystem::IFile* file_);
 
     void LoadProcess(kernel::Process* process) override;
 
   private:
-    filesystem::FileBase* file;
+    filesystem::IFile* file;
     NroLoader nro_loader;
 
-    void TryLoadAssetSection(filesystem::FileBase* file);
+    void TryLoadAssetSection(filesystem::IFile* file);
 };
 
 } // namespace hydra::horizon::loader

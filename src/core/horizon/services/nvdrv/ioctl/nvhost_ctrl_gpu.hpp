@@ -94,7 +94,7 @@ class NvHostCtrlGpu : public FdBase {
         GpuCharacteristics out_characteristics;
         const auto res = GetCharacteristics(inout_buffer_size, buffer_addr,
                                             &out_characteristics);
-        ctx->buffer_writer->Write(out_characteristics);
+        ctx->out_buffer_stream->Write(out_characteristics);
         return res;
     }
     NvResult GetTpcMasks3(IoctlContext* ctx, u32 mask_buffer_size,
@@ -102,7 +102,7 @@ class NvHostCtrlGpu : public FdBase {
         u64 out_mask_buffer;
         const auto res =
             GetTpcMasks(mask_buffer_size, reserved, &out_mask_buffer);
-        ctx->buffer_writer->Write(out_mask_buffer);
+        ctx->out_buffer_stream->Write(out_mask_buffer);
         return res;
     }
 };

@@ -1,7 +1,7 @@
 #include "core/horizon/os.hpp"
 
 #include "core/horizon/filesystem/content_archive.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/firmware.hpp"
 #include "core/horizon/kernel/hipc/client_port.hpp"
 #include "core/horizon/kernel/hipc/port.hpp"
@@ -329,7 +329,7 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
             if (!std::filesystem::exists(exefs_path))
                 continue;
 
-            filesystem::HostFile file(exefs_path);
+            filesystem::DiskFile file(exefs_path);
             loader::NspLoader loader(&file);
 
             // Start a new process

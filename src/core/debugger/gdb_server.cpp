@@ -7,7 +7,7 @@
 #include <nx2elf.h>
 
 #include "core/debugger/debugger_manager.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/kernel/guest_thread.hpp"
 #include "core/horizon/kernel/process.hpp"
 #include "core/hw/tegra_x1/cpu/cpu.hpp"
@@ -699,12 +699,11 @@ void GdbServer::HandleGetExecutables() {
         // Load the executable
         auto file = debugger.executables.at(module_.name);
         auto stream = file->Open(horizon::filesystem::FileOpenFlags::Read);
-        auto reader = stream.CreateReader();
 
-        std::vector<u8> data(reader.GetSize());
-        reader.ReadWhole(data.data());
+        std::vector<u8> data(stream->GetSize());
+        stream->ReadToSpan(std::span(data));
 
-        file->Close(stream);
+        delete stream;
 
         // Convert to ELF
         NsoFile nso;

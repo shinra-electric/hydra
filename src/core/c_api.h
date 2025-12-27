@@ -196,7 +196,7 @@ HydraContentArchiveContentType
 hydra_content_archive_get_content_type(void* content_archive);
 
 // Loader
-void* hydra_create_loader_from_file(hydra_string path);
+void* hydra_create_loader_from_path(hydra_string path);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);

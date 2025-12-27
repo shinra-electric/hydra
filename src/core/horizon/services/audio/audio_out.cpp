@@ -47,7 +47,7 @@ result_t
 IAudioOut::AppendAudioOutBuffer(kernel::Process* process, u64 buffer_client_ptr,
                                 InBuffer<BufferAttr::MapAlias> buffer_buffer) {
     return AppendAudioOutBufferImpl(process, buffer_client_ptr,
-                                    *buffer_buffer.reader);
+                                    buffer_buffer.stream);
 }
 
 result_t
@@ -59,27 +59,26 @@ IAudioOut::RegisterBufferEvent(kernel::Process* process,
 
 result_t IAudioOut::GetReleasedAudioOutBuffers(
     u32* out_count, OutBuffer<BufferAttr::MapAlias> out_buffers_buffer) {
-    return GetReleasedAudioOutBuffersImpl(out_count,
-                                          *out_buffers_buffer.writer);
+    return GetReleasedAudioOutBuffersImpl(out_count, out_buffers_buffer.stream);
 }
 
 result_t IAudioOut::AppendAudioOutBufferAuto(
     kernel::Process* process, u64 buffer_client_ptr,
     InBuffer<BufferAttr::AutoSelect> buffer_buffer) {
     return AppendAudioOutBufferImpl(process, buffer_client_ptr,
-                                    *buffer_buffer.reader);
+                                    buffer_buffer.stream);
 }
 
 result_t IAudioOut::GetReleasedAudioOutBuffersAuto(
     u32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffers_buffer) {
-    return GetReleasedAudioOutBuffersImpl(out_count,
-                                          *out_buffers_buffer.writer);
+    return GetReleasedAudioOutBuffersImpl(out_count, out_buffers_buffer.stream);
 }
 
-result_t IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
-                                             u64 buffer_client_ptr,
-                                             Reader buffer_reader) {
-    const auto buffer = buffer_reader.Read<Buffer>();
+result_t
+IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
+                                    u64 buffer_client_ptr,
+                                    io::MemoryStream* in_buffer_stream) {
+    const auto buffer = in_buffer_stream->Read<Buffer>();
     // TODO: correct?
     stream->EnqueueBuffer(
         buffer_client_ptr,
@@ -89,17 +88,17 @@ result_t IAudioOut::AppendAudioOutBufferImpl(kernel::Process* process,
     return RESULT_SUCCESS;
 }
 
-result_t IAudioOut::GetReleasedAudioOutBuffersImpl(u32* out_count,
-                                                   Writer& out_buffers_writer) {
+result_t IAudioOut::GetReleasedAudioOutBuffersImpl(
+    u32* out_count, io::MemoryStream* out_buffers_stream) {
     std::unique_lock lock(buffer_mutex);
 
     *out_count = static_cast<u32>(released_buffers.size());
 
     if (released_buffers.empty()) {
-        out_buffers_writer.Write<u64>(0);
+        out_buffers_stream->Write<u64>(0);
     } else {
         for (const auto client_ptr : released_buffers)
-            out_buffers_writer.Write(client_ptr);
+            out_buffers_stream->Write(client_ptr);
         released_buffers.clear();
     }
 

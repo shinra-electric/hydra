@@ -29,45 +29,47 @@ struct GameListView: View {
             do {
                 let url = try resolveUrl(URL(fileURLWithPath: gamePath))
 
-                var isDirectory: ObjCBool = false
-                guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
-                else {
-                    // TODO: error popup
-                    print("Game path \"\(url)\" does not exist")
-                    continue
-                }
-
-                if !isDirectory.boolValue {
-                    tryAddGame(url: url)
-                } else {
-                    // Iterate recursively over the game directories
-                    guard
-                        let enumerator = FileManager.default.enumerator(
-                            at: url, includingPropertiesForKeys: nil)
-                    else {
-                        // TODO: error popup
-                        print("Invalid game directory \(gamePath)")
-                        return
-                    }
-
-                    while let url = enumerator.nextObject() as? URL {
-                        tryAddGame(url: url)
-                    }
-                }
+                try processUrl(url: url)
             } catch {
                 // TODO: error popup
-                print("Failed to load game path \(gamePath)")
+                print("Failed to load game path \(gamePath): \(error)")
             }
         }
     }
 
-    func tryAddGame(url: URL) {
-        // TODO: handle this better
-        if url.pathExtension != "nro" && url.pathExtension != "nso" && url.pathExtension != "nca" {
+    func processUrl(url: URL) throws {
+        // Check if the URL is a game
+        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca" || url.pathExtension == "nx" {
+            tryAddGame(url: url)
             return
         }
 
-        guard let game = createGameFromFile(url: url) else {
+        // Check if the URL is a directory
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
+            // TODO: error popup
+            print("Game path \"\(url)\" does not exist")
+            return
+        }
+
+        if !isDirectory.boolValue {
+            return
+        }
+
+        let urls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+        for url in urls {
+            try processUrl(url: url)
+        }
+    }
+
+    func tryAddGame(url: URL) {
+        // HACK
+        if url.lastPathComponent == "Makefile.nx" {
+            print("Ignoring Makefile.nx")
+            return
+        }
+
+        guard let game = createGameFromPath(url: url) else {
             return
         }
 

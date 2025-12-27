@@ -4,6 +4,6 @@
 
 namespace hydra {
 
-void decompress_lz4(const u8* src, usize src_size, u8* dst, usize dst_size);
+void DecompressLZ4(std::span<const u8> src, std::span<u8> dst);
 
 } // namespace hydra

@@ -22,22 +22,22 @@ DEFINE_SERVICE_COMMAND_TABLE(
 result_t
 IAudioDevice::ListAudioDeviceName(i32* out_count,
                                   OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    return ListAudioDeviceNameImpl(out_count, *out_buffer.writer);
+    return ListAudioDeviceNameImpl(out_count, out_buffer.stream);
 }
 
 result_t IAudioDevice::SetAudioDeviceOutputVolume(
     f32 volume, InBuffer<BufferAttr::MapAlias> in_name_buffer) {
-    return SetAudioDeviceOutputVolumeImpl(volume, *in_name_buffer.reader);
+    return SetAudioDeviceOutputVolumeImpl(volume, in_name_buffer.stream);
 }
 
 result_t IAudioDevice::GetAudioDeviceOutputVolume(
     InBuffer<BufferAttr::MapAlias> in_name_buffer, f32* out_volume) {
-    return GetAudioDeviceOutputVolumeImpl(*in_name_buffer.reader, out_volume);
+    return GetAudioDeviceOutputVolumeImpl(in_name_buffer.stream, out_volume);
 }
 
 result_t IAudioDevice::GetActiveAudioDeviceName(
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    return GetActiveAudioDeviceNameImpl(*out_buffer.writer);
+    return GetActiveAudioDeviceNameImpl(out_buffer.stream);
 }
 
 result_t IAudioDevice::QueryAudioDeviceSystemEvent(
@@ -59,50 +59,52 @@ result_t IAudioDevice::GetActiveChannelCount(i32* out_count) {
 
 result_t IAudioDevice::ListAudioDeviceNameAuto(
     i32* out_count, OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return ListAudioDeviceNameImpl(out_count, *out_buffer.writer);
+    return ListAudioDeviceNameImpl(out_count, out_buffer.stream);
 }
 
 result_t IAudioDevice::SetAudioDeviceOutputVolumeAuto(
     f32 volume, InBuffer<BufferAttr::AutoSelect> in_name_buffer) {
-    return SetAudioDeviceOutputVolumeImpl(volume, *in_name_buffer.reader);
+    return SetAudioDeviceOutputVolumeImpl(volume, in_name_buffer.stream);
 }
 
 result_t IAudioDevice::GetAudioDeviceOutputVolumeAuto(
     InBuffer<BufferAttr::AutoSelect> in_name_buffer, f32* out_volume) {
-    return GetAudioDeviceOutputVolumeImpl(*in_name_buffer.reader, out_volume);
+    return GetAudioDeviceOutputVolumeImpl(in_name_buffer.stream, out_volume);
 }
 
 result_t IAudioDevice::GetActiveAudioDeviceNameAuto(
     OutBuffer<BufferAttr::AutoSelect> out_buffer) {
-    return GetActiveAudioDeviceNameImpl(*out_buffer.writer);
+    return GetActiveAudioDeviceNameImpl(out_buffer.stream);
 }
 
 result_t IAudioDevice::ListAudioDeviceNameImpl(i32* out_count,
-                                               Writer& out_writer) {
+                                               io::MemoryStream* out_stream) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
     *out_count = 1;
-    out_writer.Write<DeviceName>({"Hydra audio device"});
+    out_stream->Write<DeviceName>({"Hydra audio device"});
     return RESULT_SUCCESS;
 }
 
-result_t IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
-                                                      Reader& in_name_reader) {
+result_t
+IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
+                                             io::MemoryStream* in_name_stream) {
     LOG_FUNC_STUBBED(Services);
 
-    const auto device_name_raw = in_name_reader.ReadPtr<DeviceName>();
+    const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
     LOG_DEBUG(Services, "Name: {}, volume: {}", device_name, volume);
 
     return RESULT_SUCCESS;
 }
 
-result_t IAudioDevice::GetAudioDeviceOutputVolumeImpl(Reader& in_name_reader,
-                                                      f32* out_volume) {
+result_t
+IAudioDevice::GetAudioDeviceOutputVolumeImpl(io::MemoryStream* in_name_stream,
+                                             f32* out_volume) {
     LOG_FUNC_STUBBED(Services);
 
-    const auto device_name_raw = in_name_reader.ReadPtr<DeviceName>();
+    const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
     LOG_DEBUG(Services, "Name: {}", device_name);
 
@@ -111,11 +113,12 @@ result_t IAudioDevice::GetAudioDeviceOutputVolumeImpl(Reader& in_name_reader,
     return RESULT_SUCCESS;
 }
 
-result_t IAudioDevice::GetActiveAudioDeviceNameImpl(Writer& out_writer) {
+result_t
+IAudioDevice::GetActiveAudioDeviceNameImpl(io::MemoryStream* out_stream) {
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    out_writer.Write<DeviceName>({"Hydra audio device"});
+    out_stream->Write<DeviceName>({"Hydra audio device"});
     return RESULT_SUCCESS;
 }
 

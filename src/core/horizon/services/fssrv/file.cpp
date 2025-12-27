@@ -1,6 +1,6 @@
 #include "core/horizon/services/fssrv/file.hpp"
 
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 
 namespace hydra::horizon::services::fssrv {
@@ -8,10 +8,10 @@ namespace hydra::horizon::services::fssrv {
 DEFINE_SERVICE_COMMAND_TABLE(IFile, 0, Read, 1, Write, 2, Flush, 3, SetSize, 4,
                              GetSize)
 
-IFile::IFile(filesystem::FileBase* file_, filesystem::FileOpenFlags flags)
-    : file{file_}, stream(file->Open(flags)) {}
+IFile::IFile(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
+    : file{file_}, stream{file->Open(flags)} {}
 
-IFile::~IFile() { file->Close(stream); }
+IFile::~IFile() { delete stream; }
 
 // TODO: option
 result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
@@ -21,16 +21,15 @@ result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
 
     ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
-    auto reader = stream.CreateReader();
-    const auto max_size = reader.GetSize() - offset;
+    const auto max_size = stream->GetSize() - offset;
     if (size > max_size) {
         LOG_WARN(Services, "Reading {} bytes, but maximum readable size is {}",
                  size, max_size);
         size = max_size;
     }
 
-    reader.Seek(offset);
-    reader.ReadPtr(out_buffer.writer->GetBase(), size);
+    stream->SeekTo(offset);
+    stream->ReadToSpan(out_buffer.stream->WriteReturningSpan<u8>(size));
 
     *out_written_size = size;
     return RESULT_SUCCESS;
@@ -43,10 +42,8 @@ result_t IFile::Write(aligned<u32, 8> option, i64 offset, u64 size,
 
     ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
-    auto writer = stream.CreateWriter();
-    writer.Seek(offset);
-    writer.WritePtr(in_buffer.reader->GetBase(), size);
-    // writer.Flush();
+    stream->SeekTo(offset);
+    stream->WriteSpan(in_buffer.stream->ReadSpan<u8>(size));
 
     return RESULT_SUCCESS;
 }

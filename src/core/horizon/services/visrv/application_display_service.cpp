@@ -46,7 +46,7 @@ result_t IApplicationDisplayService::GetRelayService(RequestContext* ctx) {
                  "GetRelayService cannot be a domain service");
     auto client_session = client_port->Connect();
     const auto handle = ctx->process->AddHandle(client_session);
-    ctx->writers.move_handles_writer.Write(handle);
+    ctx->streams.out_move_handles_stream.Write(handle);
 
     return RESULT_SUCCESS;
 }
@@ -76,7 +76,7 @@ result_t IApplicationDisplayService::GetIndirectDisplayTransactionService(
 result_t IApplicationDisplayService::ListDisplays(
     u64* out_count, OutBuffer<BufferAttr::MapAlias> out_display_infos_buffer) {
     const auto res = OS_INSTANCE.GetDisplayResolution();
-    out_display_infos_buffer.writer->Write<DisplayInfo>({
+    out_display_infos_buffer.stream->Write<DisplayInfo>({
         .name = "Default",
         .has_layer_limit = true,
         .layer_count_max = 1,
@@ -132,7 +132,7 @@ result_t IApplicationDisplayService::OpenLayer(
     layer.Open();
 
     // Parcel
-    hosbinder::ParcelWriter parcel_writer(*parcel_buffer.writer);
+    hosbinder::ParcelWriter parcel_writer(parcel_buffer.stream);
     parcel_writer.WriteObject(layer.GetBinderID(), "dispdrv"_u64);
     parcel_writer.Finish();
 
@@ -152,7 +152,7 @@ result_t IApplicationDisplayService::CreateStrayLayer(
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(process, flags, display_id, out_layer_id,
                                 out_native_window_size,
-                                *out_parcel_buffer.writer);
+                                out_parcel_buffer.stream);
 }
 
 result_t IApplicationDisplayService::DestroyStrayLayer(u64 layer_id) {

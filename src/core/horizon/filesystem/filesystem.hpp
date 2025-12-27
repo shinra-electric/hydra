@@ -4,7 +4,7 @@
 
 namespace hydra::horizon::filesystem {
 
-class FileBase;
+class IFile;
 
 class Filesystem {
   public:
@@ -13,8 +13,7 @@ class Filesystem {
     void Mount(const std::string_view mount);
     void Mount(const std::string_view mount, const std::string_view root_path);
 
-    [[nodiscard]] FsResult AddEntry(const std::string_view path,
-                                    EntryBase* entry,
+    [[nodiscard]] FsResult AddEntry(const std::string_view path, IEntry* entry,
                                     bool add_intermediate = false);
     [[nodiscard]] FsResult AddEntry(const std::string_view path,
                                     const std::string_view host_path,
@@ -29,9 +28,9 @@ class Filesystem {
                                        bool recursive = false);
 
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    EntryBase*& out_entry);
+                                    IEntry*& out_entry);
     [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   FileBase*& out_file);
+                                   IFile*& out_file);
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
                                         Directory*& out_directory);
 

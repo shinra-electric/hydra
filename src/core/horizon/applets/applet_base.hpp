@@ -27,18 +27,18 @@ class AppletBase {
     // Helpers
 
     // Data
-    Reader PopInDataRaw() {
+    io::MemoryStream PopInDataRaw() {
         auto data = controller.PopInData()->GetData();
-        return Reader(data.GetPtrU8(), data.GetSize());
+        return io::MemoryStream(std::span(data.GetPtrU8(), data.GetSize()));
     }
 
     template <typename T>
     T PopInData() {
-        auto reader = PopInDataRaw();
-        ASSERT(reader.GetSize() >= sizeof(T), Applets,
-               "Not enough space ({} < {})", reader.GetSize(), sizeof(T));
+        auto stream = PopInDataRaw();
+        ASSERT(stream.GetSize() >= sizeof(T), Applets,
+               "Not enough space ({} < {})", stream.GetSize(), sizeof(T));
 
-        return reader.Read<T>();
+        return stream.Read<T>();
     }
 
     void PushOutDataRaw(const sized_ptr data) {
@@ -53,20 +53,20 @@ class AppletBase {
     }
 
     // Interactive data
-    Reader PopInteractiveInDataRaw() {
+    io::MemoryStream PopInteractiveInDataRaw() {
         // TODO: wait
         // controller.GetInteractiveInDataEvent()->Wait();
         auto data = controller.PopInteractiveInData()->GetData();
-        return Reader(data.GetPtrU8(), data.GetSize());
+        return io::MemoryStream(std::span(data.GetPtrU8(), data.GetSize()));
     }
 
     template <typename T>
     T PopInteractiveInData() {
-        auto reader = PopInteractiveInDataRaw();
-        ASSERT(reader.GetSize() >= sizeof(T), Applets,
-               "Not enough space ({} < {})", reader.GetSize(), sizeof(T));
+        auto stream = PopInteractiveInDataRaw();
+        ASSERT(stream.GetSize() >= sizeof(T), Applets,
+               "Not enough space ({} < {})", stream.GetSize(), sizeof(T));
 
-        return reader.Read<T>();
+        return stream.Read<T>();
     }
 
     void PushInteractiveOutDataRaw(const sized_ptr data) {

@@ -44,7 +44,7 @@ result_t ISystemDisplayService::CreateStrayLayer(
     OutBuffer<BufferAttr::MapAlias> out_parcel_buffer) {
     return CreateStrayLayerImpl(process, flags, display_id, out_layer_id,
                                 out_native_window_size,
-                                *out_parcel_buffer.writer);
+                                out_parcel_buffer.stream);
 }
 
 result_t ISystemDisplayService::SetLayerVisibility(u64 layer_id, bool visible) {

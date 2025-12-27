@@ -15,8 +15,7 @@ class IService;
 
 struct RequestContext {
     kernel::Process* process;
-    kernel::hipc::Readers& readers;
-    kernel::hipc::Writers& writers;
+    kernel::hipc::Streams& streams;
 };
 
 class IService {
@@ -70,10 +69,8 @@ class IService {
     void Close();
     void Request(RequestContext& context);
     void CmifRequest(RequestContext& context);
-    void Control(kernel::Process* caller_process,
-                 kernel::hipc::Readers& readers,
-                 kernel::hipc::Writers& writers);
-    void Clone(kernel::Process* caller_process, kernel::hipc::Writers& writers);
+    void Control(RequestContext& context);
+    void Clone(RequestContext& context);
     void TipcRequest(RequestContext& context, const u32 command_id);
 
   public:

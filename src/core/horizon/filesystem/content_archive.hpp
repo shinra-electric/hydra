@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 
 namespace hydra::horizon::filesystem {
 
@@ -16,7 +16,7 @@ enum class ContentArchiveContentType : u8 {
 
 class ContentArchive final : public Directory {
   public:
-    ContentArchive(FileBase* file);
+    ContentArchive(IFile* file);
 
   private:
     ContentArchiveContentType content_type;

@@ -12,7 +12,7 @@ IProfile::Get(ProfileBase* out_base,
               OutBuffer<BufferAttr::HipcPointer> out_user_data_buffer) {
     const auto& user = USER_MANAGER_INSTANCE.GetUser(user_id);
     *out_base = user.GetBase();
-    out_user_data_buffer.writer->Write(user.GetData());
+    out_user_data_buffer.stream->Write(user.GetData());
     return RESULT_SUCCESS;
 }
 
@@ -43,7 +43,7 @@ result_t IProfile::LoadImage(OutBuffer<BufferAttr::MapAlias> out_buffer,
     USER_MANAGER_INSTANCE.LoadAvatarImageAsJpeg(user.GetAvatarPath(),
                                                 user.GetAvatarBgColor(), data);
 
-    out_buffer.writer->WritePtr(data.data(), data.size());
+    out_buffer.stream->WriteSpan(std::span<const u8>(data));
 
     *out_size = static_cast<u32>(data.size());
     return RESULT_SUCCESS;

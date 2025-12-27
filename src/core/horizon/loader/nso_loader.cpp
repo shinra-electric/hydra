@@ -49,27 +49,26 @@ struct NsoHeader {
     u32 data_hash[0x8];
 };
 
-void read_segment(StreamReader reader, uptr executable_mem_ptr,
+void read_segment(io::IStream* stream, uptr executable_mem_ptr,
                   const Segment& segment, const usize segment_file_size,
                   bool is_compressed) {
     // Skip
-    reader.Seek(segment.file_offset);
+    stream->SeekTo(segment.file_offset);
 
     usize file_size = (is_compressed ? segment_file_size : segment.size);
 
     if (is_compressed) {
         // Decompress
-        auto file = new u8[file_size];
-        reader.ReadPtr(file, file_size);
-        decompress_lz4(
-            file, file_size,
-            reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
-            segment.size);
-        delete[] file;
+        std::vector<u8> file(file_size);
+        stream->ReadToSpan(std::span(file));
+        DecompressLZ4(file,
+                      std::span(reinterpret_cast<u8*>(executable_mem_ptr +
+                                                      segment.memory_offset),
+                                segment.size));
     } else {
-        reader.ReadPtr(
+        stream->ReadToSpan(std::span(
             reinterpret_cast<u8*>(executable_mem_ptr + segment.memory_offset),
-            file_size);
+            file_size));
     }
 }
 
@@ -85,14 +84,13 @@ constexpr usize ARG_DATA_SIZE = 0x9000;
 
 } // namespace
 
-NsoLoader::NsoLoader(filesystem::FileBase* file_, const std::string_view name_,
+NsoLoader::NsoLoader(filesystem::IFile* file_, const std::string_view name_,
                      const bool is_entry_point_)
     : file{file_}, name{name_}, is_entry_point{is_entry_point_} {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<NsoHeader>();
+    const auto header = stream->Read<NsoHeader>();
     ASSERT(header.magic == make_magic4('N', 'S', 'O', '0'), Loader,
            "Invalid NSO magic");
 
@@ -129,7 +127,7 @@ NsoLoader::NsoLoader(filesystem::FileBase* file_, const std::string_view name_,
     dyn_sym_offset = header.dyn_sym_offset;
     dyn_sym_size = header.dyn_sym_size;
 
-    file->Close(stream);
+    delete stream;
 }
 
 void NsoLoader::LoadProcess(kernel::Process* process) {
@@ -139,7 +137,6 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
 
     // Load
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Create executable memory
     vaddr_t base;
@@ -151,7 +148,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
     // Segments
     for (u32 i = 0; i < 3; i++) {
         const auto& segment = segments[i];
-        read_segment(reader, ptr, segment.seg, segment.file_size,
+        read_segment(stream, ptr, segment.seg, segment.file_size,
                      segment.compressed);
     }
 
@@ -215,7 +212,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
         }
     }
 
-    file->Close(stream);
+    delete stream;
 
     if (is_entry_point) {
         // Stack

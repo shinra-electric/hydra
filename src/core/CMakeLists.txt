@@ -48,12 +48,12 @@ add_library(hydra-core
     horizon/kernel/kernel.cpp
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
-    horizon/filesystem/entry_base.hpp
-    horizon/filesystem/file_base.hpp
+    horizon/filesystem/entry.hpp
+    horizon/filesystem/file.hpp
     horizon/filesystem/file_view.hpp
-    horizon/filesystem/host_file.cpp
-    horizon/filesystem/host_file.hpp
-    horizon/filesystem/ram_file.hpp
+    horizon/filesystem/disk_file.cpp
+    horizon/filesystem/disk_file.hpp
+    horizon/filesystem/memory_file.hpp
     horizon/filesystem/directory.cpp
     horizon/filesystem/directory.hpp
     horizon/filesystem/device.cpp
@@ -63,8 +63,13 @@ add_library(hydra-core
     horizon/filesystem/partition_filesystem.hpp
     horizon/filesystem/content_archive.cpp
     horizon/filesystem/content_archive.hpp
-    horizon/filesystem/romfs.cpp
-    horizon/filesystem/romfs.hpp
+    horizon/filesystem/romfs/const.hpp
+    horizon/filesystem/romfs/parser.cpp
+    horizon/filesystem/romfs/parser.hpp
+    horizon/filesystem/romfs/builder.cpp
+    horizon/filesystem/romfs/builder.hpp
+    horizon/filesystem/romfs/romfs.cpp
+    horizon/filesystem/romfs/romfs.hpp
     horizon/loader/loader_base.cpp
     horizon/loader/loader_base.hpp
     horizon/loader/nro_loader.cpp
@@ -73,12 +78,15 @@ add_library(hydra-core
     horizon/loader/nso_loader.hpp
     horizon/loader/nca_loader.cpp
     horizon/loader/nca_loader.hpp
-    horizon/loader/nsp_loader.cpp
-    horizon/loader/nsp_loader.hpp
-    horizon/loader/xci_loader.cpp
-    horizon/loader/xci_loader.hpp
+    horizon/loader/nx_loader.cpp
+    horizon/loader/nx_loader.hpp
     horizon/loader/homebrew_loader.cpp
     horizon/loader/homebrew_loader.hpp
+    horizon/loader/nsp_loader.cpp
+    horizon/loader/nsp_loader.hpp
+    # TODO: remove XCI
+    horizon/loader/xci_loader.cpp
+    horizon/loader/xci_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.cpp

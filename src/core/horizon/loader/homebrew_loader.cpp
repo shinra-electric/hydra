@@ -4,9 +4,9 @@
 
 #include "core/debugger/debugger_manager.hpp"
 #include "core/horizon/const.hpp"
+#include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/filesystem/file_view.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
-#include "core/horizon/filesystem/host_file.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 
 namespace hydra::horizon::loader {
@@ -122,7 +122,7 @@ class HomebrewThread : public kernel::GuestThread {
                      reinterpret_cast<const char*>(state_ptr + ARGV_OFFSET));
 
             // File
-            filesystem::FileBase* file;
+            filesystem::IFile* file;
             const auto res =
                 KERNEL_INSTANCE.GetFilesystem().GetFile(path, file);
             ASSERT(res == filesystem::FsResult::Success, Loader,
@@ -228,24 +228,22 @@ class HomebrewThread : public kernel::GuestThread {
 
 } // namespace
 
-HomebrewLoader::HomebrewLoader(filesystem::FileBase* file_)
+HomebrewLoader::HomebrewLoader(filesystem::IFile* file_)
     : file{file_}, nro_loader(file, false) {
     // Asset section
     const auto asset_begin = nro_loader.GetSize();
-    TryLoadAssetSection(new filesystem::FileView(
-        file, asset_begin, file->GetSize() - asset_begin));
+    TryLoadAssetSection(new filesystem::FileView(file, asset_begin));
 }
 
 void HomebrewLoader::LoadProcess(kernel::Process* process) {
     // Get name
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
-    const auto nacp = reader.Read<services::ns::ApplicationControlProperty>();
+    const auto nacp = stream->Read<services::ns::ApplicationControlProperty>();
     std::string title_name = nacp.GetApplicationTitle().name;
     std::replace(title_name.begin(), title_name.end(), ' ', '_');
 
-    nacp_file->Close(stream);
+    delete stream;
 
     // Map file
     std::string mapped_path =
@@ -281,17 +279,16 @@ struct AssetHeader {
 
 } // namespace
 
-void HomebrewLoader::TryLoadAssetSection(filesystem::FileBase* file) {
+void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* file) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
-    auto reader = stream.CreateReader();
 
     // Header
-    const auto header = reader.Read<AssetHeader>();
+    const auto header = stream->Read<AssetHeader>();
     // TODO: is this the correct way to check if the asset section is present?
-    if (header.magic != make_magic4('A', 'S', 'E', 'T'))
+    if (header.magic != make_magic4('A', 'S', 'E', 'T')) {
+        LOG_WARN(Loader, "Asset section not found");
         return;
-
-    LOG_DEBUG(Loader, "Asset section found");
+    }
 
     // Icon
     if (header.icon_section.size > 0)
@@ -303,7 +300,7 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::FileBase* file) {
         nacp_file = new filesystem::FileView(file, header.nacp_section.offset,
                                              header.nacp_section.size);
 
-    file->Close(stream);
+    delete stream;
 }
 
 } // namespace hydra::horizon::loader

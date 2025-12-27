@@ -16,8 +16,8 @@ result_t IStorageAccessor::Write(i64 offset,
     // TODO: correct?
     const usize size = data.GetSize() - offset;
 
-    const auto ptr = buffer.reader->ReadPtr<u8>(size);
-    memcpy(data.GetPtrU8() + offset, ptr, size);
+    const auto span = buffer.stream->ReadSpan<u8>(size);
+    std::copy(span.begin(), span.end(), data.GetPtrU8() + offset);
     return RESULT_SUCCESS;
 }
 
@@ -28,7 +28,8 @@ result_t IStorageAccessor::Read(i64 offset,
     // TODO: correct?
     const usize size = data.GetSize() - offset;
 
-    out_buffer.writer->WritePtr<u8>(data.GetPtrU8() + offset, size);
+    out_buffer.stream->WriteSpan(
+        std::span<const u8>(data.GetPtrU8() + offset, size));
     return RESULT_SUCCESS;
 }
 

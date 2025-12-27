@@ -49,7 +49,8 @@ class IHOSBinderDriver : public IService {
                        OutBuffer<BufferAttr::AutoSelect> out_parcel_buffer);
 
     void TransactParcelImpl(i32 binder_id, TransactCode code, u32 flags,
-                            const Reader& reader, const Writer& writer);
+                            io::MemoryStream* in_stream,
+                            io::MemoryStream* out_stream);
 };
 
 } // namespace hydra::horizon::services::hosbinder

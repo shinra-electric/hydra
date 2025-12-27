@@ -9,11 +9,11 @@ NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
     // NCAs
     // HACK: find the largest one
     struct {
-        filesystem::FileBase* file;
+        filesystem::IFile* file;
         usize size;
     } largest_entry{nullptr, 0};
     for (const auto& [filename, entry] : pfs.GetEntries()) {
-        auto file = dynamic_cast<filesystem::FileBase*>(entry);
+        auto file = dynamic_cast<filesystem::IFile*>(entry);
         if (!file)
             continue;
 
@@ -25,7 +25,7 @@ NspLoader::NspLoader(const filesystem::PartitionFilesystem& pfs_) : pfs(pfs_) {
     program_nca_loader = new NcaLoader(largest_entry.file);
     */
 
-    filesystem::FileBase* main_file;
+    filesystem::IFile* main_file;
     const auto res = pfs.GetFile("main", main_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get main file");

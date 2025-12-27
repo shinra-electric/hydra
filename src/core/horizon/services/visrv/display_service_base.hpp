@@ -10,7 +10,7 @@ class DisplayServiceBase : public IService {
     result_t CreateStrayLayerImpl(kernel::Process* process, u32 flags,
                                   u64 display_id, u64* out_layer_id,
                                   u64* out_native_window_size,
-                                  const Writer& out_parcel_writer);
+                                  io::MemoryStream* out_parcel_stream);
     result_t SetLayerVisibilityImpl(u64 layer_id, bool visible);
 };
 

@@ -1,7 +1,7 @@
 #include "core/horizon/services/fssrv/directory.hpp"
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 
 namespace hydra::horizon::services::fssrv {
 
@@ -29,9 +29,9 @@ result_t IDirectory::Read(u64* out_entry_count,
     // TODO: respect filter flags
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
-        // Check if the writer has enough space to write the entry
-        if (out_entries.writer->Tell() + sizeof(FsDirectoryEntry) >
-            out_entries.writer->GetSize())
+        // Check if the stream has enough space to write the entry
+        if (out_entries.stream->GetSeek() + sizeof(FsDirectoryEntry) >
+            out_entries.stream->GetSize())
             break;
 
         // TODO: find a better way to index
@@ -46,17 +46,17 @@ result_t IDirectory::Read(u64* out_entry_count,
         e.type =
             (entry->IsDirectory() ? EntryType::Directory : EntryType::File);
         if (!entry->IsDirectory())
-            e.file_size = static_cast<filesystem::FileBase*>(entry)->GetSize();
+            e.file_size = static_cast<filesystem::IFile*>(entry)->GetSize();
         else
             e.file_size = 0;
 
-        out_entries.writer->Write(e);
+        out_entries.stream->Write(e);
 
         entry_index++;
         i++;
     }
 
-    *out_entry_count = out_entries.writer->Tell() / sizeof(FsDirectoryEntry);
+    *out_entry_count = out_entries.stream->GetSeek() / sizeof(FsDirectoryEntry);
 
     return RESULT_SUCCESS;
 }

@@ -6,7 +6,7 @@ namespace hydra::horizon::services::visrv {
 
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     kernel::Process* process, u32 flags, u64 display_id, u64* out_layer_id,
-    u64* out_native_window_size, const Writer& out_parcel_writer) {
+    u64* out_native_window_size, io::MemoryStream* out_parcel_stream) {
     u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);
@@ -15,7 +15,7 @@ result_t DisplayServiceBase::CreateStrayLayerImpl(
         OS_INSTANCE.GetDisplayDriver().CreateLayer(process, binder_id);
 
     // Parcel
-    hosbinder::ParcelWriter parcel_writer(out_parcel_writer);
+    hosbinder::ParcelWriter parcel_writer(out_parcel_stream);
     parcel_writer.WriteObject(binder_id, "dispdrv"_u64);
     parcel_writer.Finish();
 

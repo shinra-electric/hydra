@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file_base.hpp"
+#include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/file_view.hpp"
 
 namespace hydra::horizon::filesystem {
@@ -38,12 +38,11 @@ class PartitionFilesystem final : public Directory {
     // HACK: need to use a method instead of a constructor, since we have a
     // template parameter
     template <bool is_hfs>
-    PartitionFilesystem* Initialize(FileBase* file) {
+    PartitionFilesystem* Initialize(IFile* file) {
         auto stream = file->Open(FileOpenFlags::Read);
-        auto reader = stream.CreateReader();
 
         // Header
-        const auto header = reader.Read<PfsHeader>();
+        const auto header = stream->Read<PfsHeader>();
         if (!is_hfs) {
             ASSERT(header.magic == make_magic4('P', 'F', 'S', '0'), Filesystem,
                    "Invalid PFS0 magic 0x{:08x}", header.magic);
@@ -60,15 +59,15 @@ class PartitionFilesystem final : public Directory {
         const u64 data_offset = string_table_offset + header.string_table_size;
 
         // String table
-        reader.Seek(string_table_offset);
+        stream->SeekTo(string_table_offset);
         std::string string_table;
         string_table.resize(header.string_table_size);
-        reader.ReadPtr(string_table.data(), header.string_table_size);
+        stream->ReadToSpan(std::span(string_table));
 
         // Entries
-        reader.Seek(entries_offset);
+        stream->SeekTo(entries_offset);
         for (u32 i = 0; i < header.entry_count; i++) {
-            const auto entry = reader.Read<EntryType>();
+            const auto entry = stream->Read<EntryType>();
 
             const std::string entry_name(string_table.data() +
                                          entry.string_offset);
@@ -79,7 +78,7 @@ class PartitionFilesystem final : public Directory {
                             new FileView(file, entry_data_offset, entry.size)});
         }
 
-        file->Close(stream);
+        delete stream;
 
         return this;
     }

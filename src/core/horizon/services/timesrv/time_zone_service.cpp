@@ -23,7 +23,7 @@ result_t ITimeZoneService::LoadTimeZoneRule(
     LOG_DEBUG(Services, "Location: {}", location_name.name);
 
     // HACK
-    out_rule_buffer.writer->Write(TimeZoneRule{});
+    out_rule_buffer.stream->Write(TimeZoneRule{});
     return RESULT_SUCCESS;
 }
 
@@ -32,7 +32,7 @@ ITimeZoneService::ToCalendarTime(i64 posix_time,
                                  InBuffer<BufferAttr::MapAlias> in_rule_buffer,
                                  ToCalendarTimeWithMyRuleOut* out) {
     return ToCalendarTimeImpl(posix_time,
-                              in_rule_buffer.reader->Read<TimeZoneRule>(),
+                              in_rule_buffer.stream->Read<TimeZoneRule>(),
                               out->time, out->additional_info);
 }
 
@@ -48,10 +48,10 @@ result_t ITimeZoneService::ToPosixTime(
     i32* out_count, OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     i64 time;
     const auto res = ToPosixTimeImpl(
-        calendar_time, in_rule_buffer.reader->Read<TimeZoneRule>(), time);
+        calendar_time, in_rule_buffer.stream->Read<TimeZoneRule>(), time);
 
-    out_buffer.writer->Write(time);
-    *out_count = static_cast<i32>(out_buffer.writer->Tell() / sizeof(i64));
+    out_buffer.stream->Write(time);
+    *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
     return res;
 }
 
@@ -62,8 +62,8 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
     // TODO: my rule (probably the current timezone rule?)
     const auto res = ToPosixTimeImpl(calendar_time, {}, time);
 
-    out_buffer.writer->Write(time);
-    *out_count = static_cast<i32>(out_buffer.writer->Tell() / sizeof(i64));
+    out_buffer.stream->Write(time);
+    *out_count = static_cast<i32>(out_buffer.stream->GetSeek() / sizeof(i64));
     return res;
 }
 
