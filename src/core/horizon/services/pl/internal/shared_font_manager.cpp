@@ -4,7 +4,7 @@
 #include "core/horizon/filesystem/file.hpp"
 #include "core/horizon/filesystem/filesystem.hpp"
 #include "core/horizon/filesystem/partition_filesystem.hpp"
-#include "core/horizon/filesystem/romfs.hpp"
+#include "core/horizon/filesystem/romfs/romfs.hpp"
 
 namespace hydra::horizon::services::pl::internal {
 
@@ -60,7 +60,7 @@ filesystem::IFile* GetSharedFontFile(SharedFontType font_type) {
     }
 
     // RomFS
-    filesystem::RomFS romfs(data_file);
+    filesystem::romfs::RomFS romfs(data_file);
 
     // Font
     filesystem::IFile* font_file;

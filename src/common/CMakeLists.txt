@@ -27,10 +27,11 @@ add_library(hydra-common
     elf.h
     stb.cpp
     io/stream.hpp
-    io/stream_view.hpp
     io/continuous_stream.hpp
     io/memory_stream.hpp
     io/iostream_stream.hpp
+    io/stream_view.hpp
+    io/sparse_stream.hpp
 )
 
 target_link_libraries(hydra-common PUBLIC fmt::fmt)

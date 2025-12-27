@@ -1,9 +1,9 @@
 #pragma once
 
 #include "core/horizon/filesystem/directory.hpp"
-#include "core/horizon/filesystem/file.hpp"
+#include "core/horizon/filesystem/sparse_file.hpp"
 
-namespace hydra::horizon::filesystem {
+namespace hydra::horizon::filesystem::romfs {
 
 class RomFS final : public Directory {
   public:
@@ -11,7 +11,7 @@ class RomFS final : public Directory {
     RomFS(const Directory& dir);
     ~RomFS() override {}
 
-    // TODO: build
+    SparseFile* Build();
 };
 
-} // namespace hydra::horizon::filesystem
+} // namespace hydra::horizon::filesystem::romfs

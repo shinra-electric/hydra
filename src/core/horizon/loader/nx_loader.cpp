@@ -1,6 +1,6 @@
 #include "core/horizon/loader/nx_loader.hpp"
 
-#include "core/horizon/filesystem/romfs.hpp"
+#include "core/horizon/filesystem/romfs/romfs.hpp"
 #include "core/horizon/kernel/kernel.hpp"
 #include "core/horizon/loader/npdm.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
@@ -56,17 +56,18 @@ void NxLoader::LoadProcess(kernel::Process* process) {
             ASSERT(dir, Loader, "Code is not a directory");
             LoadCode(process, dir);
         } else if (name == "romfs") {
-            filesystem::RomFS romfs(
+            filesystem::romfs::RomFS romfs(
                 *dynamic_cast<const filesystem::Directory*>(entry));
 
             // Build romFS
-            // TODO
+            const auto romfs_file = romfs.Build();
+            ASSERT(romfs_file, Loader, "Failed to build romFS");
 
             // Add to filesystem
             const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
-                FS_SD_MOUNT "/rom/romFS", entry, true);
+                FS_SD_MOUNT "/rom/romFS", romfs_file, true);
             ASSERT(res == filesystem::FsResult::Success, Loader,
-                   "Failed to add romFS entry: {}", res);
+                   "Failed to add romFS file: {}", res);
         } else {
             LOG_NOT_IMPLEMENTED(Loader, "{}", name);
         }

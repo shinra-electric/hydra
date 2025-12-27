@@ -7,6 +7,7 @@ namespace hydra::io {
 
 class IStream {
     friend class StreamView;
+    friend class SparseStream;
 
   public:
     virtual ~IStream() = default;

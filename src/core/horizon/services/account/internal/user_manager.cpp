@@ -6,7 +6,7 @@
 
 #include "core/horizon/filesystem/content_archive.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
-#include "core/horizon/filesystem/romfs.hpp"
+#include "core/horizon/filesystem/romfs/romfs.hpp"
 
 #define DEFAULT_USER_NAME "Hydra user"
 
@@ -119,14 +119,14 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
     }
 
     // RomFS
-    auto romfs = new filesystem::RomFS(data_file);
+    filesystem::romfs::RomFS romfs(data_file);
 
     // Background
     // Not necessary
 
     // Characters
     filesystem::Directory* character_dir;
-    res = romfs->GetDirectory("chara", character_dir);
+    res = romfs.GetDirectory("chara", character_dir);
     ASSERT(res == filesystem::FsResult::Success, Services,
            "Failed to get \"chara\" avatars directory: {}", res);
     for (const auto& [name, entry] : character_dir->GetEntries()) {
