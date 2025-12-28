@@ -208,6 +208,7 @@ hydra_string hydra_nca_loader_get_name(void* nca_loader);
 // NACP
 void hydra_nacp_destroy(void* nacp);
 const void* hydra_nacp_get_title(void* nacp);
+hydra_string hydra_nacp_get_display_version(void* nacp);
 
 // NACP title
 hydra_string hydra_nacp_title_get_name(const void* title);

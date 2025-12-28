@@ -1,45 +1,89 @@
 import SwiftUI
 
+enum ViewMode: Int {
+    case list
+    case grid
+}
+
 struct GameListView: View {
     @Binding var emulationState: EmulationState
+    @Binding var viewMode: Int
 
     @State private var games: [Game] = []
 
+    private let gridColumns = [
+        GridItem(.adaptive(minimum: 180), spacing: 16)
+    ]
+
     var body: some View {
-        List {
-            ForEach(self.games.indices, id: \.self) { index in
-                GamePreview(emulationState: $emulationState, game: self.games[index])
-                    .padding(.vertical, 8)
+        VStack {
+            switch ViewMode(rawValue: viewMode) {
+            case .list:
+                List {
+                    ForEach(self.games.indices, id: \.self) { index in
+                        ClickableListItem(onClick: {
+                            emulationState.activeGame = games[index]
+                        }) {
+                            ListGamePreview(
+                                emulationState: $emulationState, game: games[index])
+                        }
+                        .padding(.vertical, 16)
+                    }
+                }
+            case .grid:
+                ScrollView {
+                    LazyVGrid(columns: gridColumns, spacing: 4) {
+                        ForEach(games.indices, id: \.self) { index in
+                            ClickableListItem(onClick: {
+                                emulationState.activeGame = games[index]
+                            }) {
+                                GridGamePreview(
+                                    emulationState: $emulationState,
+                                    game: games[index]
+                                )
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 180)
+                            .padding()
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                }
+            case .none:
+                Text("ERROR")
             }
         }
-        //.navigationTitle("")
         .onAppear {
-            load()
+            // Game paths
+
+            // Get all games
+            let gamePathsOption = hydraConfigGetGamePaths()
+            for i in 0..<gamePathsOption.count {
+                let gamePath = gamePathsOption.get(at: i)
+                do {
+                    let url = try resolveUrl(URL(fileURLWithPath: gamePath))
+
+                    try processUrl(url: url)
+                } catch {
+                    // TODO: error popup
+                    print("Failed to load game path \(gamePath): \(error)")
+                }
+            }
+
+            // Sort games by name
+            games.sort { $0.name.caseInsensitiveCompare($1.name) == .orderedAscending }
         }
         .onDisappear {
             games.removeAll()
         }
     }
 
-    func load() {
-        // Game paths
-        let gamePathsOption = hydraConfigGetGamePaths()
-        for i in 0..<gamePathsOption.count {
-            let gamePath = gamePathsOption.get(at: i)
-            do {
-                let url = try resolveUrl(URL(fileURLWithPath: gamePath))
-
-                try processUrl(url: url)
-            } catch {
-                // TODO: error popup
-                print("Failed to load game path \(gamePath): \(error)")
-            }
-        }
-    }
-
     func processUrl(url: URL) throws {
         // Check if the URL is a game
-        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca" || url.pathExtension == "nx" {
+        if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca"
+            || url.pathExtension == "nx"
+        {
             tryAddGame(url: url)
             return
         }
@@ -56,7 +100,8 @@ struct GameListView: View {
             return
         }
 
-        let urls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+        let urls = try FileManager.default.contentsOfDirectory(
+            at: url, includingPropertiesForKeys: nil)
         for url in urls {
             try processUrl(url: url)
         }

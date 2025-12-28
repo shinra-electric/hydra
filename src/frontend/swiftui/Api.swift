@@ -520,6 +520,10 @@ class HydraNacp: Hashable, Identifiable {
     var title: HydraNacpTitle {
         HydraNacpTitle(handle: hydra_nacp_get_title(self.handle))
     }
+
+    var displayVersion: String {
+        String(withHydraString: hydra_nacp_get_display_version(self.handle))
+    }
 }
 
 class HydraNacpTitle: Hashable, Identifiable {

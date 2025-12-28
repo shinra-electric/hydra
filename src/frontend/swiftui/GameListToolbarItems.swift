@@ -15,11 +15,27 @@ private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conf
 #endif
 
 struct GameListToolbarItems: ToolbarContent {
+    @Binding var viewMode: Int
+
     @State private var isFirmwareFilePickerPresented = false
     @State private var isGameFilePickerPresented = false
     @State private var showingFirmwareImportError = false
 
     var body: some ToolbarContent {
+        #if os(macOS)
+            ToolbarItem(placement: .principal) {
+                Button("List View", systemImage: "list.bullet") {
+                    viewMode = ViewMode.list.rawValue
+                }.disabled(ViewMode(rawValue: viewMode) == .list)
+            }
+
+            ToolbarItem(placement: .principal) {
+                Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
+                    viewMode = ViewMode.grid.rawValue
+                }.disabled(ViewMode(rawValue: viewMode) == .grid)
+            }
+        #endif
+
         var firmwarePathOption = hydraConfigGetFirmwarePath()
         if firmwarePathOption.value.isEmpty {
             ToolbarItem(placement: installFirmwarePlacement) {

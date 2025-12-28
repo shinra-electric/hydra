@@ -16,8 +16,8 @@ NxLoader::NxLoader(const filesystem::Directory& dir_) : dir{dir_} {
     ParseInfo();
     ParseNpdm();
 
-    // Icon
-    auto res = dir.GetFile(NACP_PATH, icon_file);
+    // NACP
+    auto res = dir.GetFile(NACP_PATH, nacp_file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to get " NACP_PATH ": {}", res);
         return;

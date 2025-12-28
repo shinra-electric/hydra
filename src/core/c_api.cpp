@@ -306,6 +306,13 @@ HYDRA_EXPORT const void* hydra_nacp_get_title(void* nacp) {
                 ->GetApplicationTitle();
 }
 
+HYDRA_EXPORT hydra_string hydra_nacp_get_display_version(void* nacp) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<
+            hydra::horizon::services::ns::ApplicationControlProperty*>(nacp)
+            ->display_version);
+}
+
 // NACP title
 HYDRA_EXPORT hydra_string hydra_nacp_title_get_name(const void* title) {
     return hydra_string_from_string_view(

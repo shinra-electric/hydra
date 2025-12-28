@@ -5,4 +5,5 @@ struct Game: Hashable {
     var loader: HydraLoader
     var name: String
     var author: String
+    var version: String
 }
