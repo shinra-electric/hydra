@@ -7,8 +7,7 @@ import SwiftUI
 struct ContentView: View {
     @Binding var emulationState: EmulationState
 
-    // TODO: save this in the config
-    @State private var viewMode: ViewMode = .list
+    @AppStorage("viewMode") private var viewMode: Int = ViewMode.list.rawValue
     @State private var fps: Int = 0
 
     #if os(iOS)

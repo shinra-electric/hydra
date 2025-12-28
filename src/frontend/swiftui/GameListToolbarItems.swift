@@ -15,7 +15,7 @@ private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conf
 #endif
 
 struct GameListToolbarItems: ToolbarContent {
-    @Binding var viewMode: ViewMode
+    @Binding var viewMode: Int
 
     @State private var isFirmwareFilePickerPresented = false
     @State private var isGameFilePickerPresented = false
@@ -25,14 +25,14 @@ struct GameListToolbarItems: ToolbarContent {
         #if os(macOS)
             ToolbarItem(placement: .principal) {
                 Button("List View", systemImage: "list.bullet") {
-                    viewMode = .list
-                }.disabled(viewMode == .list)
+                    viewMode = ViewMode.list.rawValue
+                }.disabled(ViewMode(rawValue: viewMode) == .list)
             }
 
             ToolbarItem(placement: .principal) {
                 Button("Grid View", systemImage: "rectangle.grid.3x2.fill") {
-                    viewMode = .grid
-                }.disabled(viewMode == .grid)
+                    viewMode = ViewMode.grid.rawValue
+                }.disabled(ViewMode(rawValue: viewMode) == .grid)
             }
         #endif
 

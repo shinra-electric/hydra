@@ -1,13 +1,13 @@
 import SwiftUI
 
-enum ViewMode {
+enum ViewMode: Int {
     case list
     case grid
 }
 
 struct GameListView: View {
     @Binding var emulationState: EmulationState
-    @Binding var viewMode: ViewMode
+    @Binding var viewMode: Int
 
     @State private var games: [Game] = []
 
@@ -17,7 +17,7 @@ struct GameListView: View {
 
     var body: some View {
         VStack {
-            switch viewMode {
+            switch ViewMode(rawValue: viewMode) {
             case .list:
                 List {
                     ForEach(self.games.indices, id: \.self) { index in
@@ -50,6 +50,8 @@ struct GameListView: View {
                     .padding()
                     .frame(maxWidth: .infinity)
                 }
+            case .none:
+                Text("ERROR")
             }
         }
         .onAppear {
