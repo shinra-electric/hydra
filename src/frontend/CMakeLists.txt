@@ -74,7 +74,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift)
+        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift swiftui/macos/KeyCatcherView.swift)
     endif ()
 
     target_compile_definitions(hydra PRIVATE ${SWIFT_BUILD_TYPE_CONDITION})

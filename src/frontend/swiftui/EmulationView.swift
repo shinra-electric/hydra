@@ -16,6 +16,10 @@ struct EmulationView: View {
                     fps = 0
                 }
 
+            #if os(macOS)
+                KeyCatcherView()
+            #endif
+
             if emulationState.isStopping {
                 GameStopView(emulationState: $emulationState)
             }
