@@ -98,10 +98,13 @@ MTL::RenderPipelineState* ClearColorPipelineCache::Create(
     return pipeline;
 }
 
-u64 ClearColorPipelineCache::Hash(
+u32 ClearColorPipelineCache::Hash(
     const ClearColorPipelineDescriptor& descriptor) {
-    // TODO: implement
-    return 0;
+    HashCode hash;
+    hash.Add(descriptor.pixel_format);
+    hash.Add(descriptor.render_target_id);
+    hash.Add(descriptor.mask);
+    return hash.ToHashCode();
 }
 
 void ClearColorPipelineCache::DestroyElement(

@@ -66,8 +66,8 @@ ClearDepthPipelineCache::Create(MTL::PixelFormat pixel_format) {
     return pipeline;
 }
 
-u64 ClearDepthPipelineCache::Hash(MTL::PixelFormat pixel_format) {
-    return (u64)pixel_format;
+u32 ClearDepthPipelineCache::Hash(MTL::PixelFormat pixel_format) {
+    return (u32)pixel_format;
 }
 
 void ClearDepthPipelineCache::DestroyElement(

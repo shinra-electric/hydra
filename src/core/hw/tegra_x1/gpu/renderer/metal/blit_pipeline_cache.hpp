@@ -19,7 +19,7 @@ class BlitPipelineCache
 
     MTL::RenderPipelineState* Create(const BlitPipelineDescriptor& descriptor);
     void Update(MTL::RenderPipelineState* pipeline) {}
-    u64 Hash(const BlitPipelineDescriptor& descriptor);
+    u32 Hash(const BlitPipelineDescriptor& descriptor);
 
     void DestroyElement(MTL::RenderPipelineState* pipeline);
 

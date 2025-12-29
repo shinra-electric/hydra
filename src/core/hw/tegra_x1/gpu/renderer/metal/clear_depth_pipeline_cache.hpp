@@ -14,7 +14,7 @@ class ClearDepthPipelineCache
 
     MTL::RenderPipelineState* Create(MTL::PixelFormat pixel_format);
     void Update(MTL::RenderPipelineState* pipeline) {}
-    u64 Hash(MTL::PixelFormat pixel_format);
+    u32 Hash(MTL::PixelFormat pixel_format);
 
     void DestroyElement(MTL::RenderPipelineState* pipeline);
 

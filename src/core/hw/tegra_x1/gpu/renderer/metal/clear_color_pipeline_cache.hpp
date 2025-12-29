@@ -21,7 +21,7 @@ class ClearColorPipelineCache
     MTL::RenderPipelineState*
     Create(const ClearColorPipelineDescriptor& descriptor);
     void Update(MTL::RenderPipelineState* pipeline) {}
-    u64 Hash(const ClearColorPipelineDescriptor& descriptor);
+    u32 Hash(const ClearColorPipelineDescriptor& descriptor);
 
     void DestroyElement(MTL::RenderPipelineState* pipeline);
 

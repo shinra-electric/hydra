@@ -11,7 +11,7 @@ class IContinuousStream : public IStream {
     void SeekBy(u64 offset) override { seek += offset; }
 
   protected:
-    void ReadRaw(std::span<u8> buffer) {
+    void ReadRaw(std::span<u8> buffer) override {
         const auto ptr = ConsumePtrRaw(buffer.size());
         std::copy(ptr, ptr + buffer.size(), buffer.data());
     }

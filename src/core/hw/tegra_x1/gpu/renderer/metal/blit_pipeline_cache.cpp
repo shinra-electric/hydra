@@ -109,8 +109,8 @@ BlitPipelineCache::Create(const BlitPipelineDescriptor& descriptor) {
     return pipeline;
 }
 
-u64 BlitPipelineCache::Hash(const BlitPipelineDescriptor& descriptor) {
-    return (u64)descriptor.pixel_format | ((u64)descriptor.transparent << 12);
+u32 BlitPipelineCache::Hash(const BlitPipelineDescriptor& descriptor) {
+    return (u32)descriptor.pixel_format | ((u32)descriptor.transparent << 12);
 }
 
 void BlitPipelineCache::DestroyElement(MTL::RenderPipelineState* pipeline) {
