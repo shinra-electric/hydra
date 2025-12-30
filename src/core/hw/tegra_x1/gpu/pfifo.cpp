@@ -61,7 +61,10 @@ struct CommandHeader {
 
 void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
                           GpfifoFlags flags) {
+    // TODO: flags
+    (void)flags;
     LOG_DEBUG(Gpu, "Flags: {}", flags);
+
     RENDERER_INSTANCE.LockMutex();
     for (const auto& entry : entries) {
         SubmitEntry(gmmu, entry);

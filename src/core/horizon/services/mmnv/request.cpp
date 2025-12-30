@@ -13,27 +13,21 @@ result_t IRequest::InitializeOld(Module module, u32 priority,
 }
 
 result_t IRequest::FinalizeOld(Module module) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Module: {}", module);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "module: {}", module);
     return RESULT_SUCCESS;
 }
 
 result_t IRequest::SetAndWaitOld(Module module, u32 setting_min,
                                  u32 setting_max) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "setting min: {}, setting max: {}",
-                               setting_min, setting_max);
-
-    LOG_DEBUG(Services, "Module: {}", module);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services,
+                               "module: {}, setting min: {}, setting max: {}",
+                               module, setting_min, setting_max);
 
     return RESULT_SUCCESS;
 }
 
 result_t IRequest::GetOld(Module module, u32* out_setting_current) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Module: {}", module);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "module: {}", module);
 
     // HACK
     *out_setting_current = 0;
@@ -42,10 +36,9 @@ result_t IRequest::GetOld(Module module, u32* out_setting_current) {
 
 result_t IRequest::Initialize(Module module, u32 priority, u32 event_clear_mode,
                               u32* out_request_id) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Module: {}, prio: {}, event autoclear: {}", module,
-              priority, event_clear_mode != 0);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services,
+                               "module: {}, prio: {}, event autoclear: {}",
+                               module, priority, event_clear_mode != 0);
 
     // HACK
     *out_request_id = 1;
@@ -53,27 +46,20 @@ result_t IRequest::Initialize(Module module, u32 priority, u32 event_clear_mode,
 }
 
 result_t IRequest::Finalize(u32 request_id) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Request ID: {}", request_id);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "request ID: {}", request_id);
     return RESULT_SUCCESS;
 }
 
 result_t IRequest::SetAndWait(u32 request_id, u32 setting_min,
                               u32 setting_max) {
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "setting min: {}, setting max: {}",
-                               setting_min, setting_max);
-
-    LOG_DEBUG(Services, "Request ID: {}", request_id);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services, "request ID: {}, setting min: {}, setting max: {}",
+        request_id, setting_min, setting_max);
     return RESULT_SUCCESS;
 }
 
 result_t IRequest::Get(u32 request_id, u32* out_setting_current) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Request ID: {}", request_id);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "request ID: {}", request_id);
 
     // HACK
     *out_setting_current = 0;

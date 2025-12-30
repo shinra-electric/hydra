@@ -90,11 +90,10 @@ result_t IAudioDevice::ListAudioDeviceNameImpl(i32* out_count,
 result_t
 IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
                                              io::MemoryStream* in_name_stream) {
-    LOG_FUNC_STUBBED(Services);
-
     const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
-    LOG_DEBUG(Services, "Name: {}, volume: {}", device_name, volume);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}, volume: {}", device_name,
+                               volume);
 
     return RESULT_SUCCESS;
 }
@@ -102,11 +101,9 @@ IAudioDevice::SetAudioDeviceOutputVolumeImpl(f32 volume,
 result_t
 IAudioDevice::GetAudioDeviceOutputVolumeImpl(io::MemoryStream* in_name_stream,
                                              f32* out_volume) {
-    LOG_FUNC_STUBBED(Services);
-
     const auto device_name_raw = in_name_stream->ReadPtr<DeviceName>();
     const std::string device_name(device_name_raw->name);
-    LOG_DEBUG(Services, "Name: {}", device_name);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", device_name);
 
     // HACK
     *out_volume = 1.0f;

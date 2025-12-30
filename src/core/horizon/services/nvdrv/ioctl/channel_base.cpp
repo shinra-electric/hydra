@@ -18,14 +18,12 @@ DEFINE_IOCTL_TABLE(
                                      0x1a, AllocGpfifoEX, 0x1b, SubmitGpfifo))
 
 NvResult ChannelBase::Submit() {
-    LOG_FUNC_NOT_IMPLEMENTED(Services);
+    LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }
 
 NvResult ChannelBase::GetSyncpoint(u32 module_id, u32* out_value) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Module ID: 0x{:x}", module_id);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "module ID: 0x{:x}", module_id);
 
     // HACK
     *out_value = 0;
@@ -33,9 +31,7 @@ NvResult ChannelBase::GetSyncpoint(u32 module_id, u32* out_value) {
 }
 
 NvResult ChannelBase::GetWaitBase(u32 module_id, u32* out_value) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Module ID: 0x{:x}", module_id);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "module ID: 0x{:x}", module_id);
 
     // HACK
     *out_value = 0;
@@ -43,10 +39,7 @@ NvResult ChannelBase::GetWaitBase(u32 module_id, u32* out_value) {
 }
 
 NvResult ChannelBase::SetSubmitTimeout(u32 timeout) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Timeout: {}", timeout);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "timeout: {}", timeout);
     return NvResult::Success;
 }
 
@@ -81,25 +74,17 @@ NvResult ChannelBase::GetUserData(u64* out_data) {
 }
 
 NvResult ChannelBase::SetNvMapFd(u32 fd_id) {
-    LOG_DEBUG(Services, "FD: {}", fd_id);
-
-    LOG_FUNC_STUBBED(Services);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "FD: {}", fd_id);
     return NvResult::Success;
 }
 
 NvResult ChannelBase::SetTimeout(u32 timeout) {
-    LOG_DEBUG(Services, "Timeout: {}", timeout);
-
-    LOG_FUNC_STUBBED(Services);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "timeout: {}", timeout);
     return NvResult::Success;
 }
 
 NvResult ChannelBase::SetPriority(u32 priority) {
-    LOG_DEBUG(Services, "Priority: {}", priority);
-
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "priority: {}", priority);
     return NvResult::Success;
 }
 

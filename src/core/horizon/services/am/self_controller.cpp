@@ -66,10 +66,7 @@ result_t ISelfController::CreateManagedDisplaySeparableLayer(
 
 result_t
 ISelfController::SetIdleTimeDetectionExtension(IdleTimeDetectionExtension ext) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Extension: {}", ext);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "extension: {}", ext);
     return RESULT_SUCCESS;
 }
 

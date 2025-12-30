@@ -56,7 +56,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IGeneralService, 4, CreateRequest, 5,
 
 result_t IGeneralService::CreateRequest(RequestContext* ctx,
                                         i32 requirement_preset) {
-    LOG_DEBUG(Services, "Requirement preset: {}", requirement_preset);
+    // TODO: what is requirement preset?
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "requirement preset: {}",
+                               requirement_preset);
 
     AddService(*ctx, new IRequest());
     return RESULT_SUCCESS;

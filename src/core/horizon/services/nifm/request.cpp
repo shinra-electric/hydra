@@ -32,10 +32,7 @@ result_t IRequest::GetSystemEventReadableHandles(
 
 result_t
 IRequest::SetConnectionConfirmationOption(ConnectionConfirmationOption option) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Option: {}", option);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "option: {}", option);
     return RESULT_SUCCESS;
 }
 

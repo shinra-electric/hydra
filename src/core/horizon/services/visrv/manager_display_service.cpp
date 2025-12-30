@@ -41,10 +41,8 @@ result_t IManagerDisplayService::CreateStrayLayer(
 }
 
 result_t IManagerDisplayService::AddToLayerStack(u32 stack, u64 layer_id) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Stack: {}, Layer ID: {}", stack, layer_id);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "stack: {}, layer ID: {}", stack,
+                               layer_id);
     return RESULT_SUCCESS;
 }
 

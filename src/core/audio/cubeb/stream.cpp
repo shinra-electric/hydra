@@ -44,9 +44,12 @@ Stream::Stream(Core& core_, PcmFormat format, u32 sample_rate,
 
     // TODO: device
     // TODO: buffer size
-    CUBEB_ASSERT_SUCCESS(cubeb_stream_init(
+    const auto res = cubeb_stream_init(
         core.context, &stream, "Hydra stream", nullptr, nullptr, nullptr,
-        &params, 512, &Stream::DataCallback, &Stream::StateCallback, this));
+        &params, 512, &Stream::DataCallback, &Stream::StateCallback, this);
+    // TODO: format result
+    ASSERT(res == CUBEB_OK, Cubeb, "Failed to initialize cubeb stream: {}",
+           res);
 }
 
 Stream::~Stream() { cubeb_stream_destroy(stream); }

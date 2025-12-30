@@ -83,9 +83,9 @@ result_t IFileSystemProxy::OpenBisFileSystem(
     const auto unknown =
         unknown_buffer.stream
             ->ReadNullTerminatedString(); // TODO: what is this for?
-    LOG_DEBUG(Services, "Partition ID: {}, unknown: {}", partition_id, unknown);
 
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "partition ID: {}, unknown: {}",
+                               partition_id, unknown);
 
     return MAKE_RESULT(Fs, 1771);
 }
@@ -159,6 +159,7 @@ result_t IFileSystemProxy::OpenDataStorageByProgramId(RequestContext* ctx,
     LOG_DEBUG(Services, "Program ID: 0x{:016x}", program_id);
 
     // TODO: program ID
+    (void)program_id;
 
     filesystem::IFile* file = nullptr;
     const auto res =

@@ -5,9 +5,7 @@ namespace hydra::horizon::services::spl {
 DEFINE_SERVICE_COMMAND_TABLE(IGeneralInterface, 0, GetConfig)
 
 result_t IGeneralInterface::GetConfig(ConfigItem item, u64* out_config) {
-    LOG_DEBUG(Services, "Config item: {}", item);
-
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "config item: {}", item);
 
     // HACK
     *out_config = 0;

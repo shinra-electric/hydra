@@ -12,9 +12,7 @@ result_t IManager::OpenSession(RequestContext* ctx, I2cDevice device) {
 }
 
 result_t IManager::HasDevice(I2cDevice device, bool* out_has) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Device: {}", device);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "device: {}", device);
 
     // HACK
     *out_has = true;

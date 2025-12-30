@@ -9,9 +9,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IDebugMonitorInterface, 2, GetProcessId, 4,
                              GetApplicationProcessId)
 
 result_t IDebugMonitorInterface::GetProcessId(u64 program_id, u64* out_pid) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Program ID: 0x{:016X}", program_id);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "program ID: 0x{:016X}", program_id);
 
     // HACK
     *out_pid = 0x1029384756;

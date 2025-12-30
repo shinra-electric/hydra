@@ -4,7 +4,11 @@
 
 namespace hydra::audio::cubeb {
 
-Core::Core() { CUBEB_ASSERT_SUCCESS(cubeb_init(&context, "Hydra", nullptr)); }
+Core::Core() {
+    const auto res = cubeb_init(&context, "Hydra", nullptr);
+    ASSERT(res == CUBEB_OK, Cubeb, "Failed to initialize cubeb context: {}",
+           res);
+}
 
 IStream*
 Core::CreateStream(PcmFormat format, u32 sample_rate, u16 channel_count,

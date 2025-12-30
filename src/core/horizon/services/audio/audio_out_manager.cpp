@@ -62,7 +62,7 @@ result_t IAudioOutManager::OpenAudioOutImpl(
     io::MemoryStream* out_device_name_stream) {
     (void)aruid;
 
-    const auto device_name_in =
+    [[maybe_unused]] const auto device_name_in =
         in_device_name_stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Sample rate: {}, channel count: {}, device name: {}",
               sample_rate, channel_count, device_name_in);
@@ -82,7 +82,7 @@ result_t IAudioOutManager::OpenAudioOutImpl(
     *out_format = format;
     *out_state = AudioOutState::Stopped;
 
-    // TODO: correct?
+    // TODO: is this somehow connected to device name in?
     std::string device_name_out = "Hydra audio device";
     out_device_name_stream->WriteNullTerminatedString(device_name_out);
 

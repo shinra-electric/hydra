@@ -8,6 +8,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ILogService, 0, OpenLogger)
 
 result_t ILogService::OpenLogger(RequestContext* ctx, u64 process_id) {
     // TODO: what is process ID for?
+    (void)process_id;
     LOG_DEBUG(Services, "Process ID: {}", process_id);
 
     AddService(*ctx, new ILogger());

@@ -388,7 +388,8 @@ result_t Kernel::SetMemoryPermission(uptr addr, usize size,
         addr, size, perm);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Kernel, "addr: 0x{:08x}, size: 0x{:08x}, perm: {}", addr, size, perm);
 
     return RESULT_SUCCESS;
 }
@@ -427,7 +428,8 @@ result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
         "0x{:08x})",
         dst_addr, src_addr, size);
 
-    // TODO: check if src_addr is the same as the one used in MapMemory
+    // TODO: verify that src_addr is the same as the one used in MapMemory?
+    (void)src_addr;
 
     crnt_process->GetMmu()->Unmap(dst_addr, size);
 
@@ -464,6 +466,7 @@ result_t Kernel::CreateThread(Process* crnt_process, vaddr_t entry_point,
 
     // Thread
     // TODO: processor ID
+    (void)processor_id;
     auto thread = new GuestThread(crnt_process, stack_top_addr, priority);
     thread->SetEntryPoint(entry_point);
     thread->SetArg(0, args_addr);
@@ -502,11 +505,10 @@ result_t Kernel::GetThreadPriority(IThread* thread, i32& out_priority) {
               thread->GetDebugName());
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->GetDebugName());
 
     // HACK
     out_priority = 0x20; // 0x0 - 0x3f, lower is higher priority
-
     return RESULT_SUCCESS;
 }
 
@@ -515,7 +517,8 @@ result_t Kernel::SetThreadPriority(IThread* thread, i32 priority) {
               thread->GetDebugName(), priority);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}, priority: 0x{:x}",
+                               thread->GetDebugName(), priority);
 
     return RESULT_SUCCESS;
 }
@@ -527,24 +530,26 @@ result_t Kernel::GetThreadCoreMask(IThread* thread, i32& out_core_mask0,
               thread ? thread->GetDebugName() : "null");
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}",
+                               thread ? thread->GetDebugName() : "null");
 
     // HACK
     out_core_mask0 = 0x1;
     out_core_mask1 = 0x2;
-
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::SetThreadCoreMask(IThread* thread, i32 core_mask0,
                                    u64 core_mask1) {
     LOG_DEBUG(Kernel,
-              "SetThreadCoreMask called (thread: {}, core_mask0: "
-              "0x{:08x}, core_mask1: 0x{:08x})",
+              "SetThreadCoreMask called (thread: {}, core mask 0: "
+              "{:#x}, core mask 1: {:#x})",
               thread->GetDebugName(), core_mask0, core_mask1);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Kernel, "thread: {}, core mask 0: {:#x}, core mask 1: {:#x}",
+        thread->GetDebugName(), core_mask0, core_mask1);
 
     return RESULT_SUCCESS;
 }
@@ -591,16 +596,14 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
 
 result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                    uptr addr, usize size) {
-    (void)crnt_process;
+    (void)shmem;
 
     LOG_DEBUG(Kernel,
-              "UnmapSharedMemory called (handle: {}, addr: 0x{:08x}, size: "
+              "UnmapSharedMemory called (shmem: {}, addr: 0x{:08x}, size: "
               "0x{:08x})",
               shmem->GetDebugName(), addr, size);
 
-    // TODO
-    LOG_FUNC_STUBBED(Kernel);
-
+    crnt_process->GetMmu()->Unmap(addr, size);
     return RESULT_SUCCESS;
 }
 
@@ -960,8 +963,11 @@ result_t Kernel::OutputDebugString(const std::string_view str, usize len) {
     return RESULT_SUCCESS;
 }
 
+// TODO: object
 result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
                          AutoObject* obj, u64 info_sub_type, u64& out_info) {
+    (void)obj;
+
     LOG_DEBUG(Kernel, "GetInfo called (type: {}, object: {}, subtype: {})",
               info_type, (obj != nullptr ? obj->GetDebugName() : "null"),
               info_sub_type);
@@ -1092,7 +1098,8 @@ result_t Kernel::SetThreadActivity(IThread* thread, ThreadActivity activity) {
               thread->GetDebugName(), activity);
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}, activity: {}",
+                               thread->GetDebugName(), activity);
 
     return RESULT_SUCCESS;
 }
@@ -1103,7 +1110,7 @@ result_t Kernel::GetThreadContext3(IThread* thread,
               thread->GetDebugName());
 
     // TODO: implement
-    LOG_FUNC_STUBBED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(Kernel, "thread: {}", thread->GetDebugName());
 
     // HACK
     out_thread_context = {};
@@ -1187,6 +1194,8 @@ result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
     // TODO: handle other signal types as well
     if (signal_type != SignalType::Signal)
         LOG_WARN(Kernel, "Unimplemented signal type {}", signal_type);
+    (void)value;
+    (void)count;
 
     CriticalSectionLock cs_lock;
     for (auto waiter_node = arbiters.GetHead(); waiter_node != nullptr;) {
@@ -1210,7 +1219,11 @@ result_t Kernel::CreateSession(bool is_light, u64 name,
               is_light, name);
 
     // TODO: what are light sessions?
+    (void)is_light;
+
     // TODO: what's the purpose of the name?
+    (void)name;
+
     out_server_session = new hipc::ServerSession();
     out_client_session = new hipc::ClientSession();
     // TODO: is it fine to just instantiate it like this?
@@ -1280,7 +1293,10 @@ result_t Kernel::ControlCodeMemory(CodeMemory* code_memory,
               code_memory->GetDebugName(), op, addr, size, perm);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Kernel,
+        "code memory: {}, op: {}, addr: 0x{:08x}, size: 0x{:08x}, perm: {}",
+        code_memory->GetDebugName(), op, addr, size, perm);
 
     return RESULT_SUCCESS;
 }
@@ -1313,7 +1329,9 @@ result_t Kernel::SetProcessMemoryPermission(Process* process, vaddr_t addr,
               process->GetDebugName(), addr, size, perm);
 
     // TODO: implement
-    LOG_FUNC_NOT_IMPLEMENTED(Kernel);
+    (void)process;
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Kernel, "addr: 0x{:08x}, size: 0x{:08x}, perm: {}", addr, size, perm);
 
     return RESULT_SUCCESS;
 }
@@ -1353,7 +1371,9 @@ result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
               "src_addr: 0x{:08x}, size: {})",
               process->GetDebugName(), dst_addr, src_addr, size);
 
-    // TODO: what's the purpose of src_addr?
+    // TODO: verify that src_addr is the same as the one used in MapMemory?
+    (void)src_addr;
+
     process->GetMmu()->Unmap(dst_addr, size);
 
     return RESULT_SUCCESS;

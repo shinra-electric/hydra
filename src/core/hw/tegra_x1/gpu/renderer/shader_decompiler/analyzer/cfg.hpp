@@ -164,6 +164,7 @@ struct CfgBasicBlock {
     }
 
     // Debug
+#ifdef HYDRA_DEBUG
     void Log(const u32 indent = 0) const {
         LOG_DEBUG(ShaderDecompiler, INDENT_FMT "Block: {}", PASS_INDENT(indent),
                   label);
@@ -188,6 +189,9 @@ struct CfgBasicBlock {
             break;
         }
     }
+#else
+    void Log([[maybe_unused]] const u32 indent = 0) const {}
+#endif
 
     void WriteToDot(std::ostream& os) {
         fmt::print(os, "digraph CFG {{\n");

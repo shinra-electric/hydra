@@ -140,13 +140,15 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
     auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(
         static_cast<u32>(binder_id));
 
+    // Interface token
+    [[maybe_unused]] const auto interface_token =
+        parcel_reader.ReadInterfaceToken();
+    LOG_DEBUG(Services, "Interface token: {}", interface_token);
+
     // Dispatch
     BinderResult b_result = BinderResult::Success;
     switch (code) {
     case TransactCode::RequestBuffer: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(Services, "Interface token: {}", interface_token);
-
         i32 slot = parcel_reader.Read<i32>();
         if (slot > static_cast<i32>(display::MAX_BINDER_BUFFER_COUNT)) {
             LOG_WARN(Services, "Invalid slot: {}", slot);
@@ -174,9 +176,6 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     case TransactCode::QueueBuffer: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(Services, "Interface token: {}", interface_token);
-
         // Slot
         i32 slot = parcel_reader.Read<i32>();
         const auto& input =
@@ -196,9 +195,6 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     case TransactCode::Query: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(Services, "Interface token: {}", interface_token);
-
         const auto what = parcel_reader.Read<NativeWindowAttribute>();
         LOG_DEBUG(Services, "what: {}", what);
 
@@ -223,9 +219,6 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     case TransactCode::Connect: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(Services, "Interface token: {}", interface_token);
-
         const auto res = OS_INSTANCE.GetDisplayResolution();
         parcel_writer.Write<display::BqBufferOutput>({
             .width = res.x(),
@@ -237,19 +230,14 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         break;
     }
     case TransactCode::Disconnect: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        auto api = parcel_reader.Read<i32>(); // TODO: enum
-        LOG_DEBUG(Services, "Interface token: {}, API: {}", interface_token,
-                  api);
+        [[maybe_unused]] auto api = parcel_reader.Read<i32>(); // TODO: enum
+        LOG_DEBUG(Services, "API: {}", api);
 
         binder.UnqueueAllBuffers();
 
         break;
     }
     case TransactCode::SetPreallocatedBuffer: {
-        auto interface_token = parcel_reader.ReadInterfaceToken();
-        LOG_DEBUG(Services, "Interface token: {}", interface_token);
-
         // Slot
         i32 slot = parcel_reader.Read<i32>();
 
@@ -261,6 +249,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         }
 
         // Debug
+#ifdef HYDRA_DEBUG
         const auto& plane = buffer->nv_buffer.planes[0];
         LOG_DEBUG(Services,
                   "width: {}, height: {}, color_format: {}, "
@@ -270,6 +259,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
                   plane.width, plane.height, plane.color_format, plane.layout,
                   plane.pitch, plane.unused, plane.offset, plane.kind,
                   plane.size);
+#endif
 
         binder.AddBuffer(slot, *buffer);
 

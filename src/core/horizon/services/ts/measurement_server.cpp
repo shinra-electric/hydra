@@ -6,9 +6,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IMeasurementServer, 1, GetTemperature)
 
 result_t IMeasurementServer::GetTemperature(Location location,
                                             i32* out_temperature_celsius) {
-    LOG_DEBUG(Services, "Location: {}", location);
-
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "location: {}", location);
 
     // HACK
     *out_temperature_celsius = 30;

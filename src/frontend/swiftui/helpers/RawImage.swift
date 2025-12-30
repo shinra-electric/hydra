@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct RawImage<Content: View>: View {
-    private let loadData: (inout UInt64, inout UInt64) -> UnsafeMutableRawPointer?
+    private let loadData: (inout UInt32, inout UInt32) -> UnsafeMutableRawPointer?
     private let freeData: (UnsafeMutableRawPointer) -> Void
     private let content: Content
 
     init(
-        loadData: @escaping (inout UInt64, inout UInt64) -> UnsafeMutableRawPointer?,
+        loadData: @escaping (inout UInt32, inout UInt32) -> UnsafeMutableRawPointer?,
         freeData: @escaping (UnsafeMutableRawPointer) -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -32,7 +32,7 @@ struct RawImage<Content: View>: View {
         }
     }
 
-    private func loadIconCG(width: inout UInt64, height: inout UInt64) -> CGImage? {
+    private func loadIconCG(width: inout UInt32, height: inout UInt32) -> CGImage? {
         guard let data = loadData(&width, &height) else {
             return nil
         }
@@ -58,8 +58,8 @@ struct RawImage<Content: View>: View {
 
     #if os(macOS)
         private func loadIcon() -> NSImage? {
-            var width: UInt64 = 0
-            var height: UInt64 = 0
+            var width: UInt32 = 0
+            var height: UInt32 = 0
             guard let cgImage = self.loadIconCG(width: &width, height: &height) else {
                 return nil
             }
@@ -68,8 +68,8 @@ struct RawImage<Content: View>: View {
         }
     #else
         private func loadIcon() -> UIImage? {
-            var width: UInt64 = 0
-            var height: UInt64 = 0
+            var width: UInt32 = 0
+            var height: UInt32 = 0
             guard let cgImage = self.loadIconCG(width: &width, height: &height) else {
                 return nil
             }

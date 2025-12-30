@@ -18,9 +18,7 @@ result_t ITimeZoneService::GetDeviceLocationName(LocationName* out_name) {
 result_t ITimeZoneService::LoadTimeZoneRule(
     LocationName location_name,
     OutBuffer<BufferAttr::MapAlias> out_rule_buffer) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Location: {}", location_name.name);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "location: {}", location_name.name);
 
     // HACK
     out_rule_buffer.stream->Write(TimeZoneRule{});

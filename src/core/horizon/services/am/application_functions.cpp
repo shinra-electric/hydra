@@ -27,9 +27,7 @@ IApplicationFunctions::PopLaunchParameter(kernel::Process* process,
 
 result_t IApplicationFunctions::EnsureSaveData(uuid_t user_id,
                                                u64* out_required_size) {
-    LOG_DEBUG(Services, "User ID: 0x{:016x}", user_id);
-
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "user ID: 0x{:016x}", user_id);
 
     // TODO: check if there is enough space for the save data
     *out_required_size = 0x0;
@@ -64,11 +62,9 @@ result_t IApplicationFunctions::GetDisplayVersion(DisplayVersion* out_version) {
 result_t IApplicationFunctions::ExtendSaveData(u128 user_id, i64 size,
                                                i64 journal_size,
                                                result_t* out_result) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services,
-              "User ID: 0x{:016x}, size: 0x{:08x}, Journal size: 0x{:08x}",
-              user_id, size, journal_size);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services, "user ID: 0x{:016x}, size: 0x{:08x}, Journal size: 0x{:08x}",
+        user_id, size, journal_size);
 
     // HACK
     // TODO: why 2 results?
@@ -104,17 +100,13 @@ IApplicationFunctions::IsGamePlayRecordingSupported(bool* out_enabled) {
 
 result_t
 IApplicationFunctions::SetGamePlayRecordingState(GamePlayRecordingState state) {
-    LOG_STUBBED(Services, "Game play recording state: {}", state);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "state: {}", state);
     game_play_recording_state = state;
     return RESULT_SUCCESS;
 }
 
 result_t IApplicationFunctions::EnableApplicationCrashReport(bool enabled) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Enabled: {}", enabled);
-
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "enabled: {}", enabled);
     return RESULT_SUCCESS;
 }
 
