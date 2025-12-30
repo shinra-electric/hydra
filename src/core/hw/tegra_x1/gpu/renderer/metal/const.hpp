@@ -1,7 +1,12 @@
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
+
+#pragma GCC diagnostic pop
 
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
 

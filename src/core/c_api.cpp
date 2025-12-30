@@ -49,11 +49,11 @@ HYDRA_EXPORT void hydra_i32_option_set(void* option, const int32_t value) {
 }
 
 HYDRA_EXPORT uint32_t hydra_u32_option_get(const void* option) {
-    return reinterpret_cast<const hydra::Option<hydra::i32>*>(option)->Get();
+    return reinterpret_cast<const hydra::Option<hydra::u32>*>(option)->Get();
 }
 
 HYDRA_EXPORT void hydra_u32_option_set(void* option, const uint32_t value) {
-    reinterpret_cast<hydra::Option<hydra::i32>*>(option)->Set(value);
+    reinterpret_cast<hydra::Option<hydra::u32>*>(option)->Set(value);
 }
 
 HYDRA_EXPORT hydra_u128 hydra_u128_option_get(const void* option) {
@@ -275,8 +275,8 @@ HYDRA_EXPORT void* hydra_loader_load_nacp(void* loader) {
         ->LoadNacp();
 }
 
-HYDRA_EXPORT void* hydra_loader_load_icon(void* loader, uint64_t* width,
-                                          uint64_t* height) {
+HYDRA_EXPORT void* hydra_loader_load_icon(void* loader, uint32_t* width,
+                                          uint32_t* height) {
     return reinterpret_cast<hydra::horizon::loader::LoaderBase*>(loader)
         ->LoadIcon(*width, *height);
 }
@@ -388,7 +388,7 @@ HYDRA_EXPORT void hydra_user_manager_load_system_avatars(void* user_manager,
 
 HYDRA_EXPORT const void*
 hydra_user_manager_load_avatar_image(void* user_manager, hydra_string path,
-                                     uint64_t* out_dimensions) {
+                                     uint32_t* out_dimensions) {
     return reinterpret_cast<
                hydra::horizon::services::account::internal::UserManager*>(
                user_manager)
@@ -457,12 +457,20 @@ class UIHandler : public hydra::horizon::ui::HandlerBase {
   public:
     void ShowMessageDialog(const hydra::horizon::ui::MessageDialogType type,
                            const std::string& title,
-                           const std::string& message) override {}
+                           const std::string& message) override {
+        (void)type;
+        (void)title;
+        (void)message;
+    }
     hydra::horizon::applets::software_keyboard::SoftwareKeyboardResult
     ShowSoftwareKeyboard(const std::string& header_text,
                          const std::string& sub_text,
                          const std::string& guide_text,
                          std::string& out_text) override {
+        (void)header_text;
+        (void)sub_text;
+        (void)guide_text;
+        out_text = "";
         return hydra::horizon::applets::software_keyboard::
             SoftwareKeyboardResult::OK;
     }

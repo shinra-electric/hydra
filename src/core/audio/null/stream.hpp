@@ -14,7 +14,10 @@ class Stream final : public IStream {
     void Start() override { state = StreamState::Started; }
     void Stop() override { state = StreamState::Stopped; }
 
-    void EnqueueBuffer(buffer_id_t id, sized_ptr buffer) override;
+    void EnqueueBuffer(buffer_id_t id,
+                       [[maybe_unused]] sized_ptr buffer) override {
+        buffer_finished_callback(id);
+    }
 };
 
 } // namespace hydra::audio::null

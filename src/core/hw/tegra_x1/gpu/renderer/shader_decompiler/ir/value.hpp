@@ -18,7 +18,10 @@ enum class ValueKind {
 
 class Value {
   public:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     static Value Undefined() { return Value{ValueKind::Undefined}; }
+#pragma GCC diagnostic pop
     template <typename T>
     static Value RawValue(const T raw_value) {
         return Value{ValueKind::RawValue,

@@ -186,7 +186,7 @@ enum class WindowOriginFlags : u32 {
     LowerLeft = BIT(0),
     FlipY = BIT(4), // Only for the purpose of figuring out polygon winding
 };
-ENABLE_ENUM_BITMASK_OPERATORS(WindowOriginFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(WindowOriginFlags)
 
 enum class ViewportSwizzle : u32 {
     PositiveX = 0,

@@ -224,6 +224,9 @@ void ThreeD::Macro(u32 method, u32 arg) {
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void ThreeD::LoadMmeInstructionRamPointer(GMmu& gmmu, const u32 index,
                                           const u32 ptr) {
     macro_driver->LoadInstructionRamPointer(ptr);
@@ -285,7 +288,7 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
     // Index buffer
     gpu_vaddr_t index_buffer_ptr = gmmu.UnmapAddr(regs.index_buffer_addr);
     // TODO: uncomment?
-    usize index_buffer_size =
+    u32 index_buffer_size =
         count * get_index_type_size(
                     regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                       // - u64(regs.index_buffer_addr);
@@ -395,6 +398,8 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
         break;
     }
 }
+
+#pragma GCC diagnostic pop
 
 renderer::TextureBase*
 ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
@@ -704,17 +709,17 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
     const auto format = renderer::to_texture_format(tic.format_word);
 
     NvKind kind;
-    usize stride;
+    u32 stride;
     switch (tic.hdr_version) {
     case TicHdrVersion::Pitch:
         kind = NvKind::Pitch;
-        stride = tic.pitch_5_20 << 5;
+        stride = static_cast<u32>(tic.pitch_5_20) << 5u;
         break;
     case TicHdrVersion::BlockLinear:
         kind = NvKind::Generic_16BX2;
         // TODO: is the alignment correct?
         stride = align(
-            get_texture_format_stride(format, tic.width_minus_one + 1), 64ull);
+            get_texture_format_stride(format, tic.width_minus_one + 1), 64u);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Engines, "TIC HDR version {}", tic.hdr_version);
@@ -725,8 +730,8 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
 
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(gpu_addr), format, kind,
-        static_cast<usize>(tic.width_minus_one + 1),
-        static_cast<usize>(tic.height_minus_one + 1),
+        static_cast<u32>(tic.width_minus_one + 1),
+        static_cast<u32>(tic.height_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
         stride,
         renderer::SwizzleChannels(
@@ -763,8 +768,8 @@ void ThreeD::ConfigureShaderStage(
     GMmu& gmmu, const ShaderStage stage,
     const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
-    const u32 stage_index = static_cast<u32>(stage) -
-                            1; // 1 is subtracted, because VertexA is skipped
+    // const u32 stage_index = static_cast<u32>(stage) -
+    //                         1; // 1 is subtracted, because VertexA is skipped
 
     const auto shader = GetShaderUnchecked(stage);
     const auto& resource_mapping = shader->GetDescriptor().resource_mapping;

@@ -8,11 +8,15 @@ DEFINE_SERVICE_COMMAND_TABLE(IManagerDisplayService, 2010, CreateManagedLayer,
                              2011, DestroyManagedLayer, 2012, CreateStrayLayer,
                              6000, AddToLayerStack, 6002, SetLayerVisibility)
 
+// TODO: flags, display ID
 result_t IManagerDisplayService::CreateManagedLayer(kernel::Process* process,
                                                     aligned<u32, 8> flags,
                                                     u64 display_id, u64 aruid,
                                                     u64* out_layer_id) {
-    // TODO: flags
+    (void)flags;
+    (void)display_id;
+    (void)aruid;
+
     u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);

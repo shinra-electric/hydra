@@ -45,6 +45,9 @@ result_t IPsmServer::GetBatteryAgePercentage(f64* out_percentage) {
 result_t
 IPsmServer::GetBatteryChargeInfoFields(BatteryChargeInfoFields* out_fields) {
     LOG_FUNC_STUBBED(Services);
+
+    // HACK
+    *out_fields = {};
     return RESULT_SUCCESS;
 }
 

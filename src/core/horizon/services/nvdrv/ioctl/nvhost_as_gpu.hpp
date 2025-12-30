@@ -11,7 +11,7 @@ enum class AllocSpaceFlags : u32 {
     Sparse = BIT(1),
 };
 
-ENABLE_ENUM_BITMASK_OPERATORS(AllocSpaceFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(AllocSpaceFlags)
 
 enum class MapBufferFlags : u32 {
     None = 0,
@@ -20,7 +20,7 @@ enum class MapBufferFlags : u32 {
     Modify = BIT(8),
 };
 
-ENABLE_ENUM_BITMASK_OPERATORS(MapBufferFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(MapBufferFlags)
 
 struct VaRegion {
     gpu_vaddr_t addr;
@@ -40,8 +40,8 @@ struct RemapOp {
 
 class NvHostAsGpu : public FdBase {
   public:
-    NvResult Ioctl(IoctlContext& context, u32 type, u32 nr) override;
-    NvResult Ioctl3(IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
+    NvResult Ioctl3([[maybe_unused]] IoctlContext& context, u32 type, u32 nr) override;
 
   private:
     // Ioctls
@@ -53,19 +53,22 @@ class NvHostAsGpu : public FdBase {
     NvResult UnmapBuffer(gpu_vaddr_t addr);
     NvResult MapBufferEX(kernel::Process* process, MapBufferFlags flags,
                          hw::tegra_x1::gpu::NvKind kind,
-                         handle_id_t nvmap_handle_id, u32 reserved,
-                         u64 buffer_offset, u64 mapping_size,
-                         InOutSingle<gpu_vaddr_t> inout_addr);
+                         handle_id_t nvmap_handle_id,
+                         [[maybe_unused]] u32 reserved, u64 buffer_offset,
+                         u64 mapping_size, InOutSingle<gpu_vaddr_t> inout_addr);
     NvResult GetVaRegions(gpu_vaddr_t buffer_addr,
-                          InOutSingle<u32> inout_buffer_size, u32 reserved,
+                          InOutSingle<u32> inout_buffer_size,
+                          [[maybe_unused]] u32 reserved,
                           std::array<VaRegion, 2>* out_va_regions);
     NvResult AllocAsEX(kernel::Process* process, u32 big_page_size, i32 as_fd,
-                       u32 flags, u32 reserved, u64 va_range_start,
-                       u64 va_range_end, u64 va_range_split);
+                       u32 flags, [[maybe_unused]] u32 reserved,
+                       u64 va_range_start, u64 va_range_end,
+                       u64 va_range_split);
     NvResult Remap(const RemapOp* entries);
 
     NvResult GetVaRegions3(gpu_vaddr_t buffer_addr,
-                           InOutSingle<u32> inout_buffer_size, u32 reserved) {
+                           InOutSingle<u32> inout_buffer_size,
+                           [[maybe_unused]] u32 reserved) {
         // TODO: does this just throw the out_va_regions away?
         std::array<VaRegion, 2> out_va_regions;
         return GetVaRegions(buffer_addr, inout_buffer_size, reserved,
@@ -74,3 +77,10 @@ class NvHostAsGpu : public FdBase {
 };
 
 } // namespace hydra::horizon::services::nvdrv::ioctl
+
+ENABLE_STRUCT_FORMATTING(hydra::horizon::services::nvdrv::ioctl::RemapOp, flags,
+                         ":#x", "flags", kind, "", "kind", mem_handle, "",
+                         "memory handle", mem_offset_in_pages, ":#x",
+                         "memory offset (in pages)", virt_offset_in_pages,
+                         ":#x", "virtual offset (in pages)", num_pages, ":#x",
+                         "number of pages")

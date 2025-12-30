@@ -5,14 +5,14 @@ namespace hydra::hw::tegra_x1::gpu {
 namespace {
 
 template <bool encode>
-void process_generic_16bx2(usize stride, usize height, usize block_height_log2,
+void process_generic_16bx2(u32 stride, u32 height, u32 block_height_log2,
                            u8* encoded, u8* decoded) {
-    const u32 block_height_gobs = 1u << block_height_log2;
-    const u32 block_height_px = 8u << block_height_log2;
+    const auto block_height_gobs = 1u << block_height_log2;
+    const auto block_height_px = 8u << block_height_log2;
 
-    const u32 width_blocks = static_cast<u32>(stride >> 6);
-    const u32 height_blocks = static_cast<u32>((height + block_height_px - 1) >>
-                                               (3 + block_height_log2));
+    const auto width_blocks = stride >> 6;
+    const auto height_blocks =
+        (height + block_height_px - 1) >> (3 + block_height_log2);
 
     // Clear the output buffer first
     // TODO: is this necessary?
@@ -54,13 +54,13 @@ void process_generic_16bx2(usize stride, usize height, usize block_height_log2,
 
 } // namespace
 
-void encode_generic_16bx2(usize stride, usize height, usize block_height_log2,
+void encode_generic_16bx2(u32 stride, u32 height, u32 block_height_log2,
                           u8* in_data, u8* out_data) {
     process_generic_16bx2<true>(stride, height, block_height_log2, out_data,
                                 in_data);
 }
 
-void decode_generic_16bx2(usize stride, usize height, usize block_height_log2,
+void decode_generic_16bx2(u32 stride, u32 height, u32 block_height_log2,
                           u8* in_data, u8* out_data) {
     process_generic_16bx2<false>(stride, height, block_height_log2, in_data,
                                  out_data);

@@ -6,7 +6,7 @@ namespace hydra::horizon::filesystem {
 
 class IFile : public IEntry {
   public:
-    bool IsDirectory() const override { return false; }
+    bool IsFile() const override { return true; }
 
     FsResult Delete(bool recursive = false) override {
         ASSERT(!recursive, Filesystem, "Cannot recursively delete file");

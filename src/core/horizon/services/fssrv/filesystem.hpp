@@ -10,7 +10,7 @@ enum class CreateOption : u32 {
     None = 0,
     BigFile = BIT(0),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(CreateOption)
+ENABLE_ENUM_BITWISE_OPERATORS(CreateOption)
 
 struct TimeStampRaw {
     u64 creation_time;
@@ -25,7 +25,8 @@ class IFileSystem : public IService {
     IFileSystem(const std::string_view mount_) : mount{mount_} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     std::string mount;

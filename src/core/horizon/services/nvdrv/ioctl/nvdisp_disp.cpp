@@ -7,12 +7,15 @@ DEFINE_IOCTL_TABLE(NvDispDisp,
                                             0x0e, SetCmu))
 
 NvResult NvDispDisp::GetWindow(u32 unknown_x0) {
+    (void)display_index;
+    (void)unknown_x0;
     LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }
 
 NvResult
 NvDispDisp::SetCmu(InOutSingle<std::array<u8, 2458>> inout_unknown_x0) {
+    (void)inout_unknown_x0;
     LOG_FUNC_STUBBED(Services);
     return NvResult::Success;
 }

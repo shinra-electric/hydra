@@ -12,15 +12,9 @@
     ASSERT_DEBUG(it != threads.end(), Debugger,                                \
                  "Thread {:016x} not registered",                              \
                  std::bit_cast<u64>(thread_id));                               \
-    auto& thread = it->second;
+    [[maybe_unused]] auto& thread = it->second;
 
 namespace hydra::debugger {
-
-namespace {
-
-constexpr u16 GDB_PORT = 1234;
-
-}
 
 ResolvedStackFrame StackFrame::Resolve() const {
     switch (type) {
@@ -130,7 +124,7 @@ StackTrace Debugger::GetStackTrace(Thread& thread) {
         });
     }
 
-    return std::move(stack_trace);
+    return stack_trace;
 }
 
 } // namespace hydra::debugger

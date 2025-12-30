@@ -16,10 +16,10 @@ class LoaderBase {
 
     virtual void LoadProcess(kernel::Process* process) = 0;
     horizon::services::ns::ApplicationControlProperty* LoadNacp();
-    uchar4* LoadIcon(usize& out_width, usize& out_height);
-    uchar4* LoadNintendoLogo(usize& out_width, usize& out_height);
+    uchar4* LoadIcon(u32& out_width, u32& out_height);
+    uchar4* LoadNintendoLogo(u32& out_width, u32& out_height);
     uchar4* LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
-                             usize& out_width, usize& out_height,
+                             u32& out_width, u32& out_height,
                              u32& out_frame_count);
 
   protected:

@@ -66,6 +66,9 @@ void Stream::EnqueueBuffer(buffer_id_t id, sized_ptr buffer) {
 long Stream::DataCallback(cubeb_stream* stream, void* user_data,
                           const void* input_buffer, void* output_buffer,
                           long num_frames) {
+    (void)stream;
+    (void)input_buffer;
+
     auto self = reinterpret_cast<Stream*>(user_data);
 
     std::unique_lock lock(self->buffer_mutex);
@@ -76,7 +79,8 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
         if (self->buffer_queue.empty()) {
             // Fill the rest with silence
             memset(output, 0,
-                   (num_frames * self->channel_count - i) * sizeof(i16));
+                   (static_cast<u32>(num_frames) * self->channel_count - i) *
+                       sizeof(i16));
 
             break;
         }
@@ -98,6 +102,8 @@ long Stream::DataCallback(cubeb_stream* stream, void* user_data,
 
 void Stream::StateCallback(cubeb_stream* stream, void* user_data,
                            cubeb_state state) {
+    (void)stream;
+
     auto self = reinterpret_cast<Stream*>(user_data);
 
     switch (state) {

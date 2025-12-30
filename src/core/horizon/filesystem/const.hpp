@@ -33,7 +33,7 @@ enum class FileOpenFlags {
     Write = BIT(1),
     Append = BIT(2),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(FileOpenFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(FileOpenFlags)
 
 } // namespace hydra::horizon::filesystem
 

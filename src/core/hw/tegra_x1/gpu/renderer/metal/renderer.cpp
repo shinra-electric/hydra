@@ -166,7 +166,7 @@ void Renderer::BeginSurfaceRenderPass() {
     color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
     color_attachment->setStoreAction(MTL::StoreActionStore);
 
-    auto encoder = CreateRenderCommandEncoder(render_pass_descriptor);
+    CreateRenderCommandEncoder(render_pass_descriptor);
     render_pass_descriptor->release();
 }
 
@@ -215,7 +215,7 @@ BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
 }
 
-BufferBase* Renderer::AllocateTemporaryBuffer(const usize size) {
+BufferBase* Renderer::AllocateTemporaryBuffer(const u32 size) {
     // TODO: use a buffer allocator instead
     auto buffer = device->newBuffer(size, MTL::ResourceStorageModeShared);
     return new Buffer(buffer, 0);
@@ -260,6 +260,10 @@ void Renderer::ClearColor(u32 render_target_id, u32 layer, u8 mask,
                       render_target_id));
         return;
     }
+
+    // TODO: layer
+    ASSERT_DEBUG(layer == 0, MetalRenderer,
+                 "Layered clears (layer: {}) not implemented", layer);
 
     auto encoder = GetRenderCommandEncoder();
 
@@ -306,7 +310,8 @@ void Renderer::ClearDepth(u32 layer, const float value) {
 }
 
 void Renderer::ClearStencil(u32 layer, const u32 value) {
-    ONCE(LOG_NOT_IMPLEMENTED(MetalRenderer, "Stencil clears"));
+    ONCE(LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(
+        MetalRenderer, "layer: {}, value: {:#x}", layer, value));
 }
 
 void Renderer::SetViewport(u32 index, const Viewport& viewport) {

@@ -10,10 +10,13 @@ DEFINE_SERVICE_COMMAND_TABLE(IService, 1, ThrowFatalWithPolicy, 2,
 result_t
 IService::ThrowFatalWithCpuContext(u64 code, u64 _unknown_x8,
                                    InBuffer<BufferAttr::MapAlias> in_buffer) {
+    (void)_unknown_x8;
+
     // TODO: print properly
     LOG_INFO(Services, "Error: 0x{:x}", code);
 
     // TODO: stack trace and other stuff in the buffer
+    (void)in_buffer;
 
     GET_CURRENT_PROCESS_DEBUGGER().BreakOnThisThread(
         "fatalsrv::IService::ThrowFatalWithCpuContext");

@@ -20,7 +20,8 @@ class INfc : public IService {
     result_t GetState(u32* out_state);
 
   private:
-    PermissionLevel perm_level;
+    // TODO: use
+    [[maybe_unused]] PermissionLevel perm_level;
 };
 
 } // namespace hydra::horizon::services::nfc

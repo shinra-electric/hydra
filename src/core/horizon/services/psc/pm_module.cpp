@@ -12,6 +12,7 @@ IPmModule::IPmModule() : event{new kernel::Event(false, "IPmModule event")} {}
 result_t IPmModule::Initialize(kernel::Process* process, PmModuleId module_id,
                                InBuffer<BufferAttr::MapAlias> in_dep_buffer,
                                OutHandle<HandleAttr::Copy> out_event_handle) {
+    (void)in_dep_buffer;
     LOG_FUNC_STUBBED(Services);
 
     LOG_DEBUG(Services, "Module ID: {}", module_id);

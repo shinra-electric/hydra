@@ -6,12 +6,16 @@
 namespace hydra::horizon::services::pl {
 
 result_t ISharedFontManager::RequestLoad(SharedFontType font_type) {
+    (void)font_type;
+
     // Do nothing, all the fonts are already loaded
     return RESULT_SUCCESS;
 }
 
 result_t ISharedFontManager::GetLoadState(SharedFontType font_type,
                                           LoadState* out_state) {
+    (void)font_type;
+
     *out_state = LoadState::Loaded;
     return RESULT_SUCCESS;
 }
@@ -45,6 +49,8 @@ result_t ISharedFontManager::GetSharedFontInOrderOfPriority(
     *out_loaded = 0;
     *out_count = 0;
 
+    // TODO: sort by priority
+    (void)language_code;
     for (SharedFontType type = (SharedFontType)0; type < SharedFontType::Total;
          type++) {
         const auto& state = SHARED_FONT_MANAGER_INSTANCE.GetState(type);

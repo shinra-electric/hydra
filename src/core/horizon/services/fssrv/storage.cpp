@@ -12,11 +12,9 @@ IStorage::IStorage(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
 
 IStorage::~IStorage() { delete stream; }
 
-result_t IStorage::Read(i64 offset, u64 size,
+result_t IStorage::Read(u64 offset, u64 size,
                         OutBuffer<BufferAttr::MapAlias> out_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
-
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
     const auto max_size = stream->GetSize() - offset;
     if (size > max_size) {
@@ -35,11 +33,9 @@ result_t IStorage::Read(i64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::Write(i64 offset, u64 size,
+result_t IStorage::Write(u64 offset, u64 size,
                          InBuffer<BufferAttr::MapAlias> in_buffer) {
     LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
-
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
 
     stream->SeekTo(offset);
     stream->WriteSpan(in_buffer.stream->ReadSpan<u8>(size));
@@ -47,12 +43,12 @@ result_t IStorage::Write(i64 offset, u64 size,
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::SetSize(i64 size) {
+result_t IStorage::SetSize(u64 size) {
     file->Resize(size);
     return RESULT_SUCCESS;
 }
 
-result_t IStorage::GetSize(i64* out_size) {
+result_t IStorage::GetSize(u64* out_size) {
     *out_size = file->GetSize();
     return RESULT_SUCCESS;
 }

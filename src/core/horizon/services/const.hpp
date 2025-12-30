@@ -8,7 +8,8 @@
         return invoke_command(context, *this, &service::func);
 
 #define DEFINE_SERVICE_COMMAND_TABLE(service, ...)                             \
-    result_t service::RequestImpl(RequestContext& context, u32 id) {           \
+    result_t service::RequestImpl([[maybe_unused]] RequestContext& context,    \
+                                  u32 id) {                                    \
         switch (id) {                                                          \
             FOR_EACH_1_2(SERVICE_COMMAND_CASE, service, __VA_ARGS__)           \
         default:                                                               \

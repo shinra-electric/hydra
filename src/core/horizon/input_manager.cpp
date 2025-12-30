@@ -14,7 +14,7 @@
     lifo.header.count = 1;                                                     \
     auto& storage = lifo.storage[lifo.header.tail];                            \
     storage.sampling_number = get_absolute_time(); /* TODO: correct? */        \
-    auto& out_state = storage.state;
+    [[maybe_unused]] auto& out_state = storage.state;
 
 namespace hydra::horizon {
 

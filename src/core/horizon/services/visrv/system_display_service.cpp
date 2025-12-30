@@ -11,7 +11,7 @@ DEFINE_SERVICE_COMMAND_TABLE(ISystemDisplayService, 1202, GetZOrderCountMax,
 
 result_t ISystemDisplayService::GetZOrderCountMax(u64 display_id,
                                                   i64* out_count) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "display ID: {}", display_id);
 
     // HACK
     *out_count = 15;
@@ -55,7 +55,7 @@ result_t ISystemDisplayService::GetDisplayMode(u64 display_id, u32* out_width,
                                                u32* out_height,
                                                float* out_refresh_rate,
                                                i32* out_unknown) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "display ID: {}", display_id);
 
     const auto res = OS_INSTANCE.GetDisplayResolution();
     *out_width = res.x();

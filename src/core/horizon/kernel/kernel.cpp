@@ -138,8 +138,8 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
     case 0x15: {
         TransferMemory* tmem = nullptr;
         state.r[0] = CreateTransferMemory(
-            crnt_process, state.r[1], state.r[2],
-            static_cast<MemoryPermission>(state.r[3]), tmem);
+            state.r[1], state.r[2], static_cast<MemoryPermission>(state.r[3]),
+            tmem);
         state.r[1] = crnt_process->AddHandleNoRetain(tmem);
         break;
     }
@@ -160,10 +160,10 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             sync_objs[i] =
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
-        state.r[0] =
-            WaitSynchronization(crnt_thread, std::span(sync_objs, num_handles),
-                                std::bit_cast<i64>(state.r[3]), tmp_i32);
-        state.r[1] = std::bit_cast<u32>(tmp_i32);
+        state.r[0] = WaitSynchronization(
+            crnt_thread, std::span(sync_objs, static_cast<size_t>(num_handles)),
+            std::bit_cast<i64>(state.r[3]), tmp_u32);
+        state.r[1] = tmp_u32;
         break;
     }
     case 0x19:
@@ -210,10 +210,10 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         break;
     }
     case 0x21:
-        state.r[0] = SendSyncRequest(
-            crnt_process, crnt_thread, guest_thread->GetTlsMemory(),
-            crnt_process->GetHandle<hipc::ClientSession>(
-                static_cast<handle_id_t>(state.r[0])));
+        state.r[0] =
+            SendSyncRequest(crnt_process, crnt_thread,
+                            crnt_process->GetHandle<hipc::ClientSession>(
+                                static_cast<handle_id_t>(state.r[0])));
         break;
     case 0x25:
         state.r[0] = GetThreadId(crnt_process->GetHandle<IThread>(
@@ -262,11 +262,11 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
         state.r[0] = WaitForAddress(
             crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
             static_cast<ArbitrationType>(state.r[1]),
-            static_cast<u32>(state.r[2]), state.r[3]);
+            static_cast<u32>(state.r[2]), std::bit_cast<i64>(state.r[3]));
         break;
     case 0x35:
         state.r[0] = SignalToAddress(
-            crnt_thread, crnt_process->GetMmu()->UnmapAddr(state.r[0]),
+            crnt_process->GetMmu()->UnmapAddr(state.r[0]),
             static_cast<SignalType>(state.r[1]), static_cast<u32>(state.r[2]),
             static_cast<u32>(state.r[3]));
         break;
@@ -296,12 +296,12 @@ void Kernel::SupervisorCall(Process* crnt_process, IThread* crnt_thread,
             sync_objs[i] =
                 crnt_process->GetHandle<SynchronizationObject>(handle_ids[i]);
 
-        state.r[0] =
-            ReplyAndReceive(crnt_thread, std::span(sync_objs, num_handles),
-                            crnt_process->GetHandle<hipc::ServerSession>(
-                                static_cast<handle_id_t>(state.r[3])),
-                            std::bit_cast<i64>(state.r[4]), tmp_i32);
-        state.r[1] = std::bit_cast<u32>(tmp_i32);
+        state.r[0] = ReplyAndReceive(
+            crnt_thread, std::span(sync_objs, static_cast<size_t>(num_handles)),
+            crnt_process->GetHandle<hipc::ServerSession>(
+                static_cast<handle_id_t>(state.r[3])),
+            std::bit_cast<i64>(state.r[4]), tmp_u32);
+        state.r[1] = tmp_u32;
         break;
     }
     case 0x4b: {
@@ -591,6 +591,8 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
 
 result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                    uptr addr, usize size) {
+    (void)crnt_process;
+
     LOG_DEBUG(Kernel,
               "UnmapSharedMemory called (handle: {}, addr: 0x{:08x}, size: "
               "0x{:08x})",
@@ -602,8 +604,8 @@ result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::CreateTransferMemory(Process* crnt_process, uptr addr,
-                                      u64 size, MemoryPermission perm,
+result_t Kernel::CreateTransferMemory(uptr addr, u64 size,
+                                      MemoryPermission perm,
                                       TransferMemory*& out_tmem) {
     LOG_DEBUG(Kernel,
               "CreateTransferMemory called (address: 0x{:08x}, size: 0x{:08x}, "
@@ -648,7 +650,7 @@ result_t Kernel::ResetSignal(SynchronizationObject* sync_obj) {
 result_t
 Kernel::WaitSynchronization(IThread* crnt_thread,
                             std::span<SynchronizationObject*> sync_objs,
-                            i64 timeout, i32& out_signalled_index) {
+                            i64 timeout, u32& out_signalled_index) {
     LOG_DEBUG(Kernel,
               "WaitSynchronization called (count: {}, timeout: "
               "{})",
@@ -695,7 +697,7 @@ Kernel::WaitSynchronization(IThread* crnt_thread,
     }
 
     // Find the handle index
-    out_signalled_index = -1;
+    out_signalled_index = 0;
     if (signalled_obj) {
         for (u32 i = 0; i < sync_objs.size(); i++) {
             if (sync_objs[i] == signalled_obj) {
@@ -869,7 +871,6 @@ result_t Kernel::ConnectToNamedPort(const std::string_view name,
 }
 
 result_t Kernel::SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
-                                 hw::tegra_x1::cpu::IMemory* tls_mem,
                                  hipc::ClientSession* client_session) {
     if (!client_session) {
         LOG_WARN(Kernel, "SendSyncRequest called (INVALID_HANDLE)");
@@ -1111,7 +1112,7 @@ result_t Kernel::GetThreadContext3(IThread* thread,
 
 result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
                                 ArbitrationType arbitration_type, u32 value,
-                                u64 timeout) {
+                                i64 timeout) {
     LOG_DEBUG(Kernel,
               "WaitForAddress called (addr: 0x{:08x}, type: {}, value: "
               "0x{:x}, timeout: 0x{:08x})",
@@ -1133,6 +1134,7 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
             wait = (current_value < value);
             break;
         case ArbitrationType::WaitIfEqual:
+            current_value = atomic_load(value_ptr);
             wait = (current_value == value);
             break;
         }
@@ -1175,8 +1177,8 @@ result_t Kernel::WaitForAddress(IThread* crnt_thread, uptr addr,
     return RESULT_SUCCESS;
 }
 
-result_t Kernel::SignalToAddress(IThread* crnt_thread, uptr addr,
-                                 SignalType signal_type, u32 value, u32 count) {
+result_t Kernel::SignalToAddress(uptr addr, SignalType signal_type, u32 value,
+                                 u32 count) {
     LOG_DEBUG(Kernel,
               "SignalToAddress called (addr: 0x{:08x}, "
               "signal_type: {}, value: 0x{:08x}, count: {})",
@@ -1230,7 +1232,7 @@ result_t Kernel::AcceptSession(hipc::ServerPort* server_port,
 result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objs,
                                  hipc::ServerSession* reply_target_session,
-                                 i64 timeout, i32& out_signalled_index) {
+                                 i64 timeout, u32& out_signalled_index) {
     LOG_DEBUG(Kernel, "ReplyAndReceive called (count: {}, timeout: {})",
               sync_objs.size(), timeout);
 
@@ -1245,7 +1247,7 @@ result_t Kernel::ReplyAndReceive(IThread* crnt_thread,
     if (res != RESULT_SUCCESS)
         return res;
 
-    auto sync_obj = sync_objs[out_signalled_index];
+    auto sync_obj = sync_objs[static_cast<size_t>(out_signalled_index)];
     if (auto server_session = dynamic_cast<hipc::ServerSession*>(sync_obj)) {
         if (server_session->IsClientOpen()) {
             // Receive
@@ -1297,6 +1299,7 @@ result_t Kernel::GetProcessList(u64* process_id_buffer,
         // TODO: what is a process ID?
         *process_id_buffer++ = reinterpret_cast<u64>(*it); // HACK
         process_id_buffer_size -= sizeof(u64);
+        out_count++;
     }
 
     return RESULT_SUCCESS;

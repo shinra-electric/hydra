@@ -128,7 +128,7 @@ Thread::Thread(IMmu* mmu, const ThreadCallbacks& callbacks, IMemory* tls_mem,
 
     // VTimer
     struct mach_timebase_info info;
-    auto time = mach_timebase_info(&info);
+    mach_timebase_info(&info);
 
     interrupt_time_delta_ticks =
         ((INTERRUPT_TIME * info.denom) + (info.numer - 1)) / info.numer;
@@ -160,9 +160,10 @@ void Thread::Run() {
 
             switch (hv_ec) {
             case ExceptionClass::HvcAarch64: {
-                u64 esr = GetSysReg(HV_SYS_REG_ESR_EL1);
+                const auto esr =
+                    static_cast<u32>(GetSysReg(HV_SYS_REG_ESR_EL1));
                 const auto ec = static_cast<ExceptionClass>((esr >> 26) & 0x3f);
-                u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
+                const u64 far = GetSysReg(HV_SYS_REG_FAR_EL1);
 
                 switch (ec) {
                 case ExceptionClass::SvcAarch64:
@@ -280,7 +281,7 @@ void Thread::UpdateVTimer() {
 }
 
 void Thread::SerializeState() {
-    for (u32 i = 0; i < 29; i++)
+    for (u8 i = 0; i < 29; i++)
         state.r[i] = GetReg(hv_reg_t(HV_REG_X0 + i));
     state.fp = GetReg(HV_REG_FP);
     state.lr = GetReg(HV_REG_LR);
@@ -289,15 +290,15 @@ void Thread::SerializeState() {
         state.pc = GetSysReg(HV_SYS_REG_ELR_EL1) - 4;
     else
         state.pc = GetReg(HV_REG_PC);
-    state.pstate = GetReg(HV_REG_CPSR);
-    for (u32 i = 0; i < 32; i++)
+    state.pstate = static_cast<u32>(GetReg(HV_REG_CPSR));
+    for (u8 i = 0; i < 32; i++)
         state.v[i] = GetSimdFpReg(i);
-    state.fpcr = GetReg(HV_REG_FPCR);
-    state.fpsr = GetReg(HV_REG_FPSR);
+    state.fpcr = static_cast<u32>(GetReg(HV_REG_FPCR));
+    state.fpsr = static_cast<u32>(GetReg(HV_REG_FPSR));
 }
 
 void Thread::DeserializeState() {
-    for (u32 i = 0; i < 29; i++)
+    for (u8 i = 0; i < 29; i++)
         SetReg(hv_reg_t(HV_REG_X0 + i), state.r[i]);
     SetReg(HV_REG_FP, state.fp);
     SetReg(HV_REG_LR, state.lr);
@@ -307,7 +308,7 @@ void Thread::DeserializeState() {
     else
         SetReg(HV_REG_PC, state.pc);
     SetReg(HV_REG_CPSR, state.pstate);
-    for (u32 i = 0; i < 32; i++)
+    for (u8 i = 0; i < 32; i++)
         SetSimdFpReg(i, state.v[i]);
     SetReg(HV_REG_FPCR, state.fpcr);
     SetReg(HV_REG_FPSR, state.fpsr);

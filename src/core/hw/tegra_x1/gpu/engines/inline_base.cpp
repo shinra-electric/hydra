@@ -5,10 +5,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::engines {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void InlineBase::LaunchDMAImpl(GMmu& gmmu, RegsInline& regs, const u32 index,
                                const u32 data) {
-    // TODO: args
-    LOG_FUNC_STUBBED(Engines);
+    LOG_FUNC_WITH_ARGS_STUBBED(Engines, "index: {}, data: {:#x}", index, data);
 }
 
 void InlineBase::LoadInlineDataImpl(GMmu& gmmu, RegsInline& regs,
@@ -34,5 +36,7 @@ void InlineBase::LoadInlineDataImpl(GMmu& gmmu, RegsInline& regs,
         inline_data.clear();
     }
 }
+
+#pragma GCC diagnostic pop
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

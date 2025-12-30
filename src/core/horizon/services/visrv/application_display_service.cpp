@@ -108,11 +108,11 @@ result_t IApplicationDisplayService::CloseDisplay(u64 display_id) {
 result_t IApplicationDisplayService::GetDisplayResolution(u64 display_id,
                                                           i64* out_width,
                                                           i64* out_height) {
-    LOG_FUNC_STUBBED(Services);
-
     auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(
         static_cast<handle_id_t>(display_id));
+    (void)display;
 
+    // TODO: use the display
     const auto res = OS_INSTANCE.GetDisplayResolution();
     *out_width = res.x();
     *out_height = res.y();
@@ -123,6 +123,9 @@ result_t IApplicationDisplayService::OpenLayer(
     DisplayName display_name, u64 layer_id, u64 aruid,
     u64* out_native_window_size,
     OutBuffer<BufferAttr::MapAlias> parcel_buffer) {
+    (void)display_name;
+    (void)aruid;
+
     // TODO: what's the display for?
     // auto& display =
     // OS_INSTANCE.GetDisplayDriver().GetDisplayByName(display_name.name);

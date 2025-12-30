@@ -20,7 +20,7 @@ enum class NsoFlags : u32 {
     RoHash = BIT(4),
     DataHash = BIT(5),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(NsoFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(NsoFlags)
 
 struct NsoHeader {
     u32 magic;

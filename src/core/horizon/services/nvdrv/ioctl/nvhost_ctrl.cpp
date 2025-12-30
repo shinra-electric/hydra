@@ -30,6 +30,7 @@ NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
 
     const auto& event = events[slot];
     // TODO: check if syncpoint IDs are equal
+    (void)syncpoint_id;
 
     out_event = event.event;
     return NvResult::Success;
@@ -68,7 +69,8 @@ NvResult NvHostCtrl::GetConfig(std::array<char, 0x41> name,
 
 NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32 timeout,
                                      u32* out_value) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "ID: {}, treshold: {}, timeout: {}",
+                               id, tresh, timeout);
 
     // HACK
     *out_value = 0;
@@ -77,7 +79,8 @@ NvResult NvHostCtrl::SyncptWaitEvent(u32 id, u32 tresh, i32 timeout,
 
 NvResult NvHostCtrl::SyncptWaitEventEx(u32 id, u32 tresh, i32 timeout,
                                        InOutSingle<u32> out_value) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "ID: {}, treshold: {}, timeout: {}",
+                               id, tresh, timeout);
 
     // HACK
     out_value = 0;

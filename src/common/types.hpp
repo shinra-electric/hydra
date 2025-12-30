@@ -411,24 +411,40 @@ class CacheBase {
 
 } // namespace hydra
 
+template <typename T, hydra::usize alignment>
+struct fmt::formatter<hydra::aligned<T, alignment>> : formatter<string_view> {
+    fmt::formatter<T> value_formatter;
+
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return value_formatter.parse(ctx);
+    }
+
+    template <typename FormatContext>
+    auto format(const hydra::aligned<T, alignment>& value,
+                FormatContext& ctx) const {
+        return value_formatter.format(value.Get(), ctx);
+    }
+};
+
+// TODO: rework
 template <typename T>
 struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
     template <typename FormatContext>
-    auto format(hydra::range<T> range, FormatContext& ctx) const {
+    auto format(hydra::range<T> value, FormatContext& ctx) const {
         return formatter<string_view>::format(
-            fmt::format("<{}...{})", range.begin, range.end), ctx);
+            fmt::format("<{}...{})", value.begin, value.end), ctx);
     }
 };
 
 template <typename T, hydra::u32 component_count>
 struct fmt::formatter<hydra::vec<T, component_count>> : formatter<string_view> {
     template <typename FormatContext>
-    auto format(const hydra::vec<T, component_count>& vec,
+    auto format(const hydra::vec<T, component_count>& value,
                 FormatContext& ctx) const {
         // TODO: optimize
         std::string str = "(";
         for (hydra::u32 i = 0; i < component_count; i++) {
-            str += fmt::format("{}", vec[i]);
+            str += fmt::format("{}", value[i]);
             if (i != component_count - 1)
                 str += ", ";
         }

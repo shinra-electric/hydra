@@ -76,7 +76,8 @@ class LibraryAppletController {
     }
 
   private:
-    LibraryAppletMode mode;
+    // TODO: use
+    [[maybe_unused]] LibraryAppletMode mode;
 
     kernel::Event* state_changed_event;
     kernel::Event* interactive_in_data_event;

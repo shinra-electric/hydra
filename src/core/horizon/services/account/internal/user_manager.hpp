@@ -7,8 +7,8 @@ namespace hydra::horizon::services::account::internal {
 
 struct Avatar {
     filesystem::IFile* file;
-    std::vector<uchar4> data;
-    usize dimensions{0};
+    std::vector<uchar4> data{};
+    u32 dimensions{0};
 };
 
 class UserManager {
@@ -36,7 +36,7 @@ class UserManager {
     // Avatar
     void LoadSystemAvatars(filesystem::Filesystem& fs);
     const std::vector<uchar4>& LoadAvatarImage(std::string_view path,
-                                               usize& out_dimensions);
+                                               u32& out_dimensions);
     void LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                std::vector<u8>& out_data);
 

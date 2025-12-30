@@ -84,9 +84,6 @@ add_library(hydra-core
     horizon/loader/homebrew_loader.hpp
     horizon/loader/nsp_loader.cpp
     horizon/loader/nsp_loader.hpp
-    # TODO: remove XCI
-    horizon/loader/xci_loader.cpp
-    horizon/loader/xci_loader.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.cpp
@@ -428,7 +425,6 @@ add_library(hydra-core
     audio/const.hpp
     audio/stream.hpp
     audio/core.hpp
-    audio/null/stream.cpp
     audio/null/stream.hpp
     audio/null/core.cpp
     audio/null/core.hpp
@@ -648,7 +644,7 @@ endif ()
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
 
 # TODO: only link Apple frameworks if Apple
-target_link_libraries(hydra-core PRIVATE "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
+target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
 
 if (HYPERVISOR_ENABLED)
     target_link_libraries(hydra-core PRIVATE "-framework Hypervisor")

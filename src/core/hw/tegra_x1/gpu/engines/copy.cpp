@@ -9,11 +9,14 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
     // TODO: implement component remapping
     // HACK
-    usize src_stride = regs.src.stride;
-    usize dst_stride = regs.dst.stride;
+    u32 src_stride = regs.src.stride;
+    u32 dst_stride = regs.dst.stride;
     if (data.remap_enable) {
         const auto& c = regs.remap_components;
         ASSERT_DEBUG(
@@ -21,15 +24,15 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
             Engines, "Component remapping not implemented ({}, {}, {}, {})",
             c.dst_x, c.dst_y, c.dst_z, c.dst_w);
 
-        const auto component_size = c.component_size_minus_one + 1;
+        const u32 component_size = c.component_size_minus_one + 1;
         {
-            const auto component_count = c.src_component_count_minus_one + 1;
-            usize bytes_per_block = component_count * component_size;
+            const u32 component_count = c.src_component_count_minus_one + 1;
+            u32 bytes_per_block = component_count * component_size;
             src_stride *= bytes_per_block;
         }
         {
-            const auto component_count = c.dst_component_count_minus_one + 1;
-            usize bytes_per_block = component_count * component_size;
+            const u32 component_count = c.dst_component_count_minus_one + 1;
+            u32 bytes_per_block = component_count * component_size;
             dst_stride *= bytes_per_block;
         }
     }
@@ -51,10 +54,12 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
             // problematic.
 
             // Encode as Generic 16BX2
-            encode_generic_16bx2(
-                dst_stride, regs.line_count,
-                get_block_size_log2(regs.dst.block_size.height),
-                reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
+            // TODO: block size log2 can also be negative?
+            encode_generic_16bx2(dst_stride, regs.line_count,
+                                 static_cast<u32>(get_block_size_log2(
+                                     regs.dst.block_size.height)),
+                                 reinterpret_cast<u8*>(src_ptr),
+                                 reinterpret_cast<u8*>(dst_ptr));
 
             // memcpy((void*)gmmu.UnmapAddr(regs.offset_out),
             //        (void*)gmmu.UnmapAddr(regs.offset_in), stride *
@@ -85,10 +90,12 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
-            decode_generic_16bx2(
-                src_stride, regs.line_count,
-                get_block_size_log2(regs.src.block_size.height),
-                reinterpret_cast<u8*>(src_ptr), reinterpret_cast<u8*>(dst_ptr));
+            // TODO: block size log2 can also be negative?
+            decode_generic_16bx2(src_stride, regs.line_count,
+                                 static_cast<u32>(get_block_size_log2(
+                                     regs.src.block_size.height)),
+                                 reinterpret_cast<u8*>(src_ptr),
+                                 reinterpret_cast<u8*>(dst_ptr));
         } else {
             LOG_NOT_IMPLEMENTED(Engines, "BlockLinear to BlockLinear");
         }
@@ -98,6 +105,8 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
     RENDERER_INSTANCE.GetTextureCache().NotifyGuestModifiedData(
         range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
+
+#pragma GCC diagnostic pop
 
 /*
 renderer::BufferBase* Copy::GetBuffer(GMmu& gmmu, const Iova addr, const usize

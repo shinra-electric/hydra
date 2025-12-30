@@ -26,8 +26,9 @@ IAllSystemAppletProxiesService::OpenLibraryAppletProxyOld(RequestContext* ctx) {
 }
 
 result_t IAllSystemAppletProxiesService::OpenLibraryAppletProxy(
-    RequestContext* ctx, u64 _reserved_x0,
+    RequestContext* ctx, [[maybe_unused]] u64 _reserved_x0,
     InHandle<HandleAttr::Copy> crnt_process_handle) {
+    (void)crnt_process_handle;
     return OpenLibraryAppletProxyImpl(ctx);
 }
 

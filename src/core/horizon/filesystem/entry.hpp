@@ -10,7 +10,8 @@ class IEntry {
   public:
     virtual ~IEntry() = default;
 
-    virtual bool IsDirectory() const = 0;
+    virtual bool IsFile() const { return false; }
+    virtual bool IsDirectory() const { return false; }
 
     virtual FsResult Delete(bool recursive = false) = 0;
 

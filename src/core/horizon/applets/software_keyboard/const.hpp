@@ -28,7 +28,7 @@ enum class InvalidCharFlags : u32 {
     OutsideOfDownloadCode = BIT(7),
     OutsideOfMiiNickName = BIT(8),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(InvalidCharFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(InvalidCharFlags)
 
 enum class InitialCursorPosition : u32 {
     First = 0,

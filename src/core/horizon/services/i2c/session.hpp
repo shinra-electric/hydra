@@ -15,10 +15,12 @@ class ISession : public IService {
     ISession(I2cDevice device_) : device{device_} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
-    I2cDevice device;
+    // TODO: use
+    [[maybe_unused]] I2cDevice device;
 
     // Commands
     result_t Send(TransactionOption transaction_option,

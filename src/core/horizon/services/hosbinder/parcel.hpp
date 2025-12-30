@@ -75,12 +75,12 @@ class ParcelReader {
 
     // TODO: check this
     std::string ReadString16() {
-        usize length = Read<i32>();
+        usize length = static_cast<usize>(Read<i32>());
         auto data = ReadSpan<u16>(length + 1);
 
         std::string str(length, '\0');
         for (usize i = 0; i < length + 1; i++)
-            str[i] = data[i];
+            str[i] = static_cast<char>(data[i]);
 
         return str;
     }
@@ -181,7 +181,7 @@ class ParcelWriter {
         auto span = WriteReturningSpan<u16>(str.size() + 1);
 
         for (u32 i = 0; i < str.size(); i++)
-            span[i] = str[i];
+            span[i] = static_cast<u16>(str[i]);
         span[str.size()] = u'\0';
     }
 

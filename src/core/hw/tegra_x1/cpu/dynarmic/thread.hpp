@@ -29,10 +29,10 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     }
 
     // Debug
-    void InsertBreakpoint(vaddr_t addr) override {
+    void InsertBreakpoint([[maybe_unused]] vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
-    void RemoveBreakpoint(vaddr_t addr) override {
+    void RemoveBreakpoint([[maybe_unused]] vaddr_t addr) override {
         LOG_FATAL(Dynarmic, "This should not happen");
     }
     void SingleStep() override {
@@ -69,13 +69,16 @@ class Thread final : public IThread, private Dynarmic::A64::UserCallbacks {
     bool MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                  Dynarmic::A64::Vector expected) override;
 
-    void InterpreterFallback(u64 pc, size_t num_instructions) override {
+    void
+    InterpreterFallback([[maybe_unused]] u64 pc,
+                        [[maybe_unused]] size_t num_instructions) override {
         LOG_FATAL(Dynarmic, "Interpreter");
     }
 
     void CallSVC(u32 svc) override;
 
-    void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override;
+    void ExceptionRaised([[maybe_unused]] u64 pc,
+                         Dynarmic::A64::Exception exception) override;
 
     u64 GetCNTPCT() override;
 

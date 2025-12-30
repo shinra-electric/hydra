@@ -30,7 +30,7 @@ void EmitLoadAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
 
     for (u32 i = 0; i < count; i++) {
         context.builder.OpCopy(
-            ir::Value::Register(dst + i),
+            ir::Value::Register(dst + static_cast<u8>(i)),
             ir::Value::AttrMemory(
                 AMem(src, src_offset + i * sizeof(u32), is_input)));
     }
@@ -65,7 +65,7 @@ void EmitStoreAttribute(DecoderContext& context, pred_t pred, bool pred_inv,
     for (u32 i = 0; i < count; i++) {
         context.builder.OpCopy(ir::Value::AttrMemory(AMem(
                                    dst, dst_offset + i * sizeof(u32), false)),
-                               ir::Value::Register(src + i));
+                               ir::Value::Register(src + static_cast<u8>(i)));
     }
 
     if (conditional)
@@ -107,7 +107,7 @@ void EmitLoadConstant(DecoderContext& context, pred_t pred, bool pred_inv,
 
     for (u32 i = 0; i < count; i++) {
         context.builder.OpCopy(
-            ir::Value::Register(dst + i),
+            ir::Value::Register(dst + static_cast<u8>(i)),
             ir::Value::ConstMemory(
                 CMem(cbuf_slot, src, cbuf_offset + i * sizeof(u32))));
     }
@@ -146,11 +146,12 @@ void EmitLoadGlobal(DecoderContext& context, pred_t pred, bool pred_inv,
         size == LsSize3::S16)
         LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Small integer loading");
 
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Global memory");
+    LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(
+        ShaderDecompiler, "size: {}, src: {}, offset: {}", size, src, offset);
 
     for (u32 i = 0; i < count; i++) {
         // TODO: global memory
-        context.builder.OpCopy(ir::Value::Register(dst + i),
+        context.builder.OpCopy(ir::Value::Register(dst + static_cast<u8>(i)),
                                ir::Value::ConstantU(0));
     }
 
@@ -164,6 +165,8 @@ void EmitInterpolateAttribute(DecoderContext& context, pred_t pred,
                               bool pred_inv, IpaOp op, bool saturate, reg_t dst,
                               reg_t src_a_r, u32 src_a_imm, bool indexed,
                               reg_t src_b, reg_t src_c) {
+    (void)src_c;
+
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     auto res = ir::Value::AttrMemory(
@@ -216,7 +219,8 @@ void EmitLdc(DecoderContext& context, InstLdc inst) {
 
 void EmitLdg(DecoderContext& context, InstLdg inst) {
     EmitLoadGlobal(context, inst.pred, inst.pred_inv, inst.size, inst.dst,
-                   inst.src, sign_extend<i32, 24>(inst.imm24));
+                   inst.src,
+                   sign_extend<i32, 24>(static_cast<i32>(inst.imm24)));
 }
 
 void EmitIpa(DecoderContext& context, InstIpa inst) {

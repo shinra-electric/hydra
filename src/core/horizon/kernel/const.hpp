@@ -332,7 +332,7 @@ enum class MemoryAttribute : u32 {
     DeviceShared = BIT(2),
     Uncached = BIT(3),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(MemoryAttribute)
+ENABLE_ENUM_BITWISE_OPERATORS(MemoryAttribute)
 
 enum class MemoryPermission : u32 {
     None = 0x0,
@@ -344,7 +344,7 @@ enum class MemoryPermission : u32 {
     ReadWriteExecute = Read | Write | Execute,
     DontCare = BIT(28),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(MemoryPermission)
+ENABLE_ENUM_BITWISE_OPERATORS(MemoryPermission)
 
 struct MemoryState {
     MemoryType type;

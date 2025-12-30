@@ -22,7 +22,8 @@ result_t IRequest::FinalizeOld(Module module) {
 
 result_t IRequest::SetAndWaitOld(Module module, u32 setting_min,
                                  u32 setting_max) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "setting min: {}, setting max: {}",
+                               setting_min, setting_max);
 
     LOG_DEBUG(Services, "Module: {}", module);
 
@@ -61,7 +62,8 @@ result_t IRequest::Finalize(u32 request_id) {
 
 result_t IRequest::SetAndWait(u32 request_id, u32 setting_min,
                               u32 setting_max) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "setting min: {}, setting max: {}",
+                               setting_min, setting_max);
 
     LOG_DEBUG(Services, "Request ID: {}", request_id);
 

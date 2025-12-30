@@ -14,12 +14,12 @@ IFile::IFile(filesystem::IFile* file_, filesystem::FileOpenFlags flags)
 IFile::~IFile() { delete stream; }
 
 // TODO: option
-result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
+result_t IFile::Read(aligned<u32, 8> option, u64 offset, u64 size,
                      u64* out_written_size,
                      OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
+    (void)option;
 
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
+    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
     const auto max_size = stream->GetSize() - offset;
     if (size > max_size) {
@@ -36,11 +36,11 @@ result_t IFile::Read(aligned<u32, 8> option, i64 offset, u64 size,
 }
 
 // TODO: option
-result_t IFile::Write(aligned<u32, 8> option, i64 offset, u64 size,
+result_t IFile::Write(aligned<u32, 8> option, u64 offset, u64 size,
                       InBuffer<BufferAttr::MapAlias> in_buffer) {
-    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
+    (void)option;
 
-    ASSERT_DEBUG(offset >= 0, Services, "Offset ({}) must be >= 0", offset);
+    LOG_DEBUG(Services, "Offset: 0x{:08x}, size: 0x{:08x}", offset, size);
 
     stream->SeekTo(offset);
     stream->WriteSpan(in_buffer.stream->ReadSpan<u8>(size));
@@ -53,12 +53,12 @@ result_t IFile::Flush() {
     return RESULT_SUCCESS;
 }
 
-result_t IFile::SetSize(i64 size) {
+result_t IFile::SetSize(u64 size) {
     file->Resize(size);
     return RESULT_SUCCESS;
 }
 
-result_t IFile::GetSize(i64* out_size) {
+result_t IFile::GetSize(u64* out_size) {
     *out_size = file->GetSize();
     return RESULT_SUCCESS;
 }

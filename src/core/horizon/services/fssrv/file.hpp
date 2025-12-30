@@ -11,17 +11,18 @@ class IFile : public IService {
     ~IFile() override;
 
   private:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
     // Commands
-    result_t Read(aligned<u32, 8> option, i64 offset, u64 size,
+    result_t Read(aligned<u32, 8> option, u64 offset, u64 size,
                   u64* out_written_size,
                   OutBuffer<BufferAttr::MapAlias> out_buffer);
-    result_t Write(aligned<u32, 8> option, i64 offset, u64 size,
+    result_t Write(aligned<u32, 8> option, u64 offset, u64 size,
                    InBuffer<BufferAttr::MapAlias> in_buffer);
     result_t Flush();
-    result_t SetSize(i64 size);
-    result_t GetSize(i64* out_size);
+    result_t SetSize(u64 size);
+    result_t GetSize(u64* out_size);
 
   private:
     filesystem::IFile* file;

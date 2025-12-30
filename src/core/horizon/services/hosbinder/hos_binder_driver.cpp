@@ -85,25 +85,33 @@ result_t IHOSBinderDriver::TransactParcel(
 
 result_t IHOSBinderDriver::AdjustRefcount(i32 binder_id, i32 add_value,
                                           BinderType type) {
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(binder_id);
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(
+        static_cast<u32>(binder_id));
     switch (type) {
     case BinderType::Weak:
-        binder.weak_ref_count += add_value;
+        binder.weak_ref_count = static_cast<u32>(
+            static_cast<i32>(binder.weak_ref_count) + add_value);
         break;
     case BinderType::Strong:
-        binder.strong_ref_count += add_value;
+        binder.strong_ref_count = static_cast<u32>(
+            static_cast<i32>(binder.strong_ref_count) + add_value);
         break;
     }
 
     return RESULT_SUCCESS;
 }
 
+// TODO: code
 result_t
 IHOSBinderDriver::GetNativeHandle(kernel::Process* process, i32 binder_id,
                                   u32 code,
                                   OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(
-        OS::GetInstance().GetDisplayDriver().GetBinder(binder_id).GetEvent());
+    (void)code;
+
+    out_handle = process->AddHandle(OS::GetInstance()
+                                        .GetDisplayDriver()
+                                        .GetBinder(static_cast<u32>(binder_id))
+                                        .GetEvent());
     return RESULT_SUCCESS;
 }
 
@@ -118,15 +126,19 @@ result_t IHOSBinderDriver::TransactParcelAuto(
     return RESULT_SUCCESS;
 }
 
+// TODO: flags
 void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
                                           u32 flags,
                                           io::MemoryStream* in_stream,
                                           io::MemoryStream* out_stream) {
+    (void)flags;
+
     ParcelReader parcel_reader(in_stream);
     ParcelWriter parcel_writer(out_stream);
 
     // Binder
-    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(binder_id);
+    auto& binder = OS::GetInstance().GetDisplayDriver().GetBinder(
+        static_cast<u32>(binder_id));
 
     // Dispatch
     BinderResult b_result = BinderResult::Success;
@@ -136,7 +148,7 @@ void IHOSBinderDriver::TransactParcelImpl(i32 binder_id, TransactCode code,
         LOG_DEBUG(Services, "Interface token: {}", interface_token);
 
         i32 slot = parcel_reader.Read<i32>();
-        if (slot > display::MAX_BINDER_BUFFER_COUNT) {
+        if (slot > static_cast<i32>(display::MAX_BINDER_BUFFER_COUNT)) {
             LOG_WARN(Services, "Invalid slot: {}", slot);
             parcel_writer.Write<u32>(0x0);
             break;

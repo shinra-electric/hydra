@@ -146,7 +146,7 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
-usize get_texture_format_stride(const TextureFormat format, usize width);
+u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);
 
@@ -220,26 +220,24 @@ struct TextureDescriptor {
     uptr ptr;
     TextureFormat format;
     NvKind kind;
-    usize width;
-    usize height;
-    usize block_height_log2;
-    usize stride;
+    u32 width;
+    u32 height;
+    u32 block_height_log2;
+    u32 stride;
     SwizzleChannels swizzle_channels;
     // TODO: more
 
     TextureDescriptor(const uptr ptr_, const TextureFormat format_,
-                      const NvKind kind_, const usize width_,
-                      const usize height_, const usize block_height_log2_,
-                      const usize stride_,
+                      const NvKind kind_, const u32 width_, const u32 height_,
+                      const u32 block_height_log2_, const u32 stride_,
                       const SwizzleChannels& swizzle_channels_)
         : ptr{ptr_}, format{format_}, kind{kind_}, width{width_},
           height{height_}, block_height_log2{block_height_log2_},
           stride{stride_}, swizzle_channels{swizzle_channels_} {}
 
     TextureDescriptor(const uptr ptr_, const TextureFormat format_,
-                      const NvKind kind_, const usize width_,
-                      const usize height_, const usize block_height_log2_,
-                      const usize stride_)
+                      const NvKind kind_, const u32 width_, const u32 height_,
+                      const u32 block_height_log2_, const u32 stride_)
         : TextureDescriptor(
               ptr_, format_, kind_, width_, height_, block_height_log2_,
               stride_, get_texture_format_default_swizzle_channels(format_)) {}

@@ -12,7 +12,7 @@ class RenderPassCache
     void Destroy() {}
 
     RenderPassBase* Create(const RenderPassDescriptor& descriptor);
-    void Update(RenderPassBase* render_pass) {}
+    void Update([[maybe_unused]] RenderPassBase* render_pass) {}
     u32 Hash(const RenderPassDescriptor& descriptor);
 
     void DestroyElement(RenderPassBase* render_pass);

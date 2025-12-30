@@ -8,7 +8,9 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioController, 0, SetExpectedMasterVolume, 1,
 
 result_t IAudioController::SetExpectedMasterVolume(f32 main_applet_volume,
                                                    f32 library_applet_volume) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services, "main applet volume: {}, library applet volume: {}",
+        main_applet_volume, library_applet_volume);
     return RESULT_SUCCESS;
 }
 

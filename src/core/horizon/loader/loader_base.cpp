@@ -8,15 +8,14 @@
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
 #include "core/horizon/loader/nso_loader.hpp"
+#include "core/horizon/loader/nsp_loader.hpp"
 #include "core/horizon/loader/nx_loader.hpp"
-#include "core/horizon/loader/xci_loader.hpp"
 
 namespace hydra::horizon::loader {
 
 namespace {
 
-uchar4* LoadImage(filesystem::IFile* file, usize& out_width,
-                  usize& out_height) {
+uchar4* LoadImage(filesystem::IFile* file, u32& out_width, u32& out_height) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     std::vector<u8> raw_data(stream->GetSize());
@@ -34,14 +33,14 @@ uchar4* LoadImage(filesystem::IFile* file, usize& out_width,
         return nullptr;
     }
 
-    out_width = w;
-    out_height = h;
+    out_width = static_cast<u32>(w);
+    out_height = static_cast<u32>(h);
     return data;
 }
 
 uchar4* LoadGIF(filesystem::IFile* file,
                 std::vector<std::chrono::milliseconds>& out_delays,
-                usize& out_width, usize& out_height, u32& out_frame_count) {
+                u32& out_width, u32& out_height, u32& out_frame_count) {
     auto stream = file->Open(filesystem::FileOpenFlags::Read);
 
     std::vector<u8> raw_data(stream->GetSize());
@@ -60,12 +59,12 @@ uchar4* LoadGIF(filesystem::IFile* file,
         return nullptr;
     }
 
-    out_width = w;
-    out_height = h;
-    out_frame_count = f;
+    out_width = static_cast<u32>(w);
+    out_height = static_cast<u32>(h);
+    out_frame_count = static_cast<u32>(f);
 
-    out_delays.reserve(f);
-    for (u32 i = 0; i < f; i++)
+    out_delays.reserve(static_cast<size_t>(out_frame_count));
+    for (u32 i = 0; i < out_frame_count; i++)
         out_delays.push_back(std::chrono::milliseconds(delays_ms[i]));
     free(delays_ms);
 
@@ -100,8 +99,6 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
             loader = new horizon::loader::NcaLoader(file);
         } else if (extension == "nsp") {
             loader = new horizon::loader::NspLoader(file);
-        } else if (extension == "xci") {
-            loader = new horizon::loader::XciLoader(file);
         } else {
             // TODO: return an error instead
             LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
@@ -129,14 +126,14 @@ horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
     return nacp;
 }
 
-uchar4* LoaderBase::LoadIcon(usize& out_width, usize& out_height) {
+uchar4* LoaderBase::LoadIcon(u32& out_width, u32& out_height) {
     if (!icon_file)
         return nullptr;
 
     return LoadImage(icon_file, out_width, out_height);
 }
 
-uchar4* LoaderBase::LoadNintendoLogo(usize& out_width, usize& out_height) {
+uchar4* LoaderBase::LoadNintendoLogo(u32& out_width, u32& out_height) {
     if (!nintendo_logo_file)
         return nullptr;
 
@@ -145,7 +142,7 @@ uchar4* LoaderBase::LoadNintendoLogo(usize& out_width, usize& out_height) {
 
 uchar4*
 LoaderBase::LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
-                             usize& out_width, usize& out_height,
+                             u32& out_width, u32& out_height,
                              u32& out_frame_count) {
     if (!startup_movie_file)
         return nullptr;

@@ -23,7 +23,8 @@ class IAudioOut : public IService {
     IAudioOut(PcmFormat format, u32 sample_rate, u16 channel_count);
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     kernel::Event* buffer_event;

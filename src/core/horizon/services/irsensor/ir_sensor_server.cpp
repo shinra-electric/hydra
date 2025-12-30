@@ -16,15 +16,14 @@ IIrSensorServer::IIrSensorServer()
 result_t IIrSensorServer::GetIrsensorSharedMemoryHandle(
     kernel::Process* process, u64 aruid,
     OutHandle<HandleAttr::Copy> out_handle) {
+    (void)aruid;
     out_handle = process->AddHandle(shared_mem);
     return RESULT_SUCCESS;
 }
 
 result_t IIrSensorServer::GetNpadIrCameraHandle(
     ::hydra::horizon::hid::NpadIdType npad_id, IrCameraHandle* out_handle) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Npad ID: {}", npad_id);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "npad ID: {}", npad_id);
 
     // HACK
     *out_handle = {
@@ -36,7 +35,8 @@ result_t IIrSensorServer::GetNpadIrCameraHandle(
 
 result_t IIrSensorServer::ActivateIrsensorWithFunctionLevel(
     PackedFunctionLevel function_level, u64 aruid) {
-    LOG_FUNC_STUBBED(Services);
+    (void)aruid;
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "function level: {}", function_level);
     return RESULT_SUCCESS;
 }
 

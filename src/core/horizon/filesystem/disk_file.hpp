@@ -15,7 +15,7 @@ class DiskStream : public io::IostreamStream {
     // Fucking C++ STL doesn't allow creating std::fstream with std::string_view
     // as a path
     DiskStream(const std::string_view path, std::ios::openmode flags)
-        : stream(std::string(path), flags), io::IostreamStream(stream) {
+        : io::IostreamStream(stream), stream(std::string(path), flags) {
         LOG_FS_ACCESS(path, "file opened (flags: {})", flags);
     }
     ~DiskStream() override {

@@ -6,7 +6,8 @@ namespace hydra::horizon::services::fatalsrv {
 
 class IService : public ::hydra::horizon::services::IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands

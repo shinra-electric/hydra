@@ -12,7 +12,7 @@ struct FsDirectoryEntry {
     u8 pad[3];
     EntryType type : 8;
     u8 pad2[3];
-    i64 file_size;
+    u64 file_size;
 };
 
 } // namespace
@@ -26,7 +26,6 @@ result_t IDirectory::Read(u64* out_entry_count,
         return RESULT_SUCCESS;
     }
 
-    // TODO: respect filter flags
     u32 i = 0;
     for (const auto& [path, entry] : directory->GetEntries()) {
         // Check if the stream has enough space to write the entry
@@ -39,6 +38,13 @@ result_t IDirectory::Read(u64* out_entry_count,
             continue;
 
         if (!entry)
+            continue;
+
+        // Filter
+        if (entry->IsFile() && !any(filter_flags & DirectoryFilterFlags::Files))
+            continue;
+        if (entry->IsDirectory() &&
+            !any(filter_flags & DirectoryFilterFlags::Directories))
             continue;
 
         FsDirectoryEntry e{};

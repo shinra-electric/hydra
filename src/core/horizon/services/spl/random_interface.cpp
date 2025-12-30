@@ -8,7 +8,7 @@ result_t IRandomInterface::GenerateRandomBytes(
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
     // TODO: use a proper random number generator
     for (u32 i = 0; i < out_buffer.stream->GetSize(); i++)
-        out_buffer.stream->Write<u8>(rand() % 256);
+        out_buffer.stream->Write(static_cast<u8>(rand() % 256));
 
     return RESULT_SUCCESS;
 }

@@ -9,10 +9,12 @@ class IManagerForApplication : public IService {
     IManagerForApplication(uuid_t user_id_) : user_id{user_id_} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
-    uuid_t user_id;
+    // TODO: use
+    [[maybe_unused]] uuid_t user_id;
 
     // Commands
     STUB_REQUEST_COMMAND(CheckAvailability);

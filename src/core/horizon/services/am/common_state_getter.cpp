@@ -41,8 +41,8 @@ result_t ICommonStateGetter::GetOperationMode(OperationMode* out_mode) {
 result_t ICommonStateGetter::GetDefaultDisplayResolution(i32* out_width,
                                                          i32* out_height) {
     const auto res = OS_INSTANCE.GetDisplayResolution();
-    *out_width = res.x();
-    *out_height = res.y();
+    *out_width = static_cast<i32>(res.x());
+    *out_height = static_cast<i32>(res.y());
     return RESULT_SUCCESS;
 }
 
@@ -60,7 +60,7 @@ ICommonStateGetter::GetCurrentFocusState(kernel::Process* process,
 }
 
 result_t ICommonStateGetter::SetCpuBoostMode(oe::CpuBoostMode mode) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "mode: {}", mode);
 
     // TODO: pass mode to apm::ISystemManage::SetCpuBoostMode
     return RESULT_SUCCESS;

@@ -3,11 +3,11 @@
 #include "core/hw/tegra_x1/gpu/renderer/shader_decompiler/ir/value.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class GuestShaderState;
+struct GuestShaderState;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
-class Instruction;
+struct Instruction;
 class Function;
 class Module;
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir
@@ -131,9 +131,9 @@ class Emitter {
 
     // Vector
     virtual void EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
-                                   u32 index) = 0;
+                                   u8 index) = 0;
     virtual void EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
-                                  u32 index) = 0;
+                                  u8 index) = 0;
     virtual void
     EmitVectorConstruct(const ir::Value& dst,
                         const std::vector<ir::Value>& elements) = 0;

@@ -107,6 +107,8 @@ add_subdirectory(externals/libyaz0)
 add_subdirectory(externals/nx2elf)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+add_library(hydra_warnings INTERFACE)
+target_compile_options(hydra_warnings INTERFACE -Wall -Wextra -Wconversion -Wsign-conversion -Wno-vla-cxx-extension)
 
 include_directories(externals/metal-cpp externals/dynarmic externals/stb)
 

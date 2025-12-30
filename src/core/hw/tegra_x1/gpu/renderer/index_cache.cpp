@@ -41,17 +41,17 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
         idx = GET_INDEX_IMPL(u32, index);                                      \
         break;                                                                 \
     default:                                                                   \
-        break;                                                                 \
+        unreachable();                                                         \
     }
 
 #define ADD_INDEX(index)                                                       \
     switch (index_type) {                                                      \
     case engines::IndexType::UInt8:                                            \
-        *reinterpret_cast<u8*>(out) = index;                                   \
+        *reinterpret_cast<u8*>(out) = static_cast<u8>(index);                  \
         out += sizeof(u16);                                                    \
         break;                                                                 \
     case engines::IndexType::UInt16:                                           \
-        *reinterpret_cast<u16*>(out) = index;                                  \
+        *reinterpret_cast<u16*>(out) = static_cast<u16>(index);                \
         out += sizeof(u16);                                                    \
         break;                                                                 \
     case engines::IndexType::UInt32:                                           \
@@ -66,11 +66,11 @@ get_primitive_type_triangle_fan_to_triangle_strip() {
     {                                                                          \
         u32 idx;                                                               \
         GET_INDEX(idx, index);                                                 \
-        ADD_INDEX(index);                                                      \
+        ADD_INDEX(idx);                                                        \
     }
 
 #define DEFINE_DECODER_PROTOTYPE(name)                                         \
-    void decode_##name##_auto(uptr in_unused, uptr out,                        \
+    void decode_##name##_auto([[maybe_unused]] uptr in_unused, uptr out,       \
                               engines::IndexType index_type, u32 count)
 #define GET_INDEX_IMPL(type, index) (index)
 

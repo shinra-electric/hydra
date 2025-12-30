@@ -21,18 +21,20 @@ result_t ILibraryAppletCreator::CreateLibraryApplet(RequestContext* ctx,
 result_t ILibraryAppletCreator::CreateStorage(RequestContext* ctx, i64 size) {
     LOG_DEBUG(Services, "Size: {}", size);
 
-    AddService(*ctx, new IStorage(sized_ptr(malloc(size), size)));
+    AddService(*ctx, new IStorage(sized_ptr(malloc(static_cast<size_t>(size)),
+                                            static_cast<usize>(size))));
     return RESULT_SUCCESS;
 }
 
 result_t ILibraryAppletCreator::CreateTransferMemoryStorage(
     kernel::Process* process, RequestContext* ctx,
     InHandle<HandleAttr::Copy> tmem_handle, bool writable, i64 size) {
-    auto tmem = process->GetHandle<kernel::TransferMemory>(tmem_handle);
+    (void)writable;
 
-    AddService(*ctx,
-               new IStorage(sized_ptr(
-                   process->GetMmu()->UnmapAddr(tmem->GetAddress()), size)));
+    auto tmem = process->GetHandle<kernel::TransferMemory>(tmem_handle);
+    AddService(*ctx, new IStorage(sized_ptr(
+                         process->GetMmu()->UnmapAddr(tmem->GetAddress()),
+                         static_cast<usize>(size))));
     return RESULT_SUCCESS;
 }
 

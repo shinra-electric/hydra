@@ -46,9 +46,12 @@ DEFINE_SERVICE_COMMAND_TABLE(
     OpenDataStorageByDataId, 203, OpenPatchDataStorageByCurrentProcess, 1003,
     DisableAutoSaveDataCreation, 1005, GetGlobalAccessLogMode)
 
+// TODO: type
 result_t IFileSystemProxy::OpenFileSystem(
     RequestContext* ctx, FileSystemProxyType type,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
+    (void)type;
+
     // TODO: correct?
     const auto mount = path_buffer.stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
@@ -58,9 +61,13 @@ result_t IFileSystemProxy::OpenFileSystem(
     return RESULT_SUCCESS;
 }
 
+// TODO: type
 result_t IFileSystemProxy::OpenFileSystemWithIdObsolete(
     RequestContext* ctx, FileSystemProxyType type, u64 program_id,
     InBuffer<BufferAttr::HipcPointer> path_buffer) {
+    (void)type;
+    (void)program_id;
+
     // TODO: correct?
     const auto mount = path_buffer.stream->ReadNullTerminatedString();
     LOG_DEBUG(Services, "Mount: {}", mount);
@@ -89,12 +96,19 @@ result_t IFileSystemProxy::OpenSdCardFileSystem(RequestContext* ctx) {
     return RESULT_SUCCESS;
 }
 
+// TODO: creation and meta info
 result_t IFileSystemProxy::CreateSaveDataFileSystem(
     kernel::Process* process, SaveDataAttribute attr,
     SaveDataCreationInfo creation_info, SaveDataMetaInfo meta_info) {
+    (void)creation_info;
+    (void)meta_info;
+
     std::string mount = get_save_data_mount(process, attr);
-    auto res = KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
-    // TODO: check res
+    const auto res =
+        KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
+    ASSERT(res == filesystem::FsResult::Success ||
+               res == filesystem::FsResult::AlreadyExists,
+           Services, "Failed to create save data directory: {}", res);
 
     return RESULT_SUCCESS;
 }
@@ -102,7 +116,8 @@ result_t IFileSystemProxy::CreateSaveDataFileSystem(
 result_t IFileSystemProxy::ReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
     aligned<SaveDataSpaceId, 8> space_id, u64 save_id,
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "space ID: {}, save ID: {}", space_id,
+                               save_id);
 
     // TODO: why is the stream NULL?
     if (out_buffer.stream) {
@@ -124,9 +139,11 @@ result_t IFileSystemProxy::OpenReadOnlySaveDataFileSystem(
     return OpenSaveDataFileSystemImpl(ctx, process, space_id, attr, true);
 }
 
+// TODO: space ID
 result_t IFileSystemProxy::OpenSaveDataInfoReaderBySaveDataSpaceId(
     RequestContext* ctx, SaveDataSpaceId space_id) {
-    // TODO: space ID
+    (void)space_id;
+
     AddService(*ctx, new ISaveDataInfoReader());
     return RESULT_SUCCESS;
 }
@@ -160,7 +177,7 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
     RequestContext* ctx, aligned<ncm::StorageID, 8> storage_id, u64 data_id) {
     LOG_FUNC_NOT_IMPLEMENTED(Services);
 
-    LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:016x}", storage_id.Get(),
+    LOG_DEBUG(Services, "Storage ID: {}, data ID: 0x{:016x}", storage_id,
               data_id);
 
     filesystem::IFile* file;
@@ -177,7 +194,7 @@ result_t IFileSystemProxy::OpenDataStorageByDataId(
     }
     default:
         LOG_NOT_IMPLEMENTED(Services, "Storage ID {} (data ID: 0x{:016x})",
-                            storage_id.Get(), data_id);
+                            storage_id, data_id);
         return MAKE_RESULT(Svc, 1); // TODO
     }
 
@@ -229,14 +246,20 @@ result_t IFileSystemProxy::OpenSaveDataFileSystemImpl(RequestContext* ctx,
                                                       SaveDataSpaceId space_id,
                                                       SaveDataAttribute attr,
                                                       bool read_only) {
+    (void)space_id;
+    (void)read_only;
+
     // TODO: support read only
 
     std::string mount = get_save_data_mount(process, attr);
     AddService(*ctx, new IFileSystem(mount));
 
     // TODO: correct?
-    auto res = KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
-    // TODO: check res
+    const auto res =
+        KERNEL_INSTANCE.GetFilesystem().CreateDirectory(mount, true);
+    ASSERT_DEBUG(res == filesystem::FsResult::Success ||
+                     res == filesystem::FsResult::AlreadyExists,
+                 Services, "Failed to create save data directory: {}", res);
 
     return RESULT_SUCCESS;
 }

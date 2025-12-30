@@ -20,10 +20,12 @@ class ISslContext : public IService {
     ISslContext(const SslVersion version_) : version{version_} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
-    SslVersion version;
+    // TODO: use
+    [[maybe_unused]] SslVersion version;
 
     // Commands
     result_t ImportServerPki(CertificateFormat cert_format,
@@ -33,3 +35,10 @@ class ISslContext : public IService {
 };
 
 } // namespace hydra::horizon::services::ssl::sf
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::ssl::sf::CertificateFormat,
+                       Pem, "PEM", Der, "DER")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::ssl::sf::InternalPki, None,
+                       "none", DeviceClientCertDefault,
+                       "device client cert default")

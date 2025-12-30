@@ -78,7 +78,7 @@ class Renderer : public RendererBase {
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
-    BufferBase* AllocateTemporaryBuffer(const usize size) override;
+    BufferBase* AllocateTemporaryBuffer(const u32 size) override;
     void FreeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture
@@ -226,7 +226,8 @@ class Renderer : public RendererBase {
 
     // State
     State state;
-    u32 padding[0x100]; // HACK: for some reason, writing to some fields of the
+    [[maybe_unused]] u32
+        padding[0x100]; // HACK: for some reason, writing to some fields of the
                         // encoder_state corrupts the state
     EncoderState encoder_state;
 

@@ -12,7 +12,7 @@ class PipelineCache
     void Destroy() {}
 
     PipelineBase* Create(const PipelineDescriptor& descriptor);
-    void Update(PipelineBase* pipeline) {}
+    void Update([[maybe_unused]] PipelineBase* pipeline) {}
     u32 Hash(const PipelineDescriptor& descriptor);
 
     void DestroyElement(PipelineBase* pipeline);

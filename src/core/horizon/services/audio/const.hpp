@@ -12,19 +12,19 @@ enum class AudioOutState : u32 {
 };
 
 struct AudioRendererParameters {
-    i32 sample_rate;
-    i32 sample_count;
-    i32 mix_buffer_count;
-    i32 submix_count;
-    i32 voice_count;
-    i32 sink_count;
-    i32 effect_count;
-    i32 unknown_x1c;
+    u32 sample_rate;
+    u32 sample_count;
+    u32 mix_buffer_count;
+    u32 submix_count;
+    u32 voice_count;
+    u32 sink_count;
+    u32 effect_count;
+    u32 unknown_x1c;
     u8 _unknown_x20;
     u8 padding1[3];
-    i32 splitter_count;
-    i32 _unknown_x2c;
-    i32 _unknown_x30;
+    u32 splitter_count;
+    u32 _unknown_x2c;
+    u32 _unknown_x30;
     u32 revision;
 };
 

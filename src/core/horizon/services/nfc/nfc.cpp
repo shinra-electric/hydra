@@ -4,6 +4,9 @@ namespace hydra::horizon::services::nfc {
 
 result_t INfc::Initialize(u64 aruid, u64 zero,
                           InBuffer<BufferAttr::MapAlias> in_version_buffer) {
+    (void)aruid;
+    (void)zero;
+    (void)in_version_buffer;
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }

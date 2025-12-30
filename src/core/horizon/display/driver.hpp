@@ -16,7 +16,7 @@ class Driver {
     }
 
     handle_id_t GetDisplayIDFromName(const std::string& name) {
-        LOG_FUNC_NOT_IMPLEMENTED(Horizon);
+        LOG_NOT_IMPLEMENTED(Horizon, "GetDisplayIDFromName (name: {})", name);
 
         // HACK
         return 1;

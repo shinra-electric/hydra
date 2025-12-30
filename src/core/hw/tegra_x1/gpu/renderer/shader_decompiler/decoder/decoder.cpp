@@ -257,9 +257,9 @@ void Decoder::ParseNextInstruction() {
     }
     INST(0xe290000000000000, 0xfff0000000000020) { // ssy
         const auto target = static_cast<u32>(
-            pc +
+            static_cast<i32>(pc) +
             sign_extend<i32, 24>(extract_bits<i32, 20, 24>(inst)) /
-                sizeof(instruction_t) +
+                static_cast<i32>(sizeof(instruction_t)) +
             1);
 
         PushSyncPoint(target);
@@ -296,9 +296,9 @@ void Decoder::ParseNextInstruction() {
         const auto pred = extract_bits<pred_t, 16, 3>(inst);
         const auto pred_inv = extract_bits<bool, 19, 1>(inst);
         const auto target = static_cast<u32>(
-            pc +
+            static_cast<i32>(pc) +
             sign_extend<i32, 24>(extract_bits<i32, 20, 24>(inst)) /
-                sizeof(instruction_t) +
+                static_cast<i32>(sizeof(instruction_t)) +
             1);
 
         if (pred == PT) {

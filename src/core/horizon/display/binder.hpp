@@ -50,7 +50,7 @@ enum class TransformFlags : u32 {
     NoVSyncCapability = BIT(4),
     ReturnFrameNumber = BIT(5),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(TransformFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(TransformFlags)
 
 struct BqBufferInput {
     i64 timestamp;

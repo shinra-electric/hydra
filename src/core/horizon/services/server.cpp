@@ -46,7 +46,7 @@ void Server::MainLoop(kernel::should_stop_fn_t should_stop) {
         sync_objs.insert(sync_objs.end(), ports.begin(), ports.end());
         sync_objs.insert(sync_objs.end(), sessions.begin(), sessions.end());
 
-        i32 signalled_index;
+        u32 signalled_index;
         const auto res = KERNEL_INSTANCE.ReplyAndReceive(
             thread, sync_objs, reply_target_session, kernel::INFINITE_TIMEOUT,
             signalled_index);

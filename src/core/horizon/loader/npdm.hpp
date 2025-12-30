@@ -14,7 +14,7 @@ enum class NpdmFlags : u8 {
     EnableAliasRegionExtraSize = BIT(6),     // 18.0.0+
     PreventCodeReads = BIT(7),               // 19.0.0+
 };
-ENABLE_ENUM_BITMASK_OPERATORS(NpdmFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(NpdmFlags)
 
 struct NpdmMeta {
     u32 magic;

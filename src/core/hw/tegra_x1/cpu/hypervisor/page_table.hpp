@@ -25,7 +25,7 @@ struct PageTableLevel {
     }
 
     u32 VaToIndex(vaddr_t va) const {
-        return (va - base_va) >> GET_BLOCK_SHIFT(level);
+        return static_cast<u32>((va - base_va) >> GET_BLOCK_SHIFT(level));
     }
 
     u64 ReadEntry(u32 index) const {

@@ -6,7 +6,8 @@ namespace hydra::horizon::services::am {
 
 class IAllSystemAppletProxiesService : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands
@@ -16,7 +17,8 @@ class IAllSystemAppletProxiesService : public IService {
     result_t OpenLibraryAppletProxyOld(RequestContext* ctx);
     // TODO: PID and type-0x15 buffer nn::am::AppletAttribute
     result_t
-    OpenLibraryAppletProxy(RequestContext* ctx, u64 _reserved_x0,
+    OpenLibraryAppletProxy(RequestContext* ctx,
+                           [[maybe_unused]] u64 _reserved_x0,
                            InHandle<HandleAttr::Copy> crnt_process_handle);
     // TODO: correct?
     result_t OpenOverlayAppletProxy(RequestContext* ctx);

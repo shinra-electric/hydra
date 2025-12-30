@@ -8,7 +8,8 @@ namespace hydra::horizon::services::audio {
 
 class IAudioOutManager : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands
@@ -16,7 +17,7 @@ class IAudioOutManager : public IService {
                            OutBuffer<BufferAttr::MapAlias> out_buffer);
     result_t
     OpenAudioOut(RequestContext* ctx, u32 sample_rate, u16 channel_count,
-                 u16 _reserved, u64 aruid,
+                 [[maybe_unused]] u16 _reserved, u64 aruid,
                  InBuffer<BufferAttr::MapAlias> in_device_name_buffer,
                  u32* out_sample_rate, u32* out_channel_count,
                  PcmFormat* out_format, AudioOutState* out_state,
@@ -25,7 +26,7 @@ class IAudioOutManager : public IService {
                                OutBuffer<BufferAttr::AutoSelect> out_buffer);
     result_t
     OpenAudioOutAuto(RequestContext* ctx, u32 sample_rate, u16 channel_count,
-                     u16 _reserved, u64 aruid,
+                     [[maybe_unused]] u16 _reserved, u64 aruid,
                      InBuffer<BufferAttr::AutoSelect> in_device_name_buffer,
                      u32* out_sample_rate, u32* out_channel_count,
                      PcmFormat* out_format, AudioOutState* out_state,
@@ -34,7 +35,7 @@ class IAudioOutManager : public IService {
     // Impl
     result_t ListAudioOutsImpl(u32* out_count, io::MemoryStream* out_stream);
     result_t OpenAudioOutImpl(RequestContext* ctx, u32 sample_rate,
-                              u16 channel_count, u16 _reserved, u64 aruid,
+                              u16 channel_count, u64 aruid,
                               io::MemoryStream* in_device_name_stream,
                               u32* out_sample_rate, u32* out_channel_count,
                               PcmFormat* out_format, AudioOutState* out_state,

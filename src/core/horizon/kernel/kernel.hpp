@@ -72,14 +72,13 @@ class Kernel {
                              uptr addr, usize size, MemoryPermission perm);
     result_t UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
                                uptr addr, usize size);
-    result_t CreateTransferMemory(Process* crnt_process, uptr addr, u64 size,
-                                  MemoryPermission perm,
+    result_t CreateTransferMemory(uptr addr, u64 size, MemoryPermission perm,
                                   TransferMemory*& out_tmem);
     result_t CloseHandle(Process* crnt_process, handle_id_t handle_id);
     result_t ResetSignal(SynchronizationObject* sync_object);
     result_t WaitSynchronization(IThread* crnt_thread,
                                  std::span<SynchronizationObject*> sync_objects,
-                                 i64 timeout, i32& out_signalled_index);
+                                 i64 timeout, u32& out_signalled_index);
     result_t CancelSynchronization(IThread* thread);
     result_t ArbitrateLock(IThread* crnt_thread, IThread* owner_thread,
                            uptr mutex_addr, handle_id_t self_handle,
@@ -94,7 +93,6 @@ class Kernel {
     result_t ConnectToNamedPort(const std::string_view name,
                                 hipc::ClientSession*& out_client_session);
     result_t SendSyncRequest(Process* crnt_process, IThread* crnt_thread,
-                             hw::tegra_x1::cpu::IMemory* tls_mem,
                              hipc::ClientSession* client_session);
     result_t GetThreadId(IThread* thread, u64& out_thread_id);
     result_t Break(BreakReason reason, uptr buffer_ptr, usize buffer_size);
@@ -107,9 +105,9 @@ class Kernel {
                                ThreadContext& out_thread_context);
     result_t WaitForAddress(IThread* crnt_thread, uptr addr,
                             ArbitrationType arbitration_type, u32 value,
-                            u64 timeout);
-    result_t SignalToAddress(IThread* crnt_thread, uptr addr,
-                             SignalType signal_type, u32 value, u32 count);
+                            i64 timeout);
+    result_t SignalToAddress(uptr addr, SignalType signal_type, u32 value,
+                             u32 count);
     result_t CreateSession(bool is_light, u64 name,
                            hipc::ServerSession*& out_server_session,
                            hipc::ClientSession*& out_client_session);
@@ -119,7 +117,7 @@ class Kernel {
     result_t ReplyAndReceive(IThread* crnt_thread,
                              std::span<SynchronizationObject*> sync_objs,
                              hipc::ServerSession* reply_target_session,
-                             i64 timeout, i32& out_signalled_index);
+                             i64 timeout, u32& out_signalled_index);
     result_t CreateCodeMemory(vaddr_t addr, u64 size,
                               CodeMemory*& out_code_memory);
     result_t ControlCodeMemory(CodeMemory* code_memory, CodeMemoryOperation op,

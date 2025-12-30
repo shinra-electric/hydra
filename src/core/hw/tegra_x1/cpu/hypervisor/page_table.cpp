@@ -65,7 +65,8 @@ void PageTable::Map(vaddr_t va, paddr_t pa, usize size,
 }
 
 void PageTable::Unmap(vaddr_t va, usize size) {
-    LOG_FUNC_NOT_IMPLEMENTED(Hypervisor);
+    LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(Hypervisor, "va: {:#x}, size: {:#x}", va,
+                                       size);
 }
 
 // TODO: find out if there is a cheaper way

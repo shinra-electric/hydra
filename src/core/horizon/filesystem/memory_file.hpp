@@ -11,7 +11,7 @@ class MemoryFile : public IFile {
 
     void Resize(usize new_size) override { data.resize(new_size); }
 
-    io::IStream* Open(FileOpenFlags flags) override {
+    io::IStream* Open([[maybe_unused]] FileOpenFlags flags) override {
         return new io::MemoryStream(data);
     }
 

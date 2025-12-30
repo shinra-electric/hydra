@@ -14,7 +14,7 @@ enum class DirectoryFilterFlags {
     Directories = BIT(0),
     Files = BIT(1),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(DirectoryFilterFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(DirectoryFilterFlags)
 
 enum class SaveDataType : u8 {
     System = 0,
@@ -46,3 +46,13 @@ enum class SaveDataRank : u8 {
 ENABLE_ENUM_FLAGS_FORMATTING(
     hydra::horizon::services::fssrv::DirectoryFilterFlags, Directories,
     "directories", Files, "files")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::fssrv::SaveDataType, System,
+                       "system", Account, "account", Bcat, "bcat", Device,
+                       "device", Temporary, "temporary", Cache, "cache",
+                       SystemBcat, "system BCAT")
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::fssrv::SaveDataSpaceId, System,
+                       "system", User, "user", SdSystem, "SD system", Temporary,
+                       "temporary", SdUser, "SD user", ProperSystem,
+                       "proper system", SafeMode, "safe mode")

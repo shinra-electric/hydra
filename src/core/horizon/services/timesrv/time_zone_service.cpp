@@ -70,10 +70,19 @@ result_t ITimeZoneService::ToPosixTimeWithMyRule(
 result_t ITimeZoneService::ToCalendarTimeImpl(
     i64 posix_time, const TimeZoneRule& rule, CalendarTime& out_time,
     CalendarAdditionalInfo& out_additional_info) {
-    LOG_FUNC_STUBBED(Services);
+    (void)rule;
+
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "posix time: {}", posix_time);
 
     // Time
-    // TODO
+    out_time = {
+        .year = 0,   // TODO
+        .month = 0,  // TODO
+        .day = 0,    // TODO
+        .hour = 0,   // TODO
+        .minute = 0, // TODO
+        .second = 0, // TODO
+    };
 
     // Additional info
     out_additional_info = {
@@ -90,7 +99,9 @@ result_t ITimeZoneService::ToCalendarTimeImpl(
 result_t ITimeZoneService::ToPosixTimeImpl(const CalendarTime& calendar_time,
                                            const TimeZoneRule& rule,
                                            i64& out_time) {
-    LOG_FUNC_STUBBED(Services);
+    (void)rule;
+
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "calendar time: {}", calendar_time);
 
     // HACK
     out_time = 0;

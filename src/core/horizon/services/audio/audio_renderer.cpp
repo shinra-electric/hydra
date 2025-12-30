@@ -61,8 +61,8 @@ struct BiquadFilter {
 struct WaveBuffer {
     vaddr_t address;
     u64 size;
-    i32 start_sample_offset;
-    i32 end_sample_offset;
+    u32 start_sample_offset;
+    u32 end_sample_offset;
     bool is_looping;
     bool end_of_stream;
     bool sent_to_server;
@@ -160,7 +160,7 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
     voices.resize(params.voice_count);
 
     // HACK: create a thread that signals the handle every so often
-    auto t = new std::thread([&]() {
+    new std::thread([&]() {
         GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Audren signal");
         while (true) {
             event->Signal();

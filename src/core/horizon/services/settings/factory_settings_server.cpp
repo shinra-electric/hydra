@@ -7,6 +7,7 @@ DEFINE_SERVICE_COMMAND_TABLE(IFactorySettingsServer, 14,
 
 result_t IFactorySettingsServer::GetEciDeviceCertificate(
     OutBuffer<BufferAttr::MapAlias> out_buffer) {
+    (void)out_buffer;
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }

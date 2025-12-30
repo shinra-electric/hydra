@@ -200,7 +200,7 @@ void* hydra_create_loader_from_path(hydra_string path);
 void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);
-void* hydra_loader_load_icon(void* loader, uint64_t* width, uint64_t* height);
+void* hydra_loader_load_icon(void* loader, uint32_t* width, uint32_t* height);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 hydra_string hydra_nca_loader_get_name(void* nca_loader);
@@ -225,7 +225,7 @@ void* hydra_user_manager_get_user(void* user_manager, hydra_u128 user_id);
 void hydra_user_manager_load_system_avatars(void* user_manager, void* fs);
 const void* hydra_user_manager_load_avatar_image(void* user_manager,
                                                  hydra_string path,
-                                                 uint64_t* out_dimensions);
+                                                 uint32_t* out_dimensions);
 uint32_t hydra_user_manager_get_avatar_count(void* user_manager);
 hydra_string hydra_user_manager_get_avatar_path(void* user_manager,
                                                 uint32_t index);

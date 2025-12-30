@@ -28,7 +28,8 @@ class IClientRootSession : public IService {
     IClientRootSession();
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     kernel::Event* interface_available_event;
@@ -45,3 +46,14 @@ class IClientRootSession : public IService {
 };
 
 } // namespace hydra::horizon::services::usb::hs
+
+ENABLE_STRUCT_FORMATTING(hydra::horizon::services::usb::hs::DeviceFilter, flags,
+                         ":#x", "flags", vendor_id, "", "vendor ID", product_id,
+                         "", "product ID", bcd_device_min, "", "BCD device min",
+                         bcd_device_max, "", "BCD device max", b_device_class,
+                         "", "B device class", b_device_subclass, "",
+                         "B device subclass", b_device_protocol, "",
+                         "B device protocol", b_interface_class, "",
+                         "B interface class", b_interface_subclass, "",
+                         "B interface subclass", b_interface_protocol, "",
+                         "B interface protocol")

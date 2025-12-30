@@ -26,7 +26,7 @@
     DEFINE_IOCTL_TABLE_ENTRY_IMPL(fd, 3, type, __VA_ARGS__)
 
 #define DEFINE_IOCTL_TABLE_IMPL(fd, ioctl_suffix, ...)                         \
-    NvResult fd::Ioctl##ioctl_suffix(IoctlContext& context, u32 type,          \
+    NvResult fd::Ioctl##ioctl_suffix([[maybe_unused]] IoctlContext& context, u32 type,          \
                                      u32 nr) {                                 \
         switch (type) {                                                        \
             __VA_ARGS__                                                        \
@@ -63,6 +63,8 @@ struct InOut {
 
     operator In() const { return in; }
     void operator=(const Out& other) { *out = other; }
+
+    In Get() const { return in; }
 };
 
 template <typename T>
@@ -71,6 +73,8 @@ struct InOutSingle {
 
     operator T() const { return *data; }
     void operator=(const T& other) { *data = other; }
+
+    T Get() const { return *data; }
 };
 
 enum class ArgumentType {
@@ -226,3 +230,37 @@ NvResult invoke_ioctl(IoctlContext& context, Class& instance,
 }
 
 } // namespace hydra::horizon::services::nvdrv::ioctl
+
+template <typename In, typename Out>
+struct fmt::formatter<hydra::horizon::services::nvdrv::ioctl::InOut<In, Out>>
+    : formatter<string_view> {
+    fmt::formatter<In> value_formatter;
+
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return value_formatter.parse(ctx);
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const hydra::horizon::services::nvdrv::ioctl::InOut<In, Out>& value,
+           FormatContext& ctx) const {
+        return value_formatter.format(value.Get(), ctx);
+    }
+};
+
+template <typename T>
+struct fmt::formatter<hydra::horizon::services::nvdrv::ioctl::InOutSingle<T>>
+    : formatter<string_view> {
+    fmt::formatter<T> value_formatter;
+
+    constexpr auto parse(fmt::format_parse_context& ctx) {
+        return value_formatter.parse(ctx);
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const hydra::horizon::services::nvdrv::ioctl::InOutSingle<T>& value,
+           FormatContext& ctx) const {
+        return value_formatter.format(value.Get(), ctx);
+    }
+};

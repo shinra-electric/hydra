@@ -14,6 +14,10 @@ class INfp : public IService {
   public:
     INfp(PermissionLevel perm_level_);
 
+  private:
+    // TODO: use
+    [[maybe_unused]] PermissionLevel perm_level;
+
   protected:
     kernel::Event* availability_change_event;
 
@@ -27,9 +31,6 @@ class INfp : public IService {
     result_t
     AttachAvailabilityChangeEvent(kernel::Process* process,
                                   OutHandle<HandleAttr::Copy> out_handle);
-
-  private:
-    PermissionLevel perm_level;
 };
 
 } // namespace hydra::horizon::services::nfp

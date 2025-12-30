@@ -397,9 +397,9 @@ MTL::IndexType to_mtl_index_type(engines::IndexType index_type) {
     }
 }
 
-const MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
-                                             engines::VertexAttribSize size,
-                                             bool bgra) {
+MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
+                                       engines::VertexAttribSize size,
+                                       bool bgra) {
     ASSERT_DEBUG(!bgra || (type == engines::VertexAttribType::Unorm &&
                            size == engines::VertexAttribSize::_4x8),
                  MetalRenderer,

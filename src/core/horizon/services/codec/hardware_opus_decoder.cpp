@@ -16,6 +16,8 @@ result_t IHardwareOpusDecoder::DecodeInterleavedOld(
 result_t IHardwareOpusDecoder::DecodeInterleavedImpl(
     io::MemoryStream* in_opus_stream, i32* out_decoded_data_size,
     i32* out_decoded_sample_count, io::MemoryStream* out_pcm_stream) {
+    (void)in_opus_stream;
+    (void)out_pcm_stream;
     ONCE(LOG_FUNC_STUBBED(Services));
 
     // HACK

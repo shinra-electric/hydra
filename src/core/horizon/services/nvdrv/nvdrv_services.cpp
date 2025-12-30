@@ -85,7 +85,8 @@ result_t INvDrvServices::Close(u32 fd_id, u32* out_err) {
 
 result_t INvDrvServices::Initialize(u32 transfer_mem_size,
                                     NvResult* out_result) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "transfer_mem_size: {:x}",
+                               transfer_mem_size);
 
     // TODO: read process and transfer mem handle IDs
 

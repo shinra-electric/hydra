@@ -50,19 +50,23 @@ NvResult ChannelBase::SetSubmitTimeout(u32 timeout) {
     return NvResult::Success;
 }
 
-NvResult ChannelBase::MapCmdBuffer(u32 num_handles, u32 _reserved_x4,
-                                   bool is_compressed,
-                                   std::array<u8, 3> _padding_x9,
+NvResult ChannelBase::MapCmdBuffer(u32 num_handles,
+                                   [[maybe_unused]] u32 _reserved_x4,
+                                   aligned<bool, 4> is_compressed,
                                    const MapCmdBufferHandle* handles) {
-    LOG_FUNC_STUBBED(Services);
+    std::span<const MapCmdBufferHandle> handle_span(handles, num_handles);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "is compressed: {}, handles: [{}]",
+                               is_compressed, fmt::join(handle_span, ", "));
     return NvResult::Success;
 }
 
-NvResult ChannelBase::UnmapCmdBuffer(u32 num_handles, u32 _reserved_x4,
-                                     bool is_compressed,
-                                     std::array<u8, 3> _padding_x9,
+NvResult ChannelBase::UnmapCmdBuffer(u32 num_handles,
+                                     [[maybe_unused]] u32 _reserved_x4,
+                                     aligned<bool, 4> is_compressed,
                                      const UnmapCmdBufferHandle* handles) {
-    LOG_FUNC_STUBBED(Services);
+    std::span<const UnmapCmdBufferHandle> handle_span(handles, num_handles);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "is compressed: {}, handles: [{}]",
+                               is_compressed, fmt::join(handle_span, ", "));
     return NvResult::Success;
 }
 

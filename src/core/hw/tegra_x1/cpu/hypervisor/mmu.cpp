@@ -58,7 +58,7 @@ inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
 static bool page_table_regions[16] = {false};
 
 paddr_t FindFreePageTableRegion() {
-    for (int i = 0; i < 16; i++) {
+    for (u32 i = 0; i < 16; i++) {
         if (!page_table_regions[i]) {
             page_table_regions[i] = true;
             return USER_PAGE_TABLE_REGION_BASE + i * PAGE_TABLE_RESERVED_SIZE;
@@ -118,6 +118,8 @@ void Mmu::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
 
 // TODO: just improve this...
 void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
+    (void)heap_mem;
+
     const auto region = user_page_table.QueryRegion(va);
     paddr_t pa = region.UnmapAddr(va);
     user_page_table.Map(va, pa, size, region.state,

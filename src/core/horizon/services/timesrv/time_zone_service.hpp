@@ -41,7 +41,8 @@ struct ToCalendarTimeWithMyRuleOut {
 
 class ITimeZoneService : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands
@@ -71,3 +72,7 @@ class ITimeZoneService : public IService {
 };
 
 } // namespace hydra::horizon::services::timesrv
+
+ENABLE_STRUCT_FORMATTING(hydra::horizon::services::timesrv::CalendarTime, year,
+                         "", "year", month, "", "month", day, "", "day", hour,
+                         "", "hour", minute, "", "minute", second, "", "second")

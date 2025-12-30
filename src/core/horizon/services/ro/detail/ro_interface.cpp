@@ -12,6 +12,8 @@ result_t IRoInterface::MapManualLoadModuleMemory(kernel::Process* process,
                                                  u64 pid_reserved, u64 nro_addr,
                                                  u64 nro_size, u64 bss_addr,
                                                  u64 bss_size, u64* out_addr) {
+    (void)pid_reserved;
+
     auto mmu = process->GetMmu();
     const auto base =
         mmu->FindFreeMemory(kernel::EXECUTABLE_REGION, nro_size + bss_size);

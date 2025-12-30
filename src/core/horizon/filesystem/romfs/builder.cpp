@@ -40,7 +40,7 @@ u32 Builder::CalcPathHash(u32 parent, const std::string& path, u32 start,
     u32 hash = parent ^ 123456789;
     for (u32 i = 0; i < len; i++) {
         hash = (hash >> 5) | (hash << 27);
-        hash ^= path[start + i];
+        hash ^= static_cast<u32>(path[start + i]);
     }
     return hash;
 }

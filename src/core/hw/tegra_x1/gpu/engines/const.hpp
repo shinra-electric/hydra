@@ -47,7 +47,7 @@ enum class IndexType : u32 {
     None,
 };
 
-inline usize get_index_type_size(IndexType type) {
+inline u32 get_index_type_size(IndexType type) {
     switch (type) {
     case IndexType::UInt8:
         return sizeof(u8);
@@ -135,12 +135,12 @@ enum class MemoryLayout : u32 {
 };
 
 enum class BlockDim : u32 {
-    OneGob,
-    TwoGobs,
-    FourGobs,
-    EightGobs,
-    SixteenGobs,
-    ThirtyTwoGobs,
+    OneGob = 0,
+    TwoGobs = 1,
+    FourGobs = 2,
+    EightGobs = 3,
+    SixteenGobs = 4,
+    ThirtyTwoGobs = 5,
     QuarterGob = 14,
 };
 
@@ -156,7 +156,7 @@ enum class ColorWriteMask : u32 {
     Alpha = BIT(12),
     All = Red | Green | Blue | Alpha,
 };
-ENABLE_ENUM_BITMASK_OPERATORS(ColorWriteMask)
+ENABLE_ENUM_BITWISE_OPERATORS(ColorWriteMask)
 
 } // namespace hydra::hw::tegra_x1::gpu::engines
 

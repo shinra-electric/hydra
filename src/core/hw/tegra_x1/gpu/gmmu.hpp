@@ -31,8 +31,10 @@ class GMmu : public GenericMmu<GMmu, AddressSpace> {
 
     uptr UnmapAddr(uptr gpu_addr);
 
-    void MapImpl(uptr base, AddressSpace as) {}
-    void UnmapImpl(uptr base, AddressSpace as) {}
+    void MapImpl([[maybe_unused]] uptr base, [[maybe_unused]] AddressSpace as) {
+    }
+    void UnmapImpl([[maybe_unused]] uptr base,
+                   [[maybe_unused]] AddressSpace as) {}
 
     // Address space
     uptr CreateAddressSpace(uptr ptr, usize size, uptr gpu_addr) {

@@ -48,7 +48,7 @@ class AppletState {
     Event* msg_event;
 
     // Impl
-    void SendMessageImpl(std::lock_guard<std::mutex>& lock, AppletMessage msg);
+    void SendMessageImpl(AppletMessage msg);
 
   public:
     GETTER(msg_event, GetMsgEvent);

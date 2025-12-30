@@ -34,15 +34,14 @@ void Driver::Present(u32 width, u32 height) {
         // Find the correct position
         bool inserted = false;
         for (u32 i = 0; i < sorted_layers.size(); i++) {
-            if (sorted_layers[i]->GetZ() > layer_pool.Get(layer_id)->GetZ()) {
-                sorted_layers.insert(sorted_layers.begin() + i,
-                                     layer_pool.Get(layer_id));
+            if (sorted_layers[i]->GetZ() > layer->GetZ()) {
+                sorted_layers.insert(sorted_layers.begin() + i, layer);
                 inserted = true;
                 break;
             }
         }
         if (!inserted)
-            sorted_layers.push_back(layer_pool.Get(layer_id));
+            sorted_layers.push_back(layer);
     }
 
     // Viewport

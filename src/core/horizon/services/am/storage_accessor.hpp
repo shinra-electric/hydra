@@ -9,7 +9,8 @@ class IStorageAccessor : public IService {
     IStorageAccessor(const sized_ptr data_) : data{data_} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     const sized_ptr data;

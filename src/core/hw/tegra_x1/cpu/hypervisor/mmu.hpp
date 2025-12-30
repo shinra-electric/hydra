@@ -6,7 +6,8 @@
 
 namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
-constexpr uptr KERNEL_REGION_BASE = (long)-(1l << 39); // TODO: wht
+constexpr uptr KERNEL_REGION_BASE =
+    static_cast<uptr>((long)-(1l << 39)); // TODO: wht
 
 class Mmu : public IMmu {
   public:

@@ -82,11 +82,11 @@ struct Sv {
     Sv(SvSemantic semantic_, u8 index_ = invalid<u8>())
         : semantic{semantic_}, index{index_} {}
 
-    bool const operator==(const Sv& o) const {
+    bool operator==(const Sv& o) const {
         return semantic == o.semantic && index == o.index;
     }
 
-    bool const operator<(const Sv& o) const {
+    bool operator<(const Sv& o) const {
         return semantic < o.semantic ||
                (semantic == o.semantic && index < o.index);
     }
@@ -124,7 +124,7 @@ enum class TextureSampleFlags {
     DepthCompare = BIT(1),
     Lod = BIT(2),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(TextureSampleFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(TextureSampleFlags)
 
 enum class PixelImapType : u8 {
     Unused = 0,

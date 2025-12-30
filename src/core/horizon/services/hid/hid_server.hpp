@@ -39,7 +39,8 @@ class IHidServer : public IService {
               new kernel::Event(false, "Npad style set update event")} {}
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // TODO: one event for each style set
@@ -66,7 +67,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
     STUB_REQUEST_COMMAND(ActivateNpad);
     result_t AcquireNpadStyleSetUpdateEventHandle(
-        kernel::Process* process, u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+        kernel::Process* process, aligned<u32, 8> id, u64 aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
     result_t GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
                                  u64* out_pattern);
@@ -83,7 +84,7 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(SetNpadHandheldActivationMode);
     STUB_REQUEST_COMMAND(SwapNpadAssignment);
     result_t GetVibrationDeviceInfo(VibrationDeviceHandle handle,
-                                    VibrationDeviceInfo* info);
+                                    VibrationDeviceInfo* out_info);
     STUB_REQUEST_COMMAND(SendVibrationValue);
     result_t CreateActiveVibrationDeviceList(RequestContext* ctx);
     result_t IsVibrationPermitted(bool* out_permitted);

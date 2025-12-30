@@ -10,12 +10,16 @@ INfp::INfp(PermissionLevel perm_level_)
 
 result_t INfp::Initialize(u64 aruid, u64 zero,
                           InBuffer<BufferAttr::MapAlias> in_version_buffer) {
+    (void)aruid;
+    (void)zero;
+    (void)in_version_buffer;
     LOG_FUNC_STUBBED(Services);
     return RESULT_SUCCESS;
 }
 
 result_t INfp::ListDevices(i32* out_count,
                            OutBuffer<BufferAttr::HipcPointer> out_buffer) {
+    (void)out_buffer;
     LOG_FUNC_STUBBED(Services);
 
     // HACK

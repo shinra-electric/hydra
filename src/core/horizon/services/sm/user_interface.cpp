@@ -36,6 +36,9 @@ result_t
 IUserInterface::RegisterService(kernel::Process* process, u64 name,
                                 bool is_light, i32 max_sessions,
                                 OutHandle<HandleAttr::Move> out_port_handle) {
+    (void)is_light;
+    (void)max_sessions;
+
     LOG_DEBUG(Services, "Service name: \"{}\"", u64_to_str(name));
 
     // Debug
@@ -68,7 +71,7 @@ result_t IUserInterface::AtmosphereHasService(u64 name, bool* out_has_service) {
 
 result_t IUserInterface::AtmosphereWaitService(u64 name) {
     // TODO: does this wait for the service to start?
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "name: {}", u64_to_str(name));
     return RESULT_SUCCESS;
 }
 

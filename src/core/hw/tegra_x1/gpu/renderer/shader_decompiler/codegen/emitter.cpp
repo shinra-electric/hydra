@@ -163,11 +163,11 @@ void Emitter::EmitInstruction(const ir::Instruction& inst) {
     // Vector
     case ir::Opcode::VectorExtract:
         EmitVectorExtract(inst.GetDst(), inst.GetOperand(0),
-                          inst.GetOperand(1).GetRawValue<u32>());
+                          inst.GetOperand(1).GetRawValue<u8>());
         break;
     case ir::Opcode::VectorInsert:
         EmitVectorInsert(inst.GetDst(), inst.GetOperand(0),
-                         inst.GetOperand(1).GetRawValue<u32>());
+                         inst.GetOperand(1).GetRawValue<u8>());
         break;
     case ir::Opcode::VectorConstruct:
         EmitVectorConstruct(inst.GetDst(), inst.GetOperands());

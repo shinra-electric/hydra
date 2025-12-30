@@ -16,7 +16,7 @@ class SamplerCache
     void Destroy() {}
 
     SamplerBase* Create(const SamplerDescriptor& descriptor);
-    void Update(SamplerBase* sampler) {}
+    void Update([[maybe_unused]] SamplerBase* sampler) {}
     u32 Hash(const SamplerDescriptor& descriptor);
 
     void DestroyElement(SamplerBase* sampler);

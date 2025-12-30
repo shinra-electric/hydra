@@ -16,11 +16,11 @@ i32 Binder::GetAvailableSlot() {
 
     // Find an available slot
     i32 slot = -1;
-    for (i32 i = 0; i < MAX_BINDER_BUFFER_COUNT; i++) {
+    for (usize i = 0; i < MAX_BINDER_BUFFER_COUNT; i++) {
         if (buffers[i].initialized && !buffers[i].queued) {
             if (slot == -1) {
                 // Consume the first slot
-                slot = i;
+                slot = static_cast<i32>(i);
             } else {
                 // We know that there is another available slot, so we can
                 // keep the event signalled

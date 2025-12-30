@@ -8,6 +8,9 @@ namespace {
 void EmitTextureQuery(DecoderContext& context, pred_t pred, bool pred_inv,
                       TextureQuery query, reg_t dst, u8 write_mask, reg_t src,
                       u32 cbuf_index) {
+    // TODO: src
+    (void)src;
+
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     switch (query) {
@@ -16,7 +19,8 @@ void EmitTextureQuery(DecoderContext& context, pred_t pred, bool pred_inv,
             if (mask & 1) {
                 const auto res =
                     context.builder.OpTextureQueryDimension(cbuf_index, i);
-                context.builder.OpCopy(ir::Value::Register(dst + i), res);
+                context.builder.OpCopy(
+                    ir::Value::Register(dst + static_cast<u8>(i)), res);
             }
         }
         break;
@@ -87,7 +91,7 @@ void CopyTextureResult(ir::Builder& builder, std::array<reg_t, 4> dsts,
 
 // TODO: nodep
 void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
-                       bool is_sample, TextureSampleTarget target, reg_t dst0,
+                       bool int_coords, TextureSampleTarget target, reg_t dst0,
                        reg_t dst1, u8 write_mask, reg_t src_a, reg_t src_b,
                        u32 cbuf_index) {
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
@@ -96,7 +100,8 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
 #define RB() ir::Value::Register(src_b++, ir::ScalarType::F32)
 
     TextureType type;
-    TextureSampleFlags flags = TextureSampleFlags::None;
+    TextureSampleFlags flags =
+        (int_coords ? TextureSampleFlags::IntCoords : TextureSampleFlags::None);
     ir::Value array_index = ir::Value::Undefined();
     std::vector<ir::Value> coords;
     ir::Value cmp_value = ir::Value::Undefined();
@@ -285,6 +290,9 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
 void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
                        TextureComponent component, reg_t dst, u8 write_mask,
                        reg_t src_a, reg_t src_b, u32 cbuf_index) {
+    // TODO: src B
+    (void)src_b;
+
     const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
 
     const auto coords_v = context.builder.OpVectorConstruct(
@@ -332,13 +340,13 @@ void EmitTxq(DecoderContext& context, InstTxq inst) {
 }
 
 void EmitTexs(DecoderContext& context, InstTexs inst) {
-    EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.target,
+    EmitTextureSample(context, inst.pred, inst.pred_inv, false, inst.target,
                       inst.dst0, inst.dst1, inst.write_mask, inst.src_a,
                       inst.src_b, inst.cbuf_index);
 }
 
 void EmitTlds(DecoderContext& context, InstTlds inst) {
-    EmitTextureSample(context, inst.pred, inst.pred_inv, false, inst.target,
+    EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.target,
                       inst.dst0, inst.dst1, inst.write_mask, inst.src_a,
                       inst.src_b, inst.cbuf_index);
 }

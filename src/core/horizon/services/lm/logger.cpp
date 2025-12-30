@@ -12,7 +12,7 @@ enum class PacketFlags : u8 {
     LittleEndian = BIT(2),
 };
 
-ENABLE_ENUM_BITMASK_OPERATORS(hydra::horizon::services::lm::PacketFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(hydra::horizon::services::lm::PacketFlags)
 
 enum class Severity : u8 {
     Trace,
@@ -56,7 +56,7 @@ bool TryReadUleb128(io::MemoryStream* stream, u32& result) {
         // TODO: check if enough space
         encoded = stream->Read<u8>();
 
-        result += (encoded & 0x7F) << (7 * count);
+        result += static_cast<u32>(encoded & 0x7F) << (7 * count);
 
         count++;
     } while ((encoded & 0x80) != 0);
@@ -85,7 +85,8 @@ result_t ILogger::Log(InBuffer<BufferAttr::AutoSelect> buffer) {
     const auto header = stream->Read<LogPacketHeader>();
 
     // From Ryujinx
-    bool is_head_packet = any(header.flags & PacketFlags::Head);
+    [[maybe_unused]] bool is_head_packet =
+        any(header.flags & PacketFlags::Head);
     bool is_tail_packet = any(header.flags & PacketFlags::Tail);
 
     while (stream->GetSeek() - sizeof(LogPacketHeader) <

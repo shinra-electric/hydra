@@ -77,14 +77,14 @@ void LangEmitter::EmitMainFunctionPrologue() {
     ADD_INPUT(sv_semantic, index, base, 0)
 #define ADD_INPUT_VEC4(sv_semantic, index, base)                               \
     {                                                                          \
-        for (u32 c = 0; c < 4; c++) {                                          \
+        for (u8 c = 0; c < 4; c++) {                                           \
             ADD_INPUT(sv_semantic, index, base, c);                            \
         }                                                                      \
     }
 
     switch (context.type) {
     case ShaderType::Vertex:
-        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+        for (u8 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
             if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
@@ -101,9 +101,9 @@ void LangEmitter::EmitMainFunctionPrologue() {
                                       engines::VertexAttribType::Uscaled);
 
             const auto sv = Sv(SvSemantic::UserInOut, i);
-            for (u32 c = 0; c < 4; c++) {
+            for (u8 c = 0; c < 4; c++) {
                 const auto attr =
-                    GetAttrMemoryStr({RZ, 0x80 + i * 0x10 + c * 0x4, true});
+                    GetAttrMemoryStr({RZ, 0x80u + i * 0x10u + c * 0x4u, true});
                 const auto qualified_name =
                     GetSvAccessQualifiedStr(SvAccess(sv, c), false);
                 if (needs_scaling)
@@ -210,7 +210,7 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
     ADD_OUTPUT(sv_semantic, index, base, 0)
 #define ADD_OUTPUT_VEC4(sv_semantic, index, base)                              \
     {                                                                          \
-        for (u32 c = 0; c < 4; c++) {                                          \
+        for (u8 c = 0; c < 4; c++) {                                           \
             ADD_OUTPUT(sv_semantic, index, base, c);                           \
         }                                                                      \
     }
@@ -223,13 +223,13 @@ void LangEmitter::EmitFunction(const ir::Function& func) {
 #undef ADD_OUTPUT
         break;
     case ShaderType::Fragment:
-        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        for (u8 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_data_type =
                 state.color_target_data_types[i];
             if (color_target_data_type == ColorDataType::Invalid)
                 continue;
 
-            for (u32 c = 0; c < 4; c++) {
+            for (u8 c = 0; c < 4; c++) {
                 WriteStatement(
                     "{} = as_type<{}>({})",
                     GetSvAccessQualifiedStr(
@@ -499,13 +499,13 @@ void LangEmitter::EmitBranchConditional(const ir::Value& cond,
 
 // Vector
 void LangEmitter::EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
-                                    u32 index) {
+                                    u8 index) {
     StoreValue(dst, "({}.{})", GetValueStr(src),
                GetComponentStrFromIndex(index));
 }
 
 void LangEmitter::EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
-                                   u32 index) {
+                                   u8 index) {
     WriteStatement("{}.{} = {}", GetValueStr(dst),
                    GetComponentStrFromIndex(index), GetValueStr(src));
 }

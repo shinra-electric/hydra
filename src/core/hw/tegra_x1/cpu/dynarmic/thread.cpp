@@ -125,13 +125,17 @@ bool Thread::MemoryWriteExclusive32(u64 addr, u32 value, u32) {
     return true;
 }
 
+// TODO: expected
 bool Thread::MemoryWriteExclusive64(u64 addr, u64 value, u64 expected) {
+    (void)expected;
     MMU->WriteExclusive(addr, value);
     return true;
 }
 
+// TODO: expected
 bool Thread::MemoryWriteExclusive128(u64 addr, Dynarmic::A64::Vector value,
                                      Dynarmic::A64::Vector expected) {
+    (void)expected;
     MMU->WriteExclusive(addr, value);
     return true;
 }
@@ -142,7 +146,8 @@ void Thread::CallSVC(u32 svc) {
     jit->HaltExecution();
 }
 
-void Thread::ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) {
+void Thread::ExceptionRaised([[maybe_unused]] u64 pc,
+                             Dynarmic::A64::Exception exception) {
     SerializeState();
 
     switch (exception) {

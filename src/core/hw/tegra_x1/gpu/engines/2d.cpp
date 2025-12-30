@@ -7,6 +7,9 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 DEFINE_METHOD_TABLE(TwoD, 0x237, 1, Copy, u32)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void TwoD::Copy(GMmu& gmmu, const u32 index,
                 const u32 pixels_from_memory_src_y0_int) {
     auto& pixels = regs.pixels_from_memory;
@@ -16,20 +19,22 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
     auto src = GetTexture(gmmu, regs.src, renderer::TextureUsage::Read);
     auto dst = GetTexture(gmmu, regs.dst, renderer::TextureUsage::Write);
 
-    f64 dudx = f64(pixels.dudx);
-    f64 dvdy = f64(pixels.dvdy);
+    const auto dudx = static_cast<f64>(pixels.dudx);
+    const auto dvdy = static_cast<f64>(pixels.dvdy);
     // TODO: why are these params messed up?
-    f64 src_x0 = f64(pixels.src_x0);
-    f64 src_y0 = f64(pixels.src_y0);
+    const auto src_x0 = static_cast<f64>(pixels.src_x0);
+    const auto src_y0 = static_cast<f64>(pixels.src_y0);
 
-    usize src_width = pixels.dst_width * dudx;
-    usize src_height = pixels.dst_height * dvdy;
+    const auto src_width = static_cast<u32>(pixels.dst_width * dudx);
+    const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
     dst->BlitFrom(src, regs.src.layer, {f32(src_x0), f32(src_y0), 0},
                   {src_width, src_height, 1}, regs.dst.layer,
                   {f32(pixels.dst_x0), f32(pixels.dst_y0), 0},
                   {pixels.dst_width, pixels.dst_height, 1});
 }
+
+#pragma GCC diagnostic pop
 
 renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {

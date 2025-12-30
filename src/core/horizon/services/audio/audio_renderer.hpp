@@ -15,14 +15,16 @@ struct VoiceInfoOut {
 class IAudioRenderer : public IService {
   public:
     IAudioRenderer(const AudioRendererParameters& params_,
-                   const usize work_buffer_size_);
+                   const u64 work_buffer_size_);
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     AudioRendererParameters params;
-    usize work_buffer_size;
+    // TODO: use
+    [[maybe_unused]] u64 work_buffer_size;
 
     kernel::Event* event;
 

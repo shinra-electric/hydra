@@ -8,7 +8,7 @@
 #define COMPONENT_STR(component) ("xyzw"[component])
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::ir {
-struct Block;
+class Block;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::analyzer {
@@ -109,9 +109,9 @@ class LangEmitter : public Emitter {
 
     // Vector
     void EmitVectorExtract(const ir::Value& dst, const ir::Value& src,
-                           u32 index) override;
+                           u8 index) override;
     void EmitVectorInsert(const ir::Value& dst, const ir::Value& src,
-                          u32 index) override;
+                          u8 index) override;
     void EmitVectorConstruct(const ir::Value& dst,
                              const std::vector<ir::Value>& elements) override;
 
@@ -328,7 +328,7 @@ class LangEmitter : public Emitter {
         }
     }
 
-    const char GetComponentStrFromIndex(u8 component_index) {
+    char GetComponentStrFromIndex(u8 component_index) {
         ASSERT_DEBUG(component_index < 4, ShaderDecompiler,
                      "Invalid component index {}", component_index);
 

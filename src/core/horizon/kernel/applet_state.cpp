@@ -9,15 +9,15 @@ AppletState::~AppletState() { msg_event->Release(); }
 
 void AppletState::SendMessage(AppletMessage msg) {
     std::lock_guard lock(mutex);
-    SendMessageImpl(lock, msg);
+    SendMessageImpl(msg);
 }
 
 void AppletState::SetFocusState(AppletFocusState focus_state_) {
     {
         std::lock_guard lock(mutex);
-        SendMessageImpl(lock, AppletMessage::FocusStateChanged);
+        SendMessageImpl(AppletMessage::FocusStateChanged);
         if (focus_state_ == AppletFocusState::InFocus)
-            SendMessageImpl(lock, AppletMessage::ChangeIntoForeground);
+            SendMessageImpl(AppletMessage::ChangeIntoForeground);
     }
     focus_state = focus_state_;
 }
@@ -67,8 +67,7 @@ sized_ptr AppletState::PopLaunchParameter(const LaunchParameterKind kind) {
     }
 }
 
-void AppletState::SendMessageImpl(std::lock_guard<std::mutex>& lock,
-                                  AppletMessage msg) {
+void AppletState::SendMessageImpl(AppletMessage msg) {
     msg_queue.push(msg);
 
     // Signal event

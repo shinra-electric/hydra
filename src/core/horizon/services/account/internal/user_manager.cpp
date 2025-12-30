@@ -137,7 +137,7 @@ void UserManager::LoadSystemAvatars(filesystem::Filesystem& fs) {
 }
 
 const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
-                                                        usize& out_dimensions) {
+                                                        u32& out_dimensions) {
     // Load image
     auto it = avatars.find(std::string(path));
     if (it == avatars.end()) {
@@ -167,7 +167,7 @@ const std::vector<uchar4>& UserManager::LoadAvatarImage(std::string_view path,
 void UserManager::LoadAvatarImageAsJpeg(std::string_view path, uchar3 bg_color,
                                         std::vector<u8>& out_data) {
     // Load image
-    usize dimension;
+    u32 dimension;
     auto data = LoadAvatarImage(path, dimension);
 
     // Alpha blend with background color
@@ -303,7 +303,7 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         avatar.dimensions = AVATAR_IMAGE_DIMENSIONS;
     } else {
         // Load with STB image
-        int width, height;
+        i32 width, height;
         auto pixels =
             stbi_load_from_memory(raw.data(), static_cast<i32>(raw.size()),
                                   &width, &height, nullptr, 4);
@@ -315,7 +315,7 @@ void UserManager::PreloadAvatar(Avatar& avatar, bool is_compressed) {
         // TODO: crop the image if the dimensions don't match
         ASSERT(width == height, Services,
                "Avatar image is not a sqaure ({}x{})", width, height);
-        avatar.dimensions = width;
+        avatar.dimensions = static_cast<u32>(width);
 
         // TODO: avoid intermediate copy
         usize size = avatar.dimensions * avatar.dimensions * 4;

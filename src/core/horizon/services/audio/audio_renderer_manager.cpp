@@ -12,6 +12,8 @@ DEFINE_SERVICE_COMMAND_TABLE(IAudioRendererManager, 0, OpenAudioRenderer, 1,
 result_t IAudioRendererManager::OpenAudioRenderer(
     RequestContext* ctx, aligned<AudioRendererParameters, 56> params,
     u64 work_buffer_size, u64 aruid) {
+    (void)aruid;
+
     AddService(*ctx, new IAudioRenderer(params, work_buffer_size));
     return RESULT_SUCCESS;
 }
@@ -22,16 +24,16 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                                          u64* out_size) {
     LOG_FUNC_STUBBED(Services);
 
-    u64 buffer_sz = align(4 * params.mix_buffer_count, 0x40);
+    u64 buffer_sz = align(4 * params.mix_buffer_count, 0x40u);
     buffer_sz += params.submix_count * 1024;
     buffer_sz += 0x940 * (params.submix_count + 1);
     buffer_sz += 0x3F0 * params.voice_count;
-    buffer_sz += align(8 * (params.submix_count + 1), 0x10);
-    buffer_sz += align(8 * params.voice_count, 0x10);
+    buffer_sz += align(8 * (params.submix_count + 1), 0x10u);
+    buffer_sz += align(8 * params.voice_count, 0x10u);
     buffer_sz += align((0x3C0 * (params.sink_count + params.submix_count) +
                         4 * params.sample_count) *
                            (params.mix_buffer_count + 6),
-                       0x40);
+                       0x40u);
 
     if (IsAudioRendererFeatureSupported(AudioFeature::Splitter,
                                         params.revision)) {
@@ -55,7 +57,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                                         params.revision)) {
         buffer_sz += 0xE0 * params._unknown_x2c;
         buffer_sz += 0x20 * params.splitter_count;
-        buffer_sz += align(4 * params._unknown_x2c, 0x10);
+        buffer_sz += align(4 * params._unknown_x2c, 0x10u);
     }
     buffer_sz = align(buffer_sz, 0x40ull) + 0x170 * params.sink_count;
     u64 output_sz = buffer_sz + 0x280 * params.sink_count +
@@ -68,7 +70,7 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
                            0x658) *
                                   (params.unknown_x1c + 1) +
                               0xc0,
-                          0x40) +
+                          0x40u) +
                     output_sz;
     }
     output_sz = align(output_sz + 0x1807e, 0x1000ull);
@@ -81,6 +83,8 @@ IAudioRendererManager::GetWorkBufferSize(AudioRendererParameters params,
 
 result_t IAudioRendererManager::GetAudioDeviceService(RequestContext* ctx,
                                                       u64 aruid) {
+    (void)aruid;
+
     AddService(*ctx, new IAudioDevice());
     return RESULT_SUCCESS;
 }

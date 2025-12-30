@@ -29,3 +29,7 @@ union InstShfl {
 void EmitShfl(DecoderContext& context, InstShfl inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder::ShuffleMode,
+    Idx, "indexed", Up, "up", Down, "down", Bfly, "butterfly")

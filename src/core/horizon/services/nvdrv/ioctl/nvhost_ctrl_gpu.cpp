@@ -64,7 +64,11 @@ NvResult NvHostCtrlGpu::ZCullGetInfo(ZCullInfo* out_info) {
 NvResult NvHostCtrlGpu::ZbcSetTable(std::array<u32, 4> color_ds,
                                     std::array<u32, 4> color_l2, u32 depth,
                                     u32 format, u32 table) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(
+        Services,
+        "color DS: [{}], color L2: [{}], depth: {}, format: {}, table: {}",
+        fmt::join(color_ds, ", "), fmt::join(color_l2, ", "), depth, format,
+        table);
     return NvResult::Success;
 }
 
@@ -122,9 +126,10 @@ NvHostCtrlGpu::GetCharacteristics(InOutSingle<u64> inout_buffer_size,
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size,
-                                    std::array<u32, 3> reserved,
-                                    u64* out_mask_buffer) {
+NvResult
+NvHostCtrlGpu::GetTpcMasks(u32 mask_buffer_size,
+                           [[maybe_unused]] std::array<u32, 3> reserved,
+                           u64* out_mask_buffer) {
     LOG_FUNC_STUBBED(Services);
 
     ASSERT_DEBUG(mask_buffer_size != 0x0, Services,
@@ -152,7 +157,8 @@ NvResult NvHostCtrlGpu::PmuGetGpuLoad(u32* out_load) {
     return NvResult::Success;
 }
 
-NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp, u64* _out_reserved) {
+NvResult NvHostCtrlGpu::GetGpuTime(u64* out_timestamp,
+                                   [[maybe_unused]] u64* _out_reserved) {
     // TODO: is it okay to just return Mmu time?
     *out_timestamp = get_absolute_time();
     return NvResult::Success;

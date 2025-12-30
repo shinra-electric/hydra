@@ -40,8 +40,8 @@ void DecompressLZ4(std::span<const u8> src, std::span<u8> dst) {
         }
 
         // Copy compressed chunk
-        u32 back = src[cmp_pos++] << 0;
-        back |= src[cmp_pos++] << 8;
+        u32 back = static_cast<u32>(src[cmp_pos++]) << 0u;
+        back |= static_cast<u32>(src[cmp_pos++]) << 8u;
 
         enc_count = GetLength(src, cmp_pos, enc_count) + 4;
 

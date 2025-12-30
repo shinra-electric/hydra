@@ -26,31 +26,17 @@ class Directory : public IEntry {
                                        bool recursive = false);
 
     [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    IEntry*& out_entry);
+                                    IEntry*& out_entry) const;
     [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   IFile*& out_file);
+                                   IFile*& out_file) const;
     [[nodiscard]] FsResult GetDirectory(const std::string_view path,
-                                        Directory*& out_directory);
-
-    // TODO: find a better way
-    [[nodiscard]] FsResult GetEntry(const std::string_view path,
-                                    const IEntry*& out_entry) const {
-        return const_cast<Directory*>(this)->GetEntry(path, out_entry);
-    }
-    [[nodiscard]] FsResult GetFile(const std::string_view path,
-                                   IFile*& out_file) const {
-        return const_cast<Directory*>(this)->GetFile(path, out_file);
-    }
-    [[nodiscard]] FsResult GetDirectory(const std::string_view path,
-                                        Directory*& out_directory) const {
-        return const_cast<Directory*>(this)->GetDirectory(path, out_directory);
-    }
-
-    // Getters
-    const std::map<std::string, IEntry*>& GetEntries() const { return entries; }
+                                        Directory*& out_directory) const;
 
   protected:
     std::map<std::string, IEntry*> entries;
+
+  public:
+    CONST_REF_GETTER(entries, GetEntries);
 
   private:
     // Impl
@@ -59,11 +45,11 @@ class Directory : public IEntry {
     FsResult DeleteEntryImpl(const std::span<std::string_view> path,
                              bool recursive = false);
     FsResult GetEntryImpl(const std::span<std::string_view> path,
-                          IEntry*& out_entry);
+                          IEntry*& out_entry) const;
 
     // Helpers
     void BreakPath(std::string_view path,
-                   std::vector<std::string_view>& out_path);
+                   std::vector<std::string_view>& out_path) const;
 };
 
 } // namespace hydra::horizon::filesystem

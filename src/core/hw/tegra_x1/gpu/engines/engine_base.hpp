@@ -33,15 +33,16 @@ class EngineBase {
 
     virtual void Method(GMmu& gmmu, u32 method, u32 arg) = 0;
 
-    virtual void FlushMacro(GMmu& gmmu) {
+    virtual void FlushMacro([[maybe_unused]] GMmu& gmmu) {
         LOG_ERROR(Engines, "This engine does not support macros");
     }
 
   protected:
     virtual void Macro(u32 method, u32 arg) {
         LOG_ERROR(Engines,
-                  "This engine does not support macros (method: 0x{:08x})",
-                  method);
+                  "This engine does not support macros (method: 0x{:08x}, arg: "
+                  "0x{:08x})",
+                  method, arg);
     }
 };
 

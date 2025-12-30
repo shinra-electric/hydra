@@ -18,7 +18,8 @@ struct Packet {
 
 class ILogger : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     Packet packet{};

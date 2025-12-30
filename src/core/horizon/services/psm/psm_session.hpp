@@ -6,7 +6,8 @@ namespace hydra::horizon::services::psm {
 
 class IPsmSession : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     handle_id_t event_handle_id{

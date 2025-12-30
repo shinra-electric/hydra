@@ -27,21 +27,21 @@ constexpr char GDB_END = '#';
 constexpr char GDB_ACK = '+';
 constexpr char GDB_NACK = '-';
 
-constexpr char GDB_INT3 = 0x03;
-constexpr int GDB_SIGTRAP = 5;
+[[maybe_unused]] constexpr char GDB_INT3 = 0x03;
+[[maybe_unused]] constexpr int GDB_SIGTRAP = 5;
 
 constexpr char GDB_OK[] = "OK";
 constexpr char GDB_ERROR[] = "E01";
 constexpr char GDB_EMPTY[] = "";
 
-constexpr u32 FP_REGISTER = 29;
+[[maybe_unused]] constexpr u32 FP_REGISTER = 29;
 constexpr u32 LR_REGISTER = 30;
 constexpr u32 SP_REGISTER = 31;
 constexpr u32 PC_REGISTER = 32;
-constexpr u32 PSTATE_REGISTER = 33;
-constexpr u32 Q0_REGISTER = 34;
-constexpr u32 FPSR_REGISTER = 66;
-constexpr u32 FPCR_REGISTER = 67;
+[[maybe_unused]] constexpr u32 PSTATE_REGISTER = 33;
+[[maybe_unused]] constexpr u32 Q0_REGISTER = 34;
+[[maybe_unused]] constexpr u32 FPSR_REGISTER = 66;
+[[maybe_unused]] constexpr u32 FPCR_REGISTER = 67;
 
 constexpr u32 BRK = 0xd4200000;
 
@@ -337,9 +337,10 @@ void GdbServer::Poll() {
         }
     } else {
         char buffer[1024];
-        ssize_t bytes_read = recv(client_socket, buffer, sizeof(buffer), 0);
+        const auto bytes_read = recv(client_socket, buffer, sizeof(buffer), 0);
         if (bytes_read > 0) {
-            receive_buffer += std::string_view(buffer, bytes_read);
+            receive_buffer +=
+                std::string_view(buffer, static_cast<size_t>(bytes_read));
             ProcessPackets();
         } else if (bytes_read == 0) {
             CloseClientSocket();

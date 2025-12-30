@@ -29,7 +29,8 @@ class IIrSensorServer : public IService {
     IIrSensorServer();
 
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     kernel::SharedMemory* shared_mem; // TODO: make this global
@@ -49,3 +50,12 @@ class IIrSensorServer : public IService {
 };
 
 } // namespace hydra::horizon::services::irsensor
+
+ENABLE_ENUM_FORMATTING(
+    hydra::horizon::services::irsensor::IrSensorFunctionLevel, Unknown0,
+    "unknown0", Unknown1, "unknown1", Unknown2, "unknown2", Unknown3,
+    "unknown3", Unknown4, "unknown4")
+
+ENABLE_STRUCT_FORMATTING(
+    hydra::horizon::services::irsensor::PackedFunctionLevel, function_level, "",
+    "function level")

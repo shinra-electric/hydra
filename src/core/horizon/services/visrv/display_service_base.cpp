@@ -4,9 +4,13 @@
 
 namespace hydra::horizon::services::visrv {
 
+// TODO: flags, display ID
 result_t DisplayServiceBase::CreateStrayLayerImpl(
     kernel::Process* process, u32 flags, u64 display_id, u64* out_layer_id,
     u64* out_native_window_size, io::MemoryStream* out_parcel_stream) {
+    (void)flags;
+    (void)display_id;
+
     u32 binder_id = OS_INSTANCE.GetDisplayDriver().CreateBinder();
     // TODO: what's the display for?
     // auto& display = OS_INSTANCE.GetDisplayDriver().GetDisplay(display_id);

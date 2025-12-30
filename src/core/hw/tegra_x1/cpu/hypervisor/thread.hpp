@@ -36,7 +36,7 @@ struct ThreadMessage {
         struct {
             vaddr_t addr;
         } remove_breakpoint;
-    } payload;
+    } payload{};
 };
 
 class Thread : public IThread {
@@ -53,10 +53,12 @@ class Thread : public IThread {
 
     // Debug
     void InsertBreakpoint(vaddr_t addr) override {
-        SendMessage({ThreadMessageType::InsertBreakpoint, {addr}});
+        SendMessage({ThreadMessageType::InsertBreakpoint,
+                     {.insert_breakpoint = {addr}}});
     }
     void RemoveBreakpoint(vaddr_t addr) override {
-        SendMessage({ThreadMessageType::RemoveBreakpoint, {addr}});
+        SendMessage({ThreadMessageType::RemoveBreakpoint,
+                     {.remove_breakpoint = {addr}}});
     }
     void SingleStep() override { SendMessage({ThreadMessageType::SingleStep}); }
 

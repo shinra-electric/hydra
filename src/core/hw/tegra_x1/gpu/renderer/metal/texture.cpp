@@ -111,6 +111,10 @@ void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
                        const u32 dst_layer, const float3 dst_origin,
                        const usize3 dst_size) {
     // TODO: src layer
+    ASSERT_DEBUG(src_layer == 0, MetalRenderer,
+                 "Source layered blits (source layer: {}) not implemented",
+                 src_layer);
+
     METAL_RENDERER_INSTANCE.BlitTexture(
         static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
         mtl_texture, dst_layer, dst_origin, dst_size);

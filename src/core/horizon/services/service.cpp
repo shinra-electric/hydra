@@ -134,8 +134,7 @@ void IService::AddService(RequestContext& context, IService* service) {
         // Create new session
         auto server_session = new kernel::hipc::ServerSession();
         auto client_session = new kernel::hipc::ClientSession();
-        auto session =
-            new kernel::hipc::Session(server_session, client_session);
+        new kernel::hipc::Session(server_session, client_session);
 
         // Register server side
         server->RegisterSession(server_session, service);
@@ -229,20 +228,24 @@ void IService::Control(RequestContext& context) {
         subservice_pool = new DynamicPool<IService*>();
         const auto handle_id = AddSubservice(this->Retain());
         context.streams.out_stream.Write(handle_id);
+        *result = RESULT_SUCCESS;
         break;
     }
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObject:
         Clone(context);
+        *result = RESULT_SUCCESS;
         break;
     case kernel::hipc::cmif::ControlCommandType::QueryPointerBufferSize:
         // TODO: let the server specify this
         context.streams.out_stream.Write<u16>(
             0x8000); // The highest known pointer buffer
                      // size (used by nvservices)
+                     // *result = RESULT_SUCCESS;
         break;
     case kernel::hipc::cmif::ControlCommandType::CloneCurrentObjectEx:
         // TODO: u32 tag
         Clone(context);
+        *result = RESULT_SUCCESS;
         break;
     default:
         LOG_ERROR(Services, "Unimplemented control request {}", command);
@@ -254,7 +257,7 @@ void IService::Clone(RequestContext& context) {
     // Create new session
     auto server_session = new kernel::hipc::ServerSession();
     auto client_session = new kernel::hipc::ClientSession();
-    auto session = new kernel::hipc::Session(server_session, client_session);
+    new kernel::hipc::Session(server_session, client_session);
 
     // Register server side
     server->RegisterSession(server_session, this);

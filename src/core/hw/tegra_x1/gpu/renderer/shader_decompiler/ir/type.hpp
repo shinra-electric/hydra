@@ -87,6 +87,7 @@ class Type {
     Type(ScalarType scalar_) : kind{TypeKind::Scalar}, scalar{scalar_} {}
     Type(VectorType vector_) : kind{TypeKind::Vector}, vector{vector_} {}
 
+    static Type Undefined() { return Type(); }
     static Type Scalar(ScalarType scalar) { return Type(scalar); }
     static Type Vector(ScalarType element_type, u8 size) {
         return Type(VectorType(element_type, size));

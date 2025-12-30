@@ -23,6 +23,8 @@ DEFINE_SERVICE_COMMAND_TABLE(
     SetNpadCommunicationMode, 1004, SetTouchScreenOutputRanges)
 
 result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
+    (void)aruid;
+
     AddService(*ctx, new IAppletResource());
 
     return RESULT_SUCCESS;
@@ -37,8 +39,12 @@ result_t IHidServer::GetSupportedNpadStyleSet(
 }
 
 result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
-    kernel::Process* process, u32 id, u32 _pad, u64 aruid, u64 event_ptr,
+    kernel::Process* process, aligned<u32, 8> id, u64 aruid, u64 event_ptr,
     OutHandle<HandleAttr::Copy> out_handle) {
+    (void)id;
+    (void)aruid;
+    (void)event_ptr;
+
     // TODO: params
     out_handle = process->AddHandle(npad_style_set_update_event);
 
@@ -94,23 +100,29 @@ IHidServer::GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
 result_t
 IHidServer::SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
                                i64 aruid) {
+    (void)aruid;
+
     npad_joy_hold_type = type;
     return RESULT_SUCCESS;
 }
 
 result_t IHidServer::GetNpadJoyHoldType(
     i64 aruid, aligned<::hydra::horizon::hid::NpadJoyHoldType, 8>* out_type) {
+    (void)aruid;
+
     out_type->ZeroOutPadding();
     *out_type = npad_joy_hold_type;
     return RESULT_SUCCESS;
 }
 
 result_t IHidServer::GetVibrationDeviceInfo(VibrationDeviceHandle handle,
-                                            VibrationDeviceInfo* info) {
+                                            VibrationDeviceInfo* out_info) {
+    (void)handle;
+
     LOG_FUNC_STUBBED(Services);
 
     // HACK
-    *info = {
+    *out_info = {
         .device_type = VibrationDeviceType::LinearResonantActuator,
         .position = VibrationDevicePosition::Left,
     };

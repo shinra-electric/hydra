@@ -38,11 +38,14 @@ NvResult NvHostGpu::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     return NvResult::Success;
 }
 
+// TODO: gpfifo
 NvResult NvHostGpu::SubmitGpfifo(
     kernel::Process* process, u64 gpfifo, u32 num_entries,
     InOut<hw::tegra_x1::gpu::GpfifoFlags, u32> inout_flags_and_detailed_error,
     InOutSingle<hw::tegra_x1::gpu::Fence> inout_fence,
     const hw::tegra_x1::gpu::GpfifoEntry* entries) {
+    (void)gpfifo;
+
     GPU_INSTANCE.GetPfifo().SubmitEntries(
         *process->GetGMmu(),
         std::vector<hw::tegra_x1::gpu::GpfifoEntry>(entries,
@@ -56,18 +59,21 @@ NvResult NvHostGpu::SubmitGpfifo(
 }
 
 NvResult NvHostGpu::AllocObjCtx(u32 class_num, u32 flags, u64* out_obj_id) {
-    LOG_FUNC_STUBBED(Services);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "class number: {}, flags: {:#x}", class_num, flags);
+
+    // HACK
+    *out_obj_id = 0;
     return NvResult::Success;
 }
 
-NvResult NvHostGpu::ZCullBind(gpu_vaddr_t addr, u32 mode, u32 reserved) {
-    LOG_FUNC_STUBBED(Services);
+NvResult NvHostGpu::ZCullBind(gpu_vaddr_t addr, u32 mode, [[maybe_unused]] u32 reserved) {
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "address: {:#x}, mode: {}", addr, mode);
     return NvResult::Success;
 }
 
 NvResult NvHostGpu::SetErrorNotifier(u64 offset, u64 size, u32 mem,
-                                     u32 reserved) {
-    LOG_FUNC_STUBBED(Services);
+                                     [[maybe_unused]] u32 reserved) {
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "offset: {:#x}, size: {:#x}, memory: {}", offset, size, mem);
     return NvResult::Success;
 }
 
@@ -85,8 +91,11 @@ NvResult NvHostGpu::GetErrorNotification(u64* out_timestamp, u32* out_info32,
 
 NvResult NvHostGpu::AllocGpfifoEX(u32 num_entries, u32 num_jobs, u32 flags,
                                   hw::tegra_x1::gpu::Fence* out_fence,
-                                  std::array<u32, 3> reserved) {
-    LOG_FUNC_STUBBED(Services);
+                                  [[maybe_unused]] std::array<u32, 3> reserved) {
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "number of entries: {}, num_jobs: {}, flags: {:#x}", num_entries, num_jobs, flags);
+
+    // HACK
+    *out_fence = {};
     return NvResult::Success;
 }
 

@@ -104,17 +104,19 @@ FsResult Directory::DeleteEntry(const std::string_view path, bool recursive) {
     return DeleteEntryImpl(broken_path, recursive);
 }
 
-FsResult Directory::GetEntry(const std::string_view path, IEntry*& out_entry) {
+FsResult Directory::GetEntry(const std::string_view path,
+                             IEntry*& out_entry) const {
     COMMON;
     if (broken_path.empty()) {
-        out_entry = this;
+        out_entry = const_cast<Directory*>(this);
         return FsResult::Success;
     }
 
     return GetEntryImpl(broken_path, out_entry);
 }
 
-FsResult Directory::GetFile(const std::string_view path, IFile*& out_file) {
+FsResult Directory::GetFile(const std::string_view path,
+                            IFile*& out_file) const {
     IEntry* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
@@ -128,7 +130,7 @@ FsResult Directory::GetFile(const std::string_view path, IFile*& out_file) {
 }
 
 FsResult Directory::GetDirectory(const std::string_view path,
-                                 Directory*& out_directory) {
+                                 Directory*& out_directory) const {
     IEntry* entry;
     const auto res = GetEntry(path, entry);
     if (res != FsResult::Success)
@@ -179,6 +181,9 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
             return FsResult::DoesNotExist;
 
         auto res = it->second->Delete(recursive);
+        if (res != FsResult::Success)
+            return res;
+
         delete it->second;
         entries.erase(it);
 
@@ -196,7 +201,7 @@ FsResult Directory::DeleteEntryImpl(const std::span<std::string_view> path,
 }
 
 FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
-                                 IEntry*& out_entry) {
+                                 IEntry*& out_entry) const {
     const auto entry_name = path[0];
     auto it = entries.find(std::string(entry_name));
     if (path.size() == 1) {
@@ -218,9 +223,10 @@ FsResult Directory::GetEntryImpl(const std::span<std::string_view> path,
 }
 
 void Directory::BreakPath(std::string_view path,
-                          std::vector<std::string_view>& out_path) {
+                          std::vector<std::string_view>& out_path) const {
     // Reserve the maximum possible count
-    out_path.reserve(std::count(path.begin(), path.end(), '/'));
+    out_path.reserve(
+        static_cast<size_t>(std::count(path.begin(), path.end(), '/')));
 
     while (!path.empty()) {
         const auto slash_pos = path.find('/');

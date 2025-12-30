@@ -228,7 +228,7 @@ enum class NpadStyleSet : u32 {
     FullCtrl = FullKey | Handheld | JoyDual,
     Standard = FullCtrl | JoyLeft | JoyRight,
 };
-ENABLE_ENUM_BITMASK_OPERATORS(NpadStyleSet)
+ENABLE_ENUM_BITWISE_OPERATORS(NpadStyleSet)
 
 enum class ColorAttribute {
     Ok = 0,
@@ -278,7 +278,7 @@ enum class NpadButtons : u64 {
     // HACK: alias
     Invalid = None,
 };
-ENABLE_ENUM_BITMASK_OPERATORS(NpadButtons)
+ENABLE_ENUM_BITWISE_OPERATORS(NpadButtons)
 
 enum class DebugPadAttribute {
     IsConnected = BIT(0),
@@ -303,7 +303,7 @@ enum class NpadAttributes : u32 {
     IsRightConnected = BIT(4),
     IsRightWired = BIT(5),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(NpadAttributes)
+ENABLE_ENUM_BITWISE_OPERATORS(NpadAttributes)
 
 enum class SixAxisSensorAttribute {
     IsConnected = BIT(0),

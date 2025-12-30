@@ -42,57 +42,61 @@
 
 #define UNDERLYING(t) std::underlying_type_t<t>
 
-#define ENABLE_ENUM_ARITHMETIC_OPERATORS(e)                                    \
-    inline e operator+(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) +                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+#define ENABLE_ENUM_ARITHMETIC_OPERATORS(type)                                 \
+    [[maybe_unused]] inline type operator+(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) +            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline e operator-(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) -                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+    [[maybe_unused]] inline type operator-(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) -            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline e operator*(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) *                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+    [[maybe_unused]] inline type operator*(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) *            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline e operator/(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) /                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+    [[maybe_unused]] inline type operator/(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) /            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline e operator++(e& x, i32) {                                           \
+    [[maybe_unused]] inline type operator++(type& x, i32) {                    \
         const auto tmp = x;                                                    \
-        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) + 1);                 \
+        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) + 1);           \
         return tmp;                                                            \
     }                                                                          \
-    inline e operator--(e& x, i32) {                                           \
+    [[maybe_unused]] inline type operator--(type& x, i32) {                    \
         const auto tmp = x;                                                    \
-        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) - 1);                 \
+        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) - 1);           \
         return tmp;                                                            \
     }                                                                          \
-    inline e& operator++(e& x) {                                               \
-        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) + 1);                 \
+    [[maybe_unused]] inline type& operator++(type& x) {                        \
+        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) + 1);           \
         return x;                                                              \
     }                                                                          \
-    inline e& operator--(e& x) {                                               \
-        x = static_cast<e>(static_cast<UNDERLYING(e)>(x) - 1);                 \
+    [[maybe_unused]] inline type& operator--(type& x) {                        \
+        x = static_cast<type>(static_cast<UNDERLYING(type)>(x) - 1);           \
         return x;                                                              \
     }
 
-#define ENABLE_ENUM_BITMASK_OPERATORS(e)                                       \
-    inline e operator|(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) |                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+#define ENABLE_ENUM_BITWISE_OPERATORS(type)                                    \
+    [[maybe_unused]] inline type operator|(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) |            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline e& operator|=(e& a, e b) { return a = a | b; }                      \
-    inline e operator&(e a, e b) {                                             \
-        return static_cast<e>(static_cast<UNDERLYING(e)>(a) &                  \
-                              static_cast<UNDERLYING(e)>(b));                  \
+    [[maybe_unused]] inline type& operator|=(type& a, type b) {                \
+        return a = a | b;                                                      \
     }                                                                          \
-    inline e& operator&=(e& a, e b) { return a = a & b; }                      \
-    inline e operator~(e a) {                                                  \
-        return static_cast<e>(~static_cast<UNDERLYING(e)>(a));                 \
+    [[maybe_unused]] inline type operator&(type a, type b) {                   \
+        return static_cast<type>(static_cast<UNDERLYING(type)>(a) &            \
+                                 static_cast<UNDERLYING(type)>(b));            \
     }                                                                          \
-    inline bool any(e a) { return a != e::None; }
+    [[maybe_unused]] inline type& operator&=(type& a, type b) {                \
+        return a = a & b;                                                      \
+    }                                                                          \
+    [[maybe_unused]] inline type operator~(type a) {                           \
+        return static_cast<type>(~static_cast<UNDERLYING(type)>(a));           \
+    }                                                                          \
+    [[maybe_unused]] inline bool any(type a) { return a != type::None; }
 
 #define GETTER(member, name)                                                   \
     decltype(member) name() const { return member; }
@@ -189,48 +193,66 @@
         __VA_OPT__(FOR_EACH_AGAIN_2_2 PARENS(macro, e1, e2, __VA_ARGS__))
 #define FOR_EACH_AGAIN_2_2() FOR_EACH_HELPER_2_2
 
-#define ENUM_FORMAT_CASE(e, value, n)                                          \
-    case e::value:                                                             \
-        name = n;                                                              \
+#define ENUM_FORMAT_CASE(type, c, name)                                        \
+    case type::c:                                                              \
+        res = name;                                                            \
         break;
 
-#define ENABLE_ENUM_FORMATTING(e, ...)                                         \
+#define ENABLE_ENUM_FORMATTING(type, ...)                                      \
     template <>                                                                \
-    struct fmt::formatter<e> : formatter<string_view> {                        \
+    struct fmt::formatter<type> : formatter<string_view> {                     \
         template <typename FormatContext>                                      \
-        auto format(e c, FormatContext& ctx) const {                           \
-            string_view name;                                                  \
-            switch (c) {                                                       \
-                FOR_EACH_1_2(ENUM_FORMAT_CASE, e, __VA_ARGS__)                 \
+        auto format(type value, FormatContext& ctx) const {                    \
+            std::string_view res;                                              \
+            switch (value) {                                                   \
+                FOR_EACH_1_2(ENUM_FORMAT_CASE, type, __VA_ARGS__)              \
             default:                                                           \
-                name = fmt::format("unknown ({})", (hydra::u64)c);             \
+                res = fmt::format("unknown ({})",                              \
+                                  static_cast<hydra::u64>(value));             \
                 break;                                                         \
             }                                                                  \
-            return formatter<string_view>::format(name, ctx);                  \
+            return formatter<string_view>::format(res, ctx);                   \
         }                                                                      \
     };
 
-#define ENABLE_ENUM_FORMATTING_WITH_INVALID(e, ...)                            \
-    ENABLE_ENUM_FORMATTING(e, Invalid, "invalid", __VA_ARGS__)
+#define ENABLE_ENUM_FORMATTING_WITH_INVALID(type, ...)                         \
+    ENABLE_ENUM_FORMATTING(type, Invalid, "invalid", __VA_ARGS__)
 
-#define ENUM_CAST_CASE(e, value, n)                                            \
+#define STRUCT_FORMAT_CASE(member, f, name)                                    \
+    fmt::format(name ": {" f "}", value.member),
+
+#define ENABLE_STRUCT_FORMATTING(type, ...)                                    \
+    template <>                                                                \
+    struct fmt::formatter<type> : formatter<string_view> {                     \
+        template <typename FormatContext>                                      \
+        auto format(const type& value, FormatContext& ctx) const {             \
+            /* TODO: make this more efficient */                               \
+            std::string res = fmt::format(                                     \
+                "{}", fmt::join(std::array{FOR_EACH_0_3(STRUCT_FORMAT_CASE,    \
+                                                        __VA_ARGS__)},         \
+                                ", "));                                        \
+            return formatter<string_view>::format(std::move(res), ctx);        \
+        }                                                                      \
+    };
+
+#define ENUM_CAST_CASE(type, value, n)                                         \
     if (value_str == n)                                                        \
-        return e::value;
+        return type::value;
 
-#define ENABLE_ENUM_CASTING(namespc, e, e_lower_case, ...)                     \
+#define ENABLE_ENUM_CASTING(namespc, type, e_lower_case, ...)                  \
     namespace namespc {                                                        \
-    inline e to_##e_lower_case(std::string_view value_str) {                   \
-        FOR_EACH_1_2(ENUM_CAST_CASE, e, __VA_ARGS__)                           \
-        return e::Invalid;                                                     \
+    inline type to_##e_lower_case(std::string_view value_str) {                \
+        FOR_EACH_1_2(ENUM_CAST_CASE, type, __VA_ARGS__)                        \
+        return type::Invalid;                                                  \
     }                                                                          \
     }
 
-#define ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, e, e_lower_case, ...)      \
-    ENABLE_ENUM_FORMATTING_WITH_INVALID(namespc::e, __VA_ARGS__)               \
-    ENABLE_ENUM_CASTING(namespc, e, e_lower_case, __VA_ARGS__)
+#define ENABLE_ENUM_FORMATTING_AND_CASTING(namespc, type, e_lower_case, ...)   \
+    ENABLE_ENUM_FORMATTING_WITH_INVALID(namespc::type, __VA_ARGS__)            \
+    ENABLE_ENUM_CASTING(namespc, type, e_lower_case, __VA_ARGS__)
 
-#define ENUM_BIT_TEST(e, value, n)                                             \
-    if (any(c & e::value)) {                                                   \
+#define ENUM_BIT_TEST(type, c, n)                                              \
+    if (any(value & type::c)) {                                                \
         if (added)                                                             \
             name += " | ";                                                     \
         else                                                                   \
@@ -238,32 +260,16 @@
         name += n;                                                             \
     }
 
-#define ENABLE_ENUM_FLAGS_FORMATTING(e, ...)                                   \
+#define ENABLE_ENUM_FLAGS_FORMATTING(type, ...)                                \
     template <>                                                                \
-    struct fmt::formatter<e> : formatter<string_view> {                        \
+    struct fmt::formatter<type> : formatter<string_view> {                     \
         template <typename FormatContext>                                      \
-        auto format(e c, FormatContext& ctx) const {                           \
+        auto format(type value, FormatContext& ctx) const {                    \
             std::string name;                                                  \
             bool added = false;                                                \
-            FOR_EACH_1_2(ENUM_BIT_TEST, e, __VA_ARGS__)                        \
+            FOR_EACH_1_2(ENUM_BIT_TEST, type, __VA_ARGS__)                     \
             if (!added)                                                        \
                 name = "none";                                                 \
             return formatter<string_view>::format(name, ctx);                  \
-        }                                                                      \
-    };
-
-// TODO: don't add comma on the last member
-#define STRUCT_FORMAT_CASE(member)                                             \
-    str += fmt::format("{}: {}, ", #member, c.member);
-
-#define ENABLE_STRUCT_FORMATTING(s, ...)                                       \
-    template <>                                                                \
-    struct fmt::formatter<s> : formatter<string_view> {                        \
-        template <typename FormatContext>                                      \
-        auto format(const s& c, FormatContext& ctx) const {                    \
-            std::string str;                                                   \
-            FOR_EACH_0_1(STRUCT_FORMAT_CASE, __VA_ARGS__)                      \
-            return fmt::format("{{{}}}",                                       \
-                               formatter<string_view>::format(str, ctx));      \
         }                                                                      \
     };

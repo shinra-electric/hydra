@@ -110,7 +110,7 @@ void MslEmitter::EmitDeclarations() {
     // Stage inputs
     switch (context.type) {
     case ShaderType::Vertex:
-        for (u32 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
+        for (u8 i = 0; i < VERTEX_ATTRIB_COUNT; i++) {
             const auto vertex_attrib_state = state.vertex_attrib_states[i];
             if (vertex_attrib_state.type == engines::VertexAttribType::None)
                 continue;
@@ -169,7 +169,7 @@ void MslEmitter::EmitDeclarations() {
         }
         break;
     case ShaderType::Fragment:
-        for (u32 i = 0; i < COLOR_TARGET_COUNT; i++) {
+        for (u8 i = 0; i < COLOR_TARGET_COUNT; i++) {
             const auto color_target_data_type =
                 state.color_target_data_types[i];
             if (color_target_data_type == ColorDataType::Invalid)

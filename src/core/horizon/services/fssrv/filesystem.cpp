@@ -24,9 +24,12 @@ DEFINE_SERVICE_COMMAND_TABLE(IFileSystem, 0, CreateFile, 1, DeleteFile, 2,
     LOG_DEBUG(Services, debug_name ": {}", path);
 #define READ_PATH() READ_PATH_IMPL(path, "Path")
 
+// TODO: flags
 result_t
 IFileSystem::CreateFile(CreateOption flags, u64 size,
                         InBuffer<BufferAttr::HipcPointer> in_path_buffer) {
+    (void)flags;
+
     READ_PATH();
 
     // HACK

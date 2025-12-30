@@ -312,7 +312,7 @@ class Builder {
     }
 
     // Vector
-    Value OpVectorExtract(const Value& src, u32 index) {
+    Value OpVectorExtract(const Value& src, u8 index) {
         ASSERT_DEBUG(src.GetType().IsVector(), ShaderDecompiler,
                      "Cannot perform vector extract with non-vector type {}",
                      src.GetType());
@@ -320,7 +320,7 @@ class Builder {
                               src.GetType().GetVectorType().GetElementType(),
                               {src, Value::RawValue(index)});
     }
-    void OpVectorInsert(const Value& dst, const Value& src, u32 index) {
+    void OpVectorInsert(const Value& dst, const Value& src, u8 index) {
         ASSERT_DEBUG(dst.GetType().IsVector(), ShaderDecompiler,
                      "Cannot perform vector insert with non-vector type {}",
                      dst.GetType());
@@ -338,9 +338,10 @@ class Builder {
         std::vector<Value> operands;
         for (const auto& element : elements)
             operands.push_back(element);
-        return AddInstruction(Opcode::VectorConstruct,
-                              Type::Vector(element_type, elements.size()),
-                              operands);
+        return AddInstruction(
+            Opcode::VectorConstruct,
+            Type::Vector(element_type, static_cast<u8>(elements.size())),
+            operands);
     }
 
     // Texture

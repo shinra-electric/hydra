@@ -34,7 +34,9 @@ result_t IHidSystemServer::AcquireSleepButtonEventHandle(
 result_t IHidSystemServer::GetUniquePadsFromNpad(
     ::hydra::horizon::hid::NpadIdType npad_id, i64* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
-    LOG_FUNC_STUBBED(Services);
+    (void)out_buffer;
+
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "npad_id: {}", npad_id);
 
     // HACK
     *out_count = 0;
@@ -42,9 +44,9 @@ result_t IHidSystemServer::GetUniquePadsFromNpad(
 }
 
 result_t IHidSystemServer::EnableAppletToGetInput(u8 enable, u64 aruid) {
-    LOG_FUNC_STUBBED(Services);
+    (void)aruid;
 
-    LOG_DEBUG(Services, "Enable: {}", enable);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "enable: {}", enable);
 
     return RESULT_SUCCESS;
 }

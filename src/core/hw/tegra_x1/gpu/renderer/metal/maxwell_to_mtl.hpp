@@ -25,9 +25,9 @@ MTL::PrimitiveType
 to_mtl_primitive_type(const engines::PrimitiveType primitive_type);
 MTL::IndexType to_mtl_index_type(engines::IndexType index_type);
 
-const MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
-                                             engines::VertexAttribSize size,
-                                             bool bgra);
+MTL::VertexFormat to_mtl_vertex_format(engines::VertexAttribType type,
+                                       engines::VertexAttribSize size,
+                                       bool bgra);
 
 MTL::CompareFunction to_mtl_compare_func(engines::CompareOp depth_compare_op);
 

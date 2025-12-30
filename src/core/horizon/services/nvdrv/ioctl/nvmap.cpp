@@ -20,11 +20,14 @@ NvResult NvMap::FromId(u32 id, handle_id_t* out_handle_id) {
     return NvResult::Success;
 }
 
+// TODO: heap mask, kind
 NvResult NvMap::Alloc(handle_id_t handle_id, u32 heap_mask, u32 flags,
                       InOutSingle<u32> inout_alignment, aligned<u8, 8> kind,
                       gpu_vaddr_t addr) {
-    // TODO: flags wtf
-    // TODO: kind
+    (void)heap_mask;
+    (void)kind;
+
+    // TODO: flags?
     GPU_INSTANCE.AllocateMap(handle_id, addr, flags == 1);
     inout_alignment = hw::tegra_x1::gpu::GPU_PAGE_SIZE; // TODO: correct?
     return NvResult::Success;

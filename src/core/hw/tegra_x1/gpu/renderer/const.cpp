@@ -188,7 +188,7 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
 #undef DEPTH_SURFACE_FORMAT_CASE
 }
 
-usize get_texture_format_stride(const TextureFormat format, usize width) {
+u32 get_texture_format_stride(const TextureFormat format, u32 width) {
     // TODO: check this
     switch (format) {
     case TextureFormat::Invalid:

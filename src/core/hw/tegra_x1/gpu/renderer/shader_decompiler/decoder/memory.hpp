@@ -126,3 +126,8 @@ union InstIpa {
 void EmitIpa(DecoderContext& context, InstIpa inst);
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder
+
+ENABLE_ENUM_FORMATTING(
+    hydra::hw::tegra_x1::gpu::renderer::shader_decomp::decoder::LsSize3, U8,
+    "u8", S8, "s8", U16, "u16", S16, "s16", B32, "b32", B64, "b64", B128,
+    "b128", UB128, "ub128")

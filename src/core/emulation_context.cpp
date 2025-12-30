@@ -1,8 +1,14 @@
 #include "core/emulation_context.hpp"
 
 #include <fmt/chrono.h>
-#include <hatch/hatch.hpp>
 #include <stb_image_write.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+
+#include <hatch/hatch.hpp>
+
+#pragma GCC diagnostic pop
 
 #include "core/audio/null/core.hpp"
 #include "core/horizon/applets/album/const.hpp"
@@ -261,7 +267,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
 
     // Loading screen assets
     {
-        usize width, height;
+        u32 width, height;
         if (auto data = loader->LoadNintendoLogo(width, height)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
@@ -273,7 +279,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         }
     }
     {
-        usize width, height;
+        u32 width, height;
         u32 frame_count;
         if (auto data = loader->LoadStartupMovie(startup_movie_delays, width,
                                                  height, frame_count)) {
@@ -572,7 +578,7 @@ void EmulationContext::TakeScreenshot() {
         // Copy to a buffer
         RENDERER_INSTANCE.LockMutex();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-            rect.size.y() * rect.size.x() * 4);
+            static_cast<u32>(rect.size.y() * rect.size.x() * 4));
         buffer->CopyFrom(texture, rect.origin, rect.size);
         RENDERER_INSTANCE.EndCommandBuffer();
         RENDERER_INSTANCE.UnlockMutex();

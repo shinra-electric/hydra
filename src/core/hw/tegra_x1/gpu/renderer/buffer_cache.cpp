@@ -13,6 +13,8 @@ BufferBase* BufferCache::Create(const BufferDescriptor& descriptor) {
 }
 
 void BufferCache::Update(BufferBase* buffer) {
+    (void)buffer;
+
     // TODO: if data changed
     if (false)
         ; // TODO: upload buffer

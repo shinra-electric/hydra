@@ -16,7 +16,7 @@ enum class TvFlags : u32 {
     AllowsCec = BIT(2),
     PreventsScreenBurnIn = BIT(3),
 };
-ENABLE_ENUM_BITMASK_OPERATORS(TvFlags)
+ENABLE_ENUM_BITWISE_OPERATORS(TvFlags)
 
 enum class TvResolution : u32 {
     Auto = 0,
@@ -59,7 +59,8 @@ struct TvSettings {
 
 class ISystemSettingsServer : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands

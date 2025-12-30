@@ -10,16 +10,16 @@ DEFINE_SERVICE_COMMAND_TABLE(ISslService, 0, CreateContext, 5,
 result_t ISslService::CreateContext(RequestContext* ctx,
                                     aligned<SslVersion, 8> version,
                                     u64 pid_placeholder) {
-    LOG_DEBUG(Services, "Version: {}", version.Get());
+    (void)pid_placeholder;
+
+    LOG_DEBUG(Services, "Version: {}", version);
 
     AddService(*ctx, new ISslContext(version));
     return RESULT_SUCCESS;
 }
 
 result_t ISslService::SetInterfaceVersion(SystemVersion version) {
-    LOG_FUNC_STUBBED(Services);
-
-    LOG_DEBUG(Services, "Version: {}", version);
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "version: {}", version);
 
     return RESULT_SUCCESS;
 }

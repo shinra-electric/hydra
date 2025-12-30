@@ -101,7 +101,8 @@ struct SaveDataFileSystemExtraData {
 
 class IFileSystemProxy : public IService {
   protected:
-    result_t RequestImpl(RequestContext& context, u32 id) override;
+    result_t RequestImpl([[maybe_unused]] RequestContext& context,
+                         u32 id) override;
 
   private:
     // Commands
@@ -172,8 +173,3 @@ ENABLE_ENUM_FORMATTING(
     SystemProperPartition, "system proper partition",
     SignedSystemPartitionOnSafeMode, "signed system partition on safe mode",
     DeviceTreeBlob, "device tree blob", System0, "system 0")
-
-ENABLE_ENUM_FORMATTING(hydra::horizon::services::fssrv::SaveDataType, System,
-                       "system", Account, "account", Bcat, "bcat", Device,
-                       "device", Temporary, "temporary", Cache, "cache",
-                       SystemBcat, "system bcat")

@@ -12,7 +12,9 @@ void EmitShuffle(DecoderContext& context, pred_t pred, bool pred_inv,
     const auto src_a_v = ir::Value::Register(src_a);
 
     // TODO: implement
-    LOG_NOT_IMPLEMENTED(ShaderDecompiler, "Shuffle");
+    LOG_FUNC_WITH_ARGS_NOT_IMPLEMENTED(
+        ShaderDecompiler, "mode: {}, src_a: {}, src_b: {}, src_c: {}", mode,
+        src_a_v, src_b, src_c);
     // HACK
     const auto res = src_a_v;
     const auto pred_res = ir::Value::ConstantB(true);

@@ -18,6 +18,12 @@ TimeManager::TimeManager()
     : shared_memory{new kernel::SharedMemory(SHARED_MEMORY_SIZE)} {
     std::memset((void*)shared_memory->GetPtr(), 0, SHARED_MEMORY_SIZE);
 
+    (void)STEADY_CLOCK_CONTEXT_OFFSET;
+    (void)LOCAL_SYSTEM_CLOCK_CONTEXT_OFFSET;
+    (void)NETWORK_SYSTEM_CLOCK_CONTEXT_OFFSET;
+    (void)AUTOMATIC_CORRECTION_ENABLED_OFFSET;
+    (void)CONTINUOUS_ADJUSTMENT_TIME_POINT_OFFSET;
+
     // HACK: initialize shared memory
     /*
     WriteObjectToSharedMemory(STEADY_CLOCK_CONTEXT_OFFSET, 0x4,
