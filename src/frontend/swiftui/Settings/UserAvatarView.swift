@@ -20,7 +20,7 @@ struct UserAvatarView: View {
         }
     }
 
-    private func loadAvatarCG(dimensions: inout UInt64) -> CGImage? {
+    private func loadAvatarCG(dimensions: inout UInt32) -> CGImage? {
         guard
             let data = self.userManager.loadAvatarImage(
                 path: self.avatarPath, dimensions: &dimensions)
@@ -57,7 +57,7 @@ struct UserAvatarView: View {
 
     #if os(macOS)
         private func loadAvatar() -> NSImage? {
-            var dimensions: UInt64 = 0
+            var dimensions: UInt32 = 0
             guard let cgImage = self.loadAvatarCG(dimensions: &dimensions) else {
                 return nil
             }

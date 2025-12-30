@@ -480,7 +480,7 @@ class HydraLoader: Hashable, Identifiable {
         return HydraNacp(handle: handle)
     }
 
-    func loadIcon(width: inout UInt64, height: inout UInt64)
+    func loadIcon(width: inout UInt32, height: inout UInt32)
         -> UnsafeMutableRawPointer?
     {
         hydra_loader_load_icon(self.handle, &width, &height)
@@ -598,7 +598,7 @@ class HydraUserManager: Hashable, Identifiable {
         hydra_user_manager_load_system_avatars(self.handle, filesystem.handle)
     }
 
-    func loadAvatarImage(path: String, dimensions: inout UInt64) -> UnsafeRawPointer? {
+    func loadAvatarImage(path: String, dimensions: inout UInt32) -> UnsafeRawPointer? {
         path.withHydraString { hydraPath in
             hydra_user_manager_load_avatar_image(
                 self.handle, hydraPath, &dimensions)

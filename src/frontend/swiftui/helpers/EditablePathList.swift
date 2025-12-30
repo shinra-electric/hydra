@@ -34,10 +34,11 @@ struct EditablePathList: View {
                             do {
                                 try registerUrl(fileURL)
                             } catch {
-                                print("Failed to register URL \(fileURL.path)")
+                                print(
+                                    "Failed to register URL \(fileURL.path(percentEncoded: false))")
                                 continue
                             }
-                            items.append(fileURL.path())
+                            items.append(fileURL.path(percentEncoded: false))
                         }
 
                     case .failure(let error):

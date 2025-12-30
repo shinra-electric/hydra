@@ -1,7 +1,7 @@
 import Foundation
 
 func createGameFromPath(url: URL) -> Game? {
-    let loader = HydraLoader(path: url.path)
+    let loader = HydraLoader(path: url.path(percentEncoded: false))
 
     // Get name and author
     var name = ""

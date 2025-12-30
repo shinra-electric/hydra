@@ -90,7 +90,10 @@ struct GameListView: View {
 
         // Check if the URL is a directory
         var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
+        guard
+            FileManager.default.fileExists(
+                atPath: url.path(percentEncoded: false), isDirectory: &isDirectory)
+        else {
             // TODO: error popup
             print("Game path \"\(url)\" does not exist")
             return

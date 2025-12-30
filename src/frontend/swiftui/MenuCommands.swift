@@ -96,7 +96,7 @@ struct MenuCommands: Commands {
     }
 
     func addFirmwareApplet(url: URL) {
-        let file = HydraFile(path: url.path)
+        let file = HydraFile(path: url.path(percentEncoded: false))
         let contentArchive = HydraContentArchive(file: file)
 
         if contentArchive.contentType

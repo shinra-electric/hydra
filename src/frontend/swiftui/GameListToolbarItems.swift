@@ -58,12 +58,13 @@ struct GameListToolbarItems: ToolbarContent {
                             defer { fileURL.stopAccessingSecurityScopedResource() }
 
                             #if os(macOS)
-                                firmwarePathOption.value = fileURL.path
+                                firmwarePathOption.value = fileURL.path(percentEncoded: false)
                             #else
                                 let path = "\(hydraConfigGetAppDataPath())/firmware"
                                 do {
                                     try FileManager.default.copyItem(
-                                        atPath: fileURL.path, toPath: firmwarePathOption.value)
+                                        atPath: fileURL.path(percentEncoded: false),
+                                        toPath: firmwarePathOption.value)
                                 } catch {
                                     showingFirmwareImportError = true
                                 }
@@ -98,13 +99,13 @@ struct GameListToolbarItems: ToolbarContent {
                         do {
                             try registerUrl(fileURL)
                         } catch {
-                            print("Failed to register URL \(fileURL.path)")
+                            print("Failed to register URL \(fileURL.path(percentEncoded: false))")
                             continue
                         }
 
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.append(
-                            value: fileURL.path)
+                            value: fileURL.path(percentEncoded: false))
 
                         hydraConfigSerialize()
                     }

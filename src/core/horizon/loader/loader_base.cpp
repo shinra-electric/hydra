@@ -74,6 +74,10 @@ uchar4* LoadGIF(filesystem::IFile* file,
 } // namespace
 
 LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
+    while (path.back() == '/') {
+        path.remove_suffix(1);
+    }
+
     // Check if the path exists
     if (!std::filesystem::exists(path)) {
         // TODO: return an error instead
@@ -83,25 +87,26 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
 
     // Create loader
     const auto extension =
-        std::string_view(path).substr(path.find_last_of(".") + 1);
+        std::string_view(path).substr(path.find_last_of("."));
     horizon::loader::LoaderBase* loader{nullptr};
-    if (extension == "nx") {
+    if (extension == ".nx") {
         const auto dir = new horizon::filesystem::Directory(path);
         loader = new horizon::loader::NxLoader(*dir);
     } else {
         const auto file = new horizon::filesystem::DiskFile(path);
-        if (extension == "nro") {
+        if (extension == ".nro") {
             // Assumes that all NROs are Homebrew
             loader = new horizon::loader::HomebrewLoader(file);
-        } else if (extension == "nso") {
+        } else if (extension == ".nso") {
             loader = new horizon::loader::NsoLoader(file);
-        } else if (extension == "nca") {
+        } else if (extension == ".nca") {
             loader = new horizon::loader::NcaLoader(file);
-        } else if (extension == "nsp") {
+        } else if (extension == ".nsp") {
             loader = new horizon::loader::NspLoader(file);
         } else {
             // TODO: return an error instead
-            LOG_FATAL(Other, "Unknown ROM extension \"{}\"", extension);
+            LOG_FATAL(Other, "Unknown ROM extension \"{}\" ({})", extension,
+                      path);
             return nullptr;
         }
     }
