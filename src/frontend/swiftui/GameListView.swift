@@ -10,13 +10,14 @@ struct GameListView: View {
 
     @Binding var viewMode: Int
 
+    @State private var games: [Game] = []
+
     private let gridColumns = [
         GridItem(.adaptive(minimum: 180), spacing: 16)
     ]
 
     var body: some View {
         VStack {
-            let games = GameListView.createGameList(globalState: globalState)
             switch ViewMode(rawValue: viewMode) {
             case .list:
                 List {
@@ -50,12 +51,18 @@ struct GameListView: View {
                 Text("ERROR")
             }
         }
+        .onAppear {
+            games = GameListView.createGameList(gamePaths: globalState.gamePaths)
+        }
+        .onChange(of: globalState.gamePaths) { _, newValue in
+            games = GameListView.createGameList(gamePaths: newValue)
+        }
     }
 
-    static func createGameList(globalState: GlobalState) -> [Game] {
+    static func createGameList(gamePaths: [String]) -> [Game] {
         // Get all games
         var games: [Game] = []
-        for gamePath in globalState.gamePaths {
+        for gamePath in gamePaths {
             do {
                 let url = try resolveUrl(URL(fileURLWithPath: gamePath))
 
