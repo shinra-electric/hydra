@@ -46,8 +46,8 @@ void Cursor::GetTouchPosition(u64 id, i32& out_x, i32& out_y) {
                  "Invalid SDL3 cursor touch id 0x{:016x}", id);
     f32 cursor_x, cursor_y;
     SDL_GetMouseState(&cursor_x, &cursor_y);
-    out_x = cursor_x;
-    out_y = cursor_y;
+    out_x = static_cast<i32>(cursor_x);
+    out_y = static_cast<i32>(cursor_y);
 }
 
 } // namespace hydra::frontend::sdl3

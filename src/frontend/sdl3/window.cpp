@@ -80,7 +80,9 @@ void Window::Run() {
             i32 width, height;
             SDL_GetWindowSize(window, &width, &height);
             bool dt_average_updated;
-            emulation_context.ProgressFrame(width, height, dt_average_updated);
+            emulation_context.ProgressFrame(static_cast<u32>(width),
+                                            static_cast<u32>(height),
+                                            dt_average_updated);
 
             // Update window title
             if (dt_average_updated)

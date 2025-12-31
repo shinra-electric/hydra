@@ -544,6 +544,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
 }
 
 bool EmulationContext::IsRunning() const {
+    if (!process)
+        return false;
+
     switch (process->GetState()) {
     case horizon::kernel::ProcessState::Started:
     case horizon::kernel::ProcessState::Exiting:
