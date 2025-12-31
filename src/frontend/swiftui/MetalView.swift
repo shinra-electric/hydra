@@ -2,15 +2,15 @@ import MetalKit
 import SwiftUI
 
 class MetalLayerCoordinator: NSObject {
-    @Binding var emulationState: EmulationState
+    @Binding var emulationContext: HydraEmulationContext?
     @Binding var fps: Int
 
     private var layer: CAMetalLayer? = nil
     private var displayLink: CADisplayLink? = nil
     private var surfaceSet = false
 
-    init(emulationState: Binding<EmulationState>, fps: Binding<Int>) {
-        self._emulationState = emulationState
+    init(emulationContext: Binding<HydraEmulationContext?>, fps: Binding<Int>) {
+        self._emulationContext = emulationContext
         self._fps = fps
         super.init()
     }
@@ -43,7 +43,7 @@ class MetalLayerCoordinator: NSObject {
     #endif
 
     @objc func handleDisplayLink() {
-        if let emulationContext = emulationState.emulationContext {
+        if let emulationContext = emulationContext {
             // Set the surface if its not already set
             if !self.surfaceSet {
                 guard let layer = self.layer else {
@@ -75,7 +75,8 @@ class MetalLayerCoordinator: NSObject {
 
 #if os(macOS)
     struct MetalView: NSViewRepresentable {
-        @Binding var emulationState: EmulationState
+        @EnvironmentObject var globalState: GlobalState
+
         @Binding var fps: Int
 
         func makeNSView(context: Context) -> NSView {
@@ -98,7 +99,8 @@ class MetalLayerCoordinator: NSObject {
         }
 
         func makeCoordinator() -> MetalLayerCoordinator {
-            return MetalLayerCoordinator(emulationState: $emulationState, fps: self.$fps)
+            return MetalLayerCoordinator(
+                emulationContext: $globalState.emulationContext, fps: self.$fps)
         }
     }
 #else
@@ -116,7 +118,8 @@ class MetalLayerCoordinator: NSObject {
     }
 
     struct MetalView: UIViewRepresentable {
-        @Binding var emulationState: EmulationState
+        @EnvironmentObject var globalState: GlobalState
+
         @Binding var fps: Int
 
         func makeUIView(context: Context) -> UIView {
@@ -134,7 +137,7 @@ class MetalLayerCoordinator: NSObject {
         }
 
         func makeCoordinator() -> MetalLayerCoordinator {
-            return MetalLayerCoordinator(emulationState: $emulationState, fps: $fps)
+            return MetalLayerCoordinator(emulationContext: $globalState.emulationContext, fps: $fps)
         }
     }
 #endif

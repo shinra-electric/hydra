@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct EmulationToolbarItems: ToolbarContent {
-    @Binding var emulationState: EmulationState
+    @EnvironmentObject var globalState: GlobalState
 
     @State private var isRunning: Bool = false
 
@@ -10,22 +10,22 @@ struct EmulationToolbarItems: ToolbarContent {
             ToolbarItemGroup(placement: .principal) {
                 if isRunning {
                     Button("Pause", systemImage: "pause") {
-                        guard let emulationContext = emulationState.emulationContext else { return }
+                        guard let emulationContext = globalState.emulationContext else { return }
                         emulationContext.pause()
                         isRunning = false
                     }
                 } else {
                     Button("Resume", systemImage: "play") {
-                        guard let emulationContext = emulationState.emulationContext else { return }
+                        guard let emulationContext = globalState.emulationContext else { return }
                         emulationContext.resume()
                         isRunning = true
                     }
                 }
                 Button("Stop", systemImage: "stop") {
-                    emulationState.isStopping = true
+                    globalState.isStopping = true
                 }
                 .onAppear {
-                    isRunning = emulationState.emulationContext!.isRunning()
+                    isRunning = globalState.emulationContext!.isRunning()
                 }
             }
         #else

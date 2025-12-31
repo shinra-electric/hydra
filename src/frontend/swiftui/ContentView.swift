@@ -5,7 +5,7 @@ import SwiftUI
 #endif
 
 struct ContentView: View {
-    @Binding var emulationState: EmulationState
+    @EnvironmentObject var globalState: GlobalState
 
     @AppStorage("viewMode") private var viewMode: Int = ViewMode.list.rawValue
     @State private var fps: Int = 0
@@ -23,21 +23,21 @@ struct ContentView: View {
     }
 
     private var navigationTitle: String {
-        let gameTitle = emulationState.activeGame?.name ?? ""
+        let gameTitle = globalState.activeGame?.name ?? ""
         var titleInsert = ""
-        if emulationState.activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
+        if globalState.activeGame?.name != nil { titleInsert = "  |  \(gameTitle)" }
         var gitInsert = ""
         if gitVersion != "" { gitInsert = " (\(gitVersion))" }
         var fpsInsert = ""
-        if emulationState.emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
+        if globalState.emulationContext != nil { fpsInsert = "  |  \(fps) FPS" }
         return "Hydra v\(appVersion)\(gitInsert)\(titleInsert)\(fpsInsert)"
     }
 
     var body: some View {
         NavigationStack {
-            GameListView(emulationState: $emulationState, viewMode: $viewMode)
-                .navigationDestination(item: $emulationState.activeGame) { activeGame in
-                    EmulationView(emulationState: $emulationState, fps: $fps)
+            GameListView(viewMode: $viewMode)
+                .navigationDestination(item: $globalState.activeGame) { activeGame in
+                    EmulationView(fps: $fps)
                         .aspectRatio(CGSize(width: 16, height: 9), contentMode: .fit)
                         #if os(iOS)
                             .onAppear {
@@ -66,7 +66,7 @@ struct ContentView: View {
                             }
                         #endif
                         .toolbar {
-                            EmulationToolbarItems(emulationState: $emulationState)
+                            EmulationToolbarItems()
                         }
                 }
                 .toolbar {

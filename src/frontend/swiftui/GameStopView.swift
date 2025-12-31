@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GameStopView: View {
-    @Binding var emulationState: EmulationState
+    @EnvironmentObject var globalState: GlobalState
 
     @State var loadingPresented: Bool = false
     @State var dialogPresented: Bool = false
@@ -18,7 +18,7 @@ struct GameStopView: View {
                         Button("Cancel", role: .cancel) {
                             timer!.invalidate()
 
-                            emulationState.isStopping = false
+                            globalState.isStopping = false
 
                             loadingPresented = false
                         }
@@ -26,10 +26,10 @@ struct GameStopView: View {
                         Button("Force Quit", role: .destructive) {
                             timer!.invalidate()
 
-                            emulationState.emulationContext!.forceStop()
-                            emulationState.emulationContext = nil
-                            emulationState.activeGame = nil
-                            emulationState.isStopping = false
+                            globalState.emulationContext!.forceStop()
+                            globalState.emulationContext = nil
+                            globalState.activeGame = nil
+                            globalState.isStopping = false
 
                             loadingPresented = false
                         }
@@ -39,16 +39,16 @@ struct GameStopView: View {
         .onAppear {
             let startTime = Date()
 
-            guard let emulationContext = emulationState.emulationContext else { return }
+            guard let emulationContext = globalState.emulationContext else { return }
             emulationContext.requestStop()
 
             timer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
                 if !emulationContext.isRunning() {
                     timer!.invalidate()
 
-                    emulationState.emulationContext = nil
-                    emulationState.activeGame = nil
-                    emulationState.isStopping = false
+                    globalState.emulationContext = nil
+                    globalState.activeGame = nil
+                    globalState.isStopping = false
                 } else if Date().timeIntervalSince(startTime) > 3 {
                     loadingPresented = true
                     if Date().timeIntervalSince(startTime) > 5 {

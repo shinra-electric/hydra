@@ -6,10 +6,9 @@ enum ViewMode: Int {
 }
 
 struct GameListView: View {
-    @Binding var emulationState: EmulationState
-    @Binding var viewMode: Int
+    @EnvironmentObject var globalState: GlobalState
 
-    @State private var games: [Game] = []
+    @Binding var viewMode: Int
 
     private let gridColumns = [
         GridItem(.adaptive(minimum: 180), spacing: 16)
@@ -17,15 +16,15 @@ struct GameListView: View {
 
     var body: some View {
         VStack {
+            let games = GameListView.createGameList(globalState: globalState)
             switch ViewMode(rawValue: viewMode) {
             case .list:
                 List {
-                    ForEach(self.games.indices, id: \.self) { index in
+                    ForEach(games.indices, id: \.self) { index in
                         ClickableListItem(onClick: {
-                            emulationState.activeGame = games[index]
+                            globalState.activeGame = games[index]
                         }) {
-                            ListGamePreview(
-                                emulationState: $emulationState, game: games[index])
+                            ListGamePreview(game: games[index])
                         }
                         .padding(.vertical, 16)
                     }
@@ -35,12 +34,9 @@ struct GameListView: View {
                     LazyVGrid(columns: gridColumns, spacing: 4) {
                         ForEach(games.indices, id: \.self) { index in
                             ClickableListItem(onClick: {
-                                emulationState.activeGame = games[index]
+                                globalState.activeGame = games[index]
                             }) {
-                                GridGamePreview(
-                                    emulationState: $emulationState,
-                                    game: games[index]
-                                )
+                                GridGamePreview(game: games[index])
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 180)
@@ -54,37 +50,34 @@ struct GameListView: View {
                 Text("ERROR")
             }
         }
-        .onAppear {
-            // Game paths
-
-            // Get all games
-            let gamePathsOption = hydraConfigGetGamePaths()
-            for i in 0..<gamePathsOption.count {
-                let gamePath = gamePathsOption.get(at: i)
-                do {
-                    let url = try resolveUrl(URL(fileURLWithPath: gamePath))
-
-                    try processUrl(url: url)
-                } catch {
-                    // TODO: error popup
-                    print("Failed to load game path \(gamePath): \(error)")
-                }
-            }
-
-            // Sort games by name
-            games.sort { $0.name.caseInsensitiveCompare($1.name) == .orderedAscending }
-        }
-        .onDisappear {
-            games.removeAll()
-        }
     }
 
-    func processUrl(url: URL) throws {
+    static func createGameList(globalState: GlobalState) -> [Game] {
+        // Get all games
+        var games: [Game] = []
+        for gamePath in globalState.gamePaths {
+            do {
+                let url = try resolveUrl(URL(fileURLWithPath: gamePath))
+
+                try processUrl(games: &games, url: url)
+            } catch {
+                // TODO: error popup
+                print("Failed to load game path \(gamePath): \(error)")
+            }
+        }
+
+        // Sort games by name
+        games.sort { $0.name.caseInsensitiveCompare($1.name) == .orderedAscending }
+
+        return games
+    }
+
+    static func processUrl(games: inout [Game], url: URL) throws {
         // Check if the URL is a game
         if url.pathExtension == "nro" || url.pathExtension == "nso" || url.pathExtension == "nca"
             || url.pathExtension == "nx"
         {
-            tryAddGame(url: url)
+            tryAddGame(games: &games, url: url)
             return
         }
 
@@ -106,11 +99,11 @@ struct GameListView: View {
         let urls = try FileManager.default.contentsOfDirectory(
             at: url, includingPropertiesForKeys: nil)
         for url in urls {
-            try processUrl(url: url)
+            try processUrl(games: &games, url: url)
         }
     }
 
-    func tryAddGame(url: URL) {
+    static func tryAddGame(games: inout [Game], url: URL) {
         // HACK
         if url.lastPathComponent == "Makefile.nx" {
             print("Ignoring Makefile.nx")
@@ -121,6 +114,6 @@ struct GameListView: View {
             return
         }
 
-        self.games.append(game)
+        games.append(game)
     }
 }

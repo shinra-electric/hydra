@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct GridGamePreview: View {
-    @Binding var emulationState: EmulationState
     let game: Game
 
     var body: some View {

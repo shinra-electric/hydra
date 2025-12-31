@@ -1,16 +1,17 @@
 import SwiftUI
 
 struct EmulationView: View {
-    @Binding var emulationState: EmulationState
+    @EnvironmentObject var globalState: GlobalState
+
     @Binding var fps: Int
 
     var body: some View {
         ZStack {
-            MetalView(emulationState: $emulationState, fps: $fps)
+            MetalView(fps: $fps)
                 .onAppear {
-                    emulationState.emulationContext = HydraEmulationContext()
-                    emulationState.emulationContext!.loadAndStart(
-                        loader: emulationState.activeGame!.loader)
+                    globalState.emulationContext = HydraEmulationContext()
+                    globalState.emulationContext!.loadAndStart(
+                        loader: globalState.activeGame!.loader)
                 }
                 .onDisappear {
                     fps = 0
@@ -20,8 +21,7 @@ struct EmulationView: View {
                 KeyCatcherView()
             #endif
 
-            if emulationState.isStopping {
-                GameStopView(emulationState: $emulationState)
+            if globalState.isStopping {
             }
         }
     }

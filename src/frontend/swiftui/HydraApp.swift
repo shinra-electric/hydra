@@ -1,10 +1,21 @@
 import SwiftUI
 
-@Observable
-class EmulationState {
-    var activeGame: Game? = nil
-    var emulationContext: HydraEmulationContext? = nil
-    var isStopping = false
+class GlobalState: ObservableObject {
+    // Game library
+    @Published var gamePaths: [String] = []
+
+    // Emulation
+    @Published var activeGame: Game? = nil
+    @Published var emulationContext: HydraEmulationContext? = nil
+    @Published var isStopping = false
+
+    init() {
+        let gamePathsOption = hydraConfigGetGamePaths()
+        for i in 0..<gamePathsOption.count {
+            let gamePath = gamePathsOption.get(at: i)
+            gamePaths.append(gamePath)
+        }
+    }
 }
 
 @main
@@ -13,17 +24,18 @@ struct HydraApp: App {
         @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif
 
-    @State private var emulationState = EmulationState()
+    @State private var globalState = GlobalState()
 
     var body: some Scene {
         #if os(macOS)
             Window("Hydra", id: "main") {
-                ContentView(emulationState: $emulationState)
+                ContentView()
+                    .environmentObject(globalState)
             }
             .defaultSize(width: 1280, height: 720)
             .windowResizability(.contentSize)
             .commands {
-                MenuCommands(emulationState: $emulationState)
+                MenuCommands()
             }
 
             Window("Debugger", id: "debugger") {
@@ -33,10 +45,12 @@ struct HydraApp: App {
 
             Settings {
                 SettingsView()
+                    .environmentObject(globalState)
             }
         #else
             WindowGroup {
-                ContentView(emulationState: $emulationState)
+                ContentView()
+                    .environmentObject(globalState)
             }
         #endif
     }

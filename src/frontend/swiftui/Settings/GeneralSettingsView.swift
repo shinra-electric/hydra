@@ -2,7 +2,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct GeneralSettingsView: View {
-    @State private var gamePaths: [String] = []
+    @EnvironmentObject var globalState: GlobalState
+
     @State private var patchPaths: [String] = []
 
     private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conformingTo: .data)
@@ -17,9 +18,9 @@ struct GeneralSettingsView: View {
                     // Text("Game paths")
                     EditablePathList(
                         allowedContentTypes: [.folder, self.switchType],
-                        items: self.$gamePaths
+                        items: $globalState.gamePaths
                     )
-                    .onChange(of: self.gamePaths) { _, newValue in
+                    .onChange(of: globalState.gamePaths) { _, newValue in
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.resize(newCount: newValue.count)
                         for i in 0..<newValue.count {
@@ -27,7 +28,7 @@ struct GeneralSettingsView: View {
                         }
                     }
                 }
-                
+
                 Section("Patch paths") {
                     // Text("Patch paths")
                     EditablePathList(
@@ -43,12 +44,6 @@ struct GeneralSettingsView: View {
                 }
             }
             .onAppear {
-                let gamePathsOption = hydraConfigGetGamePaths()
-                self.gamePaths = []
-                for i in 0..<gamePathsOption.count {
-                    self.gamePaths.append(gamePathsOption.get(at: i))
-                }
-    
                 let patchPathsOption = hydraConfigGetPatchPaths()
                 self.patchPaths = []
                 for i in 0..<patchPathsOption.count {
