@@ -35,7 +35,7 @@ struct HydraApp: App {
             .defaultSize(width: 1280, height: 720)
             .windowResizability(.contentSize)
             .commands {
-                MenuCommands()
+                MenuCommands(globalState: $globalState)
             }
 
             Window("Debugger", id: "debugger") {

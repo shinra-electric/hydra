@@ -2,7 +2,8 @@ import SwiftUI
 
 struct MenuCommands: Commands {
     @Environment(\.openWindow) var openWindow
-    @EnvironmentObject var globalState: GlobalState
+
+    @Binding var globalState: GlobalState
 
     @State private var firmwareApplets: [Game] = []
     @State private var handheldMode = false

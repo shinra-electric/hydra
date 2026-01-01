@@ -22,6 +22,7 @@ struct EmulationView: View {
             #endif
 
             if globalState.isStopping {
+                GameStopView()
             }
         }
     }
