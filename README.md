@@ -4,11 +4,11 @@ Hydra is an experimental Nintendo Switch emulator for macOS.
 
 ## Status
 
-The emulator is still in very early stages. A few homebrew apps work perfectly, and some official games get in-game with various degrees of playability.
+The emulator is still in very early stages. A few games and homebrew apps work perfectly, but most will either crash or have issues that make them unplayable.
 
 ![Showcase](img/showcase.png)
 
-Only the NRO, NSO and NCA formats are supported. You can extract an NSP file into NCA with [this tool](https://github.com/SamoZ256/switch-extract-macos).
+Only the NRO, NCA and NX formats are supported. You can convert an NSP file to NCA with [this tool](https://github.com/SamoZ256/switch-extract-macos), and NSP to NX with [this tool](https://github.com/SamoZ256/herakles).
 
 In order to run official games, you will need to download a set of patches to prevent crashes. You can get the patches together with a guide on how to install them [here](https://github.com/SamoZ256/hydra-patches).
 
