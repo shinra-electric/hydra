@@ -443,6 +443,10 @@ class HydraContentArchive: Hashable, Identifiable {
 }
 
 // Loader
+enum HydraLoaderError: Error {
+    case unsupported
+}
+
 class HydraLoader: Hashable, Identifiable {
     fileprivate let handle: UnsafeMutableRawPointer
 
@@ -450,11 +454,15 @@ class HydraLoader: Hashable, Identifiable {
         self.handle = handle
     }
 
-    convenience init(path: String) {
-        self.init(
-            handle: path.withHydraString { hydraPath in
+    convenience init(path: String) throws {
+        guard
+            let handle = path.withHydraString({ hydraPath in
                 hydra_create_loader_from_path(hydraPath)
             })
+        else {
+            throw HydraLoaderError.unsupported
+        }
+        self.init(handle: handle)
     }
 
     deinit {

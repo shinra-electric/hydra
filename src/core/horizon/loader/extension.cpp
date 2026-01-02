@@ -16,6 +16,11 @@ Extension::Extension(std::string_view path) {
     display_version = Query(api::QueryType::DisplayVersion, buffer);
     supported_formats = split<std::string>(
         Query(api::QueryType::SupportedFormats, buffer), ',');
+
+    LOG_INFO(
+        Loader,
+        "Loaded extension \"{}\" (version: {}, formats: {}) at path \"{}\"",
+        name, display_version, supported_formats, path);
 }
 
 Extension::~Extension() { dlclose(library); }

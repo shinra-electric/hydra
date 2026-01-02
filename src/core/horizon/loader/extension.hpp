@@ -7,6 +7,8 @@
 namespace hydra::horizon::loader {
 
 class Extension {
+    friend class ExtensionManager;
+
   public:
     Extension(std::string_view path);
     ~Extension();
@@ -39,6 +41,10 @@ class Extension {
     std::vector<std::string> supported_formats;
 
     // Helpers
+    enum class GetFunctionError {
+        SymbolNotFound,
+    };
+
     template <api::Function api_func, typename T>
     T GetFunction() {
         auto& func = functions[static_cast<size_t>(api_func)];
@@ -48,6 +54,9 @@ class Extension {
                 func = dlsym(library, "hydra_query");
                 break;
             }
+
+            if (!func)
+                throw GetFunctionError::SymbolNotFound;
         }
 
         return reinterpret_cast<T>(func);

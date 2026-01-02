@@ -141,6 +141,7 @@ class Config {
 
     // Getters
     StringArrayOption& GetGamePaths() { return game_paths; }
+    StringArrayOption& GetLoaderPaths() { return loader_paths; }
     StringArrayOption& GetPatchPaths() { return patch_paths; }
     StringArrayOption& GetInputProfiles() { return input_profiles; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
@@ -172,6 +173,7 @@ class Config {
 
     // Config
     StringArrayOption game_paths;
+    StringArrayOption loader_paths;
     StringArrayOption patch_paths;
     StringArrayOption input_profiles;
     Option<CpuBackend> cpu_backend;
@@ -196,6 +198,7 @@ class Config {
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
+    std::vector<std::string> GetDefaultLoaderPaths() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
     std::vector<std::string> GetDefaultInputProfiles() const {
         return {"Default", "", "", "", "", "", "", "", ""};
