@@ -117,7 +117,9 @@ EmulationContext::~EmulationContext() {
 
 void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     // Process
-    ASSERT(process == nullptr, Other, "Process already exists");
+    ASSERT_THROWING(process == nullptr, Other,
+                    LoadAndStartError::ProcessAlreadyExists,
+                    "Process already exists");
     process =
         os->GetKernel().GetProcessManager().CreateProcess("Guest process");
     loader->LoadProcess(process);

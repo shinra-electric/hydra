@@ -114,7 +114,7 @@ struct GameListView: View {
             games.append(game)
         } catch {
             // TODO: error popup
-            print("Failed to load game path \(url): \(error)")
+            print("Failed to load game path \(url.path(percentEncoded: false)): \(error)")
             return
         }
     }

@@ -49,14 +49,17 @@ class Extension {
     T GetFunction() {
         auto& func = functions[static_cast<size_t>(api_func)];
         if (!func) {
+            std::string_view symbol_name;
             switch (api_func) {
             case api::Function::Query:
-                func = dlsym(library, "hydra_query");
+                symbol_name = "hydra_query";
                 break;
             }
 
-            if (!func)
-                throw GetFunctionError::SymbolNotFound;
+            func = dlsym(library, symbol_name.data());
+            ASSERT_THROWING(func != nullptr, Loader,
+                            GetFunctionError::SymbolNotFound,
+                            "Failed to load symbol \"{}\"", symbol_name);
         }
 
         return reinterpret_cast<T>(func);

@@ -79,10 +79,9 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
     }
 
     // Check if the path exists
-    if (!std::filesystem::exists(path)) {
-        // TODO: return an error
-        return nullptr;
-    }
+    ASSERT_THROWING(std::filesystem::exists(path), Loader,
+                    CreateFromPathError::DoesNotExist,
+                    "Path \"{}\" does not exist", path);
 
     // Create loader
     const auto ext = std::string_view(path).substr(path.find_last_of("."));
@@ -104,10 +103,9 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
             auto extension =
                 ExtensionManager::GetInstance().FindExtensionForFormat(
                     ext.substr(1));
-            if (!extension) {
-                // TODO: return an error
-                return nullptr;
-            }
+            ASSERT_THROWING(
+                extension, Loader, CreateFromPathError::UnsupportedExtension,
+                "Unsupported extension \"{}\" (path: \"{}\")", ext, path);
 
             // TODO: loader
             LOG_NOT_IMPLEMENTED(Loader, "Extension loader");
@@ -123,9 +121,11 @@ horizon::services::ns::ApplicationControlProperty* LoaderBase::LoadNacp() {
 
     auto stream = nacp_file->Open(filesystem::FileOpenFlags::Read);
 
-    ASSERT(stream->GetSize() ==
-               sizeof(horizon::services::ns::ApplicationControlProperty),
-           Loader, "Invalid NACP file size 0x{:x}", stream->GetSize());
+    ASSERT_THROWING(
+        stream->GetSize() ==
+            sizeof(horizon::services::ns::ApplicationControlProperty),
+        Loader, LoadNacpError::InvalidSize, "Invalid NACP file size 0x{:x}",
+        stream->GetSize());
     auto nacp = new horizon::services::ns::ApplicationControlProperty();
     stream->ReadToRef(*nacp);
 
