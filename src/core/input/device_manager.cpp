@@ -18,12 +18,17 @@ i32 analog_stick_to_int(f32 value) {
 
 } // namespace
 
-DeviceManager::DeviceManager()
-    : npad_configs{
-          horizon::hid::NpadIdType::No1, horizon::hid::NpadIdType::No2,
-          horizon::hid::NpadIdType::No3, horizon::hid::NpadIdType::No4,
-          horizon::hid::NpadIdType::No5, horizon::hid::NpadIdType::No6,
-          horizon::hid::NpadIdType::No7, horizon::hid::NpadIdType::No8} {
+DeviceManager::DeviceManager() {
+    // Profiles
+    for (u32 i = 0; i < NPAD_COUNT; i++) {
+        const auto& name = CONFIG_INSTANCE.GetInputProfiles().Get()[i];
+        if (name.empty())
+            continue;
+
+        profiles[i] = Profile(static_cast<horizon::hid::NpadIdType>(i), name);
+    }
+
+    // Device list
     device_list = new apple_gc::DeviceList();
 }
 
@@ -106,7 +111,11 @@ void DeviceManager::Poll() {
 }
 
 void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
-    const auto& config = npad_configs[index];
+    const auto& profile_opt = profiles[index];
+    if (!profile_opt)
+        return;
+
+    const auto& profile = *profile_opt;
 
     horizon::hid::NpadButtons buttons = horizon::hid::NpadButtons::None;
     f32 analog_l_x = 0.0f;
@@ -114,19 +123,19 @@ void DeviceManager::PollNpad(horizon::hid::NpadIdType type, u32 index) {
     f32 analog_r_x = 0.0f;
     f32 analog_r_y = 0.0f;
 
-    for (const auto& device_name : config.GetDeviceNames()) {
+    for (const auto& device_name : profile.GetDeviceNames()) {
         auto device = GetDevice(device_name);
         if (!device)
             continue;
 
         // Buttons
-        for (const auto& mapping : config.GetButtonMappings()) {
+        for (const auto& mapping : profile.GetButtonMappings()) {
             if (device->IsPressed(mapping.code))
                 buttons |= mapping.npad_buttons;
         }
 
         // Analog sticks
-        for (const auto& mapping : config.GetAnalogMappings()) {
+        for (const auto& mapping : profile.GetAnalogMappings()) {
             const auto value = device->GetAxisValue(mapping.code);
             // TODO: there are also dedicated buttons for this
             if (mapping.axis.is_left) {

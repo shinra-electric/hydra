@@ -142,6 +142,7 @@ class Config {
     // Getters
     StringArrayOption& GetGamePaths() { return game_paths; }
     StringArrayOption& GetPatchPaths() { return patch_paths; }
+    StringArrayOption& GetInputProfiles() { return input_profiles; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
     Option<GpuRenderer>& GetGpuRenderer() { return gpu_renderer; }
     Option<ShaderBackend>& GetShaderBackend() { return shader_backend; }
@@ -172,6 +173,7 @@ class Config {
     // Config
     StringArrayOption game_paths;
     StringArrayOption patch_paths;
+    StringArrayOption input_profiles;
     Option<CpuBackend> cpu_backend;
     Option<GpuRenderer> gpu_renderer;
     Option<ShaderBackend> shader_backend;
@@ -195,6 +197,9 @@ class Config {
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
+    std::vector<std::string> GetDefaultInputProfiles() const {
+        return {"Default", "", "", "", "", "", "", "", ""};
+    }
     CpuBackend GetDefaultCpuBackend() const {
 #if HYDRA_HYPERVISOR_ENABLED
         return CpuBackend::AppleHypervisor;

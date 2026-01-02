@@ -4,9 +4,9 @@
 
 namespace hydra::input {
 
-class NpadConfig {
+class Profile {
   public:
-    NpadConfig(horizon::hid::NpadIdType type_);
+    Profile(horizon::hid::NpadIdType type_, std::string_view name_);
 
     void Reset() {
         button_mappings = {};
@@ -20,17 +20,20 @@ class NpadConfig {
 
   private:
     horizon::hid::NpadIdType type;
+    std::string name;
 
     std::vector<std::string> device_names;
     std::vector<CodeButtonMapping> button_mappings;
     std::vector<CodeAnalogMapping> analog_mappings;
 
-    std::string GetNpadsPath() const {
-        return fmt::format("{}/input_config", CONFIG_INSTANCE.GetAppDataPath());
+    // Helpers
+    static std::string GetProfilesPath() {
+        return fmt::format("{}/input_profiles",
+                           CONFIG_INSTANCE.GetAppDataPath());
     }
 
     std::string GetPath() const {
-        return fmt::format("{}/{}.toml", GetNpadsPath(), type);
+        return fmt::format("{}/{}.toml", GetProfilesPath(), name);
     }
 
   public:

@@ -588,8 +588,8 @@ add_library(hydra-core
     input/keyboard.hpp
     input/controller.hpp
     input/cursor.hpp
-    input/npad_config.cpp
-    input/npad_config.hpp
+    input/profile.cpp
+    input/profile.hpp
     input/device_list.hpp
     input/device_manager.cpp
     input/device_manager.hpp

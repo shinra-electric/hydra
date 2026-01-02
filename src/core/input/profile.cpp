@@ -1,4 +1,4 @@
-#include "core/input/npad_config.hpp"
+#include "core/input/profile.hpp"
 
 #include "core/input/controller.hpp"
 #include "core/input/device_manager.hpp"
@@ -165,15 +165,16 @@ struct into<hydra::input::AnalogStickAxis> {
 
 namespace hydra::input {
 
-NpadConfig::NpadConfig(horizon::hid::NpadIdType type_) : type{type_} {
-    const auto path = GetNpadsPath();
+Profile::Profile(horizon::hid::NpadIdType type_, std::string_view name_)
+    : type{type_}, name{name_} {
+    const auto path = GetProfilesPath();
     if (!std::filesystem::exists(path))
         std::filesystem::create_directory(path);
 
     Deserialize();
 }
 
-void NpadConfig::LoadDefaults() {
+void Profile::LoadDefaults() {
     switch (type) {
     case horizon::hid::NpadIdType::No1: {
         // Devices
@@ -276,7 +277,7 @@ void NpadConfig::LoadDefaults() {
     }
 }
 
-void NpadConfig::Serialize() {
+void Profile::Serialize() {
     // TODO: check if changed?
 
     // TODO: why is the order of everything reversed in the saved config?
@@ -330,7 +331,7 @@ void NpadConfig::Serialize() {
     config_file.close();
 }
 
-void NpadConfig::Deserialize() {
+void Profile::Deserialize() {
     const std::string path = GetPath();
 
     // Check if exists

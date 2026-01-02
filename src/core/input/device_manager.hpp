@@ -1,13 +1,13 @@
 #pragma once
 
 #include "core/input/device_list.hpp"
-#include "core/input/npad_config.hpp"
+#include "core/input/profile.hpp"
 
 #define INPUT_DEVICE_MANAGER_INSTANCE input::DeviceManager::GetInstance()
 
 namespace hydra::input {
 
-constexpr u32 NPAD_COUNT = 8; // 8 players
+constexpr u32 NPAD_COUNT = 9; // 8 players + handheld
 
 class DeviceManager {
   public:
@@ -40,7 +40,7 @@ class DeviceManager {
 
   private:
     IDeviceList* device_list;
-    NpadConfig npad_configs[NPAD_COUNT];
+    std::optional<Profile> profiles[NPAD_COUNT];
 
     std::map<u64, u32> active_touches;
 

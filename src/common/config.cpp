@@ -117,6 +117,7 @@ Config::Config() {
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
     patch_paths = GetDefaultPatchPaths();
+    input_profiles = GetDefaultInputProfiles();
     cpu_backend = GetDefaultCpuBackend();
     gpu_renderer = GetDefaultGpuRenderer();
     shader_backend = GetDefaultShaderBackend();
@@ -151,6 +152,7 @@ void Config::Serialize() {
 
     toml::value data(toml::table{
         {"General", toml::table{}},
+        {"Input", toml::table{}},
         {"CPU", toml::table{}},
         {"Graphics", toml::table{}},
         {"Audio", toml::table{}},
@@ -161,9 +163,13 @@ void Config::Serialize() {
 
     {
         auto& general = data.at("General");
-
         general["game_paths"] = game_paths.Get();
         general["patch_paths"] = patch_paths.Get();
+    }
+
+    {
+        auto& input = data.at("Input");
+        input["profiles"] = input_profiles.Get();
     }
 
     {
@@ -236,6 +242,11 @@ void Config::Deserialize() {
             general, "game_paths", GetDefaultGamePaths());
         patch_paths = toml::find_or<std::vector<std::string>>(
             general, "patch_paths", GetDefaultPatchPaths());
+    }
+    if (data.contains("Input")) {
+        const auto& input = data.at("Input");
+        input_profiles = toml::find_or<std::vector<std::string>>(
+            input, "profiles", GetDefaultInputProfiles());
     }
     if (data.contains("CPU")) {
         const auto& cpu = data.at("CPU");
@@ -329,6 +340,7 @@ void Config::Deserialize() {
 void Config::Log() {
     LOG_INFO(Other, "Game paths: [{}]", game_paths);
     LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
+    LOG_INFO(Other, "Input profiles: [{}]", input_profiles);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);
     LOG_INFO(Other, "Gpu renderer: {}", gpu_renderer);
     LOG_INFO(Other, "Shader backend: {}", shader_backend);
