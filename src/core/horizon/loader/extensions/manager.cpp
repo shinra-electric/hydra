@@ -1,8 +1,8 @@
-#include "core/horizon/loader/extension_manager.hpp"
+#include "core/horizon/loader/extensions/manager.hpp"
 
-namespace hydra::horizon::loader {
+namespace hydra::horizon::loader::extensions {
 
-ExtensionManager::ExtensionManager() {
+Manager::Manager() {
     for (const auto& path : CONFIG_INSTANCE.GetLoaderPaths().Get()) {
         if (!std::filesystem::exists(path)) {
             LOG_ERROR(Other, "Extension path \"{}\" does not exist", path);
@@ -17,7 +17,7 @@ ExtensionManager::ExtensionManager() {
     }
 }
 
-Extension* ExtensionManager::FindExtensionForFormat(std::string_view format) {
+Extension* Manager::FindExtensionForFormat(std::string_view format) {
     for (auto& extension : extensions) {
         if (std::find(extension.supported_formats.begin(),
                       extension.supported_formats.end(),
@@ -28,4 +28,4 @@ Extension* ExtensionManager::FindExtensionForFormat(std::string_view format) {
     return nullptr;
 }
 
-} // namespace hydra::horizon::loader
+} // namespace hydra::horizon::loader::extensions

@@ -4,7 +4,7 @@
 
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
-#include "core/horizon/loader/extension_manager.hpp"
+#include "core/horizon/loader/extensions/manager.hpp"
 #include "core/horizon/loader/homebrew_loader.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
@@ -101,7 +101,7 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
         } else {
             // First, check if any of the loader extensions supports this format
             auto extension =
-                ExtensionManager::GetInstance().FindExtensionForFormat(
+                extensions::Manager::GetInstance().FindExtensionForFormat(
                     ext.substr(1));
             ASSERT_THROWING(
                 extension, Loader, CreateFromPathError::UnsupportedExtension,

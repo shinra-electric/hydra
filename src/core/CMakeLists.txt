@@ -84,11 +84,11 @@ add_library(hydra-core
     horizon/loader/homebrew_loader.hpp
     horizon/loader/nsp_loader.cpp
     horizon/loader/nsp_loader.hpp
-    horizon/loader/extension_api.hpp
-    horizon/loader/extension.cpp
-    horizon/loader/extension.hpp
-    horizon/loader/extension_manager.cpp
-    horizon/loader/extension_manager.hpp
+    horizon/loader/extensions/api.hpp
+    horizon/loader/extensions/extension.cpp
+    horizon/loader/extensions/extension.hpp
+    horizon/loader/extensions/manager.cpp
+    horizon/loader/extensions/manager.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.cpp
