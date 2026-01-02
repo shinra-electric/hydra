@@ -35,32 +35,22 @@ DeviceManager::DeviceManager() {
 DeviceManager::~DeviceManager() { delete device_list; }
 
 void DeviceManager::ConnectNpads() {
-    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
+    for (u32 i = 0; i < NPAD_COUNT; i++) {
+        if (!profiles[i])
+            continue;
+
+        const auto type = horizon::hid::NpadIdType(i);
         INPUT_MANAGER_INSTANCE.ConnectNpad(
-            horizon::hid::NpadIdType::Handheld,
-            horizon::hid::NpadStyleSet::Handheld,
+            type, horizon::hid::NpadStyleSet::Standard,
             horizon::hid::NpadAttributes::IsConnected);
-    } else {
-        // TODO: get npads from the config
-        std::array<horizon::hid::NpadIdType, 1> npad_types = {
-            horizon::hid::NpadIdType::No1};
-        for (const auto& type : npad_types) {
-            INPUT_MANAGER_INSTANCE.ConnectNpad(
-                type, horizon::hid::NpadStyleSet::Standard,
-                horizon::hid::NpadAttributes::IsConnected);
-        }
     }
 }
 
 void DeviceManager::Poll() {
     // Npads
-    if (CONFIG_INSTANCE.GetHandheldMode().Get()) {
-        PollNpad(horizon::hid::NpadIdType::Handheld, 0);
-    } else {
-        for (u32 i = 0; i < NPAD_COUNT; i++) {
-            const auto type = horizon::hid::NpadIdType(i);
-            PollNpad(type, i);
-        }
+    for (u32 i = 0; i < NPAD_COUNT; i++) {
+        const auto type = horizon::hid::NpadIdType(i);
+        PollNpad(type, i);
     }
 
     // Touch screen
