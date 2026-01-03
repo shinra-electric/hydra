@@ -3,7 +3,7 @@
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/file.hpp"
 
-namespace hydra::horizon::loader::extensions::api {
+namespace hydra::horizon::loader::plugins::api {
 
 enum class Function {
     GetApiVersion,
@@ -112,17 +112,17 @@ typedef ReturnValue<CreateLoaderFromFileResult, void*> (
 
 typedef u32 (*DestroyLoaderFnT)(void*, void*);
 
-} // namespace hydra::horizon::loader::extensions::api
+} // namespace hydra::horizon::loader::plugins::api
 
 ENABLE_ENUM_FORMATTING(
-    hydra::horizon::loader::extensions::api::CreateContextResult, Success,
+    hydra::horizon::loader::plugins::api::CreateContextResult, Success,
     "success", AllocationFailed, "allocation failed", InvalidOptions,
     "invalid options")
 
-ENABLE_ENUM_FORMATTING(hydra::horizon::loader::extensions::api::QueryResult,
+ENABLE_ENUM_FORMATTING(hydra::horizon::loader::plugins::api::QueryResult,
                        Success, "success", BufferTooSmall, "buffer too small")
 
 ENABLE_ENUM_FORMATTING(
-    hydra::horizon::loader::extensions::api::CreateLoaderFromFileResult,
-    Success, "success", AllocationFailed, "allocation failed", UnsupportedFile,
+    hydra::horizon::loader::plugins::api::CreateLoaderFromFileResult, Success,
+    "success", AllocationFailed, "allocation failed", UnsupportedFile,
     "unsupported file")

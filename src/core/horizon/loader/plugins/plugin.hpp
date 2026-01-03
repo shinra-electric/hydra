@@ -2,7 +2,7 @@
 
 #include <dlfcn.h>
 
-#include "core/horizon/loader/extensions/api.hpp"
+#include "core/horizon/loader/plugins/api.hpp"
 
 namespace hydra::horizon::filesystem {
 class Directory;
@@ -12,9 +12,9 @@ namespace hydra::horizon::loader {
 class NxLoader;
 }
 
-namespace hydra::horizon::loader::extensions {
+namespace hydra::horizon::loader::plugins {
 
-class Extension {
+class Plugin {
     friend class Manager;
 
   public:
@@ -24,8 +24,8 @@ class Extension {
         ContextCreationFailed,
     };
 
-    Extension(const std::string& path);
-    ~Extension();
+    Plugin(const std::string& path);
+    ~Plugin();
 
     NxLoader* Load(std::string_view path);
 
@@ -104,4 +104,4 @@ class Extension {
     CONST_REF_GETTER(file_interface, GetFileInterface);
 };
 
-} // namespace hydra::horizon::loader::extensions
+} // namespace hydra::horizon::loader::plugins
