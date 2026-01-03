@@ -10,6 +10,8 @@ enum class Function {
     CreateContext,
     DestroyContext,
     Query,
+    GetStreamInterface,
+    GetFileInterface,
     CreateLoaderFromFile,
     DestroyLoader,
 };
@@ -43,6 +45,44 @@ typedef ReturnValue<CreateContextResult, void*> (*CreateContextFnT)(
 
 typedef u32 (*DestroyContextFnT)(void*);
 
+struct StreamInterface {
+  public:
+    void Destroy(void* handle) const { destroy(handle); }
+
+    u64 GetSeek(void* handle) const { return get_seek(handle); }
+
+    void SeekTo(void* handle, u64 offset) const { seek_to(handle, offset); }
+
+    void SeekBy(void* handle, u64 offset) const { seek_by(handle, offset); }
+
+    u64 GetSize(void* handle) const { return get_size(handle); }
+
+    void ReadRaw(void* handle, std::span<u8> buffer) const {
+        read_raw(handle, Slice(buffer));
+    }
+
+  private:
+    void (*destroy)(void*);
+    u64 (*get_seek)(void*);
+    void (*seek_to)(void*, u64);
+    void (*seek_by)(void*, u64);
+    u64 (*get_size)(void*);
+    void (*read_raw)(void*, Slice<u8>);
+};
+
+typedef StreamInterface (*GetStreamInterfaceFnT)(void*);
+
+struct FileInterface {
+  public:
+    void* Open(void* handle) const { return open(handle); }
+
+    u64 GetSize(void* handle) const { return get_size(handle); }
+
+  private:
+    void* (*open)(void*);
+    u64 (*get_size)(void*);
+};
+
 enum class QueryType : u32 {
     Name = 0,
     DisplayVersion = 1,
@@ -54,33 +94,12 @@ enum class QueryResult : u32 {
     BufferTooSmall = 1,
 };
 
+typedef FileInterface (*GetFileInterfaceFnT)(void*);
+
 typedef ReturnValue<QueryResult, u64> (*QueryFnT)(void*, QueryType, Slice<u8>);
 
-struct StreamInterface {
-  public:
-    u64 GetSeek() const { return get_seek(handle); }
-
-    void SeekTo(u64 offset) const { seek_to(handle, offset); }
-
-    void SeekBy(u64 offset) const { seek_by(handle, offset); }
-
-    u64 GetSize() const { return get_size(handle); }
-
-    void ReadRaw(std::span<u8> buffer) const {
-        read_raw(handle, Slice(buffer));
-    }
-
-  private:
-    void* handle;
-    u64 (*get_seek)(void*);
-    void (*seek_to)(void*, u64);
-    void (*seek_by)(void*, u64);
-    u64 (*get_size)(void*);
-    void (*read_raw)(void*, Slice<u8>);
-};
-
-typedef void (*add_file)(filesystem::Directory*, Slice<const char>,
-                         StreamInterface);
+typedef void (*add_file)(void*, filesystem::Directory*, Slice<const char>,
+                         void*);
 
 enum class CreateLoaderFromFileResult : u32 {
     Success = 0,
@@ -89,7 +108,7 @@ enum class CreateLoaderFromFileResult : u32 {
 };
 
 typedef ReturnValue<CreateLoaderFromFileResult, void*> (
-    *CreateLoaderFromFileFnT)(void*, add_file, void*, Slice<const char>);
+    *CreateLoaderFromFileFnT)(void*, void*, add_file, void*, Slice<const char>);
 
 typedef u32 (*DestroyLoaderFnT)(void*, void*);
 

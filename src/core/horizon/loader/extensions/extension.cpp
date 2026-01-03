@@ -9,34 +9,51 @@ namespace {
 // TODO: the name...
 class StreamInterfaceStream : public io::IStream {
   public:
-    StreamInterfaceStream(const api::StreamInterface& stream_)
-        : stream{stream_} {}
+    StreamInterfaceStream(Extension& extension_, void* handle_)
+        : extension{extension_}, handle{handle_} {}
+    ~StreamInterfaceStream() override {
+        extension.GetStreamInterface().Destroy(handle);
+    }
 
-    u64 GetSeek() const override { return stream.GetSeek(); }
-    void SeekTo(u64 seek) override { stream.SeekTo(seek); }
-    void SeekBy(u64 offset) override { stream.SeekBy(offset); }
+    u64 GetSeek() const override {
+        return extension.GetStreamInterface().GetSeek(handle);
+    }
+    void SeekTo(u64 seek) override {
+        extension.GetStreamInterface().SeekTo(handle, seek);
+    }
+    void SeekBy(u64 offset) override {
+        extension.GetStreamInterface().SeekBy(handle, offset);
+    }
 
-    u64 GetSize() const override { return stream.GetSize(); }
+    u64 GetSize() const override {
+        return extension.GetStreamInterface().GetSize(handle);
+    }
 
-    void ReadRaw(std::span<u8> buffer) override { stream.ReadRaw(buffer); }
+    void ReadRaw(std::span<u8> buffer) override {
+        extension.GetStreamInterface().ReadRaw(handle, buffer);
+    }
 
   private:
-    const api::StreamInterface& stream;
+    Extension& extension;
+    void* handle;
 };
 
 class StreamFile : public filesystem::IFile {
   public:
-    StreamFile(const api::StreamInterface& stream_) : stream{stream_} {}
+    StreamFile(Extension& extension_, void* handle_)
+        : extension{extension_}, handle{handle_} {}
 
     io::IStream* Open(filesystem::FileOpenFlags flags) {
         (void)flags;
-        return new StreamInterfaceStream(stream);
+        return new StreamInterfaceStream(
+            extension, extension.GetFileInterface().Open(handle));
     }
 
-    usize GetSize() { return stream.GetSize(); }
+    usize GetSize() { return extension.GetFileInterface().GetSize(handle); }
 
   private:
-    api::StreamInterface stream;
+    Extension& extension;
+    void* handle;
 };
 
 class Loader : public NxLoader {
@@ -56,10 +73,12 @@ class Loader : public NxLoader {
     void* handle;
 };
 
-void AddFile(filesystem::Directory* dir, api::Slice<const char> path,
-             api::StreamInterface stream) {
+void AddFile(void* extension, filesystem::Directory* dir,
+             api::Slice<const char> path, void* handle) {
     const std::string_view path_str(path.data, path.size);
-    const auto res = dir->AddEntry(path_str, new StreamFile(stream), true);
+    const auto res = dir->AddEntry(
+        path_str,
+        new StreamFile(*reinterpret_cast<Extension*>(extension), handle), true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add file to \"{}\": {}", path_str, res);
 }
@@ -86,6 +105,10 @@ Extension::Extension(const std::string& path) {
     display_version = Query(api::QueryType::DisplayVersion, buffer);
     supported_formats = split<std::string>(
         Query(api::QueryType::SupportedFormats, buffer), ',');
+
+    // Interfaces
+    stream_interface = GetStreamInterface();
+    file_interface = GetFileInterface();
 
     LOG_INFO(
         Loader,
@@ -148,12 +171,25 @@ std::string Extension::Query(api::QueryType what, std::span<u8> buffer) {
                        buffer.begin() + static_cast<i32>(ret.value));
 }
 
+api::StreamInterface Extension::GetStreamInterface() {
+    const auto get_stream_interface =
+        GetFunction<api::Function::GetStreamInterface,
+                    api::GetStreamInterfaceFnT>();
+    return get_stream_interface(context);
+}
+
+api::FileInterface Extension::GetFileInterface() {
+    const auto get_file_interface = GetFunction<api::Function::GetFileInterface,
+                                                api::GetFileInterfaceFnT>();
+    return get_file_interface(context);
+}
+
 void* Extension::CreateLoaderFromFile(filesystem::Directory* root_dir,
                                       std::string_view path) {
     const auto create_loader_from_file =
         GetFunction<api::Function::CreateLoaderFromFile,
                     api::CreateLoaderFromFileFnT>();
-    const auto ret = create_loader_from_file(context, AddFile, root_dir,
+    const auto ret = create_loader_from_file(context, this, AddFile, root_dir,
                                              api::Slice(std::span(path)));
     if (ret.res != api::CreateLoaderFromFileResult::Success) {
         throw ret.res;

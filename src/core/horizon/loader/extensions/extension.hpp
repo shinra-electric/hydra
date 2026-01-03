@@ -34,6 +34,8 @@ class Extension {
     void* CreateContext(std::span<std::string_view> options);
     void DestroyContext();
     std::string Query(api::QueryType what, std::span<u8> buffer);
+    api::StreamInterface GetStreamInterface();
+    api::FileInterface GetFileInterface();
     void* CreateLoaderFromFile(filesystem::Directory* root_dir,
                                std::string_view path);
     void DestroyLoader(void* loader);
@@ -48,6 +50,8 @@ class Extension {
     std::string name;
     std::string display_version;
     std::vector<std::string> supported_formats;
+    api::StreamInterface stream_interface;
+    api::FileInterface file_interface;
 
     // Helpers
     enum class GetFunctionError {
@@ -72,6 +76,12 @@ class Extension {
             case api::Function::Query:
                 symbol_name = "hydra_ext_query";
                 break;
+            case api::Function::GetStreamInterface:
+                symbol_name = "hydra_ext_get_stream_interface";
+                break;
+            case api::Function::GetFileInterface:
+                symbol_name = "hydra_ext_get_file_interface";
+                break;
             case api::Function::CreateLoaderFromFile:
                 symbol_name = "hydra_ext_create_loader_from_file";
                 break;
@@ -88,6 +98,10 @@ class Extension {
 
         return reinterpret_cast<T>(func);
     }
+
+  public:
+    CONST_REF_GETTER(stream_interface, GetStreamInterface);
+    CONST_REF_GETTER(file_interface, GetFileInterface);
 };
 
 } // namespace hydra::horizon::loader::extensions
