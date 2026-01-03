@@ -34,24 +34,46 @@ class Plugin {
     void* CreateContext(std::span<std::string_view> options);
     void DestroyContext();
     std::string Query(api::QueryType what, std::span<u8> buffer);
-    api::StreamInterface GetStreamInterface();
-    api::FileInterface GetFileInterface();
     void* CreateLoaderFromFile(filesystem::Directory* root_dir,
                                std::string_view path);
-    void DestroyLoader(void* loader);
+    void LoaderDestroy(void* loader);
+    void FileDestroy(void* file);
+    void* FileOpen(void* file);
+    u64 FileGetSize(void* file);
+    void StreamDestroy(void* stream);
+    u64 StreamGetSeek(void* stream);
+    void StreamSeekTo(void* stream, u64 offset);
+    void StreamSeekBy(void* stream, u64 offset);
+    u64 StreamGetSize(void* stream);
+    void StreamReadRaw(void* stream, std::span<u8> buffer);
 
   private:
     void* library;
-    std::array<void*, static_cast<size_t>(api::Function::DestroyLoader) + 1>
-        functions = {nullptr};
+
+    // Functions
+    api::GetApiVersionFnT get_api_version;
+    api::CreateContextFnT create_context;
+    api::DestroyContextFnT destroy_context;
+    api::QueryFnT query;
+    api::CreateLoaderFromFileFnT create_loader_from_file;
+    api::LoaderDestroyFnT loader_destroy;
+    api::FileDestroyFnT file_destroy;
+    api::FileOpenFnT file_open;
+    api::FileGetSizeFnT file_get_size;
+    api::StreamDestroyFnT stream_destroy;
+    api::StreamGetSeekFnT stream_get_seek;
+    api::StreamSeekToFnT stream_seek_to;
+    api::StreamSeekByFnT stream_seek_by;
+    api::StreamGetSizeFnT stream_get_size;
+    api::StreamReadRawFnT stream_read_raw;
 
     // Context
     void* context;
+
+    // Info
     std::string name;
     std::string display_version;
     std::vector<std::string> supported_formats;
-    api::StreamInterface stream_interface;
-    api::FileInterface file_interface;
 
     // Helpers
     enum class GetFunctionError {
@@ -59,49 +81,63 @@ class Plugin {
     };
 
     template <api::Function api_func, typename T>
-    T GetFunction() {
-        auto& func = functions[static_cast<size_t>(api_func)];
-        if (!func) {
-            std::string_view symbol_name;
-            switch (api_func) {
-            case api::Function::GetApiVersion:
-                symbol_name = "hydra_ext_get_api_version";
-                break;
-            case api::Function::CreateContext:
-                symbol_name = "hydra_ext_create_context";
-                break;
-            case api::Function::DestroyContext:
-                symbol_name = "hydra_ext_destroy_context";
-                break;
-            case api::Function::Query:
-                symbol_name = "hydra_ext_query";
-                break;
-            case api::Function::GetStreamInterface:
-                symbol_name = "hydra_ext_get_stream_interface";
-                break;
-            case api::Function::GetFileInterface:
-                symbol_name = "hydra_ext_get_file_interface";
-                break;
-            case api::Function::CreateLoaderFromFile:
-                symbol_name = "hydra_ext_create_loader_from_file";
-                break;
-            case api::Function::DestroyLoader:
-                symbol_name = "hydra_ext_destroy_loader";
-                break;
-            }
-
-            func = dlsym(library, symbol_name.data());
-            ASSERT_THROWING(func != nullptr, Loader,
-                            GetFunctionError::SymbolNotFound,
-                            "Failed to load symbol \"{}\"", symbol_name);
+    T LoadFunction() {
+        std::string_view symbol_name;
+        switch (api_func) {
+        case api::Function::GetApiVersion:
+            symbol_name = "hydra_ext_get_api_version";
+            break;
+        case api::Function::CreateContext:
+            symbol_name = "hydra_ext_create_context";
+            break;
+        case api::Function::DestroyContext:
+            symbol_name = "hydra_ext_destroy_context";
+            break;
+        case api::Function::Query:
+            symbol_name = "hydra_ext_query";
+            break;
+        case api::Function::CreateLoaderFromFile:
+            symbol_name = "hydra_ext_create_loader_from_file";
+            break;
+        case api::Function::LoaderDestroy:
+            symbol_name = "hydra_ext_loader_destroy";
+            break;
+        case api::Function::FileDestroy:
+            symbol_name = "hydra_ext_file_destroy";
+            break;
+        case api::Function::FileOpen:
+            symbol_name = "hydra_ext_file_open";
+            break;
+        case api::Function::FileGetSize:
+            symbol_name = "hydra_ext_file_get_size";
+            break;
+        case api::Function::StreamDestroy:
+            symbol_name = "hydra_ext_stream_destroy";
+            break;
+        case api::Function::StreamGetSeek:
+            symbol_name = "hydra_ext_stream_get_seek";
+            break;
+        case api::Function::StreamSeekTo:
+            symbol_name = "hydra_ext_stream_seek_to";
+            break;
+        case api::Function::StreamSeekBy:
+            symbol_name = "hydra_ext_stream_seek_by";
+            break;
+        case api::Function::StreamGetSize:
+            symbol_name = "hydra_ext_stream_get_size";
+            break;
+        case api::Function::StreamReadRaw:
+            symbol_name = "hydra_ext_stream_read_raw";
+            break;
         }
+
+        const auto func = dlsym(library, symbol_name.data());
+        ASSERT_THROWING(func != nullptr, Loader,
+                        GetFunctionError::SymbolNotFound,
+                        "Failed to load symbol \"{}\"", symbol_name);
 
         return reinterpret_cast<T>(func);
     }
-
-  public:
-    CONST_REF_GETTER(stream_interface, GetStreamInterface);
-    CONST_REF_GETTER(file_interface, GetFileInterface);
 };
 
 } // namespace hydra::horizon::loader::plugins

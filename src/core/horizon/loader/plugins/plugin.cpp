@@ -11,26 +11,16 @@ class StreamInterfaceStream : public io::IStream {
   public:
     StreamInterfaceStream(Plugin& extension_, void* handle_)
         : plugin{extension_}, handle{handle_} {}
-    ~StreamInterfaceStream() override {
-        plugin.GetStreamInterface().Destroy(handle);
-    }
+    ~StreamInterfaceStream() override { plugin.StreamDestroy(handle); }
 
-    u64 GetSeek() const override {
-        return plugin.GetStreamInterface().GetSeek(handle);
-    }
-    void SeekTo(u64 seek) override {
-        plugin.GetStreamInterface().SeekTo(handle, seek);
-    }
-    void SeekBy(u64 offset) override {
-        plugin.GetStreamInterface().SeekBy(handle, offset);
-    }
+    u64 GetSeek() const override { return plugin.StreamGetSeek(handle); }
+    void SeekTo(u64 seek) override { plugin.StreamSeekTo(handle, seek); }
+    void SeekBy(u64 offset) override { plugin.StreamSeekBy(handle, offset); }
 
-    u64 GetSize() const override {
-        return plugin.GetStreamInterface().GetSize(handle);
-    }
+    u64 GetSize() const override { return plugin.StreamGetSize(handle); }
 
     void ReadRaw(std::span<u8> buffer) override {
-        plugin.GetStreamInterface().ReadRaw(handle, buffer);
+        plugin.StreamReadRaw(handle, buffer);
     }
 
   private:
@@ -45,11 +35,10 @@ class StreamFile : public filesystem::IFile {
 
     io::IStream* Open(filesystem::FileOpenFlags flags) {
         (void)flags;
-        return new StreamInterfaceStream(
-            plugin, plugin.GetFileInterface().Open(handle));
+        return new StreamInterfaceStream(plugin, plugin.FileOpen(handle));
     }
 
-    usize GetSize() { return plugin.GetFileInterface().GetSize(handle); }
+    usize GetSize() { return plugin.FileGetSize(handle); }
 
   private:
     Plugin& plugin;
@@ -89,6 +78,36 @@ Plugin::Plugin(const std::string& path) {
     ASSERT_THROWING(library, Loader, Error::LoadFailed,
                     "Failed to load plugin at path {}: {}", path, dlerror());
 
+    // Functions
+    get_api_version =
+        LoadFunction<api::Function::GetApiVersion, api::GetApiVersionFnT>();
+    create_context =
+        LoadFunction<api::Function::CreateContext, api::CreateContextFnT>();
+    destroy_context =
+        LoadFunction<api::Function::DestroyContext, api::DestroyContextFnT>();
+    query = LoadFunction<api::Function::Query, api::QueryFnT>();
+    create_loader_from_file = LoadFunction<api::Function::CreateLoaderFromFile,
+                                           api::CreateLoaderFromFileFnT>();
+    loader_destroy =
+        LoadFunction<api::Function::LoaderDestroy, api::LoaderDestroyFnT>();
+    file_destroy =
+        LoadFunction<api::Function::FileDestroy, api::FileDestroyFnT>();
+    file_open = LoadFunction<api::Function::FileOpen, api::FileOpenFnT>();
+    file_get_size =
+        LoadFunction<api::Function::FileGetSize, api::FileGetSizeFnT>();
+    stream_destroy =
+        LoadFunction<api::Function::StreamDestroy, api::StreamDestroyFnT>();
+    stream_get_seek =
+        LoadFunction<api::Function::StreamGetSeek, api::StreamGetSeekFnT>();
+    stream_seek_to =
+        LoadFunction<api::Function::StreamSeekTo, api::StreamSeekToFnT>();
+    stream_seek_by =
+        LoadFunction<api::Function::StreamSeekBy, api::StreamSeekByFnT>();
+    stream_get_size =
+        LoadFunction<api::Function::StreamGetSize, api::StreamGetSizeFnT>();
+    stream_read_raw =
+        LoadFunction<api::Function::StreamReadRaw, api::StreamReadRawFnT>();
+
     // API version
     ASSERT_THROWING(GetApiVersion() == 1, Loader, Error::InvalidApiVersion,
                     "Invalid API version");
@@ -104,10 +123,6 @@ Plugin::Plugin(const std::string& path) {
     display_version = Query(api::QueryType::DisplayVersion, buffer);
     supported_formats = split<std::string>(
         Query(api::QueryType::SupportedFormats, buffer), ',');
-
-    // Interfaces
-    stream_interface = GetStreamInterface();
-    file_interface = GetFileInterface();
 
     LOG_INFO(Loader,
              "Loaded plugin \"{}\" (version: {}, formats: {}) at path \"{}\"",
@@ -125,15 +140,9 @@ NxLoader* Plugin::Load(std::string_view path) {
     return new Loader(*this, handle, *root_dir);
 }
 
-u64 Plugin::GetApiVersion() {
-    const auto get_api_version =
-        GetFunction<api::Function::GetApiVersion, api::GetApiVersionFnT>();
-    return get_api_version();
-}
+u64 Plugin::GetApiVersion() { return get_api_version(); }
 
 void* Plugin::CreateContext(std::span<std::string_view> options) {
-    const auto create_context =
-        GetFunction<api::Function::CreateContext, api::CreateContextFnT>();
     std::vector<api::Slice<const char>> options_vec(options.size());
     for (size_t i = 0; i < options.size(); ++i) {
         options_vec[i] =
@@ -147,14 +156,9 @@ void* Plugin::CreateContext(std::span<std::string_view> options) {
     return ret.value;
 }
 
-void Plugin::DestroyContext() {
-    const auto destroy_context =
-        GetFunction<api::Function::DestroyContext, api::DestroyContextFnT>();
-    destroy_context(context);
-}
+void Plugin::DestroyContext() { destroy_context(context); }
 
 std::string Plugin::Query(api::QueryType what, std::span<u8> buffer) {
-    const auto query = GetFunction<api::Function::Query, api::QueryFnT>();
     const auto ret = query(context, what, api::Slice(buffer));
     switch (ret.res) {
     case api::QueryResult::Success:
@@ -169,24 +173,8 @@ std::string Plugin::Query(api::QueryType what, std::span<u8> buffer) {
                        buffer.begin() + static_cast<i32>(ret.value));
 }
 
-api::StreamInterface Plugin::GetStreamInterface() {
-    const auto get_stream_interface =
-        GetFunction<api::Function::GetStreamInterface,
-                    api::GetStreamInterfaceFnT>();
-    return get_stream_interface(context);
-}
-
-api::FileInterface Plugin::GetFileInterface() {
-    const auto get_file_interface = GetFunction<api::Function::GetFileInterface,
-                                                api::GetFileInterfaceFnT>();
-    return get_file_interface(context);
-}
-
 void* Plugin::CreateLoaderFromFile(filesystem::Directory* root_dir,
                                    std::string_view path) {
-    const auto create_loader_from_file =
-        GetFunction<api::Function::CreateLoaderFromFile,
-                    api::CreateLoaderFromFileFnT>();
     const auto ret = create_loader_from_file(context, this, AddFile, root_dir,
                                              api::Slice(std::span(path)));
     if (ret.res != api::CreateLoaderFromFileResult::Success) {
@@ -196,10 +184,30 @@ void* Plugin::CreateLoaderFromFile(filesystem::Directory* root_dir,
     return ret.value;
 }
 
-void Plugin::DestroyLoader(void* loader) {
-    const auto destroy_loader =
-        GetFunction<api::Function::DestroyLoader, api::DestroyLoaderFnT>();
-    destroy_loader(context, loader);
+void Plugin::LoaderDestroy(void* loader) { loader_destroy(loader); }
+
+void Plugin::FileDestroy(void* file) { file_destroy(file); }
+
+void* Plugin::FileOpen(void* file) { return file_open(file); }
+
+u64 Plugin::FileGetSize(void* file) { return file_get_size(file); }
+
+void Plugin::StreamDestroy(void* stream) { stream_destroy(stream); }
+
+u64 Plugin::StreamGetSeek(void* stream) { return stream_get_seek(stream); }
+
+void Plugin::StreamSeekTo(void* stream, u64 offset) {
+    stream_seek_to(stream, offset);
+}
+
+void Plugin::StreamSeekBy(void* stream, u64 offset) {
+    stream_seek_by(stream, offset);
+}
+
+u64 Plugin::StreamGetSize(void* stream) { return stream_get_size(stream); }
+
+void Plugin::StreamReadRaw(void* stream, std::span<u8> buffer) {
+    stream_read_raw(stream, api::Slice(buffer));
 }
 
 } // namespace hydra::horizon::loader::plugins

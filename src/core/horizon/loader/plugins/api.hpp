@@ -10,10 +10,17 @@ enum class Function {
     CreateContext,
     DestroyContext,
     Query,
-    GetStreamInterface,
-    GetFileInterface,
     CreateLoaderFromFile,
-    DestroyLoader,
+    LoaderDestroy,
+    FileDestroy,
+    FileOpen,
+    FileGetSize,
+    StreamDestroy,
+    StreamGetSeek,
+    StreamSeekTo,
+    StreamSeekBy,
+    StreamGetSize,
+    StreamReadRaw,
 };
 
 template <typename Result, typename T>
@@ -45,44 +52,6 @@ typedef ReturnValue<CreateContextResult, void*> (*CreateContextFnT)(
 
 typedef u32 (*DestroyContextFnT)(void*);
 
-struct StreamInterface {
-  public:
-    void Destroy(void* handle) const { destroy(handle); }
-
-    u64 GetSeek(void* handle) const { return get_seek(handle); }
-
-    void SeekTo(void* handle, u64 offset) const { seek_to(handle, offset); }
-
-    void SeekBy(void* handle, u64 offset) const { seek_by(handle, offset); }
-
-    u64 GetSize(void* handle) const { return get_size(handle); }
-
-    void ReadRaw(void* handle, std::span<u8> buffer) const {
-        read_raw(handle, Slice(buffer));
-    }
-
-  private:
-    void (*destroy)(void*);
-    u64 (*get_seek)(void*);
-    void (*seek_to)(void*, u64);
-    void (*seek_by)(void*, u64);
-    u64 (*get_size)(void*);
-    void (*read_raw)(void*, Slice<u8>);
-};
-
-typedef StreamInterface (*GetStreamInterfaceFnT)(void*);
-
-struct FileInterface {
-  public:
-    void* Open(void* handle) const { return open(handle); }
-
-    u64 GetSize(void* handle) const { return get_size(handle); }
-
-  private:
-    void* (*open)(void*);
-    u64 (*get_size)(void*);
-};
-
 enum class QueryType : u32 {
     Name = 0,
     DisplayVersion = 1,
@@ -93,8 +62,6 @@ enum class QueryResult : u32 {
     Success = 0,
     BufferTooSmall = 1,
 };
-
-typedef FileInterface (*GetFileInterfaceFnT)(void*);
 
 typedef ReturnValue<QueryResult, u64> (*QueryFnT)(void*, QueryType, Slice<u8>);
 
@@ -110,7 +77,18 @@ enum class CreateLoaderFromFileResult : u32 {
 typedef ReturnValue<CreateLoaderFromFileResult, void*> (
     *CreateLoaderFromFileFnT)(void*, void*, add_file, void*, Slice<const char>);
 
-typedef u32 (*DestroyLoaderFnT)(void*, void*);
+typedef void (*LoaderDestroyFnT)(void*);
+
+typedef void (*FileDestroyFnT)(void*);
+typedef void* (*FileOpenFnT)(void*);
+typedef u64 (*FileGetSizeFnT)(void*);
+
+typedef void (*StreamDestroyFnT)(void*);
+typedef u64 (*StreamGetSeekFnT)(void*);
+typedef void (*StreamSeekToFnT)(void*, u64);
+typedef void (*StreamSeekByFnT)(void*, u64);
+typedef u64 (*StreamGetSizeFnT)(void*);
+typedef void (*StreamReadRawFnT)(void*, Slice<u8>);
 
 } // namespace hydra::horizon::loader::plugins::api
 
