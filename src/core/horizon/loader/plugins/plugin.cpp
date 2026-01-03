@@ -6,12 +6,11 @@ namespace hydra::horizon::loader::plugins {
 
 namespace {
 
-// TODO: the name...
-class StreamInterfaceStream : public io::IStream {
+class StreamAdapter : public io::IStream {
   public:
-    StreamInterfaceStream(Plugin& extension_, void* handle_)
+    StreamAdapter(Plugin& extension_, void* handle_)
         : plugin{extension_}, handle{handle_} {}
-    ~StreamInterfaceStream() override { plugin.StreamDestroy(handle); }
+    ~StreamAdapter() override { plugin.StreamDestroy(handle); }
 
     u64 GetSeek() const override { return plugin.StreamGetSeek(handle); }
     void SeekTo(u64 seek) override { plugin.StreamSeekTo(handle, seek); }
@@ -28,17 +27,18 @@ class StreamInterfaceStream : public io::IStream {
     void* handle;
 };
 
-class StreamFile : public filesystem::IFile {
+class FileAdapter : public filesystem::IFile {
   public:
-    StreamFile(Plugin& extension_, void* handle_)
+    FileAdapter(Plugin& extension_, void* handle_)
         : plugin{extension_}, handle{handle_} {}
+    ~FileAdapter() override { plugin.FileDestroy(handle); }
 
-    io::IStream* Open(filesystem::FileOpenFlags flags) {
+    io::IStream* Open(filesystem::FileOpenFlags flags) override {
         (void)flags;
-        return new StreamInterfaceStream(plugin, plugin.FileOpen(handle));
+        return new StreamAdapter(plugin, plugin.FileOpen(handle));
     }
 
-    usize GetSize() { return plugin.FileGetSize(handle); }
+    usize GetSize() override { return plugin.FileGetSize(handle); }
 
   private:
     Plugin& plugin;
@@ -65,7 +65,7 @@ void AddFile(void* plugin, filesystem::Directory* dir,
              api::Slice<const char> path, void* handle) {
     const std::string_view path_str(path.data, path.size);
     const auto res = dir->AddEntry(
-        path_str, new StreamFile(*reinterpret_cast<Plugin*>(plugin), handle),
+        path_str, new FileAdapter(*reinterpret_cast<Plugin*>(plugin), handle),
         true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add file to \"{}\": {}", path_str, res);
