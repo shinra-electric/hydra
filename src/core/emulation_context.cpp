@@ -310,7 +310,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     const auto target_patch_filename =
         fmt::format("{:016x}.hatch", loader->GetTitleID());
     // TODO: iterate recursively
-    for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths().Get()) {
+    for (const auto& patch_path : CONFIG_INSTANCE.GetPatchPaths()) {
         if (!std::filesystem::exists(patch_path)) {
             LOG_ERROR(Other, "Patch path does not exist: {}", patch_path);
             continue;
@@ -343,7 +343,7 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         horizon::kernel::AppletFocusState::InFocus);
 
     // Preselected user
-    auto user_id = CONFIG_INSTANCE.GetUserID().Get();
+    auto user_id = CONFIG_INSTANCE.GetUserId();
     if (user_id == horizon::services::account::internal::INVALID_USER_ID) {
         // If there is just a single user, use that
         if (USER_MANAGER_INSTANCE.GetUserCount() == 1) {
