@@ -70,6 +70,9 @@ class _Option {
 template <typename T>
 using Option = _Option<T, T>;
 
+template <typename T>
+using ConstRefOption = _Option<T, const T&>;
+
 using StringOption = _Option<std::string, std::string_view>;
 
 template <typename T, typename GetT>
@@ -112,7 +115,15 @@ class _ArrayOption {
 template <typename T>
 using ArrayOption = _ArrayOption<T, T>;
 
+template <typename T>
+using ConstRefArrayOption = _ArrayOption<T, const T&>;
+
 using StringArrayOption = _ArrayOption<std::string, std::string_view>;
+
+struct LoaderPlugin {
+    std::string path;
+    std::map<std::string, std::string> options;
+};
 
 class Config {
   public:
@@ -141,7 +152,9 @@ class Config {
 
     // Getters
     StringArrayOption& GetGamePaths() { return game_paths; }
-    StringArrayOption& GetLoaderPaths() { return loader_paths; }
+    ConstRefArrayOption<LoaderPlugin>& GetLoaderPlugins() {
+        return loader_plugins;
+    }
     StringArrayOption& GetPatchPaths() { return patch_paths; }
     StringArrayOption& GetInputProfiles() { return input_profiles; }
     Option<CpuBackend>& GetCpuBackend() { return cpu_backend; }
@@ -173,7 +186,7 @@ class Config {
 
     // Config
     StringArrayOption game_paths;
-    StringArrayOption loader_paths;
+    ConstRefArrayOption<LoaderPlugin> loader_plugins;
     StringArrayOption patch_paths;
     StringArrayOption input_profiles;
     Option<CpuBackend> cpu_backend;
@@ -198,7 +211,7 @@ class Config {
 
     // Default values
     std::vector<std::string> GetDefaultGamePaths() const { return {}; }
-    std::vector<std::string> GetDefaultLoaderPaths() const { return {}; }
+    std::vector<LoaderPlugin> GetDefaultLoaderPlugins() const { return {}; }
     std::vector<std::string> GetDefaultPatchPaths() const { return {}; }
     std::vector<std::string> GetDefaultInputProfiles() const {
         return {"Default", "", "", "", "", "", "", "", ""};

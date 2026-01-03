@@ -37,6 +37,9 @@ struct Slice {
     Slice() : data{nullptr}, size{0} {}
     Slice(T* data_, u64 size_) : data{data_}, size{size_} {}
     Slice(std::span<T> span) : data{span.data()}, size{span.size()} {}
+    Slice(std::string_view str)
+        requires std::is_same_v<T, char> || std::is_same_v<T, const char>
+        : data{str.data()}, size{str.size()} {}
 };
 
 typedef u32 (*GetApiVersionFnT)();
@@ -44,11 +47,17 @@ typedef u32 (*GetApiVersionFnT)();
 enum class CreateContextResult : u32 {
     Success = 0,
     AllocationFailed = 1,
-    InvalidOptions = 2,
+    InvalidOption = 2,
+    DuplicateOption = 3,
+};
+
+struct ContextOption {
+    Slice<const char> key;
+    Slice<const char> value;
 };
 
 typedef ReturnValue<CreateContextResult, void*> (*CreateContextFnT)(
-    Slice<Slice<const char>>);
+    Slice<ContextOption>);
 
 typedef u32 (*DestroyContextFnT)(void*);
 
@@ -94,8 +103,8 @@ typedef void (*StreamReadRawFnT)(void*, Slice<u8>);
 
 ENABLE_ENUM_FORMATTING(
     hydra::horizon::loader::plugins::api::CreateContextResult, Success,
-    "success", AllocationFailed, "allocation failed", InvalidOptions,
-    "invalid options")
+    "success", AllocationFailed, "allocation failed", InvalidOption,
+    "invalid option", DuplicateOption, "duplicate option")
 
 ENABLE_ENUM_FORMATTING(hydra::horizon::loader::plugins::api::QueryResult,
                        Success, "success", BufferTooSmall, "buffer too small")

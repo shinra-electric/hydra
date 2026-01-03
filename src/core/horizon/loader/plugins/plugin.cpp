@@ -73,7 +73,8 @@ void AddFile(void* plugin, filesystem::Directory* dir,
 
 } // namespace
 
-Plugin::Plugin(const std::string& path) {
+Plugin::Plugin(const std::string& path,
+               const std::map<std::string, std::string>& options) {
     library = dlopen(path.data(), RTLD_LAZY);
     ASSERT_THROWING(library, Loader, Error::LoadFailed,
                     "Failed to load plugin at path {}: {}", path, dlerror());
@@ -113,7 +114,7 @@ Plugin::Plugin(const std::string& path) {
                     "Invalid API version");
 
     // Context
-    context = CreateContext({}); // TODO: options
+    context = CreateContext(options);
     ASSERT_THROWING(context, Loader, Error::ContextCreationFailed,
                     "Failed to create context");
 
@@ -142,11 +143,13 @@ NxLoader* Plugin::Load(std::string_view path) {
 
 u64 Plugin::GetApiVersion() { return get_api_version(); }
 
-void* Plugin::CreateContext(std::span<std::string_view> options) {
-    std::vector<api::Slice<const char>> options_vec(options.size());
-    for (size_t i = 0; i < options.size(); ++i) {
-        options_vec[i] =
-            api::Slice<const char>(options[i].data(), options[i].size());
+void* Plugin::CreateContext(const std::map<std::string, std::string>& options) {
+    std::vector<api::ContextOption> options_vec;
+    options_vec.reserve(options.size());
+    for (const auto& [key, value] : options) {
+        options_vec.emplace_back(
+            api::Slice<const char>(std::string_view(key)),
+            api::Slice<const char>(std::string_view(value)));
     }
     const auto ret = create_context(api::Slice(std::span(options_vec)));
     if (ret.res != api::CreateContextResult::Success) {

@@ -16,6 +16,8 @@ TOML11_DEFINE_CONVERSION_ENUM(hydra::AudioBackend, Null, "Null", Cubeb, "Cubeb")
 TOML11_DEFINE_CONVERSION_ENUM(hydra::LogOutput, None, "none", StdOut, "stdout",
                               File, "file")
 
+ENABLE_STRUCT_FORMATTING_AND_TOML11(hydra::LoaderPlugin, path, options)
+
 namespace toml {
 
 using namespace hydra;
@@ -116,7 +118,7 @@ Config::Config() {
 
 void Config::LoadDefaults() {
     game_paths = GetDefaultGamePaths();
-    loader_paths = GetDefaultLoaderPaths();
+    loader_plugins = GetDefaultLoaderPlugins();
     patch_paths = GetDefaultPatchPaths();
     input_profiles = GetDefaultInputProfiles();
     cpu_backend = GetDefaultCpuBackend();
@@ -165,7 +167,7 @@ void Config::Serialize() {
     {
         auto& general = data.at("General");
         general["game_paths"] = game_paths.Get();
-        general["loader_paths"] = loader_paths.Get();
+        general["loader_plugins"] = loader_plugins.Get();
         general["patch_paths"] = patch_paths.Get();
     }
 
@@ -242,8 +244,8 @@ void Config::Deserialize() {
         const auto& general = data.at("General");
         game_paths = toml::find_or<std::vector<std::string>>(
             general, "game_paths", GetDefaultGamePaths());
-        loader_paths = toml::find_or<std::vector<std::string>>(
-            general, "loader_paths", GetDefaultLoaderPaths());
+        loader_plugins = toml::find_or<std::vector<LoaderPlugin>>(
+            general, "loader_plugins", GetDefaultLoaderPlugins());
         patch_paths = toml::find_or<std::vector<std::string>>(
             general, "patch_paths", GetDefaultPatchPaths());
     }
@@ -343,7 +345,7 @@ void Config::Deserialize() {
 
 void Config::Log() {
     LOG_INFO(Other, "Game paths: [{}]", game_paths);
-    LOG_INFO(Other, "Loader paths: [{}]", loader_paths);
+    LOG_INFO(Other, "Loader plugins: [{}]", loader_plugins);
     LOG_INFO(Other, "Patch paths: [{}]", patch_paths);
     LOG_INFO(Other, "Input profiles: [{}]", input_profiles);
     LOG_INFO(Other, "CPU backend: {}", cpu_backend);

@@ -3,17 +3,19 @@
 namespace hydra::horizon::loader::plugins {
 
 Manager::Manager() {
-    for (const auto& path : CONFIG_INSTANCE.GetLoaderPaths().Get()) {
-        if (!std::filesystem::exists(path)) {
-            LOG_ERROR(Other, "Plugin path \"{}\" does not exist", path);
+    for (const auto& plugin_config : CONFIG_INSTANCE.GetLoaderPlugins().Get()) {
+        if (!std::filesystem::exists(plugin_config.path)) {
+            LOG_ERROR(Other, "Plugin path \"{}\" does not exist",
+                      plugin_config.path);
             continue;
         }
-        if (!std::filesystem::is_regular_file(path)) {
-            LOG_ERROR(Other, "Plugin path \"{}\" is not a file", path);
+        if (!std::filesystem::is_regular_file(plugin_config.path)) {
+            LOG_ERROR(Other, "Plugin path \"{}\" is not a file",
+                      plugin_config.path);
             continue;
         }
 
-        plugins.emplace_back(path);
+        plugins.emplace_back(plugin_config.path, plugin_config.options);
     }
 }
 

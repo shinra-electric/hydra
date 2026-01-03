@@ -24,14 +24,15 @@ class Plugin {
         ContextCreationFailed,
     };
 
-    Plugin(const std::string& path);
+    Plugin(const std::string& path,
+           const std::map<std::string, std::string>& options);
     ~Plugin();
 
     NxLoader* Load(std::string_view path);
 
     // API
     u64 GetApiVersion();
-    void* CreateContext(std::span<std::string_view> options);
+    void* CreateContext(const std::map<std::string, std::string>& options);
     void DestroyContext();
     std::string Query(api::QueryType what, std::span<u8> buffer);
     void* CreateLoaderFromFile(filesystem::Directory* root_dir,
