@@ -32,6 +32,10 @@ class FileView : public IFile {
     IFile* base;
     u64 offset;
     usize size;
+
+  public:
+    GETTER(base, GetBase);
+    GETTER(offset, GetOffset);
 };
 
 } // namespace hydra::horizon::filesystem
