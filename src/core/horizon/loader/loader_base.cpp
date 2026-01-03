@@ -107,8 +107,7 @@ LoaderBase* LoaderBase::CreateFromPath(std::string_view path) {
                 extension, Loader, CreateFromPathError::UnsupportedExtension,
                 "Unsupported extension \"{}\" (path: \"{}\")", ext, path);
 
-            // TODO: loader
-            LOG_NOT_IMPLEMENTED(Loader, "Extension loader");
+            loader = extension->Load(path);
         }
     }
 

@@ -1,6 +1,70 @@
 #include "core/horizon/loader/extensions/extension.hpp"
 
+#include "core/horizon/loader/nx_loader.hpp"
+
 namespace hydra::horizon::loader::extensions {
+
+namespace {
+
+// TODO: the name...
+class StreamInterfaceStream : public io::IStream {
+  public:
+    StreamInterfaceStream(const api::StreamInterface& stream_)
+        : stream{stream_} {}
+
+    u64 GetSeek() const override { return stream.GetSeek(); }
+    void SeekTo(u64 seek) override { stream.SeekTo(seek); }
+    void SeekBy(u64 offset) override { stream.SeekBy(offset); }
+
+    u64 GetSize() const override { return stream.GetSize(); }
+
+    void ReadRaw(std::span<u8> buffer) override { stream.ReadRaw(buffer); }
+
+  private:
+    const api::StreamInterface& stream;
+};
+
+class StreamFile : public filesystem::IFile {
+  public:
+    StreamFile(const api::StreamInterface& stream_) : stream{stream_} {}
+
+    io::IStream* Open(filesystem::FileOpenFlags flags) {
+        (void)flags;
+        return new StreamInterfaceStream(stream);
+    }
+
+    usize GetSize() { return stream.GetSize(); }
+
+  private:
+    api::StreamInterface stream;
+};
+
+class Loader : public NxLoader {
+  public:
+    Loader(Extension& extension_, void* handle_,
+           const filesystem::Directory& dir)
+        : NxLoader(dir), extension{extension_}, handle{handle_} {}
+    ~Loader() {
+        // HACK
+        (void)extension;
+        (void)handle;
+        // extension.DestroyLoader(handle);
+    }
+
+  private:
+    Extension& extension;
+    void* handle;
+};
+
+void AddFile(filesystem::Directory* dir, api::Slice<const char> path,
+             api::StreamInterface stream) {
+    const std::string_view path_str(path.data, path.size);
+    const auto res = dir->AddEntry(path_str, new StreamFile(stream), true);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to add file to \"{}\": {}", path_str, res);
+}
+
+} // namespace
 
 Extension::Extension(const std::string& path) {
     library = dlopen(path.data(), RTLD_LAZY);
@@ -18,10 +82,10 @@ Extension::Extension(const std::string& path) {
 
     // Info
     std::array<u8, 1024> buffer;
-    name = Query(context, api::QueryType::Name, buffer);
-    display_version = Query(context, api::QueryType::DisplayVersion, buffer);
+    name = Query(api::QueryType::Name, buffer);
+    display_version = Query(api::QueryType::DisplayVersion, buffer);
     supported_formats = split<std::string>(
-        Query(context, api::QueryType::SupportedFormats, buffer), ',');
+        Query(api::QueryType::SupportedFormats, buffer), ',');
 
     LOG_INFO(
         Loader,
@@ -30,8 +94,78 @@ Extension::Extension(const std::string& path) {
 }
 
 Extension::~Extension() {
-    // TODO: destroy context
+    DestroyContext();
     dlclose(library);
+}
+
+NxLoader* Extension::Load(std::string_view path) {
+    const auto root_dir = new filesystem::Directory();
+    const auto handle = CreateLoaderFromFile(root_dir, path);
+    return new Loader(*this, handle, *root_dir);
+}
+
+u64 Extension::GetApiVersion() {
+    const auto get_api_version =
+        GetFunction<api::Function::GetApiVersion, api::GetApiVersionFnT>();
+    return get_api_version();
+}
+
+void* Extension::CreateContext(std::span<std::string_view> options) {
+    const auto create_context =
+        GetFunction<api::Function::CreateContext, api::CreateContextFnT>();
+    std::vector<api::Slice<const char>> options_vec(options.size());
+    for (size_t i = 0; i < options.size(); ++i) {
+        options_vec[i] =
+            api::Slice<const char>(options[i].data(), options[i].size());
+    }
+    const auto ret = create_context(api::Slice(std::span(options_vec)));
+    if (ret.res != api::CreateContextResult::Success) {
+        throw ret.res;
+    }
+
+    return ret.value;
+}
+
+void Extension::DestroyContext() {
+    const auto destroy_context =
+        GetFunction<api::Function::DestroyContext, api::DestroyContextFnT>();
+    destroy_context(context);
+}
+
+std::string Extension::Query(api::QueryType what, std::span<u8> buffer) {
+    const auto query = GetFunction<api::Function::Query, api::QueryFnT>();
+    const auto ret = query(context, what, api::Slice(buffer));
+    switch (ret.res) {
+    case api::QueryResult::Success:
+        break;
+    case api::QueryResult::BufferTooSmall:
+        LOG_FATAL(Loader, "Buffer too small");
+    default:
+        LOG_FATAL(Loader, "Unknown query result: {}", ret.res);
+    }
+
+    return std::string(buffer.begin(),
+                       buffer.begin() + static_cast<i32>(ret.value));
+}
+
+void* Extension::CreateLoaderFromFile(filesystem::Directory* root_dir,
+                                      std::string_view path) {
+    const auto create_loader_from_file =
+        GetFunction<api::Function::CreateLoaderFromFile,
+                    api::CreateLoaderFromFileFnT>();
+    const auto ret = create_loader_from_file(context, AddFile, root_dir,
+                                             api::Slice(std::span(path)));
+    if (ret.res != api::CreateLoaderFromFileResult::Success) {
+        throw ret.res;
+    }
+
+    return ret.value;
+}
+
+void Extension::DestroyLoader(void* loader) {
+    const auto destroy_loader =
+        GetFunction<api::Function::DestroyLoader, api::DestroyLoaderFnT>();
+    destroy_loader(context, loader);
 }
 
 } // namespace hydra::horizon::loader::extensions

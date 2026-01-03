@@ -22,11 +22,6 @@ class FileView : public IFile {
                             size, base->GetSize() - offset);
     }
 
-    void Resize(usize new_size) override {
-        LOG_FATAL(Filesystem, "File view cannot be resized (size: 0x{:x})",
-                  new_size);
-    }
-
     io::IStream* Open(FileOpenFlags flags) override {
         return new io::OwnedStreamView(base->Open(flags), offset, size);
     }
@@ -37,10 +32,6 @@ class FileView : public IFile {
     IFile* base;
     u64 offset;
     usize size;
-
-    void DeleteImpl() override {
-        LOG_FATAL(Filesystem, "Cannot delete file view");
-    }
 };
 
 } // namespace hydra::horizon::filesystem

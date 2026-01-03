@@ -8,6 +8,10 @@ namespace hydra::horizon::filesystem {
 class Directory;
 }
 
+namespace hydra::horizon::loader {
+class NxLoader;
+}
+
 namespace hydra::horizon::loader::extensions {
 
 class Extension {
@@ -23,66 +27,20 @@ class Extension {
     Extension(const std::string& path);
     ~Extension();
 
+    NxLoader* Load(std::string_view path);
+
     // API
-    u64 GetApiVersion() {
-        const auto get_api_version =
-            GetFunction<api::Function::GetApiVersion, api::GetApiVersionFnT>();
-        return get_api_version();
-    }
-
-    void* CreateContext(std::span<std::string_view> options) {
-        const auto create_context =
-            GetFunction<api::Function::CreateContext, api::CreateContextFnT>();
-        std::vector<api::Slice<const char>> options_vec(options.size());
-        for (size_t i = 0; i < options.size(); ++i) {
-            options_vec[i] =
-                api::Slice<const char>(options[i].data(), options[i].size());
-        }
-        const auto ret = create_context(api::Slice(std::span(options_vec)));
-        if (ret.res != api::CreateContextResult::Success) {
-            throw ret.res;
-        }
-
-        return ret.value;
-    }
-
-    std::string Query(void* ctx, api::QueryType what, std::span<u8> buffer) {
-        const auto query = GetFunction<api::Function::Query, api::QueryFnT>();
-        const auto ret = query(ctx, what, api::Slice(buffer));
-        switch (ret.res) {
-        case api::QueryResult::Success:
-            break;
-        case api::QueryResult::BufferTooSmall:
-            LOG_FATAL(Loader, "Buffer too small");
-        default:
-            LOG_FATAL(Loader, "Unknown query result: {}", ret.res);
-        }
-
-        return std::string(buffer.begin(),
-                           buffer.begin() + static_cast<i32>(ret.value));
-    }
-
-    // TODO: implement
-    /*
-    void LoadFile(void* ctx, filesystem::Directory* root_dir, std::string_view
-    path) { const auto load_file = GetFunction<api::Function::LoadFile,
-    api::LoadFileFnT>();
-
-        // Functions
-        DirectoryFunctions dir_funcs{
-            // TODO
-        };
-
-        const auto ret = load_file(ctx, dir_funcs, root_dir, path);
-        if (ret.res != api::LoadFileResult::Success) {
-            throw ret.res;
-        }
-    }
-    */
+    u64 GetApiVersion();
+    void* CreateContext(std::span<std::string_view> options);
+    void DestroyContext();
+    std::string Query(api::QueryType what, std::span<u8> buffer);
+    void* CreateLoaderFromFile(filesystem::Directory* root_dir,
+                               std::string_view path);
+    void DestroyLoader(void* loader);
 
   private:
     void* library;
-    std::array<void*, static_cast<size_t>(api::Function::LoadFile) + 1>
+    std::array<void*, static_cast<size_t>(api::Function::DestroyLoader) + 1>
         functions = {nullptr};
 
     // Context
@@ -108,11 +66,17 @@ class Extension {
             case api::Function::CreateContext:
                 symbol_name = "hydra_ext_create_context";
                 break;
+            case api::Function::DestroyContext:
+                symbol_name = "hydra_ext_destroy_context";
+                break;
             case api::Function::Query:
                 symbol_name = "hydra_ext_query";
                 break;
-            case api::Function::LoadFile:
-                symbol_name = "hydra_ext_load_file";
+            case api::Function::CreateLoaderFromFile:
+                symbol_name = "hydra_ext_create_loader_from_file";
+                break;
+            case api::Function::DestroyLoader:
+                symbol_name = "hydra_ext_destroy_loader";
                 break;
             }
 

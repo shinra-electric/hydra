@@ -20,11 +20,6 @@ class SparseFile : public IFile {
                   });
     }
 
-    void Resize(usize new_size) override {
-        LOG_FATAL(Filesystem, "Sparse file cannot be resized (size: 0x{:x})",
-                  new_size);
-    }
-
     io::IStream* Open(FileOpenFlags flags) override {
         std::vector<io::SparseStreamEntry> streams;
         streams.reserve(entries.size());
@@ -42,10 +37,6 @@ class SparseFile : public IFile {
   private:
     std::vector<SparseFileEntry> entries;
     usize size;
-
-    void DeleteImpl() override {
-        LOG_FATAL(Filesystem, "Cannot delete sparse file");
-    }
 };
 
 } // namespace hydra::horizon::filesystem
