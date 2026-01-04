@@ -23,7 +23,7 @@ std::string_view string_view_from_hydra_string(hydra_string str) {
 
 } // namespace
 
-// Options
+// String list
 HYDRA_EXPORT uint32_t hydra_string_list_get_count(const void* list) {
     return static_cast<uint32_t>(
         reinterpret_cast<const std::vector<std::string>*>(list)->size());
@@ -50,6 +50,79 @@ HYDRA_EXPORT void hydra_string_list_append(void* list, hydra_string value) {
         std::string(string_view_from_hydra_string(value)));
 }
 
+// String to string map
+HYDRA_EXPORT uint32_t hydra_string_to_string_map_get_count(const void* map) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const std::map<std::string, std::string>*>(map)
+            ->size());
+}
+
+HYDRA_EXPORT hydra_string hydra_string_to_string_map_get_key(const void* map,
+                                                             uint32_t index) {
+    auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
+                  ->begin();
+    std::advance(it, index);
+    return hydra_string_from_string_view(it->first);
+}
+
+HYDRA_EXPORT hydra_string hydra_string_to_string_map_get_value(const void* map,
+                                                               uint32_t index) {
+    auto it = reinterpret_cast<const std::map<std::string, std::string>*>(map)
+                  ->begin();
+    std::advance(it, index);
+    return hydra_string_from_string_view(it->second);
+}
+
+HYDRA_EXPORT hydra_string
+hydra_string_to_string_map_get_value_by_key(const void* map, hydra_string key) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const std::map<std::string, std::string>*>(map)->at(
+            std::string(string_view_from_hydra_string(key))));
+}
+
+HYDRA_EXPORT void hydra_string_to_string_map_remove_all(void* map) {
+    reinterpret_cast<std::map<std::string, std::string>*>(map)->clear();
+}
+
+HYDRA_EXPORT void hydra_string_to_string_map_set_by_key(void* map,
+                                                        hydra_string key,
+                                                        hydra_string value) {
+    (*reinterpret_cast<std::map<std::string, std::string>*>(
+        map))[std::string(string_view_from_hydra_string(key))] =
+        string_view_from_hydra_string(value);
+}
+
+// Loader plugin
+HYDRA_EXPORT hydra_string hydra_loader_plugin_get_path(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::LoaderPlugin*>(plugin)->path);
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_set_path(void* plugin,
+                                               hydra_string path) {
+    reinterpret_cast<hydra::LoaderPlugin*>(plugin)->path =
+        string_view_from_hydra_string(path);
+}
+
+HYDRA_EXPORT void* hydra_loader_plugin_get_options(void* plugin) {
+    return &reinterpret_cast<hydra::LoaderPlugin*>(plugin)->options;
+}
+
+HYDRA_EXPORT uint32_t hydra_loader_plugin_list_get_count(const void* list) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const std::vector<hydra::LoaderPlugin>*>(list)
+            ->size());
+}
+
+HYDRA_EXPORT void* hydra_loader_plugin_list_get(void* list, uint32_t index) {
+    return &reinterpret_cast<std::vector<hydra::LoaderPlugin>*>(list)->at(
+        index);
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_list_resize(void* list, uint32_t size) {
+    reinterpret_cast<std::vector<hydra::LoaderPlugin>*>(list)->resize(size);
+}
+
 // Config
 HYDRA_EXPORT void hydra_config_serialize() {
     hydra::CONFIG_INSTANCE.Serialize();
@@ -66,6 +139,10 @@ HYDRA_EXPORT hydra_string hydra_config_get_app_data_path() {
 
 HYDRA_EXPORT void* hydra_config_get_game_paths() {
     return &hydra::CONFIG_INSTANCE.GetGamePaths();
+}
+
+HYDRA_EXPORT void* hydra_config_get_loader_plugins() {
+    return &hydra::CONFIG_INSTANCE.GetLoaderPlugins();
 }
 
 HYDRA_EXPORT void* hydra_config_get_patch_paths() {

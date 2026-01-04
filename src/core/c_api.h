@@ -125,12 +125,33 @@ typedef enum : uint32_t {
     HYDRA_DEBUGGER_THREAD_STATUS_BREAK,
 } HydraDebuggerThreadStatus;
 
-// List
+// String list
 uint32_t hydra_string_list_get_count(const void* list);
 hydra_string hydra_string_list_get(const void* list, uint32_t index);
 void hydra_string_list_resize(void* list, uint32_t size);
 void hydra_string_list_set(void* list, uint32_t index, hydra_string value);
 void hydra_string_list_append(void* list, hydra_string value);
+
+// String to string map
+uint32_t hydra_string_to_string_map_get_count(const void* map);
+hydra_string hydra_string_to_string_map_get_key(const void* map,
+                                                uint32_t index);
+hydra_string hydra_string_to_string_map_get_value(const void* map,
+                                                  uint32_t index);
+hydra_string hydra_string_to_string_map_get_value_by_key(const void* map,
+                                                         hydra_string key);
+void hydra_string_to_string_map_remove_all(void* map);
+void hydra_string_to_string_map_set_by_key(void* map, hydra_string key,
+                                           hydra_string value);
+
+// Loader plugin
+hydra_string hydra_loader_plugin_get_path(const void* plugin);
+void hydra_loader_plugin_set_path(void* plugin, hydra_string path);
+void* hydra_loader_plugin_get_options(void* plugin);
+
+uint32_t hydra_loader_plugin_list_get_count(const void* list);
+void* hydra_loader_plugin_list_get(void* list, uint32_t index);
+void hydra_loader_plugin_list_resize(void* list, uint32_t size);
 
 // Config
 void hydra_config_serialize();
@@ -139,7 +160,7 @@ void hydra_config_deserialize();
 hydra_string hydra_config_get_app_data_path();
 
 void* hydra_config_get_game_paths();
-// TODO: loader plug-ins
+void* hydra_config_get_loader_plugins();
 void* hydra_config_get_patch_paths();
 void* hydra_config_get_input_profiles();
 uint32_t* hydra_config_get_cpu_backend();

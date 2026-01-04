@@ -111,7 +111,7 @@ extension String {
     }
 }
 
-// List
+// String list
 struct HydraStringList {
     private let handle: UnsafeMutableRawPointer
 
@@ -132,15 +132,104 @@ struct HydraStringList {
     }
 
     func set(at index: Int, value: String) {
-        value.withHydraString { hydraValue in
-            hydra_string_list_set(self.handle, UInt32(index), hydraValue)
+        value.withHydraString { hydraString in
+            hydra_string_list_set(self.handle, UInt32(index), hydraString)
         }
     }
 
     func append(value: String) {
-        value.withHydraString { hydraValue in
-            hydra_string_list_append(self.handle, hydraValue)
+        value.withHydraString { hydraString in
+            hydra_string_list_append(self.handle, hydraString)
         }
+    }
+}
+
+// String to string map
+struct HydraStringToStringMap {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    var count: Int {
+        Int(hydra_string_to_string_map_get_count(self.handle))
+    }
+
+    func getKey(at index: Int) -> String {
+        return String(
+            withHydraString: hydra_string_to_string_map_get_key(self.handle, UInt32(index)))
+    }
+
+    func getValue(at index: Int) -> String {
+        return String(
+            withHydraString: hydra_string_to_string_map_get_value(self.handle, UInt32(index)))
+    }
+
+    func getValue(byKey key: String) -> String {
+        return key.withHydraString { hydraKey in
+            String(
+                withHydraString: hydra_string_to_string_map_get_value_by_key(
+                    self.handle, hydraKey))
+        }
+    }
+
+    func removeAll() {
+        hydra_string_to_string_map_remove_all(self.handle)
+    }
+
+    func set(byKey key: String, value: String) {
+        return key.withHydraString { hydraKey in
+            value.withHydraString { hydraValue in
+                hydra_string_to_string_map_set_by_key(self.handle, hydraKey, hydraValue)
+            }
+        }
+    }
+}
+
+// Loader plugin
+struct HydraLoaderPlugin {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    var path: String {
+        get {
+            String(
+                withHydraString: hydra_loader_plugin_get_path(
+                    self.handle))
+        }
+        set {
+            newValue.withHydraString { hydraNewValue in
+                hydra_loader_plugin_set_path(self.handle, hydraNewValue)
+            }
+        }
+    }
+
+    var options: HydraStringToStringMap {
+        HydraStringToStringMap(handle: hydra_loader_plugin_get_options(self.handle))
+    }
+}
+
+struct HydraLoaderPluginList {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    var count: Int {
+        Int(hydra_loader_plugin_list_get_count(self.handle))
+    }
+
+    func get(at index: Int) -> HydraLoaderPlugin {
+        return HydraLoaderPlugin(handle: hydra_loader_plugin_list_get(self.handle, UInt32(index)))
+    }
+
+    func resize(newCount: Int) {
+        hydra_loader_plugin_list_resize(self.handle, UInt32(newCount))
     }
 }
 
@@ -159,6 +248,10 @@ func hydraConfigGetAppDataPath() -> String {
 
 func hydraConfigGetGamePaths() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_game_paths())
+}
+
+func hydraConfigGetLoaderPlugins() -> HydraLoaderPluginList {
+    HydraLoaderPluginList(handle: hydra_config_get_loader_plugins())
 }
 
 func hydraConfigGetPatchPaths() -> HydraStringList {
