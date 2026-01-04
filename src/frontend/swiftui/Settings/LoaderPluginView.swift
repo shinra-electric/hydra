@@ -4,6 +4,11 @@ struct LoaderPluginConfig: Equatable, Hashable {
     var path: String
     var options: [String: String]
 
+    init(path: String, options: [String: String]) {
+        self.path = path
+        self.options = options
+    }
+
     init(handle: HydraLoaderPluginConfig) {
         self.path = handle.path
         self.options = [:]
@@ -26,7 +31,7 @@ struct LoaderPluginConfig: Equatable, Hashable {
 }
 
 struct LoaderPluginView: View {
-    var config: LoaderPluginConfig
+    @Binding var config: LoaderPluginConfig
 
     @State private var name = ""
     @State private var displayVersion = ""
@@ -39,7 +44,6 @@ struct LoaderPluginView: View {
             Text(self.displayVersion)
             Text("Supported formats: \(self.supportedFormats.joined(separator: ", "))")
         }
-        .multilineTextAlignment(.leading)
         .onAppear {
             let plugin = HydraLoaderPlugin(path: config.path, options: config.options)
             self.name = plugin.name

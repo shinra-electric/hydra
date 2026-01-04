@@ -22,7 +22,6 @@ struct EditablePathList: View {
                         .font(.system(size: 16))
                 }
                 .buttonStyle(PlainButtonStyle())
-                // TODO: allow specifying allowedContentTypes
                 .fileImporter(
                     isPresented: $isFilePickerPresented,
                     allowedContentTypes: self.allowedContentTypes,

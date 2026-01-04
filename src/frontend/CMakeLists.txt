@@ -45,6 +45,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/Error.swift
         swiftui/helpers/Math.swift
         swiftui/helpers/UrlResolver.swift
+        swiftui/helpers/DeleteButton.swift
         swiftui/helpers/StringList.swift
         swiftui/helpers/EditableStringList.swift
         swiftui/helpers/EditablePathList.swift
