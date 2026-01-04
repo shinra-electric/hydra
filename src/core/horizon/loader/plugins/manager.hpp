@@ -11,7 +11,7 @@ class Manager {
         return instance;
     }
 
-    Manager();
+    void Refresh();
 
     Plugin* FindPluginForFormat(std::string_view format);
 

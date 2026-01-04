@@ -6,6 +6,7 @@
 #include "core/horizon/filesystem/disk_file.hpp"
 #include "core/horizon/firmware.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
+#include "core/horizon/loader/plugins/manager.hpp"
 #include "core/horizon/ui/handler_base.hpp"
 #include <string>
 
@@ -51,6 +52,14 @@ HYDRA_EXPORT void hydra_string_list_append(void* list, hydra_string value) {
 }
 
 // String to string map
+HYDRA_EXPORT void* hydra_create_string_to_string_map() {
+    return new std::map<std::string, std::string>();
+}
+
+HYDRA_EXPORT void hydra_string_to_string_map_destroy(void* map) {
+    delete reinterpret_cast<std::map<std::string, std::string>*>(map);
+}
+
 HYDRA_EXPORT uint32_t hydra_string_to_string_map_get_count(const void* map) {
     return static_cast<uint32_t>(
         reinterpret_cast<const std::map<std::string, std::string>*>(map)
@@ -254,6 +263,50 @@ HYDRA_EXPORT uint16_t* hydra_config_get_gdb_port() {
 
 HYDRA_EXPORT bool* hydra_config_get_gdb_wait_for_client() {
     return &hydra::CONFIG_INSTANCE.GetGdbWaitForClient();
+}
+
+// Loader plugins
+HYDRA_EXPORT void hydra_loader_plugin_manager_refresh() {
+    hydra::horizon::loader::plugins::Manager::GetInstance().Refresh();
+}
+
+HYDRA_EXPORT void* hydra_create_loader_plugin(hydra_string path,
+                                              const void* options) {
+    return new hydra::horizon::loader::plugins::Plugin(
+        std::string(string_view_from_hydra_string(path)),
+        *reinterpret_cast<const std::map<std::string, std::string>*>(options));
+}
+
+HYDRA_EXPORT void hydra_loader_plugin_destroy(void* plugin) {
+    delete reinterpret_cast<hydra::horizon::loader::plugins::Plugin*>(plugin);
+}
+
+HYDRA_EXPORT hydra_string hydra_loader_plugin_get_name(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetName());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_display_version(const void* plugin) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetDisplayVersion());
+}
+
+HYDRA_EXPORT uint32_t
+hydra_loader_plugin_get_supported_format_count(const void* plugin) {
+    return static_cast<uint32_t>(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()
+            .size());
+}
+
+HYDRA_EXPORT hydra_string
+hydra_loader_plugin_get_supported_format(const void* plugin, uint32_t index) {
+    return hydra_string_from_string_view(
+        reinterpret_cast<const hydra::horizon::loader::plugins::Plugin*>(plugin)
+            ->GetSupportedFormats()[index]);
 }
 
 // Filesystem

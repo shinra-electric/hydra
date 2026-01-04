@@ -2,7 +2,9 @@
 
 namespace hydra::horizon::loader::plugins {
 
-Manager::Manager() {
+void Manager::Refresh() {
+    plugins.clear();
+    plugins.reserve(CONFIG_INSTANCE.GetLoaderPlugins().size());
     for (const auto& plugin_config : CONFIG_INSTANCE.GetLoaderPlugins()) {
         if (!std::filesystem::exists(plugin_config.path)) {
             LOG_ERROR(Other, "Plugin path \"{}\" does not exist",

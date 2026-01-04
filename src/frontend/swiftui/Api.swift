@@ -188,7 +188,7 @@ struct HydraStringToStringMap {
 }
 
 // Loader plugin
-struct HydraLoaderPlugin {
+struct HydraLoaderPluginConfig {
     private let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
@@ -213,7 +213,7 @@ struct HydraLoaderPlugin {
     }
 }
 
-struct HydraLoaderPluginList {
+struct HydraLoaderPluginConfigList {
     private let handle: UnsafeMutableRawPointer
 
     fileprivate init(handle: UnsafeMutableRawPointer) {
@@ -224,8 +224,9 @@ struct HydraLoaderPluginList {
         Int(hydra_loader_plugin_list_get_count(self.handle))
     }
 
-    func get(at index: Int) -> HydraLoaderPlugin {
-        return HydraLoaderPlugin(handle: hydra_loader_plugin_list_get(self.handle, UInt32(index)))
+    func get(at index: Int) -> HydraLoaderPluginConfig {
+        return HydraLoaderPluginConfig(
+            handle: hydra_loader_plugin_list_get(self.handle, UInt32(index)))
     }
 
     func resize(newCount: Int) {
@@ -250,8 +251,8 @@ func hydraConfigGetGamePaths() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_game_paths())
 }
 
-func hydraConfigGetLoaderPlugins() -> HydraLoaderPluginList {
-    HydraLoaderPluginList(handle: hydra_config_get_loader_plugins())
+func hydraConfigGetLoaderPlugins() -> HydraLoaderPluginConfigList {
+    HydraLoaderPluginConfigList(handle: hydra_config_get_loader_plugins())
 }
 
 func hydraConfigGetPatchPaths() -> HydraStringList {
@@ -360,6 +361,52 @@ func hydraConfigGetGdbPort() -> UnsafeMutablePointer<UInt16> {
 
 func hydraConfigGetGdbWaitForClient() -> UnsafeMutablePointer<Bool> {
     hydra_config_get_gdb_wait_for_client()
+}
+
+// Loader plugins
+func hydraLoaderPluginManagerRefresh() {
+    hydra_loader_plugin_manager_refresh()
+}
+
+class HydraLoaderPlugin {
+    private let handle: UnsafeMutableRawPointer
+
+    init(path: String, options: [String: String]) {
+        // Create map
+        let optionsMapHandle = hydra_create_string_to_string_map()
+        defer { hydra_string_to_string_map_destroy(optionsMapHandle) }
+
+        let optionsMap = HydraStringToStringMap(handle: optionsMapHandle)
+        for (key, value) in options {
+            optionsMap.set(byKey: key, value: value)
+        }
+
+        // Create plugin
+        self.handle = path.withHydraString { hydraPath in
+            hydra_create_loader_plugin(hydraPath, optionsMapHandle)
+        }
+    }
+
+    deinit {
+        hydra_loader_plugin_destroy(self.handle)
+    }
+
+    var name: String {
+        String(withHydraString: hydra_loader_plugin_get_name(self.handle))
+    }
+
+    var displayVersion: String {
+        String(withHydraString: hydra_loader_plugin_get_display_version(self.handle))
+    }
+
+    func getSupportedFormatCount() -> Int {
+        Int(hydra_loader_plugin_get_supported_format_count(self.handle))
+    }
+
+    func getSupportedFormat(at index: Int) -> String {
+        String(
+            withHydraString: hydra_loader_plugin_get_supported_format(self.handle, UInt32(index)))
+    }
 }
 
 // Filesystem

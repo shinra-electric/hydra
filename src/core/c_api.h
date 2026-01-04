@@ -133,6 +133,8 @@ void hydra_string_list_set(void* list, uint32_t index, hydra_string value);
 void hydra_string_list_append(void* list, hydra_string value);
 
 // String to string map
+__attribute__((returns_nonnull)) void* hydra_create_string_to_string_map();
+void hydra_string_to_string_map_destroy(void* map);
 uint32_t hydra_string_to_string_map_get_count(const void* map);
 hydra_string hydra_string_to_string_map_get_key(const void* map,
                                                 uint32_t index);
@@ -186,6 +188,17 @@ void* hydra_config_get_process_args();
 bool* hydra_config_get_gdb_enabled();
 uint16_t* hydra_config_get_gdb_port();
 bool* hydra_config_get_gdb_wait_for_client();
+
+// Loader plugins
+void hydra_loader_plugin_manager_refresh();
+__attribute__((returns_nonnull)) void*
+hydra_create_loader_plugin(hydra_string path, const void* options);
+void hydra_loader_plugin_destroy(void* plugin);
+hydra_string hydra_loader_plugin_get_name(const void* plugin);
+hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
+uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
+hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
+                                                      uint32_t index);
 
 // Filesystem
 void* hydra_create_filesystem();

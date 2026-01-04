@@ -24,6 +24,8 @@ class Plugin {
         ContextCreationFailed,
     };
 
+    // HACK: need to accept const std::string& instead of std::string_view, as
+    // dlopen need a null-terminated string
     Plugin(const std::string& path,
            const std::map<std::string, std::string>& options);
     ~Plugin();
@@ -139,6 +141,11 @@ class Plugin {
 
         return reinterpret_cast<T>(func);
     }
+
+  public:
+    CONST_REF_GETTER(name, GetName);
+    CONST_REF_GETTER(display_version, GetDisplayVersion);
+    CONST_REF_GETTER(supported_formats, GetSupportedFormats);
 };
 
 } // namespace hydra::horizon::loader::plugins
