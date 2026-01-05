@@ -15,6 +15,8 @@ private let switchType = UTType(exportedAs: "com.samoz256.switch-document", conf
 #endif
 
 struct GameListToolbarItems: ToolbarContent {
+    @EnvironmentObject var globalState: GlobalState
+
     @Binding var viewMode: Int
 
     @State private var isFirmwareFilePickerPresented = false
@@ -103,10 +105,11 @@ struct GameListToolbarItems: ToolbarContent {
                             continue
                         }
 
+                        // TODO: isn't there a better way?
+                        globalState.gamePaths.append(fileURL.path(percentEncoded: false))
                         let gamePathsOption = hydraConfigGetGamePaths()
                         gamePathsOption.append(
                             value: fileURL.path(percentEncoded: false))
-
                         hydraConfigSerialize()
                     }
                 case .failure(let error):
