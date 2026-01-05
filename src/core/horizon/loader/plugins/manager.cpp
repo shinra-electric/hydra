@@ -17,7 +17,8 @@ void Manager::Refresh() {
             continue;
         }
 
-        plugins.emplace_back(plugin_config.path, plugin_config.options);
+        plugins.emplace_back(plugin_config.path);
+        plugins.back().InitializeContext(plugin_config.options);
     }
 }
 

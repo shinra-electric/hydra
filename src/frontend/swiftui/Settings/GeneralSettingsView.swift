@@ -21,7 +21,7 @@ struct GeneralSettingsView: View {
                     )
                     .onChange(of: globalState.gamePaths) { _, newValue in
                         let gamePathsOption = hydraConfigGetGamePaths()
-                        gamePathsOption.resize(newCount: newValue.count)
+                        gamePathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             gamePathsOption.set(at: i, value: newValue[i])
                         }
@@ -36,7 +36,7 @@ struct GeneralSettingsView: View {
                     )
                     .onChange(of: self.patchPaths) { _, newValue in
                         let patchPathsOption = hydraConfigGetPatchPaths()
-                        patchPathsOption.resize(newCount: newValue.count)
+                        patchPathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             patchPathsOption.set(at: i, value: newValue[i])
                         }

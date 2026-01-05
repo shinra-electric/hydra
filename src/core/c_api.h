@@ -126,11 +126,20 @@ typedef enum : uint32_t {
 } HydraDebuggerThreadStatus;
 
 // String list
+__attribute__((returns_nonnull)) void* hydra_create_string_list();
+void hydra_string_list_destroy(void* list);
 uint32_t hydra_string_list_get_count(const void* list);
 hydra_string hydra_string_list_get(const void* list, uint32_t index);
 void hydra_string_list_resize(void* list, uint32_t size);
 void hydra_string_list_set(void* list, uint32_t index, hydra_string value);
 void hydra_string_list_append(void* list, hydra_string value);
+
+// String view list
+uint32_t hydra_string_view_list_get_count(const void* list);
+hydra_string hydra_string_view_list_get(const void* list, uint32_t index);
+void hydra_string_view_list_resize(void* list, uint32_t size);
+void hydra_string_view_list_set(void* list, uint32_t index, hydra_string value);
+void hydra_string_view_list_append(void* list, hydra_string value);
 
 // String to string map
 __attribute__((returns_nonnull)) void* hydra_create_string_to_string_map();
@@ -190,15 +199,44 @@ uint16_t* hydra_config_get_gdb_port();
 bool* hydra_config_get_gdb_wait_for_client();
 
 // Loader plugins
+
+// Manager
 void hydra_loader_plugin_manager_refresh();
+
+// Plugin
 __attribute__((returns_nonnull)) void*
-hydra_create_loader_plugin(hydra_string path, const void* options);
+hydra_create_loader_plugin(hydra_string path);
 void hydra_loader_plugin_destroy(void* plugin);
 hydra_string hydra_loader_plugin_get_name(const void* plugin);
 hydra_string hydra_loader_plugin_get_display_version(const void* plugin);
 uint32_t hydra_loader_plugin_get_supported_format_count(const void* plugin);
 hydra_string hydra_loader_plugin_get_supported_format(const void* plugin,
                                                       uint32_t index);
+uint32_t hydra_loader_plugin_get_option_config_count(const void* plugin);
+const void* hydra_loader_plugin_get_option_config(const void* plugin,
+                                                  uint32_t index);
+
+// Option config
+typedef enum HydraLoaderPluginOptionType : uint32_t {
+    HYDRA_LOADER_PLUGIN_OPTION_TYPE_BOOLEAN = 0,
+    HYDRA_LOADER_PLUGIN_OPTION_TYPE_INTEGER = 1,
+    HYDRA_LOADER_PLUGIN_OPTION_TYPE_ENUMERATION = 2,
+    HYDRA_LOADER_PLUGIN_OPTION_TYPE_STRING = 3,
+    HYDRA_LOADER_PLUGIN_OPTION_TYPE_PATH = 4,
+} HydraLoaderPluginOptionType;
+
+void* hydra_loader_plugin_option_config_copy(const void* config);
+void hydra_loader_plugin_option_config_destroy(void* config);
+hydra_string hydra_loader_plugin_option_config_get_name(const void* config);
+hydra_string
+hydra_loader_plugin_option_config_get_description(const void* config);
+HydraLoaderPluginOptionType
+hydra_loader_plugin_option_config_get_type(const void* config);
+bool hydra_loader_plugin_option_config_get_is_required(const void* config);
+__attribute__((returns_nonnull)) const void*
+hydra_loader_plugin_option_config_get_enum_value_names(const void* config);
+__attribute__((returns_nonnull)) const void*
+hydra_loader_plugin_option_config_get_path_content_types(const void* config);
 
 // Filesystem
 void* hydra_create_filesystem();

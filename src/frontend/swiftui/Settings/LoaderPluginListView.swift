@@ -8,14 +8,13 @@ struct LoaderPluginListView: View {
 
     @State private var configs: [LoaderPluginConfig] = []
 
-    @State private var isFilePickerPresented: Bool = false
+    @State private var isFilePickerPresented = false
 
     var body: some View {
         Section("Loader Plug-Ins") {
             ForEach(self.$configs, id: \.self) { config in
                 HStack {
                     LoaderPluginView(config: config)
-                    Spacer()
                     DeleteButton(action: {
                         if let index = self.configs.firstIndex(of: config.wrappedValue) {
                             self.configs.remove(at: index)
@@ -64,7 +63,7 @@ struct LoaderPluginListView: View {
         }
         .onChange(of: self.configs) { _, newValue in
             let loaderPluginsOption = hydraConfigGetLoaderPlugins()
-            loaderPluginsOption.resize(newCount: newValue.count)
+            loaderPluginsOption.resize(to: newValue.count)
             for i in 0..<newValue.count {
                 var newHandle = loaderPluginsOption.get(at: i)
                 newValue[i].serialize(to: &newHandle)

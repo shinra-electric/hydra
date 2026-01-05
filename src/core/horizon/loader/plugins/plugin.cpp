@@ -73,8 +73,7 @@ void AddFile(void* plugin, filesystem::Directory* dir,
 
 } // namespace
 
-Plugin::Plugin(const std::string& path,
-               const std::map<std::string, std::string>& options) {
+Plugin::Plugin(const std::string& path) {
     library = dlopen(path.data(), RTLD_LAZY);
     ASSERT_THROWING(library, Loader, Error::LoadFailed,
                     "Failed to load plugin at path {}: {}", path, dlerror());
@@ -82,11 +81,11 @@ Plugin::Plugin(const std::string& path,
     // Functions
     get_api_version =
         LoadFunction<api::Function::GetApiVersion, api::GetApiVersionFnT>();
+    query = LoadFunction<api::Function::Query, api::QueryFnT>();
     create_context =
         LoadFunction<api::Function::CreateContext, api::CreateContextFnT>();
     destroy_context =
         LoadFunction<api::Function::DestroyContext, api::DestroyContextFnT>();
-    query = LoadFunction<api::Function::Query, api::QueryFnT>();
     create_loader_from_file = LoadFunction<api::Function::CreateLoaderFromFile,
                                            api::CreateLoaderFromFileFnT>();
     loader_destroy =
@@ -113,17 +112,40 @@ Plugin::Plugin(const std::string& path,
     ASSERT_THROWING(GetApiVersion() == 1, Loader, Error::InvalidApiVersion,
                     "Invalid API version");
 
-    // Context
-    context = CreateContext(options);
-    ASSERT_THROWING(context, Loader, Error::ContextCreationFailed,
-                    "Failed to create context");
-
     // Info
-    std::array<u8, 1024> buffer;
-    name = Query(api::QueryType::Name, buffer);
-    display_version = Query(api::QueryType::DisplayVersion, buffer);
-    supported_formats = split<std::string>(
-        Query(api::QueryType::SupportedFormats, buffer), ',');
+    name = QueryString(api::QueryType::Name);
+    display_version = QueryString(api::QueryType::DisplayVersion);
+    supported_formats = split<std::string_view>(
+        QueryString(api::QueryType::SupportedFormats), ',');
+    const auto api_option_configs_buffer = Query(api::QueryType::OptionConfigs);
+    const auto api_option_configs =
+        std::span(reinterpret_cast<const api::OptionConfig*>(
+                      api_option_configs_buffer.data()),
+                  api_option_configs_buffer.size() / sizeof(api::OptionConfig));
+    option_configs.reserve(api_option_configs.size());
+    for (const auto& api_config : api_option_configs) {
+        OptionConfig config{
+            .name = std::string_view(api_config.name),
+            .description = std::string_view(api_config.description),
+            .type = api_config.type,
+            .is_required = api_config.is_required,
+        };
+
+        switch (api_config.type) {
+        case api::OptionType::Enumeration:
+            config.enum_value_names = split<std::string_view>(
+                std::string_view(api_config.enum_value_names), ',');
+            break;
+        case api::OptionType::Path:
+            config.path_content_types = split<std::string_view>(
+                std::string_view(api_config.path_content_types), ',');
+            break;
+        default:
+            break;
+        }
+
+        option_configs.emplace_back(std::move(config));
+    }
 
     LOG_INFO(Loader,
              "Loaded plugin \"{}\" (version: {}, formats: {}) at path \"{}\"",
@@ -131,7 +153,8 @@ Plugin::Plugin(const std::string& path,
 }
 
 Plugin::~Plugin() {
-    DestroyContext();
+    if (context)
+        DestroyContext();
     dlclose(library);
 }
 
@@ -143,38 +166,34 @@ NxLoader* Plugin::Load(std::string_view path) {
 
 u64 Plugin::GetApiVersion() { return get_api_version(); }
 
-void* Plugin::CreateContext(const std::map<std::string, std::string>& options) {
-    std::vector<api::ContextOption> options_vec;
+std::span<const u8> Plugin::Query(api::QueryType what) { return query(what); }
+
+std::string_view Plugin::QueryString(api::QueryType what) {
+    const auto buffer = Query(what);
+    return std::string_view(reinterpret_cast<const char*>(buffer.data()),
+                            buffer.size());
+}
+
+void Plugin::CreateContext(const std::map<std::string, std::string>& options) {
+    std::vector<api::Option> options_vec;
     options_vec.reserve(options.size());
     for (const auto& [key, value] : options) {
         options_vec.emplace_back(
             api::Slice<const char>(std::string_view(key)),
             api::Slice<const char>(std::string_view(value)));
     }
-    const auto ret = create_context(api::Slice(std::span(options_vec)));
+    const auto ret =
+        create_context(api::Slice(std::span<const api::Option>(options_vec)));
     if (ret.res != api::CreateContextResult::Success) {
         throw ret.res;
     }
 
-    return ret.value;
+    context = ret.value;
+    ASSERT_THROWING(context, Loader, ContextError::CreationFailed,
+                    "Failed to create context");
 }
 
 void Plugin::DestroyContext() { destroy_context(context); }
-
-std::string Plugin::Query(api::QueryType what, std::span<u8> buffer) {
-    const auto ret = query(context, what, api::Slice(buffer));
-    switch (ret.res) {
-    case api::QueryResult::Success:
-        break;
-    case api::QueryResult::BufferTooSmall:
-        LOG_FATAL(Loader, "Buffer too small");
-    default:
-        LOG_FATAL(Loader, "Unknown query result: {}", ret.res);
-    }
-
-    return std::string(buffer.begin(),
-                       buffer.begin() + static_cast<i32>(ret.value));
-}
 
 void* Plugin::CreateLoaderFromFile(filesystem::Directory* root_dir,
                                    std::string_view path) {

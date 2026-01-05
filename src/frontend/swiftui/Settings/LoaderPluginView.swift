@@ -23,7 +23,6 @@ struct LoaderPluginConfig: Equatable, Hashable {
 
     func serialize(to handle: inout HydraLoaderPluginConfig) {
         handle.path = self.path
-        handle.options.removeAll()
         for (key, value) in self.options {
             handle.options.set(byKey: key, value: value)
         }
@@ -36,21 +35,55 @@ struct LoaderPluginView: View {
     @State private var name = ""
     @State private var displayVersion = ""
     @State private var supportedFormats: [String] = []
+    @State private var optionConfigs: [HydraLoaderPluginOptionConfig] = []
+
+    @State private var showEditor = false
 
     var body: some View {
-        VStack(alignment: .leading) {
+        HStack {
+            VStack(alignment: .leading) {
+                Text(self.name)
+                    .bold()
+                Text(self.displayVersion)
+                Text("Supported formats: \(self.supportedFormats.joined(separator: ", "))")
+            }
+
+            Spacer()
+
+            Button(action: {
+                self.showEditor = true
+            }) {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+        .sheet(isPresented: self.$showEditor) {
             Text(self.name)
-                .bold()
-            Text(self.displayVersion)
-            Text("Supported formats: \(self.supportedFormats.joined(separator: ", "))")
+            Section {
+                ForEach(self.optionConfigs, id: \.self) { config in
+                    VStack {
+                        HStack {
+                            Text("\(config.name):")
+                                .bold()
+                            // TODO: make configurable
+                            Text(self.config.options[config.name] ?? "")
+                        }
+                        Text(config.description)
+                    }
+                }
+            }
         }
         .onAppear {
-            let plugin = HydraLoaderPlugin(path: config.path, options: config.options)
+            let plugin = HydraLoaderPlugin(path: config.path)
             self.name = plugin.name
             self.displayVersion = plugin.displayVersion
             self.supportedFormats = []
             for i in 0..<plugin.getSupportedFormatCount() {
                 self.supportedFormats.append(plugin.getSupportedFormat(at: i))
+            }
+            self.optionConfigs = []
+            for i in 0..<plugin.getOptionConfigCount() {
+                self.optionConfigs.append(plugin.getOptionConfig(at: i))
             }
         }
     }

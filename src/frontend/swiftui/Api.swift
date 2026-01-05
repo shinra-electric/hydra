@@ -127,7 +127,7 @@ struct HydraStringList {
         return String(withHydraString: hydra_string_list_get(self.handle, UInt32(index)))
     }
 
-    func resize(newCount: Int) {
+    func resize(to newCount: Int) {
         hydra_string_list_resize(self.handle, UInt32(newCount))
     }
 
@@ -140,6 +140,39 @@ struct HydraStringList {
     func append(value: String) {
         value.withHydraString { hydraString in
             hydra_string_list_append(self.handle, hydraString)
+        }
+    }
+}
+
+// String view list
+struct HydraStringViewList {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = handle
+    }
+
+    var count: Int {
+        Int(hydra_string_view_list_get_count(self.handle))
+    }
+
+    func get(at index: Int) -> String {
+        return String(withHydraString: hydra_string_view_list_get(self.handle, UInt32(index)))
+    }
+
+    func resize(to newCount: Int) {
+        hydra_string_view_list_resize(self.handle, UInt32(newCount))
+    }
+
+    func set(at index: Int, value: String) {
+        value.withHydraString { hydraString in
+            hydra_string_view_list_set(self.handle, UInt32(index), hydraString)
+        }
+    }
+
+    func append(value: String) {
+        value.withHydraString { hydraString in
+            hydra_string_view_list_append(self.handle, hydraString)
         }
     }
 }
@@ -229,7 +262,7 @@ struct HydraLoaderPluginConfigList {
             handle: hydra_loader_plugin_list_get(self.handle, UInt32(index)))
     }
 
-    func resize(newCount: Int) {
+    func resize(to newCount: Int) {
         hydra_loader_plugin_list_resize(self.handle, UInt32(newCount))
     }
 }
@@ -371,19 +404,9 @@ func hydraLoaderPluginManagerRefresh() {
 class HydraLoaderPlugin {
     private let handle: UnsafeMutableRawPointer
 
-    init(path: String, options: [String: String]) {
-        // Create map
-        let optionsMapHandle = hydra_create_string_to_string_map()
-        defer { hydra_string_to_string_map_destroy(optionsMapHandle) }
-
-        let optionsMap = HydraStringToStringMap(handle: optionsMapHandle)
-        for (key, value) in options {
-            optionsMap.set(byKey: key, value: value)
-        }
-
-        // Create plugin
+    init(path: String) {
         self.handle = path.withHydraString { hydraPath in
-            hydra_create_loader_plugin(hydraPath, optionsMapHandle)
+            hydra_create_loader_plugin(hydraPath)
         }
     }
 
@@ -406,6 +429,68 @@ class HydraLoaderPlugin {
     func getSupportedFormat(at index: Int) -> String {
         String(
             withHydraString: hydra_loader_plugin_get_supported_format(self.handle, UInt32(index)))
+    }
+
+    func getOptionConfigCount() -> Int {
+        Int(hydra_loader_plugin_get_option_config_count(self.handle))
+    }
+
+    // HACK: cast immutable to mutable
+    func getOptionConfig(at index: Int) -> HydraLoaderPluginOptionConfig {
+        HydraLoaderPluginOptionConfig(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_get_option_config(self.handle, UInt32(index))))
+    }
+}
+
+class HydraLoaderPluginOptionConfig: Hashable, Identifiable {
+    private let handle: UnsafeMutableRawPointer
+
+    fileprivate init(handle: UnsafeMutableRawPointer) {
+        self.handle = hydra_loader_plugin_option_config_copy(handle)
+    }
+
+    deinit {
+        hydra_loader_plugin_option_config_destroy(self.handle)
+    }
+
+    static func == (lhs: HydraLoaderPluginOptionConfig, rhs: HydraLoaderPluginOptionConfig)
+        -> Bool
+    {
+        lhs.handle == rhs.handle
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.handle)
+    }
+
+    var name: String {
+        String(withHydraString: hydra_loader_plugin_option_config_get_name(self.handle))
+    }
+
+    var description: String {
+        String(withHydraString: hydra_loader_plugin_option_config_get_description(self.handle))
+    }
+
+    var type: HydraLoaderPluginOptionType {
+        hydra_loader_plugin_option_config_get_type(self.handle)
+    }
+
+    var isRequired: Bool {
+        hydra_loader_plugin_option_config_get_is_required(self.handle)
+    }
+
+    // HACK: cast immutable to mutable
+    var enumValueNames: HydraStringViewList {
+        HydraStringViewList(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_option_config_get_enum_value_names(self.handle)))
+    }
+
+    var pathContentTypes: HydraStringViewList {
+        HydraStringViewList(
+            handle: UnsafeMutableRawPointer(
+                mutating: hydra_loader_plugin_option_config_get_path_content_types(self.handle)))
     }
 }
 

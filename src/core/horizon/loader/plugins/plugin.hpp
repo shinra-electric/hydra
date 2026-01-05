@@ -14,6 +14,16 @@ class NxLoader;
 
 namespace hydra::horizon::loader::plugins {
 
+struct OptionConfig {
+    std::string_view name;
+    std::string_view description;
+    api::OptionType type;
+    bool is_required;
+    // TODO: put these into a union?
+    std::vector<std::string_view> enum_value_names;
+    std::vector<std::string_view> path_content_types;
+};
+
 class Plugin {
     friend class Manager;
 
@@ -21,22 +31,33 @@ class Plugin {
     enum class Error {
         LoadFailed,
         InvalidApiVersion,
-        ContextCreationFailed,
     };
 
     // HACK: need to accept const std::string& instead of std::string_view, as
     // dlopen need a null-terminated string
-    Plugin(const std::string& path,
-           const std::map<std::string, std::string>& options);
+    Plugin(const std::string& path);
     ~Plugin();
+
+    enum class ContextError {
+        InvalidOptions,
+        CreationFailed,
+    };
+    void InitializeContext(const std::map<std::string, std::string>& options) {
+        ASSERT_THROWING(options.size() == option_configs.size(), Loader,
+                        ContextError::CreationFailed,
+                        "Invalid option count (expected {}, got {})",
+                        option_configs.size(), options.size());
+        CreateContext(options);
+    }
 
     NxLoader* Load(std::string_view path);
 
     // API
     u64 GetApiVersion();
-    void* CreateContext(const std::map<std::string, std::string>& options);
+    std::span<const u8> Query(api::QueryType what);
+    std::string_view QueryString(api::QueryType what);
+    void CreateContext(const std::map<std::string, std::string>& options);
     void DestroyContext();
-    std::string Query(api::QueryType what, std::span<u8> buffer);
     void* CreateLoaderFromFile(filesystem::Directory* root_dir,
                                std::string_view path);
     void LoaderDestroy(void* loader);
@@ -55,9 +76,9 @@ class Plugin {
 
     // Functions
     api::GetApiVersionFnT get_api_version;
+    api::QueryFnT query;
     api::CreateContextFnT create_context;
     api::DestroyContextFnT destroy_context;
-    api::QueryFnT query;
     api::CreateLoaderFromFileFnT create_loader_from_file;
     api::LoaderDestroyFnT loader_destroy;
     api::FileDestroyFnT file_destroy;
@@ -70,13 +91,14 @@ class Plugin {
     api::StreamGetSizeFnT stream_get_size;
     api::StreamReadRawFnT stream_read_raw;
 
-    // Context
-    void* context;
-
     // Info
-    std::string name;
-    std::string display_version;
-    std::vector<std::string> supported_formats;
+    std::string_view name;
+    std::string_view display_version;
+    std::vector<std::string_view> supported_formats;
+    std::vector<OptionConfig> option_configs;
+
+    // Context
+    void* context{nullptr};
 
     // Helpers
     enum class GetFunctionError {
@@ -146,6 +168,7 @@ class Plugin {
     CONST_REF_GETTER(name, GetName);
     CONST_REF_GETTER(display_version, GetDisplayVersion);
     CONST_REF_GETTER(supported_formats, GetSupportedFormats);
+    CONST_REF_GETTER(option_configs, GetOptionConfigs);
 };
 
 } // namespace hydra::horizon::loader::plugins
