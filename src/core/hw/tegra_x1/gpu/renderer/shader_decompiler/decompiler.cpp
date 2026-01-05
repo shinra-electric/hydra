@@ -98,10 +98,10 @@ void Decompiler::Decompile(io::MemoryStream& code_stream, const ShaderType type,
         for (u32 i = 0; i < PIXEL_IMAP_COUNT; i++) {
             const auto imap = header.ps.imap_generic_vector[i];
             context.frag.pixel_imaps[i] = {
-                .x = extract_bits<PixelImapType, 0, 2>(imap),
-                .y = extract_bits<PixelImapType, 2, 2>(imap),
-                .z = extract_bits<PixelImapType, 4, 2>(imap),
-                .w = extract_bits<PixelImapType, 6, 2>(imap),
+                .x = static_cast<PixelImapType>(extract_bits(imap, 0, 2)),
+                .y = static_cast<PixelImapType>(extract_bits(imap, 2, 2)),
+                .z = static_cast<PixelImapType>(extract_bits(imap, 4, 2)),
+                .w = static_cast<PixelImapType>(extract_bits(imap, 6, 2)),
             };
         }
     }

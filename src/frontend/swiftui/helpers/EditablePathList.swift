@@ -15,14 +15,13 @@ struct EditablePathList: View {
                 Spacer()
 
                 Button(action: {
-                    isFilePickerPresented.toggle()
+                    isFilePickerPresented = true
                 }) {
                     Image(systemName: "plus")
                         .foregroundColor(.gray)
                         .font(.system(size: 16))
                 }
                 .buttonStyle(PlainButtonStyle())
-                // TODO: allow specifying allowedContentTypes
                 .fileImporter(
                     isPresented: $isFilePickerPresented,
                     allowedContentTypes: self.allowedContentTypes,

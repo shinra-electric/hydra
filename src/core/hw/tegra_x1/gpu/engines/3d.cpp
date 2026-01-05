@@ -12,8 +12,8 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 namespace {
 
-u32 get_image_handle(u32 handle) { return extract_bits<u32, 0, 20>(handle); }
-u32 get_sampler_handle(u32 handle) { return extract_bits<u32, 20, 12>(handle); }
+u32 get_image_handle(u32 handle) { return extract_bits(handle, 0, 20); }
+u32 get_sampler_handle(u32 handle) { return extract_bits(handle, 20, 12); }
 
 constexpr u32 GL_MIN = 0x8007;
 constexpr u32 GL_MAX = 0x8008;
@@ -374,7 +374,7 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
         LOG_WARN(Engines, "Reserved");
         break;
     case 0x4: {
-        const auto index = extract_bits<u32, 4, 5>(data);
+        const auto index = extract_bits(data, 4, 5);
         bool valid = data & 0x1;
         if (valid) {
             const uptr const_buffer_gpu_ptr =

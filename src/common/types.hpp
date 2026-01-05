@@ -78,9 +78,7 @@ class BitField {
   public:
     operator T() { return Get(); }
 
-    T Get() const {
-        return static_cast<T>(extract_bits<Underlying, b, count>(raw));
-    }
+    T Get() const { return static_cast<T>(extract_bits(raw, b, count)); }
 
   private:
     Underlying raw;
@@ -92,6 +90,7 @@ using BitField32 = BitField<u32, T, b, count>;
 template <typename T, u64 b, u64 count>
 using BitField64 = BitField<u64, T, b, count>;
 
+// TODO: rework
 template <typename T, u32 component_count>
 class vec {
   public:
@@ -106,7 +105,7 @@ class vec {
     template <typename OtherT, u32 other_component_count>
     vec(const vec<OtherT, other_component_count>& other) {
         for (u32 i = 0; i < component_count; i++)
-            components[i] = other[i];
+            components[i] = static_cast<T>(other[i]);
     }
 
     bool operator==(const vec<T, component_count>& other) const {
@@ -118,18 +117,50 @@ class vec {
         return true;
     }
 
-    T& operator[](i32 index) { return components[index]; }
-    const T& operator[](i32 index) const { return components[index]; }
+    T& operator[](u32 index) { return components[index]; }
+    const T& operator[](u32 index) const { return components[index]; }
 
-    T& x() { return components[0]; }
-    T& y() { return components[1]; }
-    T& z() { return components[2]; }
-    T& w() { return components[3]; }
+    T& x()
+        requires(component_count >= 1)
+    {
+        return components[0];
+    }
+    T& y()
+        requires(component_count >= 2)
+    {
+        return components[1];
+    }
+    T& z()
+        requires(component_count >= 3)
+    {
+        return components[2];
+    }
+    T& w()
+        requires(component_count >= 4)
+    {
+        return components[3];
+    }
 
-    T x() const { return components[0]; }
-    T y() const { return components[1]; }
-    T z() const { return components[2]; }
-    T w() const { return components[3]; }
+    T x() const
+        requires(component_count >= 1)
+    {
+        return components[0];
+    }
+    T y() const
+        requires(component_count >= 2)
+    {
+        return components[1];
+    }
+    T z() const
+        requires(component_count >= 3)
+    {
+        return components[2];
+    }
+    T w() const
+        requires(component_count >= 4)
+    {
+        return components[3];
+    }
 
   private:
     std::array<T, component_count> components = {0};
@@ -309,7 +340,13 @@ template <typename T>
 class strong_number_typedef {
   public:
     constexpr strong_number_typedef() : value{} {}
-    constexpr strong_number_typedef(const T& value_) : value{value_} {}
+    // HACK: allow casting from any integer
+    constexpr strong_number_typedef(u64 value_)
+        requires std::is_unsigned_v<T>
+        : value{static_cast<T>(value_)} {}
+    constexpr strong_number_typedef(i64 value_)
+        requires std::is_signed_v<T>
+        : value{static_cast<T>(value_)} {}
 
     void operator=(const T& new_value) { value = new_value; }
     void operator+=(const T& other) { value += other; }

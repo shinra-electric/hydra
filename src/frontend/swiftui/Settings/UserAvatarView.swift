@@ -67,7 +67,7 @@ struct UserAvatarView: View {
         }
     #else
         private func loadAvatar() -> UIImage? {
-            var dimensions: UInt64 = 0
+            var dimensions: UInt32 = 0
             guard let cgImage = self.loadAvatarCG(dimensions: &dimensions) else {
                 return nil
             }

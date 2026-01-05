@@ -10,16 +10,12 @@ struct ListGamePreview: View {
             VStack(alignment: .leading) {
                 Text(game.name)
                     .bold()
-                    .frame(alignment: .leading)
                     .padding(4)
                 Text(game.author)
-                    .frame(alignment: .leading)
                     .padding(4)
                 Text(game.version)
-                    .frame(alignment: .leading)
                     .padding(4)
             }
         }
-        .multilineTextAlignment(.leading)
     }
 }

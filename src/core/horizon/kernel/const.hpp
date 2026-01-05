@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/macros.hpp"
 namespace hydra::horizon::kernel {
 
 constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
@@ -535,6 +534,8 @@ enum class LaunchParameterKind : u32 {
     PreselectedUser = 2,
     Unknown0 = 3,
 };
+
+typedef u32 UserId;
 
 enum class CodeMemoryOperation {
     MapOwner = 0,

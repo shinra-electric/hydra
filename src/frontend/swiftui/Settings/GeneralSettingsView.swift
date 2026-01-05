@@ -15,28 +15,28 @@ struct GeneralSettingsView: View {
             Spacer()
             Form {
                 Section("Game Paths") {
-                    // Text("Game paths")
                     EditablePathList(
                         allowedContentTypes: [.folder, self.switchType],
                         items: $globalState.gamePaths
                     )
                     .onChange(of: globalState.gamePaths) { _, newValue in
                         let gamePathsOption = hydraConfigGetGamePaths()
-                        gamePathsOption.resize(newCount: newValue.count)
+                        gamePathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             gamePathsOption.set(at: i, value: newValue[i])
                         }
                     }
                 }
 
+                LoaderPluginListView()
+
                 Section("Patch paths") {
-                    // Text("Patch paths")
                     EditablePathList(
                         allowedContentTypes: [.folder, self.hatchType], items: self.$patchPaths
                     )
                     .onChange(of: self.patchPaths) { _, newValue in
                         let patchPathsOption = hydraConfigGetPatchPaths()
-                        patchPathsOption.resize(newCount: newValue.count)
+                        patchPathsOption.resize(to: newValue.count)
                         for i in 0..<newValue.count {
                             patchPathsOption.set(at: i, value: newValue[i])
                         }

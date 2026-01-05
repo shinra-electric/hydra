@@ -84,6 +84,11 @@ add_library(hydra-core
     horizon/loader/homebrew_loader.hpp
     horizon/loader/nsp_loader.cpp
     horizon/loader/nsp_loader.hpp
+    horizon/loader/plugins/api.hpp
+    horizon/loader/plugins/plugin.cpp
+    horizon/loader/plugins/plugin.hpp
+    horizon/loader/plugins/manager.cpp
+    horizon/loader/plugins/manager.hpp
     horizon/display/binder.cpp
     horizon/display/binder.hpp
     horizon/display/layer.cpp
@@ -642,7 +647,6 @@ if (CUBEB_ENABLED)
 endif ()
 
 target_include_directories(hydra-core PRIVATE ${CMAKE_SOURCE_DIR}/externals/libyaz0/include)
-
 # TODO: only link Apple frameworks if Apple
 target_link_libraries(hydra-core PRIVATE hydra_warnings "-framework Foundation" "-framework Metal" "-framework QuartzCore" "-framework GameController" dynarmic hatch libyaz0 nx2elf hydra-common)
 

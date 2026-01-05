@@ -9,18 +9,13 @@ struct StringList: View {
                 HStack {
                     Text(item)
                     Spacer()
-                    Button(action: {
+                    DeleteButton(action: {
                         if let index = items.firstIndex(of: item) {
                             items.remove(at: index)
                         }
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
+                    })
                 }
             }
         }
-        .listStyle(PlainListStyle())
     }
 }
