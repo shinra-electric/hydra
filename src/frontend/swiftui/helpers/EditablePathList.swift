@@ -15,7 +15,7 @@ struct EditablePathList: View {
                 Spacer()
 
                 Button(action: {
-                    isFilePickerPresented.toggle()
+                    isFilePickerPresented = true
                 }) {
                     Image(systemName: "plus")
                         .foregroundColor(.gray)

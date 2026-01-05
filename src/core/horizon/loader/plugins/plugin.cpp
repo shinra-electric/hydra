@@ -152,6 +152,22 @@ Plugin::Plugin(const std::string& path) {
              name, display_version, supported_formats, path);
 }
 
+Plugin::Plugin(const std::string& path,
+               const std::map<std::string, std::string>& options)
+    : Plugin(path) {
+    // Verify that all required options are present
+    for (const auto& config : option_configs) {
+        if (config.is_required) {
+            ASSERT_THROWING(options.contains(std::string(config.name)), Loader,
+                            ContextError::InvalidOptions,
+                            "Missing option \"{}\"", config.name);
+        }
+    }
+
+    // Create context
+    CreateContext(options);
+}
+
 Plugin::~Plugin() {
     if (context)
         DestroyContext();

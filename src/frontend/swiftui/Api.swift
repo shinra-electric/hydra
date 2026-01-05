@@ -123,6 +123,15 @@ struct HydraStringList {
         Int(hydra_string_list_get_count(self.handle))
     }
 
+    var array: [String] {
+        var arr: [String] = []
+        for i in 0..<count {
+            arr.append(get(at: i))
+        }
+
+        return arr
+    }
+
     func get(at index: Int) -> String {
         return String(withHydraString: hydra_string_list_get(self.handle, UInt32(index)))
     }
@@ -154,6 +163,15 @@ struct HydraStringViewList {
 
     var count: Int {
         Int(hydra_string_view_list_get_count(self.handle))
+    }
+
+    var array: [String] {
+        var arr: [String] = []
+        for i in 0..<count {
+            arr.append(get(at: i))
+        }
+
+        return arr
     }
 
     func get(at index: Int) -> String {

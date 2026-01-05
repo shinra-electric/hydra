@@ -10,7 +10,7 @@ class GlobalState: ObservableObject {
     @Published var isStopping = false
 
     init() {
-        hydra_loader_plugin_manager_refresh()
+        hydraLoaderPluginManagerRefresh()
 
         let gamePathsOption = hydraConfigGetGamePaths()
         for i in 0..<gamePathsOption.count {
@@ -20,7 +20,7 @@ class GlobalState: ObservableObject {
     }
 
     func refreshLoaderPluginManager() {
-        hydra_loader_plugin_manager_refresh()
+        hydraLoaderPluginManagerRefresh()
         // HACK: trigger a game list update
         gamePaths.append("")
         gamePaths.removeLast()

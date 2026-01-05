@@ -52,6 +52,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/helpers/HoverView.swift
         swiftui/helpers/ClickableListItem.swift
         swiftui/helpers/RawImage.swift
+        swiftui/settings/LoaderPluginOptionView.swift
         swiftui/settings/LoaderPluginView.swift
         swiftui/settings/LoaderPluginListView.swift
         swiftui/settings/GeneralSettingsView.swift
@@ -76,7 +77,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift swiftui/macos/KeyCatcherView.swift)
+        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift swiftui/macos/KeyCatcherView.swift swiftui/macos/PathControl.swift)
     endif ()
 
     target_compile_definitions(hydra PRIVATE ${SWIFT_BUILD_TYPE_CONDITION})

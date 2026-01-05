@@ -32,23 +32,17 @@ class Plugin {
         LoadFailed,
         InvalidApiVersion,
     };
-
-    // HACK: need to accept const std::string& instead of std::string_view, as
-    // dlopen need a null-terminated string
-    Plugin(const std::string& path);
-    ~Plugin();
-
     enum class ContextError {
         InvalidOptions,
         CreationFailed,
     };
-    void InitializeContext(const std::map<std::string, std::string>& options) {
-        ASSERT_THROWING(options.size() == option_configs.size(), Loader,
-                        ContextError::CreationFailed,
-                        "Invalid option count (expected {}, got {})",
-                        option_configs.size(), options.size());
-        CreateContext(options);
-    }
+
+    // HACK: need to accept const std::string& instead of std::string_view, as
+    // dlopen need a null-terminated string
+    Plugin(const std::string& path);
+    Plugin(const std::string& path,
+           const std::map<std::string, std::string>& options);
+    ~Plugin();
 
     NxLoader* Load(std::string_view path);
 

@@ -18,7 +18,6 @@ struct LoaderPluginListView: View {
                     DeleteButton(action: {
                         if let index = self.configs.firstIndex(of: config.wrappedValue) {
                             self.configs.remove(at: index)
-                            globalState.refreshLoaderPluginManager()
                         }
                     })
                 }
@@ -68,6 +67,9 @@ struct LoaderPluginListView: View {
                 var newHandle = loaderPluginsOption.get(at: i)
                 newValue[i].serialize(to: &newHandle)
             }
+
+            // Refresh
+            globalState.refreshLoaderPluginManager()
         }
         .onAppear {
             let loaderPluginsOption = hydraConfigGetLoaderPlugins()

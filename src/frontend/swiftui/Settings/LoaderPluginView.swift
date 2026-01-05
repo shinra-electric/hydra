@@ -58,20 +58,25 @@ struct LoaderPluginView: View {
             .buttonStyle(BorderlessButtonStyle())
         }
         .sheet(isPresented: self.$showEditor) {
-            Text(self.name)
-            Section {
-                ForEach(self.optionConfigs, id: \.self) { config in
-                    VStack {
-                        HStack {
-                            Text("\(config.name):")
-                                .bold()
-                            // TODO: make configurable
-                            Text(self.config.options[config.name] ?? "")
-                        }
-                        Text(config.description)
+            VStack(alignment: .leading) {
+                Text(self.name)
+                Section {
+                    ForEach(self.optionConfigs, id: \.self) { config in
+                        LoaderPluginOptionView(
+                            config: config,
+                            value: Binding(
+                                get: { self.config.options[config.name] ?? "" },
+                                set: {
+                                    // HACK
+                                    var copy = self.config.options
+                                    copy[config.name] = $0
+                                    self.config.options = copy
+                                }
+                            ))
                     }
                 }
             }
+            .padding()
         }
         .onAppear {
             let plugin = HydraLoaderPlugin(path: config.path)
