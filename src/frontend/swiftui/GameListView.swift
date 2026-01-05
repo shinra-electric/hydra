@@ -57,6 +57,9 @@ struct GameListView: View {
         .onChange(of: globalState.gamePaths) { _, newValue in
             games = GameListView.createGameList(gamePaths: newValue)
         }
+        .onChange(of: globalState.loaderPluginChangeID) { _, _ in
+            games = GameListView.createGameList(gamePaths: globalState.gamePaths)
+        }
     }
 
     static func createGameList(gamePaths: [String]) -> [Game] {

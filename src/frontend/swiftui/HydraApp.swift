@@ -3,6 +3,7 @@ import SwiftUI
 class GlobalState: ObservableObject {
     // Game library
     @Published var gamePaths: [String] = []
+    @Published var loaderPluginChangeID = 0  // HACK
 
     // Emulation
     @Published var activeGame: Game? = nil
@@ -21,9 +22,7 @@ class GlobalState: ObservableObject {
 
     func refreshLoaderPluginManager() {
         hydraLoaderPluginManagerRefresh()
-        // HACK: trigger a game list update
-        gamePaths.append("")
-        gamePaths.removeLast()
+        loaderPluginChangeID += 1
     }
 }
 
