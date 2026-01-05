@@ -15,12 +15,12 @@ DEFINE_IOCTL_TABLE(NvHostCtrl,
 NvResult NvHostCtrl::QueryEvent(u32 event_id_u32, kernel::Event*& out_event) {
     u32 slot;
     u32 syncpoint_id;
-    if (extract_bits<u32, 28, 1>(event_id_u32)) { // New format
-        slot = extract_bits<u32, 0, 16>(event_id_u32);
-        syncpoint_id = extract_bits<u32, 16, 12>(event_id_u32);
+    if (extract_bits(event_id_u32, 28, 1)) { // New format
+        slot = extract_bits(event_id_u32, 0, 16);
+        syncpoint_id = extract_bits(event_id_u32, 16, 12);
     } else { // Old format
-        slot = extract_bits<u32, 0, 8>(event_id_u32);
-        syncpoint_id = extract_bits<u32, 4, 28>(event_id_u32);
+        slot = extract_bits(event_id_u32, 0, 8);
+        syncpoint_id = extract_bits(event_id_u32, 4, 28);
     }
 
     if (slot >= EVENT_COUNT) {

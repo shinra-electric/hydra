@@ -77,8 +77,8 @@ inline ir::Value GetHalf2Const20(ir::Builder& builder, u32 h0_imm10,
 }
 
 inline ir::Value GetHalf2Const32(ir::Builder& builder, u32 imm32) {
-    return GetHalf2Const(builder, extract_bits<u32, 0, 16>(imm32),
-                         extract_bits<u32, 16, 16>(imm32));
+    return GetHalf2Const(builder, extract_bits(imm32, 0, 16),
+                         extract_bits(imm32, 16, 16));
 }
 
 inline ir::Value NegIf(ir::Builder& builder, const ir::Value& value, bool neg) {

@@ -197,7 +197,7 @@ void Config::Serialize() {
 
     {
         auto& user = data.at("User");
-        user["user_id"] = user_id;
+        user["user_id"] = static_cast<u32>(user_id); // HACK
     }
 
     {

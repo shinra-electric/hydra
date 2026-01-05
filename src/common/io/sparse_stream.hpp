@@ -43,7 +43,8 @@ class SparseStream : public IStream {
                 entry.stream->SeekTo(seek - entry.range.begin);
                 entry.stream->ReadRaw(buffer.subspan(0, max_read_size));
             } else {
-                std::fill(buffer.begin(), buffer.begin() + max_read_size, 0);
+                std::fill(buffer.begin(),
+                          buffer.begin() + static_cast<i32>(max_read_size), 0);
             }
 
             seek += max_read_size;

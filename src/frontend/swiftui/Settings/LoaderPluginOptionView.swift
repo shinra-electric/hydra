@@ -17,28 +17,32 @@ struct LoaderPluginOptionView: View {
                 // TODO: all types
                 switch config.type {
                 case HYDRA_LOADER_PLUGIN_OPTION_TYPE_PATH:
-                    let urlBinding = Binding<URL?>(
-                        get: {
-                            if value.isEmpty {
-                                return nil
-                            }
-                            return URL(fileURLWithPath: value)
-                        },
-                        set: { newURL in
-                            if let newURLUnwrapped = newURL {
-                                self.value = newURLUnwrapped.path(percentEncoded: false)
-                            }
-                        }
-                    )
-
                     HStack {
-                        // TODO: don't allow any content type
-                        PathControl(
-                            url: urlBinding,
-                            allowedTypes: nil,
-                            placeholderString: config.description,
-                        )
-                        .frame(height: 24)
+                        #if os(macOS)
+                            let urlBinding = Binding<URL?>(
+                                get: {
+                                    if value.isEmpty {
+                                        return nil
+                                    }
+                                    return URL(fileURLWithPath: value)
+                                },
+                                set: { newURL in
+                                    if let newURLUnwrapped = newURL {
+                                        self.value = newURLUnwrapped.path(percentEncoded: false)
+                                    }
+                                }
+                            )
+
+                            // TODO: don't allow any content type
+                            PathControl(
+                                url: urlBinding,
+                                allowedTypes: nil,
+                                placeholderString: config.description,
+                            )
+                            .frame(height: 24)
+                        #else
+                            Text(self.value)
+                        #endif
 
                         Button(action: {
                             self.isFilePickerPresented = true

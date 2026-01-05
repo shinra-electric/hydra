@@ -8,14 +8,14 @@ namespace hydra::hw::tegra_x1::gpu {
 namespace {
 
 enum class SecondaryOpcode : u32 {
-    Grp0UseTert,
-    IncMethod,
-    Grp2UseTert,
-    NonIncMethod,
-    ImmDataMethod,
-    OneInc,
-    Reserved,
-    EndPbSegment,
+    Grp0UseTert = 0,
+    IncMethod = 1,
+    Grp2UseTert = 2,
+    NonIncMethod = 3,
+    ImmDataMethod = 4,
+    OneInc = 5,
+    Reserved = 6,
+    EndPbSegment = 7,
 };
 
 // TODO: do both GRP0 and GRP2 use the same tertiary opcodes?
@@ -99,9 +99,7 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
         return false;
     }
 
-#define TERTIARY_OPCODE                                                        \
-    static_cast<TertiaryOpcode>(                                               \
-        extract_bits<u32, 16, 17>(std::bit_cast<u32>(header)))
+#define TERTIARY_OPCODE static_cast<TertiaryOpcode>(header.arg & 0x3)
 
     u32 offset = header.method;
     switch (header.secondary_opcode) {

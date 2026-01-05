@@ -39,14 +39,14 @@ constexpr T invalid() {
     return all_ones<T>();
 }
 
-template <typename T, u64 b, u64 count>
-constexpr T mask() {
-    return ((1ull << count) - 1ull) << b;
+template <typename T>
+constexpr T mask(u32 b, u32 count) {
+    return static_cast<T>(((1ull << count) - 1ull) << b);
 }
 
-template <typename T, u64 b, u64 count, typename SrcT>
-T extract_bits(SrcT src) {
-    return static_cast<T>((src >> b) & mask<SrcT, 0, count>());
+template <typename T>
+T extract_bits(T src, u32 b, u32 count) {
+    return (src & mask<T>(b, count)) >> b;
 }
 
 template <typename T, u32 bit_count>

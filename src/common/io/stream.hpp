@@ -14,6 +14,7 @@ class IStream {
 
     virtual u64 GetSeek() const = 0;
     virtual void SeekTo(u64 seek) {
+        (void)seek;
         LOG_FATAL(Common, "Stream does not support arbitrary seeking");
     }
     virtual void SeekBy(u64 offset) = 0;
@@ -31,12 +32,12 @@ class IStream {
     }
 
     template <typename T>
-    const void ReadToRef(T& result) {
+    void ReadToRef(T& result) {
         ReadRaw(std::span(reinterpret_cast<u8*>(&result), sizeof(T)));
     }
 
     template <typename T>
-    const void ReadToSpan(std::span<T> buffer) {
+    void ReadToSpan(std::span<T> buffer) {
         ReadRaw(std::span(reinterpret_cast<u8*>(buffer.data()),
                           buffer.size_bytes()));
     }
@@ -112,12 +113,15 @@ class IStream {
 
   protected:
     virtual void ReadRaw(std::span<u8> buffer) {
+        (void)buffer;
         LOG_FATAL(Common, "Stream is write-only");
     }
     virtual void WriteRaw(std::span<const u8> buffer) {
+        (void)buffer;
         LOG_FATAL(Common, "Stream is read-only");
     }
     virtual u8* ConsumePtrRaw(usize size) {
+        (void)size;
         LOG_FATAL(Common, "Stream is not continuous");
     }
 };
