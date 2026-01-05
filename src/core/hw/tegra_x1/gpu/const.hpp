@@ -737,11 +737,12 @@ enum class GpfifoFlags : u32 {
 ENABLE_ENUM_BITWISE_OPERATORS(GpfifoFlags);
 
 struct GpfifoEntry {
-    uptr gpu_addr : 40;
-    bool allow_flush : 1;
-    bool is_push_buffer : 1;
-    usize size : 18; // TODO: is the bit count correct?
-    bool sync : 1;
+    u64 gpu_addr_lo : 32;
+    u64 gpu_addr_hi : 8;
+    u64 allow_flush : 1;
+    u64 is_push_buffer : 1;
+    u64 size : 21;
+    u64 sync : 1;
 };
 
 constexpr u32 MACRO_METHODS_REGION = 0xe00;
@@ -1071,7 +1072,8 @@ ENABLE_ENUM_FLAGS_FORMATTING(hydra::hw::tegra_x1::gpu::GpfifoFlags, FenceWait,
                              "suppress WFI", SkipBufferRefcounting,
                              "skip buffer refcounting")
 
-ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::GpfifoEntry, gpu_addr, ":#x",
-                         "GPU address", allow_flush, "", "allow flush",
+ENABLE_STRUCT_FORMATTING(hydra::hw::tegra_x1::gpu::GpfifoEntry, gpu_addr_lo,
+                         ":#x", "GPU address low", gpu_addr_hi, ":#x",
+                         "GPU address high", allow_flush, "", "allow flush",
                          is_push_buffer, "", "is push buffer", size, ":#x",
                          "size", sync, "", "sync")

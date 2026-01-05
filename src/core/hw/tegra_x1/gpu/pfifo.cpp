@@ -74,14 +74,17 @@ void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
 }
 
 void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
-    LOG_DEBUG(Gpu,
-              "Gpfifo entry (address: 0x{:08x}, size: 0x{:08x}, allow "
-              "flush: {}, is push buffer: {}, sync: {})",
-              entry.gpu_addr, entry.size, entry.allow_flush,
-              entry.is_push_buffer, entry.sync);
+    LOG_DEBUG(
+        Gpu,
+        "Gpfifo entry (addr lo: {:#x}, addr hi: {:#x}, size: {:#x}, allow "
+        "flush: {}, is push buffer: {}, sync: {})",
+        entry.gpu_addr_lo, entry.gpu_addr_hi, entry.size, entry.allow_flush,
+        entry.is_push_buffer, entry.sync);
 
-    uptr gpu_addr = entry.gpu_addr;
-    uptr end = entry.gpu_addr + entry.size * sizeof(u32);
+    uptr gpu_addr = static_cast<u64>(entry.gpu_addr_lo) |
+                    (static_cast<u64>(entry.gpu_addr_hi) << 32);
+    gpu_addr &= ~0x3llu; // Clear the 2 lsb
+    uptr end = gpu_addr + entry.size * sizeof(u32);
 
     while (gpu_addr < end) {
         if (!SubmitCommand(gmmu, gpu_addr))
@@ -91,7 +94,9 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
 
 bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     const auto header = Read<CommandHeader>(gmmu, gpu_addr);
-    LOG_DEBUG(Gpu, "Secondary opcode: {}", header.secondary_opcode);
+    LOG_DEBUG(
+        Gpu, "Method: {:#x}, subchannel: {}, arg: {:#x}, secondary opcode: {}",
+        header.method, header.subchannel, header.arg, header.secondary_opcode);
 
     // HACK
     if (header.subchannel >= SUBCHANNEL_COUNT) {
@@ -99,20 +104,13 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
         return false;
     }
 
-#define TERTIARY_OPCODE static_cast<TertiaryOpcode>(header.arg & 0x3)
-
     u32 offset = header.method;
     switch (header.secondary_opcode) {
     case SecondaryOpcode::Grp0UseTert: {
-        switch (TERTIARY_OPCODE) {
-        case TertiaryOpcode::Grp0IncMethod:
-            // TODO: correct?
-            for (u32 i = 0; i < header.arg; i++)
-                ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset,
-                                 true);
-            break;
+        const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
+        switch (tert) {
         default:
-            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", TERTIARY_OPCODE);
+            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert);
             break;
         }
         break;
@@ -122,15 +120,10 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
             ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, true);
         break;
     case SecondaryOpcode::Grp2UseTert: {
-        switch (TERTIARY_OPCODE) {
-        case TertiaryOpcode::Grp2NonIncMethod:
-            // TODO: correct?
-            for (u32 i = 0; i < header.arg; i++)
-                ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset,
-                                 false);
-            break;
+        const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
+        switch (tert) {
         default:
-            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", TERTIARY_OPCODE);
+            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert);
             break;
         }
         break;
