@@ -110,7 +110,7 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
         switch (tert) {
         default:
-            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert);
+            ONCE(LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert));
             break;
         }
         break;
@@ -123,7 +123,7 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
         switch (tert) {
         default:
-            LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert);
+            ONCE(LOG_NOT_IMPLEMENTED(Gpu, "Tertiary opcode {}", tert));
             break;
         }
         break;
