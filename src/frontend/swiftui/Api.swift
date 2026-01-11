@@ -967,7 +967,10 @@ func hydraDebuggerManagerGetDebugger(at index: Int) -> HydraDebugger {
     HydraDebugger(handle: hydra_debugger_manager_get_debugger(UInt32(index)))
 }
 
-// TODO: debugger for process
+// TODO: debugger for any process
+func hydraDebuggerManagerGetDebuggerForCurrentProcess() -> HydraDebugger {
+    HydraDebugger(handle: hydra_debugger_manager_get_debugger_for_process(nil))
+}
 
 struct HydraDebugger: Hashable, Identifiable {
     private var handle: UnsafeMutableRawPointer
