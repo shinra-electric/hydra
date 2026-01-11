@@ -92,7 +92,7 @@ class SparseFile : public IFile {
         return new io::OwnedSparseStream(std::move(streams), size);
     }
 
-    usize GetSize() override { return size; }
+    usize GetSize() const override { return size; }
 
   private:
     std::vector<SparseFileEntry> entries;

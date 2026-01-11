@@ -15,6 +15,7 @@ struct PathControl: NSViewRepresentable {
         pathControl.allowedTypes = self.allowedTypes
         pathControl.placeholderString = self.placeholderString
         pathControl.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
         return pathControl
     }
 

@@ -26,7 +26,7 @@ class FileView : public IFile {
         return new io::OwnedStreamView(base->Open(flags), offset, size);
     }
 
-    usize GetSize() override { return size; }
+    usize GetSize() const override { return size; }
 
   private:
     IFile* base;

@@ -597,6 +597,12 @@ enum HydraLoaderError: Error {
     case unsupported
 }
 
+enum HydraLoaderContent {
+    case exefs
+    case romfs
+    case icon
+}
+
 class HydraLoader: Hashable, Identifiable {
     fileprivate let handle: UnsafeMutableRawPointer
 
@@ -642,6 +648,58 @@ class HydraLoader: Hashable, Identifiable {
         -> UnsafeMutableRawPointer?
     {
         hydra_loader_load_icon(self.handle, &width, &height)
+    }
+
+    func hasExeFs() -> Bool {
+        return hydra_loader_has_exefs(self.handle)
+    }
+
+    func extractExeFs(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_exefs(self.handle, hydraPath)
+        }
+    }
+
+    func hasRomFs() -> Bool {
+        return hydra_loader_has_romfs(self.handle)
+    }
+
+    func extractRomFs(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_romfs(self.handle, hydraPath)
+        }
+    }
+
+    func hasIcon() -> Bool {
+        return hydra_loader_has_icon(self.handle)
+    }
+
+    func extractIcon(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_icon(self.handle, hydraPath)
+        }
+    }
+
+    func hasContent(_ content: HydraLoaderContent) -> Bool {
+        switch content {
+        case .exefs:
+            return self.hasExeFs()
+        case .romfs:
+            return self.hasRomFs()
+        case .icon:
+            return self.hasIcon()
+        }
+    }
+
+    func extractContent(_ content: HydraLoaderContent, to path: String) {
+        switch content {
+        case .exefs:
+            self.extractExeFs(to: path)
+        case .romfs:
+            self.extractRomFs(to: path)
+        case .icon:
+            self.extractIcon(to: path)
+        }
     }
 }
 

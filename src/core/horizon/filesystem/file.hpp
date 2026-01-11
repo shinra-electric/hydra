@@ -22,7 +22,9 @@ class IFile : public IEntry {
 
     virtual io::IStream* Open(FileOpenFlags flags) = 0;
 
-    virtual usize GetSize() = 0;
+    virtual usize GetSize() const = 0;
+
+    void Save(std::string_view host_path) const;
 
   protected:
     virtual void DeleteImpl() {

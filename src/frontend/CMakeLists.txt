@@ -40,6 +40,8 @@ elseif (FRONTEND STREQUAL "SwiftUI")
         swiftui/GameIconView.swift
         swiftui/ListGamePreview.swift
         swiftui/GridGamePreview.swift
+        swiftui/GamePreviewContainer.swift
+        swiftui/GameExtractButton.swift
         swiftui/GameListView.swift
         swiftui/GameStopView.swift
         swiftui/helpers/Error.swift
@@ -77,7 +79,7 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift swiftui/macos/KeyCatcherView.swift swiftui/macos/PathControl.swift)
+        target_sources(hydra PRIVATE swiftui/macos/AppDelegate.swift swiftui/macos/KeyCatcherView.swift swiftui/macos/PathControl.swift swiftui/macos/SavePanel.swift)
     endif ()
 
     target_compile_definitions(hydra PRIVATE ${SWIFT_BUILD_TYPE_CONDITION})

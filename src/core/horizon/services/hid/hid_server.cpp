@@ -45,6 +45,8 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     (void)aruid;
     (void)event_ptr;
 
+    LOG_FUNC_WITH_ARGS_STUBBED(Services, "event ptr: {:#x}", event_ptr);
+
     // TODO: params
     out_handle = process->AddHandle(npad_style_set_update_event);
 

@@ -63,7 +63,7 @@ io::IStream* DiskFile::Open(FileOpenFlags flags) {
     return new DiskStream(path, std_flags);
 }
 
-usize DiskFile::GetSize() {
+usize DiskFile::GetSize() const {
     // return size;
     return std::filesystem::file_size(path);
 }

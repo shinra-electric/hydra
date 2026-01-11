@@ -157,4 +157,9 @@ LoaderBase::LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
                    out_frame_count);
 }
 
+void LoaderBase::ExtractIcon(std::string_view path) const {
+    ASSERT(icon_file != nullptr, Loader, "No icon");
+    icon_file->Save(path);
+}
+
 } // namespace hydra::horizon::loader

@@ -43,8 +43,7 @@ class DiskFile : public IFile {
 
     io::IStream* Open(FileOpenFlags flags) override;
 
-    // Getters
-    usize GetSize() override;
+    usize GetSize() const override;
 
   private:
     std::string path;
