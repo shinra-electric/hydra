@@ -267,6 +267,10 @@ namespace {
 struct AssetSection {
     u64 offset;
     u64 size;
+
+    filesystem::FileView* CreateFileView(filesystem::IFile* file) const {
+        return new filesystem::FileView(file, offset, size);
+    }
 };
 
 struct AssetHeader {
@@ -292,13 +296,15 @@ void HomebrewLoader::TryLoadAssetSection(filesystem::IFile* file) {
 
     // Icon
     if (header.icon_section.size > 0)
-        icon_file = new filesystem::FileView(file, header.icon_section.offset,
-                                             header.icon_section.size);
+        icon_file = header.icon_section.CreateFileView(file);
 
     // NACP
     if (header.nacp_section.size > 0)
-        nacp_file = new filesystem::FileView(file, header.nacp_section.offset,
-                                             header.nacp_section.size);
+        nacp_file = header.nacp_section.CreateFileView(file);
+
+    // RomFS
+    if (header.romfs_section.size > 0)
+        romfs_entry = header.romfs_section.CreateFileView(file);
 
     delete stream;
 }
