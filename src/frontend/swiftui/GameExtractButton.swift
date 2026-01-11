@@ -6,7 +6,7 @@ struct GameExtractButton: View {
     let content: HydraLoaderContent
 
     @Binding var showAlert: Bool
-    @Binding var alertName: String
+    @Binding var alertMessage: String
 
     private var name: String {
         switch self.content {
@@ -30,22 +30,28 @@ struct GameExtractButton: View {
 
     var body: some View {
         Button(self.name) {
-            SavePanel.present(allowedContentTypes: [self.contentType], defaultFilename: nil) {
-                url in
-                guard let url = url else {
-                    return
-                }
+            #if os(macOS)
+                SavePanel.present(allowedContentTypes: [self.contentType], defaultFilename: nil) {
+                    url in
+                    guard let url = url else {
+                        return
+                    }
 
-                DispatchQueue.global(qos: .userInitiated).async {
-                    hydraDebuggerManagerGetDebuggerForCurrentProcess().registerThisThread(
-                        name: "Content extract")
-                    self.game.loader.extractContent(
-                        self.content, to: url.path(percentEncoded: false))
-                    self.alertName = self.name
-                    self.showAlert = true
-                    hydraDebuggerManagerGetDebuggerForCurrentProcess().unregisterThisThread()
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        hydraDebuggerManagerGetDebuggerForCurrentProcess().registerThisThread(
+                            name: "Content extract")
+                        self.game.loader.extractContent(
+                            self.content, to: url.path(percentEncoded: false))
+                        self.alertMessage = "\(self.name) extracted successfully"
+                        self.showAlert = true
+                        hydraDebuggerManagerGetDebuggerForCurrentProcess().unregisterThisThread()
+                    }
                 }
-            }
+            #else
+                // TODO: implement
+                self.alertMessage = "\(self.name) extraction isn't supported on iOS yet"
+                self.showAlert = true
+            #endif
         }
         .disabled(!self.game.loader.hasContent(self.content))
     }

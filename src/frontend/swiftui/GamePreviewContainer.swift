@@ -10,7 +10,7 @@ struct GamePreviewContainer<T: GamePreview>: View {
     let game: Game
 
     @State private var showAlert = false
-    @State private var alertName = ""
+    @State private var alertMessage = ""
 
     var body: some View {
         ClickableListItem(onClick: {
@@ -30,17 +30,17 @@ struct GamePreviewContainer<T: GamePreview>: View {
             Menu("Extract...") {
                 GameExtractButton(
                     game: self.game, content: .icon, showAlert: self.$showAlert,
-                    alertName: self.$alertName)
+                    alertMessage: self.$alertMessage)
                 GameExtractButton(
                     game: self.game, content: .exefs, showAlert: self.$showAlert,
-                    alertName: self.$alertName)
+                    alertMessage: self.$alertMessage)
                 GameExtractButton(
                     game: self.game, content: .romfs, showAlert: self.$showAlert,
-                    alertName: self.$alertName)
+                    alertMessage: self.$alertMessage)
             }
             .menuOrder(.fixed)
         }
-        .alert("\(self.alertName) extracted successfully", isPresented: self.$showAlert) {
+        .alert(self.alertMessage, isPresented: self.$showAlert) {
             Button("OK", role: .cancel) {}
         }
     }
