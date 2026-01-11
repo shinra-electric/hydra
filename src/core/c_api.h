@@ -257,12 +257,12 @@ void hydra_loader_destroy(void* loader);
 uint64_t hydra_loader_get_title_id(void* loader);
 void* hydra_loader_load_nacp(void* loader);
 void* hydra_loader_load_icon(void* loader, uint32_t* width, uint32_t* height);
+bool hydra_loader_has_icon(const void* loader);
+void hydra_loader_extract_icon(const void* loader, hydra_string path);
 bool hydra_loader_has_exefs(const void* loader);
 void hydra_loader_extract_exefs(const void* loader, hydra_string path);
 bool hydra_loader_has_romfs(const void* loader);
 void hydra_loader_extract_romfs(const void* loader, hydra_string path);
-bool hydra_loader_has_icon(const void* loader);
-void hydra_loader_extract_icon(const void* loader, hydra_string path);
 
 void* hydra_create_nca_loader_from_content_archive(void* content_archive);
 hydra_string hydra_nca_loader_get_name(void* nca_loader);

@@ -30,24 +30,20 @@ class LoaderBase {
                              u32& out_frame_count);
 
     // Extracting
-    virtual bool HasExeFs() const { return false; }
-    virtual void ExtractExeFs(std::string_view path) const {
-        (void)path;
-        LOG_FATAL(Loader, "Loader does not have exeFS");
-    }
-    virtual bool HasRomFs() const { return false; }
-    virtual void ExtractRomFs(std::string_view path) const {
-        (void)path;
-        LOG_FATAL(Loader, "Loader does not have romFS");
-    }
     bool HasIcon() const { return icon_file != nullptr; }
     void ExtractIcon(std::string_view path) const;
+    bool HasExeFs() const { return exefs_dir != nullptr; }
+    void ExtractExeFs(std::string_view path) const;
+    bool HasRomFs() const { return romfs_entry != nullptr; }
+    void ExtractRomFs(std::string_view path) const;
 
   protected:
-    filesystem::IFile* nacp_file = nullptr;
-    filesystem::IFile* icon_file = nullptr;
-    filesystem::IFile* nintendo_logo_file = nullptr;
-    filesystem::IFile* startup_movie_file = nullptr;
+    filesystem::IFile* nacp_file{nullptr};
+    filesystem::IFile* icon_file{nullptr};
+    filesystem::IFile* nintendo_logo_file{nullptr};
+    filesystem::IFile* startup_movie_file{nullptr};
+    filesystem::Directory* exefs_dir{nullptr};
+    filesystem::IEntry* romfs_entry{nullptr};
 };
 
 } // namespace hydra::horizon::loader

@@ -24,7 +24,7 @@ class IFile : public IEntry {
 
     virtual usize GetSize() const = 0;
 
-    void Save(std::string_view host_path) const;
+    void Save(std::string_view host_path) const override;
 
   protected:
     virtual void DeleteImpl() {

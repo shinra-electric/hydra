@@ -598,9 +598,9 @@ enum HydraLoaderError: Error {
 }
 
 enum HydraLoaderContent {
+    case icon
     case exefs
     case romfs
-    case icon
 }
 
 class HydraLoader: Hashable, Identifiable {
@@ -650,6 +650,16 @@ class HydraLoader: Hashable, Identifiable {
         hydra_loader_load_icon(self.handle, &width, &height)
     }
 
+    func hasIcon() -> Bool {
+        return hydra_loader_has_icon(self.handle)
+    }
+
+    func extractIcon(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_icon(self.handle, hydraPath)
+        }
+    }
+
     func hasExeFs() -> Bool {
         return hydra_loader_has_exefs(self.handle)
     }
@@ -670,35 +680,25 @@ class HydraLoader: Hashable, Identifiable {
         }
     }
 
-    func hasIcon() -> Bool {
-        return hydra_loader_has_icon(self.handle)
-    }
-
-    func extractIcon(to path: String) {
-        path.withHydraString { hydraPath in
-            return hydra_loader_extract_icon(self.handle, hydraPath)
-        }
-    }
-
     func hasContent(_ content: HydraLoaderContent) -> Bool {
         switch content {
+        case .icon:
+            return self.hasIcon()
         case .exefs:
             return self.hasExeFs()
         case .romfs:
             return self.hasRomFs()
-        case .icon:
-            return self.hasIcon()
         }
     }
 
     func extractContent(_ content: HydraLoaderContent, to path: String) {
         switch content {
+        case .icon:
+            self.extractIcon(to: path)
         case .exefs:
             self.extractExeFs(to: path)
         case .romfs:
             self.extractRomFs(to: path)
-        case .icon:
-            self.extractIcon(to: path)
         }
     }
 }

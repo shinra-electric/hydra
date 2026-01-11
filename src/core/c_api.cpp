@@ -491,6 +491,17 @@ HYDRA_EXPORT void* hydra_loader_load_icon(void* loader, uint32_t* width,
         ->LoadIcon(*width, *height);
 }
 
+HYDRA_EXPORT bool hydra_loader_has_icon(const void* loader) {
+    return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+        ->HasIcon();
+}
+
+HYDRA_EXPORT void hydra_loader_extract_icon(const void* loader,
+                                            hydra_string path) {
+    reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
+        ->ExtractIcon(string_view_from_hydra_string(path));
+}
+
 HYDRA_EXPORT bool hydra_loader_has_exefs(const void* loader) {
     return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
         ->HasExeFs();
@@ -511,17 +522,6 @@ HYDRA_EXPORT void hydra_loader_extract_romfs(const void* loader,
                                              hydra_string path) {
     reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
         ->ExtractRomFs(string_view_from_hydra_string(path));
-}
-
-HYDRA_EXPORT bool hydra_loader_has_icon(const void* loader) {
-    return reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
-        ->HasIcon();
-}
-
-HYDRA_EXPORT void hydra_loader_extract_icon(const void* loader,
-                                            hydra_string path) {
-    reinterpret_cast<const hydra::horizon::loader::LoaderBase*>(loader)
-        ->ExtractIcon(string_view_from_hydra_string(path));
 }
 
 HYDRA_EXPORT void*

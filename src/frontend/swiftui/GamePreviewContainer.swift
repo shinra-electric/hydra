@@ -25,9 +25,9 @@ struct GamePreviewContainer<T: GamePreview>: View {
             Divider()
 
             Menu("Extract...") {
+                GameExtractButton(game: self.game, content: .icon)
                 GameExtractButton(game: self.game, content: .exefs)
                 GameExtractButton(game: self.game, content: .romfs)
-                GameExtractButton(game: self.game, content: .icon)
             }
             .menuOrder(.fixed)
         }

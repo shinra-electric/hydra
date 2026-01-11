@@ -13,6 +13,8 @@ class IEntry {
     virtual bool IsFile() const { return false; }
     virtual bool IsDirectory() const { return false; }
 
+    virtual void Save(std::string_view host_path) const = 0;
+
     virtual FsResult Delete(bool recursive = false) = 0;
 
     Directory* GetParent() const { return parent; }

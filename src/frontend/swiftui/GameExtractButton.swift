@@ -7,21 +7,21 @@ struct GameExtractButton: View {
 
     private var name: String {
         switch self.content {
+        case .icon:
+            return "Icon"
         case .exefs:
             return "ExeFS"
         case .romfs:
             return "RomFS"
-        case .icon:
-            return "Icon"
         }
     }
 
     private var contentType: UTType {
         switch self.content {
-        case .exefs, .romfs:
-            return .folder
         case .icon:
             return .jpeg
+        case .exefs, .romfs:
+            return .folder
         }
     }
 

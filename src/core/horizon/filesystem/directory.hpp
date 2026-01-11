@@ -18,6 +18,8 @@ class Directory : public IEntry {
 
     bool IsDirectory() const override { return true; }
 
+    void Save(std::string_view host_path) const override;
+
     // TODO: use exceptions
     [[nodiscard]] FsResult Delete(bool recursive = false) override;
 

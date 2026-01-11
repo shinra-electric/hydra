@@ -12,8 +12,28 @@ namespace hydra::horizon::loader {
 
 NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     : content_archive{content_archive_} {
+    // Nintendo logo
+    auto res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
+        return;
+    }
+
+    // Startup movie
+    res = content_archive.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
+    if (res != filesystem::FsResult::Success) {
+        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
+        return;
+    }
+
+    // ExeFS
+    res = content_archive.GetDirectory("code", exefs_dir);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get ExeFS directory: {}", res);
+
+    // NPDM
     filesystem::IFile* file;
-    auto res = content_archive.GetFile("code/main.npdm", file);
+    res = content_archive.GetFile("code/main.npdm", file);
     if (res != filesystem::FsResult::Success) {
         LOG_ERROR(Loader, "Failed to load main.npdm: {}", res);
         return;
@@ -51,19 +71,13 @@ NcaLoader::NcaLoader(const filesystem::ContentArchive& content_archive_)
     main_thread_stack_size = meta.main_thread_stack_size;
     system_resource_size = meta.system_resource_size;
 
-    // Nintendo logo
-    res = content_archive.GetFile(NINTENDO_LOGO_PATH, nintendo_logo_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " NINTENDO_LOGO_PATH ": {}", res);
-        return;
-    }
-
-    // Startup movie
-    res = content_archive.GetFile(STARTUP_MOVIE_PATH, startup_movie_file);
-    if (res != filesystem::FsResult::Success) {
-        LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
-        return;
-    }
+    // RomFS
+    filesystem::IFile* romfs_file = nullptr;
+    res = content_archive.GetFile("data", romfs_file);
+    // TODO: why doesn't Animal Well have romFS?
+    if (res != filesystem::FsResult::Success)
+        LOG_WARN(Loader, "Failed to get romFS file: {}", res);
+    romfs_entry = romfs_file;
 }
 
 void NcaLoader::LoadProcess(kernel::Process* process) {
@@ -71,23 +85,11 @@ void NcaLoader::LoadProcess(kernel::Process* process) {
     process->SetTitleID(content_archive.GetTitleID());
 
     // ExeFS
-    filesystem::Directory* exefs_dir;
-    auto res = content_archive.GetDirectory("code", exefs_dir);
-    ASSERT(res == filesystem::FsResult::Success, Loader,
-           "Failed to get ExeFS directory: {}", res);
     LoadCode(process, exefs_dir);
 
     // RomFS
-
-    // Get file
-    filesystem::IFile* romfs_file;
-    res = content_archive.GetFile("data", romfs_file);
-    ASSERT(res == filesystem::FsResult::Success, Loader,
-           "Failed to get romFS file: {}", res);
-
-    // Add to filesystem
-    res = KERNEL_INSTANCE.GetFilesystem().AddEntry(FS_SD_MOUNT "/rom/romFS",
-                                                   romfs_file, true);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+        FS_SD_MOUNT "/rom/romFS", romfs_entry, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
 }
