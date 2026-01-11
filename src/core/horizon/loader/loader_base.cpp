@@ -159,6 +159,7 @@ LoaderBase::LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
 
 void LoaderBase::ExtractIcon(std::string_view path) const {
     ASSERT(icon_file != nullptr, Loader, "No icon");
+    LOG_INFO(Loader, "Exporting icon to \"{}\"", path);
     icon_file->Save(path);
 }
 

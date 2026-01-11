@@ -4,8 +4,9 @@ namespace hydra::horizon::filesystem {
 
 void IFile::Save(std::string_view host_path) const {
     // Create file
-    std::fstream ofs(std::string(host_path),
-                     std::ios::binary); // HACK: construct a temporary string
+    std::fstream ofs(
+        std::string(host_path),
+        std::ios::out | std::ios::binary); // HACK: construct a temporary string
     io::IostreamStream out_stream(ofs);
 
     // Read

@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct GameExtractButton: View {
     let game: Game
@@ -15,19 +16,25 @@ struct GameExtractButton: View {
         }
     }
 
+    private var contentType: UTType {
+        switch self.content {
+        case .exefs, .romfs:
+            return .folder
+        case .icon:
+            return .jpeg
+        }
+    }
+
     @State private var isAlertPresented = false
 
     var body: some View {
         Button(self.name) {
-            SavePanel.present(allowedContentTypes: [.folder], defaultFilename: nil) { url in
+            SavePanel.present(allowedContentTypes: [self.contentType], defaultFilename: nil) {
+                url in
                 guard let url = url else {
                     return
                 }
-                self.game.loader.extractContent(
-                    self.content,
-                    to:
-                        "\(url.path(percentEncoded: false))/\(self.game.name) - \(self.name)"
-                )
+                self.game.loader.extractContent(self.content, to: url.path(percentEncoded: false))
                 self.isAlertPresented = true
             }
         }
