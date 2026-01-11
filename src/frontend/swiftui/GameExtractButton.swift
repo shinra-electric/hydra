@@ -5,6 +5,9 @@ struct GameExtractButton: View {
     let game: Game
     let content: HydraLoaderContent
 
+    @Binding var showAlert: Bool
+    @Binding var alertName: String
+
     private var name: String {
         switch self.content {
         case .icon:
@@ -25,8 +28,6 @@ struct GameExtractButton: View {
         }
     }
 
-    @State private var isAlertPresented = false
-
     var body: some View {
         Button(self.name) {
             SavePanel.present(allowedContentTypes: [self.contentType], defaultFilename: nil) {
@@ -40,14 +41,12 @@ struct GameExtractButton: View {
                         name: "Content extract")
                     self.game.loader.extractContent(
                         self.content, to: url.path(percentEncoded: false))
-                    self.isAlertPresented = true
+                    self.alertName = self.name
+                    self.showAlert = true
                     hydraDebuggerManagerGetDebuggerForCurrentProcess().unregisterThisThread()
                 }
             }
         }
         .disabled(!self.game.loader.hasContent(self.content))
-        .alert("\(self.name) successfully extracted", isPresented: self.$isAlertPresented) {
-            Button("OK", role: .cancel) {}
-        }
     }
 }
