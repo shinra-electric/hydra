@@ -34,6 +34,7 @@ struct GameExtractButton: View {
                 guard let url = url else {
                     return
                 }
+                // TODO: async
                 self.game.loader.extractContent(self.content, to: url.path(percentEncoded: false))
                 self.isAlertPresented = true
             }
