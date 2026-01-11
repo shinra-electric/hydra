@@ -15,7 +15,7 @@ class MemoryFile : public IFile {
         return new io::MemoryStream(data);
     }
 
-    usize GetSize() override { return data.size(); }
+    usize GetSize() const override { return data.size(); }
 
   private:
     std::vector<u8> data;

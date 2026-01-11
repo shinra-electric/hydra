@@ -49,6 +49,7 @@ add_library(hydra-core
     horizon/kernel/kernel.hpp
     horizon/filesystem/const.hpp
     horizon/filesystem/entry.hpp
+    horizon/filesystem/file.cpp
     horizon/filesystem/file.hpp
     horizon/filesystem/file_view.hpp
     horizon/filesystem/disk_file.cpp

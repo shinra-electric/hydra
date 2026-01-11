@@ -34,6 +34,16 @@ Directory::~Directory() {
     //   delete entry;
 }
 
+void Directory::Save(std::string_view host_path) const {
+    std::filesystem::create_directories(host_path);
+    for (const auto& entry : entries) {
+        if (!entry.second)
+            continue;
+
+        entry.second->Save(fmt::format("{}/{}", host_path, entry.first));
+    }
+}
+
 FsResult Directory::Delete(bool recursive) {
     if (!recursive) {
         for (const auto& entry : entries) {

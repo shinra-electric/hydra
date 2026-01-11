@@ -43,6 +43,16 @@ NxLoader::NxLoader(const filesystem::Directory& dir_) : dir{dir_} {
         LOG_ERROR(Loader, "Failed to get " STARTUP_MOVIE_PATH ": {}", res);
         return;
     }
+
+    // ExeFS
+    res = dir.GetDirectory("exefs", exefs_dir);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get ExeFS directory: {}", res);
+
+    // RomFS
+    res = dir.GetEntry("romfs", romfs_entry);
+    ASSERT(res == filesystem::FsResult::Success, Loader,
+           "Failed to get RomFS entry: {}", res);
 }
 
 void NxLoader::LoadProcess(kernel::Process* process) {
@@ -50,20 +60,9 @@ void NxLoader::LoadProcess(kernel::Process* process) {
     process->SetTitleID(title_id);
 
     // ExeFS
-    filesystem::Directory* exefs_dir;
-    auto res = dir.GetDirectory("exefs", exefs_dir);
-    ASSERT(res == filesystem::FsResult::Success, Loader,
-           "Failed to get ExeFS directory: {}", res);
     LoadCode(process, exefs_dir);
 
     // RomFS
-
-    // Get entry
-    filesystem::IEntry* romfs_entry;
-    res = dir.GetEntry("romfs", romfs_entry);
-    ASSERT(res == filesystem::FsResult::Success, Loader,
-           "Failed to get RomFS entry: {}", res);
-
     filesystem::IFile* romfs_file;
     if (romfs_entry->IsFile()) {
         // Just set the file directly
@@ -76,9 +75,8 @@ void NxLoader::LoadProcess(kernel::Process* process) {
         ASSERT(romfs_file, Loader, "Failed to build romFS");
     }
 
-    // Add to filesystem
-    res = KERNEL_INSTANCE.GetFilesystem().AddEntry(FS_SD_MOUNT "/rom/romFS",
-                                                   romfs_file, true);
+    const auto res = KERNEL_INSTANCE.GetFilesystem().AddEntry(
+        FS_SD_MOUNT "/rom/romFS", romfs_file, true);
     ASSERT(res == filesystem::FsResult::Success, Loader,
            "Failed to add romFS file: {}", res);
 }

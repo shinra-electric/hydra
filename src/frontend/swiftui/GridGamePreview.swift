@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct GridGamePreview: View {
+struct GridGamePreview: GamePreview {
     let game: Game
 
     var body: some View {

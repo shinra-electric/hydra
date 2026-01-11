@@ -597,6 +597,12 @@ enum HydraLoaderError: Error {
     case unsupported
 }
 
+enum HydraLoaderContent {
+    case icon
+    case exefs
+    case romfs
+}
+
 class HydraLoader: Hashable, Identifiable {
     fileprivate let handle: UnsafeMutableRawPointer
 
@@ -642,6 +648,58 @@ class HydraLoader: Hashable, Identifiable {
         -> UnsafeMutableRawPointer?
     {
         hydra_loader_load_icon(self.handle, &width, &height)
+    }
+
+    func hasIcon() -> Bool {
+        return hydra_loader_has_icon(self.handle)
+    }
+
+    func extractIcon(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_icon(self.handle, hydraPath)
+        }
+    }
+
+    func hasExeFs() -> Bool {
+        return hydra_loader_has_exefs(self.handle)
+    }
+
+    func extractExeFs(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_exefs(self.handle, hydraPath)
+        }
+    }
+
+    func hasRomFs() -> Bool {
+        return hydra_loader_has_romfs(self.handle)
+    }
+
+    func extractRomFs(to path: String) {
+        path.withHydraString { hydraPath in
+            return hydra_loader_extract_romfs(self.handle, hydraPath)
+        }
+    }
+
+    func hasContent(_ content: HydraLoaderContent) -> Bool {
+        switch content {
+        case .icon:
+            return self.hasIcon()
+        case .exefs:
+            return self.hasExeFs()
+        case .romfs:
+            return self.hasRomFs()
+        }
+    }
+
+    func extractContent(_ content: HydraLoaderContent, to path: String) {
+        switch content {
+        case .icon:
+            self.extractIcon(to: path)
+        case .exefs:
+            self.extractExeFs(to: path)
+        case .romfs:
+            self.extractRomFs(to: path)
+        }
     }
 }
 
@@ -909,7 +967,10 @@ func hydraDebuggerManagerGetDebugger(at index: Int) -> HydraDebugger {
     HydraDebugger(handle: hydra_debugger_manager_get_debugger(UInt32(index)))
 }
 
-// TODO: debugger for process
+// TODO: debugger for any process
+func hydraDebuggerManagerGetDebuggerForCurrentProcess() -> HydraDebugger {
+    HydraDebugger(handle: hydra_debugger_manager_get_debugger_for_process(nil))
+}
 
 struct HydraDebugger: Hashable, Identifiable {
     private var handle: UnsafeMutableRawPointer

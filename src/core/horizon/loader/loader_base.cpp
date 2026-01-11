@@ -4,6 +4,7 @@
 
 #include "core/horizon/filesystem/directory.hpp"
 #include "core/horizon/filesystem/disk_file.hpp"
+#include "core/horizon/filesystem/romfs/romfs.hpp"
 #include "core/horizon/loader/homebrew_loader.hpp"
 #include "core/horizon/loader/nca_loader.hpp"
 #include "core/horizon/loader/nro_loader.hpp"
@@ -155,6 +156,30 @@ LoaderBase::LoadStartupMovie(std::vector<std::chrono::milliseconds>& out_delays,
 
     return LoadGIF(startup_movie_file, out_delays, out_width, out_height,
                    out_frame_count);
+}
+
+void LoaderBase::ExtractExeFs(std::string_view path) const {
+    ASSERT(exefs_dir != nullptr, Loader, "No exeFS");
+    LOG_INFO(Loader, "Exporting exeFS to \"{}\"", path);
+    exefs_dir->Save(path);
+}
+
+void LoaderBase::ExtractRomFs(std::string_view path) const {
+    ASSERT(romfs_entry != nullptr, Loader, "No romFS");
+    LOG_INFO(Loader, "Exporting romFS to \"{}\"", path);
+    if (romfs_entry->IsDirectory()) {
+        static_cast<filesystem::Directory*>(romfs_entry)->Save(path);
+    } else {
+        filesystem::romfs::RomFS romfs(
+            static_cast<filesystem::IFile*>(romfs_entry));
+        romfs.Save(path);
+    }
+}
+
+void LoaderBase::ExtractIcon(std::string_view path) const {
+    ASSERT(icon_file != nullptr, Loader, "No icon");
+    LOG_INFO(Loader, "Exporting icon to \"{}\"", path);
+    icon_file->Save(path);
 }
 
 } // namespace hydra::horizon::loader

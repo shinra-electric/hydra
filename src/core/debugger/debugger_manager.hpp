@@ -8,6 +8,7 @@
 
 namespace hydra::debugger {
 
+// TODO: sort out mutex locking
 class DebuggerManager {
   public:
     static DebuggerManager& GetInstance();
