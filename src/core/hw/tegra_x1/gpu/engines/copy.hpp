@@ -113,7 +113,7 @@ struct RegsCopy {
     // 0x1ca
     TextureCopyInfo src;
 
-    // TODO
+    u32 padding_0x1d0[0x276];
 };
 
 class Copy : public EngineWithRegsBase<RegsCopy> {

@@ -11,8 +11,9 @@ enum class ToAruidError {
     InvalidIndex,
 };
 inline AppletResourceUserId ToAruid(usize index) {
-    ASSERT_THROWING(index < MAX_APPLET_RESOURCES, Kernel,
-                    ToAruidError::InvalidIndex, "Invalid index {:#x}", index);
+    ASSERT_THROWING_DEBUG(index < MAX_APPLET_RESOURCES, Kernel,
+                          ToAruidError::InvalidIndex, "Invalid index {:#x}",
+                          index);
     return ARUID_BEGIN + index;
 }
 
@@ -20,7 +21,7 @@ enum class ToIndexError {
     InvalidAruid,
 };
 inline usize ToIndex(AppletResourceUserId aruid) {
-    ASSERT_THROWING(
+    ASSERT_THROWING_DEBUG(
         aruid >= ARUID_BEGIN && aruid < ARUID_BEGIN + MAX_APPLET_RESOURCES,
         Kernel, ToIndexError::InvalidAruid, "Invalid aruid {:#x}", aruid);
     return aruid - ARUID_BEGIN;
@@ -54,30 +55,31 @@ class AppletResourcePool {
 
     T& CreateResource(kernel::AppletResourceUserId aruid) {
         auto& resource = GetResourceOpt(aruid);
-        ASSERT_THROWING(!resource.has_value(), Kernel, Error::AruidAlreadyTaken,
-                        "Aruid {:#x} already taken", aruid);
+        ASSERT_THROWING_DEBUG(!resource.has_value(), Kernel,
+                              Error::AruidAlreadyTaken,
+                              "Aruid {:#x} already taken", aruid);
         resource.emplace();
         return *resource;
     }
 
     void DestroyResource(kernel::AppletResourceUserId aruid) {
         auto& resource = GetResourceOpt(aruid);
-        ASSERT_THROWING(resource.has_value(), Kernel, Error::InvalidAruid,
-                        "Invalid aruid {:#x}", aruid);
+        ASSERT_THROWING_DEBUG(resource.has_value(), Kernel, Error::InvalidAruid,
+                              "Invalid aruid {:#x}", aruid);
         resource = std::nullopt;
     }
 
     T& GetResource(kernel::AppletResourceUserId aruid) {
         auto& resource = GetResourceOpt(aruid);
-        ASSERT_THROWING(resource.has_value(), Kernel, Error::InvalidAruid,
-                        "Invalid aruid {:#x}", aruid);
+        ASSERT_THROWING_DEBUG(resource.has_value(), Kernel, Error::InvalidAruid,
+                              "Invalid aruid {:#x}", aruid);
         return *resource;
     }
 
     const T& GetResource(kernel::AppletResourceUserId aruid) const {
         auto& resource = GetResourceOpt(aruid);
-        ASSERT_THROWING(resource.has_value(), Kernel, Error::InvalidAruid,
-                        "Invalid aruid {:#x}", aruid);
+        ASSERT_THROWING_DEBUG(resource.has_value(), Kernel, Error::InvalidAruid,
+                              "Invalid aruid {:#x}", aruid);
         return *resource;
     }
 

@@ -87,8 +87,14 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
     uptr end = gpu_addr + entry.size * sizeof(u32);
 
     while (gpu_addr < end) {
-        if (!SubmitCommand(gmmu, gpu_addr))
+        try {
+            if (!SubmitCommand(gmmu, gpu_addr))
+                break;
+        } catch (Gpu::GetEngineAtSubchannelError error) {
             break;
+        } catch (engines::EngineBase::Error error) {
+            break;
+        }
     }
 }
 

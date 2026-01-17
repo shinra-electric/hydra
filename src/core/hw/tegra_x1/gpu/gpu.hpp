@@ -63,13 +63,19 @@ class Gpu {
     }
 
     // Engines
+    enum class GetEngineAtSubchannelError {
+        InvalidSubchannel,
+        NoEngineBound,
+    };
     engines::EngineBase* GetEngineAtSubchannel(u32 subchannel) {
-        ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
-                     "Invalid subchannel {}", subchannel);
+        ASSERT_THROWING_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,
+                              GetEngineAtSubchannelError::InvalidSubchannel,
+                              "Invalid subchannel {}", subchannel);
 
         auto engine = subchannels[subchannel];
-        ASSERT_DEBUG(engine, Gpu, "Subchannel {} does not have a bound engine",
-                     subchannel);
+        ASSERT_THROWING_DEBUG(
+            engine, Gpu, GetEngineAtSubchannelError::NoEngineBound,
+            "Subchannel {} does not have a bound engine", subchannel);
 
         return engine;
     }

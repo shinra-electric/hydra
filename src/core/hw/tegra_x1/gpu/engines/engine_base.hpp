@@ -29,12 +29,18 @@ namespace hydra::hw::tegra_x1::gpu::engines {
 
 class EngineBase {
   public:
+    enum class Error {
+        InvalidRegister,
+        MacrosNotSupported,
+    };
+
     virtual ~EngineBase() = default;
 
     virtual void Method(GMmu& gmmu, u32 method, u32 arg) = 0;
 
     virtual void FlushMacro([[maybe_unused]] GMmu& gmmu) {
         LOG_ERROR(Engines, "This engine does not support macros");
+        throw Error::MacrosNotSupported;
     }
 
   protected:
@@ -43,6 +49,7 @@ class EngineBase {
                   "This engine does not support macros (method: 0x{:08x}, arg: "
                   "0x{:08x})",
                   method, arg);
+        throw Error::MacrosNotSupported;
     }
 };
 
@@ -52,7 +59,8 @@ class EngineWithRegsBase : public EngineBase {
 #define REG_COUNT (sizeof(RegsT) / sizeof(u32))
 
     u32 GetReg(u32 reg) const {
-        ASSERT_DEBUG(reg < REG_COUNT, Macro, "Invalid register 0x{:08x}", reg);
+        ASSERT_THROWING_DEBUG(reg < REG_COUNT, Engines, Error::InvalidRegister,
+                              "Invalid register 0x{:08x}", reg);
         return regs_raw[reg];
     }
 
@@ -63,7 +71,8 @@ class EngineWithRegsBase : public EngineBase {
     };
 
     void WriteReg(u32 reg, u32 value) {
-        ASSERT_DEBUG(reg < REG_COUNT, Engines, "Invalid reg 0x{:08x}", reg);
+        ASSERT_THROWING_DEBUG(reg < REG_COUNT, Engines, Error::InvalidRegister,
+                              "Invalid reg 0x{:08x}", reg);
         LOG_DEBUG(Engines, "Writing to reg 0x{:03x} (value: 0x{:08x})", reg,
                   value);
         regs_raw[reg] = value;
