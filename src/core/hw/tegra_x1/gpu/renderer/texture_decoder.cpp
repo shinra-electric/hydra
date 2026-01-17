@@ -10,16 +10,15 @@ TextureDecoder::~TextureDecoder() {}
 void TextureDecoder::Decode(const TextureDescriptor& descriptor, u8* out_data) {
     u8* in_data = reinterpret_cast<u8*>(descriptor.ptr);
 
+    // TODO: correct?
     switch (descriptor.kind) {
     case NvKind::Pitch:
+    case NvKind::PitchNoSwizzle:
         std::memcpy(out_data, in_data, descriptor.stride * descriptor.height);
         break;
-    case NvKind::Generic_16BX2:
+    default:
         decode_generic_16bx2(descriptor.stride, descriptor.height,
                              descriptor.block_height_log2, in_data, out_data);
-        break;
-    default:
-        LOG_ERROR(Gpu, "Unimplemented texture kind {}", descriptor.kind);
         break;
     }
 }
