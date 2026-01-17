@@ -15,9 +15,16 @@ class AppletResource {
     AppletResource();
     ~AppletResource();
 
+    // Npad setup
     void ActivateNpads(NpadRevision revision);
     void SetupNpads();
 
+    void DisconnectNpad(NpadIndex index) {
+        npads[static_cast<usize>(index)].Setup(NpadStyleSet::None);
+        // TODO: ensure that it doesn't get connected in the future?
+    }
+
+    // Npad support
     void ClearSupportedNpads() { supported_npads = {false}; }
     void SetNpadSupported(NpadIndex index, bool supported) {
         supported_npads[static_cast<usize>(index)] = supported;

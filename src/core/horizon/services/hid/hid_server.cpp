@@ -17,9 +17,9 @@ DEFINE_SERVICE_COMMAND_TABLE(
     79, SetGyroscopeZeroDriftMode, 91, ActivateGesture, 100,
     SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
     SetSupportedNpadIdType, 103, ActivateNpad, 106,
-    AcquireNpadStyleSetUpdateEventHandle, 108, GetPlayerLedPattern, 109,
-    ActivateNpadWithRevision, 120, SetNpadJoyHoldType, 121, GetNpadJoyHoldType,
-    122, SetNpadJoyAssignmentModeSingleByDefault, 124,
+    AcquireNpadStyleSetUpdateEventHandle, 107, DisconnectNpad, 108,
+    GetPlayerLedPattern, 109, ActivateNpadWithRevision, 120, SetNpadJoyHoldType,
+    121, GetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 130,
     SwapNpadAssignment, 200, GetVibrationDeviceInfo, 201, SendVibrationValue,
     203, CreateActiveVibrationDeviceList, 205, IsVibrationPermitted, 206,
@@ -79,6 +79,12 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     // HACK: games expect this to be signalled
     event->Signal();
 
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::DisconnectNpad(aligned<NpadIdType, 8> type,
+                                    kernel::AppletResourceUserId aruid) {
+    APPLET_RESOURCE(aruid).DisconnectNpad(internal::ToNpadIndex(type));
     return RESULT_SUCCESS;
 }
 

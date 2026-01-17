@@ -49,6 +49,8 @@ class IHidServer : public IService {
         kernel::Process* process, aligned<NpadIdType, 8> type,
         kernel::AppletResourceUserId aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
+    result_t DisconnectNpad(aligned<NpadIdType, 8> type,
+                            kernel::AppletResourceUserId aruid);
     result_t GetPlayerLedPattern(NpadIdType npad_id_type, u64* out_pattern);
     result_t ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
                                       kernel::AppletResourceUserId aruid);
