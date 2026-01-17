@@ -55,8 +55,8 @@ class IStream {
     }
 
     template <typename T>
-    const T* ReadPtrWhole() {
-        return ReadPtr<T>(GetSize() / sizeof(T));
+    std::span<const T> ReadSpanWhole() {
+        return ReadSpan<T>((GetSize() - GetSeek()) / sizeof(T));
     }
 
     std::string_view ReadString(usize size) {

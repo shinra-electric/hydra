@@ -286,6 +286,90 @@ void EmitTextureSample(DecoderContext& context, pred_t pred, bool pred_inv,
         context.builder.OpEndIf();
 }
 
+// TODO: ndv, nodep, dc, dst_pred, aoffi, lod, lc
+void EmitTextureSample2(DecoderContext& context, pred_t pred, bool pred_inv,
+                        bool int_coords, TextureDimension dim, reg_t dst,
+                        u8 write_mask, reg_t src_a, reg_t src_b,
+                        u32 cbuf_index) {
+    (void)src_b;
+
+    const auto conditional = HandlePredCond(context.builder, pred, pred_inv);
+
+#define RA() ir::Value::Register(src_a++, ir::ScalarType::F32)
+#define RB() ir::Value::Register(src_b++, ir::ScalarType::F32)
+
+    TextureType type;
+    TextureSampleFlags flags =
+        (int_coords ? TextureSampleFlags::IntCoords : TextureSampleFlags::None);
+    ir::Value array_index = ir::Value::Undefined();
+    std::vector<ir::Value> coords;
+    switch (dim) {
+    case TextureDimension::_1D:
+        type = TextureType::_1D;
+        coords.push_back(RA());
+        break;
+    case TextureDimension::_1DArray:
+        type = TextureType::_1DArray;
+        array_index = RA();
+        coords.push_back(RA());
+        break;
+    case TextureDimension::_2D:
+        type = TextureType::_2D;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    case TextureDimension::_2DArray:
+        type = TextureType::_2DArray;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    case TextureDimension::_3D:
+        type = TextureType::_3D;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    case TextureDimension::_3DArray:
+        type = TextureType::_3DArray;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    case TextureDimension::Cube:
+        type = TextureType::Cube;
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    case TextureDimension::CubeArray:
+        type = TextureType::CubeArray;
+        array_index = RA();
+        coords.push_back(RA());
+        coords.push_back(RA());
+        coords.push_back(RA());
+        break;
+    }
+
+    const auto coords_v =
+        context.builder.OpVectorConstruct(ir::ScalarType::F32, coords);
+    ir::Value res = context.builder.OpTextureSample(
+        cbuf_index, type, flags, array_index, coords_v, ir::Value::Undefined(),
+        ir::Value::Undefined());
+
+    for (u8 i = 0; i < 4; i++) {
+        if ((write_mask & (1 << i)) == 0x0)
+            continue;
+
+        context.builder.OpCopy(ir::Value::Register(dst++, ir::ScalarType::F32),
+                               context.builder.OpVectorExtract(res, i));
+    }
+
+    if (conditional)
+        context.builder.OpEndIf();
+}
+
 // TODO: dim, ndv, nodep, dc, offset, lc, dst_pred
 void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
                        TextureComponent component, reg_t dst, u8 write_mask,
@@ -349,6 +433,12 @@ void EmitTlds(DecoderContext& context, InstTlds inst) {
     EmitTextureSample(context, inst.pred, inst.pred_inv, true, inst.target,
                       inst.dst0, inst.dst1, inst.write_mask, inst.src_a,
                       inst.src_b, inst.cbuf_index);
+}
+
+void EmitTex(DecoderContext& context, InstTex inst) {
+    EmitTextureSample2(context, inst.pred, inst.pred_inv, false, inst.dim,
+                       inst.dst, inst.write_mask, inst.src_a, inst.src_b,
+                       inst.cbuf_index);
 }
 
 void EmitTld4(DecoderContext& context, InstTld4 inst) {

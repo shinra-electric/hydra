@@ -89,6 +89,34 @@ enum class TextureDimension {
     CubeArray = 7,
 };
 
+enum class Lod {
+    Lz = 1,
+    Lb = 2,
+    Ll = 3,
+    Lba = 6,
+    Lla = 7,
+};
+
+union InstTex {
+    BitField64<reg_t, 0, 8> dst;
+    BitField64<reg_t, 8, 8> src_a;
+    BitField64<pred_t, 16, 3> pred;
+    BitField64<bool, 19, 1> pred_inv;
+    BitField64<reg_t, 20, 8> src_b;
+    BitField64<TextureDimension, 28, 3> dim;
+    BitField64<u8, 31, 4> write_mask;
+    BitField64<bool, 35, 1> ndv;
+    BitField64<u32, 36, 13> cbuf_index;
+    BitField64<bool, 49, 1> nodep;
+    BitField64<bool, 50, 1> dc;
+    BitField64<pred_t, 51, 3> dst_pred;
+    BitField64<bool, 54, 1> aoffi;
+    BitField64<Lod, 55, 3> lod;
+    BitField64<bool, 58, 1> lc;
+};
+
+void EmitTex(DecoderContext& context, InstTex inst);
+
 union InstTld4 {
     BitField64<reg_t, 0, 8> dst;
     BitField64<reg_t, 8, 8> src_a;

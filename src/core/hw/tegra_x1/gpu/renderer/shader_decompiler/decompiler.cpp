@@ -109,15 +109,17 @@ void Decompiler::Decompile(io::MemoryStream& code_stream, const ShaderType type,
 #define DUMP_SHADERS 0
 #if DUMP_SHADERS
     {
+        auto tmp_stream = code_stream;
+        const auto code = tmp_stream.ReadSpanWhole<u8>();
         LOG_INFO(ShaderDecompiler, "Dumping shader 0x{}",
-                 (void*)code_reader.GetBase());
+                 (void*)code_stream.GetPtr());
         std::ofstream out(
             fmt::format("/Users/samuliak/Downloads/extracted/0x{}.bin",
-                        (void*)code_reader.GetBase()),
+                        (void*)code_stream.GetPtr()),
             std::ios::binary);
 
-        out.write(reinterpret_cast<const char*>(code_reader.GetPtr()),
-                  code_reader.GetSize());
+        out.write(reinterpret_cast<const char*>(code.data()),
+                  static_cast<i64>(code.size()));
     }
 #endif
 
