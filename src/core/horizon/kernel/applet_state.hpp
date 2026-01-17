@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/kernel/event.hpp"
 
 namespace hydra::horizon::kernel {
@@ -38,6 +39,8 @@ class AppletState {
   private:
     std::mutex mutex;
 
+    AppletResourceUserId aruid;
+
     std::queue<AppletMessage> msg_queue;
     std::atomic<AppletFocusState> focus_state;
     std::atomic<bool> exit_locked{false};
@@ -51,6 +54,7 @@ class AppletState {
     void SendMessageImpl(AppletMessage msg);
 
   public:
+    GETTER(aruid, GetAppletResourceUserId);
     GETTER(msg_event, GetMsgEvent);
 };
 

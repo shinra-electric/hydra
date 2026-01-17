@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/services/const.hpp"
 
 namespace hydra::horizon::services::hid {

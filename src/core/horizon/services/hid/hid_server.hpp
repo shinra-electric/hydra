@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/kernel/const.hpp"
+#include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/services/const.hpp"
 #include "core/horizon/services/hid/const.hpp"
 

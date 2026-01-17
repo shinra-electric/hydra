@@ -5,7 +5,7 @@
 namespace hydra::horizon::services::hid::internal {
 
 void ResourceManager::SetupNpads() {
-    for (auto& resource : resources) {
+    for (auto& resource : resource_pool) {
         if (!resource.has_value())
             continue;
 
@@ -22,7 +22,7 @@ void ResourceManager::Update() {
         const auto state = INPUT_DEVICE_MANAGER_INSTANCE.PollNpad(index);
 
         // Update
-        for (auto& resource : resources) {
+        for (auto& resource : resource_pool) {
             if (!resource.has_value())
                 continue;
 
@@ -32,7 +32,7 @@ void ResourceManager::Update() {
 
     // Touch
     const auto touch_state = INPUT_DEVICE_MANAGER_INSTANCE.PollTouch();
-    for (auto& resource : resources) {
+    for (auto& resource : resource_pool) {
         if (!resource.has_value())
             continue;
 

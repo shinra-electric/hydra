@@ -2,10 +2,6 @@
 
 namespace hydra::horizon::kernel {
 
-using AppletResourceUserId = u64;
-
-constexpr usize MAX_APPLET_RESOURCES = 0x20;
-
 constexpr handle_id_t CURRENT_PROCESS_PSEUDO_HANDLE = 0xffff8001;
 constexpr handle_id_t CURRENT_THREAD_PSEUDO_HANDLE = 0xffff8000;
 

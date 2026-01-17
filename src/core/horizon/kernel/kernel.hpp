@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
@@ -50,11 +51,22 @@ class Kernel {
             auto& is_free = free_applet_resource_user_ids[i];
             if (is_free) {
                 is_free = false;
-                return i;
+                return ToAruid(i);
             }
         }
 
         throw AllocateAppletResourceUserIdError::OutOfIds;
+    }
+
+    enum class ReleaseAppletResourceUserIdError {
+        InvalidAruid,
+    };
+    void ReleaseAppletResourceUserId(AppletResourceUserId aruid) {
+        const auto index = ToIndex(aruid);
+        ASSERT_THROWING(!free_applet_resource_user_ids[index], Kernel,
+                        ReleaseAppletResourceUserIdError::InvalidAruid,
+                        "Invalid aruid {:#x}", aruid);
+        free_applet_resource_user_ids[index] = true;
     }
 
     // SVCs
