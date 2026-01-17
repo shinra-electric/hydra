@@ -568,16 +568,13 @@ result_t Kernel::SignalEvent(Event* event) {
     LOG_DEBUG(Kernel, "SignalEvent called (event: {})", event->GetDebugName());
 
     event->Signal();
-
     return RESULT_SUCCESS;
 }
 
 result_t Kernel::ClearEvent(Event* event) {
     LOG_DEBUG(Kernel, "ClearEvent called (event: {})", event->GetDebugName());
 
-    if (!event->Clear())
-        return MAKE_RESULT(Svc, Error::InvalidState); // TODO: correct?
-
+    event->Clear();
     return RESULT_SUCCESS;
 }
 
