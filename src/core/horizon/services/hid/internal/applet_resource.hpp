@@ -17,6 +17,12 @@ class AppletResource {
     void ActivateNpads(NpadRevision revision);
     void SetupNpads();
 
+    void ClearSupportedNpads() { supported_npads = {false}; }
+    void SetNpadSupported(NpadIndex index, bool supported) {
+        supported_npads[static_cast<usize>(index)] = supported;
+        // TODO: reevaluate npad?
+    }
+
     // Update
     void UpdateNpad(NpadIndex index, const input::NpadState& new_state) {
         if (!active || !input_enabled)
@@ -38,6 +44,7 @@ class AppletResource {
     NpadStyleSet supported_style_sets{
         NpadStyleSet::Standard}; // TODO: what should this be?
     NpadJoyHoldType joy_hold_type{NpadJoyHoldType::Vertical};
+    std::array<bool, NPAD_COUNT> supported_npads = {true};
 
     std::array<Npad, NPAD_COUNT> npads;
 

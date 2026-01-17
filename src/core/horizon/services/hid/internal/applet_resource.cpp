@@ -61,8 +61,8 @@ void AppletResource::SetupNpads() {
 
         // TODO: auto-remap ProController to JoyDual and vice-versa
 
-        // Check if style set is supported
-        if (!any(supported_style_sets & style_set))
+        // Check if supported
+        if (supported_npads[i] && !any(supported_style_sets & style_set))
             style_set = NpadStyleSet::None;
 
         npads[i].Setup(style_set);

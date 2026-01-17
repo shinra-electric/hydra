@@ -43,7 +43,9 @@ class IHidServer : public IService {
     result_t GetSupportedNpadStyleSet(u64 pid,
                                       kernel::AppletResourceUserId aruid,
                                       NpadStyleSet* out_style_set);
-    STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
+    result_t
+    SetSupportedNpadIdType(kernel::AppletResourceUserId aruid,
+                           InBuffer<BufferAttr::HipcPointer> in_types_buffer);
     result_t ActivateNpad(kernel::AppletResourceUserId aruid);
     result_t AcquireNpadStyleSetUpdateEventHandle(
         kernel::Process* process, aligned<NpadIdType, 8> type,
