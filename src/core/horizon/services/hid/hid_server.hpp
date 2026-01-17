@@ -37,11 +37,9 @@ class IHidServer : public IService {
     STUB_REQUEST_COMMAND(EnableSixAxisSensorFusion);
     STUB_REQUEST_COMMAND(SetGyroscopeZeroDriftMode);
     STUB_REQUEST_COMMAND(ActivateGesture);
-    result_t SetSupportedNpadStyleSet(u64 pid,
-                                      kernel::AppletResourceUserId aruid,
-                                      NpadStyleSet style_set);
-    result_t GetSupportedNpadStyleSet(u64 pid,
-                                      kernel::AppletResourceUserId aruid,
+    result_t SetSupportedNpadStyleSet(aligned<NpadStyleSet, 8> style_set,
+                                      kernel::AppletResourceUserId aruid);
+    result_t GetSupportedNpadStyleSet(kernel::AppletResourceUserId aruid,
                                       NpadStyleSet* out_style_set);
     result_t
     SetSupportedNpadIdType(kernel::AppletResourceUserId aruid,

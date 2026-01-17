@@ -32,16 +32,16 @@ result_t IHidServer::CreateAppletResource(RequestContext* ctx,
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::SetSupportedNpadStyleSet(
-    u64 pid, kernel::AppletResourceUserId aruid, NpadStyleSet style_set) {
-    (void)pid;
+result_t
+IHidServer::SetSupportedNpadStyleSet(aligned<NpadStyleSet, 8> style_set,
+                                     kernel::AppletResourceUserId aruid) {
     APPLET_RESOURCE(aruid).SetSupportedStyleSet(style_set);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetSupportedNpadStyleSet(
-    u64 pid, kernel::AppletResourceUserId aruid, NpadStyleSet* out_style_set) {
-    (void)pid;
+result_t
+IHidServer::GetSupportedNpadStyleSet(kernel::AppletResourceUserId aruid,
+                                     NpadStyleSet* out_style_set) {
     *out_style_set = APPLET_RESOURCE(aruid).GetSupportedStyleSet();
     return RESULT_SUCCESS;
 }
