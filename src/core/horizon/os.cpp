@@ -147,9 +147,6 @@ OS::OS(audio::ICore& audio_core_, ui::HandlerBase& ui_handler_)
     // Shared font
     shared_font_manager.LoadFonts();
 
-    // Connect npads
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
-
     // Services
 
     // Only some services have dedicated servers so as to avoid creating
@@ -347,8 +344,8 @@ OS::~OS() { SINGLETON_UNSET_INSTANCE(); }
 
 void OS::NotifyOperationModeChanged() {
     // Disconnect and connect npads
-    input_manager.DisconnectAllNpads();
-    INPUT_DEVICE_MANAGER_INSTANCE.ConnectNpads();
+    // TODO: update supported style sets?
+    hid_resource_manager.SetupNpads();
 
     // Send a message to all processes
     for (auto it = kernel.GetProcessManager().Begin();

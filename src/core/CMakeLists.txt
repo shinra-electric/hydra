@@ -1,8 +1,5 @@
 add_library(hydra-core
     horizon/const.hpp
-    horizon/hid.hpp
-    horizon/input_manager.cpp
-    horizon/input_manager.hpp
     horizon/firmware.cpp
     horizon/firmware.hpp
     horizon/os.cpp
@@ -104,6 +101,7 @@ add_library(hydra-core
     horizon/services/server.hpp
     horizon/services/sm/user_interface.cpp
     horizon/services/sm/user_interface.hpp
+    horizon/services/hid/const.hpp
     horizon/services/hid/applet_resource.cpp
     horizon/services/hid/applet_resource.hpp
     horizon/services/hid/active_vibration_device_list.cpp
@@ -114,6 +112,13 @@ add_library(hydra-core
     horizon/services/hid/hid_debug_server.hpp
     horizon/services/hid/hid_system_server.cpp
     horizon/services/hid/hid_system_server.hpp
+    horizon/services/hid/internal/shared_memory.hpp
+    horizon/services/hid/internal/npad.cpp
+    horizon/services/hid/internal/npad.hpp
+    horizon/services/hid/internal/applet_resource.cpp
+    horizon/services/hid/internal/applet_resource.hpp
+    horizon/services/hid/internal/resource_manager.cpp
+    horizon/services/hid/internal/resource_manager.hpp
     horizon/services/fssrv/storage.cpp
     horizon/services/fssrv/storage.hpp
     horizon/services/fssrv/file.cpp
@@ -590,6 +595,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/renderer.cpp
     hw/tegra_x1/gpu/renderer/metal/renderer.hpp
     input/const.hpp
+    input/state.hpp
     input/device.hpp
     input/keyboard.hpp
     input/controller.hpp

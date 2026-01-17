@@ -31,7 +31,7 @@ class Applet : public AppletBase {
             .info =
                 {
                     .player_count = player_count_min,
-                    .selected_id = hid::NpadIdType::No1,
+                    .selected_id = services::hid::NpadIdType::No1,
                 },
             .result = RESULT_SUCCESS,
         });

@@ -21,8 +21,8 @@ result_t IIrSensorServer::GetIrsensorSharedMemoryHandle(
     return RESULT_SUCCESS;
 }
 
-result_t IIrSensorServer::GetNpadIrCameraHandle(
-    ::hydra::horizon::hid::NpadIdType npad_id, IrCameraHandle* out_handle) {
+result_t IIrSensorServer::GetNpadIrCameraHandle(hid::NpadIdType npad_id,
+                                                IrCameraHandle* out_handle) {
     LOG_FUNC_WITH_ARGS_STUBBED(Services, "npad ID: {}", npad_id);
 
     // HACK

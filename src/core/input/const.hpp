@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/horizon/hid.hpp"
+#include "core/horizon/services/hid/const.hpp"
 
 namespace hydra::input {
 
@@ -31,7 +31,7 @@ struct Code {
 
 struct CodeButtonMapping {
     Code code;
-    horizon::hid::NpadButtons npad_buttons;
+    horizon::services::hid::NpadButtons npad_buttons;
 };
 
 enum class AnalogStickDirection {

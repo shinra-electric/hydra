@@ -42,6 +42,21 @@ class Kernel {
     void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
 
+    enum class AllocateAppletResourceUserIdError {
+        OutOfIds,
+    };
+    AppletResourceUserId AllocateAppletResourceUserId() {
+        for (u32 i = 0; i < MAX_APPLET_RESOURCES; i++) {
+            auto& is_free = free_applet_resource_user_ids[i];
+            if (is_free) {
+                is_free = false;
+                return i;
+            }
+        }
+
+        throw AllocateAppletResourceUserIdError::OutOfIds;
+    }
+
     // SVCs
     result_t SetHeapSize(Process* crnt_process, usize size, uptr& out_base);
     result_t SetMemoryPermission(uptr addr, usize size, MemoryPermission perm);
@@ -144,6 +159,10 @@ class Kernel {
     // Sync
     DoubleLinkedList<IThread*> cond_var_waiters;
     DoubleLinkedList<IThread*> arbiters;
+
+    // Applet resource
+    std::array<bool, MAX_APPLET_RESOURCES> free_applet_resource_user_ids = {
+        true};
 
     // Helpers
     void TryAcquireMutex(Process* crnt_process, IThread* thread);

@@ -6,7 +6,7 @@ namespace hydra::input {
 
 class Profile {
   public:
-    Profile(horizon::hid::NpadIdType type_, std::string_view name_);
+    Profile(horizon::services::hid::NpadIdType type_, std::string_view name_);
 
     void Reset() {
         button_mappings = {};
@@ -19,7 +19,7 @@ class Profile {
     void Deserialize();
 
   private:
-    horizon::hid::NpadIdType type;
+    horizon::services::hid::NpadIdType type;
     std::string name;
 
     std::vector<std::string> device_names;

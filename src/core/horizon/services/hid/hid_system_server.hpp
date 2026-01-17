@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/horizon/hid.hpp"
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/hid/const.hpp"
 
 namespace hydra::horizon::services::hid {
 
@@ -26,8 +26,7 @@ class IHidSystemServer : public IService {
                                   OutHandle<HandleAttr::Copy> out_handle);
     STUB_REQUEST_COMMAND(ApplyNpadSystemCommonPolicy);
     result_t
-    GetUniquePadsFromNpad(::hydra::horizon::hid::NpadIdType npad_id,
-                          i64* out_count,
+    GetUniquePadsFromNpad(NpadIdType npad_id, i64* out_count,
                           OutBuffer<BufferAttr::HipcPointer> out_buffer);
     result_t EnableAppletToGetInput(u8 enable, u64 aruid);
 };

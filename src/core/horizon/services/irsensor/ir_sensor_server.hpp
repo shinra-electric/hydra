@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/horizon/hid.hpp"
 #include "core/horizon/services/const.hpp"
+#include "core/horizon/services/hid/const.hpp"
 
 namespace hydra::horizon::services::irsensor {
 
@@ -41,7 +41,7 @@ class IIrSensorServer : public IService {
     result_t
     GetIrsensorSharedMemoryHandle(kernel::Process* process, u64 aruid,
                                   OutHandle<HandleAttr::Copy> out_handle);
-    result_t GetNpadIrCameraHandle(::hydra::horizon::hid::NpadIdType npad_id,
+    result_t GetNpadIrCameraHandle(hid::NpadIdType npad_id,
                                    IrCameraHandle* out_handle);
     // TODO: PID descriptor
     result_t
