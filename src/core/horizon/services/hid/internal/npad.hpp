@@ -2,10 +2,7 @@
 
 #include "core/horizon/services/hid/const.hpp"
 #include "core/horizon/services/hid/internal/shared_memory.hpp"
-
-namespace hydra::input {
-struct NpadState;
-}
+#include "core/input/state.hpp"
 
 namespace hydra::horizon::kernel {
 class Event;

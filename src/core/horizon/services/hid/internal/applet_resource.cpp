@@ -2,12 +2,11 @@
 
 #include "core/horizon/kernel/shared_memory.hpp"
 
+#define SHARED_MEMORY (*reinterpret_cast<SharedMemory*>(shared_mem->GetPtr()))
+
 namespace hydra::horizon::services::hid::internal {
 
-#define NPAD_INTERNAL_STATE(i)                                                 \
-    reinterpret_cast<SharedMemory*>(shared_mem->GetPtr())                      \
-        ->npad.entries[i]                                                      \
-        .internal_state
+#define NPAD_INTERNAL_STATE(i) SHARED_MEMORY.npad.entries[i].internal_state
 
 AppletResource::AppletResource()
     : shared_mem{new kernel::SharedMemory(sizeof(SharedMemory),
@@ -67,6 +66,27 @@ void AppletResource::SetupNpads() {
 
         npads[i].Setup(style_set);
     }
+}
+
+void AppletResource::UpdateTouch(
+    const std::map<u32, input::TouchState>& new_state) {
+    if (!ShouldAcceptInput())
+        return;
+
+    auto& lifo = SHARED_MEMORY.touch_screen.lifo;
+
+    // State
+    TouchScreenState state{
+        .count = static_cast<i32>(new_state.size()),
+    };
+    u32 index = 0;
+    for (const auto& [finger_id, touch_state] : new_state) {
+        state.touches[index++] = {
+            .finger_id = finger_id, .x = touch_state.x, .y = touch_state.y,
+            // TODO: more
+        };
+    }
+    lifo.WriteNext(state);
 }
 
 } // namespace hydra::horizon::services::hid::internal

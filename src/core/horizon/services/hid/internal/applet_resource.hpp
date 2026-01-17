@@ -25,12 +25,12 @@ class AppletResource {
 
     // Update
     void UpdateNpad(NpadIndex index, const input::NpadState& new_state) {
-        if (!active || !input_enabled)
+        if (!ShouldAcceptInput())
             return;
 
         npads[static_cast<usize>(index)].Update(new_state);
     }
-    // TODO: touch
+    void UpdateTouch(const std::map<u32, input::TouchState>& new_state);
 
     kernel::Event* GetNpadStyleSetUpdateEvent(NpadIndex index) {
         return npads[static_cast<usize>(index)].GetStyleSetUpdateEvent();
@@ -47,6 +47,9 @@ class AppletResource {
     std::array<bool, NPAD_COUNT> supported_npads = {true};
 
     std::array<Npad, NPAD_COUNT> npads;
+
+    // Helpers
+    inline bool ShouldAcceptInput() const { return active && input_enabled; }
 
   public:
     GETTER(shared_mem, GetSharedMemory);

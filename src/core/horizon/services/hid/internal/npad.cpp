@@ -1,7 +1,6 @@
 #include "core/horizon/services/hid/internal/npad.hpp"
 
 #include "core/horizon/kernel/event.hpp"
-#include "core/input/state.hpp"
 
 namespace hydra::horizon::services::hid::internal {
 

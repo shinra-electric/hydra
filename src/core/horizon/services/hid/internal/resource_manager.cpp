@@ -31,7 +31,13 @@ void ResourceManager::Update() {
     }
 
     // Touch
-    // TODO
+    const auto touch_state = INPUT_DEVICE_MANAGER_INSTANCE.PollTouch();
+    for (auto& resource : resources) {
+        if (!resource.has_value())
+            continue;
+
+        resource->UpdateTouch(touch_state);
+    }
 }
 
 } // namespace hydra::horizon::services::hid::internal
