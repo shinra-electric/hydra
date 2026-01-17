@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/horizon/const.hpp"
-#include "core/horizon/hid.hpp"
+#include "core/horizon/services/hid/const.hpp"
 
 namespace hydra::horizon::applets::controller {
 
@@ -25,8 +25,8 @@ struct ArgPrivate {
     u8 flag1; // TODO: what is this?
     Mode mode;
     Caller caller;
-    hid::NpadStyleSet npad_style_set;
-    hid::NpadJoyHoldType npad_joy_hold_type;
+    services::hid::NpadStyleSet npad_style_set;
+    services::hid::NpadJoyHoldType npad_joy_hold_type;
 };
 
 template <usize max_supported_players>
@@ -47,7 +47,7 @@ struct SupportArg {
 struct ResultInfo {
     i8 player_count;
     u8 _padding_x1[0x3];
-    hid::NpadIdType selected_id;
+    services::hid::NpadIdType selected_id;
 };
 
 struct ResultInfoInternal {

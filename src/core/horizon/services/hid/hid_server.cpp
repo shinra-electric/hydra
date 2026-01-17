@@ -1,8 +1,12 @@
 #include "core/horizon/services/hid/hid_server.hpp"
 
 #include "core/horizon/kernel/process.hpp"
+#include "core/horizon/os.hpp"
 #include "core/horizon/services/hid/active_vibration_device_list.hpp"
 #include "core/horizon/services/hid/applet_resource.hpp"
+
+#define APPLET_RESOURCE(aruid)                                                 \
+    OS_INSTANCE.GetHidResourceManager().GetResource(aruid)
 
 namespace hydra::horizon::services::hid {
 
@@ -13,81 +17,108 @@ DEFINE_SERVICE_COMMAND_TABLE(
     79, SetGyroscopeZeroDriftMode, 91, ActivateGesture, 100,
     SetSupportedNpadStyleSet, 101, GetSupportedNpadStyleSet, 102,
     SetSupportedNpadIdType, 103, ActivateNpad, 106,
-    AcquireNpadStyleSetUpdateEventHandle, 108, GetPlayerLedPattern, 109,
-    ActivateNpadWithRevision, 120, SetNpadJoyHoldType, 121, GetNpadJoyHoldType,
-    122, SetNpadJoyAssignmentModeSingleByDefault, 124,
+    AcquireNpadStyleSetUpdateEventHandle, 107, DisconnectNpad, 108,
+    GetPlayerLedPattern, 109, ActivateNpadWithRevision, 120, SetNpadJoyHoldType,
+    121, GetNpadJoyHoldType, 122, SetNpadJoyAssignmentModeSingleByDefault, 124,
     SetNpadJoyAssignmentModeDual, 128, SetNpadHandheldActivationMode, 130,
     SwapNpadAssignment, 200, GetVibrationDeviceInfo, 201, SendVibrationValue,
     203, CreateActiveVibrationDeviceList, 205, IsVibrationPermitted, 206,
     SendVibrationValues, 303, ActivateSevenSixAxisSensor, 1000,
     SetNpadCommunicationMode, 1004, SetTouchScreenOutputRanges)
 
-result_t IHidServer::CreateAppletResource(RequestContext* ctx, u64 aruid) {
-    (void)aruid;
-
-    AddService(*ctx, new IAppletResource());
-
-    return RESULT_SUCCESS;
-}
-
-result_t IHidServer::GetSupportedNpadStyleSet(
-    ::hydra::horizon::hid::NpadStyleSet* style_set) {
-    // TODO: make this configurable?
-    *style_set = ::hydra::horizon::hid::NpadStyleSet::Standard;
-
-    return RESULT_SUCCESS;
-}
-
-result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
-    kernel::Process* process, aligned<u32, 8> id, u64 aruid, u64 event_ptr,
-    OutHandle<HandleAttr::Copy> out_handle) {
-    (void)id;
-    (void)aruid;
-    (void)event_ptr;
-
-    LOG_FUNC_WITH_ARGS_STUBBED(Services, "event ptr: {:#x}", event_ptr);
-
-    // TODO: params
-    out_handle = process->AddHandle(npad_style_set_update_event);
-
-    // HACK: games expect this to be signalled
-    npad_style_set_update_event->Signal();
-
+result_t IHidServer::CreateAppletResource(RequestContext* ctx,
+                                          kernel::AppletResourceUserId aruid) {
+    AddService(*ctx, new IAppletResource(aruid));
     return RESULT_SUCCESS;
 }
 
 result_t
-IHidServer::GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
-                                u64* out_pattern) {
+IHidServer::SetSupportedNpadStyleSet(aligned<NpadStyleSet, 8> style_set,
+                                     kernel::AppletResourceUserId aruid) {
+    APPLET_RESOURCE(aruid).SetSupportedStyleSet(style_set);
+    return RESULT_SUCCESS;
+}
+
+result_t
+IHidServer::GetSupportedNpadStyleSet(kernel::AppletResourceUserId aruid,
+                                     NpadStyleSet* out_style_set) {
+    *out_style_set = APPLET_RESOURCE(aruid).GetSupportedStyleSet();
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::SetSupportedNpadIdType(
+    kernel::AppletResourceUserId aruid,
+    InBuffer<BufferAttr::HipcPointer> in_types_buffer) {
+    while (in_types_buffer.stream->GetSeek() <
+           in_types_buffer.stream->GetSize()) {
+        const auto index =
+            internal::ToNpadIndex(in_types_buffer.stream->Read<NpadIdType>());
+        APPLET_RESOURCE(aruid).SetNpadSupported(index, true);
+    }
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::ActivateNpad(kernel::AppletResourceUserId aruid) {
+    APPLET_RESOURCE(aruid).ActivateNpads(NpadRevision::Revision0);
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
+    kernel::Process* process, aligned<NpadIdType, 8> type,
+    kernel::AppletResourceUserId aruid, u64 event_ptr,
+    OutHandle<HandleAttr::Copy> out_handle) {
+    (void)event_ptr;
+    LOG_DEBUG(Services, "event ptr: {:#x}", event_ptr);
+
+    auto event = APPLET_RESOURCE(aruid).GetNpadStyleSetUpdateEvent(
+        internal::ToNpadIndex(type));
+
+    // TODO: params
+    out_handle = process->AddHandle(event);
+
+    // HACK: games expect this to be signalled
+    event->Signal();
+
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::DisconnectNpad(aligned<NpadIdType, 8> type,
+                                    kernel::AppletResourceUserId aruid) {
+    APPLET_RESOURCE(aruid).DisconnectNpad(internal::ToNpadIndex(type));
+    return RESULT_SUCCESS;
+}
+
+result_t IHidServer::GetPlayerLedPattern(NpadIdType npad_id_type,
+                                         u64* out_pattern) {
     switch (npad_id_type) {
-    case ::hydra::horizon::hid::NpadIdType::No1:
+    case NpadIdType::No1:
         *out_pattern = 0b0001;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No2:
+    case NpadIdType::No2:
         *out_pattern = 0b0011;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No3:
+    case NpadIdType::No3:
         *out_pattern = 0b0111;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No4:
+    case NpadIdType::No4:
         *out_pattern = 0b1111;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No5:
+    case NpadIdType::No5:
         *out_pattern = 0b1001;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No6:
+    case NpadIdType::No6:
         *out_pattern = 0b0101;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No7:
+    case NpadIdType::No7:
         *out_pattern = 0b1101;
         break;
-    case ::hydra::horizon::hid::NpadIdType::No8:
+    case NpadIdType::No8:
         *out_pattern = 0b0110;
         break;
-    case ::hydra::horizon::hid::NpadIdType::Handheld:
+    case NpadIdType::Handheld:
         *out_pattern = 0b0000;
         break;
-    case ::hydra::horizon::hid::NpadIdType::Other:
+    case NpadIdType::Other:
         *out_pattern = 0b0000;
         break;
     default:
@@ -100,20 +131,23 @@ IHidServer::GetPlayerLedPattern(::hydra::horizon::hid::NpadIdType npad_id_type,
 }
 
 result_t
-IHidServer::SetNpadJoyHoldType(::hydra::horizon::hid::NpadJoyHoldType type,
-                               i64 aruid) {
-    (void)aruid;
-
-    npad_joy_hold_type = type;
+IHidServer::ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
+                                     kernel::AppletResourceUserId aruid) {
+    LOG_DEBUG(Services, "Revision: {}", revision);
+    APPLET_RESOURCE(aruid).ActivateNpads(revision);
     return RESULT_SUCCESS;
 }
 
-result_t IHidServer::GetNpadJoyHoldType(
-    i64 aruid, aligned<::hydra::horizon::hid::NpadJoyHoldType, 8>* out_type) {
-    (void)aruid;
+result_t IHidServer::SetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+                                        NpadJoyHoldType type) {
+    APPLET_RESOURCE(aruid).SetJoyHoldType(type);
+    return RESULT_SUCCESS;
+}
 
+result_t IHidServer::GetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
+                                        aligned<NpadJoyHoldType, 8>* out_type) {
     out_type->ZeroOutPadding();
-    *out_type = npad_joy_hold_type;
+    *out_type = APPLET_RESOURCE(aruid).GetJoyHoldType();
     return RESULT_SUCCESS;
 }
 

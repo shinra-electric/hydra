@@ -17,9 +17,15 @@ class Applet : public AppletBase {
   private:
     template <usize max_supported_players>
     result_t RunControllerSupport() {
-        LOG_STUBBED(Applets, "Controller support");
-
         const auto arg = PopInData<SupportArg<max_supported_players>>();
+
+        LOG_FUNC_WITH_ARGS_STUBBED(
+            Applets,
+            "player count min: {}, player count max: {}, single mode: {}, "
+            "permit joy dual: {}, explain text: {}",
+            arg.player_count_min, arg.player_count_max, arg.enable_single_mode,
+            arg.enable_permit_joy_dual,
+            arg.enable_explain_text ? arg.explain_text[0] : "none");
 
         i8 player_count_min = arg.player_count_min;
         i8 player_count_max = arg.player_count_max;
@@ -31,7 +37,7 @@ class Applet : public AppletBase {
             .info =
                 {
                     .player_count = player_count_min,
-                    .selected_id = hid::NpadIdType::No1,
+                    .selected_id = services::hid::NpadIdType::No1,
                 },
             .result = RESULT_SUCCESS,
         });

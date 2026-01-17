@@ -47,6 +47,7 @@ struct MenuCommands: Commands {
             Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
                 self.handheldMode = !self.handheldMode
                 hydraConfigGetHandheldMode().pointee = self.handheldMode
+                hydraConfigSerialize()
 
                 guard let emulationContext = globalState.emulationContext else { return }
                 emulationContext.notifyOperationModeChanged()

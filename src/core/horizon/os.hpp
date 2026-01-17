@@ -1,14 +1,13 @@
 #pragma once
 
 #include "core/horizon/display/driver.hpp"
-#include "core/horizon/input_manager.hpp"
 #include "core/horizon/services/account/internal/user_manager.hpp"
+#include "core/horizon/services/hid/internal/resource_manager.hpp"
 #include "core/horizon/services/pl/internal/shared_font_manager.hpp"
 #include "core/horizon/services/server.hpp"
 #include "core/horizon/services/timesrv/internal/time_manager.hpp"
 
 #define OS_INSTANCE horizon::OS::GetInstance()
-#define INPUT_MANAGER_INSTANCE OS_INSTANCE.GetInputManager()
 #define USER_MANAGER_INSTANCE OS_INSTANCE.GetUserManager()
 #define SHARED_FONT_MANAGER_INSTANCE OS_INSTANCE.GetSharedFontManager()
 #define TIME_MANAGER_INSTANCE OS_INSTANCE.GetTimeManager()
@@ -52,7 +51,7 @@ class OS {
 
     // Managers
     display::Driver display_driver;
-    InputManager input_manager;
+    services::hid::internal::ResourceManager hid_resource_manager;
     services::account::internal::UserManager user_manager;
     services::pl::internal::SharedFontManager shared_font_manager;
     services::timesrv::internal::TimeManager time_manager;
@@ -69,7 +68,7 @@ class OS {
     REF_GETTER(kernel, GetKernel);
     REF_GETTER(service_manager, GetServiceManager);
     REF_GETTER(display_driver, GetDisplayDriver);
-    REF_GETTER(input_manager, GetInputManager);
+    REF_GETTER(hid_resource_manager, GetHidResourceManager);
     REF_GETTER(user_manager, GetUserManager);
     REF_GETTER(shared_font_manager, GetSharedFontManager);
     REF_GETTER(time_manager, GetTimeManager);

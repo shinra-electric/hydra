@@ -11,7 +11,7 @@ class IWindowController : public IService {
 
   private:
     // Commands
-    result_t GetAppletResourceUserId(u64* out_aruid);
+    result_t GetAppletResourceUserId(kernel::Process* process, u64* out_aruid);
     STUB_REQUEST_COMMAND(AcquireForegroundRights);
 };
 

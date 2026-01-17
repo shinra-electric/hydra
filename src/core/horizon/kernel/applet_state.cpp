@@ -1,11 +1,18 @@
 #include "core/horizon/kernel/applet_state.hpp"
 
 #include "core/horizon/kernel/event.hpp"
+#include "core/horizon/kernel/kernel.hpp"
 
 namespace hydra::horizon::kernel {
 
-AppletState::AppletState() : msg_event{new Event(false, "Message event")} {}
-AppletState::~AppletState() { msg_event->Release(); }
+AppletState::AppletState()
+    : aruid{KERNEL_INSTANCE.AllocateAppletResourceUserId()},
+      msg_event{new Event(false, "Message event")} {}
+
+AppletState::~AppletState() {
+    msg_event->Release();
+    KERNEL_INSTANCE.ReleaseAppletResourceUserId(aruid);
+}
 
 void AppletState::SendMessage(AppletMessage msg) {
     std::lock_guard lock(mutex);

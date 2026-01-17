@@ -161,8 +161,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             .flag1 = 0,
             .mode = horizon::applets::controller::Mode::ShowControllerSupport,
             .caller = horizon::applets::controller::Caller::Application,
-            .npad_style_set = horizon::hid::NpadStyleSet::JoyDual,
-            .npad_joy_hold_type = horizon::hid::NpadJoyHoldType::Vertical,
+            .npad_style_set = horizon::services::hid::NpadStyleSet::JoyDual,
+            .npad_joy_hold_type =
+                horizon::services::hid::NpadJoyHoldType::Vertical,
         };
         controller->PushInData(
             new horizon::services::am::IStorage(private_arg));
@@ -425,7 +426,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     os->SetSurfaceResolution({width, height});
 
     // Input
-    INPUT_DEVICE_MANAGER_INSTANCE.Poll();
+    os->GetHidResourceManager().Update();
 
     // Present
 

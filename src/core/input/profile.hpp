@@ -1,12 +1,14 @@
 #pragma once
 
+#include "core/horizon/services/hid/internal/npad_index.hpp"
 #include "core/input/const.hpp"
 
 namespace hydra::input {
 
 class Profile {
   public:
-    Profile(horizon::hid::NpadIdType type_, std::string_view name_);
+    Profile(horizon::services::hid::internal::NpadIndex index_,
+            std::string_view name_);
 
     void Reset() {
         button_mappings = {};
@@ -19,7 +21,7 @@ class Profile {
     void Deserialize();
 
   private:
-    horizon::hid::NpadIdType type;
+    horizon::services::hid::internal::NpadIndex index;
     std::string name;
 
     std::vector<std::string> device_names;

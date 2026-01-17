@@ -32,7 +32,7 @@ result_t IHidSystemServer::AcquireSleepButtonEventHandle(
 }
 
 result_t IHidSystemServer::GetUniquePadsFromNpad(
-    ::hydra::horizon::hid::NpadIdType npad_id, i64* out_count,
+    NpadIdType npad_id, i64* out_count,
     OutBuffer<BufferAttr::HipcPointer> out_buffer) {
     (void)out_buffer;
 

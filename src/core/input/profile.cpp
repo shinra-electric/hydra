@@ -5,10 +5,10 @@
 #include "core/input/keyboard.hpp"
 
 ENABLE_ENUM_FORMATTING_AND_CASTING(
-    hydra::horizon::hid, NpadButtons, npad_buttons, A, "a", B, "b", X, "x", Y,
-    "y", StickL, "stick_l", StickR, "stick_r", L, "l", R, "r", ZL, "zl", ZR,
-    "zr", Plus, "plus", Minus, "minus", Left, "left", Up, "up", Right, "right",
-    Down, "down", StickLLeft, "stick_l_left", StickLUp, "stick_l_up",
+    hydra::horizon::services::hid, NpadButtons, npad_buttons, A, "a", B, "b", X,
+    "x", Y, "y", StickL, "stick_l", StickR, "stick_r", L, "l", R, "r", ZL, "zl",
+    ZR, "zr", Plus, "plus", Minus, "minus", Left, "left", Up, "up", Right,
+    "right", Down, "down", StickLLeft, "stick_l_left", StickLUp, "stick_l_up",
     StickLRight, "stick_l_right", StickLDown, "stick_l_down", StickRLeft,
     "stick_r_left", StickRUp, "stick_r_up", StickRRight, "stick_r_right",
     StickRDown, "stick_r_down", LeftSL, "left_sl", LeftSR, "left_sr", RightSL,
@@ -165,8 +165,9 @@ struct into<hydra::input::AnalogStickAxis> {
 
 namespace hydra::input {
 
-Profile::Profile(horizon::hid::NpadIdType type_, std::string_view name_)
-    : type{type_}, name{name_} {
+Profile::Profile(horizon::services::hid::internal::NpadIndex index_,
+                 std::string_view name_)
+    : index{index_}, name{name_} {
     const auto path = GetProfilesPath();
     if (!std::filesystem::exists(path))
         std::filesystem::create_directory(path);
@@ -175,8 +176,8 @@ Profile::Profile(horizon::hid::NpadIdType type_, std::string_view name_)
 }
 
 void Profile::LoadDefaults() {
-    switch (type) {
-    case horizon::hid::NpadIdType::No1: {
+    switch (index) {
+    case horizon::services::hid::internal::NpadIndex::No1: {
         // Devices
 #ifdef PLATFORM_MACOS
         device_names = {"Generic Keyboard"};
@@ -188,55 +189,63 @@ void Profile::LoadDefaults() {
         button_mappings = {
             // Controller
             {Code(DeviceType::Controller, ControllerInput::Plus),
-             horizon::hid::NpadButtons::Plus},
+             horizon::services::hid::NpadButtons::Plus},
             {Code(DeviceType::Controller, ControllerInput::Minus),
-             horizon::hid::NpadButtons::Minus},
+             horizon::services::hid::NpadButtons::Minus},
             {Code(DeviceType::Controller, ControllerInput::Left),
-             horizon::hid::NpadButtons::Left},
+             horizon::services::hid::NpadButtons::Left},
             {Code(DeviceType::Controller, ControllerInput::Right),
-             horizon::hid::NpadButtons::Right},
+             horizon::services::hid::NpadButtons::Right},
             {Code(DeviceType::Controller, ControllerInput::Up),
-             horizon::hid::NpadButtons::Up},
+             horizon::services::hid::NpadButtons::Up},
             {Code(DeviceType::Controller, ControllerInput::Down),
-             horizon::hid::NpadButtons::Down},
+             horizon::services::hid::NpadButtons::Down},
             {Code(DeviceType::Controller, ControllerInput::A),
-             horizon::hid::NpadButtons::A},
+             horizon::services::hid::NpadButtons::A},
             {Code(DeviceType::Controller, ControllerInput::B),
-             horizon::hid::NpadButtons::B},
+             horizon::services::hid::NpadButtons::B},
             {Code(DeviceType::Controller, ControllerInput::X),
-             horizon::hid::NpadButtons::X},
+             horizon::services::hid::NpadButtons::X},
             {Code(DeviceType::Controller, ControllerInput::Y),
-             horizon::hid::NpadButtons::Y},
+             horizon::services::hid::NpadButtons::Y},
             {Code(DeviceType::Controller, ControllerInput::L),
-             horizon::hid::NpadButtons::L},
+             horizon::services::hid::NpadButtons::L},
             {Code(DeviceType::Controller, ControllerInput::R),
-             horizon::hid::NpadButtons::R},
+             horizon::services::hid::NpadButtons::R},
             {Code(DeviceType::Controller, ControllerInput::ZL),
-             horizon::hid::NpadButtons::ZL},
+             horizon::services::hid::NpadButtons::ZL},
             {Code(DeviceType::Controller, ControllerInput::ZR),
-             horizon::hid::NpadButtons::ZR},
+             horizon::services::hid::NpadButtons::ZR},
 
             // Keyboard
             {Code(DeviceType::Keyboard, Key::Enter),
-             horizon::hid::NpadButtons::Plus},
+             horizon::services::hid::NpadButtons::Plus},
             {Code(DeviceType::Keyboard, Key::Tab),
-             horizon::hid::NpadButtons::Minus},
+             horizon::services::hid::NpadButtons::Minus},
             {Code(DeviceType::Keyboard, Key::ArrowLeft),
-             horizon::hid::NpadButtons::Left},
+             horizon::services::hid::NpadButtons::Left},
             {Code(DeviceType::Keyboard, Key::ArrowRight),
-             horizon::hid::NpadButtons::Right},
+             horizon::services::hid::NpadButtons::Right},
             {Code(DeviceType::Keyboard, Key::ArrowUp),
-             horizon::hid::NpadButtons::Up},
+             horizon::services::hid::NpadButtons::Up},
             {Code(DeviceType::Keyboard, Key::ArrowDown),
-             horizon::hid::NpadButtons::Down},
-            {Code(DeviceType::Keyboard, Key::L), horizon::hid::NpadButtons::A},
-            {Code(DeviceType::Keyboard, Key::K), horizon::hid::NpadButtons::B},
-            {Code(DeviceType::Keyboard, Key::I), horizon::hid::NpadButtons::X},
-            {Code(DeviceType::Keyboard, Key::J), horizon::hid::NpadButtons::Y},
-            {Code(DeviceType::Keyboard, Key::U), horizon::hid::NpadButtons::L},
-            {Code(DeviceType::Keyboard, Key::O), horizon::hid::NpadButtons::R},
-            {Code(DeviceType::Keyboard, Key::Y), horizon::hid::NpadButtons::ZL},
-            {Code(DeviceType::Keyboard, Key::P), horizon::hid::NpadButtons::ZR},
+             horizon::services::hid::NpadButtons::Down},
+            {Code(DeviceType::Keyboard, Key::L),
+             horizon::services::hid::NpadButtons::A},
+            {Code(DeviceType::Keyboard, Key::K),
+             horizon::services::hid::NpadButtons::B},
+            {Code(DeviceType::Keyboard, Key::I),
+             horizon::services::hid::NpadButtons::X},
+            {Code(DeviceType::Keyboard, Key::J),
+             horizon::services::hid::NpadButtons::Y},
+            {Code(DeviceType::Keyboard, Key::U),
+             horizon::services::hid::NpadButtons::L},
+            {Code(DeviceType::Keyboard, Key::O),
+             horizon::services::hid::NpadButtons::R},
+            {Code(DeviceType::Keyboard, Key::Y),
+             horizon::services::hid::NpadButtons::ZL},
+            {Code(DeviceType::Keyboard, Key::P),
+             horizon::services::hid::NpadButtons::ZR},
         };
 
         // Analog sticks
@@ -354,7 +363,8 @@ void Profile::Deserialize() {
     if (data.contains("Buttons")) {
         const auto& buttons = data.at("Buttons");
         for (const auto& mappings : buttons.as_table()) {
-            const auto button = horizon::hid::to_npad_buttons(mappings.first);
+            const auto button =
+                horizon::services::hid::to_npad_buttons(mappings.first);
             for (const auto& mapping : mappings.second.as_array()) {
                 const auto& code = to_code(mapping.as_string());
                 button_mappings.push_back({code, button});

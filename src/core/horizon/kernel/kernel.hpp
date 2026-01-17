@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/filesystem/filesystem.hpp"
+#include "core/horizon/kernel/applet_resource.hpp"
 #include "core/horizon/kernel/event.hpp"
 #include "core/horizon/kernel/hipc/service_manager.hpp"
 #include "core/horizon/kernel/process_manager.hpp"
@@ -41,6 +42,32 @@ class Kernel {
 
     void SupervisorCall(Process* crnt_process, IThread* crnt_thread,
                         hw::tegra_x1::cpu::IThread* guest_thread, u64 id);
+
+    enum class AllocateAppletResourceUserIdError {
+        OutOfIds,
+    };
+    AppletResourceUserId AllocateAppletResourceUserId() {
+        for (u32 i = 0; i < MAX_APPLET_RESOURCES; i++) {
+            auto& is_free = free_applet_resource_user_ids[i];
+            if (is_free) {
+                is_free = false;
+                return ToAruid(i);
+            }
+        }
+
+        throw AllocateAppletResourceUserIdError::OutOfIds;
+    }
+
+    enum class ReleaseAppletResourceUserIdError {
+        InvalidAruid,
+    };
+    void ReleaseAppletResourceUserId(AppletResourceUserId aruid) {
+        const auto index = ToIndex(aruid);
+        ASSERT_THROWING(!free_applet_resource_user_ids[index], Kernel,
+                        ReleaseAppletResourceUserIdError::InvalidAruid,
+                        "Invalid aruid {:#x}", aruid);
+        free_applet_resource_user_ids[index] = true;
+    }
 
     // SVCs
     result_t SetHeapSize(Process* crnt_process, usize size, uptr& out_base);
@@ -144,6 +171,10 @@ class Kernel {
     // Sync
     DoubleLinkedList<IThread*> cond_var_waiters;
     DoubleLinkedList<IThread*> arbiters;
+
+    // Applet resource
+    std::array<bool, MAX_APPLET_RESOURCES> free_applet_resource_user_ids = {
+        true};
 
     // Helpers
     void TryAcquireMutex(Process* crnt_process, IThread* thread);
