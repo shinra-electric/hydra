@@ -112,6 +112,7 @@ add_library(hydra-core
     horizon/services/hid/hid_debug_server.hpp
     horizon/services/hid/hid_system_server.cpp
     horizon/services/hid/hid_system_server.hpp
+    horizon/services/hid/internal/npad_index.hpp
     horizon/services/hid/internal/shared_memory.hpp
     horizon/services/hid/internal/npad.cpp
     horizon/services/hid/internal/npad.hpp

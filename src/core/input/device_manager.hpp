@@ -20,7 +20,7 @@ class DeviceManager {
     DeviceManager();
     ~DeviceManager();
 
-    NpadState PollNpad(horizon::services::hid::NpadIdType type);
+    NpadState PollNpad(horizon::services::hid::internal::NpadIndex index);
     std::map<u32, TouchState> PollTouch();
 
     // Touch screen devices

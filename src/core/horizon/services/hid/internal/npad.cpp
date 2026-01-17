@@ -23,6 +23,8 @@ Npad::Npad(NpadInternalState& state_)
     : state{state_}, style_set_update_event{
                          new kernel::Event(false, "Style set update event")} {}
 
+Npad::~Npad() { delete style_set_update_event; }
+
 void Npad::Setup(NpadStyleSet style_set) {
     // Event
     // TODO: correct?

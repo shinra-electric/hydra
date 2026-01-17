@@ -58,7 +58,8 @@ result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     (void)event_ptr;
     LOG_DEBUG(Services, "event ptr: {:#x}", event_ptr);
 
-    auto event = APPLET_RESOURCE(aruid).GetNpadStyleSetUpdateEvent(type);
+    auto event = APPLET_RESOURCE(aruid).GetNpadStyleSetUpdateEvent(
+        internal::ToNpadIndex(type));
 
     // TODO: params
     out_handle = process->AddHandle(event);

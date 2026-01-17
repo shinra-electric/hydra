@@ -16,17 +16,17 @@ void ResourceManager::SetupNpads() {
 void ResourceManager::Update() {
     // Npads
     for (u32 i = 0; i < NPAD_COUNT; i++) {
-        const auto type = static_cast<NpadIdType>(i);
+        const auto index = static_cast<NpadIndex>(i);
 
         // Poll
-        const auto state = INPUT_DEVICE_MANAGER_INSTANCE.PollNpad(type);
+        const auto state = INPUT_DEVICE_MANAGER_INSTANCE.PollNpad(index);
 
         // Update
         for (auto& resource : resources) {
             if (!resource.has_value())
                 continue;
 
-            resource->UpdateNpad(type, state);
+            resource->UpdateNpad(index, state);
         }
     }
 

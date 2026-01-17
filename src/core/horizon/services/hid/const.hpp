@@ -203,18 +203,16 @@ enum class KeyboardLockKeyEvent : u32 {
 };
 
 enum class NpadIdType : u8 {
-    No1,
-    No2,
-    No3,
-    No4,
-    No5,
-    No6,
-    No7,
-    No8,
-    Handheld,
-    Other,
-
-    Total,
+    No1 = 0x0,
+    No2 = 0x1,
+    No3 = 0x2,
+    No4 = 0x3,
+    No5 = 0x4,
+    No6 = 0x5,
+    No7 = 0x6,
+    No8 = 0x7,
+    Other = 0x10,
+    Handheld = 0x20,
 };
 
 enum class NpadStyleSet : u32 {
@@ -622,5 +620,5 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::services::hid::NpadRevision, Revision0,
 ENABLE_ENUM_FORMATTING(hydra::horizon::services::hid::NpadIdType, No1,
                        "Number 1", No2, "Number 2", No3, "Number 3", No4,
                        "Number 4", No5, "Number 5", No6, "Number 6", No7,
-                       "Number 7", No8, "Number 8", Handheld, "Handheld", Total,
-                       "Invalid")
+                       "Number 7", No8, "Number 8", Other, "Other", Handheld,
+                       "Handheld")

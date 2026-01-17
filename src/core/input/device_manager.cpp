@@ -11,8 +11,8 @@ DeviceManager::DeviceManager() {
         if (name.empty())
             continue;
 
-        profiles[i] =
-            Profile(static_cast<horizon::services::hid::NpadIdType>(i), name);
+        profiles[i] = Profile(
+            static_cast<horizon::services::hid::internal::NpadIndex>(i), name);
     }
 
     // Device list
@@ -21,10 +21,11 @@ DeviceManager::DeviceManager() {
 
 DeviceManager::~DeviceManager() { delete device_list; }
 
-NpadState DeviceManager::PollNpad(horizon::services::hid::NpadIdType type) {
+NpadState
+DeviceManager::PollNpad(horizon::services::hid::internal::NpadIndex index) {
     NpadState state{};
 
-    const auto& profile_opt = profiles[static_cast<usize>(type)];
+    const auto& profile_opt = profiles[static_cast<usize>(index)];
     if (!profile_opt)
         return state;
 

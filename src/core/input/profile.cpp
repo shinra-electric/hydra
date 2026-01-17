@@ -165,9 +165,9 @@ struct into<hydra::input::AnalogStickAxis> {
 
 namespace hydra::input {
 
-Profile::Profile(horizon::services::hid::NpadIdType type_,
+Profile::Profile(horizon::services::hid::internal::NpadIndex index_,
                  std::string_view name_)
-    : type{type_}, name{name_} {
+    : index{index_}, name{name_} {
     const auto path = GetProfilesPath();
     if (!std::filesystem::exists(path))
         std::filesystem::create_directory(path);
@@ -176,8 +176,8 @@ Profile::Profile(horizon::services::hid::NpadIdType type_,
 }
 
 void Profile::LoadDefaults() {
-    switch (type) {
-    case horizon::services::hid::NpadIdType::No1: {
+    switch (index) {
+    case horizon::services::hid::internal::NpadIndex::No1: {
         // Devices
 #ifdef PLATFORM_MACOS
         device_names = {"Generic Keyboard"};

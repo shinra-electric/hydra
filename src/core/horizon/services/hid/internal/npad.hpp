@@ -20,6 +20,7 @@ class Npad {
     };
 
     Npad(NpadInternalState& state_);
+    ~Npad();
 
     void Setup(NpadStyleSet style_set);
     void Update(const input::NpadState& new_state);

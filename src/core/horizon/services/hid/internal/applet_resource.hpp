@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/horizon/services/hid/internal/npad.hpp"
+#include "core/horizon/services/hid/internal/npad_index.hpp"
 
 namespace hydra::horizon::kernel {
 class SharedMemory;
@@ -17,16 +18,16 @@ class AppletResource {
     void SetupNpads();
 
     // Update
-    void UpdateNpad(NpadIdType type, const input::NpadState& new_state) {
+    void UpdateNpad(NpadIndex index, const input::NpadState& new_state) {
         if (!active || !input_enabled)
             return;
 
-        npads[static_cast<usize>(type)].Update(new_state);
+        npads[static_cast<usize>(index)].Update(new_state);
     }
     // TODO: touch
 
-    kernel::Event* GetNpadStyleSetUpdateEvent(NpadIdType type) {
-        return npads[static_cast<usize>(type)].GetStyleSetUpdateEvent();
+    kernel::Event* GetNpadStyleSetUpdateEvent(NpadIndex index) {
+        return npads[static_cast<usize>(index)].GetStyleSetUpdateEvent();
     }
 
   private:
