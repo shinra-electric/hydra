@@ -31,7 +31,11 @@ struct RingLifo {
 
     void WriteNext(const T& data_) {
         auto data = data_;
-        data.sampling_number = GetCurrentStorage().sampling_number + 1;
+        try {
+            data.sampling_number = GetCurrentStorage().sampling_number + 1;
+        } catch (Error error) {
+            data.sampling_number = 0;
+        }
         Write(data);
     }
 

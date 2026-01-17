@@ -13,10 +13,14 @@ class AppletResource {
     AppletResource();
     ~AppletResource();
 
+    void ActivateNpads(NpadRevision revision);
     void SetupNpads();
 
     // Update
     void UpdateNpad(NpadIdType type, const input::NpadState& new_state) {
+        if (!active || !input_enabled)
+            return;
+
         npads[static_cast<usize>(type)].Update(new_state);
     }
     // TODO: touch
@@ -28,6 +32,7 @@ class AppletResource {
   private:
     kernel::SharedMemory* shared_mem;
 
+    bool active{false};
     bool input_enabled{true};
     NpadStyleSet supported_style_sets{
         NpadStyleSet::Standard}; // TODO: what should this be?

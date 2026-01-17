@@ -4,6 +4,13 @@ namespace hydra::horizon::services::hid {
 
 constexpr usize NPAD_COUNT = 10;
 
+enum class NpadRevision : u32 {
+    Revision0 = 0,
+    Revision1 = 1,
+    Revision2 = 2,
+    Revision3 = 3,
+};
+
 enum class DebugPadButton : u32 {
     A = BIT(0),
     B = BIT(1),
@@ -607,6 +614,10 @@ enum class PalmaFeature : u32 {
 };
 
 } // namespace hydra::horizon::services::hid
+
+ENABLE_ENUM_FORMATTING(hydra::horizon::services::hid::NpadRevision, Revision0,
+                       "revision 0", Revision1, "revision 1", Revision2,
+                       "revision 2", Revision3, "revision 3")
 
 ENABLE_ENUM_FORMATTING(hydra::horizon::services::hid::NpadIdType, No1,
                        "Number 1", No2, "Number 2", No3, "Number 3", No4,

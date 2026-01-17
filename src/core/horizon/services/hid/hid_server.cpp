@@ -46,6 +46,11 @@ result_t IHidServer::GetSupportedNpadStyleSet(
     return RESULT_SUCCESS;
 }
 
+result_t IHidServer::ActivateNpad(kernel::AppletResourceUserId aruid) {
+    APPLET_RESOURCE(aruid).ActivateNpads(NpadRevision::Revision0);
+    return RESULT_SUCCESS;
+}
+
 result_t IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     kernel::Process* process, aligned<NpadIdType, 8> type,
     kernel::AppletResourceUserId aruid, u64 event_ptr,
@@ -103,6 +108,14 @@ result_t IHidServer::GetPlayerLedPattern(NpadIdType npad_id_type,
         break;
     }
 
+    return RESULT_SUCCESS;
+}
+
+result_t
+IHidServer::ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
+                                     kernel::AppletResourceUserId aruid) {
+    LOG_DEBUG(Services, "Revision: {}", revision);
+    APPLET_RESOURCE(aruid).ActivateNpads(revision);
     return RESULT_SUCCESS;
 }
 

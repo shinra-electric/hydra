@@ -22,6 +22,15 @@ AppletResource::AppletResource()
 
 AppletResource::~AppletResource() { delete shared_mem; }
 
+void AppletResource::ActivateNpads(NpadRevision revision) {
+    active = true;
+
+    // TODO: revision affects style sets?
+    LOG_NOT_IMPLEMENTED(Services, "{}", revision);
+
+    SetupNpads();
+}
+
 void AppletResource::SetupNpads() {
     for (u32 i = 0; i < NPAD_COUNT; i++) {
         // TODO: get this from the config

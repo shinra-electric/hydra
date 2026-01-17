@@ -44,13 +44,14 @@ class IHidServer : public IService {
                                       kernel::AppletResourceUserId aruid,
                                       NpadStyleSet* out_style_set);
     STUB_REQUEST_COMMAND(SetSupportedNpadIdType);
-    STUB_REQUEST_COMMAND(ActivateNpad);
+    result_t ActivateNpad(kernel::AppletResourceUserId aruid);
     result_t AcquireNpadStyleSetUpdateEventHandle(
         kernel::Process* process, aligned<NpadIdType, 8> type,
         kernel::AppletResourceUserId aruid, u64 event_ptr,
         OutHandle<HandleAttr::Copy> out_handle);
     result_t GetPlayerLedPattern(NpadIdType npad_id_type, u64* out_pattern);
-    STUB_REQUEST_COMMAND(ActivateNpadWithRevision);
+    result_t ActivateNpadWithRevision(aligned<NpadRevision, 8> revision,
+                                      kernel::AppletResourceUserId aruid);
     // TODO: PID descriptor
     result_t SetNpadJoyHoldType(kernel::AppletResourceUserId aruid,
                                 NpadJoyHoldType type);
