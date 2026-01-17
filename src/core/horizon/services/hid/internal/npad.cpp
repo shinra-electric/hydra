@@ -25,10 +25,12 @@ Npad::Npad(NpadInternalState& state_)
 Npad::~Npad() { delete style_set_update_event; }
 
 void Npad::Setup(NpadStyleSet style_set) {
+    if (style_set == state.style_set)
+        return;
+
     // Event
     // TODO: correct?
-    if (style_set != state.style_set)
-        style_set_update_event->Signal();
+    style_set_update_event->Signal();
 
     // Update style set
     state.style_set = style_set;
