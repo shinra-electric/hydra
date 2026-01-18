@@ -69,7 +69,7 @@ MslEmitter::MslEmitter(const DecompilerContext& context,
                        ResourceMapping& out_resource_mapping)
     : LangEmitter(context, memory_analyzer, state, out_code,
                   out_resource_mapping) {
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
+    for (auto index : memory_analyzer.GetConstBuffers()) {
         out_resource_mapping.uniform_buffers[index] = index;
     }
 
@@ -186,17 +186,7 @@ void MslEmitter::EmitDeclarations() {
 
     ExitScopeEmpty(true);
     WriteNewline();
-
-    // Uniform buffers
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        EnterScope("struct UBuff{}", index);
-
-        // Data
-        Write("uint data[0x{:x}];", size / sizeof(u32));
-
-        ExitScopeEmpty(true);
-    }
-    WriteNewline();
+    ;
 }
 
 void MslEmitter::EmitStateBindings() {
@@ -256,8 +246,8 @@ void MslEmitter::EmitMainPrototype() {
     }
 
     // Uniform buffers
-    for (const auto& [index, size] : memory_analyzer.GetUniformBuffers()) {
-        ADD_ARG("constant UBuff{}& ubuff{} [[buffer({})]]", index, index,
+    for (auto index : memory_analyzer.GetConstBuffers()) {
+        ADD_ARG("constant Reg* c{} [[buffer({})]]", index, index,
                 out_resource_mapping.uniform_buffers[index]);
     }
 

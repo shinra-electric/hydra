@@ -136,14 +136,6 @@ inline std::string u64_to_str(u64 value) {
     return std::string(str, std::min(strlen(str), size_t(8)));
 }
 
-template <typename T>
-void push_unique(std::vector<T>& vec, T value) {
-    auto it = std::find_if(vec.begin(), vec.end(),
-                           [&](const T v) { return v == value; });
-    if (it == vec.end())
-        vec.push_back(value);
-}
-
 inline std::string demangle(const char* mangled_name) {
     i32 status;
     std::unique_ptr<char, void (*)(void*)> result{
