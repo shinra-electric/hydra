@@ -17,10 +17,10 @@ class Builder {
     void OpCopy(const Value& dst, const Value& src) {
         AddInstructionWithDst(Opcode::Copy, dst, {src});
     }
-    Value OpCast(const Value& src, ScalarType dst_type) {
+    Value OpCast(const Value& src, Type dst_type) {
         return AddInstruction(Opcode::Cast, dst_type, {src});
     }
-    Value OpBitCast(const Value& src, ScalarType dst_type) {
+    Value OpBitCast(const Value& src, Type dst_type) {
         return AddInstruction(Opcode::BitCast, dst_type, {src});
     }
 
