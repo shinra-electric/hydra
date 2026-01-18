@@ -17,6 +17,9 @@ class Builder {
     void OpCopy(const Value& dst, const Value& src) {
         AddInstructionWithDst(Opcode::Copy, dst, {src});
     }
+    Value OpCopy(const Value& src) {
+        return AddInstruction(Opcode::Copy, src.GetType(), {src});
+    }
     Value OpCast(const Value& src, Type dst_type) {
         return AddInstruction(Opcode::Cast, dst_type, {src});
     }
