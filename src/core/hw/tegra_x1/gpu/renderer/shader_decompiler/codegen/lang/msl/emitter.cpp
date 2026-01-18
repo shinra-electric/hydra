@@ -146,7 +146,7 @@ void MslEmitter::EmitDeclarations() {
     // SVs
     // HACK: always write position in vertex shaders
     if (context.type == ShaderType::Vertex)
-        Write("float4 position [[position]];");
+        Write("float4 position [[position, invariant]];");
     for (const auto sv_semantic : memory_analyzer.GetOutputSVs()) {
         switch (sv_semantic) {
         case SvSemantic::Position:
