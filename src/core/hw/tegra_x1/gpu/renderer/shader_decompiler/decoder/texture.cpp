@@ -385,12 +385,14 @@ void EmitTextureGather(DecoderContext& context, pred_t pred, bool pred_inv,
          ir::Value::Register(src_a + 1, ir::ScalarType::F32)});
     const auto res = context.builder.OpTextureGather(cbuf_index, coords_v,
                                                      ToTexComponent(component));
-    CopyTextureResult(
-        context.builder, {dst + 0, dst + 1, dst + 2, dst + 3}, res,
-        {write_mask & 0x1 ? ComponentSwizzle::X : ComponentSwizzle::None,
-         write_mask & 0x2 ? ComponentSwizzle::Y : ComponentSwizzle::None,
-         write_mask & 0x4 ? ComponentSwizzle::Z : ComponentSwizzle::None,
-         write_mask & 0x8 ? ComponentSwizzle::W : ComponentSwizzle::None});
+
+    for (u8 i = 0; i < 4; i++) {
+        if ((write_mask & (1 << i)) == 0x0)
+            continue;
+
+        context.builder.OpCopy(ir::Value::Register(dst++, ir::ScalarType::F32),
+                               context.builder.OpVectorExtract(res, i));
+    }
 
     if (conditional)
         context.builder.OpEndIf();

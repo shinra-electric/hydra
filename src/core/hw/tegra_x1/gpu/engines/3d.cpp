@@ -519,8 +519,8 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
     }
 
     // Flip Y
-    res.rect.origin.y() += res.rect.size.y();
-    res.rect.size.y() = -res.rect.size.y();
+    // res.rect.origin.y() += res.rect.size.y();
+    // res.rect.size.y() = -res.rect.size.y();
 
     // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
     // it like this, though not on Ryujinx)
