@@ -207,9 +207,7 @@ void Renderer::DrawTextureToSurface(const TextureBase* texture,
 
 void Renderer::EndSurfaceRenderPass() { EndEncoding(); }
 
-void Renderer::PresentSurfaceImpl() {
-    command_buffer->presentDrawable(drawable);
-}
+void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
@@ -752,8 +750,6 @@ void Renderer::BeginCapture() {
         LOG_ERROR(MetalRenderer, "Failed to start GPU capture: {}",
                   error->localizedDescription()->utf8String());
     }
-
-    capturing = true;
 }
 
 void Renderer::EndCapture() {
@@ -761,8 +757,6 @@ void Renderer::EndCapture() {
 
     auto captureManager = MTL::CaptureManager::sharedCaptureManager();
     captureManager->stopCapture();
-
-    capturing = false;
 }
 
 bool Renderer::CanDraw() {
@@ -815,23 +809,6 @@ void Renderer::BindDrawState() {
         for (u32 i = 0; i < TEXTURE_COUNT; i++)
             SetTexture(ShaderType(shader_type), i);
     }
-
-    // Debug
-#define CAPTURE 0
-#if CAPTURE
-    static bool did_capture = false;
-    if (!did_capture) {
-        BeginCapture();
-        did_capture = true;
-    }
-
-    static u32 frames = 0;
-    if (capturing) {
-        if (frames >= 100)
-            EndCapture();
-        frames++;
-    }
-#endif
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

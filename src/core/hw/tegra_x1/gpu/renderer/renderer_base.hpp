@@ -48,20 +48,7 @@ class RendererBase {
                                       const FloatRect2D dst_rect,
                                       bool transparent, f32 opacity = 1.0f) = 0;
     virtual void EndSurfaceRenderPass() = 0;
-    void PresentSurface() {
-        PresentSurfaceImpl();
-
-        if (is_capturing) {
-            EndCapture();
-            is_capturing = false;
-        }
-
-        if (begin_capture) {
-            BeginCapture();
-            is_capturing = true;
-            begin_capture = false;
-        }
-    }
+    virtual void PresentSurface() = 0;
 
     // Buffer
     virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
@@ -123,14 +110,24 @@ class RendererBase {
                              const u32 base_vertex, const u32 base_instance,
                              const u32 instance_count) = 0;
 
-    // Capture
-    void CaptureFrame() { begin_capture = true; }
+    // Debug
+    void CaptureFrames(u32 count) { frames_to_capture = count; }
+    void NotifyDebugFrameBoundary() {
+        if (frames_to_capture > 0) {
+            if (capturing) {
+                if (--frames_to_capture == 0) {
+                    EndCapture();
+                    capturing = false;
+                }
+            } else {
+                BeginCapture();
+                capturing = true;
+            }
+        }
+    }
 
   protected:
     Info info{};
-
-    // Surface
-    virtual void PresentSurfaceImpl() = 0;
 
     // Capture
     virtual void BeginCapture() = 0;
@@ -149,8 +146,8 @@ class RendererBase {
     IndexCache index_cache;
 
     // Capture
-    bool begin_capture{false};
-    bool is_capturing{false};
+    u32 frames_to_capture{0};
+    bool capturing{false};
 
   public:
     CONST_REF_GETTER(info, GetInfo);

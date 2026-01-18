@@ -74,7 +74,7 @@ class Renderer : public RendererBase {
                               const FloatRect2D dst_rect, bool transparent,
                               f32 opacity) override;
     void EndSurfaceRenderPass() override;
-    void PresentSurfaceImpl() override;
+    void PresentSurface() override;
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
@@ -230,9 +230,6 @@ class Renderer : public RendererBase {
         padding[0x100]; // HACK: for some reason, writing to some fields of the
                         // encoder_state corrupts the state
     EncoderState encoder_state;
-
-    // Debug
-    bool capturing = false;
 
     // Helpers
     bool CanDraw();

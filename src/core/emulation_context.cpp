@@ -455,71 +455,71 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     renderer.BeginSurfaceRenderPass();
     os->GetDisplayDriver().Present(width, height);
 
-    if (acquired && loading) {
-        // TODO: till when should the loading screen be shown?
-        // Stop the loading screen on the first present
-        loading = false;
+    if (loading) {
+        if (acquired) {
+            // TODO: till when should the loading screen be shown?
+            // Stop the loading screen on the first present
+            loading = false;
 
-        // Free loading assets
-        if (nintendo_logo) {
-            delete nintendo_logo;
-            nintendo_logo = nullptr;
-        }
-        if (!startup_movie.empty()) {
-            for (auto frame : startup_movie)
-                delete frame;
-            startup_movie.clear();
-            startup_movie.shrink_to_fit();
-            startup_movie_delays.clear();
-            startup_movie_delays.shrink_to_fit();
-        }
-    } else if (loading) {
-        const auto crnt_time = clock_t::now();
+            // Free loading assets
+            if (nintendo_logo) {
+                delete nintendo_logo;
+                nintendo_logo = nullptr;
+            }
+            if (!startup_movie.empty()) {
+                for (auto frame : startup_movie)
+                    delete frame;
+                startup_movie.clear();
+                startup_movie.shrink_to_fit();
+                startup_movie_delays.clear();
+                startup_movie_delays.shrink_to_fit();
+            }
+        } else {
+            const auto crnt_time = clock_t::now();
 
-        // Display loading screen
+            // Display loading screen
 
-        // Fade in
-        f32 opacity = 1.0f;
-        if (crnt_time < startup_movie_fade_in_time)
-            opacity =
-                1.0f -
-                std::chrono::duration_cast<std::chrono::duration<f32>>(
-                    startup_movie_fade_in_time - crnt_time) /
+            // Fade in
+            f32 opacity = 1.0f;
+            if (crnt_time < startup_movie_fade_in_time)
+                opacity =
+                    1.0f -
                     std::chrono::duration_cast<std::chrono::duration<f32>>(
-                        STARTUP_MOVIE_FADE_IN_DURATION);
+                        startup_movie_fade_in_time - crnt_time) /
+                        std::chrono::duration_cast<std::chrono::duration<f32>>(
+                            STARTUP_MOVIE_FADE_IN_DURATION);
 
-        // Nintendo logo
-        if (nintendo_logo) {
-            int2 size = {(i32)nintendo_logo->GetDescriptor().width,
-                         (i32)nintendo_logo->GetDescriptor().height};
-            int2 dst_offset = {32, 32};
-            renderer.DrawTextureToSurface(
-                nintendo_logo, IntRect2D({0, 0}, size),
-                IntRect2D(dst_offset, size), true, opacity);
-        }
-
-        // Startup movie
-        if (!startup_movie.empty()) {
-            // Progress frame
-            while (crnt_time > next_startup_movie_frame_time) {
-                startup_movie_frame =
-                    (startup_movie_frame + 1) % startup_movie.size();
-                next_startup_movie_frame_time +=
-                    startup_movie_delays[startup_movie_frame];
+            // Nintendo logo
+            if (nintendo_logo) {
+                int2 size = {(i32)nintendo_logo->GetDescriptor().width,
+                             (i32)nintendo_logo->GetDescriptor().height};
+                int2 dst_offset = {32, 32};
+                renderer.DrawTextureToSurface(
+                    nintendo_logo, IntRect2D({0, 0}, size),
+                    IntRect2D(dst_offset, size), true, opacity);
             }
 
-            auto frame = startup_movie[startup_movie_frame];
-            int2 size = {(i32)frame->GetDescriptor().width,
-                         (i32)frame->GetDescriptor().height};
-            int2 dst_offset = {(i32)width - size.x() - 32,
-                               (i32)height - size.y() - 32};
-            renderer.DrawTextureToSurface(frame, IntRect2D({0, 0}, size),
-                                          IntRect2D(dst_offset, size), true,
-                                          opacity);
-        }
-    }
+            // Startup movie
+            if (!startup_movie.empty()) {
+                // Progress frame
+                while (crnt_time > next_startup_movie_frame_time) {
+                    startup_movie_frame =
+                        (startup_movie_frame + 1) % startup_movie.size();
+                    next_startup_movie_frame_time +=
+                        startup_movie_delays[startup_movie_frame];
+                }
 
-    if (!loading) {
+                auto frame = startup_movie[startup_movie_frame];
+                int2 size = {(i32)frame->GetDescriptor().width,
+                             (i32)frame->GetDescriptor().height};
+                int2 dst_offset = {(i32)width - size.x() - 32,
+                                   (i32)height - size.y() - 32};
+                renderer.DrawTextureToSurface(frame, IntRect2D({0, 0}, size),
+                                              IntRect2D(dst_offset, size), true,
+                                              opacity);
+            }
+        }
+    } else {
         // Delta time
         const auto now = clock_t::now();
         const auto time_since_last_dt_averaging = now - last_dt_averaging_time;
@@ -613,8 +613,9 @@ void EmulationContext::TakeScreenshot() {
 }
 
 void EmulationContext::CaptureGpuFrame() {
+    // TODO: allow multiple frames
     gpu->GetRenderer().LockMutex();
-    gpu->GetRenderer().CaptureFrame();
+    gpu->GetRenderer().CaptureFrames(1);
     gpu->GetRenderer().UnlockMutex();
 }
 

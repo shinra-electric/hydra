@@ -1,5 +1,7 @@
 #include "core/horizon/display/binder.hpp"
 
+#include "core/hw/tegra_x1/gpu/gpu.hpp"
+
 namespace hydra::horizon::display {
 
 void Binder::AddBuffer(i32 slot, const GraphicBuffer& buff) {
@@ -51,6 +53,12 @@ void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
     last_queue_time = now;
 
     queue_cv.notify_all();
+
+    // Debug
+    // TODO: only do this for the main process
+    RENDERER_INSTANCE.LockMutex();
+    RENDERER_INSTANCE.NotifyDebugFrameBoundary();
+    RENDERER_INSTANCE.UnlockMutex();
 }
 
 i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {
