@@ -161,6 +161,21 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
     }
 }
 
+// Render target width is aligned to the stride, lets try to figure out the real
+// one
+u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint,
+                    bool is_linear) {
+    if (is_linear || width <= width_hint)
+        return width;
+
+    // Get the smallest width that would still align up to the same GOB
+    // count
+    const auto bpp = renderer::get_texture_format_bpp(format);
+    const auto alignment = 64 / bpp;
+    const auto width_aligned = align(width, alignment);
+    return std::clamp(width_aligned - alignment + 1, width_hint, width_aligned);
+}
+
 } // namespace
 
 DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
@@ -386,11 +401,10 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
 
             const auto range = ::hydra::range<uptr>::FromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
+            bound_const_buffers[shader_stage_index][index] = range;
 
             // HACK
             RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(range);
-
-            bound_const_buffers[shader_stage_index][index] = range;
         } else {
             bound_const_buffers[shader_stage_index][index] = range<uptr>();
         }
@@ -417,10 +431,14 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     }
 
     const auto format = renderer::to_texture_format(render_target.format);
+    const u32 width_hint =
+        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
-        render_target.width, render_target.height,
+        GetMinimumWidth(render_target.width, format, width_hint,
+                        render_target.tile_mode.is_linear),
+        render_target.height,
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
@@ -437,10 +455,13 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
     }
 
     const auto format = renderer::to_texture_format(regs.depth_target_format);
+    const u32 width_hint =
+        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
-        regs.depth_target_width, regs.depth_target_height,
+        GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
+        regs.depth_target_height,
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 

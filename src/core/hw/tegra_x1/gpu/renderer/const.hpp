@@ -147,6 +147,12 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 
+enum class GetTextureFormatBppError {
+    InvalidFormat,
+    UnsupportedFormatForBpp,
+};
+
+u32 get_texture_format_bpp(const TextureFormat format);
 u32 get_texture_format_stride(const TextureFormat format, u32 width);
 bool is_texture_format_compressed(const TextureFormat format);
 bool is_texture_format_depth_or_stencil(const TextureFormat format);

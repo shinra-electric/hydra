@@ -192,6 +192,113 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
 #undef DEPTH_SURFACE_FORMAT_CASE
 }
 
+u32 get_texture_format_bpp(const TextureFormat format) {
+    switch (format) {
+    case TextureFormat::Invalid:
+        throw GetTextureFormatBppError::InvalidFormat;
+    case TextureFormat::R8Unorm:
+    case TextureFormat::R8Snorm:
+    case TextureFormat::R8Uint:
+    case TextureFormat::R8Sint:
+        return 1;
+    case TextureFormat::R16Float:
+    case TextureFormat::R16Unorm:
+    case TextureFormat::R16Snorm:
+    case TextureFormat::R16Uint:
+    case TextureFormat::R16Sint:
+        return 2;
+    case TextureFormat::R32Float:
+    case TextureFormat::R32Uint:
+    case TextureFormat::R32Sint:
+        return 4;
+    case TextureFormat::RG8Unorm:
+    case TextureFormat::RG8Snorm:
+    case TextureFormat::RG8Uint:
+    case TextureFormat::RG8Sint:
+        return 2;
+    case TextureFormat::RG16Float:
+    case TextureFormat::RG16Unorm:
+    case TextureFormat::RG16Snorm:
+    case TextureFormat::RG16Uint:
+    case TextureFormat::RG16Sint:
+        return 4;
+    case TextureFormat::RG32Float:
+    case TextureFormat::RG32Uint:
+    case TextureFormat::RG32Sint:
+        return 8;
+    case TextureFormat::RGB32Float:
+    case TextureFormat::RGB32Uint:
+    case TextureFormat::RGB32Sint:
+        return 12;
+    case TextureFormat::RGBA8Unorm:
+    case TextureFormat::RGBA8Snorm:
+    case TextureFormat::RGBA8Uint:
+    case TextureFormat::RGBA8Sint:
+    case TextureFormat::RGBA8Unorm_sRGB:
+    case TextureFormat::RGBX8Unorm:
+    case TextureFormat::RGBX8Snorm:
+    case TextureFormat::RGBX8Uint:
+    case TextureFormat::RGBX8Sint:
+    case TextureFormat::RGBX8Unorm_sRGB:
+        return 4;
+    case TextureFormat::RGBA16Float:
+    case TextureFormat::RGBA16Unorm:
+    case TextureFormat::RGBA16Snorm:
+    case TextureFormat::RGBA16Uint:
+    case TextureFormat::RGBA16Sint:
+    case TextureFormat::RGBX16Float:
+    case TextureFormat::RGBX16Unorm:
+    case TextureFormat::RGBX16Snorm:
+    case TextureFormat::RGBX16Uint:
+    case TextureFormat::RGBX16Sint:
+        return 8;
+    case TextureFormat::RGBA32Float:
+    case TextureFormat::RGBA32Uint:
+    case TextureFormat::RGBA32Sint:
+    case TextureFormat::RGBX32Float:
+    case TextureFormat::RGBX32Uint:
+    case TextureFormat::RGBX32Sint:
+        return 16;
+    case TextureFormat::S8Uint:
+        return 1;
+    case TextureFormat::Z16Unorm:
+        return 2;
+    case TextureFormat::Z24Unorm_X8Uint:
+    case TextureFormat::Z24Unorm_S8Uint:
+        return 4;
+    case TextureFormat::Z32Float:
+        return 4;
+    case TextureFormat::Z32Float_X24S8Uint:
+        return 8;
+        return 4;
+    case TextureFormat::RGBA4Unorm:
+        return 2;
+    case TextureFormat::RGB5Unorm:
+    case TextureFormat::RGB5A1Unorm:
+    case TextureFormat::R5G6B5Unorm:
+        return 2;
+    case TextureFormat::RGB10A2Unorm:
+    case TextureFormat::RGB10A2Uint:
+        return 4;
+    case TextureFormat::RG11B10Float:
+        return 4;
+    case TextureFormat::E5BGR9Float:
+        return 4;
+    case TextureFormat::B5G6R5Unorm:
+    case TextureFormat::BGR5Unorm:
+    case TextureFormat::BGR5A1Unorm:
+    case TextureFormat::A1BGR5Unorm:
+        return 2;
+    case TextureFormat::BGRX8Unorm:
+    case TextureFormat::BGRA8Unorm:
+    case TextureFormat::BGRX8Unorm_sRGB:
+    case TextureFormat::BGRA8Unorm_sRGB:
+        return 4;
+    default:
+        throw GetTextureFormatBppError::UnsupportedFormatForBpp;
+    }
+}
+
 u32 get_texture_format_stride(const TextureFormat format, u32 width) {
     // TODO: check this
     switch (format) {

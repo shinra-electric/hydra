@@ -118,7 +118,7 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
 u32 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     HashCode hash;
     hash.Add(descriptor.ptr);
-    hash.Add(descriptor.stride); // TODO: extend the width instead
+    hash.Add(descriptor.width);
     hash.Add(descriptor.height);
 
     // View compatbility hash
