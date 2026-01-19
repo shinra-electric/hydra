@@ -48,7 +48,7 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
 
             // Invalidate
             RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
-                range<uptr>::FromSize(dst_ptr,
+                Range<uptr>::FromSize(dst_ptr,
                                       regs.line_count * regs.stride_out));
         } else {
             // NOTE: a texture copy could be possible, as LineLengthIn contains
@@ -108,7 +108,7 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
 
     // TODO: correct?
     RENDERER_INSTANCE.GetTextureCache().NotifyGuestModifiedData(
-        range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
+        Range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 
 #pragma GCC diagnostic pop

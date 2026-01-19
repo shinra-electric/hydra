@@ -578,7 +578,7 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
         renderer::ShaderType::Count)] = {nullptr};
 
     // State
-    range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
+    Range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
                                    [CONST_BUFFER_BINDING_COUNT];
 
     // Methods

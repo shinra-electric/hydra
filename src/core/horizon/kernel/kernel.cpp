@@ -366,15 +366,16 @@ result_t Kernel::SetHeapSize(Process* crnt_process, usize size,
     auto& heap_mem = crnt_process->GetHeapMemory();
     if (!heap_mem) {
         heap_mem = CPU_INSTANCE.AllocateMemory(size);
-        crnt_process->GetMmu()->Map(HEAP_REGION.begin, heap_mem,
+        crnt_process->GetMmu()->Map(HEAP_REGION.GetBegin(), heap_mem,
                                     {MemoryType::Normal_1_0_0,
                                      MemoryAttribute::None,
                                      MemoryPermission::ReadWriteExecute});
     } else {
-        crnt_process->GetMmu()->ResizeHeap(heap_mem, HEAP_REGION.begin, size);
+        crnt_process->GetMmu()->ResizeHeap(heap_mem, HEAP_REGION.GetBegin(),
+                                           size);
     }
 
-    out_base = HEAP_REGION.begin;
+    out_base = HEAP_REGION.GetBegin();
 
     return RESULT_SUCCESS;
 }
@@ -585,7 +586,7 @@ result_t Kernel::MapSharedMemory(Process* crnt_process, SharedMemory* shmem,
               "0x{:08x}, perm: {})",
               shmem->GetDebugName(), addr, size, perm);
 
-    shmem->MapToRange(crnt_process->GetMmu(), range(addr, uptr(addr + size)),
+    shmem->MapToRange(crnt_process->GetMmu(), Range(addr, uptr(addr + size)),
                       perm);
 
     return RESULT_SUCCESS;
@@ -976,13 +977,13 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = 0xf;
         return RESULT_SUCCESS;
     case InfoType::AliasRegionAddress:
-        out_info = ALIAS_REGION.begin;
+        out_info = ALIAS_REGION.GetBegin();
         return RESULT_SUCCESS;
     case InfoType::AliasRegionSize:
         out_info = ALIAS_REGION.GetSize();
         return RESULT_SUCCESS;
     case InfoType::HeapRegionAddress:
-        out_info = HEAP_REGION.begin;
+        out_info = HEAP_REGION.GetBegin();
         return RESULT_SUCCESS;
     case InfoType::HeapRegionSize:
         out_info = HEAP_REGION.GetSize();
@@ -1013,13 +1014,13 @@ result_t Kernel::GetInfo(Process* crnt_process, InfoType info_type,
         out_info = crnt_process->GetRandomEntropy()[info_sub_type];
         return RESULT_SUCCESS;
     case InfoType::AslrRegionAddress:
-        out_info = ADDRESS_SPACE.begin;
+        out_info = ADDRESS_SPACE.GetBegin();
         return RESULT_SUCCESS;
     case InfoType::AslrRegionSize:
         out_info = ADDRESS_SPACE.GetSize();
         return RESULT_SUCCESS;
     case InfoType::StackRegionAddress:
-        out_info = STACK_REGION.begin;
+        out_info = STACK_REGION.GetBegin();
         return RESULT_SUCCESS;
     case InfoType::StackRegionSize:
         out_info = STACK_REGION.GetSize();
@@ -1078,7 +1079,7 @@ result_t Kernel::MapPhysicalMemory(Process* crnt_process, vaddr_t addr,
     if (!is_aligned(size, hw::tegra_x1::cpu::GUEST_PAGE_SIZE))
         return MAKE_RESULT(Svc, 101); // Invalid size
 
-    if (!ALIAS_REGION.Contains(range<vaddr_t>::FromSize(addr, size)))
+    if (!ALIAS_REGION.Contains(Range<vaddr_t>::FromSize(addr, size)))
         return MAKE_RESULT(Svc, 110); // Invalid memory region
 
     auto mem = CPU_INSTANCE.AllocateMemory(size);

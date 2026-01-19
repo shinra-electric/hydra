@@ -49,9 +49,10 @@ class HomebrewThread : public kernel::GuestThread {
   public:
     // TODO: don't hardcode priority
     HomebrewThread(kernel::Process* process, std::string_view path_)
-        : kernel::GuestThread(
-              process, kernel::STACK_REGION.begin + STACK_MEMORY_SIZE - 0x10,
-              0x2c, "Homebrew thread"),
+        : kernel::GuestThread(process,
+                              kernel::STACK_REGION.GetBegin() +
+                                  STACK_MEMORY_SIZE - 0x10,
+                              0x2c, "Homebrew thread"),
           path{path_} {}
 
   protected:

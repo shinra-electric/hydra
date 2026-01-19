@@ -80,7 +80,7 @@ class TextureCache {
     TextureBase* GetTextureView(const TextureDescriptor& descriptor,
                                 TextureUsage usage);
 
-    void NotifyGuestModifiedData(const range<uptr> mem_range);
+    void NotifyGuestModifiedData(const Range<uptr> mem_range);
 
   private:
     TextureDecoder texture_decoder;

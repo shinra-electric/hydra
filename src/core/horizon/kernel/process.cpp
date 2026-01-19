@@ -29,13 +29,13 @@ Process::~Process() {
     DEBUGGER_MANAGER_INSTANCE.DetachDebugger(this);
 }
 
-uptr Process::CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
+uptr Process::CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
                            MemoryPermission perm, bool add_guard_page,
                            vaddr_t& out_base) {
     out_base = mmu->FindFreeMemory(
         region,
         size + (add_guard_page ? hw::tegra_x1::cpu::GUEST_PAGE_SIZE : 0x0));
-    if (add_guard_page && out_base != region.begin)
+    if (add_guard_page && out_base != region.GetBegin())
         out_base += hw::tegra_x1::cpu::GUEST_PAGE_SIZE;
     ASSERT(out_base != 0x0, Kernel, "Failed to find free memory");
 
@@ -53,7 +53,7 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
     auto ptr = CreateMemory(EXECUTABLE_REGION, size, static_cast<MemoryType>(3),
                             perm, add_guard_page, out_base);
     DEBUGGER_MANAGER_INSTANCE.GetDebugger(this).GetModuleTable().RegisterSymbol(
-        {std::string(module_name), range<vaddr_t>(out_base, out_base + size)});
+        {std::string(module_name), Range<vaddr_t>(out_base, out_base + size)});
 
     return ptr;
 }
@@ -74,7 +74,7 @@ void Process::CreateStackMemory(usize stack_size) {
     // 0x10, priority); auto handle_id = AddHandle(main_thread);
 
     main_thread_stack_mem = CPU_INSTANCE.AllocateMemory(stack_size);
-    mmu->Map(STACK_REGION.begin, main_thread_stack_mem,
+    mmu->Map(STACK_REGION.GetBegin(), main_thread_stack_mem,
              {MemoryType::Stack, MemoryAttribute::None,
               MemoryPermission::ReadWrite});
 }

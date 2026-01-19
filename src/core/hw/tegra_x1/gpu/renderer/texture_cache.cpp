@@ -51,9 +51,9 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor,
     return view;
 }
 
-void TextureCache::NotifyGuestModifiedData(const range<uptr> mem_range) {
+void TextureCache::NotifyGuestModifiedData(const Range<uptr> mem_range) {
     // TODO: mark all overlapping memories as modified
-    auto it = texture_mem_map.find(mem_range.begin);
+    auto it = texture_mem_map.find(mem_range.GetBegin());
     if (it == texture_mem_map.end())
         return;
 

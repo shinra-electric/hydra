@@ -71,11 +71,11 @@ Cpu::Cpu()
     /*
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::handler",
-         range<vaddr_t>(KERNEL_REGION_BASE,
+         Range<vaddr_t>(KERNEL_REGION_BASE,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET)});
     GET_CURRENT_PROCESS_DEBUGGER().GetModuleTable().RegisterSymbol(
         {"Hypervisor::trampoline",
-         range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
+         Range<vaddr_t>(KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET,
                         KERNEL_REGION_BASE + EXCEPTION_TRAMPOLINE_OFFSET +
                             sizeof(exception_trampoline))});
     */

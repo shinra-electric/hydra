@@ -10,8 +10,8 @@ BufferCache::~BufferCache() {
         delete entry.second.buffer;
 }
 
-BufferBase* BufferCache::Get(range<uptr> range) {
-    auto& entry = entries[range.begin];
+BufferBase* BufferCache::Get(Range<uptr> range) {
+    auto& entry = entries[range.GetBegin()];
 
     // Check if the size is sufficient
     if (entry.buffer && entry.buffer->GetSize() < range.GetSize()) {
@@ -27,7 +27,7 @@ BufferBase* BufferCache::Get(range<uptr> range) {
         // Copy from temporary buffer
         auto tmp_buffer =
             RENDERER_INSTANCE.AllocateTemporaryBuffer(range.GetSize());
-        tmp_buffer->CopyFrom(range.begin);
+        tmp_buffer->CopyFrom(range.GetBegin());
         entry.buffer->CopyFrom(tmp_buffer);
         RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
 
@@ -41,10 +41,10 @@ BufferBase* BufferCache::Get(range<uptr> range) {
         // Copy from temporary buffer
         auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
             invalidation_range.GetSize());
-        tmp_buffer->CopyFrom(invalidation_range.begin);
+        tmp_buffer->CopyFrom(invalidation_range.GetBegin());
         entry.buffer->CopyFrom(tmp_buffer,
-                               invalidation_range.begin - range.begin, 0,
-                               invalidation_range.GetSize());
+                               invalidation_range.GetBegin() - range.GetBegin(),
+                               0, invalidation_range.GetSize());
         RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
 
         entry.invalidation_range = std::nullopt;
@@ -54,9 +54,10 @@ BufferBase* BufferCache::Get(range<uptr> range) {
 }
 
 // TODO: make this more efficient
-void BufferCache::InvalidateMemory(range<uptr> range) {
+void BufferCache::InvalidateMemory(Range<uptr> range) {
     for (auto& [ptr, entry] : entries) {
-        ::hydra::range<uptr> crnt_range(ptr, ptr + entry.buffer->GetSize());
+        const auto crnt_range =
+            Range<uptr>::FromSize(ptr, entry.buffer->GetSize());
         if (crnt_range.Intersects(range)) {
             // Clamp the range
             auto invalidation_range = range.ClampedTo(crnt_range);

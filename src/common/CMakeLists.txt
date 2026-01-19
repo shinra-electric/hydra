@@ -3,6 +3,7 @@ add_library(hydra-common
     macros.hpp
     type_aliases.hpp
     types.hpp
+    range.hpp
     traits.hpp
     functions.hpp
     atomic.hpp

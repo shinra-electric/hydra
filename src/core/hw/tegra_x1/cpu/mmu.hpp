@@ -37,7 +37,7 @@ class IMmu {
                                     horizon::kernel::MemoryAttribute value) = 0;
 
     horizon::kernel::MemoryInfo QueryMemory(vaddr_t va) const;
-    vaddr_t FindFreeMemory(range<vaddr_t> region, usize size) const;
+    vaddr_t FindFreeMemory(Range<vaddr_t> region, usize size) const;
 
     template <typename T>
     bool TryRead(vaddr_t va, T& out_value) const {

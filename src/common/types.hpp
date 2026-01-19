@@ -10,58 +10,6 @@
 
 namespace hydra {
 
-template <typename T>
-struct range {
-  public:
-    T begin;
-    T end;
-
-    static constexpr range<T> FromSize(T begin, T size) {
-        return range<T>(begin, begin + size);
-    }
-
-    constexpr range() : begin{0}, end{0} {}
-    constexpr range(T begin_) : begin{begin_}, end{invalid<T>()} {}
-    constexpr range(T begin_, T end_) : begin{begin_}, end{end_} {}
-
-    bool operator==(const range& other) const {
-        return begin == other.begin && end == other.end;
-    }
-
-    void Shift(T offset) {
-        begin += offset;
-        end += offset;
-    }
-    void ShiftLeft(T offset) {
-        begin -= offset;
-        end -= offset;
-    }
-
-    bool Contains(const T other) const { return other >= begin && other < end; }
-    bool Contains(const range<T>& other) const {
-        return other.begin >= begin && other.end <= end;
-    }
-
-    bool Intersects(const range<T>& other) const {
-        return begin < other.end && end > other.begin;
-    }
-
-    range<T> ClampedTo(const range<T>& bounds) const {
-        return range<T>(std::max(begin, bounds.begin),
-                        std::min(end, bounds.end));
-    }
-
-    range<T> Union(const range<T>& other) const {
-        return range<T>(std::min(begin, other.begin), std::max(end, other.end));
-    }
-
-    T GetSize() const { return end - begin; }
-
-  public:
-    GETTER(begin, GetBegin);
-    GETTER(end, GetEnd);
-};
-
 struct sized_ptr {
   public:
     sized_ptr() : ptr{0x0}, size{0} {}
@@ -469,16 +417,6 @@ struct fmt::formatter<hydra::aligned<T, alignment>> : formatter<string_view> {
     auto format(const hydra::aligned<T, alignment>& value,
                 FormatContext& ctx) const {
         return value_formatter.format(value.Get(), ctx);
-    }
-};
-
-// TODO: rework
-template <typename T>
-struct fmt::formatter<hydra::range<T>> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(hydra::range<T> value, FormatContext& ctx) const {
-        return formatter<string_view>::format(
-            fmt::format("<{}...{})", value.begin, value.end), ctx);
     }
 };
 

@@ -12,16 +12,16 @@ class BufferBase;
 
 struct BufferEntry {
     BufferBase* buffer{nullptr};
-    std::optional<range<uptr>> invalidation_range{};
+    std::optional<Range<uptr>> invalidation_range{};
 };
 
 class BufferCache {
   public:
     ~BufferCache();
 
-    BufferBase* Get(range<uptr> range);
+    BufferBase* Get(Range<uptr> range);
 
-    void InvalidateMemory(range<uptr> range);
+    void InvalidateMemory(Range<uptr> range);
 
   private:
     std::map<uptr, BufferEntry> entries;

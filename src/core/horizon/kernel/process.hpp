@@ -36,7 +36,7 @@ class Process : public SynchronizationObject {
 
     // Memory
     // TODO: remove add_guard_page
-    uptr CreateMemory(range<vaddr_t> region, usize size, MemoryType type,
+    uptr CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
                       MemoryPermission perm, bool add_guard_page,
                       vaddr_t& out_base);
     // TODO: should the caller be able to specify permissions?
@@ -149,7 +149,7 @@ class Process : public SynchronizationObject {
     std::vector<hw::tegra_x1::cpu::IMemory*> executable_mems;
     hw::tegra_x1::cpu::IMemory* main_thread_stack_mem{nullptr};
 
-    vaddr_t tls_mem_base{TLS_REGION.begin};
+    vaddr_t tls_mem_base{TLS_REGION.GetBegin()};
 
     // Thread
     GuestThread* main_thread{nullptr};

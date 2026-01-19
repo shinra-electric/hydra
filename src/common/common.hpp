@@ -25,6 +25,7 @@
 #include "common/objc.hpp"
 #include "common/optional_helper.hpp"
 #include "common/platform.hpp"
+#include "common/range.hpp"
 #include "common/static_pool.hpp"
 #include "common/string.hpp"
 #include "common/time.hpp"

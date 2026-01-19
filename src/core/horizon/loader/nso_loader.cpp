@@ -207,7 +207,7 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
                 .GetFunctionTable()
                 .RegisterSymbol(
                     {demangle(std::string(name)),
-                     range<vaddr_t>(base + symbol.st_value,
+                     Range<vaddr_t>(base + symbol.st_value,
                                     base + symbol.st_value + symbol.st_size)});
         }
     }
@@ -220,7 +220,8 @@ void NsoLoader::LoadProcess(kernel::Process* process) {
 
         // Main thread
         auto main_thread = new kernel::GuestThread(
-            process, kernel::STACK_REGION.begin + main_thread_stack_size - 0x10,
+            process,
+            kernel::STACK_REGION.GetBegin() + main_thread_stack_size - 0x10,
             main_thread_priority);
         const auto main_thread_handle_id = process->SetMainThread(main_thread);
 
