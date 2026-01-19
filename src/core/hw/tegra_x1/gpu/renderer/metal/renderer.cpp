@@ -9,6 +9,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/render_pass.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/sampler.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/shader.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 // TODO: define in a separate file
@@ -20,16 +21,6 @@ using namespace metal;
 */
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
-
-namespace {
-
-struct BlitParams {
-    float2 src_offset;
-    float2 src_scale;
-    f32 opacity;
-};
-
-} // namespace
 
 SINGLETON_DEFINE_GET_INSTANCE(Renderer, MetalRenderer)
 
@@ -147,67 +138,17 @@ void Renderer::SetSurface(void* surface) {
     // TODO: set pixel format
 }
 
-bool Renderer::AcquireNextSurface() {
+ISurfaceCompositor* Renderer::AcquireNextSurface() {
+    // Drawable
     if (!layer)
-        return false;
+        return nullptr;
 
     drawable = layer->nextDrawable();
-    return (drawable != nullptr);
+    if (!drawable)
+        return nullptr;
+
+    return new SurfaceCompositor(drawable, command_queue);
 }
-
-void Renderer::BeginSurfaceRenderPass() {
-    ASSERT_DEBUG(drawable != nullptr, MetalRenderer, "Drawable cannot be null");
-
-    auto render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
-    auto color_attachment =
-        render_pass_descriptor->colorAttachments()->object(0);
-    color_attachment->setTexture(drawable->texture());
-    color_attachment->setLoadAction(MTL::LoadActionClear);
-    color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
-    color_attachment->setStoreAction(MTL::StoreActionStore);
-
-    CreateRenderCommandEncoder(render_pass_descriptor);
-    render_pass_descriptor->release();
-}
-
-void Renderer::DrawTextureToSurface(const TextureBase* texture,
-                                    const FloatRect2D src_rect,
-                                    const FloatRect2D dst_rect,
-                                    bool transparent, f32 opacity) {
-    auto texture_impl = static_cast<const Texture*>(texture);
-    auto encoder = GetRenderCommandEncoderUnchecked();
-
-    // Draw
-    encoder->setRenderPipelineState(blit_pipeline_cache->Find(
-        {drawable->texture()->pixelFormat(), transparent}));
-    encoder->setViewport(MTL::Viewport{
-        (f64)dst_rect.origin.x(), (f64)dst_rect.origin.y(),
-        (f64)dst_rect.size.x(), (f64)dst_rect.size.y(), 0.0, 1.0});
-
-    u32 zero = 0;
-    encoder->setVertexBytes(&zero, sizeof(zero), 0);
-
-    // Src rect
-    const auto src_width = texture->GetDescriptor().width;
-    const auto src_height = texture->GetDescriptor().height;
-    BlitParams params = {
-        .src_offset = {src_rect.origin.x() / src_width,
-                       src_rect.origin.y() / src_height},
-        .src_scale = {src_rect.size.x() / src_width,
-                      src_rect.size.y() / src_height},
-        .opacity = opacity,
-    };
-
-    encoder->setFragmentBytes(&params, sizeof(params), 0);
-    encoder->setFragmentTexture(texture_impl->GetTexture(), NS::UInteger(0));
-    encoder->setFragmentSamplerState(linear_sampler, NS::UInteger(0));
-    encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
-                            NS::UInteger(3));
-}
-
-void Renderer::EndSurfaceRenderPass() { EndEncoding(); }
-
-void Renderer::PresentSurface() { command_buffer->presentDrawable(drawable); }
 
 BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
     return new Buffer(descriptor);
@@ -412,7 +353,9 @@ void Renderer::DrawIndexed(const engines::PrimitiveType primitive_type,
 
 void Renderer::EnsureCommandBuffer() {
     if (!command_buffer) {
-        command_buffer = command_queue->commandBuffer();
+        TMP_AUTORELEASE_POOL_BEGIN();
+        command_buffer = command_queue->commandBuffer()->retain();
+        TMP_AUTORELEASE_POOL_END();
     }
 }
 
@@ -444,8 +387,11 @@ MTL::RenderCommandEncoder* Renderer::CreateRenderCommandEncoder(
     EnsureCommandBuffer();
     EndEncoding();
 
+    TMP_AUTORELEASE_POOL_BEGIN();
     command_encoder =
-        command_buffer->renderCommandEncoder(render_pass_descriptor);
+        command_buffer->renderCommandEncoder(render_pass_descriptor)->retain();
+    TMP_AUTORELEASE_POOL_END();
+
     encoder_type = EncoderType::Render;
     encoder_state.render_pass = render_pass_descriptor;
 
@@ -465,7 +411,10 @@ MTL::BlitCommandEncoder* Renderer::GetBlitCommandEncoder() {
     EnsureCommandBuffer();
     EndEncoding();
 
-    command_encoder = command_buffer->blitCommandEncoder();
+    TMP_AUTORELEASE_POOL_BEGIN();
+    command_encoder = command_buffer->blitCommandEncoder()->retain();
+    TMP_AUTORELEASE_POOL_END();
+
     encoder_type = EncoderType::Blit;
 
     return GetBlitCommandEncoderUnchecked();
@@ -476,11 +425,7 @@ void Renderer::EndEncoding() {
         return;
 
     command_encoder->endEncoding();
-    // TODO: command encoders are autoreleased. However, we only have one global
-    // autorelease pool, so the encoders will live in the memory until the
-    // thread exits. An ideal solution would be to disable autorelease pools
-    // entirely, but for now we just let the encoders to pollute the memory.
-    // command_encoder->release(); // TODO: release?
+    command_encoder->release();
     command_encoder = nullptr;
     encoder_type = EncoderType::None;
 

@@ -66,15 +66,7 @@ class Renderer : public RendererBase {
 
     // Surface
     void SetSurface(void* surface) override;
-
-    bool AcquireNextSurface() override;
-    void BeginSurfaceRenderPass() override;
-    void DrawTextureToSurface(const TextureBase* texture,
-                              const FloatRect2D src_rect,
-                              const FloatRect2D dst_rect, bool transparent,
-                              f32 opacity) override;
-    void EndSurfaceRenderPass() override;
-    void PresentSurface() override;
+    ISurfaceCompositor* AcquireNextSurface() override;
 
     // Buffer
     BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
@@ -145,6 +137,7 @@ class Renderer : public RendererBase {
             command_buffer->commit();
             // HACK: wait until completed so as to avoid sync issues
             command_buffer->waitUntilCompleted();
+            command_buffer->release();
             command_buffer = nullptr;
         }
     }
@@ -237,6 +230,8 @@ class Renderer : public RendererBase {
 
   public:
     GETTER(device, GetDevice);
+    GETTER(blit_pipeline_cache, GetBlitPipelineCache);
+    GETTER(linear_sampler, GetLinearSampler);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

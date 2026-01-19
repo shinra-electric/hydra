@@ -4,7 +4,8 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 class TextureBase;
-}
+class ISurfaceCompositor;
+} // namespace hydra::hw::tegra_x1::gpu::renderer
 
 namespace hydra::horizon::display {
 
@@ -21,7 +22,8 @@ class Layer {
     void Close() {}
 
     bool AcquirePresentTexture();
-    void Present(FloatRect2D dst_rect, f32 dst_scale, bool transparent);
+    void Present(hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor,
+                 FloatRect2D dst_rect, f32 dst_scale, bool transparent);
 
     // Time
     AccumulatedTime GetAccumulatedDT();

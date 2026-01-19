@@ -25,6 +25,7 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
 
@@ -431,12 +432,8 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
     // Present
 
     // Acquire surface
-    auto& renderer = gpu->GetRenderer();
-    // NOTE: this waits for a surface to be available. We don't lock the mutex,
-    // as that would block all other rendering for a long time. The mutex also
-    // doesn't need to be locked, as all surface related operations are done on
-    // this thread.
-    if (!renderer.AcquireNextSurface())
+    auto compositor = gpu->GetRenderer().AcquireNextSurface();
+    if (!compositor)
         return;
 
     // Delta time
@@ -446,14 +443,11 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
-    renderer.LockMutex();
-
     // Acquire present textures
     bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
 
     // Render pass
-    renderer.BeginSurfaceRenderPass();
-    os->GetDisplayDriver().Present(width, height);
+    os->GetDisplayDriver().Present(compositor, width, height);
 
     if (loading) {
         if (acquired) {
@@ -494,9 +488,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                 int2 size = {(i32)nintendo_logo->GetDescriptor().width,
                              (i32)nintendo_logo->GetDescriptor().height};
                 int2 dst_offset = {32, 32};
-                renderer.DrawTextureToSurface(
-                    nintendo_logo, IntRect2D({0, 0}, size),
-                    IntRect2D(dst_offset, size), true, opacity);
+                compositor->DrawTexture(nintendo_logo, IntRect2D({0, 0}, size),
+                                        IntRect2D(dst_offset, size), true,
+                                        opacity);
             }
 
             // Startup movie
@@ -514,9 +508,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                              (i32)frame->GetDescriptor().height};
                 int2 dst_offset = {(i32)width - size.x() - 32,
                                    (i32)height - size.y() - 32};
-                renderer.DrawTextureToSurface(frame, IntRect2D({0, 0}, size),
-                                              IntRect2D(dst_offset, size), true,
-                                              opacity);
+                compositor->DrawTexture(frame, IntRect2D({0, 0}, size),
+                                        IntRect2D(dst_offset, size), true,
+                                        opacity);
             }
         }
     } else {
@@ -537,10 +531,7 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         }
     }
 
-    renderer.EndSurfaceRenderPass();
-    renderer.PresentSurface();
-    renderer.EndCommandBuffer();
-    renderer.UnlockMutex();
+    delete compositor;
 
     // Signal V-Sync
     os->GetDisplayDriver().SignalVSync();

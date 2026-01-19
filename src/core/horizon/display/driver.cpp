@@ -21,7 +21,9 @@ bool Driver::AcquirePresentTextures() {
     return acquired;
 }
 
-void Driver::Present(u32 width, u32 height) {
+void Driver::Present(
+    hw::tegra_x1::gpu::renderer::ISurfaceCompositor* compositor, u32 width,
+    u32 height) {
     std::lock_guard lock(layer_mutex);
     std::vector<Layer*> sorted_layers;
     for (u32 layer_id = 1; layer_id < layer_pool.GetCapacity() + 1;
@@ -65,7 +67,7 @@ void Driver::Present(u32 width, u32 height) {
 
     // Present
     for (u32 i = 0; i < sorted_layers.size(); i++)
-        sorted_layers[i]->Present(dst_rect, dst_scale, i != 0);
+        sorted_layers[i]->Present(compositor, dst_rect, dst_scale, i != 0);
 }
 
 void Driver::SignalVSync() {

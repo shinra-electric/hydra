@@ -11,6 +11,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+class ISurfaceCompositor;
 class BufferBase;
 class TextureBase;
 class SamplerBase;
@@ -40,15 +41,7 @@ class RendererBase {
 
     // Surface
     virtual void SetSurface(void* surface) = 0;
-    virtual bool AcquireNextSurface() = 0;
-    virtual void BeginSurfaceRenderPass() = 0;
-    // Uses lower left origin
-    virtual void DrawTextureToSurface(const TextureBase* texture,
-                                      const FloatRect2D src_rect,
-                                      const FloatRect2D dst_rect,
-                                      bool transparent, f32 opacity = 1.0f) = 0;
-    virtual void EndSurfaceRenderPass() = 0;
-    virtual void PresentSurface() = 0;
+    virtual ISurfaceCompositor* AcquireNextSurface() = 0;
 
     // Buffer
     virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
