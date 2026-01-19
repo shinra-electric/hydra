@@ -142,7 +142,8 @@ enum class TextureFormat {
 };
 
 TextureFormat to_texture_format(NvColorFormat color_format);
-TextureFormat to_texture_format(const ImageFormatWord image_format_word);
+TextureFormat to_texture_format(const ImageFormatWord image_format_word,
+                                bool is_srgb);
 TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format);
 TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format);
 

@@ -706,7 +706,8 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
         return nullptr;
     }
 
-    const auto format = renderer::to_texture_format(tic.format_word);
+    const auto format =
+        renderer::to_texture_format(tic.format_word, tic.is_srgb);
 
     NvKind kind;
     u32 stride;

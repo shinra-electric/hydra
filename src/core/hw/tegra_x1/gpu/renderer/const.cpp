@@ -25,43 +25,55 @@ TextureFormat to_texture_format(NvColorFormat color_format) {
 #undef NV_COLOR_FORMAT_CASE
 }
 
-TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
-#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
+TextureFormat to_texture_format(const ImageFormatWord image_format_word,
+                                bool is_srgb) {
+#define IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format, \
+                               is_srgb_)                                       \
     else if (image_format_word.image_format == ImageFormat::img_format &&      \
              image_format_word.component_r == ImageComponent::c_r &&           \
              image_format_word.component_g == ImageComponent::c_g &&           \
              image_format_word.component_b == ImageComponent::c_b &&           \
-             image_format_word.component_a ==                                  \
-                 ImageComponent::c_a) return TextureFormat::texture_format;
+             image_format_word.component_a == ImageComponent::c_a &&           \
+             is_srgb == is_srgb_) return TextureFormat::texture_format;
+
+#define IMAGE_FORMAT_CASE(img_format, c_r, c_g, c_b, c_a, texture_format)      \
+    IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format,     \
+                           false)
+#define IMAGE_FORMAT_CASE_SRGB(img_format, c_r, c_g, c_b, c_a, texture_format) \
+    IMAGE_FORMAT_CASE_IMPL(img_format, c_r, c_g, c_b, c_a, texture_format, true)
 
     // TODO: more formats
+    // TODO: check
     if (image_format_word.image_format == ImageFormat::Invalid)
         return TextureFormat::Invalid;
     IMAGE_FORMAT_CASE(R16, Float, Float, Float, Float, R16Float)
     IMAGE_FORMAT_CASE(R32, Float, Float, Float, Float, R32Float)
-    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm,
-                      RGBA8Unorm) // TODO: why argb?
+    IMAGE_FORMAT_CASE(ARGB8, Unorm, Unorm, Unorm, Unorm, RGBA8Unorm)
+    IMAGE_FORMAT_CASE_SRGB(ARGB8, Unorm, Unorm, Unorm, Unorm, RGBA8Unorm_sRGB)
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     IMAGE_FORMAT_CASE(R16, Unorm, Unorm, Unorm, Unorm, R16Unorm)
-    IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm,
-                      RG8Unorm) // TODO: correct?
+    IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm, RG8Unorm)
     IMAGE_FORMAT_CASE(RG16, Unorm, Unorm, Unorm, Unorm, RG16Unorm)
     IMAGE_FORMAT_CASE(RG16, Snorm, Snorm, Snorm, Snorm, RG16Snorm)
     IMAGE_FORMAT_CASE(RG16, Uint, Uint, Uint, Uint, RG16Uint)
     IMAGE_FORMAT_CASE(RG16, Sint, Sint, Sint, Sint, RG16Sint)
     IMAGE_FORMAT_CASE(RG16, Float, Float, Float, Float, RG16Float)
     IMAGE_FORMAT_CASE(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB)
+    IMAGE_FORMAT_CASE_SRGB(DXT1, Unorm, Unorm, Unorm, Unorm, BC1_RGB_sRGB)
     IMAGE_FORMAT_CASE(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA)
+    IMAGE_FORMAT_CASE_SRGB(DXT23, Unorm, Unorm, Unorm, Unorm, BC2_RGBA_sRGB)
     IMAGE_FORMAT_CASE(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA)
+    IMAGE_FORMAT_CASE_SRGB(DXT45, Unorm, Unorm, Unorm, Unorm, BC3_RGBA_sRGB)
     IMAGE_FORMAT_CASE(DXN2, Unorm, Unorm, Unorm, Unorm, BC5_RGUnorm)
     IMAGE_FORMAT_CASE(DXN2, Snorm, Snorm, Snorm, Snorm, BC5_RGSnorm)
     IMAGE_FORMAT_CASE(B5G6R5, Unorm, Unorm, Unorm, Unorm, B5G6R5Unorm)
-    IMAGE_FORMAT_CASE(ABGR4, Unorm, Unorm, Unorm, Unorm,
-                      RGBA4Unorm) // TODO: correct?
+    IMAGE_FORMAT_CASE(ABGR4, Unorm, Unorm, Unorm, Unorm, RGBA4Unorm)
     IMAGE_FORMAT_CASE(A1BGR5, Unorm, Unorm, Unorm, Unorm, A1BGR5Unorm)
     IMAGE_FORMAT_CASE(B10GR11Float, Float, Float, Float, Float, RG11B10Float)
     IMAGE_FORMAT_CASE(A2BGR10, Unorm, Unorm, Unorm, Unorm, RGB10A2Unorm)
     IMAGE_FORMAT_CASE(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm, ASTC_RGBA_4x4)
+    IMAGE_FORMAT_CASE_SRGB(ASTC_2D_4X4, Unorm, Unorm, Unorm, Unorm,
+                           ASTC_RGBA_4x4_sRGB)
     IMAGE_FORMAT_CASE(DXN1, Unorm, Unorm, Unorm, Unorm, BC4_RUnorm)
     IMAGE_FORMAT_CASE(Z24S8, Uint, Unorm, Unorm, Unorm, Z24Unorm_S8Uint)
     IMAGE_FORMAT_CASE(Z16, Unorm, Unorm, Unorm, Unorm, Z16Unorm)
@@ -71,12 +83,10 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word) {
     IMAGE_FORMAT_CASE(RGBA32, Float, Float, Float, Float, RGBA32Float)
     IMAGE_FORMAT_CASE(BC7U, Unorm, Unorm, Unorm, Unorm, BC7_RGBAUnorm)
     else {
-        LOG_NOT_IMPLEMENTED(
-            Gpu, "Image format {}, components: {}, {}, {}, {}",
-            image_format_word.image_format, image_format_word.component_r,
-            image_format_word.component_g, image_format_word.component_b,
-            image_format_word.component_a);
-        throw;
+        LOG_FATAL(Gpu, "Image format {}, components: {}, {}, {}, {}, sRGB: {}",
+                  image_format_word.image_format, image_format_word.component_r,
+                  image_format_word.component_g, image_format_word.component_b,
+                  image_format_word.component_a, is_srgb);
     }
 
 #undef IMAGE_FORMAT_CASE
@@ -152,9 +162,7 @@ TextureFormat to_texture_format(ColorSurfaceFormat color_surface_format) {
         COLOR_SURFACE_FORMAT_CASE(BGRX8UnormUnknownFE, Invalid)
         COLOR_SURFACE_FORMAT_CASE(Y32UintUnknownFF, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(Gpu, "Color surface format {}",
-                            color_surface_format);
-        return TextureFormat::Invalid;
+        LOG_FATAL(Gpu, "Color surface format {}", color_surface_format);
     }
 
 #undef COLOR_SURFACE_FORMAT_CASE
@@ -178,11 +186,7 @@ TextureFormat to_texture_format(DepthSurfaceFormat depth_surface_format) {
         DEPTH_SURFACE_FORMAT_CASE(Z32X8C8X16Float, Invalid)
         DEPTH_SURFACE_FORMAT_CASE(Z32S8C8X16Float, Invalid)
     default:
-        LOG_NOT_IMPLEMENTED(Gpu, "Depth surface format {}",
-                            depth_surface_format);
-        // TODO: don't throw
-        throw;
-        return TextureFormat::Invalid;
+        LOG_FATAL(Gpu, "Depth surface format {}", depth_surface_format);
     }
 
 #undef DEPTH_SURFACE_FORMAT_CASE
