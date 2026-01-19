@@ -14,13 +14,17 @@ class BufferBase {
     virtual uptr GetPtr() const = 0;
 
     // Copying
-    virtual void CopyFrom(const uptr data) = 0;
+    void CopyFrom(const uptr data, u64 dst_offset = 0,
+                  u64 size_ = invalid<u64>()) {
+        if (size_ == invalid<u64>())
+            size_ = size - dst_offset;
+        CopyFromImpl(data, dst_offset, size_);
+    }
     void CopyFrom(BufferBase* src, u64 dst_offset = 0, u64 src_offset = 0,
-                  u64 size = invalid<u64>()) {
-        if (size == invalid<u64>())
-            size = std::min(src->GetSize() - src_offset, size - dst_offset);
-
-        CopyFromImpl(src, dst_offset, src_offset, size);
+                  u64 size_ = invalid<u64>()) {
+        if (size_ == invalid<u64>())
+            size_ = std::min(src->GetSize() - src_offset, size - dst_offset);
+        CopyFromImpl(src, dst_offset, src_offset, size_);
     }
     virtual void CopyFrom(TextureBase* src, const uint3 src_origin,
                           const uint3 src_size) = 0;
@@ -28,6 +32,8 @@ class BufferBase {
   protected:
     u64 size;
 
+    // Copying
+    virtual void CopyFromImpl(const uptr data, u64 dst_offset, u64 size) = 0;
     virtual void CopyFromImpl(BufferBase* src, u64 dst_offset, u64 src_offset,
                               u64 size) = 0;
 

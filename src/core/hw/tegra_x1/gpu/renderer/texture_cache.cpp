@@ -89,7 +89,7 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
             // Check if the data hash needs to be checked
             auto& data_hash = info.data_hash;
             if (data_hash.ShouldCheck()) {
-                u32 data_hash = GetTextureDataHash(tex.base);
+                u32 data_hash = GetDataHash(tex.base);
                 if (data_hash != info.data_hash.hash) {
                     sync = true;
                     update_data_hash = false;
@@ -130,7 +130,7 @@ u32 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     return hash.ToHashCode();
 }
 
-u32 TextureCache::GetTextureDataHash(const TextureBase* texture) {
+u32 TextureCache::GetDataHash(const TextureBase* texture) {
     constexpr u32 SAMPLE_COUNT = 37;
 
     const auto& descriptor = texture->GetDescriptor();
@@ -158,7 +158,7 @@ void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,
     // Update metadata
     tex.MarkCpuSynced();
     if (update_data_hash)
-        info.data_hash.Update(GetTextureDataHash(tex.base));
+        info.data_hash.Update(GetDataHash(tex.base));
     tex.data_hash = info.data_hash.hash;
 }
 

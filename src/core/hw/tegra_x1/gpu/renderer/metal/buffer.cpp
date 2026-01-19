@@ -19,11 +19,6 @@ Buffer::~Buffer() {
         buffer->release();
 }
 
-void Buffer::CopyFrom(const uptr data) {
-    memcpy((u8*)buffer->contents() + offset, reinterpret_cast<void*>(data),
-           size);
-}
-
 void Buffer::CopyFrom(TextureBase* src, const uint3 src_origin,
                       const uint3 src_size) {
     auto src_impl = static_cast<Texture*>(src);
@@ -41,14 +36,19 @@ void Buffer::CopyFrom(TextureBase* src, const uint3 src_origin,
         0);
 }
 
+void Buffer::CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) {
+    memcpy((u8*)buffer->contents() + offset + dst_offset,
+           reinterpret_cast<void*>(data), size_);
+}
+
 void Buffer::CopyFromImpl(BufferBase* src, u64 dst_offset, u64 src_offset,
-                          u64 size) {
+                          u64 size_) {
     auto src_impl = static_cast<Buffer*>(src);
 
     auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
     blit_encoder->copyFromBuffer(src_impl->GetBuffer(),
                                  src_impl->GetOffset() + src_offset, buffer,
-                                 offset + dst_offset, size);
+                                 offset + dst_offset, size_);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

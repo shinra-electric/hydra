@@ -16,7 +16,6 @@ class Buffer final : public BufferBase {
     }
 
     // Copying
-    void CopyFrom(const uptr data) override;
     void CopyFrom(TextureBase* src, const uint3 src_origin,
                   const uint3 src_size) override;
 
@@ -25,8 +24,10 @@ class Buffer final : public BufferBase {
     bool owns_buffer{true};
     u64 offset{0};
 
+    // Copying
+    void CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) override;
     void CopyFromImpl(BufferBase* src, u64 dst_offset, u64 src_offset,
-                      u64 size) override;
+                      u64 size_) override;
 
   public:
     GETTER(buffer, GetBuffer);

@@ -94,7 +94,7 @@ class TextureCache {
 
     // Helpers
     u32 GetTextureHash(const TextureDescriptor& descriptor);
-    u32 GetTextureDataHash(const TextureBase* texture);
+    u32 GetDataHash(const TextureBase* texture);
     void DecodeTexture(Tex& tex, TextureMemInfo& info,
                        bool update_data_hash = true);
     // TODO: encode texture
