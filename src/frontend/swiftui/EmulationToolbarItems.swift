@@ -28,6 +28,20 @@ struct EmulationToolbarItems: ToolbarContent {
                     isRunning = globalState.emulationContext!.isRunning()
                 }
             }
+            
+            ToolbarItemGroup(placement: .confirmationAction) {
+                Button("Console Mode", systemImage: "inset.filled.tv") {
+                    globalState.isHandheldMode.toggle()
+                }
+                .disabled(!globalState.isHandheldMode)
+                .help("Change to Console mode")
+                
+                Button("Handheld Mode", systemImage: "formfitting.gamecontroller.fill") {
+                    globalState.isHandheldMode.toggle()
+                }
+                .disabled(globalState.isHandheldMode)
+                .help("Change to Handheld mode")
+            }
         #else
             // TODO: options
             ToolbarItemGroup(placement: .principal) {}
