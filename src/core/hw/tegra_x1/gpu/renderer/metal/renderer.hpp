@@ -69,8 +69,8 @@ class Renderer : public RendererBase {
     ISurfaceCompositor* AcquireNextSurface() override;
 
     // Buffer
-    BufferBase* CreateBuffer(const BufferDescriptor& descriptor) override;
-    BufferBase* AllocateTemporaryBuffer(const u32 size) override;
+    BufferBase* CreateBuffer(u64 size) override;
+    BufferBase* AllocateTemporaryBuffer(const u64 size) override;
     void FreeTemporaryBuffer(BufferBase* buffer) override;
 
     // Texture

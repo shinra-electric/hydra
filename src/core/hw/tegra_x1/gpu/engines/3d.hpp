@@ -574,11 +574,12 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     macro::DriverBase* macro_driver;
 
     // Active state (for quick access)
-    renderer::ShaderBase* active_shaders[u32(renderer::ShaderType::Count)] = {
-        nullptr};
+    renderer::ShaderBase* active_shaders[static_cast<usize>(
+        renderer::ShaderType::Count)] = {nullptr};
 
     // State
-    uptr bound_const_buffers[CONST_BUFFER_BINDING_COUNT] = {0x0};
+    range<uptr> bound_const_buffers[static_cast<usize>(ShaderStage::Count) - 1]
+                                   [CONST_BUFFER_BINDING_COUNT];
 
     // Methods
     DEFINE_INLINE_ENGINE_METHODS;

@@ -45,6 +45,11 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
                 memcpy(reinterpret_cast<void*>(dst_ptr + regs.stride_out * i),
                        reinterpret_cast<void*>(src_ptr + regs.stride_in * i),
                        regs.stride_in);
+
+            // Invalidate
+            RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
+                range<uptr>::FromSize(dst_ptr,
+                                      regs.line_count * regs.stride_out));
         } else {
             // NOTE: a texture copy could be possible, as LineLengthIn contains
             // the width and PitchOut contains the stride, hence we could find

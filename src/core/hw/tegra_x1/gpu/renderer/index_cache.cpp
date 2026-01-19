@@ -156,8 +156,8 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
         RENDERER_INSTANCE.AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0x0;
     if (descriptor.src_index_buffer)
-        in_ptr = descriptor.src_index_buffer->GetDescriptor().ptr;
-    auto out_ptr = index_buffer->GetDescriptor().ptr;
+        in_ptr = descriptor.src_index_buffer->GetPtr();
+    auto out_ptr = index_buffer->GetPtr();
 
 #define DECODE(name) decode_##name(in_ptr, out_ptr, out_type, descriptor.count)
 

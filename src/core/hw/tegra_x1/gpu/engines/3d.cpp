@@ -292,8 +292,8 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
         count * get_index_type_size(
                     regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                       // - u64(regs.index_buffer_addr);
-    auto index_buffer = RENDERER_INSTANCE.GetBufferCache().Find(
-        {index_buffer_ptr, index_buffer_size});
+    auto index_buffer = RENDERER_INSTANCE.GetBufferCache().Get(
+        range<uptr>::FromSize(index_buffer_ptr, index_buffer_size));
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
@@ -363,10 +363,14 @@ void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
     gmmu.Store(gpu_addr, data);
 
     regs.load_const_buffer_offset += sizeof(u32);
+
+    // TODO: invalidate as a whole
+    RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
+        range<uptr>::FromSize(const_buffer_gpu_addr, sizeof(u32)));
 }
 
 void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
-    const auto shader_stage = static_cast<ShaderStage>(index / 0x8 + 1);
+    const auto shader_stage_index = index / 0x8;
     const auto group = index % 0x8;
 
     switch (group) {
@@ -380,16 +384,15 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
             const uptr const_buffer_gpu_ptr =
                 gmmu.UnmapAddr(regs.const_buffer_selector);
 
-            const auto buffer = RENDERER_INSTANCE.GetBufferCache().Find(
-                {const_buffer_gpu_ptr, regs.const_buffer_selector_size});
+            const auto range = ::hydra::range<uptr>::FromSize(
+                const_buffer_gpu_ptr, regs.const_buffer_selector_size);
 
-            bound_const_buffers[index] = const_buffer_gpu_ptr;
-            RENDERER_INSTANCE.BindUniformBuffer(
-                buffer, to_renderer_shader_type(shader_stage), index);
+            // HACK
+            RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(range);
+
+            bound_const_buffers[shader_stage_index][index] = range;
         } else {
-            bound_const_buffers[index] = 0x0;
-            RENDERER_INSTANCE.BindUniformBuffer(
-                nullptr, to_renderer_shader_type(shader_stage), index);
+            bound_const_buffers[shader_stage_index][index] = range<uptr>();
         }
         break;
     }
@@ -683,13 +686,11 @@ renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
         return nullptr;
     }
 
-    const renderer::BufferDescriptor descriptor{
-        .ptr = gmmu.UnmapAddr(vertex_array.addr),
-        .size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
-                u64(vertex_array.addr),
-    };
-
-    return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
+    const auto ptr = gmmu.UnmapAddr(vertex_array.addr);
+    const auto size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
+                      u64(vertex_array.addr);
+    return RENDERER_INSTANCE.GetBufferCache().Get(
+        range<uptr>::FromSize(ptr, size));
 }
 
 renderer::TextureBase*
@@ -769,19 +770,38 @@ void ThreeD::ConfigureShaderStage(
     GMmu& gmmu, const ShaderStage stage,
     const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
-    // const u32 stage_index = static_cast<u32>(stage) -
-    //                         1; // 1 is subtracted, because VertexA is skipped
+    const u32 stage_index = static_cast<u32>(stage) -
+                            1; // 1 is subtracted, because VertexA is skipped
 
     const auto shader = GetShaderUnchecked(stage);
     const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
 
-    // TODO: how are uniform buffers handled?
+    // Uniform buffers
+    // TODO: unbind uniform buffers
+    for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++) {
+        const auto index = resource_mapping.uniform_buffers[i];
+        if (index == invalid<u32>())
+            continue;
+
+        const auto range = bound_const_buffers[stage_index][i];
+        if (range.begin == 0x0) {
+            LOG_WARN(Engines, "Uniform buffer at index {} is not bound", index);
+            continue;
+        }
+
+        const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(range);
+        RENDERER_INSTANCE.BindUniformBuffer(
+            buffer, to_renderer_shader_type(stage), index);
+    }
+
     // TODO: storage buffers
 
     // Textures
     RENDERER_INSTANCE.UnbindTextures(to_renderer_shader_type(stage));
     auto tex_const_buffer = reinterpret_cast<const u32*>(
-        bound_const_buffers[regs.bindless_texture_const_buffer_slot]);
+        bound_const_buffers[stage_index]
+                           [regs.bindless_texture_const_buffer_slot]
+                               .begin);
     for (const auto [const_buffer_index, renderer_index] :
          resource_mapping.textures) {
         const auto texture_handle = tex_const_buffer[const_buffer_index];
@@ -802,8 +822,6 @@ void ThreeD::ConfigureShaderStage(
                                           renderer_index);
         // TODO: else bind null texture
     }
-
-    // TODO: images
 }
 
 bool ThreeD::DrawInternal(GMmu& gmmu) {

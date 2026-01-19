@@ -591,7 +591,7 @@ void EmulationContext::TakeScreenshot() {
 
         stbi_flip_vertically_on_write(flip_y);
         if (!stbi_write_jpg(filename.c_str(), rect.size.x(), rect.size.y(), 4,
-                            (void*)buffer->GetDescriptor().ptr, 100))
+                            (void*)buffer->GetPtr(), 100))
             LOG_ERROR(Other, "Failed to save screenshot to {}", filename);
         stbi_flip_vertically_on_write(false);
 

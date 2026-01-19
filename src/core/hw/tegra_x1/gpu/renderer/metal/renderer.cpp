@@ -150,11 +150,9 @@ ISurfaceCompositor* Renderer::AcquireNextSurface() {
     return new SurfaceCompositor(drawable, command_queue);
 }
 
-BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
-    return new Buffer(descriptor);
-}
+BufferBase* Renderer::CreateBuffer(u64 size) { return new Buffer(size); }
 
-BufferBase* Renderer::AllocateTemporaryBuffer(const u32 size) {
+BufferBase* Renderer::AllocateTemporaryBuffer(const u64 size) {
     // TODO: use a buffer allocator instead
     auto buffer = device->newBuffer(size, MTL::ResourceStorageModeShared);
     return new Buffer(buffer, 0);

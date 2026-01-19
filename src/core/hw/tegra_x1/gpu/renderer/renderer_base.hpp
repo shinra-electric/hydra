@@ -44,8 +44,8 @@ class RendererBase {
     virtual ISurfaceCompositor* AcquireNextSurface() = 0;
 
     // Buffer
-    virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
-    virtual BufferBase* AllocateTemporaryBuffer(const u32 size) = 0;
+    virtual BufferBase* CreateBuffer(u64 size) = 0;
+    virtual BufferBase* AllocateTemporaryBuffer(const u64 size) = 0;
     virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture

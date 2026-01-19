@@ -10,18 +10,21 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class BufferBase;
 
-class BufferCache
-    : public CacheBase<BufferCache, BufferBase*, BufferDescriptor> {
+struct BufferEntry {
+    BufferBase* buffer{nullptr};
+    std::optional<range<uptr>> invalidation_range{};
+};
+
+class BufferCache {
   public:
-    void Destroy() {}
+    ~BufferCache();
 
-    BufferBase* Create(const BufferDescriptor& descriptor);
-    void Update(BufferBase* buffer);
-    u32 Hash(const BufferDescriptor& descriptor);
+    BufferBase* Get(range<uptr> range);
 
-    void DestroyElement(BufferBase* buffer);
+    void InvalidateMemory(range<uptr> range);
 
   private:
+    std::map<uptr, BufferEntry> entries;
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

@@ -46,6 +46,15 @@ struct range {
         return begin < other.end && end > other.begin;
     }
 
+    range<T> ClampedTo(const range<T>& bounds) const {
+        return range<T>(std::max(begin, bounds.begin),
+                        std::min(end, bounds.end));
+    }
+
+    range<T> Union(const range<T>& other) const {
+        return range<T>(std::min(begin, other.begin), std::max(end, other.end));
+    }
+
     T GetSize() const { return end - begin; }
 
   public:

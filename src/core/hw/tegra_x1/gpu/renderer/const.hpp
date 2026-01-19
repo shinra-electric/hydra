@@ -212,11 +212,6 @@ enum class BlendFactor {
     InvConstAlpha = 23,
 };
 
-struct BufferDescriptor {
-    uptr ptr;
-    usize size;
-};
-
 struct TextureDescriptor {
     uptr ptr;
     TextureFormat format;
@@ -325,13 +320,13 @@ enum class ShaderType {
 };
 
 struct ResourceMapping {
-    u32 uniform_buffers[UNIFORM_BUFFER_BINDING_COUNT];
+    u32 uniform_buffers[CONST_BUFFER_BINDING_COUNT];
     // TODO: storage buffers
     std::map<u32, u32> textures;
     // TODO: images
 
     ResourceMapping() {
-        for (u32 i = 0; i < UNIFORM_BUFFER_BINDING_COUNT; i++)
+        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
             uniform_buffers[i] = invalid<u32>();
         // TODO: storage buffers
         // TODO: images
