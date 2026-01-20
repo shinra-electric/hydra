@@ -173,7 +173,12 @@ u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint,
     const auto bpp = renderer::get_texture_format_bpp(format);
     const auto alignment = 64 / bpp;
     const auto width_aligned = align(width, alignment);
-    return std::clamp(width_aligned - alignment + 1, width_hint, width_aligned);
+    // HACK
+    // return std::clamp(width_aligned - alignment + 1, width_hint,
+    // width_aligned);
+    if (width_aligned - alignment + 1 <= width_hint)
+        return width_hint;
+    return width;
 }
 
 } // namespace
