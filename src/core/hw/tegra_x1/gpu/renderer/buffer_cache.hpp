@@ -8,6 +8,7 @@ class IMmu;
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+// TODO: also release the buffer
 struct BufferEntry {
     BufferBase* buffer{nullptr};
     Range<uptr> range;
@@ -28,6 +29,7 @@ class BufferCache {
 
     // Helpers
     static void UpdateRange(BufferEntry& entry, Range<uptr> range);
+    BufferEntry& Find(Range<uptr> range);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

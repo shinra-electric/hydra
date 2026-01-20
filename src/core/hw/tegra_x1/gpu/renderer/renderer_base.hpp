@@ -91,6 +91,7 @@ class RendererBase {
     // TODO: images
 
     // Resource unbinding
+    virtual void UnbindUniformBuffers(ShaderType shader_type) = 0;
     virtual void UnbindTextures(ShaderType shader_type) = 0;
 
     // Draw

@@ -787,6 +787,7 @@ void ThreeD::ConfigureShaderStage(
     GMmu& gmmu, const ShaderStage stage,
     const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
+    const auto shader_type = to_renderer_shader_type(stage);
     const u32 stage_index = static_cast<u32>(stage) -
                             1; // 1 is subtracted, because VertexA is skipped
 
@@ -794,12 +795,13 @@ void ThreeD::ConfigureShaderStage(
     const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
 
     // Uniform buffers
-    // TODO: unbind uniform buffers
+    RENDERER_INSTANCE.UnbindUniformBuffers(shader_type);
     for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++) {
         const auto index = resource_mapping.uniform_buffers[i];
         if (index == invalid<u32>())
             continue;
 
+        // TODO: analyze the shader to get the max possible size
         const auto range = bound_const_buffers[stage_index][i];
         if (range.GetBegin() == 0x0) {
             LOG_WARN(Engines, "Uniform buffer at index {} is not bound", index);
@@ -807,14 +809,13 @@ void ThreeD::ConfigureShaderStage(
         }
 
         const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(range);
-        RENDERER_INSTANCE.BindUniformBuffer(
-            buffer, to_renderer_shader_type(stage), index);
+        RENDERER_INSTANCE.BindUniformBuffer(buffer, shader_type, index);
     }
 
     // TODO: storage buffers
 
     // Textures
-    RENDERER_INSTANCE.UnbindTextures(to_renderer_shader_type(stage));
+    RENDERER_INSTANCE.UnbindTextures(shader_type);
     auto tex_const_buffer = reinterpret_cast<const u32*>(
         bound_const_buffers[stage_index]
                            [regs.bindless_texture_const_buffer_slot]
@@ -834,8 +835,7 @@ void ThreeD::ConfigureShaderStage(
         const auto sampler = GetSampler(tsc);
 
         if (texture && sampler)
-            RENDERER_INSTANCE.BindTexture(texture, sampler,
-                                          to_renderer_shader_type(stage),
+            RENDERER_INSTANCE.BindTexture(texture, sampler, shader_type,
                                           renderer_index);
         // TODO: else bind null texture
     }
@@ -860,13 +860,12 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
         const auto& vertex_array = regs.vertex_arrays[i];
         // HACK: Super Meat Boy contains invalid vertex arrays with address 4096
         if (!vertex_array.config.enable ||
-            (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096))
+            (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096)) {
+            RENDERER_INSTANCE.BindVertexBuffer(renderer::BufferView(), i);
             continue;
+        }
 
         const auto buffer = GetVertexBuffer(gmmu, i);
-        if (!buffer.GetBase())
-            continue;
-
         RENDERER_INSTANCE.BindVertexBuffer(buffer, i);
     }
 

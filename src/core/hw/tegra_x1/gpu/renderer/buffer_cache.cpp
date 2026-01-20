@@ -11,49 +11,44 @@ BufferCache::~BufferCache() {
 }
 
 BufferView BufferCache::Get(Range<uptr> range) {
-    auto& entry = entries[range.GetBegin()];
+    auto& entry = Find(range);
     if (entry.buffer) {
-        if (entry.buffer->GetSize() <
-            range.GetSize()) { // Check if the size is sufficient
-            // TODO: is this safe?
-            delete entry.buffer;
-            entry.buffer = RENDERER_INSTANCE.CreateBuffer(range.GetSize());
-            entry.range = range;
-            UpdateRange(entry, range);
-        } else if (entry.invalidation_range
-                       .has_value()) { // Check for memory invalidation
+        // Check for memory invalidation
+        if (entry.invalidation_range.has_value()) {
             const auto invalidation_range = entry.invalidation_range.value();
             UpdateRange(entry, invalidation_range);
             entry.invalidation_range = std::nullopt;
         }
     } else {
         // Create new buffer
-        entry.buffer = RENDERER_INSTANCE.CreateBuffer(range.GetSize());
-        entry.range = range;
-        UpdateRange(entry, range);
+        entry.buffer = RENDERER_INSTANCE.CreateBuffer(entry.range.GetSize());
+        UpdateRange(entry, entry.range);
     }
 
-    return BufferView(entry.buffer);
+    return BufferView(entry.buffer, range.GetBegin() - entry.range.GetBegin(),
+                      range.GetSize());
 }
 
-// TODO: make this more efficient
 void BufferCache::InvalidateMemory(Range<uptr> range) {
-    for (auto& [ptr, entry] : entries) {
-        const auto crnt_range =
-            Range<uptr>::FromSize(ptr, entry.buffer->GetSize());
-        if (crnt_range.Intersects(range)) {
-            // Clamp the range
-            auto invalidation_range = range.ClampedTo(crnt_range);
+    auto it = entries.upper_bound(range.GetBegin());
+    if (it != entries.begin())
+        it--;
 
-            // Combine with an existing invalidation range if it exists
+    while (it != entries.end() &&
+           it->second.range.GetBegin() < range.GetEnd()) {
+        if (it->second.range.GetEnd() > range.GetBegin()) {
+            auto& entry = it->second;
+            const auto invalidation_range = range.ClampedTo(entry.range);
             if (entry.invalidation_range.has_value()) {
-                invalidation_range =
-                    invalidation_range.Union(entry.invalidation_range.value());
+                // Combine with an existing invalidation range if it exists
+                entry.invalidation_range =
+                    entry.invalidation_range.value().Union(invalidation_range);
+            } else {
+                // Clamp the range
+                entry.invalidation_range = invalidation_range;
             }
-
-            // Update the invalidation range
-            entry.invalidation_range = invalidation_range;
         }
+        it++;
     }
 }
 
@@ -74,6 +69,49 @@ void BufferCache::UpdateRange(BufferEntry& entry, Range<uptr> range) {
                                range.GetSize());
         RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
     }
+}
+
+BufferEntry& BufferCache::Find(Range<uptr> range) {
+    // Check for containing interval
+    auto it = entries.upper_bound(range.GetBegin());
+    if (it != entries.begin()) {
+        auto prev = std::prev(it);
+        if (prev->second.range.GetEnd() >= range.GetEnd()) {
+            // Fully contained
+            return prev->second;
+        }
+    }
+
+    // Insert and merge
+    auto new_range = range;
+
+    it = entries.lower_bound(range.GetBegin());
+
+    // Merge with previous if overlapping/touching
+    if (it != entries.begin()) {
+        auto prev = std::prev(it);
+        if (prev->second.range.GetEnd() >= new_range.GetBegin()) {
+            new_range = Range<uptr>(
+                prev->second.range.GetBegin(),
+                std::max(new_range.GetEnd(), prev->second.range.GetEnd()));
+            it = entries.erase(prev);
+        }
+    }
+
+    // Merge with following entries
+    while (it != entries.end() && it->first <= new_range.GetEnd()) {
+        new_range = Range<uptr>(
+            new_range.GetBegin(),
+            std::max(new_range.GetEnd(), it->second.range.GetEnd()));
+        it = entries.erase(it);
+    }
+
+    // Insert merged interval
+    auto inserted =
+        entries.emplace(new_range.GetBegin(),
+                        BufferEntry{.buffer = nullptr, .range = new_range});
+
+    return inserted.first->second;
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

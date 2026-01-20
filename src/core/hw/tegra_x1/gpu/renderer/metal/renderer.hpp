@@ -25,6 +25,11 @@ enum class EncoderType {
     Blit,
 };
 
+struct CombinedTextureSampler {
+    const Texture* texture{nullptr};
+    const Sampler* sampler{nullptr};
+};
+
 struct State {
     const RenderPass* render_pass{nullptr};
     Viewport viewports[VIEWPORT_COUNT];
@@ -36,10 +41,9 @@ struct State {
     std::array<std::array<BufferView, CONST_BUFFER_BINDING_COUNT>,
                usize(ShaderType::Count)>
         uniform_buffers{};
-    struct {
-        const Texture* texture{nullptr};
-        const Sampler* sampler{nullptr};
-    } textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT]{};
+    std::array<std::array<CombinedTextureSampler, TEXTURE_BINDING_COUNT>,
+               usize(ShaderType::Count)>
+        textures{};
     // TODO: images
 };
 
@@ -126,6 +130,7 @@ class Renderer : public RendererBase {
                      ShaderType shader_type, u32 index) override;
 
     // Resource unbinding
+    void UnbindUniformBuffers(ShaderType shader_type) override;
     void UnbindTextures(ShaderType shader_type) override;
 
     // Draw

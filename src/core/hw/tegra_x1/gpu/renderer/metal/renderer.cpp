@@ -290,13 +290,20 @@ void Renderer::BindTexture(TextureBase* texture, SamplerBase* sampler,
                                                static_cast<Sampler*>(sampler)};
 }
 
+void Renderer::UnbindUniformBuffers(ShaderType shader_type) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
+    state.uniform_buffers[u32(shader_type)] = {};
+}
+
 void Renderer::UnbindTextures(ShaderType shader_type) {
     // HACK
     if (shader_type == ShaderType::Count)
         return;
 
-    for (u32 i = 0; i < TEXTURE_COUNT; i++)
-        state.textures[u32(shader_type)][i] = {nullptr, nullptr};
+    state.textures[u32(shader_type)] = {};
 }
 
 void Renderer::Draw(const engines::PrimitiveType primitive_type,
