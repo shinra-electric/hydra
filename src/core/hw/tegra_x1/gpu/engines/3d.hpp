@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/engines/inline_base.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 
 #define REGS_3D engines::ThreeD::GetInstance().GetRegs()
 
@@ -10,7 +10,6 @@ class DriverBase;
 }
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
-class BufferBase;
 class TextureBase;
 class SamplerBase;
 class RenderPassBase;
@@ -622,8 +621,8 @@ class ThreeD : public EngineWithRegsBase<Regs3D>, public InlineBase {
     renderer::ShaderBase* GetShaderUnchecked(ShaderStage stage) const;
     renderer::ShaderBase* GetShader(GMmu& gmmu, ShaderStage stage);
     renderer::PipelineBase* GetPipeline(GMmu& gmmu);
-    renderer::BufferBase* GetVertexBuffer(GMmu& gmmu,
-                                          u32 vertex_array_index) const;
+    renderer::BufferView GetVertexBuffer(GMmu& gmmu,
+                                         u32 vertex_array_index) const;
     renderer::TextureBase* GetTexture(GMmu& gmmu,
                                       const TextureImageControl& tic) const;
     renderer::SamplerBase* GetSampler(const TextureSamplerControl& tsc) const;

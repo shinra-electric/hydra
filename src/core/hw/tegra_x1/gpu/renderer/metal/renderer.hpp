@@ -30,16 +30,22 @@ struct State {
     Viewport viewports[VIEWPORT_COUNT];
     Scissor scissors[VIEWPORT_COUNT];
     const Pipeline* pipeline{nullptr};
-    const Buffer* index_buffer{nullptr};
+    BufferView index_buffer{};
     engines::IndexType index_type{engines::IndexType::None};
-    const Buffer* vertex_buffers[VERTEX_ARRAY_COUNT] = {nullptr};
-    const Buffer* uniform_buffers[usize(ShaderType::Count)]
-                                 [CONST_BUFFER_BINDING_COUNT];
+    std::array<BufferView, VERTEX_ARRAY_COUNT> vertex_buffers{};
+    std::array<std::array<BufferView, CONST_BUFFER_BINDING_COUNT>,
+               usize(ShaderType::Count)>
+        uniform_buffers{};
     struct {
-        const Texture* texture;
-        const Sampler* sampler;
-    } textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT];
+        const Texture* texture{nullptr};
+        const Sampler* sampler{nullptr};
+    } textures[usize(ShaderType::Count)][TEXTURE_BINDING_COUNT]{};
     // TODO: images
+};
+
+struct MtlBufferState {
+    MTL::Buffer* buffer{nullptr};
+    u64 offset{0};
 };
 
 struct EncoderRenderState {
@@ -47,9 +53,15 @@ struct EncoderRenderState {
     MTL::DepthStencilState* depth_stencil_state{nullptr};
     MTL::CullMode cull_mode{MTL::CullModeNone};
     MTL::Winding front_face_winding{MTL::WindingClockwise};
-    MTL::Buffer* buffers[usize(ShaderType::Count)][BUFFER_COUNT];
-    MTL::Texture* textures[usize(ShaderType::Count)][TEXTURE_COUNT];
-    MTL::SamplerState* samplers[usize(ShaderType::Count)][TEXTURE_COUNT];
+    std::array<std::array<MtlBufferState, BUFFER_COUNT>,
+               usize(ShaderType::Count)>
+        buffers{};
+    std::array<std::array<MTL::Texture*, TEXTURE_COUNT>,
+               usize(ShaderType::Count)>
+        textures{};
+    std::array<std::array<MTL::SamplerState*, TEXTURE_COUNT>,
+               usize(ShaderType::Count)>
+        samplers{};
 };
 
 struct EncoderState {
@@ -105,10 +117,10 @@ class Renderer : public RendererBase {
     void BindPipeline(const PipelineBase* pipeline) override;
 
     // Resource binding
-    void BindVertexBuffer(BufferBase* buffer, u32 index) override;
-    void BindIndexBuffer(BufferBase* index_buffer,
+    void BindVertexBuffer(const BufferView& buffer, u32 index) override;
+    void BindIndexBuffer(const BufferView& index_buffer,
                          engines::IndexType index_type) override;
-    void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
+    void BindUniformBuffer(const BufferView& buffer, ShaderType shader_type,
                            u32 index) override;
     void BindTexture(TextureBase* texture, SamplerBase* sampler,
                      ShaderType shader_type, u32 index) override;
@@ -168,7 +180,8 @@ class Renderer : public RendererBase {
     void SetCullMode(MTL::CullMode cull_mode);
     void SetFrontFaceWinding(MTL::Winding front_face_winding);
     void SetCullState();
-    void SetBuffer(MTL::Buffer* buffer, ShaderType shader_type, u32 index);
+    void SetBuffer(MTL::Buffer* buffer, u64 offset, ShaderType shader_type,
+                   u32 index);
     void SetVertexBuffer(u32 index);
     void SetUniformBuffer(ShaderType shader_type, u32 index);
     void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);

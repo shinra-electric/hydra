@@ -268,15 +268,11 @@ void ThreeD::DrawVertexArray(GMmu& gmmu, const u32 index, u32 count) {
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    renderer::BufferBase* index_buffer =
-        RENDERER_INSTANCE.GetIndexCache().Decode(
-            {.type = index_type,
-             .primitive_type = primitive_type,
-             .count = count,
-             .src_index_buffer = nullptr},
-            index_type, primitive_type, count);
+    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+        {.type = index_type, .primitive_type = primitive_type, .count = count},
+        index_type, primitive_type, count);
 
-    if (index_buffer) {
+    if (index_buffer.GetBase()) {
         // Bind index buffer
         RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
@@ -307,20 +303,20 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
         count * get_index_type_size(
                     regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                       // - u64(regs.index_buffer_addr);
-    auto index_buffer = RENDERER_INSTANCE.GetBufferCache().Get(
-        Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size));
+    const auto range =
+        Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
-    index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
         {.type = index_type,
          .primitive_type = primitive_type,
          .count = count,
-         .src_index_buffer = index_buffer},
+         .mem_range = range},
         index_type, primitive_type, count);
 
     // Bind index buffer
-    ASSERT_DEBUG(index_buffer, Gpu, "Index buffer not found");
+    ASSERT_DEBUG(index_buffer.GetBase(), Gpu, "Index buffer not found");
     RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
     // Draw
@@ -697,14 +693,14 @@ renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
     return RENDERER_INSTANCE.GetPipelineCache().Find(descriptor);
 }
 
-renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
-                                              u32 vertex_array_index) const {
+renderer::BufferView ThreeD::GetVertexBuffer(GMmu& gmmu,
+                                             u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
     if (u64(vertex_array.addr) == 0x0) {
         ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
-        return nullptr;
+        return renderer::BufferView();
     }
 
     const auto ptr = gmmu.UnmapAddr(vertex_array.addr);
@@ -868,7 +864,7 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
             continue;
 
         const auto buffer = GetVertexBuffer(gmmu, i);
-        if (!buffer)
+        if (!buffer.GetBase())
             continue;
 
         RENDERER_INSTANCE.BindVertexBuffer(buffer, i);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/renderer/buffer_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
@@ -12,7 +12,6 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ISurfaceCompositor;
-class BufferBase;
 class TextureBase;
 class SamplerBase;
 class RenderPassBase;
@@ -81,11 +80,11 @@ class RendererBase {
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Resource binding
-    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
-    virtual void BindIndexBuffer(BufferBase* index_buffer,
+    virtual void BindVertexBuffer(const BufferView& buffer, u32 index) = 0;
+    virtual void BindIndexBuffer(const BufferView& index_buffer,
                                  engines::IndexType index_type) = 0;
-    virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
-                                   u32 index) = 0;
+    virtual void BindUniformBuffer(const BufferView& buffer,
+                                   ShaderType shader_type, u32 index) = 0;
     // TODO: storage buffers
     virtual void BindTexture(TextureBase* texture, SamplerBase* sampler,
                              ShaderType shader_type, u32 index) = 0;

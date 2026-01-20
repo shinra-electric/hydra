@@ -27,7 +27,7 @@ class BufferBase {
         CopyFromImpl(src, dst_offset, src_offset, size_);
     }
     virtual void CopyFrom(TextureBase* src, const uint3 src_origin,
-                          const uint3 src_size) = 0;
+                          const uint3 src_size, u64 dst_offset = 0) = 0;
 
   protected:
     u64 size;

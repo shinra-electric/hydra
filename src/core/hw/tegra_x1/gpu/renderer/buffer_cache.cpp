@@ -10,7 +10,7 @@ BufferCache::~BufferCache() {
         delete entry.second.buffer;
 }
 
-BufferBase* BufferCache::Get(Range<uptr> range) {
+BufferView BufferCache::Get(Range<uptr> range) {
     auto& entry = entries[range.GetBegin()];
     if (entry.buffer) {
         if (entry.buffer->GetSize() <
@@ -33,7 +33,7 @@ BufferBase* BufferCache::Get(Range<uptr> range) {
         UpdateRange(entry, range);
     }
 
-    return entry.buffer;
+    return BufferView(entry.buffer);
 }
 
 // TODO: make this more efficient

@@ -96,10 +96,10 @@ IndexCache::~IndexCache() {
         RENDERER_INSTANCE.FreeTemporaryBuffer(index_buffer);
 }
 
-BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
-                               engines::IndexType& out_type,
-                               engines::PrimitiveType& out_primitive_type,
-                               u32& out_count) {
+BufferView IndexCache::Decode(const IndexDescriptor& descriptor,
+                              engines::IndexType& out_type,
+                              engines::PrimitiveType& out_primitive_type,
+                              u32& out_count) {
 #define PRIMITIVE_TYPE_SWITCH(macro, u8_index_macro)                           \
     switch (descriptor.primitive_type) {                                       \
     case engines::PrimitiveType::Quads:                                        \
@@ -116,7 +116,11 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
             u8_index_macro();                                                  \
             break;                                                             \
         } else {                                                               \
-            return descriptor.src_index_buffer;                                \
+            if (descriptor.mem_range)                                          \
+                return RENDERER_INSTANCE.GetBufferCache().Get(                 \
+                    *descriptor.mem_range);                                    \
+            else                                                               \
+                return BufferView();                                           \
         }                                                                      \
     }
 
@@ -155,8 +159,8 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
     index_buffer =
         RENDERER_INSTANCE.AllocateTemporaryBuffer(out_count * index_size);
     uptr in_ptr = 0x0;
-    if (descriptor.src_index_buffer)
-        in_ptr = descriptor.src_index_buffer->GetPtr();
+    if (descriptor.mem_range)
+        in_ptr = descriptor.mem_range->GetBegin();
     auto out_ptr = index_buffer->GetPtr();
 
 #define DECODE(name) decode_##name(in_ptr, out_ptr, out_type, descriptor.count)
@@ -168,20 +172,23 @@ BufferBase* IndexCache::Decode(const IndexDescriptor& descriptor,
 #define DECODE_MACRO_U8_INDEX()                                                \
     decode_u8_indices(in_ptr, out_ptr, descriptor.count);
 
-    if (descriptor.src_index_buffer == nullptr) {
+    if (descriptor.mem_range) {
         PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
     } else {
         PRIMITIVE_TYPE_SWITCH(DECODE_MACRO, DECODE_MACRO_U8_INDEX)
     }
 
-    return index_buffer;
+    return BufferView(index_buffer);
 } // namespace hydra::hw::tegra_x1::gpu::renderer
 
 u32 IndexCache::Hash(const IndexDescriptor& descriptor) {
     HashCode hash;
     hash.Add(descriptor.type);
     hash.Add(descriptor.primitive_type);
-    hash.Add(descriptor.src_index_buffer);
+    if (descriptor.mem_range) {
+        hash.Add(descriptor.mem_range->GetBegin());
+        hash.Add(descriptor.mem_range->GetEnd());
+    }
     hash.Add(descriptor.count);
     return hash.ToHashCode();
 }
