@@ -376,14 +376,14 @@ void ThreeD::FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data) {
 void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = u64(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
+    const auto ptr = gmmu.UnmapAddr(gpu_addr);
 
-    gmmu.Store(gpu_addr, data);
-
+    *reinterpret_cast<u32*>(ptr) = data;
     regs.load_const_buffer_offset += sizeof(u32);
 
     // TODO: invalidate as a whole
     RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
-        Range<uptr>::FromSize(const_buffer_gpu_addr, sizeof(u32)));
+        Range<uptr>::FromSize(ptr, sizeof(u32)));
 }
 
 void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
