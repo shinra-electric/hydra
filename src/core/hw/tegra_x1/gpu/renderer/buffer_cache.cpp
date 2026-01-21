@@ -14,7 +14,8 @@ BufferView BufferCache::Get(Range<uptr> range) {
     auto& entry = Find(range);
     if (entry.buffer) {
         // Check for memory invalidation
-        if (entry.invalidation_range.has_value()) {
+        if (entry.invalidation_range.has_value() &&
+            entry.invalidation_range->Intersects(range)) {
             const auto invalidation_range = entry.invalidation_range.value();
             UpdateRange(entry, invalidation_range);
             entry.invalidation_range = std::nullopt;
