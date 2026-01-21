@@ -28,14 +28,14 @@ struct PageTableLevel {
         return static_cast<u32>((va - base_va) >> GET_BLOCK_SHIFT(level));
     }
 
-    u64 ReadEntry(u32 index) const {
-        const u64* table = reinterpret_cast<const u64*>(page.ptr);
+    u64& GetEntry(u32 index) {
+        u64* table = reinterpret_cast<u64*>(page.ptr);
         return table[index];
     }
 
-    void WriteEntry(u32 index, u64 entry) {
-        u64* table = reinterpret_cast<u64*>(page.ptr);
-        table[index] = entry;
+    const u64& GetEntry(u32 index) const {
+        const u64* table = reinterpret_cast<const u64*>(page.ptr);
+        return table[index];
     }
 
     PageTableLevel* GetNextNoNew(u32 index) {
@@ -94,6 +94,9 @@ class PageTable {
     void Unmap(vaddr_t va, usize size);
 
     PageRegion QueryRegion(vaddr_t va) const;
+    void SetMemoryPermission(vaddr_t va, usize size,
+                             horizon::kernel::MemoryPermission perm,
+                             ApFlags flags);
     void SetMemoryAttribute(vaddr_t va, usize size,
                             horizon::kernel::MemoryAttribute mask,
                             horizon::kernel::MemoryAttribute value);
@@ -110,6 +113,11 @@ class PageTable {
                   const horizon::kernel::MemoryState state, ApFlags flags);
     void MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa, usize size,
                       const horizon::kernel::MemoryState state, ApFlags flags);
+
+    void ModifyRange(
+        vaddr_t va, usize size,
+        std::function<void(vaddr_t, usize, u64&, horizon::kernel::MemoryState&)>
+            callback);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu::hypervisor

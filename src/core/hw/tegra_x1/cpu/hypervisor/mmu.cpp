@@ -19,10 +19,7 @@ namespace hydra::hw::tegra_x1::cpu::hypervisor {
 
 namespace {
 
-inline ApFlags to_ap_flags(horizon::kernel::MemoryPermission perm) {
-    // HACK
-    return ApFlags::UserReadWriteExecuteKernelReadWrite;
-
+inline ApFlags ToApFlags(horizon::kernel::MemoryPermission perm) {
     if (any(perm & horizon::kernel::MemoryPermission::Read)) {
         if (any(perm & horizon::kernel::MemoryPermission::Write)) {
             if (any(perm & horizon::kernel::MemoryPermission::Execute)) {
@@ -101,8 +98,9 @@ Mmu::~Mmu() { ReleasePageTableRegion(user_page_table.GetBase()); }
 
 void Mmu::Map(vaddr_t dst_va, uptr ptr, usize size,
               const horizon::kernel::MemoryState state) {
+    ASSERT_ALIGNMENT(dst_va, GUEST_PAGE_SIZE, Hypervisor, "destination VA");
     ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
-    user_page_table.Map(dst_va, ptr, size, state, to_ap_flags(state.perm));
+    user_page_table.Map(dst_va, ptr, size, state, ToApFlags(state.perm));
 }
 
 // HACK: this assumes that the whole src range is stored contiguously in
@@ -111,10 +109,21 @@ void Mmu::Map(vaddr_t dst_va, vaddr_t src_va, usize size) {
     const auto region = user_page_table.QueryRegion(src_va);
     paddr_t pa = region.UnmapAddr(src_va);
     user_page_table.Map(dst_va, pa, size, region.state,
-                        to_ap_flags(region.state.perm));
+                        ToApFlags(region.state.perm));
 }
 
-void Mmu::Unmap(vaddr_t va, usize size) { user_page_table.Unmap(va, size); }
+void Mmu::Unmap(vaddr_t va, usize size) {
+    ASSERT_ALIGNMENT(va, GUEST_PAGE_SIZE, Hypervisor, "VA");
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
+    user_page_table.Unmap(va, size);
+}
+
+void Mmu::Protect(vaddr_t va, usize size,
+                  horizon::kernel::MemoryPermission perm) {
+    ASSERT_ALIGNMENT(va, GUEST_PAGE_SIZE, Hypervisor, "VA");
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Hypervisor, "size");
+    user_page_table.SetMemoryPermission(va, size, perm, ToApFlags(perm));
+}
 
 // TODO: just improve this...
 void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
@@ -123,7 +132,7 @@ void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
     const auto region = user_page_table.QueryRegion(va);
     paddr_t pa = region.UnmapAddr(va);
     user_page_table.Map(va, pa, size, region.state,
-                        to_ap_flags(region.state.perm));
+                        ToApFlags(region.state.perm));
 }
 
 uptr Mmu::UnmapAddr(vaddr_t va) const { return user_page_table.UnmapAddr(va); }

@@ -41,7 +41,7 @@ PageTableLevel& PageTableLevel::GetNext(PageAllocator& allocator, u32 index) {
     if (!next) {
         next = new PageTableLevel(level + 1, allocator.GetNextPage(),
                                   base_va + index * GetBlockSize());
-        WriteEntry(index, next->page.pa | PTE_TABLE);
+        GetEntry(index) = next->page.pa | PTE_TABLE;
     }
 
     return *next;
@@ -86,7 +86,7 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
     u32 index = top_level.VaToIndex(va);
     auto* level = &top_level;
-    u64 entry = top_level.ReadEntry(index);
+    u64 entry = top_level.GetEntry(index);
     while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
         if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
             return FREE_MEMORY(va & ~(level->GetBlockSize() - 1),
@@ -94,7 +94,7 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
 
         level = level->GetNextNoNew(index);
         index = level->VaToIndex(va);
-        entry = level->ReadEntry(index);
+        entry = level->GetEntry(index);
     }
 
     PageRegion region;
@@ -106,32 +106,29 @@ PageRegion PageTable::QueryRegion(vaddr_t va) const {
     return region;
 }
 
-// TODO: this should subdivide the table if necessary
+void PageTable::SetMemoryPermission(vaddr_t va, usize size,
+                                    horizon::kernel::MemoryPermission perm,
+                                    ApFlags flags) {
+    ModifyRange(va, size,
+                [perm, flags]([[maybe_unused]] vaddr_t va,
+                              [[maybe_unused]] usize size, u64& entry,
+                              horizon::kernel::MemoryState& state) {
+                    entry &= ~AP_FLAGS_MASK;
+                    entry |= static_cast<u64>(flags);
+                    state.perm = perm;
+                });
+}
+
 void PageTable::SetMemoryAttribute(vaddr_t va, usize size,
                                    horizon::kernel::MemoryAttribute mask,
                                    horizon::kernel::MemoryAttribute value) {
-    auto va_page = va / GUEST_PAGE_SIZE;
-    auto size_page = size / GUEST_PAGE_SIZE;
-    auto va_page_end = va_page + size_page;
-    for (u64 page = va_page; page < va_page_end; ++page) {
-        u32 index = top_level.VaToIndex(page * GUEST_PAGE_SIZE);
-        auto* level = &top_level;
-        u64 entry = top_level.ReadEntry(index);
-        while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
-            if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
-                break;
-
-            level = level->GetNextNoNew(index);
-            index = level->VaToIndex(page * GUEST_PAGE_SIZE);
-            entry = level->ReadEntry(index);
-        }
-
-        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
-            continue;
-
-        auto& state = level->GetLevelState(index);
-        state.attr = (state.attr & ~mask) | (value & mask);
-    }
+    ModifyRange(va, size,
+                [mask, value]([[maybe_unused]] vaddr_t va,
+                              [[maybe_unused]] usize size,
+                              [[maybe_unused]] u64& entry,
+                              horizon::kernel::MemoryState& state) {
+                    state.attr = (state.attr & ~mask) | (value & mask);
+                });
 }
 
 paddr_t PageTable::UnmapAddr(vaddr_t va) const {
@@ -171,11 +168,41 @@ void PageTable::MapLevelNext(PageTableLevel& level, vaddr_t va, paddr_t pa,
     u32 index = level.VaToIndex(va);
     // TODO: uncomment
     if (/*size == level.GetBlockSize()*/ level.GetLevel() == 2) {
-        level.WriteEntry(index, pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
-                                    PTE_INNER_SHEREABLE | (u64)flags);
+        level.GetEntry(index) = pa | PTE_BLOCK(level.GetLevel()) | PTE_AF |
+                                PTE_INNER_SHEREABLE | static_cast<u64>(flags);
         level.SetLevelState(index, state);
     } else {
         MapLevel(level.GetNext(allocator, index), va, pa, size, state, flags);
+    }
+}
+
+// TODO: this should subdivide the table if necessary
+void PageTable::ModifyRange(
+    vaddr_t va, usize size,
+    std::function<void(vaddr_t, usize, u64&, horizon::kernel::MemoryState&)>
+        callback) {
+    auto va_page = va / GUEST_PAGE_SIZE;
+    auto size_page = size / GUEST_PAGE_SIZE;
+    auto va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        u32 index = top_level.VaToIndex(page * GUEST_PAGE_SIZE);
+        auto* level = &top_level;
+        u64 entry = top_level.GetEntry(index);
+        while ((entry & PTE_TYPE_MASK) != PTE_BLOCK(level->GetLevel())) {
+            if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
+                break;
+
+            level = level->GetNextNoNew(index);
+            index = level->VaToIndex(page * GUEST_PAGE_SIZE);
+            entry = level->GetEntry(index);
+        }
+
+        if ((entry & PTE_TYPE_MASK) != PTE_TABLE)
+            continue;
+
+        auto& state = level->GetLevelState(index);
+        callback(page * GUEST_PAGE_SIZE, GUEST_PAGE_SIZE,
+                 level->GetEntry(index), state);
     }
 }
 

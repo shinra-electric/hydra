@@ -44,6 +44,19 @@ void Mmu::Unmap(vaddr_t va, usize size) {
     }
 }
 
+// TODO: actually protect the memory
+void Mmu::Protect(vaddr_t va, usize size,
+                  horizon::kernel::MemoryPermission perm) {
+    ASSERT_ALIGNMENT(size, GUEST_PAGE_SIZE, Dynarmic, "size");
+
+    auto va_page = va / GUEST_PAGE_SIZE;
+    auto size_page = size / GUEST_PAGE_SIZE;
+    auto va_page_end = va_page + size_page;
+    for (u64 page = va_page; page < va_page_end; ++page) {
+        states[page].perm = perm;
+    }
+}
+
 void Mmu::ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) {
     auto mem_impl = static_cast<Memory*>(heap_mem);
 

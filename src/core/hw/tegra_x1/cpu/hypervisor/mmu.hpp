@@ -18,6 +18,8 @@ class Mmu : public IMmu {
              const horizon::kernel::MemoryState state) override;
     void Map(vaddr_t dst_va, vaddr_t src_va, usize size) override;
     void Unmap(vaddr_t va, usize size) override;
+    void Protect(vaddr_t va, usize size,
+                 horizon::kernel::MemoryPermission perm) override;
 
     void ResizeHeap(IMemory* heap_mem, vaddr_t va, usize size) override;
 
