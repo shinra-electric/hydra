@@ -176,6 +176,10 @@ void Thread::Run() {
                     break;
                 }
                 case ExceptionClass::DataAbortLowerEl: {
+                    // TODO: use the correct size
+                    if (MMU.TrackWrite(Range<vaddr_t>::FromSize(far, 8)))
+                        break;
+
                     bool far_valid = (esr & 0x00000400) == 0;
                     ASSERT_DEBUG(far_valid, Hypervisor, "FAR not valid");
 

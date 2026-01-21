@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/engines/3d.hpp"
 
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
@@ -403,9 +404,6 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
             const auto range = Range<uptr>::FromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
             bound_const_buffers[shader_stage_index][index] = range;
-
-            // HACK
-            RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(range);
         } else {
             bound_const_buffers[shader_stage_index][index] = Range<uptr>();
         }
@@ -847,6 +845,10 @@ void ThreeD::ConfigureShaderStage(
 }
 
 bool ThreeD::DrawInternal(GMmu& gmmu) {
+    // Flush tracked pages
+    gmmu.GetMmu()->FlushTrackedPages();
+
+    // State
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
         LOG_WARN(Engines, "Vertex B stage not enabled, skipping draw");
         return false;

@@ -11,7 +11,7 @@ namespace hydra::horizon::kernel {
 
 Process::Process(const std::string_view debug_name)
     : SynchronizationObject(false, debug_name), mmu{CPU_INSTANCE.CreateMmu()},
-      gmmu{new hw::tegra_x1::gpu::GMmu()} {
+      gmmu{new hw::tegra_x1::gpu::GMmu(mmu)} {
     // TODO: use title ID and name as debugger name?
     DEBUGGER_MANAGER_INSTANCE.AttachDebugger(
         this,
@@ -50,16 +50,19 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
 
     // Protect
     mmu->Protect(
-        out_base + code_set.code.GetBegin(),
-        align(code_set.code.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE),
+        Range<vaddr_t>::FromSize(
+            out_base + code_set.code.GetBegin(),
+            align(code_set.code.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadExecute);
     mmu->Protect(
-        out_base + code_set.ro_data.GetBegin(),
-        align(code_set.ro_data.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE),
+        Range<vaddr_t>::FromSize(out_base + code_set.ro_data.GetBegin(),
+                                 align(code_set.ro_data.GetSize(),
+                                       hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::Read);
     mmu->Protect(
-        out_base + code_set.data.GetBegin(),
-        align(code_set.data.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE),
+        Range<vaddr_t>::FromSize(
+            out_base + code_set.data.GetBegin(),
+            align(code_set.data.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadWrite);
 
     // Debug
