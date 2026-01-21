@@ -52,11 +52,12 @@ Cpu::Cpu()
     // simplicity reasons
 
     // Kernel memory
-    kernel_page_table.Map(0x0, kernel_mem.GetPtr(), KERNEL_MEM_SIZE,
-                          {horizon::kernel::MemoryType::Kernel,
-                           horizon::kernel::MemoryAttribute::None,
-                           horizon::kernel::MemoryPermission::Execute},
-                          ApFlags::UserNoneKernelReadExecute);
+    kernel_page_table.Map(
+        0x0, Range<uptr>::FromSize(kernel_mem.GetPtr(), KERNEL_MEM_SIZE),
+        {horizon::kernel::MemoryType::Kernel,
+         horizon::kernel::MemoryAttribute::None,
+         horizon::kernel::MemoryPermission::Execute},
+        ApFlags::UserNoneKernelReadExecute);
 
     for (u64 offset = 0; offset < 0x780; offset += 0x80) {
         memcpy(reinterpret_cast<void*>(kernel_mem.GetPtr() + offset),

@@ -1,5 +1,7 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 
+#include "core/hw/tegra_x1/gpu/gpu.hpp"
+
 namespace hydra::hw::tegra_x1::cpu {
 
 horizon::kernel::MemoryInfo IMmu::QueryMemory(vaddr_t va) const {
@@ -61,6 +63,34 @@ vaddr_t IMmu::FindFreeMemory(Range<vaddr_t> region, usize size) const {
     }
 
     return 0x0;
+}
+
+bool IMmu::TrackWrite(Range<vaddr_t> range) {
+    const auto aligned_range =
+        Range<vaddr_t>(align_down(range.GetBegin(), GUEST_PAGE_SIZE),
+                       align(range.GetEnd(), GUEST_PAGE_SIZE));
+    if (!TrySuspendWriteTracking(aligned_range))
+        return false;
+
+    // Notify the GPU
+    // TODO: what about non-contiguous regions?
+    const auto ptr = UnmapAddr(aligned_range.GetBegin());
+    GPU_INSTANCE.NotifyMemoryDirty(
+        Range<uptr>::FromSize(ptr, aligned_range.GetSize()));
+
+    {
+        std::lock_guard lock(write_tracking_mutex);
+        tracked_pages.push_back(aligned_range);
+    }
+
+    return true;
+}
+
+void IMmu::FlushTrackedPages() {
+    std::lock_guard lock(write_tracking_mutex);
+    for (const auto& range : tracked_pages)
+        ResumeWriteTracking(range);
+    tracked_pages.clear();
 }
 
 } // namespace hydra::hw::tegra_x1::cpu

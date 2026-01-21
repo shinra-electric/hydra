@@ -404,7 +404,8 @@ result_t Kernel::SetMemoryAttribute(Process* crnt_process, vaddr_t addr,
         "{}, value: {})",
         addr, size, mask, value);
 
-    crnt_process->GetMmu()->SetMemoryAttribute(addr, size, mask, value);
+    crnt_process->GetMmu()->SetMemoryAttribute(
+        Range<vaddr_t>::FromSize(addr, size), mask, value);
 
     return RESULT_SUCCESS;
 }
@@ -416,7 +417,8 @@ result_t Kernel::MapMemory(Process* crnt_process, uptr dst_addr, uptr src_addr,
               "0x{:08x})",
               dst_addr, src_addr, size);
 
-    crnt_process->GetMmu()->Map(dst_addr, src_addr, size);
+    crnt_process->GetMmu()->Map(dst_addr,
+                                Range<vaddr_t>::FromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -432,7 +434,7 @@ result_t Kernel::UnmapMemory(Process* crnt_process, uptr dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    crnt_process->GetMmu()->Unmap(dst_addr, size);
+    crnt_process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -601,7 +603,7 @@ result_t Kernel::UnmapSharedMemory(Process* crnt_process, SharedMemory* shmem,
               "0x{:08x})",
               shmem->GetDebugName(), addr, size);
 
-    crnt_process->GetMmu()->Unmap(addr, size);
+    crnt_process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(addr, size));
     return RESULT_SUCCESS;
 }
 
@@ -1345,7 +1347,8 @@ result_t Kernel::MapProcessMemory(Process* crnt_process, vaddr_t dst_addr,
 
     // TODO: correct?
     const auto ptr = process->GetMmu()->UnmapAddr(src_addr);
-    crnt_process->GetMmu()->Map(dst_addr, ptr, size, {}); // TODO: state
+    crnt_process->GetMmu()->Map(dst_addr, Range<uptr>::FromSize(ptr, size),
+                                {}); // TODO: state
 
     return RESULT_SUCCESS;
 }
@@ -1357,7 +1360,7 @@ result_t Kernel::MapProcessCodeMemory(Process* process, vaddr_t dst_addr,
               "src_addr: 0x{:08x}, size: {})",
               process->GetDebugName(), dst_addr, src_addr, size);
 
-    process->GetMmu()->Map(dst_addr, src_addr, size);
+    process->GetMmu()->Map(dst_addr, Range<vaddr_t>::FromSize(src_addr, size));
 
     return RESULT_SUCCESS;
 }
@@ -1372,7 +1375,7 @@ result_t Kernel::UnmapProcessCodeMemory(Process* process, vaddr_t dst_addr,
     // TODO: verify that src_addr is the same as the one used in MapMemory?
     (void)src_addr;
 
-    process->GetMmu()->Unmap(dst_addr, size);
+    process->GetMmu()->Unmap(Range<vaddr_t>::FromSize(dst_addr, size));
 
     return RESULT_SUCCESS;
 }

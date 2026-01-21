@@ -76,8 +76,14 @@ struct fmt::formatter<hydra::Range<T>> : formatter<string_view> {
 
     template <typename FormatContext>
     auto format(const hydra::Range<T>& range, FormatContext& ctx) const {
-        return fmt::format(ctx, "<{}...{})",
-                           value_formatter.format(range.GetBegin(), ctx),
-                           value_formatter.format(range.GetEnd(), ctx));
+        auto out = ctx.out();
+
+        *out++ = '<';
+        out = value_formatter.format(range.GetBegin(), ctx);
+        out = fmt::format_to(out, "...");
+        out = value_formatter.format(range.GetEnd(), ctx);
+        *out++ = ')';
+
+        return out;
     }
 };
