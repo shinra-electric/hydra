@@ -494,7 +494,7 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
 
     const auto& extent = REGS_3D.viewports[index];
     const auto& transform = REGS_3D.viewport_transforms[index];
-    if (REGS_3D.viewport_transform_enabled) {
+    if (/*REGS_3D.viewport_transform_enabled*/ true) { // HACK
         auto scale_x = transform.scale_x;
         auto scale_y = transform.scale_y;
         if (any(REGS_3D.window_origin_flags &
@@ -542,8 +542,8 @@ renderer::Viewport ThreeD::GetViewport(u32 index) {
     }
 
     // Flip Y
-    // res.rect.origin.y() += res.rect.size.y();
-    // res.rect.size.y() = -res.rect.size.y();
+    res.rect.origin.y() += res.rect.size.y();
+    res.rect.size.y() = -res.rect.size.y();
 
     // HACK: if depth range is [0, 0], force it to [0, 1] (many games have
     // it like this, though not on Ryujinx)
