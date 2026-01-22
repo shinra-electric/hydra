@@ -16,6 +16,7 @@ add_library(hydra-common
     pool.hpp
     static_pool.hpp
     dynamic_pool.hpp
+    small_cache.hpp
     filesystem.hpp
     log.cpp
     log.hpp

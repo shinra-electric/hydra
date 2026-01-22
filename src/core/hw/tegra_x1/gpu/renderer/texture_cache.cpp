@@ -8,11 +8,11 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureCache::~TextureCache() {
-    for (auto& [key, value] : texture_mem_map) {
-        for (const auto [key, value] : value.cache) {
-            delete value.base;
-            for (const auto [key, value] : value.view_cache)
-                delete value;
+    for (auto& [key, mem] : texture_mem_map) {
+        for (const auto [key, tex] : mem.cache) {
+            delete tex.base;
+            for (const auto [key, view] : tex.view_cache)
+                delete view;
         }
     }
 }

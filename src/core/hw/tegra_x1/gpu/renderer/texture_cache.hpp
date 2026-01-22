@@ -72,7 +72,8 @@ struct TextureMem {
     SmallCache<u32, Tex> cache;
 };
 
-// TODO: track GPU modifications as well?
+// TODO: texture readback
+// TODO: merge textures
 class TextureCache {
   public:
     ~TextureCache();
