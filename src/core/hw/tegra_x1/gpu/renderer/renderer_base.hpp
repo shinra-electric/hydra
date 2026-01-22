@@ -34,6 +34,13 @@ class RendererBase {
   public:
     virtual ~RendererBase() {}
 
+    // TODO: make this thread safe
+    void InvalidateMemory(Range<uptr> range) {
+        buffer_cache.InvalidateMemory(range);
+        texture_cache.InvalidateMemory(range);
+        // TODO: shader cache
+    }
+
     // Mutex
     void LockMutex() { mutex.lock(); }
     void UnlockMutex() { mutex.unlock(); }

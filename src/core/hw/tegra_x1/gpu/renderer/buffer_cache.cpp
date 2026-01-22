@@ -37,8 +37,8 @@ void BufferCache::InvalidateMemory(Range<uptr> range) {
 
     while (it != entries.end() &&
            it->second.range.GetBegin() < range.GetEnd()) {
-        if (it->second.range.GetEnd() > range.GetBegin()) {
-            auto& entry = it->second;
+        auto& entry = it->second;
+        if (entry.range.GetEnd() > range.GetBegin()) {
             const auto invalidation_range = range.ClampedTo(entry.range);
             if (entry.invalidation_range.has_value()) {
                 // Combine with an existing invalidation range if it exists

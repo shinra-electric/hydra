@@ -1,6 +1,5 @@
 #include "core/hw/tegra_x1/gpu/renderer/texture_cache.hpp"
 
-#include "common/time.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/const.hpp"
@@ -9,16 +8,13 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 TextureCache::~TextureCache() {
-    // TODO: uncomment
-    /*
     for (auto& [key, value] : texture_mem_map) {
-        for (auto& [key, value] : value.cache) {
+        for (const auto [key, value] : value.cache) {
             delete value.base;
-            for (auto& [key, value] : value.view_cache)
+            for (const auto [key, value] : value.view_cache)
                 delete value;
         }
     }
-    */
 }
 
 TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor,
@@ -51,13 +47,26 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor,
     return view;
 }
 
-void TextureCache::NotifyGuestModifiedData(const Range<uptr> mem_range) {
-    // TODO: mark all overlapping memories as modified
-    auto it = texture_mem_map.find(mem_range.GetBegin());
-    if (it == texture_mem_map.end())
-        return;
+void TextureCache::InvalidateMemory(Range<uptr> range) {
+    auto it = texture_mem_map.upper_bound(range.GetBegin());
+    if (it != texture_mem_map.begin())
+        it--;
 
-    it->second.info.MarkModified();
+    for (; it != texture_mem_map.end() && it->first < range.GetEnd(); it++) {
+        auto& mem = it->second;
+
+        // We assume that textures that have been written to by the GPU are
+        // never modified by the CPU
+        if (mem.info.written_timestamp != TextureCacheTimePoint{})
+            continue;
+
+        // Check if its in the range
+        const auto& descriptor =
+            (*mem.cache.begin()).second.base->GetDescriptor();
+        const auto size = descriptor.height * descriptor.stride;
+        if (it->first + size > range.GetBegin())
+            mem.info.MarkModified();
+    }
 }
 
 void TextureCache::Create(const TextureDescriptor& descriptor, Tex& tex,
@@ -81,27 +90,29 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
     } else if (info.written_timestamp == TextureCacheTimePoint{}) {
         // Never written to
         if (usage == TextureUsage::Present) {
-            // Presenting, but never written to
+            // Presented, but never written to
             sync = true;
         } else if (usage == TextureUsage::Read) {
             // Read, but never written to
 
-            // Check if the data hash needs to be checked
-            auto& data_hash = info.data_hash;
-            if (data_hash.ShouldCheck()) {
-                u32 data_hash = GetDataHash(tex.base);
-                if (data_hash != info.data_hash.hash) {
+            if (false) { // TODO: if low GPU accuracy
+                // Check if the data hash needs to be checked
+                auto& data_hash = info.data_hash;
+                if (data_hash.ShouldCheck()) {
+                    u32 data_hash = GetDataHash(tex.base);
+                    if (data_hash != info.data_hash.hash) {
+                        sync = true;
+                        update_data_hash = false;
+                        info.data_hash.Update(data_hash);
+                    } else {
+                        info.data_hash.NotifyNotChanged();
+                    }
+                } else if (data_hash.check_success_rate >=
+                           DataHash::MIN_SUCCESS_RATE) {
+                    // If there is a high chance that the data has changed
                     sync = true;
                     update_data_hash = false;
-                    info.data_hash.Update(data_hash);
-                } else {
-                    info.data_hash.NotifyNotChanged();
                 }
-            } else if (data_hash.check_success_rate >=
-                       DataHash::MIN_SUCCESS_RATE) {
-                // If there is a high chance that the data has changed
-                sync = true;
-                update_data_hash = false;
             }
         }
     }
@@ -117,7 +128,6 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
 
 u32 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     HashCode hash;
-    hash.Add(descriptor.ptr);
     hash.Add(descriptor.width);
     hash.Add(descriptor.height);
 
@@ -157,9 +167,11 @@ void TextureCache::DecodeTexture(Tex& tex, TextureMemInfo& info,
 
     // Update metadata
     tex.MarkCpuSynced();
-    if (update_data_hash)
-        info.data_hash.Update(GetDataHash(tex.base));
-    tex.data_hash = info.data_hash.hash;
+    if (false) { // TODO: if low GPU accuracy
+        if (update_data_hash)
+            info.data_hash.Update(GetDataHash(tex.base));
+        tex.data_hash = info.data_hash.hash;
+    }
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

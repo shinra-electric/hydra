@@ -37,13 +37,6 @@ Gpu::~Gpu() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-// TODO: make this thread safe
-void Gpu::NotifyMemoryDirty(Range<uptr> range) {
-    renderer->GetBufferCache().InvalidateMemory(range);
-    // TODO: texture cache
-    // TODO: shader cache
-}
-
 void Gpu::SubchannelMethod(GMmu& gmmu, u32 subchannel, u32 method, u32 arg) {
     if (method == 0x0) { // SetEngine
         ASSERT_DEBUG(subchannel <= SUBCHANNEL_COUNT, Gpu,

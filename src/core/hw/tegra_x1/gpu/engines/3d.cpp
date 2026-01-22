@@ -381,9 +381,9 @@ void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
     *reinterpret_cast<u32*>(ptr) = data;
     regs.load_const_buffer_offset += sizeof(u32);
 
+    // Invalidate
     // TODO: invalidate as a whole
-    RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
-        Range<uptr>::FromSize(ptr, sizeof(u32)));
+    RENDERER_INSTANCE.InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
 }
 
 void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {

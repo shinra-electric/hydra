@@ -35,8 +35,6 @@ class Gpu {
     Gpu();
     ~Gpu();
 
-    void NotifyMemoryDirty(Range<uptr> range);
-
     // Memory map
     u32 CreateMap(usize size) {
         handle_id_t handle_id = memory_maps.AllocateHandle();

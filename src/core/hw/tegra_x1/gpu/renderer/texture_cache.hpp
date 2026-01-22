@@ -15,7 +15,7 @@ typedef TextureCacheClock::time_point TextureCacheTimePoint;
 
 struct Tex {
     TextureBase* base{nullptr};
-    small_cache<u32, TextureBase*> view_cache;
+    SmallCache<u32, TextureBase*> view_cache;
     TextureCacheTimePoint cpu_sync_timestamp{};
     u32 data_hash{0};
 
@@ -69,7 +69,7 @@ struct TextureMemInfo {
 
 struct TextureMem {
     TextureMemInfo info;
-    small_cache<u32, Tex> cache;
+    SmallCache<u32, Tex> cache;
 };
 
 // TODO: track GPU modifications as well?
@@ -80,7 +80,7 @@ class TextureCache {
     TextureBase* GetTextureView(const TextureDescriptor& descriptor,
                                 TextureUsage usage);
 
-    void NotifyGuestModifiedData(const Range<uptr> mem_range);
+    void InvalidateMemory(Range<uptr> range);
 
   private:
     TextureDecoder texture_decoder;

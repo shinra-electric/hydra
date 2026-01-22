@@ -16,6 +16,7 @@ struct BufferEntry {
     bool inline_copy{true}; // TODO: reset to true when not in use
 };
 
+// TODO: optional data hashing
 class BufferCache {
   public:
     ~BufferCache();

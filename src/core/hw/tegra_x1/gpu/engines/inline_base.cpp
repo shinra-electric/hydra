@@ -36,7 +36,7 @@ void InlineBase::LoadInlineDataImpl(GMmu& gmmu, RegsInline& regs,
         inline_data.clear();
 
         // Invalidate
-        RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
+        RENDERER_INSTANCE.InvalidateMemory(
             Range<uptr>::FromSize(dst_ptr, inline_data.size() * sizeof(u32)));
     }
 }

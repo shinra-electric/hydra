@@ -75,7 +75,7 @@ bool IMmu::TrackWrite(Range<vaddr_t> range) {
     // Notify the GPU
     // TODO: what about non-contiguous regions?
     const auto ptr = UnmapAddr(aligned_range.GetBegin());
-    GPU_INSTANCE.NotifyMemoryDirty(
+    RENDERER_INSTANCE.InvalidateMemory(
         Range<uptr>::FromSize(ptr, aligned_range.GetSize()));
 
     {
