@@ -369,7 +369,7 @@ result_t Kernel::SetHeapSize(Process* crnt_process, usize size,
         crnt_process->GetMmu()->Map(HEAP_REGION.GetBegin(), heap_mem,
                                     {MemoryType::Normal_1_0_0,
                                      MemoryAttribute::None,
-                                     MemoryPermission::ReadWriteExecute});
+                                     MemoryPermission::ReadWrite});
     } else {
         crnt_process->GetMmu()->ResizeHeap(heap_mem, HEAP_REGION.GetBegin(),
                                            size);

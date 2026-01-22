@@ -21,12 +21,15 @@ class NroLoader : public LoaderBase {
 
     vaddr_t GetEntryPoint() const;
 
+    u64 GetExecutableSize() const { return size + bss_size; }
+
   private:
     filesystem::IFile* file;
     const bool is_entry_point;
 
     u64 size;
     NroSection sections[3];
+    u64 bss_size;
 
     uptr executable_ptr{invalid<uptr>()};
     vaddr_t executable_base{invalid<vaddr_t>()};
@@ -38,7 +41,6 @@ class NroLoader : public LoaderBase {
     GETTER(size, GetSize);
     GETTER(executable_ptr, GetExecutablePtr);
     GETTER(executable_base, GetExecutableBase);
-    GETTER(executable_size, GetExecutableSize);
 };
 
 } // namespace hydra::horizon::loader

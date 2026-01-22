@@ -58,13 +58,8 @@ NroLoader::NroLoader(filesystem::IFile* file_, const bool is_entry_point_)
     sections[0] = header.GetSection(NroSectionType::Text);
     sections[1] = header.GetSection(NroSectionType::Ro);
     sections[2] = header.GetSection(NroSectionType::Data);
-
-    for (u32 i = 0; i < 3; i++) {
-        executable_size =
-            std::max(executable_size,
-                     static_cast<usize>(sections[i].offset + sections[i].size));
-    }
-    executable_size += header.bss_size;
+    sections[2].size += header.bss_size;
+    bss_size = header.bss_size;
 
     delete stream;
 }
@@ -75,7 +70,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
     // Create executable memory
     // TODO: is the size correct?
     const auto set = kernel::CodeSet{
-        executable_size,
+        GetExecutableSize() + 0x1000, // HACK: one extra page
         Range<u64>::FromSize(sections[0].offset, sections[0].size),
         Range<u64>::FromSize(sections[1].offset, sections[1].size),
         Range<u64>::FromSize(sections[2].offset, sections[2].size)};
@@ -83,8 +78,7 @@ void NroLoader::LoadProcess(kernel::Process* process) {
     executable_ptr =
         process->CreateExecutableMemory("main.nro", set, executable_base);
     stream->SeekTo(0);
-    stream->ReadToSpan(
-        std::span(reinterpret_cast<u8*>(executable_ptr), stream->GetSize()));
+    stream->ReadToSpan(std::span(reinterpret_cast<u8*>(executable_ptr), size));
 
     // Debug symbols
     // TODO

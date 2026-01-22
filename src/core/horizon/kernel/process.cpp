@@ -43,9 +43,9 @@ uptr Process::CreateMemory(Range<vaddr_t> region, usize size, MemoryType type,
 
 uptr Process::CreateExecutableMemory(const std::string_view module_name,
                                      CodeSet code_set, vaddr_t& out_base) {
-    // TODO: use MemoryType::Static
+    // TODO: use MemoryType::Static?
     auto ptr = CreateMemory(EXECUTABLE_REGION, code_set.size,
-                            static_cast<MemoryType>(3), MemoryPermission::None,
+                            static_cast<MemoryType>(3), MemoryPermission::Read,
                             out_base);
 
     // Protect
@@ -54,11 +54,11 @@ uptr Process::CreateExecutableMemory(const std::string_view module_name,
             out_base + code_set.code.GetBegin(),
             align(code_set.code.GetSize(), hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
         MemoryPermission::ReadExecute);
-    mmu->Protect(
-        Range<vaddr_t>::FromSize(out_base + code_set.ro_data.GetBegin(),
-                                 align(code_set.ro_data.GetSize(),
-                                       hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
-        MemoryPermission::Read);
+    // mmu->Protect(
+    //     Range<vaddr_t>::FromSize(out_base + code_set.ro_data.GetBegin(),
+    //                              align(code_set.ro_data.GetSize(),
+    //                                    hw::tegra_x1::cpu::GUEST_PAGE_SIZE)),
+    //     MemoryPermission::Read);
     mmu->Protect(
         Range<vaddr_t>::FromSize(
             out_base + code_set.data.GetBegin(),
