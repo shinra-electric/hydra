@@ -43,7 +43,7 @@ union InstIscaddBase {
     BitField64<reg_t, 8, 8> src_a;
     BitField64<pred_t, 16, 3> pred;
     BitField64<bool, 19, 1> pred_inv;
-    BitField64<bool, 39, 5> shift;
+    BitField64<u32, 39, 5> shift;
     BitField64<bool, 47, 1> write_cc;
     BitField64<AvgMode, 48, 2> avg_mode;
 };
