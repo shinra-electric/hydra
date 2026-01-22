@@ -100,15 +100,6 @@ Renderer::Renderer() {
             gradient, sizeof(gradient) / NULL_TEXTURE_HEIGHT);
     }
 
-    // Clear state
-    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
-         shader_type++) {
-        for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++)
-            state.uniform_buffers[shader_type][i] = nullptr;
-        for (u32 i = 0; i < TEXTURE_COUNT; i++)
-            state.textures[shader_type][i] = {nullptr, nullptr};
-    }
-
     // Info
     info = {
         .supports_quads_primitive = false,
@@ -150,21 +141,18 @@ ISurfaceCompositor* Renderer::AcquireNextSurface() {
     return new SurfaceCompositor(drawable, command_queue);
 }
 
-BufferBase* Renderer::CreateBuffer(const BufferDescriptor& descriptor) {
-    return new Buffer(descriptor);
-}
+BufferBase* Renderer::CreateBuffer(u64 size) { return new Buffer(size); }
 
-BufferBase* Renderer::AllocateTemporaryBuffer(const u32 size) {
+BufferBase* Renderer::AllocateTemporaryBuffer(const u64 size) {
     // TODO: use a buffer allocator instead
     auto buffer = device->newBuffer(size, MTL::ResourceStorageModeShared);
-    return new Buffer(buffer, 0);
+    return new Buffer(buffer);
 }
 
 void Renderer::FreeTemporaryBuffer(BufferBase* buffer) {
     auto buffer_impl = static_cast<Buffer*>(buffer);
 
     // TODO: use a buffer allocator instead
-    buffer_impl->GetBuffer()->release();
     delete buffer_impl;
 }
 
@@ -273,24 +261,23 @@ void Renderer::BindPipeline(const PipelineBase* pipeline) {
     state.pipeline = static_cast<const Pipeline*>(pipeline);
 }
 
-void Renderer::BindVertexBuffer(BufferBase* buffer, u32 index) {
-    state.vertex_buffers[index] = static_cast<Buffer*>(buffer);
+void Renderer::BindVertexBuffer(const BufferView& buffer, u32 index) {
+    state.vertex_buffers[index] = buffer;
 }
 
-void Renderer::BindIndexBuffer(BufferBase* index_buffer,
+void Renderer::BindIndexBuffer(const BufferView& index_buffer,
                                engines::IndexType index_type) {
-    state.index_buffer = static_cast<Buffer*>(index_buffer);
+    state.index_buffer = index_buffer;
     state.index_type = index_type;
 }
 
-void Renderer::BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
-                                 u32 index) {
+void Renderer::BindUniformBuffer(const BufferView& buffer,
+                                 ShaderType shader_type, u32 index) {
     // HACK
     if (shader_type == ShaderType::Count)
         return;
 
-    state.uniform_buffers[u32(shader_type)][index] =
-        static_cast<Buffer*>(buffer);
+    state.uniform_buffers[u32(shader_type)][index] = buffer;
 }
 
 void Renderer::BindTexture(TextureBase* texture, SamplerBase* sampler,
@@ -303,13 +290,20 @@ void Renderer::BindTexture(TextureBase* texture, SamplerBase* sampler,
                                                static_cast<Sampler*>(sampler)};
 }
 
+void Renderer::UnbindUniformBuffers(ShaderType shader_type) {
+    // HACK
+    if (shader_type == ShaderType::Count)
+        return;
+
+    state.uniform_buffers[u32(shader_type)] = {};
+}
+
 void Renderer::UnbindTextures(ShaderType shader_type) {
     // HACK
     if (shader_type == ShaderType::Count)
         return;
 
-    for (u32 i = 0; i < TEXTURE_COUNT; i++)
-        state.textures[u32(shader_type)][i] = {nullptr, nullptr};
+    state.textures[u32(shader_type)] = {};
 }
 
 void Renderer::Draw(const engines::PrimitiveType primitive_type,
@@ -341,10 +335,13 @@ void Renderer::DrawIndexed(const engines::PrimitiveType primitive_type,
     auto encoder = GetRenderCommandEncoderUnchecked();
 
     // Draw
-    auto index_buffer_mtl = state.index_buffer->GetBuffer();
+    auto index_buffer_mtl =
+        static_cast<Buffer*>(state.index_buffer.GetBase())->GetBuffer();
     // TODO: is start used correctly?
-    const auto index_buffer_offset = static_cast<u32>(
-        start * engines::get_index_type_size(state.index_type));
+    const auto index_buffer_offset =
+        static_cast<u32>(start *
+                         engines::get_index_type_size(state.index_type)) +
+        state.index_buffer.GetOffset();
     encoder->drawIndexedPrimitives(to_mtl_primitive_type(primitive_type), count,
                                    to_mtl_index_type(state.index_type),
                                    index_buffer_mtl, index_buffer_offset,
@@ -368,16 +365,9 @@ MTL::RenderCommandEncoder* Renderer::GetRenderCommandEncoder() {
     encoder_state.render = {};
 
     // Reset bindings
-    for (u32 shader_type = 0; shader_type < usize(ShaderType::Count);
-         shader_type++) {
-        for (u32 i = 0; i < BUFFER_COUNT; i++) {
-            encoder_state.render.buffers[shader_type][i] = nullptr;
-        }
-        for (u32 i = 0; i < TEXTURE_COUNT; i++) {
-            encoder_state.render.textures[shader_type][i] = nullptr;
-            encoder_state.render.samplers[shader_type][i] = nullptr;
-        }
-    }
+    encoder_state.render.buffers = {};
+    encoder_state.render.textures = {};
+    encoder_state.render.samplers = {};
 
     return CreateRenderCommandEncoder(mtl_render_pass);
 }
@@ -497,28 +487,33 @@ void Renderer::SetCullState() {
     */
 }
 
-void Renderer::SetBuffer(MTL::Buffer* buffer, ShaderType shader_type,
-                         u32 index) {
+void Renderer::SetBuffer(MTL::Buffer* buffer, u64 offset,
+                         ShaderType shader_type, u32 index) {
     ASSERT_DEBUG(index < BUFFER_COUNT, MetalRenderer, "Invalid buffer index {}",
                  index);
 
     auto& bound_buffer =
         encoder_state.render.buffers[static_cast<u32>(shader_type)][index];
-    if (buffer == bound_buffer)
+    if (buffer == bound_buffer.buffer && offset == bound_buffer.offset)
         return;
+
+    // TODO: fast path for offset only change
 
     switch (shader_type) {
     case ShaderType::Vertex:
-        GetRenderCommandEncoderUnchecked()->setVertexBuffer(buffer, 0, index);
+        GetRenderCommandEncoderUnchecked()->setVertexBuffer(buffer, offset,
+                                                            index);
         break;
     case ShaderType::Fragment:
-        GetRenderCommandEncoderUnchecked()->setFragmentBuffer(buffer, 0, index);
+        GetRenderCommandEncoderUnchecked()->setFragmentBuffer(buffer, offset,
+                                                              index);
         break;
     default:
         LOG_ERROR(MetalRenderer, "Invalid shader type {}", shader_type);
         break;
     }
-    bound_buffer = buffer;
+    bound_buffer.buffer = buffer;
+    bound_buffer.offset = offset;
 }
 
 void Renderer::SetVertexBuffer(u32 index) {
@@ -526,10 +521,11 @@ void Renderer::SetVertexBuffer(u32 index) {
                  "Invalid vertex buffer index {}", index);
 
     const auto buffer = state.vertex_buffers[index];
-    if (!buffer)
+    if (!buffer.GetBase())
         return;
 
-    SetBuffer(buffer->GetBuffer(), ShaderType::Vertex,
+    SetBuffer(static_cast<Buffer*>(buffer.GetBase())->GetBuffer(),
+              buffer.GetOffset(), ShaderType::Vertex,
               GetVertexBufferIndex(index));
 }
 
@@ -541,10 +537,11 @@ void Renderer::SetUniformBuffer(ShaderType shader_type, u32 index) {
 
     const auto buffer =
         state.uniform_buffers[static_cast<u32>(shader_type)][index];
-    if (!buffer)
+    if (!buffer.GetBase())
         return;
 
-    SetBuffer(buffer->GetBuffer(), shader_type, index);
+    SetBuffer(static_cast<Buffer*>(buffer.GetBase())->GetBuffer(),
+              buffer.GetOffset(), shader_type, index);
 }
 
 void Renderer::SetTexture(MTL::Texture* texture, ShaderType shader_type,

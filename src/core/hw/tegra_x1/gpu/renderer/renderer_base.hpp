@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/hw/tegra_x1/gpu/renderer/buffer_cache.hpp"
-#include "core/hw/tegra_x1/gpu/renderer/const.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/buffer_view.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/index_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/pipeline_cache.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/render_pass_cache.hpp"
@@ -12,7 +12,6 @@
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class ISurfaceCompositor;
-class BufferBase;
 class TextureBase;
 class SamplerBase;
 class RenderPassBase;
@@ -35,6 +34,13 @@ class RendererBase {
   public:
     virtual ~RendererBase() {}
 
+    // TODO: make this thread safe
+    void InvalidateMemory(Range<uptr> range) {
+        buffer_cache.InvalidateMemory(range);
+        texture_cache.InvalidateMemory(range);
+        // TODO: shader cache
+    }
+
     // Mutex
     void LockMutex() { mutex.lock(); }
     void UnlockMutex() { mutex.unlock(); }
@@ -44,8 +50,8 @@ class RendererBase {
     virtual ISurfaceCompositor* AcquireNextSurface() = 0;
 
     // Buffer
-    virtual BufferBase* CreateBuffer(const BufferDescriptor& descriptor) = 0;
-    virtual BufferBase* AllocateTemporaryBuffer(const u32 size) = 0;
+    virtual BufferBase* CreateBuffer(u64 size) = 0;
+    virtual BufferBase* AllocateTemporaryBuffer(const u64 size) = 0;
     virtual void FreeTemporaryBuffer(BufferBase* buffer) = 0;
 
     // Texture
@@ -81,17 +87,18 @@ class RendererBase {
     virtual void BindPipeline(const PipelineBase* pipeline) = 0;
 
     // Resource binding
-    virtual void BindVertexBuffer(BufferBase* buffer, u32 index) = 0;
-    virtual void BindIndexBuffer(BufferBase* index_buffer,
+    virtual void BindVertexBuffer(const BufferView& buffer, u32 index) = 0;
+    virtual void BindIndexBuffer(const BufferView& index_buffer,
                                  engines::IndexType index_type) = 0;
-    virtual void BindUniformBuffer(BufferBase* buffer, ShaderType shader_type,
-                                   u32 index) = 0;
+    virtual void BindUniformBuffer(const BufferView& buffer,
+                                   ShaderType shader_type, u32 index) = 0;
     // TODO: storage buffers
     virtual void BindTexture(TextureBase* texture, SamplerBase* sampler,
                              ShaderType shader_type, u32 index) = 0;
     // TODO: images
 
     // Resource unbinding
+    virtual void UnbindUniformBuffers(ShaderType shader_type) = 0;
     virtual void UnbindTextures(ShaderType shader_type) = 0;
 
     // Draw

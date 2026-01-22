@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/engines/3d.hpp"
 
+#include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/macro/interpreter/driver.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
@@ -161,6 +162,26 @@ renderer::BlendFactor get_blend_factor(u32 blend_factor) {
     }
 }
 
+// Render target width is aligned to the stride, lets try to figure out the real
+// one
+u32 GetMinimumWidth(u32 width, renderer::TextureFormat format, u32 width_hint,
+                    bool is_linear) {
+    if (is_linear || width <= width_hint)
+        return width;
+
+    // Get the smallest width that would still align up to the same GOB
+    // count
+    const auto bpp = renderer::get_texture_format_bpp(format);
+    const auto alignment = 64 / bpp;
+    const auto width_aligned = align(width, alignment);
+    // HACK
+    // return std::clamp(width_aligned - alignment + 1, width_hint,
+    // width_aligned);
+    if (width_aligned - alignment + 1 <= width_hint)
+        return width_hint;
+    return width;
+}
+
 } // namespace
 
 DEFINE_METHOD_TABLE(ThreeD, INLINE_ENGINE_TABLE, 0x45, 1,
@@ -253,15 +274,11 @@ void ThreeD::DrawVertexArray(GMmu& gmmu, const u32 index, u32 count) {
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
-    renderer::BufferBase* index_buffer =
-        RENDERER_INSTANCE.GetIndexCache().Decode(
-            {.type = index_type,
-             .primitive_type = primitive_type,
-             .count = count,
-             .src_index_buffer = nullptr},
-            index_type, primitive_type, count);
+    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+        {.type = index_type, .primitive_type = primitive_type, .count = count},
+        index_type, primitive_type, count);
 
-    if (index_buffer) {
+    if (index_buffer.GetBase()) {
         // Bind index buffer
         RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
@@ -292,20 +309,20 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
         count * get_index_type_size(
                     regs.index_type); // u64(regs.index_buffer_limit_addr) + 1
                                       // - u64(regs.index_buffer_addr);
-    auto index_buffer = RENDERER_INSTANCE.GetBufferCache().Find(
-        {index_buffer_ptr, index_buffer_size});
+    const auto range =
+        Range<uptr>::FromSize(index_buffer_ptr, index_buffer_size);
 
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
-    index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+    const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
         {.type = index_type,
          .primitive_type = primitive_type,
          .count = count,
-         .src_index_buffer = index_buffer},
+         .mem_range = range},
         index_type, primitive_type, count);
 
     // Bind index buffer
-    ASSERT_DEBUG(index_buffer, Gpu, "Index buffer not found");
+    ASSERT_DEBUG(index_buffer.GetBase(), Gpu, "Index buffer not found");
     RENDERER_INSTANCE.BindIndexBuffer(index_buffer, index_type);
 
     // Draw
@@ -359,14 +376,18 @@ void ThreeD::FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data) {
 void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = u64(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
+    const auto ptr = gmmu.UnmapAddr(gpu_addr);
 
-    gmmu.Store(gpu_addr, data);
-
+    *reinterpret_cast<u32*>(ptr) = data;
     regs.load_const_buffer_offset += sizeof(u32);
+
+    // Invalidate
+    // TODO: invalidate as a whole
+    RENDERER_INSTANCE.InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
 }
 
 void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
-    const auto shader_stage = static_cast<ShaderStage>(index / 0x8 + 1);
+    const auto shader_stage_index = index / 0x8;
     const auto group = index % 0x8;
 
     switch (group) {
@@ -380,16 +401,11 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
             const uptr const_buffer_gpu_ptr =
                 gmmu.UnmapAddr(regs.const_buffer_selector);
 
-            const auto buffer = RENDERER_INSTANCE.GetBufferCache().Find(
-                {const_buffer_gpu_ptr, regs.const_buffer_selector_size});
-
-            bound_const_buffers[index] = const_buffer_gpu_ptr;
-            RENDERER_INSTANCE.BindUniformBuffer(
-                buffer, to_renderer_shader_type(shader_stage), index);
+            const auto range = Range<uptr>::FromSize(
+                const_buffer_gpu_ptr, regs.const_buffer_selector_size);
+            bound_const_buffers[shader_stage_index][index] = range;
         } else {
-            bound_const_buffers[index] = 0x0;
-            RENDERER_INSTANCE.BindUniformBuffer(
-                nullptr, to_renderer_shader_type(shader_stage), index);
+            bound_const_buffers[shader_stage_index][index] = Range<uptr>();
         }
         break;
     }
@@ -414,10 +430,14 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     }
 
     const auto format = renderer::to_texture_format(render_target.format);
+    const u32 width_hint =
+        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
-        render_target.width, render_target.height,
+        GetMinimumWidth(render_target.width, format, width_hint,
+                        render_target.tile_mode.is_linear),
+        render_target.height,
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
@@ -434,10 +454,13 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
     }
 
     const auto format = renderer::to_texture_format(regs.depth_target_format);
+    const u32 width_hint =
+        regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
         gmmu.UnmapAddr(gpu_addr), format,
         NvKind::Pitch, // TODO: correct?
-        regs.depth_target_width, regs.depth_target_height,
+        GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
+        regs.depth_target_height,
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 
@@ -673,23 +696,21 @@ renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
     return RENDERER_INSTANCE.GetPipelineCache().Find(descriptor);
 }
 
-renderer::BufferBase* ThreeD::GetVertexBuffer(GMmu& gmmu,
-                                              u32 vertex_array_index) const {
+renderer::BufferView ThreeD::GetVertexBuffer(GMmu& gmmu,
+                                             u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
     if (u64(vertex_array.addr) == 0x0) {
         ONCE(LOG_ERROR(Engines, "Invalid vertex buffer"));
-        return nullptr;
+        return renderer::BufferView();
     }
 
-    const renderer::BufferDescriptor descriptor{
-        .ptr = gmmu.UnmapAddr(vertex_array.addr),
-        .size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
-                u64(vertex_array.addr),
-    };
-
-    return RENDERER_INSTANCE.GetBufferCache().Find(descriptor);
+    const auto ptr = gmmu.UnmapAddr(vertex_array.addr);
+    const auto size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
+                      u64(vertex_array.addr);
+    return RENDERER_INSTANCE.GetBufferCache().Get(
+        Range<uptr>::FromSize(ptr, size));
 }
 
 renderer::TextureBase*
@@ -769,19 +790,39 @@ void ThreeD::ConfigureShaderStage(
     GMmu& gmmu, const ShaderStage stage,
     const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
-    // const u32 stage_index = static_cast<u32>(stage) -
-    //                         1; // 1 is subtracted, because VertexA is skipped
+    const auto shader_type = to_renderer_shader_type(stage);
+    const u32 stage_index = static_cast<u32>(stage) -
+                            1; // 1 is subtracted, because VertexA is skipped
 
     const auto shader = GetShaderUnchecked(stage);
     const auto& resource_mapping = shader->GetDescriptor().resource_mapping;
 
-    // TODO: how are uniform buffers handled?
+    // Uniform buffers
+    RENDERER_INSTANCE.UnbindUniformBuffers(shader_type);
+    for (u32 i = 0; i < CONST_BUFFER_BINDING_COUNT; i++) {
+        const auto index = resource_mapping.uniform_buffers[i];
+        if (index == invalid<u32>())
+            continue;
+
+        // TODO: analyze the shader to get the max possible size
+        const auto range = bound_const_buffers[stage_index][i];
+        if (range.GetBegin() == 0x0) {
+            LOG_WARN(Engines, "Uniform buffer at index {} is not bound", index);
+            continue;
+        }
+
+        const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(range);
+        RENDERER_INSTANCE.BindUniformBuffer(buffer, shader_type, index);
+    }
+
     // TODO: storage buffers
 
     // Textures
-    RENDERER_INSTANCE.UnbindTextures(to_renderer_shader_type(stage));
+    RENDERER_INSTANCE.UnbindTextures(shader_type);
     auto tex_const_buffer = reinterpret_cast<const u32*>(
-        bound_const_buffers[regs.bindless_texture_const_buffer_slot]);
+        bound_const_buffers[stage_index]
+                           [regs.bindless_texture_const_buffer_slot]
+                               .GetBegin());
     for (const auto [const_buffer_index, renderer_index] :
          resource_mapping.textures) {
         const auto texture_handle = tex_const_buffer[const_buffer_index];
@@ -797,16 +838,17 @@ void ThreeD::ConfigureShaderStage(
         const auto sampler = GetSampler(tsc);
 
         if (texture && sampler)
-            RENDERER_INSTANCE.BindTexture(texture, sampler,
-                                          to_renderer_shader_type(stage),
+            RENDERER_INSTANCE.BindTexture(texture, sampler, shader_type,
                                           renderer_index);
         // TODO: else bind null texture
     }
-
-    // TODO: images
 }
 
 bool ThreeD::DrawInternal(GMmu& gmmu) {
+    // Flush tracked pages
+    gmmu.GetMmu()->FlushTrackedPages();
+
+    // State
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
         LOG_WARN(Engines, "Vertex B stage not enabled, skipping draw");
         return false;
@@ -825,13 +867,12 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
         const auto& vertex_array = regs.vertex_arrays[i];
         // HACK: Super Meat Boy contains invalid vertex arrays with address 4096
         if (!vertex_array.config.enable ||
-            (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096))
+            (vertex_array.addr.hi == 0 && vertex_array.addr.lo == 4096)) {
+            RENDERER_INSTANCE.BindVertexBuffer(renderer::BufferView(), i);
             continue;
+        }
 
         const auto buffer = GetVertexBuffer(gmmu, i);
-        if (!buffer)
-            continue;
-
         RENDERER_INSTANCE.BindVertexBuffer(buffer, i);
     }
 

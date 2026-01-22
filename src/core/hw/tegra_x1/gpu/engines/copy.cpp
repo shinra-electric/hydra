@@ -45,14 +45,12 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
                 memcpy(reinterpret_cast<void*>(dst_ptr + regs.stride_out * i),
                        reinterpret_cast<void*>(src_ptr + regs.stride_in * i),
                        regs.stride_in);
-        } else {
-            // NOTE: a texture copy could be possible, as LineLengthIn contains
-            // the width and PitchOut contains the stride, hence we could find
-            // the pixel size and later use a texture view to alias the base
-            // texture. However, this could break the order in which memory is
-            // copied and create issues. Block formats could also be
-            // problematic.
 
+            // Invalidate
+            RENDERER_INSTANCE.GetBufferCache().InvalidateMemory(
+                Range<uptr>::FromSize(dst_ptr,
+                                      regs.line_count * regs.stride_out));
+        } else {
             // Encode as Generic 16BX2
             // TODO: block size log2 can also be negative?
             encode_generic_16bx2(dst_stride, regs.line_count,
@@ -60,33 +58,6 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
                                      regs.dst.block_size.height)),
                                  reinterpret_cast<u8*>(src_ptr),
                                  reinterpret_cast<u8*>(dst_ptr));
-
-            // memcpy((void*)gmmu.UnmapAddr(regs.offset_out),
-            //        (void*)gmmu.UnmapAddr(regs.offset_in), stride *
-            //        regs.line_count);
-
-            /*
-            const auto src =
-                GetBuffer(regs.offset_in,
-                          regs.line_length_in *
-                              regs.line_count); // TODO: is the size correct?
-            const auto dst = GetBuffer(regs.offset_out,
-                                       regs.line_length_in * regs.line_count);
-
-            dst->CopyFrom(src);
-            */
-
-            /*
-            auto texture =
-                GetTexture(regs.offset_out_lo, regs.offset_out_hi, regs.dst);
-
-            const auto& descriptor = texture->GetDescriptor();
-            // TODO: use layer as origin Z in case of 3D textures
-            texture->CopyFrom(
-                buffer, regs.stride_in, regs.dst.layer,
-                {regs.dst.origin.x, regs.dst.origin.y, 0},
-                {descriptor.width, descriptor.height, regs.dst.depth});
-                */
         }
     } else {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
@@ -101,9 +72,9 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
         }
     }
 
-    // TODO: correct?
-    RENDERER_INSTANCE.GetTextureCache().NotifyGuestModifiedData(
-        range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
+    // Invalidate
+    RENDERER_INSTANCE.GetTextureCache().InvalidateMemory(
+        Range<uptr>(dst_ptr, regs.stride_in * regs.line_count));
 }
 
 #pragma GCC diagnostic pop

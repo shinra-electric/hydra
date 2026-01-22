@@ -550,6 +550,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/const.hpp
     hw/tegra_x1/gpu/renderer/surface_compositor.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp
+    hw/tegra_x1/gpu/renderer/buffer_view.hpp
     hw/tegra_x1/gpu/renderer/buffer_cache.cpp
     hw/tegra_x1/gpu/renderer/buffer_cache.hpp
     hw/tegra_x1/gpu/renderer/texture_base.hpp
