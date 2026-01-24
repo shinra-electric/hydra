@@ -69,7 +69,7 @@ struct TextureImageControl {
     u32 view_layer_base_0_2 : 3;
     u32 aniso_spread_max_log2 : 3;
     u32 is_srgb : 1;
-    u32 texture_type : 4;     // TextureType
+    TextureType texture_type : 4;
     u32 sector_promotion : 2; // SectorPromotion
     u32 border_size : 3;      // BorderSize
 

@@ -39,9 +39,10 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
 renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(info.addr), renderer::to_texture_format(info.format),
+        gmmu.UnmapAddr(info.addr), renderer::TextureType::_2D,
+        renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
-        u32(info.width), u32(info.height),
+        u32(info.width), u32(info.height), 1,
         0, // HACK
            /*u32(info.stride)*/
         renderer::get_texture_format_stride(

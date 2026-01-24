@@ -2,6 +2,27 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+MTL::TextureType ToMtlTextureType(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+        return MTL::TextureType1D;
+    case TextureType::_1DArray:
+        return MTL::TextureType1DArray;
+    case TextureType::_1DBuffer:
+        return MTL::TextureTypeTextureBuffer;
+    case TextureType::_2D:
+        return MTL::TextureType2D;
+    case TextureType::_2DArray:
+        return MTL::TextureType2DArray;
+    case TextureType::_3D:
+        return MTL::TextureType3D;
+    case TextureType::Cube:
+        return MTL::TextureTypeCube;
+    case TextureType::CubeArray:
+        return MTL::TextureTypeCubeArray;
+    }
+}
+
 #define PIXEL_FORMAT_ENTRY(format, pixel_format, has_depth, has_stencil,       \
                            component_indices)                                  \
     {                                                                          \

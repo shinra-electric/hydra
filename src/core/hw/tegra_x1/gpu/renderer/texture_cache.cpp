@@ -28,8 +28,7 @@ TextureBase* TextureCache::GetTextureView(const TextureDescriptor& descriptor,
 
     // If the formats match and swizzle is the default swizzle, return base
     if (descriptor.format == tex.base->GetDescriptor().format &&
-        descriptor.swizzle_channels ==
-            tex.base->GetDescriptor().swizzle_channels) {
+        descriptor.swizzle_channels == SwizzleChannels()) {
         return tex.base;
     }
 
@@ -63,7 +62,8 @@ void TextureCache::InvalidateMemory(Range<uptr> range) {
         // Check if its in the range
         const auto& descriptor =
             (*mem.cache.begin()).second.base->GetDescriptor();
-        const auto size = descriptor.height * descriptor.stride;
+        const auto size =
+            descriptor.depth * descriptor.height * descriptor.stride;
         if (it->first + size > range.GetBegin())
             mem.info.MarkModified();
     }
@@ -128,8 +128,10 @@ void TextureCache::Update(Tex& tex, TextureMemInfo& info, TextureUsage usage) {
 
 u32 TextureCache::GetTextureHash(const TextureDescriptor& descriptor) {
     HashCode hash;
+    hash.Add(descriptor.type); // TODO: view compatibility
     hash.Add(descriptor.width);
     hash.Add(descriptor.height);
+    hash.Add(descriptor.depth); // TODO: view compatibility
 
     // View compatbility hash
     // TODO: get format info from the renderer instead

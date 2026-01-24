@@ -8,41 +8,57 @@ namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
 Texture::Texture(const TextureDescriptor& descriptor)
     : TextureBase(descriptor) {
+    const auto type = ToMtlTextureType(descriptor.type);
+
     MTL::TextureDescriptor* desc = MTL::TextureDescriptor::alloc()->init();
-    // TODO: type
+    desc->setTextureType(type);
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
+
+    switch (descriptor.type) {
+    case TextureType::_1DArray:
+    case TextureType::_2DArray:
+        desc->setArrayLength(descriptor.depth);
+        break;
+    case TextureType::CubeArray:
+        // TODO: correct?
+        ASSERT_DEBUG(descriptor.depth % 6 == 0, MetalRenderer,
+                     "Invalid cube array depth {}", descriptor.depth);
+        desc->setArrayLength(descriptor.depth / 6);
+        break;
+    case TextureType::_3D:
+        desc->setDepth(descriptor.depth);
+        break;
+    default:
+        ASSERT_DEBUG(descriptor.depth == 1, MetalRenderer,
+                     "Invalid depth {} for type {}", descriptor.depth,
+                     descriptor.type);
+        break;
+    }
 
     const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
     pixel_format = pixel_format_info.pixel_format;
     desc->setPixelFormat(pixel_format);
 
-    auto base_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
+    base_texture = METAL_RENDERER_INSTANCE.GetDevice()->newTexture(desc);
     if (pixel_format_info.component_indices == uchar4{0, 1, 2, 3}) {
-        mtl_texture = base_texture;
+        texture = base_texture;
     } else {
-        // Swizzle
-        static constexpr MTL::TextureSwizzle swizzle_components[] = {
-            MTL::TextureSwizzleRed, MTL::TextureSwizzleGreen,
-            MTL::TextureSwizzleBlue, MTL::TextureSwizzleAlpha};
-        MTL::TextureSwizzleChannels swizzle_channels(
-            swizzle_components[pixel_format_info.component_indices[0]],
-            swizzle_components[pixel_format_info.component_indices[1]],
-            swizzle_components[pixel_format_info.component_indices[2]],
-            swizzle_components[pixel_format_info.component_indices[3]]);
-
-        mtl_texture = base_texture->newTextureView(
-            pixel_format_info.pixel_format, MTL::TextureType2D, NS::Range(0, 1),
-            NS::Range(0, 1), swizzle_channels);
-        base_texture->release();
+        owns_base = true;
+        texture = CreateViewImpl(descriptor.format, SwizzleChannels());
     }
 }
 
 Texture::Texture(const TextureDescriptor& descriptor,
                  MTL::Texture* mtl_texture_)
-    : TextureBase(descriptor), mtl_texture{mtl_texture_} {}
+    : TextureBase(descriptor), owns_base{false},
+      base_texture{mtl_texture_}, texture{mtl_texture_} {}
 
-Texture::~Texture() { mtl_texture->release(); }
+Texture::~Texture() {
+    if (owns_base)
+        base_texture->release();
+    texture->release();
+}
 
 TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
     const auto& pixel_format_info = to_mtl_pixel_format_info(descriptor.format);
@@ -59,22 +75,18 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
         swizzle_components[pixel_format_info.component_indices[2]],
         swizzle_components[pixel_format_info.component_indices[3]]);
 
-    // TODO: don't hardcode type, ranges and levels
-    auto mtl_view = mtl_texture->newTextureView(
-        to_mtl_pixel_format(descriptor.format), MTL::TextureType2D,
-        NS::Range(0, 1), NS::Range(0, 1), swizzle_channels);
-
     auto desc = GetDescriptor();
     desc.format = descriptor.format;
     desc.swizzle_channels = descriptor.swizzle_channels;
 
-    return new Texture(desc, mtl_view);
+    return new Texture(
+        desc, CreateViewImpl(descriptor.format, descriptor.swizzle_channels));
 }
 
 void Texture::CopyFrom(const uptr data) {
-    mtl_texture->replaceRegion(
-        MTL::Region(0, 0, 0, descriptor.width, descriptor.height, 1), 0,
-        reinterpret_cast<void*>(data), descriptor.stride);
+    texture->replaceRegion(MTL::Region(0, 0, 0, descriptor.width,
+                                       descriptor.height, descriptor.depth),
+                           0, reinterpret_cast<void*>(data), descriptor.stride);
 }
 
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
@@ -84,10 +96,10 @@ void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
 
     auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
-    // TODO: bytes per image
+    // TODO: is bytes per image correct?
     encoder->copyFromBuffer(
-        mtl_src, 0, src_stride, 0, MTL::Size(size.x(), size.y(), size.z()),
-        mtl_texture, dst_layer, 0,
+        mtl_src, 0, src_stride, descriptor.depth * src_stride,
+        MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer, 0,
         MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
 }
 
@@ -98,11 +110,10 @@ void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
 
     auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
-    // TODO: bytes per image
     encoder->copyFromTexture(
         mtl_src, src_layer, 0,
         MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
-        MTL::Size(size.x(), size.y(), size.z()), mtl_texture, dst_layer, 0,
+        MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer, 0,
         MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
 }
 
@@ -117,7 +128,46 @@ void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
 
     METAL_RENDERER_INSTANCE.BlitTexture(
         static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
-        mtl_texture, dst_layer, dst_origin, dst_size);
+        texture, dst_layer, dst_origin, dst_size);
+}
+
+MTL::Texture* Texture::CreateViewImpl(TextureFormat format,
+                                      SwizzleChannels swizzle_channels) {
+    const auto& pixel_format_info = to_mtl_pixel_format_info(format);
+
+    // Swizzle
+    MTL::TextureSwizzle swizzle_components[] = {
+        to_mtl_swizzle(swizzle_channels.r), to_mtl_swizzle(swizzle_channels.g),
+        to_mtl_swizzle(swizzle_channels.b), to_mtl_swizzle(swizzle_channels.a)};
+    MTL::TextureSwizzleChannels swizzle_channels_mtl(
+        swizzle_components[pixel_format_info.component_indices[0]],
+        swizzle_components[pixel_format_info.component_indices[1]],
+        swizzle_components[pixel_format_info.component_indices[2]],
+        swizzle_components[pixel_format_info.component_indices[3]]);
+
+    // TODO: ranges and levels
+
+    u32 levels = 1;
+    switch (descriptor.type) {
+    case TextureType::_1DArray:
+    case TextureType::_2DArray:
+    case TextureType::CubeArray:
+        levels = descriptor.depth;
+        break;
+    case TextureType::Cube:
+        // TODO: assert that depth is 6
+        levels = 6;
+        break;
+    case TextureType::_3D:
+        // TODO: assert that depth matches
+        break;
+    default:
+        break;
+    }
+
+    return base_texture->newTextureView(
+        to_mtl_pixel_format(format), ToMtlTextureType(this->descriptor.type),
+        NS::Range(0, 1), NS::Range(0, levels), swizzle_channels_mtl);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

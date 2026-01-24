@@ -28,15 +28,19 @@ class Texture final : public TextureBase {
                   const u32 dst_layer, const float3 dst_origin,
                   const usize3 dst_size) override;
 
-    // Getters
-    MTL::Texture* GetTexture() const { return mtl_texture; }
-
-    MTL::PixelFormat GetPixelFormat() const { return pixel_format; }
-
   private:
-    MTL::Texture* mtl_texture;
+    bool owns_base{false};
+    MTL::Texture* base_texture;
+    MTL::Texture* texture;
 
     MTL::PixelFormat pixel_format;
+
+    MTL::Texture* CreateViewImpl(TextureFormat format,
+                                 SwizzleChannels swizzle_channels);
+
+  public:
+    GETTER(texture, GetTexture);
+    GETTER(pixel_format, GetPixelFormat);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal
