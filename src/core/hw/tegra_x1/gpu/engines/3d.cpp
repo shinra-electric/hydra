@@ -16,6 +16,28 @@ namespace {
 u32 get_image_handle(u32 handle) { return extract_bits(handle, 0, 20); }
 u32 get_sampler_handle(u32 handle) { return extract_bits(handle, 20, 12); }
 
+renderer::TextureType ToTextureType(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+        return renderer::TextureType::_1D;
+    case TextureType::_1DArray:
+        return renderer::TextureType::_1DArray;
+    case TextureType::_1DBuffer:
+        return renderer::TextureType::_1DBuffer;
+    case TextureType::_2D:
+    case TextureType::_2DNoMipmap:
+        return renderer::TextureType::_2D;
+    case TextureType::_2DArray:
+        return renderer::TextureType::_2DArray;
+    case TextureType::_3D:
+        return renderer::TextureType::_3D;
+    case TextureType::Cubemap:
+        return renderer::TextureType::Cube;
+    case TextureType::CubeArray:
+        return renderer::TextureType::CubeArray;
+    }
+}
+
 constexpr u32 GL_MIN = 0x8007;
 constexpr u32 GL_MAX = 0x8008;
 constexpr u32 GL_FUNC_ADD = 0x8006;
@@ -433,15 +455,15 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     const u32 width_hint =
         regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), format,
+        gmmu.UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(render_target.width, format, width_hint,
                         render_target.tile_mode.is_linear),
-        render_target.height,
+        render_target.height, 1,
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Write);
 }
 
@@ -457,14 +479,14 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
     const u32 width_hint =
         regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), format,
+        gmmu.UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
-        regs.depth_target_height,
+        regs.depth_target_height, 1,
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Write);
 }
 
@@ -751,16 +773,17 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
     }
 
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), format, kind,
+        gmmu.UnmapAddr(gpu_addr), ToTextureType(tic.texture_type), format, kind,
         static_cast<u32>(tic.width_minus_one + 1),
         static_cast<u32>(tic.height_minus_one + 1),
+        static_cast<u32>(tic.depth_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
         stride,
         renderer::SwizzleChannels(
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Read);
 }
 

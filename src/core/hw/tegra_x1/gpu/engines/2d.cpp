@@ -28,9 +28,13 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
     const auto src_width = static_cast<u32>(pixels.dst_width * dudx);
     const auto src_height = static_cast<u32>(pixels.dst_height * dvdy);
 
-    dst->BlitFrom(src, regs.src.layer, {f32(src_x0), f32(src_y0), 0},
-                  {src_width, src_height, 1}, regs.dst.layer,
-                  {f32(pixels.dst_x0), f32(pixels.dst_y0), 0},
+    dst->BlitFrom(src,
+                  {static_cast<f32>(src_x0), static_cast<f32>(src_y0),
+                   static_cast<f32>(regs.src.layer)},
+                  {src_width, src_height, 1},
+                  {static_cast<f32>(pixels.dst_x0),
+                   static_cast<f32>(pixels.dst_y0),
+                   static_cast<f32>(regs.dst.layer)},
                   {pixels.dst_width, pixels.dst_height, 1});
 }
 
@@ -39,17 +43,17 @@ void TwoD::Copy(GMmu& gmmu, const u32 index,
 renderer::TextureBase* TwoD::GetTexture(GMmu& gmmu, const Texture2DInfo& info,
                                         renderer::TextureUsage usage) {
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(info.addr), renderer::to_texture_format(info.format),
+        gmmu.UnmapAddr(info.addr), renderer::TextureType::_2D,
+        renderer::to_texture_format(info.format),
         NvKind::Pitch, // TODO: correct?
-        u32(info.width), u32(info.height),
+        u32(info.width), u32(info.height), 1,
         0, // HACK
            /*u32(info.stride)*/
         renderer::get_texture_format_stride(
             renderer::to_texture_format(info.format), info.width) // HACK
     );
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(descriptor,
-                                                              usage);
+    return RENDERER_INSTANCE.GetTextureCache().Find(descriptor, usage);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::engines

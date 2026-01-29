@@ -274,8 +274,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         u32 width, height;
         if (auto data = loader->LoadNintendoLogo(width, height)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
                 width * 4);
             nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
             nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
@@ -288,8 +289,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         if (auto data = loader->LoadStartupMovie(startup_movie_delays, width,
                                                  height, frame_count)) {
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
-                0x0, hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
-                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 0x0,
+                0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
+                hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
+                hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
                 width * 4);
             startup_movie.reserve(frame_count);
             for (u32 i = 0; i < frame_count; i++) {

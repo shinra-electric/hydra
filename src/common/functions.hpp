@@ -63,7 +63,7 @@ T align(T v, T alignment) {
 
 template <typename T>
 bool is_aligned(T v, T alignment) {
-    return (v & (alignment - 1)) == 0x0;
+    return (v % alignment) == 0x0;
 }
 
 template <typename T>

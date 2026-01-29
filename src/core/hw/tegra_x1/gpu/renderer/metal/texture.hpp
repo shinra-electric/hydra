@@ -16,27 +16,28 @@ class Texture final : public TextureBase {
     // Copying
     void CopyFrom(const uptr data) override;
     void CopyFrom(const BufferBase* src, const usize src_stride,
-                  const u32 dst_layer, const uint3 dst_origin,
-                  const usize3 size) override;
-    void CopyFrom(const TextureBase* src, const u32 src_layer,
-                  const uint3 src_origin, const u32 dst_layer,
+                  const uint3 dst_origin, const usize3 size) override;
+    void CopyFrom(const TextureBase* src, const uint3 src_origin,
                   const uint3 dst_origin, const usize3 size) override;
 
     // Blitting
-    void BlitFrom(const TextureBase* src, const u32 src_layer,
-                  const float3 src_origin, const usize3 src_size,
-                  const u32 dst_layer, const float3 dst_origin,
+    void BlitFrom(const TextureBase* src, const float3 src_origin,
+                  const usize3 src_size, const float3 dst_origin,
                   const usize3 dst_size) override;
 
-    // Getters
-    MTL::Texture* GetTexture() const { return mtl_texture; }
-
-    MTL::PixelFormat GetPixelFormat() const { return pixel_format; }
-
   private:
-    MTL::Texture* mtl_texture;
+    bool owns_base{false};
+    MTL::Texture* base_texture;
+    MTL::Texture* texture;
 
     MTL::PixelFormat pixel_format;
+
+    MTL::Texture* CreateViewImpl(TextureFormat format,
+                                 SwizzleChannels swizzle_channels);
+
+  public:
+    GETTER(texture, GetTexture);
+    GETTER(pixel_format, GetPixelFormat);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal
