@@ -274,8 +274,50 @@ void TextureCache::Update(TextureGroup& group, TextureMem& mem,
         sync = true;
     } else if (group.update_timestamp < mem.info.written_timestamp) {
         // Other textures in this memory changed, let's copy them
-        // TODO: copy
-        LOG_NOT_IMPLEMENTED(Gpu, "SYNC");
+        const auto base = group.base;
+        const auto& descriptor = base->GetDescriptor();
+        const auto range = descriptor.GetRange();
+        const auto layer_size = descriptor.GetLayerSizeInBytes();
+        for (const auto& [key, sparse_tex] : mem.cache) {
+            for (const auto& [key, other_group] : sparse_tex.cache) {
+                const auto other_base = other_group.base;
+                const auto& other_descriptor = other_base->GetDescriptor();
+                const auto other_range = other_descriptor.GetRange();
+
+                // Check if the textures can actually be copied
+                if (other_descriptor.width != descriptor.width ||
+                    other_descriptor.height != descriptor.height ||
+                    other_descriptor.stride != descriptor.stride)
+                    continue;
+
+                if (range.Intersects(other_range)) {
+                    const auto copy_range = range.ClampedTo(other_range);
+                    const auto dst_offset =
+                        copy_range.GetBegin() - range.GetBegin();
+
+                    // Check if the textures are aligned properly
+                    if (dst_offset % layer_size != 0x0)
+                        continue;
+
+                    // Now copy
+                    const auto src_layer = static_cast<u32>(
+                        (copy_range.GetBegin() - other_range.GetBegin()) /
+                        layer_size);
+                    const auto dst_layer =
+                        static_cast<u32>(dst_offset / layer_size);
+                    const auto layer_count =
+                        static_cast<u32>(copy_range.GetSize() / layer_size);
+
+                    // TODO: make sure the formats match
+                    base->CopyFrom(other_base, uint3({0, 0, src_layer}),
+                                   uint3({0, 0, dst_layer}),
+                                   usize3({descriptor.width, descriptor.height,
+                                           layer_count}));
+                }
+            }
+        }
+
+        group.MarkUpdated();
     } else if (mem.info.written_timestamp == TextureCacheTimePoint{}) {
         // Never written to
         if (usage == TextureUsage::Present) {
