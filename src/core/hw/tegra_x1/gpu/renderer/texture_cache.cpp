@@ -359,7 +359,7 @@ void TextureCache::DecodeTexture(TextureGroup& group) {
 
     // Align the height to 16 bytes (TODO: why 16?)
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
-        descriptor.stride * align(descriptor.height, 16u));
+        descriptor.depth * align(descriptor.height, 16u) * descriptor.stride);
     texture_decoder.Decode(descriptor, (u8*)tmp_buffer->GetPtr());
     group.base->CopyFrom(tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
