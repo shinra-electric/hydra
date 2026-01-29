@@ -82,6 +82,7 @@ TextureFormat to_texture_format(const ImageFormatWord image_format_word,
     IMAGE_FORMAT_CASE(R8, Unorm, Unorm, Unorm, Unorm, R8Unorm)
     IMAGE_FORMAT_CASE(R16, Unorm, Unorm, Unorm, Unorm, R16Unorm)
     IMAGE_FORMAT_CASE(GR8, Unorm, Unorm, Unorm, Unorm, RG8Unorm)
+    IMAGE_FORMAT_CASE(GR8, Snorm, Snorm, Snorm, Snorm, RG8Snorm)
     IMAGE_FORMAT_CASE(RG16, Unorm, Unorm, Unorm, Unorm, RG16Unorm)
     IMAGE_FORMAT_CASE(RG16, Snorm, Snorm, Snorm, Snorm, RG16Snorm)
     IMAGE_FORMAT_CASE(RG16, Uint, Uint, Uint, Uint, RG16Uint)
