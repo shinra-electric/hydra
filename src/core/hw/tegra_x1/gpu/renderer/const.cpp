@@ -2,6 +2,35 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+namespace {
+
+enum class TextureTypeCompatibility {
+    _1D,
+    _1DBuffer,
+    _2D,
+    _3D,
+    Cube,
+};
+
+static TextureTypeCompatibility ToTextureTypeCompatibility(TextureType type) {
+    switch (type) {
+    case TextureType::_1D:
+    case TextureType::_1DArray:
+        return TextureTypeCompatibility::_1D;
+    case TextureType::_1DBuffer:
+        return TextureTypeCompatibility::_1DBuffer;
+    case TextureType::_2D:
+    case TextureType::_2DArray:
+    case TextureType::_3D: // TODO: 2D arrays aren't compatible with 3D
+        return TextureTypeCompatibility::_2D;
+    case TextureType::Cube:
+    case TextureType::CubeArray:
+        return TextureTypeCompatibility::Cube;
+    }
+}
+
+} // namespace
+
 TextureFormat to_texture_format(NvColorFormat color_format) {
 #define NV_COLOR_FORMAT_CASE(color_format, texture_format)                     \
     case NvColorFormat::color_format:                                          \
@@ -943,6 +972,39 @@ get_texture_format_default_swizzle_channels(const TextureFormat format) {
     }
 
 #undef SWIZZLE
+}
+
+u32 TextureDescriptor::GetHash() const {
+    HashCode hash;
+    hash.Add(ptr);
+    hash.Add(width);
+    hash.Add(height);
+    hash.Add(depth);
+    hash.Add(stride);
+
+    hash.Add(ToTextureTypeCompatibility(type));
+
+    // TODO: get format info from the renderer instead
+    hash.Add(is_texture_format_compressed(format));
+    hash.Add(is_texture_format_depth_or_stencil(format));
+    hash.Add(get_texture_format_stride(format, 16));
+
+    return hash.ToHashCode();
+}
+
+u32 TextureViewDescriptor::GetHash() const {
+    HashCode hash;
+    hash.Add(format);
+    hash.Add(swizzle_channels.r);
+    hash.Add(swizzle_channels.g);
+    hash.Add(swizzle_channels.b);
+    hash.Add(swizzle_channels.a);
+    hash.Add(levels.GetBegin());
+    hash.Add(levels.GetEnd());
+    hash.Add(layers.GetBegin());
+    hash.Add(layers.GetEnd());
+
+    return hash.ToHashCode();
 }
 
 usize get_vertex_format_size(engines::VertexAttribSize size) {

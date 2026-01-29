@@ -463,7 +463,7 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
         0, // TODO
         get_texture_format_stride(format, render_target.width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Write);
 }
 
@@ -486,7 +486,7 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
         0, // TODO
         get_texture_format_stride(format, regs.depth_target_width));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Write);
 }
 
@@ -783,7 +783,7 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
             format, tic.format_word.swizzle_x, tic.format_word.swizzle_y,
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
-    return RENDERER_INSTANCE.GetTextureCache().GetTextureView(
+    return RENDERER_INSTANCE.GetTextureCache().Find(
         descriptor, renderer::TextureUsage::Read);
 }
 

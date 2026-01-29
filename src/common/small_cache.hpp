@@ -13,57 +13,15 @@ namespace hydra {
 template <typename KeyT, typename T, usize fast_cache_size = 4>
 class SmallCache {
   public:
-    void Clear() {
-        fast_cache.fill({});
-        slow_cache.clear();
-    }
-
-    T& Find(const KeyT& key) {
-        // Fast cache
-        for (auto& entry : fast_cache) {
-            if (entry.occupied && entry.key == key) {
-                return entry.value;
-            }
-        }
-
-        // Slow cache
-        auto it = slow_cache.find(key);
-        if (it != slow_cache.end()) {
-            return it->second;
-        }
-
-        // Insert into fast cache if possible
-        for (auto& entry : fast_cache) {
-            if (!entry.occupied) {
-                entry.occupied = true;
-                entry.key = key;
-                entry.value = T{};
-                return entry.value;
-            }
-        }
-
-        // Fallback to slow cache
-        return slow_cache.emplace(key, T{}).first->second;
-    }
-
-  private:
-    struct FastCacheEntry {
-        bool occupied{false};
-        KeyT key;
-        T value;
-    };
-
-    std::array<FastCacheEntry, fast_cache_size> fast_cache;
-    std::map<KeyT, T> slow_cache;
-
-  public:
     // Iterator
     class iterator {
+        friend class SmallCache;
+
       public:
         using map_iter = typename std::map<KeyT, T>::iterator;
 
-        iterator(SmallCache* cache, usize fast_index)
-            : cache(cache), fast_index(fast_index) {
+        iterator(SmallCache* cache_, usize fast_index_)
+            : cache{cache_}, fast_index{fast_index_} {
             advance_fast();
         }
 
@@ -115,8 +73,103 @@ class SmallCache {
     };
 
     iterator begin() { return iterator(this, 0); }
-
     iterator end() { return iterator(this, slow_cache.end()); }
+
+    void Clear() {
+        fast_cache.fill({});
+        slow_cache.clear();
+    }
+
+    enum class AddError {
+        AlreadyPresent,
+    };
+
+    T& Add(KeyT key, const T& value = {}) {
+        // Insert into fast cache if possible
+        for (auto& entry : fast_cache) {
+            if (!entry.occupied) {
+                entry.occupied = true;
+                entry.key = key;
+                entry.value = value;
+                return entry.value;
+            } else {
+                ASSERT_THROWING(entry.key != key, Common,
+                                AddError::AlreadyPresent,
+                                "Entry already present");
+            }
+        }
+
+        // Fallback to slow cache
+        auto res = slow_cache.emplace(key, value);
+        ASSERT_THROWING(res.second, Common, AddError::AlreadyPresent,
+                        "Entry already present");
+        return res.first->second;
+    }
+
+    iterator Remove(iterator it) {
+        // Fast cache
+        if (it.fast_index < fast_cache_size) {
+            fast_cache[it.fast_index].occupied = false;
+
+            // Advance to the next element
+            iterator next = it;
+            ++next;
+            return next;
+        }
+
+        // Slow cache
+        if (it.slow_it != slow_cache.end()) {
+            auto next_slow = std::next(it.slow_it);
+            slow_cache.erase(it.slow_it);
+            return iterator(this, next_slow);
+        }
+
+        return end();
+    }
+
+    void Remove(KeyT key) { Remove(FindIter(key)); }
+
+    iterator FindIter(KeyT key) {
+        // Fast cache
+        for (u32 i = 0; i < fast_cache_size; i++) {
+            if (fast_cache[i].occupied && fast_cache[i].key == key)
+                return iterator(this, i);
+        }
+
+        // Slow cache
+        auto it = slow_cache.find(key);
+        if (it != slow_cache.end()) {
+            return iterator(this, it);
+        }
+
+        return end();
+    }
+
+    std::optional<T*> Find(KeyT key) {
+        const auto it = FindIter(key);
+        if (it == end())
+            return std::nullopt;
+
+        return &(*it).second;
+    }
+
+    T& FindOrAdd(KeyT key) {
+        const auto opt = Find(key);
+        if (opt.has_value())
+            return **opt;
+
+        return Add(key);
+    }
+
+  private:
+    struct FastCacheEntry {
+        bool occupied{false};
+        KeyT key;
+        T value;
+    };
+
+    std::array<FastCacheEntry, fast_cache_size> fast_cache;
+    std::map<KeyT, T> slow_cache;
 };
 
 } // namespace hydra

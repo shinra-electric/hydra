@@ -233,18 +233,29 @@ struct TextureDescriptor {
               ptr_, type_, format_, kind_, width_, height_, depth_,
               block_height_log2_, stride_,
               get_texture_format_default_swizzle_channels(format_)) {}
+
+    u64 GetLayerSizeInBytes() const { return height * stride; }
+    u64 GetSizeInBytes() const { return depth * GetLayerSizeInBytes(); }
+    Range<uptr> GetRange() const {
+        return Range<uptr>::FromSize(ptr, GetSizeInBytes());
+    }
+
+    u32 GetHash() const;
 };
 
 struct TextureViewDescriptor {
     TextureFormat format;
     SwizzleChannels swizzle_channels;
+    Range<u32> levels;
+    Range<u32> layers;
 
-    u32 GetHash() const {
-        return (u32)format | ((u32)swizzle_channels.r << 8) |
-               ((u32)swizzle_channels.g << 11) |
-               ((u32)swizzle_channels.b << 14) |
-               ((u32)swizzle_channels.a << 17);
-    }
+    TextureViewDescriptor(TextureFormat format_,
+                          SwizzleChannels swizzle_channels_, Range<u32> levels_,
+                          Range<u32> layers_)
+        : format{format_}, swizzle_channels{swizzle_channels_}, levels{levels_},
+          layers{layers_} {}
+
+    u32 GetHash() const;
 };
 
 enum class SamplerFilter {

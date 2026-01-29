@@ -16,16 +16,13 @@ class Texture final : public TextureBase {
     // Copying
     void CopyFrom(const uptr data) override;
     void CopyFrom(const BufferBase* src, const usize src_stride,
-                  const u32 dst_layer, const uint3 dst_origin,
-                  const usize3 size) override;
-    void CopyFrom(const TextureBase* src, const u32 src_layer,
-                  const uint3 src_origin, const u32 dst_layer,
+                  const uint3 dst_origin, const usize3 size) override;
+    void CopyFrom(const TextureBase* src, const uint3 src_origin,
                   const uint3 dst_origin, const usize3 size) override;
 
     // Blitting
-    void BlitFrom(const TextureBase* src, const u32 src_layer,
-                  const float3 src_origin, const usize3 src_size,
-                  const u32 dst_layer, const float3 dst_origin,
+    void BlitFrom(const TextureBase* src, const float3 src_origin,
+                  const usize3 src_size, const float3 dst_origin,
                   const usize3 dst_size) override;
 
   private:

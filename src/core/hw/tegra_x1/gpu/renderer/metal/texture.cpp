@@ -90,45 +90,71 @@ void Texture::CopyFrom(const uptr data) {
 }
 
 void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
-                       const u32 dst_layer, const uint3 dst_origin,
-                       const usize3 size) {
+                       uint3 dst_origin, usize3 size) {
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
     auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
-    // TODO: is bytes per image correct?
-    encoder->copyFromBuffer(
-        mtl_src, 0, src_stride, descriptor.depth * src_stride,
-        MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer, 0,
-        MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    u32 dst_layer = 0;
+    u32 layer_count = 1;
+    if (descriptor.type != TextureType::_3D) {
+        dst_layer = dst_origin.z();
+        dst_origin.z() = 0;
+        layer_count = static_cast<u32>(size.z());
+        size.z() = 1;
+    }
+
+    const auto bytes_per_image = descriptor.depth * src_stride;
+    for (u32 i = 0; i < layer_count; i++) {
+        const auto crnt_dst_layer = dst_layer + i;
+        encoder->copyFromBuffer(
+            mtl_src, crnt_dst_layer * bytes_per_image, src_stride,
+            bytes_per_image, MTL::Size(size.x(), size.y(), size.z()), texture,
+            crnt_dst_layer, 0,
+            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    }
 }
 
-void Texture::CopyFrom(const TextureBase* src, const u32 src_layer,
-                       const uint3 src_origin, const u32 dst_layer,
-                       const uint3 dst_origin, const usize3 size) {
+void Texture::CopyFrom(const TextureBase* src, uint3 src_origin,
+                       uint3 dst_origin, usize3 size) {
     const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
 
     auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
 
-    encoder->copyFromTexture(
-        mtl_src, src_layer, 0,
-        MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
-        MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer, 0,
-        MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    u32 src_layer = 0;
+    u32 dst_layer = 0;
+    u32 layer_count = 1;
+    if (descriptor.type != TextureType::_3D) {
+        dst_layer = dst_origin.z();
+        dst_origin.z() = 0;
+    }
+
+    if (src->GetDescriptor().type != TextureType::_3D) {
+        src_layer = src_origin.z();
+        src_origin.z() = 0;
+    }
+
+    if (descriptor.type != TextureType::_3D ||
+        src->GetDescriptor().type != TextureType::_3D) {
+        layer_count = static_cast<u32>(size.z());
+        size.z() = 1;
+    }
+
+    for (u32 i = 0; i < layer_count; i++) {
+        encoder->copyFromTexture(
+            mtl_src, src_layer + i, 0,
+            MTL::Origin(src_origin.x(), src_origin.y(), src_origin.z()),
+            MTL::Size(size.x(), size.y(), size.z()), texture, dst_layer + i, 0,
+            MTL::Origin(dst_origin.x(), dst_origin.y(), dst_origin.z()));
+    }
 }
 
-void Texture::BlitFrom(const TextureBase* src, const u32 src_layer,
-                       const float3 src_origin, const usize3 src_size,
-                       const u32 dst_layer, const float3 dst_origin,
+void Texture::BlitFrom(const TextureBase* src, const float3 src_origin,
+                       const usize3 src_size, const float3 dst_origin,
                        const usize3 dst_size) {
-    // TODO: src layer
-    ASSERT_DEBUG(src_layer == 0, MetalRenderer,
-                 "Source layered blits (source layer: {}) not implemented",
-                 src_layer);
-
     METAL_RENDERER_INSTANCE.BlitTexture(
         static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
-        texture, dst_layer, dst_origin, dst_size);
+        texture, 0, dst_origin, dst_size);
 }
 
 MTL::Texture* Texture::CreateViewImpl(TextureFormat format,
