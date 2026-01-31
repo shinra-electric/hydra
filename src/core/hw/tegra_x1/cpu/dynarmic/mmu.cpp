@@ -13,7 +13,7 @@ void Mmu::Map(vaddr_t dst_va, Range<uptr> range,
     u64 va_page = dst_va / GUEST_PAGE_SIZE;
     u64 size_page = range.GetSize() / GUEST_PAGE_SIZE;
     u64 va_page_end = va_page + size_page;
-    for (u64 page = dst_va; page < va_page_end; ++page) {
+    for (u64 page = va_page; page < va_page_end; ++page) {
         auto page_ptr = range.GetBegin() + ((page - va_page) * GUEST_PAGE_SIZE);
         pages[page] = page_ptr;
         states[page] = state;

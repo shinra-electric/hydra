@@ -6,7 +6,7 @@
 namespace hydra::hw::tegra_x1::cpu::dynarmic {
 
 constexpr usize PAGE_COUNT =
-    horizon::kernel::ADDRESS_SPACE.GetSize() / GUEST_PAGE_SIZE;
+    horizon::kernel::ADDRESS_SPACE.GetEnd() / GUEST_PAGE_SIZE;
 
 class Mmu : public IMmu {
   public:

@@ -279,6 +279,8 @@ void TextureCache::Update(TextureGroup& group, TextureMem& mem,
         const auto range = descriptor.GetRange();
         const auto layer_size = descriptor.GetLayerSizeInBytes();
         for (const auto& [key, sparse_tex] : mem.cache) {
+            // TODO: skip this sparse texture
+
             for (const auto& [key, other_group] : sparse_tex.cache) {
                 const auto other_base = other_group.base;
                 const auto& other_descriptor = other_base->GetDescriptor();

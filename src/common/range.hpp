@@ -60,8 +60,8 @@ class Range {
     T end;
 
   public:
-    GETTER_AND_SETTER(begin, GetBegin, SetBegin);
-    GETTER_AND_SETTER(end, GetEnd, SetEnd);
+    CONSTEXPR_GETTER_AND_SETTER(begin, GetBegin, SetBegin);
+    CONSTEXPR_GETTER_AND_SETTER(end, GetEnd, SetEnd);
 };
 
 } // namespace hydra
