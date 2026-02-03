@@ -25,6 +25,7 @@
 #include "core/hw/tegra_x1/cpu/mmu.hpp"
 #include "core/hw/tegra_x1/cpu/thread.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/buffer_base.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/surface_compositor.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/texture_base.hpp"
 #include "core/input/device_manager.hpp"
@@ -445,11 +446,15 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
             accumulated_dt += layer->GetAccumulatedDT();
     }
 
+    // Command buffer
+    auto command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+
     // Acquire present textures
-    bool acquired = os->GetDisplayDriver().AcquirePresentTextures();
+    bool acquired =
+        os->GetDisplayDriver().AcquirePresentTextures(command_buffer);
 
     // Render pass
-    os->GetDisplayDriver().Present(compositor, width, height);
+    os->GetDisplayDriver().Present(command_buffer, compositor, width, height);
 
     if (loading) {
         if (acquired) {
@@ -490,9 +495,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                 int2 size = {(i32)nintendo_logo->GetDescriptor().width,
                              (i32)nintendo_logo->GetDescriptor().height};
                 int2 dst_offset = {32, 32};
-                compositor->DrawTexture(nintendo_logo, IntRect2D({0, 0}, size),
-                                        IntRect2D(dst_offset, size), true,
-                                        opacity);
+                compositor->DrawTexture(
+                    command_buffer, nintendo_logo, IntRect2D({0, 0}, size),
+                    IntRect2D(dst_offset, size), true, opacity);
             }
 
             // Startup movie
@@ -510,9 +515,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
                              (i32)frame->GetDescriptor().height};
                 int2 dst_offset = {(i32)width - size.x() - 32,
                                    (i32)height - size.y() - 32};
-                compositor->DrawTexture(frame, IntRect2D({0, 0}, size),
-                                        IntRect2D(dst_offset, size), true,
-                                        opacity);
+                compositor->DrawTexture(
+                    command_buffer, frame, IntRect2D({0, 0}, size),
+                    IntRect2D(dst_offset, size), true, opacity);
             }
         }
     } else {
@@ -533,6 +538,9 @@ void EmulationContext::ProgressFrame(u32 width, u32 height,
         }
     }
 
+    compositor->Present(command_buffer);
+
+    delete command_buffer;
     delete compositor;
 
     // Signal V-Sync
@@ -575,12 +583,11 @@ void EmulationContext::TakeScreenshot() {
         }
 
         // Copy to a buffer
-        RENDERER_INSTANCE.LockMutex();
+        auto command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
         auto buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
             static_cast<u32>(rect.size.y() * rect.size.x() * 4));
-        buffer->CopyFrom(texture, rect.origin, rect.size);
-        RENDERER_INSTANCE.EndCommandBuffer();
-        RENDERER_INSTANCE.UnlockMutex();
+        buffer->CopyFrom(command_buffer, texture, rect.origin, rect.size);
+        delete command_buffer;
 
         // TODO: wait for the command buffer to finish
 

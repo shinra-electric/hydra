@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
 
+#include "core/hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
@@ -15,11 +16,14 @@ Buffer::Buffer(MTL::Buffer* buffer_)
 
 Buffer::~Buffer() { buffer->release(); }
 
-void Buffer::CopyFrom(TextureBase* src, const uint3 src_origin,
-                      const uint3 src_size, u64 dst_offset) {
+void Buffer::CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
+                      const uint3 src_origin, const uint3 src_size,
+                      u64 dst_offset) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     auto src_impl = static_cast<Texture*>(src);
 
-    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
     // TODO: bytes per image
     // TODO: calculate the stride for the Metal pixel format
     blit_encoder->copyFromTexture(
@@ -37,11 +41,13 @@ void Buffer::CopyFromImpl(const uptr data, u64 dst_offset, u64 size_) {
            size_);
 }
 
-void Buffer::CopyFromImpl(BufferBase* src, u64 dst_offset, u64 src_offset,
-                          u64 size_) {
+void Buffer::CopyFromImpl(ICommandBuffer* command_buffer, BufferBase* src,
+                          u64 dst_offset, u64 src_offset, u64 size_) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     auto src_impl = static_cast<Buffer*>(src);
 
-    auto blit_encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    auto blit_encoder = command_buffer_impl->GetBlitCommandEncoder();
     blit_encoder->copyFromBuffer(src_impl->GetBuffer(), src_offset, buffer,
                                  dst_offset, size_);
 }

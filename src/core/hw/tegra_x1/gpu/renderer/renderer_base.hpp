@@ -11,6 +11,7 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer {
 
+class ICommandBuffer;
 class ISurfaceCompositor;
 class TextureBase;
 class SamplerBase;
@@ -61,7 +62,7 @@ class RendererBase {
     virtual SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) = 0;
 
     // Command buffer
-    virtual void EndCommandBuffer() = 0;
+    virtual ICommandBuffer* CreateCommandBuffer() = 0;
 
     // Render pass
     virtual RenderPassBase*
@@ -69,10 +70,13 @@ class RendererBase {
     virtual void BindRenderPass(const RenderPassBase* render_pass) = 0;
 
     // Clear
-    virtual void ClearColor(u32 render_target_id, u32 layer, u8 mask,
+    virtual void ClearColor(ICommandBuffer* command_buffer,
+                            u32 render_target_id, u32 layer, u8 mask,
                             const uint4 color) = 0;
-    virtual void ClearDepth(u32 layer, const float value) = 0;
-    virtual void ClearStencil(u32 layer, const u32 value) = 0;
+    virtual void ClearDepth(ICommandBuffer* command_buffer, u32 layer,
+                            const float value) = 0;
+    virtual void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
+                              const u32 value) = 0;
 
     // Viewport and scissor
     virtual void SetViewport(u32 index, const Viewport& viewport) = 0;
@@ -102,10 +106,12 @@ class RendererBase {
     virtual void UnbindTextures(ShaderType shader_type) = 0;
 
     // Draw
-    virtual void Draw(const engines::PrimitiveType primitive_type,
+    virtual void Draw(ICommandBuffer* command_buffer,
+                      const engines::PrimitiveType primitive_type,
                       const u32 start, const u32 count, const u32 base_instance,
                       const u32 instance_count) = 0;
-    virtual void DrawIndexed(const engines::PrimitiveType primitive_type,
+    virtual void DrawIndexed(ICommandBuffer* command_buffer,
+                             const engines::PrimitiveType primitive_type,
                              const u32 start, const u32 count,
                              const u32 base_vertex, const u32 base_instance,
                              const u32 instance_count) = 0;

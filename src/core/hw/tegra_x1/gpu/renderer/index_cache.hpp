@@ -18,7 +18,8 @@ class IndexCache {
   public:
     ~IndexCache();
 
-    BufferView Decode(const IndexDescriptor& descriptor,
+    BufferView Decode(ICommandBuffer* command_buffer,
+                      const IndexDescriptor& descriptor,
                       engines::IndexType& out_type,
                       engines::PrimitiveType& out_primitive_type,
                       u32& out_count);

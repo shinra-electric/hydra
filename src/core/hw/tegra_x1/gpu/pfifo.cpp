@@ -2,6 +2,7 @@
 
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
 
 namespace hydra::hw::tegra_x1::gpu {
 
@@ -57,6 +58,14 @@ struct CommandHeader {
     SecondaryOpcode secondary_opcode : 3;
 };
 
+template <typename T>
+T Read(uptr& gpu_addr) {
+    T word = tls_crnt_gmmu->Load<T>(gpu_addr);
+    gpu_addr += sizeof(T);
+
+    return word;
+}
+
 } // namespace
 
 void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
@@ -66,14 +75,18 @@ void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
     RENDERER_INSTANCE.LockMutex();
+    tls_crnt_gmmu = &gmmu;
+    tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
     for (const auto& entry : entries) {
-        SubmitEntry(gmmu, entry);
+        SubmitEntry(entry);
     }
-    RENDERER_INSTANCE.EndCommandBuffer();
+    delete tls_crnt_command_buffer;
+    tls_crnt_command_buffer = nullptr;
+    tls_crnt_gmmu = nullptr;
     RENDERER_INSTANCE.UnlockMutex();
 }
 
-void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
+void Pfifo::SubmitEntry(const GpfifoEntry entry) {
     LOG_DEBUG(
         Gpu,
         "Gpfifo entry (addr lo: {:#x}, addr hi: {:#x}, size: {:#x}, allow "
@@ -88,7 +101,7 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
 
     while (gpu_addr < end) {
         try {
-            if (!SubmitCommand(gmmu, gpu_addr))
+            if (!SubmitCommand(gpu_addr))
                 break;
         } catch (Gpu::GetEngineAtSubchannelError error) {
             break;
@@ -98,8 +111,8 @@ void Pfifo::SubmitEntry(GMmu& gmmu, const GpfifoEntry entry) {
     }
 }
 
-bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
-    const auto header = Read<CommandHeader>(gmmu, gpu_addr);
+bool Pfifo::SubmitCommand(uptr& gpu_addr) {
+    const auto header = Read<CommandHeader>(gpu_addr);
     LOG_DEBUG(
         Gpu, "Method: {:#x}, subchannel: {}, arg: {:#x}, secondary opcode: {}",
         header.method, header.subchannel, header.arg, header.secondary_opcode);
@@ -123,7 +136,7 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     }
     case SecondaryOpcode::IncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, true);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, true);
         break;
     case SecondaryOpcode::Grp2UseTert: {
         const auto tert = static_cast<TertiaryOpcode>(header.arg & 0x3);
@@ -136,15 +149,15 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     }
     case SecondaryOpcode::NonIncMethod:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, false);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, false);
         break;
     case SecondaryOpcode::ImmDataMethod:
-        Gpu::GetInstance().SubchannelMethod(gmmu, header.subchannel, offset,
+        Gpu::GetInstance().SubchannelMethod(header.subchannel, offset,
                                             header.arg);
         break;
     case SecondaryOpcode::OneInc:
         for (u32 i = 0; i < header.arg; i++)
-            ProcessMethodArg(gmmu, header.subchannel, gpu_addr, offset, i == 0);
+            ProcessMethodArg(header.subchannel, gpu_addr, offset, i == 0);
         break;
     default:
         LOG_NOT_IMPLEMENTED(Gpu, "Secondary opcode {}",
@@ -155,15 +168,15 @@ bool Pfifo::SubmitCommand(GMmu& gmmu, uptr& gpu_addr) {
     // TODO: is it okay to prefetch the parameters and then execute the
     // macro?
     if (header.method >= MACRO_METHODS_REGION)
-        Gpu::GetInstance().SubchannelFlushMacro(gmmu, header.subchannel);
+        Gpu::GetInstance().SubchannelFlushMacro(header.subchannel);
 
     return true;
 }
 
-void Pfifo::ProcessMethodArg(GMmu& gmmu, u32 subchannel, uptr& gpu_addr,
-                             u32& method, bool increment) {
-    u32 arg = Read<u32>(gmmu, gpu_addr);
-    Gpu::GetInstance().SubchannelMethod(gmmu, subchannel, method, arg);
+void Pfifo::ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+                             bool increment) {
+    u32 arg = Read<u32>(gpu_addr);
+    Gpu::GetInstance().SubchannelMethod(subchannel, method, arg);
     if (increment)
         method++;
 }

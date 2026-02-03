@@ -18,20 +18,12 @@ class Pfifo {
                        GpfifoFlags flags);
 
   private:
-    void SubmitEntry(GMmu& gmmu, const GpfifoEntry entry);
-    bool SubmitCommand(GMmu& gmmu, uptr& gpu_addr); // TODO: return void
+    void SubmitEntry(const GpfifoEntry entry);
+    bool SubmitCommand(uptr& gpu_addr); // TODO: return void
 
     // Helpers
-    template <typename T>
-    T Read(GMmu& gmmu, uptr& gpu_addr) {
-        T word = gmmu.Load<T>(gpu_addr);
-        gpu_addr += sizeof(T);
-
-        return word;
-    }
-
-    void ProcessMethodArg(GMmu& gmmu, u32 subchannel, uptr& gpu_addr,
-                          u32& method, bool increment);
+    void ProcessMethodArg(u32 subchannel, uptr& gpu_addr, u32& method,
+                          bool increment);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu

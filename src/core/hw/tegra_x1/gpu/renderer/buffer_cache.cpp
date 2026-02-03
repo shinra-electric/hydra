@@ -10,20 +10,20 @@ BufferCache::~BufferCache() {
         delete entry.second.buffer;
 }
 
-BufferView BufferCache::Get(Range<uptr> range) {
+BufferView BufferCache::Get(ICommandBuffer* command_buffer, Range<uptr> range) {
     auto& entry = Find(range);
     if (entry.buffer) {
         // Check for memory invalidation
         if (entry.invalidation_range.has_value() &&
             entry.invalidation_range->Intersects(range)) {
             const auto invalidation_range = entry.invalidation_range.value();
-            UpdateRange(entry, invalidation_range);
+            UpdateRange(command_buffer, entry, invalidation_range);
             entry.invalidation_range = std::nullopt;
         }
     } else {
         // Create new buffer
         entry.buffer = RENDERER_INSTANCE.CreateBuffer(entry.range.GetSize());
-        UpdateRange(entry, entry.range);
+        UpdateRange(command_buffer, entry, entry.range);
     }
 
     return BufferView(entry.buffer, range.GetBegin() - entry.range.GetBegin(),
@@ -53,7 +53,8 @@ void BufferCache::InvalidateMemory(Range<uptr> range) {
     }
 }
 
-void BufferCache::UpdateRange(BufferEntry& entry, Range<uptr> range) {
+void BufferCache::UpdateRange(ICommandBuffer* command_buffer,
+                              BufferEntry& entry, Range<uptr> range) {
     if (entry.inline_copy) {
         // Do an inline update if possible
         entry.buffer->CopyFrom(range.GetBegin(),
@@ -65,7 +66,7 @@ void BufferCache::UpdateRange(BufferEntry& entry, Range<uptr> range) {
         auto tmp_buffer =
             RENDERER_INSTANCE.AllocateTemporaryBuffer(range.GetSize());
         tmp_buffer->CopyFrom(range.GetBegin());
-        entry.buffer->CopyFrom(tmp_buffer,
+        entry.buffer->CopyFrom(command_buffer, tmp_buffer,
                                range.GetBegin() - entry.range.GetBegin(), 0,
                                range.GetSize());
         RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
