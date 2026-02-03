@@ -82,6 +82,8 @@ void Gpu::SubchannelMethod(u32 subchannel, u32 method, u32 arg) {
 renderer::TextureBase* Gpu::GetTexture(renderer::ICommandBuffer* command_buffer,
                                        cpu::IMmu* mmu,
                                        const NvGraphicsBuffer& buff) {
+    std::lock_guard texture_cache_lock(renderer->GetTextureCache().GetMutex());
+
     LOG_DEBUG(Gpu,
               "Map id: {}, width: {}, "
               "height: {}",

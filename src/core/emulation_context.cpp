@@ -605,18 +605,14 @@ void EmulationContext::TakeScreenshot() {
         stbi_flip_vertically_on_write(false);
 
         // Free the buffer
-        RENDERER_INSTANCE.LockMutex();
         RENDERER_INSTANCE.FreeTemporaryBuffer(buffer);
-        RENDERER_INSTANCE.UnlockMutex();
     });
     thread.detach();
 }
 
 void EmulationContext::CaptureGpuFrame() {
     // TODO: allow multiple frames
-    gpu->GetRenderer().LockMutex();
     gpu->GetRenderer().CaptureFrames(1);
-    gpu->GetRenderer().UnlockMutex();
 }
 
 void EmulationContext::TryApplyPatch(horizon::kernel::Process* process,

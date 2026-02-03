@@ -365,7 +365,11 @@ void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     // TODO: implement
 
     // Regular clear
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    {
+        std::lock_guard texture_cache_lock(
+            RENDERER_INSTANCE.GetTextureCache().GetMutex());
+        RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    }
 
     if (data.color_mask != 0x0)
         RENDERER_INSTANCE.ClearColor(tls_crnt_command_buffer, data.target_id,
@@ -868,6 +872,9 @@ void ThreeD::ConfigureShaderStage(
 }
 
 bool ThreeD::DrawInternal() {
+    std::lock_guard texture_cache_lock(
+        RENDERER_INSTANCE.GetTextureCache().GetMutex());
+
     // Flush tracked pages
     tls_crnt_gmmu->GetMmu()->FlushTrackedPages();
 

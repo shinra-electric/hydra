@@ -74,7 +74,6 @@ void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
     (void)flags;
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
-    RENDERER_INSTANCE.LockMutex();
     tls_crnt_gmmu = &gmmu;
     tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
     for (const auto& entry : entries) {
@@ -83,7 +82,6 @@ void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
     delete tls_crnt_command_buffer;
     tls_crnt_command_buffer = nullptr;
     tls_crnt_gmmu = nullptr;
-    RENDERER_INSTANCE.UnlockMutex();
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {

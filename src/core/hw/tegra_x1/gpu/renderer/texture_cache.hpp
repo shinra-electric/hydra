@@ -54,6 +54,7 @@ class TextureCache {
     void InvalidateMemory(Range<uptr> range);
 
   private:
+    std::mutex mutex;
     TextureDecoder texture_decoder;
 
     std::map<uptr, TextureMem> entries;
@@ -77,6 +78,9 @@ class TextureCache {
     u32 GetDataHash(const TextureBase* texture);
     void DecodeTexture(ICommandBuffer* command_buffer, TextureGroup& group);
     // TODO: encode texture
+
+  public:
+    REF_GETTER(mutex, GetMutex);
 };
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer

@@ -42,10 +42,6 @@ class RendererBase {
         // TODO: shader cache
     }
 
-    // Mutex
-    void LockMutex() { mutex.lock(); }
-    void UnlockMutex() { mutex.unlock(); }
-
     // Surface
     virtual void SetSurface(void* surface) = 0;
     virtual ISurfaceCompositor* AcquireNextSurface() = 0;
@@ -140,8 +136,6 @@ class RendererBase {
     virtual void EndCapture() = 0;
 
   private:
-    std::mutex mutex;
-
     // Caches
     BufferCache buffer_cache;
     TextureCache texture_cache;
