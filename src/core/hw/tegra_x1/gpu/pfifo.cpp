@@ -68,20 +68,50 @@ T Read(uptr& gpu_addr) {
 
 } // namespace
 
-void Pfifo::SubmitEntries(GMmu& gmmu, const std::vector<GpfifoEntry>& entries,
+Pfifo::Pfifo() : thread(&Pfifo::ThreadFunc, this) {}
+
+Pfifo::~Pfifo() {
+    stop = true;
+    cond_var.notify_all();
+    thread.join();
+}
+
+void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                           GpfifoFlags flags) {
-    // TODO: flags
-    (void)flags;
+    std::lock_guard lock(mutex);
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
-    tls_crnt_gmmu = &gmmu;
-    tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
-    for (const auto& entry : entries) {
-        SubmitEntry(entry);
+    entry_lists.emplace(
+        gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()), flags);
+}
+
+void Pfifo::ThreadFunc() {
+    std::unique_lock lock(mutex);
+    while (true) {
+        cond_var.wait(lock);
+        if (stop)
+            return;
+
+        // Process entry lists
+        while (!entry_lists.empty()) {
+            const auto entry_list = entry_lists.front();
+            entry_lists.pop();
+
+            lock.unlock();
+
+            // Entries
+            // TODO: flags
+            tls_crnt_gmmu = &entry_list.gmmu;
+            tls_crnt_command_buffer = RENDERER_INSTANCE.CreateCommandBuffer();
+            for (const auto& entry : entry_list.entries)
+                SubmitEntry(entry);
+            delete tls_crnt_command_buffer;
+            tls_crnt_command_buffer = nullptr;
+            tls_crnt_gmmu = nullptr;
+
+            lock.lock();
+        }
     }
-    delete tls_crnt_command_buffer;
-    tls_crnt_command_buffer = nullptr;
-    tls_crnt_gmmu = nullptr;
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {

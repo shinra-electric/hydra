@@ -390,7 +390,7 @@ void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
 
     const uptr ptr = tls_crnt_gmmu->UnmapAddr(regs.report_semaphore_addr);
 
-    // HACK
+    // TODO: correct?
     *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
