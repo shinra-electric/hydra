@@ -1,5 +1,6 @@
 #include "core/hw/tegra_x1/gpu/pfifo.hpp"
 
+#include "core/debugger/debugger_manager.hpp"
 #include "core/hw/tegra_x1/gpu/const.hpp"
 #include "core/hw/tegra_x1/gpu/gpu.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/command_buffer.hpp"
@@ -78,19 +79,27 @@ Pfifo::~Pfifo() {
 
 void Pfifo::SubmitEntries(GMmu& gmmu, std::span<const GpfifoEntry> entries,
                           GpfifoFlags flags) {
-    std::lock_guard lock(mutex);
     LOG_DEBUG(Gpu, "Flags: {}", flags);
 
-    entry_lists.emplace(
-        gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()), flags);
+    {
+        std::lock_guard lock(mutex);
+        entry_lists.emplace(
+            gmmu, std::vector<GpfifoEntry>(entries.begin(), entries.end()),
+            flags);
+    }
+
+    cond_var.notify_all();
 }
 
 void Pfifo::ThreadFunc() {
+    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess().RegisterThisThread(
+        "GPU thread");
+
     std::unique_lock lock(mutex);
     while (true) {
         cond_var.wait(lock);
         if (stop)
-            return;
+            break;
 
         // Process entry lists
         while (!entry_lists.empty()) {
@@ -112,6 +121,9 @@ void Pfifo::ThreadFunc() {
             lock.lock();
         }
     }
+
+    DEBUGGER_MANAGER_INSTANCE.GetDebuggerForCurrentProcess()
+        .UnregisterThisThread();
 }
 
 void Pfifo::SubmitEntry(const GpfifoEntry entry) {
