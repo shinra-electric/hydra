@@ -15,15 +15,17 @@ class Texture final : public TextureBase {
 
     // Copying
     void CopyFrom(const uptr data) override;
-    void CopyFrom(const BufferBase* src, const usize src_stride,
-                  const uint3 dst_origin, const usize3 size) override;
-    void CopyFrom(const TextureBase* src, const uint3 src_origin,
-                  const uint3 dst_origin, const usize3 size) override;
+    void CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
+                  const usize src_stride, const uint3 dst_origin,
+                  const usize3 size) override;
+    void CopyFrom(ICommandBuffer* command_buffer, const TextureBase* src,
+                  const uint3 src_origin, const uint3 dst_origin,
+                  const usize3 size) override;
 
     // Blitting
-    void BlitFrom(const TextureBase* src, const float3 src_origin,
-                  const usize3 src_size, const float3 dst_origin,
-                  const usize3 dst_size) override;
+    void BlitFrom(ICommandBuffer* command_buffer, const TextureBase* src,
+                  const float3 src_origin, const usize3 src_size,
+                  const float3 dst_origin, const usize3 dst_size) override;
 
   private:
     bool owns_base{false};

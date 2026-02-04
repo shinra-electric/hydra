@@ -548,6 +548,7 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/shader_decompiler/codegen/lang/msl/emitter.hpp
     hw/tegra_x1/gpu/renderer/const.cpp
     hw/tegra_x1/gpu/renderer/const.hpp
+    hw/tegra_x1/gpu/renderer/command_buffer.hpp
     hw/tegra_x1/gpu/renderer/surface_compositor.hpp
     hw/tegra_x1/gpu/renderer/buffer_base.hpp
     hw/tegra_x1/gpu/renderer/buffer_view.hpp
@@ -577,6 +578,8 @@ add_library(hydra-core
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.cpp
     hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp
     hw/tegra_x1/gpu/renderer/metal/impl.cpp
+    hw/tegra_x1/gpu/renderer/metal/command_buffer.cpp
+    hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp
     hw/tegra_x1/gpu/renderer/metal/surface_compositor.cpp
     hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp
     hw/tegra_x1/gpu/renderer/metal/buffer.cpp

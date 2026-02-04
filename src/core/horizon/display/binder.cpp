@@ -58,9 +58,7 @@ void Binder::QueueBuffer(i32 slot, const BqBufferInput& input) {
 
     // Debug
     // TODO: only do this for the main process
-    RENDERER_INSTANCE.LockMutex();
     RENDERER_INSTANCE.NotifyDebugFrameBoundary();
-    RENDERER_INSTANCE.UnlockMutex();
 }
 
 i32 Binder::ConsumeBuffer(BqBufferInput& out_input) {

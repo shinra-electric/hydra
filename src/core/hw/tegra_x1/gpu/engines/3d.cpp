@@ -252,7 +252,7 @@ ThreeD::~ThreeD() {
     SINGLETON_UNSET_INSTANCE();
 }
 
-void ThreeD::FlushMacro(GMmu& gmmu) { macro_driver->Execute(gmmu); }
+void ThreeD::FlushMacro() { macro_driver->Execute(); }
 
 void ThreeD::Macro(u32 method, u32 arg) {
     u32 index = (method - MACRO_METHODS_REGION) >> 1;
@@ -270,33 +270,30 @@ void ThreeD::Macro(u32 method, u32 arg) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void ThreeD::LoadMmeInstructionRamPointer(GMmu& gmmu, const u32 index,
-                                          const u32 ptr) {
+void ThreeD::LoadMmeInstructionRamPointer(const u32 index, const u32 ptr) {
     macro_driver->LoadInstructionRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeInstructionRam(GMmu& gmmu, const u32 index,
-                                   const u32 data) {
+void ThreeD::LoadMmeInstructionRam(const u32 index, const u32 data) {
     macro_driver->LoadInstructionRam(data);
 }
 
-void ThreeD::LoadMmeStartAddressRamPointer(GMmu& gmmu, const u32 index,
-                                           const u32 ptr) {
+void ThreeD::LoadMmeStartAddressRamPointer(const u32 index, const u32 ptr) {
     macro_driver->LoadStartAddressRamPointer(ptr);
 }
 
-void ThreeD::LoadMmeStartAddressRam(GMmu& gmmu, const u32 index,
-                                    const u32 data) {
+void ThreeD::LoadMmeStartAddressRam(const u32 index, const u32 data) {
     macro_driver->LoadStartAddressRam(data);
 }
 
-void ThreeD::DrawVertexArray(GMmu& gmmu, const u32 index, u32 count) {
-    if (!DrawInternal(gmmu))
+void ThreeD::DrawVertexArray(const u32 index, u32 count) {
+    if (!DrawInternal())
         return;
 
     auto index_type = IndexType::None;
     auto primitive_type = regs.begin.primitive_type;
     const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+        tls_crnt_command_buffer,
         {.type = index_type, .primitive_type = primitive_type, .count = count},
         index_type, primitive_type, count);
 
@@ -309,23 +306,25 @@ void ThreeD::DrawVertexArray(GMmu& gmmu, const u32 index, u32 count) {
         // Vertex start is set as vertex base instead, as start is now index
         // start
         // TODO: instance count
-        RENDERER_INSTANCE.DrawIndexed(primitive_type, 0, count,
-                                      regs.vertex_array_start,
+        RENDERER_INSTANCE.DrawIndexed(tls_crnt_command_buffer, primitive_type,
+                                      0, count, regs.vertex_array_start,
                                       regs.base_instance, 1);
     } else {
         // Draw
         // TODO: instance count
-        RENDERER_INSTANCE.Draw(primitive_type, regs.vertex_array_start, count,
+        RENDERER_INSTANCE.Draw(tls_crnt_command_buffer, primitive_type,
+                               regs.vertex_array_start, count,
                                regs.base_instance, 1);
     }
 }
 
-void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
-    if (!DrawInternal(gmmu))
+void ThreeD::DrawVertexElements(const u32 index, u32 count) {
+    if (!DrawInternal())
         return;
 
     // Index buffer
-    gpu_vaddr_t index_buffer_ptr = gmmu.UnmapAddr(regs.index_buffer_addr);
+    gpu_vaddr_t index_buffer_ptr =
+        tls_crnt_gmmu->UnmapAddr(regs.index_buffer_addr);
     // TODO: uncomment?
     u32 index_buffer_size =
         count * get_index_type_size(
@@ -337,6 +336,7 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
     auto index_type = regs.index_type;
     auto primitive_type = regs.begin.primitive_type;
     const auto index_buffer = RENDERER_INSTANCE.GetIndexCache().Decode(
+        tls_crnt_command_buffer,
         {.type = index_type,
          .primitive_type = primitive_type,
          .count = count,
@@ -349,13 +349,12 @@ void ThreeD::DrawVertexElements(GMmu& gmmu, const u32 index, u32 count) {
 
     // Draw
     // TODO: instance count
-    RENDERER_INSTANCE.DrawIndexed(primitive_type, regs.vertex_elements_start,
-                                  count, regs.base_vertex, regs.base_instance,
-                                  1);
+    RENDERER_INSTANCE.DrawIndexed(tls_crnt_command_buffer, primitive_type,
+                                  regs.vertex_elements_start, count,
+                                  regs.base_vertex, regs.base_instance, 1);
 }
 
-void ThreeD::ClearBuffer(GMmu& gmmu, const u32 index,
-                         const ClearBufferData data) {
+void ThreeD::ClearBuffer(const u32 index, const ClearBufferData data) {
     LOG_DEBUG(Gpu,
               "Depth: {}, stencil: {}, color mask: 0x{:x}, target id: {}, "
               "layer id: {}",
@@ -366,39 +365,46 @@ void ThreeD::ClearBuffer(GMmu& gmmu, const u32 index,
     // TODO: implement
 
     // Regular clear
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass(gmmu));
+    {
+        std::lock_guard texture_cache_lock(
+            RENDERER_INSTANCE.GetTextureCache().GetMutex());
+        RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
+    }
 
     if (data.color_mask != 0x0)
-        RENDERER_INSTANCE.ClearColor(data.target_id, data.layer_id,
-                                     data.color_mask, regs.clear_color);
+        RENDERER_INSTANCE.ClearColor(tls_crnt_command_buffer, data.target_id,
+                                     data.layer_id, data.color_mask,
+                                     regs.clear_color);
 
     if (data.depth)
-        RENDERER_INSTANCE.ClearDepth(data.layer_id, regs.clear_depth);
+        RENDERER_INSTANCE.ClearDepth(tls_crnt_command_buffer, data.layer_id,
+                                     regs.clear_depth);
 
     if (data.stencil)
-        RENDERER_INSTANCE.ClearStencil(data.layer_id, regs.clear_stencil);
+        RENDERER_INSTANCE.ClearStencil(tls_crnt_command_buffer, data.layer_id,
+                                       regs.clear_stencil);
 }
 
-void ThreeD::SetReportSemaphore(GMmu& gmmu, const u32 index, const u32 data) {
+void ThreeD::SetReportSemaphore(const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
-    const uptr ptr = gmmu.UnmapAddr(regs.report_semaphore_addr);
+    const uptr ptr = tls_crnt_gmmu->UnmapAddr(regs.report_semaphore_addr);
 
-    // HACK
+    // TODO: correct?
     *reinterpret_cast<u32*>(ptr) = regs.report_semaphore_payload;
 }
 
-void ThreeD::FirmwareCall4(GMmu& gmmu, const u32 index, const u32 data) {
+void ThreeD::FirmwareCall4(const u32 index, const u32 data) {
     ONCE(LOG_FUNC_STUBBED(Engines));
 
     // TODO: find out what this does
     regs.mme_scratch[0] = 0x1;
 }
 
-void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
+void ThreeD::LoadConstBuffer(const u32 index, const u32 data) {
     const uptr const_buffer_gpu_addr = u64(regs.const_buffer_selector);
     const uptr gpu_addr = const_buffer_gpu_addr + regs.load_const_buffer_offset;
-    const auto ptr = gmmu.UnmapAddr(gpu_addr);
+    const auto ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
 
     *reinterpret_cast<u32*>(ptr) = data;
     regs.load_const_buffer_offset += sizeof(u32);
@@ -408,7 +414,7 @@ void ThreeD::LoadConstBuffer(GMmu& gmmu, const u32 index, const u32 data) {
     RENDERER_INSTANCE.InvalidateMemory(Range<uptr>::FromSize(ptr, sizeof(u32)));
 }
 
-void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
+void ThreeD::BindGroup(const u32 index, const u32 data) {
     const auto shader_stage_index = index / 0x8;
     const auto group = index % 0x8;
 
@@ -421,7 +427,7 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
         bool valid = data & 0x1;
         if (valid) {
             const uptr const_buffer_gpu_ptr =
-                gmmu.UnmapAddr(regs.const_buffer_selector);
+                tls_crnt_gmmu->UnmapAddr(regs.const_buffer_selector);
 
             const auto range = Range<uptr>::FromSize(
                 const_buffer_gpu_ptr, regs.const_buffer_selector_size);
@@ -440,7 +446,7 @@ void ThreeD::BindGroup(GMmu& gmmu, const u32 index, const u32 data) {
 #pragma GCC diagnostic pop
 
 renderer::TextureBase*
-ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
+ThreeD::GetColorTargetTexture(u32 render_target_index) const {
     const auto& render_target = regs.color_targets[render_target_index];
 
     const auto gpu_addr = u64(render_target.addr);
@@ -455,7 +461,7 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
     const u32 width_hint =
         regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(render_target.width, format, width_hint,
                         render_target.tile_mode.is_linear),
@@ -464,10 +470,10 @@ ThreeD::GetColorTargetTexture(GMmu& gmmu, u32 render_target_index) const {
         get_texture_format_stride(format, render_target.width));
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
-        descriptor, renderer::TextureUsage::Write);
+        tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
-renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
+renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture() const {
     const auto gpu_addr = u64(regs.depth_target_addr);
     if (gpu_addr == 0x0) {
         // TODO: is this really an error?
@@ -479,7 +485,7 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
     const u32 width_hint =
         regs.screen_scissor.horizontal.x + regs.screen_scissor.horizontal.width;
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), renderer::TextureType::_2D, format,
         NvKind::Pitch, // TODO: correct?
         GetMinimumWidth(regs.depth_target_width, format, width_hint, false),
         regs.depth_target_height, 1,
@@ -487,25 +493,24 @@ renderer::TextureBase* ThreeD::GetDepthStencilTargetTexture(GMmu& gmmu) const {
         get_texture_format_stride(format, regs.depth_target_width));
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
-        descriptor, renderer::TextureUsage::Write);
+        tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Write);
 }
 
-renderer::RenderPassBase* ThreeD::GetRenderPass(GMmu& gmmu) const {
+renderer::RenderPassBase* ThreeD::GetRenderPass() const {
     renderer::RenderPassDescriptor descriptor{};
 
     // Color targets
     for (u32 i = 0; i < regs.color_target_control.count; i++) {
         descriptor.color_targets[i] = {
-            .texture = GetColorTargetTexture(
-                gmmu, regs.color_target_control.GetMap(i)),
+            .texture =
+                GetColorTargetTexture(regs.color_target_control.GetMap(i)),
         };
     }
 
     // Depth stencil target
     descriptor.depth_stencil_target = {
-        .texture =
-            (regs.depth_target_enabled ? GetDepthStencilTargetTexture(gmmu)
-                                       : nullptr),
+        .texture = (regs.depth_target_enabled ? GetDepthStencilTargetTexture()
+                                              : nullptr),
     };
 
     return RENDERER_INSTANCE.GetRenderPassCache().Find(descriptor);
@@ -594,13 +599,13 @@ renderer::ShaderBase* ThreeD::GetShaderUnchecked(ShaderStage stage) const {
     return active_shaders[u32(to_renderer_shader_type(stage))];
 }
 
-renderer::ShaderBase* ThreeD::GetShader(GMmu& gmmu, ShaderStage stage) {
+renderer::ShaderBase* ThreeD::GetShader(ShaderStage stage) {
     const auto& program = regs.shader_programs[usize(stage)];
     if (!program.config.enable)
         return nullptr;
 
     uptr gpu_addr = u64(regs.shader_program_region) + program.offset;
-    uptr ptr = gmmu.UnmapAddr(gpu_addr);
+    uptr ptr = tls_crnt_gmmu->UnmapAddr(gpu_addr);
 
     renderer::GuestShaderDescriptor descriptor{
         .stage = stage,
@@ -629,15 +634,15 @@ renderer::ShaderBase* ThreeD::GetShader(GMmu& gmmu, ShaderStage stage) {
     return active_shader;
 }
 
-renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
+renderer::PipelineBase* ThreeD::GetPipeline() {
     renderer::PipelineDescriptor descriptor{};
 
     // Shaders
     // TODO: add all shaders
     descriptor.shaders[u32(renderer::ShaderType::Vertex)] =
-        GetShader(gmmu, ShaderStage::VertexB);
+        GetShader(ShaderStage::VertexB);
     descriptor.shaders[u32(renderer::ShaderType::Fragment)] =
-        GetShader(gmmu, ShaderStage::Fragment);
+        GetShader(ShaderStage::Fragment);
 
     // Vertex state
 
@@ -718,8 +723,7 @@ renderer::PipelineBase* ThreeD::GetPipeline(GMmu& gmmu) {
     return RENDERER_INSTANCE.GetPipelineCache().Find(descriptor);
 }
 
-renderer::BufferView ThreeD::GetVertexBuffer(GMmu& gmmu,
-                                             u32 vertex_array_index) const {
+renderer::BufferView ThreeD::GetVertexBuffer(u32 vertex_array_index) const {
     const auto& vertex_array = regs.vertex_arrays[vertex_array_index];
 
     // HACK
@@ -728,15 +732,15 @@ renderer::BufferView ThreeD::GetVertexBuffer(GMmu& gmmu,
         return renderer::BufferView();
     }
 
-    const auto ptr = gmmu.UnmapAddr(vertex_array.addr);
+    const auto ptr = tls_crnt_gmmu->UnmapAddr(vertex_array.addr);
     const auto size = u64(regs.vertex_array_limits[vertex_array_index]) + 1 -
                       u64(vertex_array.addr);
     return RENDERER_INSTANCE.GetBufferCache().Get(
-        Range<uptr>::FromSize(ptr, size));
+        tls_crnt_command_buffer, Range<uptr>::FromSize(ptr, size));
 }
 
 renderer::TextureBase*
-ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
+ThreeD::GetTexture(const TextureImageControl& tic) const {
     // HACK
     if (tic.hdr_version == TicHdrVersion::_1DBuffer) {
         LOG_ERROR(Engines, "1D buffer");
@@ -773,8 +777,8 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
     }
 
     const renderer::TextureDescriptor descriptor(
-        gmmu.UnmapAddr(gpu_addr), ToTextureType(tic.texture_type), format, kind,
-        static_cast<u32>(tic.width_minus_one + 1),
+        tls_crnt_gmmu->UnmapAddr(gpu_addr), ToTextureType(tic.texture_type),
+        format, kind, static_cast<u32>(tic.width_minus_one + 1),
         static_cast<u32>(tic.height_minus_one + 1),
         static_cast<u32>(tic.depth_minus_one + 1),
         tic.tile_height_gobs_log2, // TODO: correct?
@@ -784,7 +788,7 @@ ThreeD::GetTexture(GMmu& gmmu, const TextureImageControl& tic) const {
             tic.format_word.swizzle_z, tic.format_word.swizzle_w));
 
     return RENDERER_INSTANCE.GetTextureCache().Find(
-        descriptor, renderer::TextureUsage::Read);
+        tls_crnt_command_buffer, descriptor, renderer::TextureUsage::Read);
 }
 
 renderer::SamplerBase*
@@ -810,8 +814,7 @@ ThreeD::GetSampler(const TextureSamplerControl& tsc) const {
 }
 
 void ThreeD::ConfigureShaderStage(
-    GMmu& gmmu, const ShaderStage stage,
-    const TextureImageControl* tex_header_pool,
+    const ShaderStage stage, const TextureImageControl* tex_header_pool,
     const TextureSamplerControl* tex_sampler_pool) {
     const auto shader_type = to_renderer_shader_type(stage);
     const u32 stage_index = static_cast<u32>(stage) -
@@ -834,7 +837,8 @@ void ThreeD::ConfigureShaderStage(
             continue;
         }
 
-        const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(range);
+        const auto buffer = RENDERER_INSTANCE.GetBufferCache().Get(
+            tls_crnt_command_buffer, range);
         RENDERER_INSTANCE.BindUniformBuffer(buffer, shader_type, index);
     }
 
@@ -853,7 +857,7 @@ void ThreeD::ConfigureShaderStage(
         // Image
         const auto image_handle = get_image_handle(texture_handle);
         const auto& tic = tex_header_pool[image_handle];
-        const auto texture = GetTexture(gmmu, tic);
+        const auto texture = GetTexture(tic);
 
         // Sampler
         const auto sampler_handle = get_sampler_handle(texture_handle);
@@ -867,9 +871,12 @@ void ThreeD::ConfigureShaderStage(
     }
 }
 
-bool ThreeD::DrawInternal(GMmu& gmmu) {
+bool ThreeD::DrawInternal() {
+    std::lock_guard texture_cache_lock(
+        RENDERER_INSTANCE.GetTextureCache().GetMutex());
+
     // Flush tracked pages
-    gmmu.GetMmu()->FlushTrackedPages();
+    tls_crnt_gmmu->GetMmu()->FlushTrackedPages();
 
     // State
     if (!regs.shader_programs[(u32)ShaderStage::VertexB].config.enable) {
@@ -877,14 +884,14 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
         return false;
     }
 
-    RENDERER_INSTANCE.BindRenderPass(GetRenderPass(gmmu));
+    RENDERER_INSTANCE.BindRenderPass(GetRenderPass());
 
     for (u32 i = 0; i < VIEWPORT_COUNT; i++) {
         RENDERER_INSTANCE.SetViewport(i, GetViewport(i));
         RENDERER_INSTANCE.SetScissor(i, GetScissor(i));
     }
 
-    RENDERER_INSTANCE.BindPipeline(GetPipeline(gmmu));
+    RENDERER_INSTANCE.BindPipeline(GetPipeline());
 
     for (u32 i = 0; i < VERTEX_ARRAY_COUNT; i++) {
         const auto& vertex_array = regs.vertex_arrays[i];
@@ -895,7 +902,7 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
             continue;
         }
 
-        const auto buffer = GetVertexBuffer(gmmu, i);
+        const auto buffer = GetVertexBuffer(i);
         RENDERER_INSTANCE.BindVertexBuffer(buffer, i);
     }
 
@@ -905,14 +912,14 @@ bool ThreeD::DrawInternal(GMmu& gmmu) {
     // TODO: remove the condition
     if (tex_header_pool_gpu_addr != 0x0 && tex_sampler_pool_gpu_addr != 0x0) {
         const auto tex_header_pool = reinterpret_cast<TextureImageControl*>(
-            gmmu.UnmapAddr(tex_header_pool_gpu_addr));
+            tls_crnt_gmmu->UnmapAddr(tex_header_pool_gpu_addr));
         const auto tex_sampler_pool = reinterpret_cast<TextureSamplerControl*>(
-            gmmu.UnmapAddr(tex_sampler_pool_gpu_addr));
+            tls_crnt_gmmu->UnmapAddr(tex_sampler_pool_gpu_addr));
 
         // TODO: configure all stages
-        ConfigureShaderStage(gmmu, ShaderStage::VertexB, tex_header_pool,
+        ConfigureShaderStage(ShaderStage::VertexB, tex_header_pool,
                              tex_sampler_pool);
-        ConfigureShaderStage(gmmu, ShaderStage::Fragment, tex_header_pool,
+        ConfigureShaderStage(ShaderStage::Fragment, tex_header_pool,
                              tex_sampler_pool);
     }
 

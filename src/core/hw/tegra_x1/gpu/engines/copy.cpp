@@ -12,7 +12,7 @@ DEFINE_METHOD_TABLE(Copy, 0xc0, 1, LaunchDMA, LaunchDMAData)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
+void Copy::LaunchDMA(const u32 index, const LaunchDMAData data) {
     // TODO: implement component remapping
     // HACK
     u32 src_stride = regs.src.stride;
@@ -37,8 +37,8 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
         }
     }
 
-    const auto src_ptr = gmmu.UnmapAddr(regs.offset_in);
-    const auto dst_ptr = gmmu.UnmapAddr(regs.offset_out);
+    const auto src_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_in);
+    const auto dst_ptr = tls_crnt_gmmu->UnmapAddr(regs.offset_out);
     if (data.src_memory_layout == MemoryLayout::Pitch) {
         if (data.dst_memory_layout == MemoryLayout::Pitch) {
             for (u32 i = 0; i < regs.line_count; i++)
@@ -80,7 +80,7 @@ void Copy::LaunchDMA(GMmu& gmmu, const u32 index, const LaunchDMAData data) {
 #pragma GCC diagnostic pop
 
 /*
-renderer::BufferBase* Copy::GetBuffer(GMmu& gmmu, const Iova addr, const usize
+renderer::BufferBase* Copy::GetBuffer(const Iova addr, const usize
 size) { const renderer::BufferDescriptor descriptor{ .ptr =
 gmmu.UnmapAddr(addr), .size = size,
     };

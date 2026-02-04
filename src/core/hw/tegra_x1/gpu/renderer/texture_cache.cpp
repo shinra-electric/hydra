@@ -19,7 +19,8 @@ TextureCache::~TextureCache() {
     }
 }
 
-TextureBase* TextureCache::Find(const TextureDescriptor& descriptor,
+TextureBase* TextureCache::Find(ICommandBuffer* command_buffer,
+                                const TextureDescriptor& descriptor,
                                 TextureUsage usage) {
     const auto range = descriptor.GetRange();
 
@@ -30,7 +31,7 @@ TextureBase* TextureCache::Find(const TextureDescriptor& descriptor,
         auto& prev_mem = prev->second;
         if (prev_mem.range.GetEnd() >= range.GetEnd()) {
             // Fully contained
-            return AddToMemory(prev_mem, descriptor, usage);
+            return AddToMemory(command_buffer, prev_mem, descriptor, usage);
         }
     }
 
@@ -58,7 +59,8 @@ TextureBase* TextureCache::Find(const TextureDescriptor& descriptor,
 
     // Insert merged interval
     auto inserted = entries.emplace(mem.range.GetBegin(), mem);
-    return AddToMemory(inserted.first->second, descriptor, usage);
+    return AddToMemory(command_buffer, inserted.first->second, descriptor,
+                       usage);
 }
 
 void TextureCache::InvalidateMemory(Range<uptr> range) {
@@ -103,7 +105,8 @@ TextureMem TextureCache::MergeMemories(const TextureMem& a,
     return res;
 }
 
-TextureBase* TextureCache::AddToMemory(TextureMem& mem,
+TextureBase* TextureCache::AddToMemory(ICommandBuffer* command_buffer,
+                                       TextureMem& mem,
                                        const TextureDescriptor& descriptor,
                                        TextureUsage usage) {
     const auto range = descriptor.GetRange();
@@ -114,7 +117,7 @@ TextureBase* TextureCache::AddToMemory(TextureMem& mem,
     if (!sparse_tex_opt.has_value()) {
         auto& sparse_tex = mem.cache.Add(descriptor.GetHash());
         auto& group = sparse_tex.cache.Add(descriptor.ptr);
-        return GetTexture(group, mem, descriptor, usage);
+        return GetTexture(command_buffer, group, mem, descriptor, usage);
     }
 
     auto& sparse_tex = **sparse_tex_opt;
@@ -124,7 +127,7 @@ TextureBase* TextureCache::AddToMemory(TextureMem& mem,
     if (group_opt) {
         auto& group = **group_opt;
         if (group.base->GetDescriptor().GetRange().Contains(range))
-            return GetTexture(group, mem, descriptor, usage);
+            return GetTexture(command_buffer, group, mem, descriptor, usage);
         else
             sparse_tex.cache.Remove(descriptor.ptr);
     }
@@ -147,7 +150,7 @@ TextureBase* TextureCache::AddToMemory(TextureMem& mem,
 
     // HACK: create a new texture
     auto& group = sparse_tex.cache.Add(descriptor.ptr);
-    return GetTexture(group, mem, descriptor, usage);
+    return GetTexture(command_buffer, group, mem, descriptor, usage);
 
     /*
     // Create a new entry and merge it with others
@@ -223,13 +226,14 @@ TextureBase* TextureCache::AddToMemory(TextureMem& mem,
     */
 }
 
-TextureBase* TextureCache::GetTexture(TextureGroup& group, TextureMem& mem,
+TextureBase* TextureCache::GetTexture(ICommandBuffer* command_buffer,
+                                      TextureGroup& group, TextureMem& mem,
                                       const TextureDescriptor& descriptor,
                                       TextureUsage usage) {
     if (!group.base)
-        Create(descriptor, group);
+        Create(command_buffer, descriptor, group);
 
-    Update(group, mem, usage);
+    Update(command_buffer, group, mem, usage);
 
     // If the formats match and swizzle is the default swizzle,
     // return base
@@ -257,17 +261,18 @@ TextureCache::GetTextureView(TextureGroup& group,
     return view;
 }
 
-void TextureCache::Create(const TextureDescriptor& descriptor,
+void TextureCache::Create(ICommandBuffer* command_buffer,
+                          const TextureDescriptor& descriptor,
                           TextureGroup& group) {
     auto desc = descriptor;
     desc.swizzle_channels =
         get_texture_format_default_swizzle_channels(desc.format);
     group.base = RENDERER_INSTANCE.CreateTexture(desc);
-    DecodeTexture(group);
+    DecodeTexture(command_buffer, group);
 }
 
-void TextureCache::Update(TextureGroup& group, TextureMem& mem,
-                          TextureUsage usage) {
+void TextureCache::Update(ICommandBuffer* command_buffer, TextureGroup& group,
+                          TextureMem& mem, TextureUsage usage) {
     bool sync = false;
     if (group.update_timestamp < mem.info.modified_timestamp) {
         // If modified by the guest
@@ -311,7 +316,8 @@ void TextureCache::Update(TextureGroup& group, TextureMem& mem,
                         static_cast<u32>(copy_range.GetSize() / layer_size);
 
                     // TODO: make sure the formats match
-                    base->CopyFrom(other_base, uint3({0, 0, src_layer}),
+                    base->CopyFrom(command_buffer, other_base,
+                                   uint3({0, 0, src_layer}),
                                    uint3({0, 0, dst_layer}),
                                    usize3({descriptor.width, descriptor.height,
                                            layer_count}));
@@ -331,7 +337,7 @@ void TextureCache::Update(TextureGroup& group, TextureMem& mem,
     }
 
     if (sync)
-        DecodeTexture(group);
+        DecodeTexture(command_buffer, group);
 
     if (usage == TextureUsage::Read)
         mem.info.MarkRead();
@@ -356,14 +362,15 @@ u32 TextureCache::GetDataHash(const TextureBase* texture) {
     return hash.ToHashCode();
 }
 
-void TextureCache::DecodeTexture(TextureGroup& group) {
+void TextureCache::DecodeTexture(ICommandBuffer* command_buffer,
+                                 TextureGroup& group) {
     const auto& descriptor = group.base->GetDescriptor();
 
     // Align the height to 16 bytes (TODO: why 16?)
     auto tmp_buffer = RENDERER_INSTANCE.AllocateTemporaryBuffer(
         descriptor.depth * align(descriptor.height, 16u) * descriptor.stride);
     texture_decoder.Decode(descriptor, (u8*)tmp_buffer->GetPtr());
-    group.base->CopyFrom(tmp_buffer);
+    group.base->CopyFrom(command_buffer, tmp_buffer);
     RENDERER_INSTANCE.FreeTemporaryBuffer(tmp_buffer);
 }
 

@@ -96,7 +96,8 @@ IndexCache::~IndexCache() {
         RENDERER_INSTANCE.FreeTemporaryBuffer(index_buffer);
 }
 
-BufferView IndexCache::Decode(const IndexDescriptor& descriptor,
+BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
+                              const IndexDescriptor& descriptor,
                               engines::IndexType& out_type,
                               engines::PrimitiveType& out_primitive_type,
                               u32& out_count) {
@@ -118,7 +119,7 @@ BufferView IndexCache::Decode(const IndexDescriptor& descriptor,
         } else {                                                               \
             if (descriptor.mem_range)                                          \
                 return RENDERER_INSTANCE.GetBufferCache().Get(                 \
-                    *descriptor.mem_range);                                    \
+                    command_buffer, *descriptor.mem_range);                    \
             else                                                               \
                 return BufferView();                                           \
         }                                                                      \

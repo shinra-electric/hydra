@@ -1,6 +1,7 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/buffer.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/maxwell_to_mtl.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 
@@ -89,11 +90,13 @@ void Texture::CopyFrom(const uptr data) {
                            0, reinterpret_cast<void*>(data), descriptor.stride);
 }
 
-void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
-                       uint3 dst_origin, usize3 size) {
+void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
+                       const usize src_stride, uint3 dst_origin, usize3 size) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Buffer*>(src)->GetBuffer();
 
-    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
     u32 dst_layer = 0;
     u32 layer_count = 1;
@@ -115,11 +118,13 @@ void Texture::CopyFrom(const BufferBase* src, const usize src_stride,
     }
 }
 
-void Texture::CopyFrom(const TextureBase* src, uint3 src_origin,
-                       uint3 dst_origin, usize3 size) {
+void Texture::CopyFrom(ICommandBuffer* command_buffer, const TextureBase* src,
+                       uint3 src_origin, uint3 dst_origin, usize3 size) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     const auto mtl_src = static_cast<const Texture*>(src)->GetTexture();
 
-    auto encoder = METAL_RENDERER_INSTANCE.GetBlitCommandEncoder();
+    auto encoder = command_buffer_impl->GetBlitCommandEncoder();
 
     u32 src_layer = 0;
     u32 dst_layer = 0;
@@ -149,12 +154,14 @@ void Texture::CopyFrom(const TextureBase* src, uint3 src_origin,
     }
 }
 
-void Texture::BlitFrom(const TextureBase* src, const float3 src_origin,
-                       const usize3 src_size, const float3 dst_origin,
-                       const usize3 dst_size) {
+void Texture::BlitFrom(ICommandBuffer* command_buffer, const TextureBase* src,
+                       const float3 src_origin, const usize3 src_size,
+                       const float3 dst_origin, const usize3 dst_size) {
+    const auto command_buffer_impl =
+        static_cast<CommandBuffer*>(command_buffer);
     METAL_RENDERER_INSTANCE.BlitTexture(
-        static_cast<const Texture*>(src)->GetTexture(), src_origin, src_size,
-        texture, 0, dst_origin, dst_size);
+        command_buffer_impl, static_cast<const Texture*>(src)->GetTexture(),
+        src_origin, src_size, texture, 0, dst_origin, dst_size);
 }
 
 MTL::Texture* Texture::CreateViewImpl(TextureFormat format,

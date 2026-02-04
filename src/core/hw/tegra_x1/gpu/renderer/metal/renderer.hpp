@@ -12,18 +12,12 @@
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
+class CommandBuffer;
 class Buffer;
 class Texture;
 class Sampler;
 class RenderPass;
 class Pipeline;
-
-enum class EncoderType {
-    None,
-    Render,
-    Compute,
-    Blit,
-};
 
 struct CombinedTextureSampler {
     const Texture* texture{nullptr};
@@ -45,32 +39,6 @@ struct State {
                usize(ShaderType::Count)>
         textures{};
     // TODO: images
-};
-
-struct MtlBufferState {
-    MTL::Buffer* buffer{nullptr};
-    u64 offset{0};
-};
-
-struct EncoderRenderState {
-    MTL::RenderPipelineState* pipeline{nullptr};
-    MTL::DepthStencilState* depth_stencil_state{nullptr};
-    MTL::CullMode cull_mode{MTL::CullModeNone};
-    MTL::Winding front_face_winding{MTL::WindingClockwise};
-    std::array<std::array<MtlBufferState, BUFFER_COUNT>,
-               usize(ShaderType::Count)>
-        buffers{};
-    std::array<std::array<MTL::Texture*, TEXTURE_COUNT>,
-               usize(ShaderType::Count)>
-        textures{};
-    std::array<std::array<MTL::SamplerState*, TEXTURE_COUNT>,
-               usize(ShaderType::Count)>
-        samplers{};
-};
-
-struct EncoderState {
-    MTL::RenderPassDescriptor* render_pass{nullptr};
-    EncoderRenderState render{};
 };
 
 class Renderer : public RendererBase {
@@ -96,7 +64,7 @@ class Renderer : public RendererBase {
     SamplerBase* CreateSampler(const SamplerDescriptor& descriptor) override;
 
     // Command buffer
-    void EndCommandBuffer() override;
+    ICommandBuffer* CreateCommandBuffer() override;
 
     // Render pass
     RenderPassBase*
@@ -104,10 +72,12 @@ class Renderer : public RendererBase {
     void BindRenderPass(const RenderPassBase* render_pass) override;
 
     // Clear
-    void ClearColor(u32 render_target_id, u32 layer, u8 mask,
-                    const uint4 color) override;
-    void ClearDepth(u32 layer, const float value) override;
-    void ClearStencil(u32 layer, const u32 value) override;
+    void ClearColor(ICommandBuffer* command_buffer, u32 render_target_id,
+                    u32 layer, u8 mask, const uint4 color) override;
+    void ClearDepth(ICommandBuffer* command_buffer, u32 layer,
+                    const float value) override;
+    void ClearStencil(ICommandBuffer* command_buffer, u32 layer,
+                      const u32 value) override;
 
     // Viewport and scissor
     void SetViewport(u32 index, const Viewport& viewport) override;
@@ -134,71 +104,33 @@ class Renderer : public RendererBase {
     void UnbindTextures(ShaderType shader_type) override;
 
     // Draw
-    void Draw(const engines::PrimitiveType primitive_type, const u32 start,
+    void Draw(ICommandBuffer* command_buffer,
+              const engines::PrimitiveType primitive_type, const u32 start,
               const u32 count, const u32 base_instance,
               const u32 instance_count) override;
-    void DrawIndexed(const engines::PrimitiveType primitive_type,
+    void DrawIndexed(ICommandBuffer* command_buffer,
+                     const engines::PrimitiveType primitive_type,
                      const u32 start, const u32 count, const u32 base_vertex,
                      const u32 base_instance,
                      const u32 instance_count) override;
 
     // Helpers
-
-    // Command buffer
-    void EnsureCommandBuffer();
-
-    void CommitCommandBuffer() {
-        if (command_buffer) {
-            EndEncoding();
-
-            command_buffer->commit();
-            // HACK: wait until completed so as to avoid sync issues
-            command_buffer->waitUntilCompleted();
-            command_buffer->release();
-            command_buffer = nullptr;
-        }
-    }
-
-    MTL::RenderCommandEncoder* GetRenderCommandEncoderUnchecked() {
-        ASSERT_DEBUG(encoder_type == EncoderType::Render, MetalRenderer,
-                     "Render command encoder not active");
-        return static_cast<MTL::RenderCommandEncoder*>(command_encoder);
-    }
-    MTL::RenderCommandEncoder* GetRenderCommandEncoder();
-    MTL::RenderCommandEncoder* CreateRenderCommandEncoder(
-        MTL::RenderPassDescriptor* render_pass_descriptor);
-
-    MTL::BlitCommandEncoder* GetBlitCommandEncoderUnchecked() {
-        ASSERT_DEBUG(encoder_type == EncoderType::Blit, MetalRenderer,
-                     "Blit command encoder not active");
-        return static_cast<MTL::BlitCommandEncoder*>(command_encoder);
-    }
-    MTL::BlitCommandEncoder* GetBlitCommandEncoder();
-
-    void EndEncoding();
+    MTL::RenderCommandEncoder*
+    GetRenderCommandEncoder(CommandBuffer* command_buffer);
 
     // Encoder state setting
-    void SetRenderPipelineState(MTL::RenderPipelineState* pipeline);
-    void SetRenderPipelineState();
-    void SetDepthStencilState(MTL::DepthStencilState* depth_stencil_state);
-    void SetDepthStencilState();
-    void SetCullMode(MTL::CullMode cull_mode);
-    void SetFrontFaceWinding(MTL::Winding front_face_winding);
-    void SetCullState();
-    void SetBuffer(MTL::Buffer* buffer, u64 offset, ShaderType shader_type,
-                   u32 index);
-    void SetVertexBuffer(u32 index);
-    void SetUniformBuffer(ShaderType shader_type, u32 index);
-    void SetTexture(MTL::Texture* texture, ShaderType shader_type, u32 index);
-    void SetSampler(MTL::SamplerState* sampler, ShaderType shader_type,
+    void SetRenderPipelineState(CommandBuffer* command_buffer);
+    void SetDepthStencilState(CommandBuffer* command_buffer);
+    void SetVertexBuffer(CommandBuffer* command_buffer, u32 index);
+    void SetUniformBuffer(CommandBuffer* command_buffer, ShaderType shader_type,
+                          u32 index);
+    void SetTexture(CommandBuffer* command_buffer, ShaderType shader_type,
                     u32 index);
-    void SetTexture(ShaderType shader_type, u32 index);
 
-    // Other
-    void BlitTexture(MTL::Texture* src, const float3 src_origin,
-                     const usize3 src_size, MTL::Texture* dst,
-                     const u32 dst_layer, const float3 dst_origin,
-                     const usize3 dst_size);
+    void BlitTexture(CommandBuffer* command_buffer, MTL::Texture* src,
+                     const float3 src_origin, const usize3 src_size,
+                     MTL::Texture* dst, const u32 dst_layer,
+                     const float3 dst_origin, const usize3 dst_size);
 
   protected:
     // Capture
@@ -230,21 +162,15 @@ class Renderer : public RendererBase {
     // Null
     MTL::Texture* null_texture;
 
-    // Command buffer
-    MTL::CommandBuffer* command_buffer{nullptr};
-    MTL::CommandEncoder* command_encoder{nullptr};
-    EncoderType encoder_type{EncoderType::None};
-
     // State
     State state;
     [[maybe_unused]] u32
         padding[0x100]; // HACK: for some reason, writing to some fields of the
                         // encoder_state corrupts the state
-    EncoderState encoder_state;
 
     // Helpers
     bool CanDraw();
-    void BindDrawState();
+    void BindDrawState(CommandBuffer* command_buffer);
 
   public:
     GETTER(device, GetDevice);
