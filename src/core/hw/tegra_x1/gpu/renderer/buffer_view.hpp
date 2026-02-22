@@ -23,14 +23,15 @@ struct BufferView {
             size_ = size - offset;
         base->CopyFrom(data, offset, size_);
     }
-    void CopyFrom(const BufferView& src, u64 size_ = invalid<u64>()) {
+    void CopyFrom(ICommandBuffer* command_buffer, const BufferView& src,
+                  u64 size_ = invalid<u64>()) {
         if (size_ == invalid<u64>())
             size_ = std::min(src.size - src.offset, size - offset);
-        base->CopyFrom(src.base, offset, src.offset, size_);
+        base->CopyFrom(command_buffer, src.base, offset, src.offset, size_);
     }
-    void CopyFrom(TextureBase* src, const uint3 src_origin,
-                  const uint3 src_size) {
-        base->CopyFrom(src, src_origin, src_size, offset);
+    void CopyFrom(ICommandBuffer* command_buffer, TextureBase* src,
+                  const uint3 src_origin, const uint3 src_size) {
+        base->CopyFrom(command_buffer, src, src_origin, src_size, offset);
     }
 
   protected:

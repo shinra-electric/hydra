@@ -6,7 +6,6 @@ struct MenuCommands: Commands {
     @Binding var globalState: GlobalState
 
     @State private var firmwareApplets: [Game] = []
-    @State private var handheldMode = false
 
     var body: some Commands {
         CommandGroup(after: .newItem) {
@@ -44,18 +43,10 @@ struct MenuCommands: Commands {
             Button("Stop") {
                 globalState.isStopping = true
             }
-            Button("Switch to \(self.handheldMode ? "Console" : "Handheld") mode") {
-                self.handheldMode = !self.handheldMode
-                hydraConfigGetHandheldMode().pointee = self.handheldMode
-                hydraConfigSerialize()
-
-                guard let emulationContext = globalState.emulationContext else { return }
-                emulationContext.notifyOperationModeChanged()
+            Button("Switch modes") {
+                globalState.isHandheldMode.toggle()
             }
             .keyboardShortcut(KeyEquivalent("o"), modifiers: .command)
-            .onAppear {
-                self.handheldMode = hydraConfigGetHandheldMode().pointee
-            }
         }
 
         CommandMenu("Debug") {

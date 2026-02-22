@@ -1,51 +1,36 @@
 #include "core/hw/tegra_x1/gpu/renderer/metal/surface_compositor.hpp"
 
 #include "core/hw/tegra_x1/gpu/renderer/metal/blit_pipeline_cache.hpp"
+#include "core/hw/tegra_x1/gpu/renderer/metal/command_buffer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/renderer.hpp"
 #include "core/hw/tegra_x1/gpu/renderer/metal/texture.hpp"
 
 namespace hydra::hw::tegra_x1::gpu::renderer::metal {
 
-SurfaceCompositor::SurfaceCompositor(CA::MetalDrawable* drawable_,
-                                     MTL::CommandQueue* command_queue)
+SurfaceCompositor::SurfaceCompositor(CA::MetalDrawable* drawable_)
     : drawable{drawable_} {
-    TMP_AUTORELEASE_POOL_BEGIN();
-
-    // Command buffer
-    command_buffer = command_queue->commandBuffer()->retain();
-
-    // Encoder
-    NS_STACK_SCOPED auto render_pass_descriptor =
-        MTL::RenderPassDescriptor::alloc()->init();
+    // Render pass
+    render_pass_descriptor = MTL::RenderPassDescriptor::alloc()->init();
     auto color_attachment =
         render_pass_descriptor->colorAttachments()->object(0);
     color_attachment->setTexture(drawable->texture());
     color_attachment->setLoadAction(MTL::LoadActionClear);
     color_attachment->setClearColor(MTL::ClearColor::Make(0.0, 0.0, 0.0, 1.0));
     color_attachment->setStoreAction(MTL::StoreActionStore);
-
-    encoder =
-        command_buffer->renderCommandEncoder(render_pass_descriptor)->retain();
-
-    TMP_AUTORELEASE_POOL_END();
 }
 
-SurfaceCompositor::~SurfaceCompositor() {
-    // Encoder
-    encoder->endEncoding();
-    encoder->release();
+SurfaceCompositor::~SurfaceCompositor() { render_pass_descriptor->release(); }
 
-    // Command buffer
-    command_buffer->presentDrawable(drawable);
-    command_buffer->commit();
-    command_buffer->release();
-}
-
-void SurfaceCompositor::DrawTexture(const TextureBase* texture,
+void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
+                                    const TextureBase* texture,
                                     const FloatRect2D src_rect,
                                     const FloatRect2D dst_rect,
                                     bool transparent, f32 opacity) {
+    auto command_buffer_impl = static_cast<CommandBuffer*>(command_buffer);
     auto texture_impl = static_cast<const Texture*>(texture);
+
+    auto encoder =
+        command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
 
     // Draw
     encoder->setRenderPipelineState(
@@ -75,6 +60,14 @@ void SurfaceCompositor::DrawTexture(const TextureBase* texture,
                                      NS::UInteger(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle, NS::UInteger(0),
                             NS::UInteger(3));
+}
+
+void SurfaceCompositor::Present(ICommandBuffer* command_buffer) {
+    auto command_buffer_impl = static_cast<CommandBuffer*>(command_buffer);
+
+    command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
+    command_buffer_impl->EndEncoding();
+    command_buffer_impl->GetCommandBuffer()->presentDrawable(drawable);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

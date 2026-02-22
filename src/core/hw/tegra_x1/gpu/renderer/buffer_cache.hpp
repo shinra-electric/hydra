@@ -21,7 +21,7 @@ class BufferCache {
   public:
     ~BufferCache();
 
-    BufferView Get(Range<uptr> range);
+    BufferView Get(ICommandBuffer* command_buffer, Range<uptr> range);
 
     void InvalidateMemory(Range<uptr> range);
 
@@ -29,7 +29,8 @@ class BufferCache {
     std::map<uptr, BufferEntry> entries;
 
     // Helpers
-    static void UpdateRange(BufferEntry& entry, Range<uptr> range);
+    static void UpdateRange(ICommandBuffer* command_buffer, BufferEntry& entry,
+                            Range<uptr> range);
     BufferEntry& Find(Range<uptr> range);
 };
 
