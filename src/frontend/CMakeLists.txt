@@ -4,11 +4,10 @@ set(NATIVE_SOURCE_FILES
     native/cocoa/native.mm
 )
 
-set(CMAKE_OSX_DEPLOYMENT_TARGET 14.4)
-set(MACOSX_MINIMUM_SYSTEM_VERSION "14.4")
-
 if (FRONTEND STREQUAL "SDL3")
     message(STATUS "Using SDL3 frontend")
+
+    set(MACOS_VERSION 14.4)
 
     find_package(SDL3 CONFIG REQUIRED)
 
@@ -24,6 +23,9 @@ if (FRONTEND STREQUAL "SDL3")
     target_link_libraries(hydra PRIVATE hydra_warnings SDL3::SDL3 "-framework Cocoa")
 elseif (FRONTEND STREQUAL "SwiftUI")
     message(STATUS "Using SwiftUI frontend")
+
+    set(MACOS_VERSION 15.0)
+
     set(SWIFT_BUILD_TYPE_CONDITION "$<UPPER_CASE:$<CONFIG>>")
 
     add_executable(hydra
@@ -85,6 +87,17 @@ elseif (FRONTEND STREQUAL "SwiftUI")
     target_compile_options(hydra PRIVATE -import-objc-header ${CMAKE_SOURCE_DIR}/src/core/c_api.h)
 else ()
     message(FATAL_ERROR "Unknown frontend \"${FRONTEND}\". Valid options are \"SDL3\" and \"SwiftUI\".")
+endif ()
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOS_VERSION})
+set(MACOSX_MINIMUM_SYSTEM_VERSION "${MACOS_VERSION}")
+
+# Manually set Swift target on macOS
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    # TODO: what about universal binaries?
+    list(GET TARGET_ARCHS 0 TARGET_ARCH)
+
+    set(CMAKE_Swift_FLAGS "-target ${TARGET_ARCH}-apple-macosx${MACOS_VERSION}")
 endif ()
 
 target_link_libraries(hydra PRIVATE hydra-common hydra-core)
