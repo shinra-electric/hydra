@@ -159,9 +159,6 @@ class Renderer : public RendererBase {
     ClearColorPipelineCache* clear_color_pipeline_cache;
     ClearDepthPipelineCache* clear_depth_pipeline_cache;
 
-    // Null
-    MTL::Texture* null_texture;
-
     // State
     State state;
     [[maybe_unused]] u32

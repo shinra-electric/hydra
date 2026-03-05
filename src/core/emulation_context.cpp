@@ -271,17 +271,33 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
     os->SetLibraryAppletSelfController(controller);
 
     // Loading screen assets
+    hw::tegra_x1::gpu::renderer::ICommandBuffer* command_buffer = nullptr;
+
     {
         u32 width, height;
         if (auto data = loader->LoadNintendoLogo(width, height)) {
+            // Create texture
+            const u32 stride = width * 4;
+            const u32 size = height * stride;
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
                 hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
-                width * 4);
+                stride);
             nintendo_logo = gpu->GetRenderer().CreateTexture(descriptor);
-            nintendo_logo->CopyFrom(reinterpret_cast<uptr>(data));
+
+            // Command buffer
+            command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+
+            // Copy data
+            auto tmp_buffer = gpu->GetRenderer().AllocateTemporaryBuffer(size);
+            std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()), data,
+                        size);
             free(data);
+            nintendo_logo->CopyFrom(command_buffer, tmp_buffer, stride,
+                                    uint3({0, 0, 0}),
+                                    usize3({width, height, 1}));
+            gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
         }
     }
     {
@@ -289,16 +305,31 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
         u32 frame_count;
         if (auto data = loader->LoadStartupMovie(startup_movie_delays, width,
                                                  height, frame_count)) {
+            const u32 stride = width * 4;
+            const u32 size = height * stride;
             hw::tegra_x1::gpu::renderer::TextureDescriptor descriptor(
                 0x0, hw::tegra_x1::gpu::renderer::TextureType::_2D,
                 hw::tegra_x1::gpu::renderer::TextureFormat::RGBA8Unorm,
                 hw::tegra_x1::gpu::NvKind::Generic_16BX2, width, height, 1, 0x0,
-                width * 4);
+                stride);
             startup_movie.reserve(frame_count);
+
+            // Command buffer
+            if (!command_buffer)
+                command_buffer = gpu->GetRenderer().CreateCommandBuffer();
+
             for (u32 i = 0; i < frame_count; i++) {
+                // Create texture
                 auto frame = gpu->GetRenderer().CreateTexture(descriptor);
-                frame->CopyFrom(
-                    reinterpret_cast<uptr>(data + i * height * width));
+
+                // Copy data
+                auto tmp_buffer =
+                    gpu->GetRenderer().AllocateTemporaryBuffer(size);
+                std::memcpy(reinterpret_cast<void*>(tmp_buffer->GetPtr()),
+                            data + i * height * width, size);
+                frame->CopyFrom(command_buffer, tmp_buffer, stride,
+                                uint3({0, 0, 0}), usize3({width, height, 1}));
+                gpu->GetRenderer().FreeTemporaryBuffer(tmp_buffer);
                 startup_movie.push_back(frame);
             }
             free(data);
@@ -307,6 +338,9 @@ void EmulationContext::LoadAndStart(horizon::loader::LoaderBase* loader) {
             startup_movie_delays.back() = 5s;
         }
     }
+
+    if (command_buffer)
+        delete command_buffer;
 
     LOG_INFO(Other, "-------- Title info --------");
     LOG_INFO(Other, "Title ID: {:016x}", loader->GetTitleID());

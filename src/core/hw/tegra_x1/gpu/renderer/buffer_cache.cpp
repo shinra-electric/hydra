@@ -19,6 +19,9 @@ BufferView BufferCache::Get(ICommandBuffer* command_buffer, Range<uptr> range) {
             const auto invalidation_range = entry.invalidation_range.value();
             UpdateRange(command_buffer, entry, invalidation_range);
             entry.invalidation_range = std::nullopt;
+        } else if (CONFIG_INSTANCE.GetCpuBackend() == CpuBackend::Dynarmic) {
+            // HACK: force update all buffers on dynarmic
+            UpdateRange(command_buffer, entry, entry.range);
         }
     } else {
         // Create new buffer

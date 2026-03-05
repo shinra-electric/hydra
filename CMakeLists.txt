@@ -5,13 +5,26 @@ include(FetchContent)
 
 project(hydra VERSION 0.4.0 LANGUAGES CXX)
 
+if (CMAKE_OSX_ARCHITECTURES)
+    set(TARGET_ARCHS "${CMAKE_OSX_ARCHITECTURES}")
+else ()
+    set(TARGET_ARCHS "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+endif ()
+
 option(CUBEB_ENABLED "Enable the cubeb audio backend" ON)
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if (TARGET_ARCHS MATCHES "arm64")
+        option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
+    else ()
+        set(HYPERVISOR_ENABLED OFF)
+    endif ()
+    set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(HYPERVISOR_ENABLED OFF)
     set(FRONTEND "SwiftUI")
 else ()
-    option(HYPERVISOR_ENABLED "Enable the Hypervisor CPU backend" ON)
-    set(FRONTEND "SDL3" CACHE STRING "Choose which frontend to use.")
+    set(HYPERVISOR_ENABLED OFF)
+    set(FRONTEND "SDL3")
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -108,7 +121,7 @@ add_subdirectory(externals/nx2elf)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 add_library(hydra_warnings INTERFACE)
-target_compile_options(hydra_warnings INTERFACE -Wall -Wextra -Wconversion -Wsign-conversion -Wno-vla-cxx-extension)
+target_compile_options(hydra_warnings INTERFACE -Wall -Wextra -Wconversion -Wsign-conversion -Wno-vla-extension)
 
 include_directories(externals/metal-cpp externals/dynarmic externals/stb)
 

@@ -15,6 +15,7 @@ Texture::Texture(const TextureDescriptor& descriptor)
     desc->setTextureType(type);
     desc->setWidth(descriptor.width);
     desc->setHeight(descriptor.height);
+    desc->setStorageMode(MTL::StorageModePrivate);
 
     switch (descriptor.type) {
     case TextureType::_1DArray:
@@ -82,12 +83,6 @@ TextureBase* Texture::CreateView(const TextureViewDescriptor& descriptor) {
 
     return new Texture(
         desc, CreateViewImpl(descriptor.format, descriptor.swizzle_channels));
-}
-
-void Texture::CopyFrom(const uptr data) {
-    texture->replaceRegion(MTL::Region(0, 0, 0, descriptor.width,
-                                       descriptor.height, descriptor.depth),
-                           0, reinterpret_cast<void*>(data), descriptor.stride);
 }
 
 void Texture::CopyFrom(ICommandBuffer* command_buffer, const BufferBase* src,
