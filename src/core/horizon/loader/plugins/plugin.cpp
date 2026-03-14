@@ -200,9 +200,9 @@ void Plugin::CreateContext(const std::map<std::string, std::string>& options) {
     }
     const auto ret =
         create_context(api::Slice(std::span<const api::Option>(options_vec)));
-    if (ret.res != api::CreateContextResult::Success) {
-        throw ret.res;
-    }
+    ASSERT_THROWING(ret.res == api::CreateContextResult::Success, Loader,
+                    ContextError::CreationFailed,
+                    "Failed to create context ({})", ret.res);
 
     context = ret.value;
     ASSERT_THROWING(context, Loader, ContextError::CreationFailed,
