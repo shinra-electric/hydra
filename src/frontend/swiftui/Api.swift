@@ -298,6 +298,10 @@ func hydraConfigGetAppDataPath() -> String {
     String(withHydraString: hydra_config_get_app_data_path())
 }
 
+func hydraConfigGetLogsPath() -> String {
+    String(withHydraString: hydra_config_get_logs_path())
+}
+
 func hydraConfigGetGamePaths() -> HydraStringList {
     HydraStringList(handle: hydra_config_get_game_paths())
 }

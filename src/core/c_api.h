@@ -169,6 +169,7 @@ void hydra_config_serialize();
 void hydra_config_deserialize();
 
 hydra_string hydra_config_get_app_data_path();
+hydra_string hydra_config_get_logs_path();
 
 void* hydra_config_get_game_paths();
 void* hydra_config_get_loader_plugins();

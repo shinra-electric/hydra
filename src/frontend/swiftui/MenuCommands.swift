@@ -29,6 +29,16 @@ struct MenuCommands: Commands {
             .onDisappear {
                 self.firmwareApplets.removeAll()
             }
+
+            Divider()
+
+            Button("Open Hydra folder") {
+                NSWorkspace.shared.open(URL(fileURLWithPath: hydraConfigGetAppDataPath()))
+            }
+
+            Button("Open Logs folder") {
+                NSWorkspace.shared.open(URL(fileURLWithPath: hydraConfigGetLogsPath()))
+            }
         }
 
         CommandGroup(after: .sidebar) {
