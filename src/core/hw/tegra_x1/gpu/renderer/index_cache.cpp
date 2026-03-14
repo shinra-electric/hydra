@@ -174,9 +174,9 @@ BufferView IndexCache::Decode(ICommandBuffer* command_buffer,
     decode_u8_indices(in_ptr, out_ptr, descriptor.count);
 
     if (descriptor.mem_range) {
-        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
-    } else {
         PRIMITIVE_TYPE_SWITCH(DECODE_MACRO, DECODE_MACRO_U8_INDEX)
+    } else {
+        PRIMITIVE_TYPE_SWITCH(DECODE_MACRO_AUTO, DECODE_MACRO_AUTO_U8_INDEX)
     }
 
     return BufferView(index_buffer);
