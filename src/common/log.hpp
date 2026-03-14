@@ -2,6 +2,7 @@
 
 #include <mutex>
 
+#include <fmt/chrono.h>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
@@ -206,7 +207,7 @@ class Logger {
             switch (output) {
             case LogOutput::None:
                 break;
-            case LogOutput::StdOut:
+            case LogOutput::StdOut: {
                 // Level
                 fmt::terminal_color color;
                 switch (level) {
@@ -231,22 +232,46 @@ class Logger {
                 }
 
                 // Debug info
-                fmt::print(fg(color), "{:016x} |{}| {:>17} {:>24} in {:>48}: ",
-                           std::bit_cast<u64>(std::this_thread::get_id()),
-                           level, c, function,
-                           fmt::format("{}:{}", file, line));
+                fmt::print(
+                    fmt::fg(color), "{:016x} |{}| {:>17} {:>24} in {:>48}: ",
+                    std::bit_cast<u64>(std::this_thread::get_id()), level, c,
+                    function, fmt::format("{}:{}", file, line));
 
                 // Message
                 fmt::print(f, std::forward<T>(args)...);
                 fmt::print("\n");
                 break;
-            case LogOutput::File:
+            }
+            case LogOutput::File: {
                 EnsureOutputStream();
 
-                fmt::print(*ofs, "TODO(TIME) |{}| {:>17}: ", level, c);
+                // Debug info
+                const auto crnt_time = clock_t::now();
+                const auto diff = crnt_time - start_time;
+
+                using namespace std::chrono;
+                auto ms = duration_cast<milliseconds>(diff);
+
+                const auto h = duration_cast<hours>(ms);
+                ms -= h;
+                const auto m = duration_cast<minutes>(ms);
+                ms -= m;
+                const auto s = duration_cast<seconds>(ms);
+                ms -= s;
+
+                fmt::print(*ofs,
+                           "{:02}:{:02}:{:02}.{:03} |{}| {:>17}: ", h.count(),
+                           m.count(), s.count(), ms.count(), level, c);
+
+                // Message
                 fmt::print(*ofs, f, std::forward<T>(args)...);
                 fmt::print(*ofs, "\n");
+
+                if (level >= LogLevel::Error)
+                    ofs->flush();
+
                 break;
+            }
             default:
                 throw std::runtime_error("Invalid logging output");
                 break;
@@ -267,11 +292,15 @@ class Logger {
     }
 
   private:
+    typedef std::chrono::high_resolution_clock clock_t;
+
     std::mutex mutex;
     std::ofstream* ofs{nullptr};
 
     std::optional<log_callback_fn_t> callback{};
     LogOutput output{LogOutput::StdOut};
+
+    clock_t::time_point start_time{};
 
     void EnsureOutputStream();
 };

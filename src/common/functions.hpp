@@ -9,7 +9,7 @@
 #include <string>
 #include <sys/mman.h>
 
-#include "common/type_aliases.hpp"
+#include "common/log.hpp"
 
 namespace hydra {
 
