@@ -11,6 +11,8 @@ CommandBuffer::CommandBuffer(MTL::CommandQueue* command_queue) {
 CommandBuffer::~CommandBuffer() {
     EndEncoding();
     command_buffer->commit();
+    // HACK: wait until completed
+    command_buffer->waitUntilCompleted();
     command_buffer->release();
 }
 
