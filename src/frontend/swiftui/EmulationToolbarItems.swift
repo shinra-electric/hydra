@@ -44,6 +44,7 @@ struct EmulationToolbarItems: ToolbarContent {
                         }
                     }
                     .help("Lock Framerate to 60fps")
+
                 } else {
                     Button {
                         isFramerateUnlocked.toggle()
