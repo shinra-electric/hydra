@@ -23,7 +23,7 @@ SurfaceCompositor::SurfaceCompositor(Renderer& renderer_,
 
 SurfaceCompositor::~SurfaceCompositor() { render_pass_descriptor->release(); }
 
-void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
+void SurfaceCompositor::drawTexture(ICommandBuffer* command_buffer,
                                     const ITextureView* texture,
                                     const FloatRect2D src_rect,
                                     const FloatRect2D dst_rect,
@@ -32,10 +32,10 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
     auto texture_impl = static_cast<const TextureView*>(texture);
 
     auto encoder =
-        command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
+        command_buffer_impl->getRenderCommandEncoder(render_pass_descriptor);
 
     // Draw
-    encoder->setRenderPipelineState(renderer.GetBlitPipelineCache().Find(
+    encoder->setRenderPipelineState(renderer.getBlitPipelineCache().find(
         {.pixel_format = drawable->texture()->pixelFormat(),
          .transparent = transparent}));
     encoder->setViewport(
@@ -50,33 +50,33 @@ void SurfaceCompositor::DrawTexture(ICommandBuffer* command_buffer,
     encoder->setVertexBytes(&zero, sizeof(zero), 0);
 
     // Src rect
-    const auto& descriptor = texture->GetBase()->GetDescriptor();
+    const auto& descriptor = texture->getBase()->getDescriptor();
     const auto src_width = descriptor.width;
     const auto src_height = descriptor.height;
     BlitParams params = {
-        .src_offset = {src_rect.origin.x() / src_width,
-                       src_rect.origin.y() / src_height},
-        .src_scale = {src_rect.size.x() / src_width,
-                      src_rect.size.y() / src_height},
+        .src_offset = {src_rect.origin.x() / static_cast<f32>(src_width),
+                       src_rect.origin.y() / static_cast<f32>(src_height)},
+        .src_scale = {src_rect.size.x() / static_cast<f32>(src_width),
+                      src_rect.size.y() / static_cast<f32>(src_height)},
         .opacity = opacity,
     };
 
     encoder->setFragmentBytes(&params, sizeof(params), 0);
-    encoder->setFragmentTexture(texture_impl->GetTexture(),
+    encoder->setFragmentTexture(texture_impl->getTexture(),
                                 static_cast<NS::UInteger>(0));
-    encoder->setFragmentSamplerState(renderer.GetLinearSampler(),
+    encoder->setFragmentSamplerState(renderer.getLinearSampler(),
                                      static_cast<NS::UInteger>(0));
     encoder->drawPrimitives(MTL::PrimitiveTypeTriangle,
                             static_cast<NS::UInteger>(0),
                             static_cast<NS::UInteger>(3));
 }
 
-void SurfaceCompositor::Present(ICommandBuffer* command_buffer) {
+void SurfaceCompositor::present(ICommandBuffer* command_buffer) {
     auto command_buffer_impl = static_cast<CommandBuffer*>(command_buffer);
 
-    command_buffer_impl->GetRenderCommandEncoder(render_pass_descriptor);
-    command_buffer_impl->EndEncoding();
-    command_buffer_impl->GetCommandBuffer()->presentDrawable(drawable);
+    command_buffer_impl->getRenderCommandEncoder(render_pass_descriptor);
+    command_buffer_impl->endEncoding();
+    command_buffer_impl->getCommandBuffer()->presentDrawable(drawable);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::metal

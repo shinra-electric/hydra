@@ -14,16 +14,16 @@ class ClearColorPipelineCache
     : public CacheBase<ClearColorPipelineCache, MTL::RenderPipelineState*,
                        ClearColorPipelineDescriptor> {
   public:
-    ClearColorPipelineCache(MTL::Device* device_);
+    explicit ClearColorPipelineCache(MTL::Device* device_);
 
-    void Destroy();
+    void destroy();
 
     MTL::RenderPipelineState*
-    Create(const ClearColorPipelineDescriptor& descriptor);
-    void Update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
-    static u32 Hash(const ClearColorPipelineDescriptor& descriptor);
+    create(const ClearColorPipelineDescriptor& descriptor);
+    void update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
+    static u32 hash(const ClearColorPipelineDescriptor& descriptor);
 
-    static void DestroyElement(MTL::RenderPipelineState* pipeline);
+    static void destroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
     MTL::Device* device;

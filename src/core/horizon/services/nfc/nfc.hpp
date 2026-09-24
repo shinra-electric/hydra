@@ -11,13 +11,13 @@ enum class PermissionLevel {
 
 class INfc : public IService {
   public:
-    INfc(PermissionLevel perm_level_) : perm_level{perm_level_} {}
+    explicit INfc(PermissionLevel perm_level_) : perm_level{perm_level_} {}
 
   protected:
     // Commands
-    result_t Initialize(u64 aruid, u64 zero,
+    result_t initialize(u64 aruid, u64 zero,
                         InBuffer<BufferAttr::MapAlias> in_version_buffer);
-    result_t GetState(u32* out_state);
+    result_t getState(u32* out_state);
 
   private:
     // TODO: use

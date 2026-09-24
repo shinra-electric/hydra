@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <charconv>
 #include <cxxabi.h>
@@ -20,13 +21,13 @@ namespace hydra {
 }
 
 template <typename T>
-constexpr T all_ones() {
+constexpr T allOnes() {
     return std::numeric_limits<T>::max();
 }
 
 template <typename T>
 constexpr T invalid() {
-    return all_ones<T>();
+    return allOnes<T>();
 }
 
 template <typename T>
@@ -35,12 +36,12 @@ constexpr T mask(u32 b, u32 count) {
 }
 
 template <typename T>
-T extract_bits(T src, u32 b, u32 count) {
+T extractBits(T src, u32 b, u32 count) {
     return (src & mask<T>(b, count)) >> b;
 }
 
 template <typename T, u32 bit_count>
-T sign_extend(T v) {
+T signExtend(T v) {
     static_assert(bit_count < sizeof(T) * 8);
     T const m = T(1) << (bit_count - 1);
     return (v ^ m) - m;
@@ -52,50 +53,50 @@ T align(T v, T alignment) {
 }
 
 template <typename T>
-bool is_aligned(T v, T alignment) {
+bool isAligned(T v, T alignment) {
     return (v % alignment) == 0x0;
 }
 
 template <typename T>
-T align_down(T v, T alignment) {
+T alignDown(T v, T alignment) {
     return v & ~(alignment - 1);
 }
 
 template <typename PtrT, typename AlignmentT>
-PtrT* AlignPtr(PtrT* ptr, AlignmentT alignment) {
+PtrT* alignPtr(PtrT* ptr, AlignmentT alignment) {
     return reinterpret_cast<PtrT*>(
         align(reinterpret_cast<u64>(ptr), static_cast<u64>(alignment)));
 }
 
-inline uptr make_addr(u32 lo, u32 hi) {
+inline uptr makeAddr(u32 lo, u32 hi) {
     return (static_cast<uptr>(hi) << 32) | lo;
 }
 
 template <typename T>
-T ceil_divide(T dividend, T divisor) {
+T ceilDivide(T dividend, T divisor) {
     return (dividend + divisor - 1) / divisor;
 }
 
-constexpr u32 make_magic4(const char c0, const char c1, const char c2,
-                          const char c3) {
+constexpr u32 makeMagic4(const char c0, const char c1, const char c2,
+                         const char c3) {
     return static_cast<u32>(c0) | static_cast<u32>(c1) << 8 |
            static_cast<u32>(c2) << 16 | static_cast<u32>(c3) << 24;
 }
 
-inline std::string to_lower(const std::string_view str) {
+inline std::string toLower(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
-    std::transform(str.begin(), str.end(), std::back_inserter(result),
-                   [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(str, std::back_inserter(result),
+                           [](unsigned char c) { return std::tolower(c); });
 
     return result;
 }
 
-inline std::string to_upper(const std::string_view str) {
+inline std::string toUpper(const std::string_view str) {
     // TODO: make this more efficient?
     std::string result;
-    std::transform(str.begin(), str.end(), std::back_inserter(result),
-                   [](unsigned char c) { return std::toupper(c); });
+    std::ranges::transform(str, std::back_inserter(result),
+                           [](unsigned char c) { return std::toupper(c); });
 
     return result;
 }
@@ -114,7 +115,7 @@ inline std::string demangle(const std::string& mangled_name) {
 }
 
 template <typename T>
-bool str_to_num(const std::string_view str, T& value) {
+bool strToNum(const std::string_view str, T& value) {
     if (str.empty())
         return false;
 

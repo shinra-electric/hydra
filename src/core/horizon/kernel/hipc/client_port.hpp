@@ -11,16 +11,16 @@ class ClientPort : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ClientPort;
 
-    ClientPort(std::string_view debug_name = "Client port")
+    explicit ClientPort(std::string_view debug_name = "Client port")
         : SynchronizationObject(TYPE_ID, true, debug_name) {}
 
-    ClientSession* Connect();
+    ClientSession* connect();
 
   private:
     Port* parent;
 
   public:
-    GETTER_AND_SETTER(parent, GetParent, SetParent);
+    GETTER_AND_SETTER(parent, getParent, setParent);
 };
 
 } // namespace hydra::horizon::kernel::hipc

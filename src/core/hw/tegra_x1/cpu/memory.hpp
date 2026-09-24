@@ -6,28 +6,28 @@ namespace hydra::hw::tegra_x1::cpu {
 
 class IMemory {
   public:
-    IMemory(u64 size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
+    explicit IMemory(u64 size_) : size{align(size_, GUEST_PAGE_SIZE)} {}
     virtual ~IMemory() = default;
 
     ZTD_MAKE_NON_COPYABLE(IMemory);
     ZTD_MAKE_NON_MOVABLE(IMemory);
 
     // The memory needs to be unmapped before resizing
-    void Resize(u64 new_size) {
+    void resize(u64 new_size) {
         size = new_size;
-        ResizeImpl();
+        resizeImpl();
     }
 
-    virtual uptr GetPtr() const = 0;
+    virtual uptr getPtr() const = 0;
 
   protected:
-    virtual void ResizeImpl() = 0;
+    virtual void resizeImpl() = 0;
 
   private:
     u64 size;
 
   public:
-    GETTER(size, GetSize);
+    GETTER(size, getSize);
 };
 
 } // namespace hydra::hw::tegra_x1::cpu

@@ -4,10 +4,10 @@
 
 namespace hydra::horizon::kernel {
 
-void HostThread::Run() {
-    run_callback([this]() {
-        ProcessMessages();
-        return GetState() == ThreadState::Stopping;
+void HostThread::run() {
+    run_callback([this] {
+        processMessages();
+        return getState() == ThreadState::Stopping;
     });
 }
 

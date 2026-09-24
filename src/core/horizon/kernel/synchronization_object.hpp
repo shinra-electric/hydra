@@ -10,16 +10,17 @@ using signal_callback_fn_t = std::function<void()>;
 
 class SynchronizationObject : public AutoObject {
   public:
-    SynchronizationObject(AutoObjectTypeId type_id, bool signalled_ = false,
-                          std::string_view debug_name = "SynchronizationObject")
+    explicit SynchronizationObject(
+        AutoObjectTypeId type_id, bool signalled_ = false,
+        std::string_view debug_name = "SynchronizationObject")
         : AutoObject(type_id, debug_name), signalled{signalled_} {}
 
-    void AddWaitingThread(IThread* thread);
-    void RemoveWaitingThread(IThread* thread);
-    void AddSignalCallback(const signal_callback_fn_t& callback);
+    void addWaitingThread(IThread* thread);
+    void removeWaitingThread(IThread* thread);
+    void addSignalCallback(const signal_callback_fn_t& callback);
 
-    void Signal();
-    bool Clear();
+    void signal();
+    bool clear();
 
   private:
     std::mutex mutex;

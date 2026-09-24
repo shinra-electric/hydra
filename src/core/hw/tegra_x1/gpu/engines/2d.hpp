@@ -81,18 +81,18 @@ struct Regs2D {
 
 class TwoD : public EngineWithRegsBase<Regs2D> {
   public:
-    TwoD(Gpu& gpu_) : gpu{gpu_} {}
+    explicit TwoD(Gpu& gpu_) : gpu{gpu_} {}
 
-    void Method(u32 method, u32 arg) override;
+    void method(u32 method, u32 arg) override;
 
   private:
     Gpu& gpu;
 
     // Commands
-    void Copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
+    void copy(const u32 index, const u32 pixels_from_memory_src_y0_int);
 
     // Helpers
-    renderer::ITextureView* GetTexture(const Texture2DInfo& info,
+    renderer::ITextureView* getTexture(const Texture2DInfo& info,
                                        renderer::TextureUsage usage);
 };
 

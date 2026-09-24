@@ -20,22 +20,24 @@ struct SaveDataInfo {
 
 } // namespace
 
-DEFINE_SERVICE_COMMAND_TABLE(ISaveDataInfoReader, 0, ReadSaveDataInfo)
+DEFINE_SERVICE_COMMAND_TABLE(ISaveDataInfoReader, 0, readSaveDataInfo)
 
-result_t ISaveDataInfoReader::ReadSaveDataInfo(
-    i64* out_entry_count, OutBuffer<BufferAttr::MapAlias> out_entry_buffer) {
+result_t ISaveDataInfoReader::readSaveDataInfo(
+    i64* out_entry_count,
+    OutBuffer<BufferAttr::MapAlias> out_entry_buffer) const {
     // TODO: don't hardcode the entries
     static SaveDataInfo entries[0] = {};
 
     auto stream = out_entry_buffer.stream;
-    for (u32 i = entry_index; i < sizeof_array(entries); i++) {
+    for (u32 i = entry_index; i < SIZEOF_ARRAY(entries); i++) {
         if (stream->getSeek() + sizeof(SaveDataInfo) > stream->getSize())
             break;
 
         stream->write(entries[i]);
     }
 
-    *out_entry_count = stream->getSeek() / sizeof(SaveDataInfo);
+    *out_entry_count =
+        static_cast<i64>(stream->getSeek() / sizeof(SaveDataInfo));
 
     return RESULT_SUCCESS;
 }

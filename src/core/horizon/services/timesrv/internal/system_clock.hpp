@@ -6,10 +6,10 @@ class SteadyClock;
 
 class SystemClock {
   public:
-    SystemClock(SteadyClock& steady_clock_);
+    explicit SystemClock(SteadyClock& steady_clock_);
 
-    u64 UpdateOffset();
-    u64 GetTimePoint() const;
+    u64 updateOffset();
+    u64 getTimePoint() const;
 
   private:
     SteadyClock& steady_clock;
@@ -17,8 +17,8 @@ class SystemClock {
     u64 steady_time_point;
 
   public:
-    GETTER(offset_s, GetOffsetS);
-    GETTER(steady_time_point, GetSteadyTimePoint);
+    GETTER(offset_s, getOffsetS);
+    GETTER(steady_time_point, getSteadyTimePoint);
 };
 
 } // namespace hydra::horizon::services::timesrv::internal

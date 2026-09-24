@@ -6,12 +6,12 @@ namespace hydra::hw::tegra_x1::gpu::renderer {
 
 class SamplerBase {
   public:
-    SamplerBase(const SamplerDescriptor& descriptor_)
+    explicit SamplerBase(const SamplerDescriptor& descriptor_)
         : descriptor{descriptor_} {}
     virtual ~SamplerBase() = default;
 
     // Getters
-    const SamplerDescriptor& GetDescriptor() const { return descriptor; }
+    const SamplerDescriptor& getDescriptor() const { return descriptor; }
 
   protected:
     const SamplerDescriptor descriptor;

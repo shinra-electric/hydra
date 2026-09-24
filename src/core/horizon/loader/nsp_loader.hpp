@@ -8,15 +8,15 @@ namespace hydra::horizon::loader {
 // HACK: assumes Homebrew NSP
 class NspLoader : public ILoader {
   public:
-    NspLoader(filesystem::IFile* file)
+    explicit NspLoader(filesystem::IFile* file)
         : NspLoader(
-              *filesystem::PartitionFilesystem().Initialize<false>(file)) {}
-    NspLoader(filesystem::PartitionFilesystem pfs_);
+              *filesystem::PartitionFilesystem().initialize<false>(file)) {}
+    explicit NspLoader(filesystem::PartitionFilesystem pfs_);
 
-    u64 GetTitleID() const override { return invalid<u64>(); }
+    u64 getTitleId() const override { return invalid<u64>(); }
 
-    void LoadProcess(System& system, kernel::Process* process) override {
-        nso_loader->LoadProcess(system, process);
+    void loadProcess(System& system, kernel::Process* process) override {
+        nso_loader->loadProcess(system, process);
     }
 
   private:

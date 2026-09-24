@@ -3,7 +3,7 @@
 #include "core/horizon/filesystem/file.hpp"
 
 #define LOG_FS_ACCESS(host_path, f, ...)                                       \
-    if (CONFIG_INSTANCE.GetLogFsAccess()) {                                    \
+    if (CONFIG_INSTANCE.getLogFsAccess()) {                                    \
         LOG_INFO(Filesystem, "\"{}\": " f,                                     \
                  host_path ZTD_PASS_VA_ARGS(__VA_ARGS__));                     \
     }
@@ -31,15 +31,15 @@ class DiskStream : public ztd::io::FileStream {
 
 class DiskFile : public IFile {
   public:
-    DiskFile(const std::string_view path_, bool is_mutable_ = false);
+    explicit DiskFile(const std::string_view path_, bool is_mutable_ = false);
     ~DiskFile() override;
 
-    void Resize(u64 new_size) override;
-    void Flush() override;
+    void resize(u64 new_size) override;
+    void flush() override;
 
-    ztd::io::IStream* Open(FileOpenFlags flags) override;
+    ztd::io::IStream* open(FileOpenFlags flags) override;
 
-    u64 GetSize() const override;
+    u64 getSize() const override;
 
   private:
     std::string path;
@@ -47,7 +47,7 @@ class DiskFile : public IFile {
 
     // u64 size;
 
-    void DeleteImpl() override;
+    void deleteImpl() override;
 };
 
 } // namespace hydra::horizon::filesystem

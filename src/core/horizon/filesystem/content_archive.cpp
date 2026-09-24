@@ -167,7 +167,7 @@ struct Header {
     u8 padding_0x340[0xc0];
     FsHeader fs_headers[FS_ENTRY_COUNT];
 
-    SectionType get_section_type_from_index(const u32 index) const {
+    SectionType getSectionTypeFromIndex(const u32 index) const {
         if (content_type == ContentArchiveContentType::Program) {
             switch (index) {
             case 0:
@@ -200,12 +200,12 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::filesystem::HashType, Auto, "auto", None,
 namespace hydra::horizon::filesystem {
 
 ContentArchive::ContentArchive(IFile* file) {
-    auto stream = file->Open(FileOpenFlags::Read);
+    auto stream = file->open(FileOpenFlags::Read);
 
     // Header
     const auto header = stream->read<Header>();
     // TODO: allow other NCA versions as well
-    ASSERT(header.magic == make_magic4('N', 'C', 'A', '3'), Filesystem,
+    ASSERT(header.magic == makeMagic4('N', 'C', 'A', '3'), Filesystem,
            "Invalid NCA magic 0x{:08x}", header.magic);
 
     content_type = header.content_type;
@@ -218,7 +218,7 @@ ContentArchive::ContentArchive(IFile* file) {
         if (entry.start_offset == 0x0)
             continue;
 
-        const auto type = header.get_section_type_from_index(i);
+        const auto type = header.getSectionTypeFromIndex(i);
         if (type == SectionType::Invalid) {
             LOG_ERROR(Filesystem, "Invalid section type");
             continue;
@@ -243,7 +243,7 @@ ContentArchive::ContentArchive(IFile* file) {
                 new FileView(file, entry_offset + layer_region.offset,
                              layer_region.size); // TODO: free
             auto pfs = new PartitionFilesystem();
-            pfs->Initialize<false>(partition_file);
+            pfs->initialize<false>(partition_file);
             entries.insert(
                 {(type == SectionType::Code ? "code" : "logo"), pfs});
             break;

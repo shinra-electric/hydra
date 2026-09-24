@@ -10,14 +10,14 @@ class ServerPort : public SynchronizationObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ServerPort;
 
-    ServerPort(std::string_view debug_name = "Server port")
+    explicit ServerPort(std::string_view debug_name = "Server port")
         : SynchronizationObject(TYPE_ID, false, debug_name) {}
 
     // Server
-    ServerSession* AcceptSession();
+    ServerSession* acceptSession();
 
     // Client
-    void ConnectSession(ServerSession* session);
+    void connectSession(ServerSession* session);
 
   private:
     std::mutex mutex;

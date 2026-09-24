@@ -13,21 +13,21 @@ enum class AccountServiceType {
 
 class IAccountService : public IService {
   public:
-    IAccountService(AccountServiceType type_) : type{type_} {}
+    explicit IAccountService(AccountServiceType type_) : type{type_} {}
 
   protected:
     // Commands
-    result_t GetUserCount(System* system, i32* out_count);
-    result_t GetUserExistence(System* system, uuid_t user_id, bool* out_exists);
-    result_t ListAllUsers(System* system,
+    result_t getUserCount(System* system, i32* out_count);
+    result_t getUserExistence(System* system, uuid_t user_id, bool* out_exists);
+    result_t listAllUsers(System* system,
                           OutBuffer<BufferAttr::HipcPointer> out_buffer);
     // TODO: correct?
-    result_t ListOpenUsers(System* system,
+    result_t listOpenUsers(System* system,
                            OutBuffer<BufferAttr::HipcPointer> out_buffer);
-    result_t GetLastOpenedUser(System* system, uuid_t* out_user_id);
-    result_t GetProfile(RequestContext* ctx, uuid_t user_id);
+    result_t getLastOpenedUser(System* system, uuid_t* out_user_id);
+    result_t getProfile(RequestContext* ctx, uuid_t user_id);
     // TODO: PID and PID reserved
-    result_t IsUserRegistrationRequestPermitted(bool* out_permitted);
+    result_t isUserRegistrationRequestPermitted(bool* out_permitted);
 
   private:
     AccountServiceType type;

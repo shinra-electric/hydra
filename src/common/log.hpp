@@ -11,17 +11,17 @@
 #include "common/macros.hpp"
 #include "common/type_aliases.hpp"
 
-#define LOGGER_INSTANCE Logger::GetInstance()
+#define LOGGER_INSTANCE Logger::getInstance()
 
 #define LOG(level, c, ...)                                                     \
-    LOGGER_INSTANCE.Log(LogLevel::level, LogClass::c,                          \
-                        TrimSourcePath(__FILE__), __LINE__, __func__,          \
+    LOGGER_INSTANCE.log(LogLevel::level, LogClass::c,                          \
+                        trimSourcePath(__FILE__), __LINE__, __func__,          \
                         __VA_ARGS__)
 
 #ifdef HYDRA_DEBUG
 #define LOG_DEBUG(c, ...)                                                      \
     {                                                                          \
-        if (CONFIG_INSTANCE.GetDebugLogging())                                 \
+        if (CONFIG_INSTANCE.getDebugLogging())                                 \
             LOG(Debug, c, __VA_ARGS__);                                        \
     }
 #else
@@ -61,7 +61,7 @@
     }
 
 #define ASSERT_ALIGNMENT(value, alignment, c, name)                            \
-    ASSERT(is_aligned<decltype(value)>(value, alignment), c,                   \
+    ASSERT(isAligned<decltype(value)>(value, alignment), c,                    \
            name " must be {:#x}-byte aligned (value: {:#x})", alignment,       \
            value)
 
@@ -81,7 +81,7 @@
 namespace hydra {
 
 // From yuzu
-constexpr const char* TrimSourcePath(std::string_view source) {
+constexpr const char* trimSourcePath(std::string_view source) {
     const auto rfind = [source](const std::string_view match) {
         return source.rfind(match) == std::string_view::npos
                    ? 0
@@ -162,7 +162,7 @@ using log_callback_fn_t = std::function<void(const LogMessage&)>;
 
 class Logger {
   public:
-    static Logger& GetInstance() {
+    static Logger& getInstance() {
         static Logger instance;
         return instance;
     }
@@ -173,27 +173,27 @@ class Logger {
     ZTD_MAKE_NON_COPYABLE(Logger);
     ZTD_MAKE_NON_MOVABLE(Logger);
 
-    void InstallCallback(const log_callback_fn_t& callback_) {
-        std::lock_guard lock(mutex);
+    void installCallback(const log_callback_fn_t& callback_) {
+        std::scoped_lock lock(mutex);
         callback = callback_;
     }
 
-    void UninstallCallback() {
-        std::lock_guard lock(mutex);
+    void uninstallCallback() {
+        std::scoped_lock lock(mutex);
         callback = std::nullopt;
     }
 
-    void SetOutput(const LogOutput output_) {
-        std::lock_guard lock(mutex);
+    void setOutput(const LogOutput output_) {
+        std::scoped_lock lock(mutex);
         output = output_;
     }
 
     template <typename... T>
-    void Log(LogLevel level, LogClass c, const std::string_view file, u32 line,
+    void log(LogLevel level, LogClass c, const std::string_view file, u32 line,
              const std::string_view function, fmt::format_string<T...> f,
              T&&... args) {
         {
-            std::lock_guard lock(mutex);
+            std::scoped_lock lock(mutex);
 
             switch (output) {
             case LogOutput::None:
@@ -234,7 +234,7 @@ class Logger {
                 break;
             }
             case LogOutput::File: {
-                EnsureOutputStream();
+                ensureOutputStream();
 
                 // Debug info
                 const auto crnt_time = clock_t::now();
@@ -273,6 +273,7 @@ class Logger {
                 is_in_callback = true;
                 (*callback)(LogMessage{
                     level, c, std::string(file), line, std::string(function),
+                    // NOLINTNEXTLINE(bugprone-use-after-move)
                     fmt::format(f, std::forward<T>(args)...)});
                 is_in_callback = false;
             }
@@ -283,14 +284,14 @@ class Logger {
     using clock_t = std::chrono::high_resolution_clock;
 
     std::mutex mutex;
-    std::optional<std::ofstream> ofs{};
+    std::optional<std::ofstream> ofs;
 
-    std::optional<log_callback_fn_t> callback{};
+    std::optional<log_callback_fn_t> callback;
     LogOutput output{LogOutput::StdOut};
 
-    clock_t::time_point start_time{};
+    clock_t::time_point start_time;
 
-    void EnsureOutputStream();
+    void ensureOutputStream();
 };
 
 } // namespace hydra

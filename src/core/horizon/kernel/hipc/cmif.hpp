@@ -4,8 +4,8 @@
 
 namespace hydra::horizon::kernel::hipc::cmif {
 
-constexpr u32 IN_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'I');
-constexpr u32 OUT_HEADER_MAGIC = make_magic4('S', 'F', 'C', 'O');
+constexpr u32 IN_HEADER_MAGIC = makeMagic4('S', 'F', 'C', 'I');
+constexpr u32 OUT_HEADER_MAGIC = makeMagic4('S', 'F', 'C', 'O');
 
 enum class DomainCommandType : u8 {
     Invalid = 0,
@@ -65,7 +65,7 @@ struct OutHeader {
     u32 token;
 };
 
-inline result_t* write_out_header(ztd::io::MemoryStream& stream) {
+inline result_t* writeOutHeader(ztd::io::MemoryStream& stream) {
     auto hdr = stream.writeReturningPtr<OutHeader>({
         .magic = OUT_HEADER_MAGIC,
         .version = 0,
@@ -76,15 +76,15 @@ inline result_t* write_out_header(ztd::io::MemoryStream& stream) {
     return &hdr->result;
 }
 
-inline void write_domain_out_header(ztd::io::MemoryStream& stream) {
+inline void writeDomainOutHeader(ztd::io::MemoryStream& stream) {
     stream.write<DomainOutHeader>({
         .num_out_objects = 0,
     });
 }
 
 template <typename T>
-inline T* AlignDataStart(T* data_start) {
-    return AlignPtr(data_start, 0x10); // align to 16 bytes
+inline T* alignDataStart(T* data_start) {
+    return alignPtr(data_start, 0x10); // align to 16 bytes
 }
 
 } // namespace hydra::horizon::kernel::hipc::cmif

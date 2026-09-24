@@ -150,10 +150,10 @@ ENABLE_ENUM_FORMATTING(hydra::horizon::services::audio::MemPoolState, Invalid,
 
 namespace hydra::horizon::services::audio {
 
-DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, RequestUpdate, 5, Start, 6,
-                             Stop, 7, QuerySystemEvent, 8,
-                             SetRenderingTimeLimit, 9, GetRenderingTimeLimit,
-                             10, RequestUpdateAuto)
+DEFINE_SERVICE_COMMAND_TABLE(IAudioRenderer, 4, requestUpdate, 5, start, 6,
+                             stop, 7, querySystemEvent, 8,
+                             setRenderingTimeLimit, 9, getRenderingTimeLimit,
+                             10, requestUpdateAuto)
 
 IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
                                const u64 work_buffer_size_)
@@ -162,50 +162,50 @@ IAudioRenderer::IAudioRenderer(const AudioRendererParameters& params_,
     voices.resize(params.voice_count);
 
     // HACK: create a thread that signals the handle every so often
-    new std::thread([&]() {
-        GET_CURRENT_PROCESS_DEBUGGER().RegisterThisThread("Audren signal");
+    new std::thread([&] {
+        GET_CURRENT_PROCESS_DEBUGGER().registerThisThread("Audren signal");
         while (true) {
-            event->Signal();
+            event->signal();
             std::this_thread::sleep_for(std::chrono::microseconds(2));
         }
-        GET_CURRENT_PROCESS_DEBUGGER().UnregisterThisThread();
+        GET_CURRENT_PROCESS_DEBUGGER().unregisterThisThread();
     });
 }
 
 result_t
-IAudioRenderer::RequestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
+IAudioRenderer::requestUpdate(InBuffer<BufferAttr::MapAlias> in_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_buffer,
                               OutBuffer<BufferAttr::MapAlias> out_perf_buffer) {
-    return RequestUpdateImpl(in_buffer.stream, out_buffer.stream,
+    return requestUpdateImpl(in_buffer.stream, out_buffer.stream,
                              out_perf_buffer.stream);
 }
 
 result_t
-IAudioRenderer::QuerySystemEvent(kernel::Process* process,
+IAudioRenderer::querySystemEvent(kernel::Process* process,
                                  OutHandle<HandleAttr::Copy> out_handle) {
-    out_handle = process->AddHandle(event);
+    out_handle = process->addHandle(event);
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRenderer::SetRenderingTimeLimit(u32 time_limit) {
+result_t IAudioRenderer::setRenderingTimeLimit(u32 time_limit) {
     rendering_time_limit = time_limit;
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRenderer::GetRenderingTimeLimit(u32* out_time_limit) {
+result_t IAudioRenderer::getRenderingTimeLimit(u32* out_time_limit) const {
     *out_time_limit = rendering_time_limit;
     return RESULT_SUCCESS;
 }
 
-result_t IAudioRenderer::RequestUpdateAuto(
+result_t IAudioRenderer::requestUpdateAuto(
     InBuffer<BufferAttr::AutoSelect> in_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_buffer,
     OutBuffer<BufferAttr::AutoSelect> out_perf_buffer) {
-    return RequestUpdateImpl(in_buffer.stream, out_buffer.stream,
+    return requestUpdateImpl(in_buffer.stream, out_buffer.stream,
                              out_perf_buffer.stream);
 }
 
-result_t IAudioRenderer::RequestUpdateImpl(
+result_t IAudioRenderer::requestUpdateImpl(
     std::optional<ztd::io::MemoryStream> in_stream,
     std::optional<ztd::io::MemoryStream> out_stream,
     std::optional<ztd::io::MemoryStream> out_perf_stream) {
@@ -216,7 +216,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
 
     // TODO: correct?
     auto header = out_stream->writeReturningPtr<UpdateDataHeader>();
-    header->revision = in_header.revision; // make_magic4('R', 'E', 'V', '4');
+    header->revision = in_header.revision; // makeMagic4('R', 'E', 'V', '4');
     header->total_size = sizeof(UpdateDataHeader);
 
     in_stream->seekBy(in_header.behavior_size);
@@ -258,7 +258,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
         } else if (voice_in.play_state == VoicePlayState::Started) {
             // HACK
             if (voice_in.wave_buffer_count >=
-                sizeof_array(voice_in.wave_buffers)) {
+                SIZEOF_ARRAY(voice_in.wave_buffers)) {
                 ONCE(LOG_WARN(Services,
                               "Voice {} has invalid wave buffer count {:#x}", i,
                               voice_in.wave_buffer_count));
@@ -284,6 +284,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
     // TODO
 
     // Effects
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (false) {
         // header->effects_size = TODO;
         // TODO
@@ -315,6 +316,7 @@ result_t IAudioRenderer::RequestUpdateImpl(
 
     // Render info
     // TODO: if elapsed frame count supported
+    // NOLINTNEXTLINE(readability-simplify-boolean-expr)
     if (false) {
         header->render_info_size = sizeof(RenderInfoOut);
         header->total_size += header->render_info_size;

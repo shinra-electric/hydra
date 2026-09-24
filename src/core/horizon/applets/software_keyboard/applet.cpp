@@ -15,8 +15,8 @@ enum class TextCheckResult : u32 {
 
 } // namespace
 
-result_t Applet::Run(System& system) {
-    const auto config = PopInData<KeyboardConfigCommon>();
+result_t Applet::run(System& system) {
+    const auto config = popInData<KeyboardConfigCommon>();
     // TODO: work buffer
 
     // TODO: additional config
@@ -26,12 +26,12 @@ result_t Applet::Run(System& system) {
     while (true) {
         // Text input
         std::string output_text_utf8;
-        result = system.GetUIHandler().ShowSoftwareKeyboard(
-            Utf16ToUtf8(std::u16string(config.header_text)).value_or(""),
-            Utf16ToUtf8(std::u16string(config.sub_text)).value_or(""),
-            Utf16ToUtf8(std::u16string(config.guide_text)).value_or(""),
+        result = system.getUiHandler().showSoftwareKeyboard(
+            utf16ToUtf8(std::u16string(config.header_text)).value_or(""),
+            utf16ToUtf8(std::u16string(config.sub_text)).value_or(""),
+            utf16ToUtf8(std::u16string(config.guide_text)).value_or(""),
             output_text_utf8);
-        const auto output_text_opt = Utf8ToUtf16(output_text_utf8);
+        const auto output_text_opt = utf8ToUtf16(output_text_utf8);
         ASSERT(output_text_opt.has_value(), Applets,
                "Failed to convert UTF-8 to UTF-16: {}", output_text_utf8);
         output_text = output_text_opt.value();
@@ -47,21 +47,21 @@ result_t Applet::Run(System& system) {
         stream.write<u64>(size);
         stream.writeSpan(std::span<const char16_t>(output_text));
         stream.write(u'\0');
-        PushInteractiveOutDataRaw(std::move(bytes));
+        pushInteractiveOutDataRaw(std::move(bytes));
 
-        auto reader = PopInteractiveInDataRaw();
+        auto reader = popInteractiveInDataRaw();
         auto res = reader.read<TextCheckResult>();
         if (res == TextCheckResult::Success)
             break;
 
         // Dialog
         std::u16string msg = reader.readPtr<char16_t>();
-        system.GetUIHandler().ShowMessageDialog(
+        system.getUiHandler().showMessageDialog(
             (res == TextCheckResult::ShowFailureDialog
                  ? ui::MessageDialogType::Error
                  : ui::MessageDialogType::Info),
             "Text input", // TODO: better text
-            Utf16ToUtf8(msg).value_or(""));
+            utf16ToUtf8(msg).value_or(""));
     }
 
     // Output
@@ -73,7 +73,7 @@ result_t Applet::Run(System& system) {
         stream.write(result);
         stream.writeSpan(std::span<const char16_t>(output_text));
         stream.write(u'\0');
-        PushOutDataRaw(std::move(bytes));
+        pushOutDataRaw(std::move(bytes));
     }
 
     return RESULT_SUCCESS;

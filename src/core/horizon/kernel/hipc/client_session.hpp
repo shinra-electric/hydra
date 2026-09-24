@@ -11,11 +11,11 @@ class ClientSession : public AutoObject {
   public:
     static constexpr AutoObjectTypeId TYPE_ID = AutoObjectTypeId::ClientSession;
 
-    ClientSession(std::string_view debug_name = "Client session")
+    explicit ClientSession(std::string_view debug_name = "Client session")
         : AutoObject(TYPE_ID, debug_name) {}
     ~ClientSession() override;
 
-    void OnServerClose() { server_open = false; }
+    void onServerClose() { server_open = false; }
 
   private:
     Session* parent{nullptr};
@@ -23,8 +23,8 @@ class ClientSession : public AutoObject {
     bool server_open{true};
 
   public:
-    GETTER_AND_SETTER(parent, GetParent, SetParent);
-    GETTER(server_open, IsServerOpen);
+    GETTER_AND_SETTER(parent, getParent, setParent);
+    GETTER(server_open, isServerOpen);
 };
 
 } // namespace hydra::horizon::kernel::hipc

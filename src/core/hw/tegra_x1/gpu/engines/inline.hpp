@@ -10,9 +10,9 @@ struct RegsInline_ {
 
 class Inline : public EngineWithRegsBase<RegsInline_>, public InlineBase {
   public:
-    Inline(Gpu& gpu_) : gpu{gpu_} {}
+    explicit Inline(Gpu& gpu_) : gpu{gpu_} {}
 
-    void Method(u32 method, u32 arg) override;
+    void method(u32 method, u32 arg) override;
 
   private:
     Gpu& gpu;

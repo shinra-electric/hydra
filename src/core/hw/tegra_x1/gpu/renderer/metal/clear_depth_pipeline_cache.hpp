@@ -8,15 +8,15 @@ class ClearDepthPipelineCache
     : public CacheBase<ClearDepthPipelineCache, MTL::RenderPipelineState*,
                        MTL::PixelFormat> {
   public:
-    ClearDepthPipelineCache(MTL::Device* device_);
+    explicit ClearDepthPipelineCache(MTL::Device* device_);
 
-    void Destroy();
+    void destroy();
 
-    MTL::RenderPipelineState* Create(MTL::PixelFormat pixel_format);
-    void Update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
-    static u32 Hash(MTL::PixelFormat pixel_format);
+    MTL::RenderPipelineState* create(MTL::PixelFormat pixel_format);
+    void update([[maybe_unused]] MTL::RenderPipelineState* pipeline) {}
+    static u32 hash(MTL::PixelFormat pixel_format);
 
-    static void DestroyElement(MTL::RenderPipelineState* pipeline);
+    static void destroyElement(MTL::RenderPipelineState* pipeline);
 
   private:
     MTL::Device* device;

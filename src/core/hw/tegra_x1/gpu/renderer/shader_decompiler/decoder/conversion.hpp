@@ -33,9 +33,9 @@ union InstF2fBase {
     BitField64<bool, 49, 1> abs;
     BitField64<bool, 50, 1> sat;
 
-    RoundMode2 GetRoundMode() const {
-        return static_cast<RoundMode2>(round_mode_0.Get() |
-                                       (round_mode_2.Get() << 2));
+    RoundMode2 getRoundMode() const {
+        return static_cast<RoundMode2>(round_mode_0.get() |
+                                       (round_mode_2.get() << 2));
     }
 };
 
@@ -71,9 +71,9 @@ union InstF2iBase {
     BitField64<bool, 47, 1> write_cc;
     BitField64<bool, 49, 1> abs;
 
-    IntegerFormat GetDstFmt() const {
-        return static_cast<IntegerFormat>(dst_fmt_0.Get() |
-                                          (dst_fmt_2.Get() << 2));
+    IntegerFormat getDstFmt() const {
+        return static_cast<IntegerFormat>(dst_fmt_0.get() |
+                                          (dst_fmt_2.get() << 2));
     }
 };
 
@@ -109,14 +109,14 @@ union InstI2iBase {
     BitField64<bool, 49, 1> abs;
     BitField64<bool, 51, 1> sat;
 
-    IntegerFormat2 GetDstFmt() const {
-        return static_cast<IntegerFormat2>(dst_fmt_0.Get() |
-                                           (dst_fmt_2.Get() << 2));
+    IntegerFormat2 getDstFmt() const {
+        return static_cast<IntegerFormat2>(dst_fmt_0.get() |
+                                           (dst_fmt_2.get() << 2));
     }
 
-    IntegerFormat2 GetSrcFmt() const {
-        return static_cast<IntegerFormat2>(src_fmt_0.Get() |
-                                           (src_fmt_2.Get() << 2));
+    IntegerFormat2 getSrcFmt() const {
+        return static_cast<IntegerFormat2>(src_fmt_0.get() |
+                                           (src_fmt_2.get() << 2));
     }
 };
 
@@ -135,9 +135,9 @@ union InstI2fBase {
     BitField64<bool, 47, 1> write_cc;
     BitField64<bool, 49, 1> abs;
 
-    IntegerFormat2 GetSrcFmt() const {
-        return static_cast<IntegerFormat2>(src_fmt_0.Get() |
-                                           (src_fmt_2.Get() << 2));
+    IntegerFormat2 getSrcFmt() const {
+        return static_cast<IntegerFormat2>(src_fmt_0.get() |
+                                           (src_fmt_2.get() << 2));
     }
 };
 

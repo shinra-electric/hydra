@@ -81,7 +81,7 @@ struct ShaderHeader {
 };
 #pragma pack(pop)
 
-void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
+void decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
                const GuestShaderState& state, ShaderBackend& out_backend,
                std::vector<u8>& out_code,
                ResourceMapping& out_resource_mapping) {
@@ -99,10 +99,10 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         for (u32 i = 0; i < PIXEL_IMAP_COUNT; i++) {
             const auto imap = header.ps.imap_generic_vector[i];
             context.frag.pixel_imaps[i] = {
-                .x = static_cast<PixelImapType>(extract_bits(imap, 0, 2)),
-                .y = static_cast<PixelImapType>(extract_bits(imap, 2, 2)),
-                .z = static_cast<PixelImapType>(extract_bits(imap, 4, 2)),
-                .w = static_cast<PixelImapType>(extract_bits(imap, 6, 2)),
+                .x = static_cast<PixelImapType>(extractBits(imap, 0, 2)),
+                .y = static_cast<PixelImapType>(extractBits(imap, 2, 2)),
+                .z = static_cast<PixelImapType>(extractBits(imap, 4, 2)),
+                .w = static_cast<PixelImapType>(extractBits(imap, 6, 2)),
             };
         }
     }
@@ -115,7 +115,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         decoder::Decoder decoder({.decomp_context = context,
                                   .code_stream = &stream,
                                   .builder = builder});
-        decoder.Decode();
+        decoder.decode();
     }
 
 #define DUMP_CFG 0
@@ -138,14 +138,15 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
 
     // Memory
     analyzer::MemoryAnalyzer mem_analyzer;
-    mem_analyzer.Analyze(modul);
+    mem_analyzer.analyze(modul);
 
     // Debug
     LOG_DEBUG(ShaderDecompiler, "Module:\n{}", modul);
 
     // Decompile
     codegen::Emitter* emitter;
-    out_backend = CONFIG_INSTANCE.GetShaderBackend();
+    out_backend = CONFIG_INSTANCE.getShaderBackend();
+    // NOLINTNEXTLINE(readability-trivial-switch)
     switch (out_backend) {
     case ShaderBackend::Msl: {
         emitter = new codegen::lang::msl::MslEmitter(
@@ -162,7 +163,7 @@ void Decompile(ztd::io::MemoryStream& code_stream, const ShaderType type,
         break;
     }
 
-    emitter->Emit(modul);
+    emitter->emit(modul);
 }
 
 } // namespace hydra::hw::tegra_x1::gpu::renderer::shader_decomp

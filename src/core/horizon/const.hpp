@@ -4,7 +4,7 @@
 
 namespace hydra::horizon {
 
-using result_t = kernel::result_t;
+using kernel::result_t;
 
 struct FirmwareVersion {
     u8 major;
@@ -54,7 +54,7 @@ enum class LanguageCode : u64 {
     BrazilianPortuguese = "pt-BR"_u64,
 };
 
-inline LanguageCode ToLanguageCode(SystemLanguage lang) {
+inline LanguageCode toLanguageCode(SystemLanguage lang) {
     switch (lang) {
     case SystemLanguage::AmericanEnglish:
         return LanguageCode::AmericanEnglish;

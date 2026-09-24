@@ -8,12 +8,12 @@ namespace hydra::input::sdl {
 
 class Controller : public IController {
   public:
-    Controller(SDL_Gamepad* handle_) : handle{handle_} {}
+    explicit Controller(SDL_Gamepad* handle_) : handle{handle_} {}
     ~Controller() override { SDL_CloseGamepad(handle); }
 
   protected:
-    bool IsPressedImpl(ControllerInput input) override;
-    f32 GetAxisValueImpl(ControllerInput input) override;
+    bool isPressedImpl(ControllerInput input) override;
+    f32 getAxisValueImpl(ControllerInput input) override;
 
   private:
     SDL_Gamepad* handle;

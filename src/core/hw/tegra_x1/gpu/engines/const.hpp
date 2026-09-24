@@ -8,6 +8,7 @@ struct Iova {
     u32 hi;
     u32 lo;
 
+    // NOLINTNEXTLINE(cppcoreguidelines-explicit-constructor)
     operator u64() const {
         return static_cast<u64>(hi) << 32 | static_cast<u64>(lo);
     }
@@ -49,7 +50,7 @@ enum class IndexType : u32 {
     None,
 };
 
-inline u32 get_index_type_size(IndexType type) {
+inline u32 getIndexTypeSize(IndexType type) {
     switch (type) {
     case IndexType::UInt8:
         return sizeof(u8);
@@ -157,8 +158,8 @@ enum class BlockDim : u32 {
     QuarterGob = 14,
 };
 
-inline i32 get_block_size_log2(const BlockDim dim) {
-    return sign_extend<i32, 4>(static_cast<i32>(dim));
+inline i32 getBlockSizeLog2(const BlockDim dim) {
+    return signExtend<i32, 4>(static_cast<i32>(dim));
 }
 
 enum class ColorWriteMask : u32 {
